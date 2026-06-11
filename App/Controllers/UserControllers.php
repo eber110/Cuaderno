@@ -1,0 +1,28 @@
+<?php
+  
+namespace App\Controllers;
+
+use App\Models\UserModels;
+use Base\Control\Control;
+use Base\Module\ResponseModule;
+
+class UserControllers extends Control{
+
+  public function userPage(string $user){
+  
+    $userData = new UserModels;
+    $userData = $userData->userExists($user);
+
+    if (!$userData) {
+      return ResponseModule::redirect("/", "El usuario {$user}, no existe!", 2);
+    }
+
+    $data = [
+      "user" => "Hola, {$user}",
+      "dataUser" => $userData[0]
+      ];
+    return $this->view("User.index", $data);
+  
+  }
+
+}

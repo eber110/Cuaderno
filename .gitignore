@@ -1,0 +1,5 @@
+/vendor/
+.env
+/App/Public/Min/
+/cache/
+/logs/

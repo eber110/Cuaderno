@@ -1,0 +1,80 @@
+/***VAR***/
+
+:root {
+  --font: 'GoogleSansFlex_120pt', sans-serif;
+  --font2: 'RobotoCondensed', sans-serif;
+  --font3: 'AluminiSansSC', sans-serif;
+  --font-size: 24px;
+  --width-window: 1500px;
+  --scrollbar-width: thin;
+  --scrollbar-hide: none;
+
+  --body: #FFF9E5;
+
+  --text-primary:   #00124D;
+  --text-secondary: #FFF9E5;
+  --text-inactive:   #bdbdbd;
+
+  /*Config color site*/
+  --back-color: #FFC7B3;
+  --back-color2: #B3FFED;
+  --back-color3: #B3C4FF;
+  --back-color4: #00FFC3;
+  --back-color5: #FF4400;
+  --back-color6: #003CFF;
+  --back-color7: #B3EBFF;
+  --back-color8: #00124D;
+
+  --back-color-hover: oklch(from var(--back-color) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color2-hover: oklch(from var(--back-color2) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color3-hover: oklch(from var(--back-color3) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color4-hover: oklch(from var(--back-color4) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color5-hover: oklch(from var(--back-color5) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color6-hover: oklch(from var(--back-color6) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color7-hover: oklch(from var(--back-color7) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color8-hover: oklch(from var(--back-color8) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+
+  --success: #00b900;
+  --hover-success: #04ea04;
+
+  --caution: #ff8c00;
+  --hover-caution: #fead4b;
+
+  --danger: #ff0000;
+  --hover-danger: #fc6161;
+
+  --sepia: sepia(60%);
+
+  --transition: all 0.15s ease-in-out;
+  --transition-slow: all 0.25s ease-in-out;
+  
+}
+
+/* Modo oscuro - sobrescribe la paleta de colores */
+[data-theme="dark"] {
+
+  --body: #092743;
+
+  --text-primary:   #e6f3ff;
+  --text-secondary: #051c31;
+  --text-inactive:   #bdbdbd;
+
+  --back-color:  #0C345A;
+  --back-color2: #124E87;
+  --back-color3: #1869B4;
+  --back-color4: #4B9CE7;
+  --back-color5: #78B4ED;
+  --back-color6: #A5CDF3;
+  --back-color7: #432509;
+  --back-color8: #F6D8BC;
+
+  --back-color-hover:  color-mix(in srgb, var(--back-color), black 20%);
+  --back-color2-hover: color-mix(in srgb, var(--back-color2), white 20%);
+  --back-color3-hover: color-mix(in srgb, var(--back-color3), white 20%);
+  --back-color4-hover: color-mix(in srgb, var(--back-color4), white 20%);
+  --back-color5-hover: color-mix(in srgb, var(--back-color5), white 20%);
+  --back-color6-hover: color-mix(in srgb, var(--back-color6), black 20%);
+  --back-color7-hover: color-mix(in srgb, var(--back-color7), white 10%);
+  --back-color8-hover: color-mix(in srgb, var(--back-color8), black 10%);
+
+}

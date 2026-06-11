@@ -1,0 +1,7 @@
+.back-body{
+  background-color: #ffffff;
+}
+
+.shadow-menu{
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.15));
+}
