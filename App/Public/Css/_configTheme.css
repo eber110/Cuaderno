@@ -43,7 +43,7 @@
   --danger: #ff0000;
   --hover-danger: #fc6161;
 
-  --sepia: sepia(60%);
+  --sepia: sepia(40%);
 
   --transition: all 0.15s ease-in-out;
   --transition-slow: all 0.25s ease-in-out;

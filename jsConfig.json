@@ -8,7 +8,7 @@
     "exclude": [],
     "functions": {
         "defer": {
-            "notification": [ "shadow border2 textw sepia30"]
+            "notification": ["shadow border2 textw"]
         },
         "async": {}
     }

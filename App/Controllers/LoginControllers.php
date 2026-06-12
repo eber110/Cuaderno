@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use Base\Control\Control;
+use Base\Module\ResponseModule;
 
 class LoginControllers extends Control{
 
@@ -14,8 +15,14 @@ class LoginControllers extends Control{
   }
 
   //post: procesa los datos del login
-  public function processLogin(){
+  public function processLogin(array | string $requestData){
     
+    foreach ($requestData as $value) {
+      if (!$value) {
+        return ResponseModule::redirect("/ingresar", "Debes rellenar todos los datos", 2);
+      }
+    }
+    var_dump($requestData);
   
   }
 
@@ -27,8 +34,14 @@ class LoginControllers extends Control{
   }
 
   //post: procesa los datos del registro de nuevo usuario
-  public function processRegister(){
+  public function processRegister(array | string $requestData){
     
+    foreach ($requestData as $value) {
+      if ($value == "") {
+        return ResponseModule::redirect("/registrar", "Debes rellenar todos los datos", 2);
+      }
+    }
+    var_dump($requestData);
   
   }
 
