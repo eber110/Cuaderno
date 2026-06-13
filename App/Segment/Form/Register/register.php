@@ -1,11 +1,12 @@
 <?php
   $style = "br10 mb5";
 ?>
-<form action="/registrar" method="post">
+<form action="/registrar" method="post" autocomplete="off">
   <div class="flex-column gap10">
     
     <label for="username" class="x18 bold500">
       <input type="text" name="username" id="" placeholder="Usuario" class="<?= $style?>" required>
+      <p class="input-note x18 xp16 bold700">Mínimo 4 letras y sin espacios</p>
     </label>
 
     <label for="email" class="x18 bold500">
@@ -14,7 +15,7 @@
 
     <label for="pass" class="x18 bold500">
       <input type="password" name="pass" id="" placeholder="Contraseña" class="<?= $style?>" required>
-      <p class="input-note x18 xp16 bold700">Mínimo 8 caracteres y 1 caracter especial ( _ @ # / - )</p>
+      <p class="input-note x18 xp16 bold700">Mín 8 caracteres, mín 1 mayúscula y mín 1 numero</p>
     </label>
 
     <label for="repass" class="x18 bold500">

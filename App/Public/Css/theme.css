@@ -1,5 +1,13 @@
+:root{
+  --back-body-theme: #ffffff;
+}
+
+[data-theme="dark"] {
+  --back-body-theme: #00384D;
+}
+
 .back-body{
-  background-color: #ffffff;
+  background-color: var(--back-body-theme);
 }
 
 .shadow-menu{
