@@ -29,15 +29,20 @@ class LoginControllers extends Control{
     $userExists = new LoginModels;
     $userTrue = $userExists->loginApp($requestData["username"], $requestData["pass"]);
 
-    if (!$userTrue[0]) {
+    if (!$userTrue[0] && $userTrue[1] == "rate_limited") {
+      
+      return ResponseModule::redirect("/ingresar", "Has hecho muchos intentos para ingresar");
+    }
+
+    /*if (!$userTrue[0]) {
       if (!$userTrue[1] == 1) return ResponseModule::redirect("/ingresar", "El usuario no es valido");
       if (!$userTrue[1] == 0) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
     }else{
       if (!$userTrue["encrypted"]) return ResponseModule::redirect("/", "Tú contraseña no esta encriptada", 1);
     }
 
-    return ResponseModule::redirect("/");
-  
+    return ResponseModule::redirect("/");*/
+  var_dump($userTrue);
   }
 
   //get: register, vista del form registrador de usuarios

@@ -10,13 +10,21 @@ class LoginModels extends Builder{
 
   public function loginApp(string $userName, string $pass) : bool | array{
 
-    $login = $this->login(
+    $login = $this->rate(5, 3600)->login(
       "password_hash",
       $pass,
       $userName,
       [
         "username",
         "email"
+      ],
+      [
+        "password_hash",
+        "email_verification_token",
+        "email_verification_token_expires_at",
+        "password_reset_token",
+        "password_reset_token_expires_at",
+        "two_factor_secret"
       ]
     );
 
