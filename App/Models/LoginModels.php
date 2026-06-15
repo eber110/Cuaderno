@@ -10,7 +10,7 @@ class LoginModels extends Builder{
 
   public function loginApp(string $userName, string $pass) : bool | array{
 
-    $login = $this->rate(5, 3600)->login(
+    $login = $this->rate(5, 60)->login(
       "password_hash",
       $pass,
       $userName,
