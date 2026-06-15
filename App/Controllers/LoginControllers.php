@@ -2,8 +2,10 @@
   
 namespace App\Controllers;
 
+use App\Models\LoginModels;
 use Base\Control\Control;
 use Base\Module\ResponseModule;
+use Base\Module\Session;
 use Base\Module\ValidatorModule;
 
 class LoginControllers extends Control{
@@ -17,22 +19,24 @@ class LoginControllers extends Control{
 
   //post: procesa los datos del login
   public function processLogin(array | string $requestData){
-    
+  
     foreach ($requestData as $value) {
       if (!$value) {
         return ResponseModule::redirect("/ingresar", "Debes rellenar todos los datos", 2);
       }
     }
+        
+    $userExists = new LoginModels;
+    $userTrue = $userExists->loginApp($requestData["username"], $requestData["pass"]);
 
-    $userName =  ValidatorModule::camp($requestData["username"], [
-      "min_length" => [4, "El nombre de usuario debe tener al menos 4 letras"],
-      "space" => [false, "El nombre de usuario no debe contener espacios"]
-    ]);
-    if (!$userName[0]) return ResponseModule::redirect("/ingresar", $userName[1], 2);
+    if (!$userTrue[0]) {
+      if (!$userTrue[1] == 1) return ResponseModule::redirect("/ingresar", "El usuario no es valido");
+      if (!$userTrue[1] == 0) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
+    }else{
+      if (!$userTrue["encrypted"]) return ResponseModule::redirect("/", "Tú contraseña no esta encriptada", 1);
+    }
 
-    //validación con el model para ver si el login coincide con la bd
-    var_dump($userName);
-    var_dump($requestData);
+    return ResponseModule::redirect("/");
   
   }
 
@@ -52,6 +56,7 @@ class LoginControllers extends Control{
       }
     }
 
+    #---Validación de datos
     $userName =  ValidatorModule::camp($requestData["username"], [
       "min_length" => [4, "El nombre de usuario debe tener al menos 4 letras"],
       "space" => [false, "El nombre de usuario no debe contener espacios"]
@@ -59,6 +64,13 @@ class LoginControllers extends Control{
     if (!$userName[0]) return ResponseModule::redirect("/registrar", $userName[1], 2);
 
     var_dump($requestData);
+  
+  }
+
+  public function exitApp(){
+    
+    Session::session_end_all();
+    return ResponseModule::redirect("/");
   
   }
 

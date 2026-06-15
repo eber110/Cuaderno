@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\ResponseModule;
+use Base\Module\Session;
 
 class UserControllers extends Control{
 
@@ -19,7 +20,8 @@ class UserControllers extends Control{
 
     $data = [
       "user" => "Hola, {$user}",
-      "dataUser" => $userData[0]
+      "dataUser" => $userData[0],
+      "connect" => Session::session_active()
       ];
     return $this->view("User.index", $data);
   

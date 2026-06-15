@@ -12,6 +12,6 @@
       <a href="/registrar" class="color5-hover x18 bold500">Crea una aquí.</a>
     </div>
   </div>
-
+  <?//= var_dump(\Base\Module\Session::session_active())?>
   <?php _template("Footer.footerRegister");?>
 </main>
