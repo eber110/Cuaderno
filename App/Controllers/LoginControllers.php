@@ -85,6 +85,7 @@ class LoginControllers extends Control{
         return $this->json(["status" => "available", "message" => "El nombre de usuario está disponible."]);
       }
     } catch (\Exception $e) {
+      $matches = [];
       if (strpos($e->getMessage(), "Rate limit exceeded") !== false) {
         preg_match('/Try again in (\d+) seconds/', $e->getMessage(), $matches);
         $seconds = isset($matches[1]) ? intval($matches[1]) : 300;
