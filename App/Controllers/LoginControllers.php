@@ -202,6 +202,7 @@ class LoginControllers extends Control{
     }
   }
 
+  //elimina la sesion y la cierra pero solo la sesion user o $_SESSION["user"]
   public function exitApp(){
     
     Session::session_end_all();
