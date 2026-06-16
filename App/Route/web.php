@@ -32,7 +32,7 @@ Route::middleware([AuthMiddleware::class])->group(function(){
   Route::get("/ingresar", [LoginControllers::class, "login"]);
   Route::post("/ingresar", [LoginControllers::class, "processLogin"]);
   Route::get("/registrar", [LoginControllers::class, "register"]);
-  Route::post("/registrar", [LoginControllers::class, "processRegister"]);
+  #estas rutas chequean el usuario y el email para registrar los usuarios
   Route::post("/registrar/check-username", [LoginControllers::class, "checkUsername"]);
   Route::post("/registrar/check-email", [LoginControllers::class, "checkEmail"]);
 
