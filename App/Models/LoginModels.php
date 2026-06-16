@@ -32,4 +32,25 @@ class LoginModels extends Builder{
   
   }
 
+  /**
+   * Verifica si un nombre de usuario existe, aplicando un límite de tasa (Rate Limit).
+   * Permite 10 intentos por IP y bloquea por 5 minutos (300 segundos).
+   * 
+   * @param string $username Nombre de usuario a comprobar.
+   * @return array|false Datos del usuario si existe, o false.
+   */
+  public function checkUserExists(string $username) {
+    return $this->rate(10, 300)->where("username", $username)->get_one();
+  }
+
+  /**
+   * Verifica si un correo electrónico ya está registrado.
+   * 
+   * @param string $email Correo a comprobar.
+   * @return array|false Datos del usuario si existe, o false.
+   */
+  public function checkEmailExists(string $email) {
+    return $this->where("email", $email)->get_one();
+  }
+
 }

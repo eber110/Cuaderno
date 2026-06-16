@@ -33,6 +33,8 @@ Route::middleware([AuthMiddleware::class])->group(function(){
   Route::post("/ingresar", [LoginControllers::class, "processLogin"]);
   Route::get("/registrar", [LoginControllers::class, "register"]);
   Route::post("/registrar", [LoginControllers::class, "processRegister"]);
+  Route::post("/registrar/check-username", [LoginControllers::class, "checkUsername"]);
+  Route::post("/registrar/check-email", [LoginControllers::class, "checkEmail"]);
 
 });
 

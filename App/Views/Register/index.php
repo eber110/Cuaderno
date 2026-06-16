@@ -2,9 +2,14 @@
   <?php _menu("Register.menuRegister");?>
 
   <div class="wpx610 w-mid-70 w-sml-100 flex-column gap10">
-    <div class="back3 br15 p15 flex-column gap20">
-      <h1 class="xp40">Regístrate aquí!</h1>
-      <?php _form("Register.register");?>
+    <div id="step-username-container" class="back3 br15 p15 flex-column gap20">
+      <?php _part("Register.userChoice");?>
+    </div>
+    <div id="step-email-container" class="back3 br15 p15 flex-column gap20" style="display: none;">
+      <?php _part("Register.emailSelection");?>
+    </div>
+    <div id="step-password-container" class="back3 br15 p15 flex-column gap20" style="display: none;">
+      <?php _part("Register.enterPassword");?>
     </div>
 
     <div class="flex-row center-center gap10">
@@ -15,3 +20,4 @@
 
   <?php _template("Footer.footerRegister");?>
 </main>
+<script src="/App/Public/Js/register.js" defer></script>
