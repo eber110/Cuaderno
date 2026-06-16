@@ -14,7 +14,7 @@
     </label>
     
     <div class="flex-row center-between gap10 mt10 mb10">
-      <input type="submit" value="Ingresar" class="w-auto br15 back5-hover textc p10 pl20 pr20">
+      <input type="submit" value="Ingresar" class="w-auto br15 back5-hover textc p10 pl20 pr20 pointer bold600 border-none">
     </div>
 
   </div>
