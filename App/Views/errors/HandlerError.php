@@ -22,13 +22,13 @@
 
 ?>
 
-<div id="error-<?= $msg[1]?>" class="container-xl h-dvh flex column-direction center-center">
-  <div class="card back8 br0 w100 flex column-direction center-center">
+<div id="error-<?= $msg[1]?>" class="container-xl h-dvh flex-column center-center">
+  <div class="card back8 br0 w100 flex-column center-center">
 
     <div class="w50 w-mid-90 w-sml-100 flex-between-column">
 
-      <div class="text-center color2 x50 bold600 flex row-direction center-start gap10">
-        <p class="x50 bold600 flex row-direction center-center"><?= $svg?></p>
+      <div class="text-center color2 x50 bold600 flex-row center-start gap10">
+        <p class="x50 bold600 flex-row center-center"><?= $svg?></p>
         <p class="x50 bold600">Error</p>
         <p class="x50 bold600"><?= $msg[1]?>!</p>
       </div>

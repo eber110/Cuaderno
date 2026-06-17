@@ -10,7 +10,7 @@ use Base\Module\Session;
 use Core\Route;
 
 #este grupo de paginas son solo para el usuario logueado
-Route::prefix("/configuracion")->middleware([DashboardMiddleware::class])->group(function(){
+Route::prefix("/panel")->middleware([DashboardMiddleware::class])->group(function(){
 
   Route::get("/:user", function($user){
     //$userSession = Session::session_data("username");
