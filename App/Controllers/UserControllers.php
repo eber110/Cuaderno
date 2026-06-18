@@ -19,10 +19,10 @@ class UserControllers extends Control{
     }
 
     $data = [
-      "user" => "Hola, {$user}",
-      "dataUser" => $userData[0],
-      "connect" => Session::session_active()
-      ];
+      "user" => $user,
+      "dataUser" => $userData[0]
+    ];
+    
     return $this->view("User.index", $data);
   
   }
