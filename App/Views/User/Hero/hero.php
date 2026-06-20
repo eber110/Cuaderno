@@ -7,7 +7,7 @@
       </figure>
     </div>
     <h1 class="x30">Hola, <?= $user ?? "Usuario";?></h1>
-    <p class="p40 pt10 pb10 text-c">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Soluta eum ex, architecto atque molestiae delectus exercitationem perferendis asperiores quas voluptas ratione at sit, adipisci, sapiente perspiciatis eos autem deserunt ad?</p>
+    <p class="p50 pt10 pb10 text-c">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Soluta eum ex, architecto atque molestiae delectus exercitationem perferendis asperiores quas voluptas ratione at sit, adipisci, sapiente perspiciatis eos autem deserunt ad?</p>
 
   </div>
 </main>
