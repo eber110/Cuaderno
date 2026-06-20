@@ -1,0 +1,15 @@
+:root{
+  --back-body-theme: #ffffff;
+}
+
+[data-theme="dark"] {
+  --back-body-theme: #00384D;
+}
+
+.back-body{
+  background-color: var(--back-body-theme);
+}
+
+.shadow-menu{
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.15));
+}
