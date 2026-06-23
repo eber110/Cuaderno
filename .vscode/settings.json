@@ -23,5 +23,15 @@
   "editor.fontSize": 15,
   "intelephense.diagnostics.undefinedClassConstants": false,
   "intelephense.trace.server": "messages",
-  "files.autoSave": "afterDelay"
+  "files.autoSave": "afterDelay",
+  "cSpell.language": "en,es",
+  "cSpell.enabledLanguageIds": [
+    "php",
+    "javascript",
+    "json",
+    "html",
+    "markdown",
+    "yaml",
+    "plaintext"
+  ]
 }
