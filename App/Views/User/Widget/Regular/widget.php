@@ -6,12 +6,12 @@
   .theme-button{
     background-color: <?= $widget["back"]?>;
     color: <?= $widget["color"]?>;
-    <?php if ($widget["hover"]) echo "&:hover{background-color:  oklch(from ".$widget["back"]." calc(l * 1.2) calc(c * 1.2) calc(h * 0.9));}"?>
+    <?php if ($widget["hover"]) echo "&:hover{background-color:  oklch(from ".$widget["back"]." calc(l * 1.05) calc(c * 1.05) calc(h * 1.05));}"?>
   }
 
   .theme-button-menu{
     background-color: <?= $widget["back"]?>00;
-    &:hover{background-color: oklch(from <?= $widget["back"]?> calc(l * 0.95) calc(c * 0.95) calc(h * 0.9));}
+    &:hover{background-color: oklch(from <?= $widget["back"]?> calc(l * 0.98) calc(c * 0.98) calc(h * 0.98));}
   }
 
   .w-theme-center{
@@ -40,7 +40,7 @@
 
         <div class="hidden">
           <div class="flex-column center-center w100">
-            <div class="wpx550 w-sml-95 back1 p20">
+            <div class="wpx550 w-sml-95 back1 br15 p20">
               <h2>Título del Modal</h2>
               <p>Contenido del modal aquí...</p>
               <button>Acción</button>
