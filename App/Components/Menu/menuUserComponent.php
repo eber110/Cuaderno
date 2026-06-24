@@ -4,7 +4,7 @@ namespace App\Components\Menu;
 
 use Base\Module\Session;
 
-class menuProfileComponent
+class menuUserComponent
 {
 
   public static function data($view = "User.menuUser", $viewType = 'menu', $params = [])
