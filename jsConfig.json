@@ -8,7 +8,9 @@
     "exclude": [],
     "functions": {
         "defer": {
-            "notification": ["shadow border2 textw"]
+            "notification": ["shadow border2 textw"],
+            "modalMenu": [],
+            "modal": []
         },
         "async": {}
     }
