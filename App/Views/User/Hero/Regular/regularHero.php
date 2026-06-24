@@ -1,3 +1,6 @@
+<?php
+  _component("Menu.menuProfile");
+?>
 <main class="">
   <div class="textc hem15 flex-column center-center">
     
