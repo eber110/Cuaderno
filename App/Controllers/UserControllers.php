@@ -21,7 +21,7 @@ class UserControllers extends Control{
     $data = [
       "user" => $user,
       "dataUser" => $userData[0],
-      "widget" => ["style" => "Regular", "back" => "#001329", "hover" => true, "color" => "#d6d6d6"]// este parámetro se recupera de el modelo DesignPreferenceModels
+      "widget" => ["style" => "Regular", "back" => "#c2d6eb", "hover" => true, "color" => "#222222"]// este parámetro se recupera de el modelo DesignPreferenceModels
     ];
     
     return $this->view("User.index", $data);

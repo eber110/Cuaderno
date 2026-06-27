@@ -11,7 +11,7 @@
 
   .theme-button-menu{
     background-color: <?= $widget["back"]?>00;
-    &:hover{background-color: oklch(from <?= $widget["back"]?> calc(l * 1.05) c h);}
+    &:hover{background-color: oklch(from <?= $widget["back"]?> calc(l * 1.25) c h);}
   }
 
   .w-theme-center{
