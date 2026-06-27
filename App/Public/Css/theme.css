@@ -1,9 +1,11 @@
 :root{
   --back-body-theme: #ffffff;
+  --back-item : #e4e4e4;
 }
 
 [data-theme="dark"] {
   --back-body-theme: #00384D;
+  --back-item : #252525;
 }
 
 .back-body{
@@ -19,6 +21,10 @@
   &:hover{
     background-color: var(--back-color3);
   }
+}
+
+.back-modal-item{
+  background-color: var(--back-item);
 }
 
 /*desktop*/
