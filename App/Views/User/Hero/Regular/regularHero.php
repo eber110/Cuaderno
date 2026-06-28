@@ -1,6 +1,6 @@
-<main class="">
+<main class="color-text-card">
   <?php _component("Menu.menuUser");?>
-  <div class="textc hem15 flex-column center-center">
+  <div class="hem15 flex-column center-center">
     
     <div class="flex-column center-center hpx120">
       <figure class="hpx100 wpx100 br100 back1">
