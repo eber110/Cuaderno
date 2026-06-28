@@ -1,7 +1,10 @@
-<a href="#" target="_blank" class="flex-row center-between hpx65 br5 w100 theme-button">
+<?php
+  /** @var mixed $widget */
+?>
+<a href="#" target="_blank" class="flex-row center-between hpx65 w100 theme-button <?= $widget["borders"][0]?>">
 
   <figure class="ar-square p7 wpx65">
-    <img src="<?= DIR_SHOW_MEDIA?>/prod.jpg" alt="" class="cover br3">
+    <img src="<?= DIR_SHOW_MEDIA?>/prod.jpg" alt="" class="cover <?= $widget["borders"][1]?>">
   </figure>
 
   <p class="flex-row center-center w-theme-center bold500">

@@ -10,7 +10,9 @@
         "defer": {
             "notification": ["shadow border2 textw"],
             "modalMenu": [],
-            "modal": []
+            "modal": [],
+            "protectedMenuImage": [false],
+            "loadImgModern": []
         },
         "async": {}
     }
