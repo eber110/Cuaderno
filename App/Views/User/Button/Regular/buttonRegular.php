@@ -7,7 +7,7 @@
     <img src="<?= DIR_SHOW_MEDIA?>/prod.jpg" alt="" class="cover <?= $card["borders"][1]?>">
   </figure>
 
-  <p class="flex-row center-center w-theme-center bold500">
+  <p class="flex-row center-center w-theme-center bold500 text-c">
     Escribe el links...
   </p>
 

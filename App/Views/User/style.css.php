@@ -24,11 +24,11 @@
     }
   <?php elseif ($card["backCard"][1] == "gradientUp") :?>
     .back-card{
-      background: radial-gradient(circle at top, <?= $card["backCard"][0]?> 20%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c * 0.90) h) 100%);
+      background: radial-gradient(circle at bottom, <?= $card["backCard"][0]?> 70%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c - 0.02) h) 100%);
     }
   <?php elseif ($card["backCard"][1] == "gradientDown") :?>
     .back-card{
-      background: radial-gradient(circle at bottom, <?= $card["backCard"][0]?> 20%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c * 0.90) h) 100%);
+      background: radial-gradient(circle at top, <?= $card["backCard"][0]?> 50%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c - 0.02) h) 100%);
     }
   <?php endif?>
 
