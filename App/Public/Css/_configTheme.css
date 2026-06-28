@@ -25,14 +25,14 @@
   --back-color7: #B3EBFF;
   --back-color8: #00124D;
 
-  --back-color-hover: oklch(from var(--back-color) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color2-hover: oklch(from var(--back-color2) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color3-hover: oklch(from var(--back-color3) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color4-hover: oklch(from var(--back-color4) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color5-hover: oklch(from var(--back-color5) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color6-hover: oklch(from var(--back-color6) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color7-hover: oklch(from var(--back-color7) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
-  --back-color8-hover: oklch(from var(--back-color8) calc(l * 1.5) calc(c * 1.5) calc(h * 0.9));
+  --back-color-hover: oklch(from var(--back-color) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color2-hover: oklch(from var(--back-color2) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color3-hover: oklch(from var(--back-color3) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color4-hover: oklch(from var(--back-color4) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color5-hover: oklch(from var(--back-color5) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color6-hover: oklch(from var(--back-color6) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color7-hover: oklch(from var(--back-color7) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color8-hover: oklch(from var(--back-color8) calc(l * 1.2) calc(c - 0.02) h);
 
   --success: #00b900;
   --hover-success: #04ea04;
@@ -67,14 +67,5 @@
   --back-color6: #A5CDF3;
   --back-color7: #432509;
   --back-color8: #F6D8BC;
-
-  --back-color-hover:  color-mix(in srgb, var(--back-color), black 20%);
-  --back-color2-hover: color-mix(in srgb, var(--back-color2), white 20%);
-  --back-color3-hover: color-mix(in srgb, var(--back-color3), white 20%);
-  --back-color4-hover: color-mix(in srgb, var(--back-color4), white 20%);
-  --back-color5-hover: color-mix(in srgb, var(--back-color5), white 20%);
-  --back-color6-hover: color-mix(in srgb, var(--back-color6), black 20%);
-  --back-color7-hover: color-mix(in srgb, var(--back-color7), white 10%);
-  --back-color8-hover: color-mix(in srgb, var(--back-color8), black 10%);
 
 }

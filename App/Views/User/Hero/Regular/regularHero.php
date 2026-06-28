@@ -4,7 +4,7 @@
     
     <div class="flex-column center-center hpx120">
       <figure class="hpx100 wpx100 br100 back1">
-        <img src="<?= DIR_SHOW_MEDIA.'/Custom/porfolio_eber_dark.png'?>" alt="" class="cover image-protected">
+        <img src="<?= DIR_SHOW_MEDIA.'/Custom/porfolio_eber_dark.png'?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected">
       </figure>
     </div>
     <h1 class="x30 bold500">Hola, <?= $user ?? "Usuario";?></h1>

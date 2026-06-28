@@ -13,7 +13,8 @@
             "modal": [],
             "protectedMenuImage": [false],
             "loadImgModern": [],
-            "cropImage": []
+            "cropImage": [],
+            "cutPhrase": []
         },
         "async": {}
     }

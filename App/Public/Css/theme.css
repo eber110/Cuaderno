@@ -51,6 +51,10 @@
   & img {border: solid 1px #000000;}
 }
 
+.text-menu-modal{
+  color: #252525;
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 
