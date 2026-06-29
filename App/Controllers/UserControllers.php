@@ -22,6 +22,7 @@ class UserControllers extends Control{
       "user" => $user,
       "dataUser" => $userData[0],
       "card" => [
+        "header" => "midHero",
         "backCard" => ["#b12929", "gradientUp"],
         "colorText" => "#ffffff",
         "style" => "Regular",

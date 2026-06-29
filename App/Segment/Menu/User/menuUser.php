@@ -1,4 +1,4 @@
-<div class="p20 pt30 pb30">
+<div class="">
 
   <?php if ($connect ?? false == true) :?>
     <div class="flex-row center-between">

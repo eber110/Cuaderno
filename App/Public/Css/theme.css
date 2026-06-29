@@ -55,6 +55,16 @@
   color: #252525;
 }
 
+.faded-image{
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+.faded-radial-image{
+  -webkit-mask-image: radial-gradient(circle, black 40%, transparent 100%);
+  mask-image: radial-gradient(circle, black 40%, transparent 100%);
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 
@@ -73,7 +83,7 @@
 @media screen and (min-width: 577px) {
 
   .dvh-cuaderno {
-    height: calc(100dvh - 40px);
+    min-height: calc(100dvh - 40px);
   }
 
 }
@@ -82,7 +92,7 @@
 @media screen and (max-width: 576px) {
 
   .dvh-cuaderno {
-    height: 100dvh;
+    min-height: 100dvh;
   }
 
 }
