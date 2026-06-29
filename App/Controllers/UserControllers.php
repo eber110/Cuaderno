@@ -22,15 +22,15 @@ class UserControllers extends Control{
       "user" => $user,
       "dataUser" => $userData[0],
       "card" => [
-        "header" => "midHero",
-        "backCard" => ["#b12929", "gradientUp"],
+        "header" => "regularHero",
+        "backCard" => ["#283380", "gradientDown"],
         "colorText" => "#ffffff",
         "style" => "Regular",
-        "borders" => ["br10", "br5"],
-        "shadow" => "shadow-3",
-        "back" => "#ff7676",
+        "borders" => ["br100", "br50"],
+        "shadow" => "shadow-1",
+        "back" => "#ffffff",
         "hover" => true,
-        "color" => "#ffffff"
+        "color" => "#272727"
       ]// este parámetro se recupera de el modelo DesignPreferenceModels
     ];
     
