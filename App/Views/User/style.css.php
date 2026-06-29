@@ -19,7 +19,7 @@
   }
 
   .back-card-container{
-    background-color: oklch(from <?= $card["backCard"][0]?> calc(l * 0.80) calc(c - 0.03) h / 86%);
+    background-color: oklch(from <?= $card["backCard"][0]?> calc(l * 0.80) calc(c - 0.01) h / 88%);
   }
 
   <?php if ($card["backCard"][1] == "solid") :?>

@@ -7,7 +7,7 @@
     <img src="<?= DIR_SHOW_MEDIA?>/prod.jpg" alt="" class="cover <?= $card["borders"][1]?>">
   </figure>
 
-  <p class="flex-row center-center w80 bold500 text-c cut-phrase hpx65">
+  <p class="flex-row center-center w80 bold500 text-c cut-phrase hpx65" cant-col="2">
     Lorem ipsum dolor sit amet consectetur, adipisicing elit. Itaque quos consequatur necessitatibus atque maxime laborum dolores, pariatur in aut obcaecati accusantium, iusto totam. Deleniti fugiat a quisquam tempore unde excepturi!
   </p>
 

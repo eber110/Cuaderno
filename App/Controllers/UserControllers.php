@@ -23,14 +23,20 @@ class UserControllers extends Control{
       "dataUser" => $userData[0],
       "card" => [
         "header" => "regularHero",
-        "backCard" => ["#283380", "gradientDown"],
+        "title" => "Esc",
+        "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
+        "backCard" => ["#151b41", "gradientDown"],
         "colorText" => "#ffffff",
         "style" => "Regular",
-        "borders" => ["br100", "br50"],
+        "borders" => ["br10", "br5"],
         "shadow" => "shadow-1",
         "back" => "#ffffff",
         "hover" => true,
-        "color" => "#272727"
+        "color" => "#272727",
+        "rrss" => [
+          [svg("x"),"x","https://x.com/eberestudio"],
+          [svg("linkedin"),"Linkedin","https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"]
+        ]
       ]// este parámetro se recupera de el modelo DesignPreferenceModels
     ];
     

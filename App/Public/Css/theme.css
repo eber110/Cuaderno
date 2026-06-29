@@ -65,6 +65,14 @@
   mask-image: radial-gradient(circle, black 40%, transparent 100%);
 }
 
+.hpxm550{
+  max-height: 550px;
+}
+
+.hpxm230{
+  max-height: 230px;
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 
@@ -93,6 +101,14 @@
 
   .dvh-cuaderno {
     min-height: 100dvh;
+  }
+
+  .hpxm-sml-400{
+    max-height: 400px;
+  }
+
+  .hpxm-sml-150{
+    max-height: 150px;
   }
 
 }
