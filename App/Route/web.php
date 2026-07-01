@@ -18,6 +18,15 @@ Route::prefix("/panel")->middleware([DashboardMiddleware::class])->group(functio
     //  return ResponseModule::redirect("/{$userSession}", "No puedes acceder a otra cuenta");
     //}
     echo "Hola ". $user;
+
+    $rrss = "X, Facebook, LinkedIn, Reddit, Tumblr, WhatsApp, Pinterest, Telegram, Skype, Email, Threads, Bluesky, Mastodon, VK, Line, Viber, Pocket, Flipboard, HackerNews, Mix, Snapchat";
+
+    $rrss = explode(", ", $rrss);
+
+    foreach ($rrss as $key => $value) {
+      print svg($value)." = ".$value."<br><br>";
+    }
+
   });
 
 });

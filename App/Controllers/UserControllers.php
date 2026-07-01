@@ -11,35 +11,23 @@ class UserControllers extends Control{
 
   public function userPage(string $user){
   
-    $userData = new UserModels;
-    $userData = $userData->userExists($user);
+    //crear un indice con los usuarios para consultar si existe. preferiblemente en formato json en la cache del proyecto
+    //y si el usuario existe, se puede consultar la bd a traves de UserModels.
 
+    $userData = new UserModels;
+    $userData = $userData->dataUser($user);
+
+    //esta condición debe consultar a la cache del indice de usuarios, para la seguridad del sitio.
+    //la cache se renovara cada ves que se registre un nuevo usuario
+    //MODIFICAR ESTA CONDICIÓN
     if (!$userData) {
       return ResponseModule::redirect("/", "El usuario {$user}, no existe!", 2);
     }
 
-    $data = [
-      "user" => $user,
-      "dataUser" => $userData[0],
-      "card" => [
-        "header" => "regularHero",
-        "title" => "Esc",
-        "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
-        "backCard" => ["#212347", "gradientUp"],
-        "colorText" => "#ffffff",
-        "style" => "Regular",
-        "borders" => ["br10", "br5"],
-        "shadow" => "shadow-1",
-        "back" => "#ffffff",
-        "hover" => true,
-        "color" => "#272727",
-        "rrss" => [
-          ["x","https://x.com/eberestudio"],
-          ["Linkedin","https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"]
-        ]
-      ]// este parámetro se recupera de el modelo DesignPreferenceModels
-    ];
+    $data = $userData;
     
+    //var_dump($data);
+    //var_dump($_SESSION);
     return $this->view("User.index", $data);
   
   }
