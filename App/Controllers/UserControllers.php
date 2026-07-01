@@ -34,8 +34,8 @@ class UserControllers extends Control{
         "hover" => true,
         "color" => "#272727",
         "rrss" => [
-          [svg("x"),"x","https://x.com/eberestudio"],
-          [svg("linkedin"),"Linkedin","https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"]
+          ["x","https://x.com/eberestudio"],
+          ["Linkedin","https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"]
         ]
       ]// este parámetro se recupera de el modelo DesignPreferenceModels
     ];
