@@ -25,7 +25,7 @@ class UserControllers extends Control{
         "header" => "regularHero",
         "title" => "Esc",
         "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
-        "backCard" => ["#151b41", "gradientDown"],
+        "backCard" => ["#212347", "gradientUp"],
         "colorText" => "#ffffff",
         "style" => "Regular",
         "borders" => ["br10", "br5"],

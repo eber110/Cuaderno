@@ -18,21 +18,39 @@
     width: calc(100% - 115px);
   }
 
-  .back-card-container{
-    background-color: oklch(from <?= $card["backCard"][0]?> calc(l * 0.80) calc(c - 0.01) h / 88%);
-  }
-
+  
   <?php if ($card["backCard"][1] == "solid") :?>
     .back-card{
       background-color: <?= $card["backCard"][0]?>;
     }
+    .back-card-container{
+      background-color: oklch(from <?= $card["backCard"][0]?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+    }
   <?php elseif ($card["backCard"][1] == "gradientUp") :?>
     .back-card{
-      background: radial-gradient(circle at bottom, <?= $card["backCard"][0]?> 50%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c - 0.02) h) 100%);
+      background: radial-gradient(circle at bottom,
+      <?= $card["backCard"][0]?> 20%,
+      oklch(from <?= $card["backCard"][0]?> calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%,
+      oklch(from <?= $card["backCard"][0]?> calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100%;
+    }
+    .back-card-container{
+      background: linear-gradient(0deg,
+        oklch(from <?= $card["backCard"][0]?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+        oklch(from <?= $card["backCard"][0]?> calc(l * 1.35) calc(c - 0.03) calc(h - 30) / 90%)
+      );
     }
   <?php elseif ($card["backCard"][1] == "gradientDown") :?>
     .back-card{
-      background: radial-gradient(circle at top, <?= $card["backCard"][0]?> 50%, oklch(from <?= $card["backCard"][0]?> calc(l * 0.70) calc(c - 0.02) h) 100%);
+      background: radial-gradient(circle at top,
+      <?= $card["backCard"][0]?> 20%,
+      oklch(from <?= $card["backCard"][0]?> calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%,
+      oklch(from <?= $card["backCard"][0]?> calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100%;
+    }
+    .back-card-container{
+      background: linear-gradient(180deg,
+        oklch(from <?= $card["backCard"][0]?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+        oklch(from <?= $card["backCard"][0]?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
+      );
     }
   <?php endif?>
 
