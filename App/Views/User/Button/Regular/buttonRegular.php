@@ -21,7 +21,7 @@
 
   <div class="flex-column center-center wpx50 wrap">
 
-    <div class="theme-button-menu p3 br100 flex-column center-center z-index-10 modal-btn darken">
+    <div class="theme-button-menu p3 br100 flex-column center-center z-index-10 modal-btn animated darken">
       <?= svg("ellipsis-vertical", "x14");?>
     </div>
 
