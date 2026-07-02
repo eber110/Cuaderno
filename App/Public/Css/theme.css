@@ -31,6 +31,10 @@
   background-color: var(--back-item);
 }
 
+.border-card-modal{
+  border: #bdbdbd solid 1px;
+}
+
 .image-protected{
   -webkit-user-select: none; /* Para Safari */
   user-select: none; /* Estándar moderno */

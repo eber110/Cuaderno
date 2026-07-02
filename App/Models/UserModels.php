@@ -20,6 +20,7 @@ class UserModels extends Builder{
 
     $dataUser = [
       "card" => [
+        "profile" => DOMAIN.$dataUser["username"],
         "title" => $dataUser["full_name"],
         "desc" => $dataUser["bio"],
         "header" => "regularHero",
@@ -34,6 +35,13 @@ class UserModels extends Builder{
         "rrss" => [
           ["x","https://x.com/eberestudio"],
           ["Linkedin","https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"]
+        ],
+        "content" => [
+          ["link", "prod.jpg", "Este es mi primer link", "https://www.ebersanchez.cl"],
+          ["link", "hero.jpg", "Este es mi segundo link", "https://www.ebersanchez.cl"],
+          ["link", "desc.jpg", "Este es mi tercero link", "https://www.ebersanchez.cl"],
+          ["link", "hero.jpg", "Este es mi super cuarto link", "https://www.ebersanchez.cl"],
+          ["link", "prod.jpg", "Este es mi lindo y especial quinto link", "https://www.ebersanchez.cl"],
         ]
       ]// este parámetro se recupera de el modelo DesignPreferenceModels
     ];

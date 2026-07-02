@@ -1,10 +1,15 @@
-<?php
-  /** @var mixed $card */
-?>
 <div class="flex-column center-center gap15 p30 p-sml-20">
-  <?php for ($i=0; $i < 5; $i++) : // Cuando este listo el modelo esto se manejara con un foreach?>
 
-    <?php _part("User.button".$card['style'].""); // condición de botones?>
+  <?php 
+    /** @var mixed $card */
+    
+    ($card["content"]) ?? "null";
 
-  <?php endfor?>
+    for ($i=0; $i < count($card["content"]); $i++) {
+      if ($card["content"][$i][0] == "link") {
+        _part("User.button".$card['style']."", ["dataContent" => $i]);
+      }
+    }
+  ?>
+
 </div>
