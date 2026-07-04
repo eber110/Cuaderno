@@ -26,7 +26,7 @@ class DashboardMiddleware implements MiddlewareInterface{
 
     // 4. Si está logueado pero userData entrega false (datos incompletos),
     // y no está ya en la página de /panel/:user, redirigir a rellenar sus datos
-    $currentUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $currentUri = parse_url($_SERVER['REQUEST_URI'] ?? null, PHP_URL_PATH);
     $currentUri = '/' . trim($currentUri, '/');
     $panelUri = '/panel/' . trim($user, '/');
 
