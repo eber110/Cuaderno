@@ -14,7 +14,8 @@
             "protectedMenuImage": [false],
             "loadImgModern": [],
             "cropImage": [],
-            "cutPhrase": []
+            "cutPhrase": [],
+            "codeBlock": []
         },
         "async": {}
     }
