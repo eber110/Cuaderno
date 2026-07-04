@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\LoginModels;
 use Base\Control\Control;
 use Base\Module\DateTimeModule;
+use Base\Module\LogModule;
 use Base\Module\ResponseModule;
 use Base\Module\Session;
 use Base\Module\ValidatorModule;
@@ -193,6 +194,14 @@ class LoginControllers extends Control{
       ], "index_user");
 
       if ($insertId) {
+        // Cuando se crea un nuevo usuario se cachea en userList.json en la carpeta de cache del sistema
+        LogModule::simpleLog(
+          [
+            "dir" => "/Cache/Users",
+            "name" => "userList",
+            "content" => mb_strtolower($username, 'UTF-8')// todos los usuarios se crean en minúsculas en la bd
+          ]
+        );
         return ResponseModule::redirect("/ingresar", "¡Registro exitoso! Ya puedes iniciar sesión.", 0);
       } else {
         return ResponseModule::redirect("/registrar", "Hubo un error al registrar al usuario. Inténtelo más tarde.", 2);
