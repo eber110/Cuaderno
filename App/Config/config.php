@@ -8,7 +8,7 @@
 use Dotenv\Dotenv;
 
 // Ruta base del proyecto
-$basePath = __DIR__;
+$basePath = dirname(__DIR__, 2);
 
 // Intentar cargar .env desde la raíz del proyecto
 if (file_exists($basePath . '/.env')) {

@@ -5,7 +5,7 @@
  * Este archivo carga todos los Service Providers registrados.
  */
 
-$providers = require_once __DIR__ . '/../providers.json.php';
+$providers = \Core\ConfigLoader\ProviderLoader::load();
 $instances = [];
 
 // Fase 1: Instanciar y ejecutar register() en todos los providers

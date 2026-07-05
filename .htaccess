@@ -39,6 +39,17 @@
 
 Options -MultiViews
 RewriteEngine On
+
+# --- PROTECCIÓN CONTRA HOTLINKING ---
+# Evita que otros sitios web roben ancho de banda incrustando tus imágenes.
+# Descomenta las siguientes líneas si deseas habilitarlo:
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^https?://([^/]+\.)?%{HTTP_HOST} [NC]
+# RewriteCond %{HTTP_REFERER} !google\. [NC]
+# RewriteCond %{HTTP_REFERER} !bing\. [NC]
+# RewriteCond %{HTTP_REFERER} !yahoo\. [NC]
+# RewriteRule \.(jpg|jpeg|png|gif|webp|svg|avif|ico)$ - [F,NC]
+
 RewriteCond %{REQUEST_FILENAME} !-s
 RewriteCond %{REQUEST_FILENAME} !-l
 RewriteCond %{REQUEST_FILENAME} !-f
