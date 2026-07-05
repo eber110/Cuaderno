@@ -19,7 +19,7 @@ class DashboardControllers extends Control{
 
     $data = [
       "user" => $dataUser,
-      "session" => $_SESSION ?? null
+      "session" => $_SESSION["user"] ?? false
     ];
 
     return $this->view("Dashboard.Panel.panel", $data);

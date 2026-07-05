@@ -1,11 +1,15 @@
 :root{
   --back-body-theme: #ffffff;
   --back-item : #e4e4e4;
+  --back-sidebar : #e6e6e6;
+  --text-item-sidebar : #353535;
 }
 
 [data-theme="dark"] {
-  --back-body-theme: #00384D;
-  --back-item : #252525;
+  --back-body-theme: #353535;
+  --back-item : #2e2e2e;
+  --back-sidebar : #1b1b1b;
+  --text-item-sidebar : #e6e6e6;
 }
 
 .back-body{
@@ -29,6 +33,17 @@
 
 .back-modal-item{
   background-color: var(--back-item);
+}
+
+.back-menu-sidebar{
+  background-color: var(--back-sidebar);
+}
+
+.back-item-sidebar-hover{
+  background-color: #ffffff00;
+  &:hover{
+    background-color: #cecece;
+  }
 }
 
 .border-card-modal{
