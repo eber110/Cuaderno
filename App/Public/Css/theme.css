@@ -46,6 +46,10 @@
   }
 }
 
+.back-item-active{
+  background-color: #cecece;
+}
+
 .border-card-modal{
   border: #bdbdbd solid 1px;
 }
@@ -90,6 +94,10 @@
 
 .hpxm230{
   max-height: 230px;
+}
+
+.color-icon-accordion{
+  color: #9b9b9b;
 }
 
 /*desktop*/

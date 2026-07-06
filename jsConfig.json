@@ -15,7 +15,11 @@
             "loadImgModern": [],
             "cropImage": [],
             "cutPhrase": [],
-            "codeBlock": []
+            "codeBlock": [],
+            "accordion": [],
+            "tabs": [],
+            "remoteContent": [],
+            "verticalMenu": []
         },
         "async": {}
     }
