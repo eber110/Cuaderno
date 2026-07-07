@@ -20,7 +20,7 @@ class DashboardControllers extends Control{
     }
 
     $data = [
-      "user" => $dataUser,
+      "card" => $dataUser,
       "session" => $_SESSION["user"] ?? false
     ];
 

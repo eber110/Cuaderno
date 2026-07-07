@@ -1,9 +1,10 @@
 <?php
   /** 
-   * @var mixed $user
+   * @var mixed $card
    * @var mixed $session
    */
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
+  _part("User.style.css");
 ?>
 
 <div class="container-xl h-dvh back-body text-protected">
@@ -11,7 +12,7 @@
   <div class="flex-row top-start">
 
     <div class="flex-column top-start gap20 h-dvh back-menu-sidebar panel-sidebar p15 bold500 x17 sticky top">
-      <a href="/<?= $user["profile"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
+      <a href="/<?= $card["profile"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
       
       <div class="vertical-menu animated w100" active-item="back-item-active" active-principal="back-item-active">
         <div class="flex-column top-start gap10 w100">
@@ -40,15 +41,29 @@
 
     <div class="h-dvh panel-container p20">
 
-      <div class="remote-container animated">
+      <div class="remote-container |animated">
+
         <div id="content-remote-1" class="remote-content active">
-          <div class="post-content">
-            <code><?php print_r($user);?></code>
+          <div class="back-card wpx500 pb20 br15">
+            <?php _part("User.regularHero")?>
           </div>
         </div>
-        <div id="content-remote-2" class="remote-content hidden">Contenido 2, puede ser un formulario incrustado con php</div>
-        <div id="content-remote-3" class="remote-content hidden">Contenido 3, puede ser un formulario incrustado con php</div>
-        <div id="content-remote-4" class="remote-content hidden">Contenido 4, puede ser un formulario incrustado con php</div>
+
+        <div id="content-remote-2" class="remote-content hidden h-dvh flex-column center-center">
+          <div class="hem65 w60 w-mid-100 back-card-container brtl15 brtr15 flex-column bottom-center">
+            <div class="hem60 wpx500 back-card shadow-card br15">
+  
+            </div>
+          </div>
+        </div>
+
+        <div id="content-remote-3" class="remote-content hidden">
+          Contenido 3, puede ser un formulario incrustado con php
+        </div>
+
+        <div id="content-remote-4" class="remote-content hidden">
+          Contenido 4, puede ser un formulario incrustado con php
+        </div>
       </div>
 
     </div>
