@@ -50,6 +50,14 @@
   background-color: #cecece;
 }
 
+.panel-sidebar{
+  min-width: 250px;
+}
+
+.panel-container{
+  width: calc(100% -250px);
+}
+
 .border-card-modal{
   border: #bdbdbd solid 1px;
 }

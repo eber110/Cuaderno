@@ -2,6 +2,7 @@
   
 namespace App\Controllers\Dashboard;
 
+use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\LogModule;
 use Base\Module\ResponseModule;
@@ -11,10 +12,11 @@ class DashboardControllers extends Control{
 
   public function panel(string $user){
 
-    $dataUser = LogModule::readLogLines("/Cache/UserData/{$user}.json");
+    $dataUser = new UserModels;
+    $dataUser = $dataUser->dataUser($user);
 
     if ($dataUser) {
-      $dataUser = $dataUser[0]["card"];
+      $dataUser = $dataUser["card"];
     }
 
     $data = [
