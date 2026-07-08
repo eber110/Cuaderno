@@ -50,12 +50,12 @@
   background-color: #cecece;
 }
 
-.panel-sidebar{
-  min-width: 250px;
-}
-
-.panel-container{
-  width: calc(100% - 250px);
+.closed-modal-preview{
+  background-color: #000000;
+  color: #ffffff;
+  &:hover{
+    background-color: #464646;
+  }
 }
 
 .border-card-modal{
@@ -108,6 +108,18 @@
   color: #9b9b9b;
 }
 
+.panel-sidebar{
+  min-width: 250px;
+}
+
+.panel-container{
+  width: calc(100% - 800px);
+}
+
+.preview-profile{
+  min-height: 950px;
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 
@@ -118,7 +130,9 @@
 /*tablet*/
 @media screen and (min-width: 577px) and (max-width: 992px) {
 
-
+  .panel-container{
+    width: calc(100% - 250px);
+  }
 
 }
 
