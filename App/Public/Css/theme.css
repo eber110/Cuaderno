@@ -31,6 +31,10 @@
   box-shadow: 0px 0px 80px #0000006b;
 }
 
+.shadow-card-preview{
+  outline: solid 10px #ffffffad;
+}
+
 .back-modal-item{
   background-color: var(--back-item);
 }
@@ -114,6 +118,7 @@
 
 .panel-container{
   width: calc(100% - 800px);
+  min-width: 550px;
 }
 
 .preview-profile{

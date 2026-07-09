@@ -41,23 +41,23 @@
     <!-- contenedor de items del panel -->
     <div class="h-dvh panel-container">
 
-      <nav class="flex-row center-end p20">
+      <nav class="flex-row center-end gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
+          <div><p class="p5 pl15 pr15 br15 pointer" style="border: solid 0.5px #000000;">Guardar</p></div>
+
           <div class="no-desk">
-            <div class="modal-btn">
+            <div class="modal-btn animated pointer before-menu-overlay">
               <p class="p5 pl15 pr15 br15" style="border: solid 0.5px #000000;">Vista previa</p>
             </div>
             <div class="hidden">
               <div class="flex-column center-center w100">
-                <div class="absolute m20 top right pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
+                <div class="absolute m20 top right fadeIn pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
                   <?= svg("xmark")?>
                 </div>
-                <?php _component("UserPreview.userPreview", $card["profile"])?>
+                <?php _component("UserPreview.userPreview", ["data" => $card])?>
               </div>
             </div>
           </div>
       </nav>
-
-      <hr class="m0" style="border: solid 0.5px #f0f0f0;">
 
       <div class="remote-container animated p20">
 
@@ -80,11 +80,11 @@
             <p>Abrir</p>
           </div>
           <div class="hidden">
-            <div class="flex-column center-center w100">
+            <div class="flex-column center-center w100 before-menu-overlay">
               <div class="absolute m20 top right pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
                 <?= svg("xmark")?>
               </div>
-              <?php _component("UserPreview.userPreview", $card["profile"])?>
+              <?php _component("UserPreview.userPreview", ["data" => $card])?>
             </div>
           </div>
         </div>
@@ -99,9 +99,14 @@
     </div>
 
 
-    <div class="no-tablet no-phone flex-column center-center h-dvh" style="min-width: 550px;border-left: solid 0.5px #f0f0f0;">
+    <div class="no-tablet no-phone flex-column center-center h-dvh sticky top" style="min-width: 550px;border-left: solid 0.5px #f0f0f0;">
+
+      <button class="absolute z-index-10 top mt20 p5 pl15 pr15 br15 copy-btn" data-copy="<?= DOMAIN.$card["profile"]?>" style="border: solid 0.5px #000000;">
+        cuaderno/<?= $card["profile"]?>
+      </button>
+
       <div class="flex-column center-center w100">
-        <?php _component("UserPreview.userPreview", $card["profile"])?>
+        <?php _component("UserPreview.userPreview", ["data" => $card])?>
       </div>
     </div>
 

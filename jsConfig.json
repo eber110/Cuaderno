@@ -19,7 +19,9 @@
             "accordion": [],
             "tabs": [],
             "remoteContent": [],
-            "verticalMenu": []
+            "verticalMenu": [],
+            "animations": [],
+            "copyToClipboard": []
         },
         "async": {}
     }
