@@ -87,7 +87,7 @@
 
         <div id="content-remote-4" class="remote-content hidden">
           <div class="post-content">
-            <code><?php print_r($card)?></code>
+            <code data-lang="json"><?php print_r(json_encode($card))?></code>
           </div>
         </div>
       </div>
