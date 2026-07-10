@@ -3,3 +3,53 @@
 /App/Public/Min/
 /cache/
 /logs/
+
+# Multimedia & Media
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.avif
+*.svg
+*.bmp
+*.ico
+*.tiff
+*.tif
+*.heic
+*.heif
+
+# Videos
+*.mp4
+*.webm
+*.ogg
+*.avi
+*.mov
+*.mkv
+*.flv
+*.wmv
+
+# Audio
+*.mp3
+*.wav
+*.aac
+*.flac
+*.m4a
+*.wma
+
+# Documentos & PDFs
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# Ejecutables & Binarios
+*.exe
+*.dll
+*.so
+*.dmg
+*.bin
+*.app
