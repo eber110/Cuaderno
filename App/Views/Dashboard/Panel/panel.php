@@ -32,7 +32,8 @@
           
           <!-- Enlaces raíz -->
           <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-3"><?= svg("file-pen")?>Contenido</p>
-          <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4"><?= svg("list")?>Enlaces</p>
+          <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4"><?= svg("list")?>Datos de usuario</p>
+          <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5"><?= svg("list")?>Datos de sesión</p>
 
         </div>
       </div>
@@ -88,6 +89,12 @@
         <div id="content-remote-4" class="remote-content hidden">
           <div class="post-content">
             <code data-lang="json"><?php print_r(json_encode($card))?></code>
+          </div>
+        </div>
+
+        <div id="content-remote-5" class="remote-content hidden">
+          <div class="post-content">
+            <code data-lang="json"><?php print_r(json_encode($session))?></code>
           </div>
         </div>
       </div>
