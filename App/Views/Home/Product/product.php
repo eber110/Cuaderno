@@ -10,7 +10,7 @@
       </a>
     </div>  
     <div class="w100 w-sml-100 back2 br15 flex-column center-center m-mid-15">
-      <img src="<?= DIR_SHOW_MEDIA."prod.jpg"?>" alt="" class="cover ar-square">
+      <img src="<?= DIR_SHOW_MEDIA."prod.webp"?>" alt="" class="cover ar-square">
     </div>
   </div>
 </div>

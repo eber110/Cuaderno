@@ -44,7 +44,7 @@ Route::get("/op/image", function(){
   $result = ImgProcessModule::optimizeDirectoryImages(
     ROOT_PATH . '/App/Public/Img/', 
     ROOT_PATH . '/App/Public/Img/Optimized/', 
-    50, 
+    70, 
     'webp', 
     false
   );
