@@ -6,6 +6,7 @@ use App\Controllers\LoginControllers;
 use App\Controllers\UserControllers;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\DashboardMiddleware;
+use Base\Module\ImgProcessModule;
 use Core\Route;
 
 #este grupo de paginas son solo para el usuario logueado
@@ -37,3 +38,17 @@ Route::get("/salir", [LoginControllers::class, "exitApp"]);
 
 //UserControllers: Datos y personalización de los datos de usuario
 Route::get("/:user", [UserControllers::class, "userPage"]);
+
+Route::get("/op/image", function(){
+  // Optimizamos las imágenes de /App/Public/Img/ y las guardamos en /App/Public/Img/Optimized/ en formato WebP a un máximo de 50 KB
+  $result = ImgProcessModule::optimizeDirectoryImages(
+    ROOT_PATH . '/App/Public/Img/', 
+    ROOT_PATH . '/App/Public/Img/Optimized/', 
+    50, 
+    'webp', 
+    false
+  );
+  header('Content-Type: application/json');
+  echo json_encode($result, JSON_PRETTY_PRINT);
+  exit;
+});
