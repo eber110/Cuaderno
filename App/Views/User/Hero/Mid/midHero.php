@@ -7,7 +7,7 @@
   </div>
 
   <figure class="absolute top back1 ar-square hpx480 hpx-sml-360 w100 faded-image">
-    <img src="<?= DIR_SHOW_MEDIA.'/Custom/porfolio_eber_dark.png'?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected">
+    <img src="<?= DIR_SHOW_MEDIA.'/Custom/porfolio_eber_dark.webp'?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected">
   </figure>
 
   <div class="flex-column bottom-center gap10 position-inset-hero hpx500 hpx-sml-400 p20 pt0 pb5">

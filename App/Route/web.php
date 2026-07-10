@@ -42,13 +42,24 @@ Route::get("/:user", [UserControllers::class, "userPage"]);
 Route::get("/op/image", function(){
   // Optimizamos las imágenes de /App/Public/Img/ y las guardamos en /App/Public/Img/Optimized/ en formato WebP a un máximo de 50 KB
   $result = ImgProcessModule::optimizeDirectoryImages(
-    ROOT_PATH . '/App/Public/Img/', 
-    ROOT_PATH . '/App/Public/Img/Optimized/', 
-    70, 
+    ROOT_PATH . '/App/Public/Img/Custom/', 
+    ROOT_PATH . '/App/Public/Img/Custom/', 
+    40, 
     'webp', 
     false
   );
   header('Content-Type: application/json');
   echo json_encode($result, JSON_PRETTY_PRINT);
+  exit;
+});
+
+Route::get("/op/check", function(){
+  header('Content-Type: application/json');
+  echo json_encode([
+    'extension_loaded_imagick' => extension_loaded('imagick'),
+    'class_exists_Imagick' => class_exists('Imagick'),
+    'php_version' => PHP_VERSION,
+    'ini_path' => php_ini_loaded_file(),
+  ], JSON_PRETTY_PRINT);
   exit;
 });
