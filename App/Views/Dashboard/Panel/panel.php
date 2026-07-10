@@ -63,16 +63,12 @@
 
         <div id="content-remote-1" class="remote-content active">
           <div class="back-card wpx500 pb20 br15">
-            <?php _part("User.regularHero")?>
+            <?php _part("User.midHero")?>
           </div>
         </div>
 
-        <div id="content-remote-2" class="remote-content hidden h-dvh flex-column center-center">
-          <div class="hem65 w60 w-mid-100 back-card-container brtl15 brtr15 flex-column bottom-center">
-            <div class="hem60 wpx500 back-card shadow-card br15">
-                
-            </div>
-          </div>
+        <div id="content-remote-2" class="remote-content hidden">
+          <p>Aquí va el formulario para cambiar el fondo del perfil</p>
         </div>
 
         <div id="content-remote-3" class="remote-content hidden">
