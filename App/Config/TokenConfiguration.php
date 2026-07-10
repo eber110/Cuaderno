@@ -63,6 +63,6 @@ return [
 
     // Parámetros de JSON Web Tokens (JWT) para persistencia de sesión
     'jwt' => [
-        'expiration' => 604800, // 7 días (en segundos)
+        'expiration' => TIME_MONTH_S, // 30 días (en segundos)
     ]
 ];
