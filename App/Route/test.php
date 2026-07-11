@@ -8,6 +8,11 @@ Route::get("/test/1", function(){
 
   LogModule::deleteLog("/Cache/UserData/eber.json");
 
+  $border0 = ["br0", "br0"];
+  $border1 = ["br5", "br3"];
+  $border2 = ["br10", "br5"];
+  $border3 = ["br50", "br50"];
+
   $data = [
     "card" => [
       "profile" => "eber",
@@ -16,19 +21,16 @@ Route::get("/test/1", function(){
       "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
       "header" => "regularHero",
       "backCard" => [
-        "#212347",
+        "#0e0e0e",
         "gradientUp"
       ],
       "colorText" => "#ffffff",
       "style" => "Regular",
-      "borders" => [
-        "br10",
-        "br5"
-      ],
-      "shadow" => "shadow-1",
-      "back" => "#ffffff",
+      "borders" => $border1,
+      "shadow" => "shadow-2",
+      "back" => "#272727",
       "hover" => true,
-      "color" => "#272727",
+      "color" => "#ffffff",
       "rrss" => [
         [
           "x",
