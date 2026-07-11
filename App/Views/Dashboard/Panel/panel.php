@@ -43,7 +43,7 @@
     <div class="h-dvh panel-container">
 
       <nav class="flex-row center-end gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
-          <div><p class="p5 pl15 pr15 br15 pointer" style="border: solid 0.5px #000000;">Guardar</p></div>
+          <div><a href="/test/1" class="p5 pl15 pr15 br15 pointer texto" style="border: solid 0.5px #000000;">Guardar</a></div>
 
           <div class="no-desk">
             <div class="modal-btn animated pointer before-menu-overlay">
