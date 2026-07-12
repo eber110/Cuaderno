@@ -3,6 +3,7 @@
 /App/Public/
 /Cache/
 /Logs/
+/Docs/
 
 # Multimedia & Media
 *.jpg
