@@ -22,7 +22,8 @@
             "verticalMenu": [],
             "animations": [],
             "copyToClipboard": [],
-            "tooltip": []
+            "tooltip": [],
+            "autoSubmitForm": []
         },
         "async": {}
     }
