@@ -1,8 +1,8 @@
 /vendor/
 .env
-/App/Public/Min/
-/cache/
-/logs/
+/App/Public/
+/Cache/
+/Logs/
 
 # Multimedia & Media
 *.jpg
