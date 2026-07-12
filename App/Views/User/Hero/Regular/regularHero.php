@@ -8,8 +8,8 @@
   <div class="hem5 flex-column center-center gap10">
     
     <div class="flex-column center-center hpx120">
-      <figure class="hpx100 wpx100 br100 back1">
-        <img src="<?= DIR_SHOW_MEDIA."/Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $card["title"]?>" class="cover image-protected flex-row center-center">
+      <figure class="hpx100 wpx100 br100" style="background: transparent;">
+        <img src="<?= DIR_SHOW_MEDIA."/Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $card["title"]?>" class="cover br100 image-protected flex-row center-center">
       </figure>
     </div>
     

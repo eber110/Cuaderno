@@ -5,7 +5,17 @@
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
 ?>
 <div class="flex-column top-start gap20 h-dvh back-menu-sidebar panel-sidebar p15 bold500 x17 sticky top">
-  <a href="/<?= $card["profile"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
+
+  <?php if ($card["active"]) :?>
+    <a href="/<?= $card["profile"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
+  <?php else:?>
+    <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
+    data-tooltip="Completa los datos requeridos de tu perfil, para activarlo"
+    style-tooltip="back5 textw shadow x18">
+      <?= svg("triangle-exclamation-fill","x16 mr5");?> Activa tu perfil
+      <span class="flex-row center-center pointer"><?= svg("question");?></span>
+    </p>
+  <?php endif?>
   
   <div class="vertical-menu animated w100" active-item="back-item-active" active-principal="back-item-active">
     <div class="flex-column top-start gap10 w100">

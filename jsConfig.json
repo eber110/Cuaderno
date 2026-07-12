@@ -21,7 +21,8 @@
             "remoteContent": [],
             "verticalMenu": [],
             "animations": [],
-            "copyToClipboard": []
+            "copyToClipboard": [],
+            "tooltip": []
         },
         "async": {}
     }

@@ -27,7 +27,7 @@ class UserControllers extends Control{
       return ResponseModule::redirect("/", "El usuario {$user}, no existe!", 2);
     }
 
-    if (!$userData) {
+    if ($userData["card"]["active"] === false) {
       return ResponseModule::redirect("/panel/".Session::session_data("username"));
     }
 
