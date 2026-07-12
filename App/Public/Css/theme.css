@@ -1,0 +1,168 @@
+:root{
+  --back-body-theme: #ffffff;
+  --back-item : #e4e4e4;
+  --back-sidebar : #e6e6e6;
+  --text-item-sidebar : #353535;
+}
+
+[data-theme="dark"] {
+  --back-body-theme: #353535;
+  --back-item : #2e2e2e;
+  --back-sidebar : #1b1b1b;
+  --text-item-sidebar : #e6e6e6;
+}
+
+.back-body{
+  background-color: var(--back-body-theme);
+}
+
+.shadow-menu{
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.15));
+}
+
+.back-menu-card{
+  background-color: #ffffff00;
+  &:hover{
+    background-color: var(--back-color3);
+  }
+}
+
+.shadow-card{
+  box-shadow: 0px 0px 80px #0000006b;
+}
+
+.shadow-card-preview{
+  outline: solid 10px #ffffffad;
+}
+
+.back-modal-item{
+  background-color: var(--back-item);
+}
+
+.back-menu-sidebar{
+  background-color: var(--back-sidebar);
+}
+
+.back-item-sidebar-hover{
+  background-color: #ffffff00;
+  &:hover{
+    background-color: #cecece;
+  }
+}
+
+.back-item-active{
+  background-color: #cecece;
+}
+
+.closed-modal-preview{
+  background-color: #000000;
+  color: #ffffff;
+  &:hover{
+    background-color: #464646;
+  }
+}
+
+.border-card-modal{
+  border: #bdbdbd solid 1px;
+}
+
+.image-protected{
+  -webkit-user-select: none; /* Para Safari */
+  user-select: none; /* Estándar moderno */
+}
+
+.shadow-1{
+  box-shadow: 0px 0px 10px #00000033;
+}
+
+.shadow-2{
+  box-shadow: 5px 5px 5px #00000033;
+}
+
+.shadow-3{
+  box-sizing: content-box;
+  border: solid 1px #000000;
+  box-shadow: 5px 5px 0px #000000;
+  & img {border: solid 1px #000000;}
+}
+
+.text-menu-modal{
+  color: #252525;
+}
+
+.faded-image{
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+.faded-radial-image{
+  -webkit-mask-image: radial-gradient(circle, black 40%, transparent 100%);
+  mask-image: radial-gradient(circle, black 40%, transparent 100%);
+}
+
+.hpxm550{
+  max-height: 550px;
+}
+
+.hpxm230{
+  max-height: 230px;
+}
+
+.color-icon-accordion{
+  color: #9b9b9b;
+}
+
+.panel-sidebar{
+  min-width: 250px;
+}
+
+.panel-container{
+  width: calc(100% - 800px);
+  min-width: 550px;
+}
+
+.preview-profile{
+  min-height: 950px;
+}
+
+/*desktop*/
+@media screen and (min-width: 993px) {
+
+
+
+}
+
+/*tablet*/
+@media screen and (min-width: 577px) and (max-width: 992px) {
+
+  .panel-container{
+    width: calc(100% - 250px);
+  }
+
+}
+
+/*desktop y tablet*/
+@media screen and (min-width: 577px) {
+
+  .dvh-cuaderno {
+    min-height: calc(100dvh - 40px);
+  }
+
+}
+
+/*phone*/
+@media screen and (max-width: 576px) {
+
+  .dvh-cuaderno {
+    min-height: 100dvh;
+  }
+
+  .hpxm-sml-400{
+    max-height: 400px;
+  }
+
+  .hpxm-sml-150{
+    max-height: 150px;
+  }
+
+}

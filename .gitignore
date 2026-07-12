@@ -1,6 +1,6 @@
 /vendor/
 .env
-/App/Public/
+/App/Public/Min/
 /Cache/
 /Logs/
 /Docs/
