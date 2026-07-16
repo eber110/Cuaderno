@@ -125,6 +125,32 @@
   min-height: 950px;
 }
 
+/*Estilo del input:radio*/
+.hidden-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/*estilo ára los elementos de formularios en el content de panel*/
+.border-selected-item{
+  border: dashed 3px var(--text-item-sidebar);
+}
+
+.button-style-background{
+  background-color: #838383;
+  border-radius: 15px;
+  padding: 15px 20px;
+  min-width: 120px;
+}
+
+.button-fill-style{
+  background-color: #f1f1f1;
+  padding: 15px 20px;
+  width: 100%;
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 

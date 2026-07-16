@@ -6,25 +6,26 @@
 ?>
 <div class="remote-container animated p20">
 
-  <div id="content-remote-1" class="remote-content active">
-    <div class="back-card wpx500 pb20 br15">
+  <div id="header-remote" class="remote-content flex-row top-center active">
+    <div class="wpx630 w-mid-100 w-sml-100 back-card |p20">
       <?php _part("User.midHero")?>
     </div>
   </div>
+<!-- button-remote -->
+  <div id="background-remote" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php
+        _form("Panel.backgroundPanel");
+      ?>
+    </div>
+  </div>
 
-  <div id="content-remote-2" class="remote-content hidden">
-    <p>Aquí va el formulario para cambiar el fondo del perfil</p>
-    <form class="auto-submit" action="/test/1" method="post">
-      <div class="br50 wpx40 hpx40 flex-row center-center p0 overflow" style="background-color: <?= $card["backCard"][0]?>;">
-        <input type="color" name="back_perfil" value="<?= $card["backCard"][0]?>" id="" class="wpx100 hpx100 p0 m0">
-      </div>
-      <select name="style_back" id="">
-        <option value="gradientUp" <?php if ($card["backCard"][1] == "gradientUp") echo "selected";?>>gradiente arriba</option>
-        <option value="gradientDown" <?php if ($card["backCard"][1] == "gradientDown") echo "selected";?>>gradiente abajo</option>
-        <option value="solid" <?php if ($card["backCard"][1] == "solid") echo "selected";?>>color solido</option>
-      </select>
-      <input type="submit" value="guardar" class="hidden">
-    </form>
+  <div id="button-remote" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php
+        _form("Panel.buttonPanel");
+      ?>
+    </div>
   </div>
 
   <div id="content-remote-3" class="remote-content hidden">

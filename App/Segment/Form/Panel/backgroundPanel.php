@@ -1,0 +1,80 @@
+<?php
+  /** @var mixed $card */
+  $selected = "border-selected-item";
+?>
+<form class="auto-submit w100" action="/test/1" method="post">
+
+  <div class="flex-column top-between gap20">
+
+    <!-- Estilo del fondo, opciones de como mostrar el fondo -->
+    <div class="flex-column top-start gap10 w100">
+      <p>Estilo del fondo</p>
+
+      <div class="flex-row center-end gap10 w100">
+        
+        <input type="radio" id="op2" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") echo "checked";?>>
+        <label for="op2">
+          <div class="border8 p5 br20 flex-column center-center gap5 <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") echo $selected;?>">
+            <div class="hpx80 wpx80 br15" style="background: linear-gradient(180deg,
+              oklch(from <?= $card["backCard"]["back_perfil"]?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+              oklch(from <?= $card["backCard"]["back_perfil"]?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
+              );"></div>
+            <p class="x16">Degradado</p>
+          </div>
+        </label>
+    
+        <input type="radio" id="op3" name="style_back" class="hidden-radio" value="solid" <?php if ($card["backCard"]["style_back"] == "solid") echo "checked";?>>
+        <label for="op3">
+          <div class="border8 p5 br20 flex-column center-center gap5 <?php if ($card["backCard"]["style_back"] == "solid") echo $selected;?>">
+            <div class="hpx80 wpx80 br15" style="background-color: <?= $card["backCard"]["back_perfil"]?>;"></div>
+            <p class="x16">Solido</p>
+          </div>
+        </label>
+  
+      </div>
+    </div>
+  
+    <!-- Estilo de color -->
+    <div class="flex-row center-between">
+      <p>Selecciona el color</p>
+
+      <div class="border8 w-auto br15">
+        <label for="select-color" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="select-color" name="back_perfil" value="<?= $card["backCard"]["back_perfil"]?>" class="color-picker"
+          style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1">
+          <p class="x16 bold500 textb"><?= $card["backCard"]["back_perfil"]?></p>
+        </label>
+      </div>
+    </div>
+  
+    <!-- Dirección del degradado -->
+    <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") :?>
+
+      <div class="flex-row center-between">
+
+        <p>Dirección del degradado</p>
+  
+        <div class="flex-row center-end gap10">
+          <input type="radio" id="op1" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($card["backCard"]["style_back"] == "gradientUp") echo "checked";?>>
+          <label for="op1">
+            <div class="br15 p10 border8 <?php if ($card["backCard"]["style_back"] == "gradientUp") echo $selected;?>">
+              <?= svg("arrow-up");?> Arriba
+            </div>
+          </label>
+          
+          <input type="radio" id="op2" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($card["backCard"]["style_back"] == "gradientDown") echo "checked";?>>
+          <label for="op2">
+            <div class="br15 p10 border8 <?php if ($card["backCard"]["style_back"] == "gradientDown") echo $selected;?>">
+              <?= svg("arrow-down");?> Abajo
+            </div>
+          </label>
+        </div>
+  
+      </div>
+
+    <?php endif?>
+
+  </div>
+  
+  <input type="submit" value="guardar" class="hidden">
+</form>

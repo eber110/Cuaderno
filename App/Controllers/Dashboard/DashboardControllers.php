@@ -15,6 +15,40 @@ class DashboardControllers extends Control{
     $dataUser = new UserModels;
     $dataUser = $dataUser->dataUser($user);
 
+    //en el caso de que no este creado ekl profile del usuario, se creara uno inicial, para que el usuario lo rellene
+    if (!$dataUser) {
+      $data = [
+      "card" => [
+        "active" => false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
+        "hide" => false,//control de visualización del perfil. esto lo decide el usuario
+        "profile" => $user,
+        "avatar" => "no-user.webp",
+        "title" => "Titulo",
+        "desc" => "Descripción del usuario",
+        "header" => "regularHero",
+        "backCard" => [
+          "style_back" => "#cccccc",//color del background del perfil
+          "back_perfil" => "solid"//Tipo de background (solido, gradiente, etc.)
+        ],
+        "colorText" => "#424242",
+        "style" => "Regular",
+        "borders" => ["br0", "br0"],
+        "shadow" => "shadow-1",
+        "back" => "#bbbbbb",
+        "hover" => false,
+        "color" => "#ffffff",
+        "rrss" => [],
+        "content" => []
+        ]
+      ];
+      
+      LogModule::simpleLog([
+        "dir" => "/Cache/UserData/",
+        "name" => "{$user}",
+        "content" => $data
+      ]);
+    }
+
     if ($dataUser) {
       $dataUser = $dataUser["card"];
     }

@@ -2,135 +2,68 @@
 
 use Base\Module\LogModule;
 use Base\Module\ResponseModule;
+use Base\Module\Session;
 use Core\Route;
 
-Route::get("/test/1", function(){
+Route::get("/test/2", function(){
 
-  LogModule::deleteLog("/Cache/UserData/eber.json");
+  
+  $data = LogModule::readLogLines("/Cache/UserData/tomi.json");
+  if (!$data) {
+    $data = false;
+  }
 
-  $border0 = ["br0", "br0"];
-  $border1 = ["br5", "br3"];
-  $border2 = ["br10", "br5"];
-  $border3 = ["br50", "br50"];
-
-  $data = [
-    "card" => [
-      "active" => true,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
-      "hide" => false,//control de visualización del perfil. esto lo decide el usuario
-      "profile" => "eber",
-      "avatar" => "porfolio_eber_dark.webp",
-      "title" => "Esc",
-      "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
-      "header" => "regularHero",
-      "backCard" => [
-        "#0e0e0e",
-        "gradientUp"
-      ],
-      "colorText" => "#ffffff",
-      "style" => "Regular",
-      "borders" => $border1,
-      "shadow" => "shadow-2",
-      "back" => "#272727",
-      "hover" => true,
-      "color" => "#ffffff",
-      "rrss" => [
-        /*[
-          "x",
-          "https://x.com/eberestudio"
-        ],
-        [
-          "Linkedin",
-          "https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"
-        ]*/
-      ],
-      "content" => [
-        /*[
-          "link",
-          "prod.webp",
-          "Este es mi primer link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "hero.webp",
-          "Este es mi segundo link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "desc.webp",
-          "Este es mi tercero link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "hero.webp",
-          "Este es mi super cuarto link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "prod.webp",
-          "Este es mi lindo y especial quinto link",
-          "https://www.ebersanchez.cl"
-        ]*/
-      ]
-    ]
-  ];
-
-  LogModule::simpleLog([
-    "dir" => "/Cache/UserData/",
-    "name" => "eber",
-    "content" => $data
-  ]);
-
-  ResponseModule::redirect("/panel/eber");
+  var_dump($data[0]["card"]);
 
 });
 
 Route::post("/test/1/", function($param){
 
-  LogModule::deleteLog("/Cache/UserData/eber.json");
+  $user = Session::session_data("username");
+
+  $dataRequest = LogModule::readLogLines("/Cache/UserData/{$user}.json");
+  $dataRequest = $dataRequest[0]["card"];
+  LogModule::deleteLog("/Cache/UserData/{$user}.json");
 
   extract($param);
 
-  $border0 = ["br0", "br0"];
-  $border1 = ["br5", "br3"];
-  $border2 = ["br10", "br5"];
-  $border3 = ["br50", "br50"];
+
+  if (isset($param["borders"])) {
+    $dataRequest["borders"] = explode(",",$borders);
+  }
 
   $data = [
     "card" => [
-      "active" => true,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
-      "hide" => false,//control de visualización del perfil. esto lo decide el usuario
-      "profile" => "eber",
-      "avatar" => "porfolio_eber_dark.webp",
-      "title" => "Esc",
-      "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto.",
-      "header" => "regularHero",
+      "active" => true ?? $dataRequest["active"],//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
+      "hide" => false ?? $dataRequest["hide"],//control de visualización del perfil. esto lo decide el usuario
+      "profile" => "eber" ?? $dataRequest["profile"],
+      "avatar" => "porfolio_eber_dark.webp" ?? $dataRequest["avatar"],
+      "title" => "Esc" ?? $dataRequest["title"],
+      "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto." ?? $dataRequest["desc"],
+      "header" => "regularHero" ?? $dataRequest["header"],
       "backCard" => [
-        $back_perfil,//color del background del perfil
-        $style_back//Tipo de background (solido, gradiente, etc.)
-      ],
-      "colorText" => "#ffffff",
-      "style" => "Regular",
-      "borders" => $border1,
-      "shadow" => "shadow-2",
-      "back" => "#272727",
-      "hover" => true,
-      "color" => "#ffffff",
+        "back_perfil" => $back_perfil ?? $dataRequest["backCard"]["back_perfil"],//color del background del perfil
+        "style_back" => $style_back ?? $dataRequest["backCard"]["style_back"]//Tipo de background (solido, gradiente, etc.)
+      ] ?? $dataRequest["backCard"],
+      "colorText" => "#ffffff" ?? $dataRequest["colorText"],
+      "style" => $style ?? $dataRequest["style"],
+      "borders" => $dataRequest["borders"],
+      "shadow" => "shadow-2" ?? $dataRequest["shadow"],
+      "back" => "#272727" ?? $dataRequest["back"],
+      "hover" => true ?? $dataRequest["hover"],
+      "color" => "#ffffff" ?? $dataRequest["color"],
       "rrss" => [
-        /*[
+        [
           "x",
           "https://x.com/eberestudio"
         ],
         [
           "Linkedin",
           "https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"
-        ]*/
+        ]
       ],
       "content" => [
-        /*[
+        [
           "link",
           "prod.webp",
           "Este es mi primer link",
@@ -159,17 +92,33 @@ Route::post("/test/1/", function($param){
           "prod.webp",
           "Este es mi lindo y especial quinto link",
           "https://www.ebersanchez.cl"
-        ]*/
+        ]
       ]
     ]
   ];
 
   LogModule::simpleLog([
     "dir" => "/Cache/UserData/",
-    "name" => "eber",
+    "name" => "{$user}",
     "content" => $data
   ]);
 
-  ResponseModule::redirect("/panel/eber"); 
+  ResponseModule::redirect("/panel/{$user}"); 
 
+});
+
+Route::post("/test/3", function($param){
+
+  extract($param);
+  $user = Session::session_data("username");
+  $data = LogModule::readLogLines("/Cache/UserData/{$user}.json");
+
+  if (isset($param["borders"])) {
+    # code...
+    $data[0]["card"]["borders"] = explode(",",$borders);
+  }
+
+  var_dump($user);
+  var_dump($param);
+  var_dump($data[0]["card"]);
 });

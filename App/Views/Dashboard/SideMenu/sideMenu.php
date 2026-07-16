@@ -1,13 +1,14 @@
 <?php
   /** 
    * @var mixed $card 
+   * @var mixed $session
    */
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
 ?>
 <div class="flex-column top-start gap20 h-dvh back-menu-sidebar panel-sidebar p15 bold500 x17 sticky top">
 
   <?php if ($card["active"]) :?>
-    <a href="/<?= $card["profile"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
+    <a href="/<?= $session["username"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
   <?php else:?>
     <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
     data-tooltip="Completa los datos requeridos de tu perfil, para activarlo"
@@ -29,8 +30,9 @@
           </div>
         </div>
         <div class="vertical-menu-content flex-column gap5 w100 hidden">
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="content-remote-1"><?= svg("angle-r")?>Cabecera</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="content-remote-2"><?= svg("angle-r")?>Fondo</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="header-remote"><?= svg("angle-r")?>Cabecera</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote"><?= svg("angle-r")?>Fondo</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote"><?= svg("angle-r")?>Tarjetas</p>
         </div>
       </div>
       

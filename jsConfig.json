@@ -23,7 +23,8 @@
             "animations": [],
             "copyToClipboard": [],
             "tooltip": [],
-            "autoSubmitForm": []
+            "autoSubmitForm": [],
+            "formComponents": []
         },
         "async": {}
     }
