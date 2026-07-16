@@ -36,22 +36,22 @@ Route::post("/test/1/", function($param){
     "card" => [
       "active" => true ?? $dataRequest["active"],//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
       "hide" => false ?? $dataRequest["hide"],//control de visualización del perfil. esto lo decide el usuario
-      "profile" => "eber" ?? $dataRequest["profile"],
-      "avatar" => "porfolio_eber_dark.webp" ?? $dataRequest["avatar"],
-      "title" => "Esc" ?? $dataRequest["title"],
-      "desc" => "Llevo tus ideas al código sin intermediarios. Especialista en PHP y JavaScript puro, enfocado en diseñar sistemas estables, veloces y preparados para escalar al ritmo de tu proyecto." ?? $dataRequest["desc"],
-      "header" => "regularHero" ?? $dataRequest["header"],
+      "profile" => $profile ?? $dataRequest["profile"],
+      "avatar" => $avatar ?? $dataRequest["avatar"],
+      "title" => $title ?? $dataRequest["title"],
+      "desc" => $desc ?? $dataRequest["desc"],
+      "header" => $header ?? $dataRequest["header"],
       "backCard" => [
         "back_perfil" => $back_perfil ?? $dataRequest["backCard"]["back_perfil"],//color del background del perfil
         "style_back" => $style_back ?? $dataRequest["backCard"]["style_back"]//Tipo de background (solido, gradiente, etc.)
-      ] ?? $dataRequest["backCard"],
-      "colorText" => "#ffffff" ?? $dataRequest["colorText"],
+      ],
+      "colorText" => $colorText ?? $dataRequest["colorText"],
       "style" => $style ?? $dataRequest["style"],
       "borders" => $dataRequest["borders"],
-      "shadow" => "shadow-2" ?? $dataRequest["shadow"],
-      "back" => "#272727" ?? $dataRequest["back"],
+      "shadow" => $shadow ?? $dataRequest["shadow"],
+      "back" => $back ?? $dataRequest["back"],
       "hover" => true ?? $dataRequest["hover"],
-      "color" => "#ffffff" ?? $dataRequest["color"],
+      "color" => $color ?? $dataRequest["color"],
       "rrss" => [
         [
           "x",

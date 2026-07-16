@@ -63,16 +63,16 @@ class LoginControllers extends Control{
         "desc" => "Descripción del usuario",
         "header" => "regularHero",
         "backCard" => [
-          "style_back" => "#cccccc",//color del background del perfil
-          "back_perfil" => "solid"//Tipo de background (solido, gradiente, etc.)
+          "back_perfil" => "#a0a0a0",//color del background del perfil
+          "style_back" => "solid"//Tipo de background (solido, gradiente, etc.)
         ],
-        "colorText" => "#424242",
+        "colorText" => "#383838",
         "style" => "Regular",
         "borders" => ["br0", "br0"],
         "shadow" => "shadow-1",
-        "back" => "#bbbbbb",
+        "back" => "#d6d6d6",
         "hover" => false,
-        "color" => "#ffffff",
+        "color" => "#494949",
         "rrss" => [],
         "content" => []
         ]

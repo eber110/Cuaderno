@@ -34,14 +34,27 @@
       </div>
     </div>
   
-    <!-- Estilo de color -->
+    <!-- Color de texto global -->
     <div class="flex-row center-between">
-      <p>Selecciona el color</p>
+      <p>Color de texto</p>
+
+      <div class="border8 w-auto br15">
+        <label for="select-color-text-app" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"]?>" class="color-picker box-color-picker"
+          style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker box-color-picker">
+          <p class="x16 bold500 textb"><?= $card["colorText"]?></p>
+        </label>
+      </div>
+    </div>
+
+    <!-- Color de fondo de la aplicación -->
+    <div class="flex-row center-between">
+      <p>Color de fondo</p>
 
       <div class="border8 w-auto br15">
         <label for="select-color" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color" name="back_perfil" value="<?= $card["backCard"]["back_perfil"]?>" class="color-picker"
-          style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1">
+          <input type="color" id="select-color" name="back_perfil" value="<?= $card["backCard"]["back_perfil"]?>" class="color-picker box-color-picker"
+          style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 textb"><?= $card["backCard"]["back_perfil"]?></p>
         </label>
       </div>

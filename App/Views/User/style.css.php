@@ -54,6 +54,13 @@
     }
   <?php endif?>
 
+  .shadow-3{
+    box-sizing: content-box;
+    border: solid 1px #000000;
+    box-shadow: 4px 4px 0px #000000;
+    & img {border: solid 1px #000000;}
+  }
+
   .color-text-card{
     color: <?=  (!$card["colorText"] || $card["colorText"] === "") ? $card["color"] : $card["colorText"]?>;
   }
