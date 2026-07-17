@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Dashboard\DashboardControllers;
+use App\Controllers\DesignControllers;
 use App\Controllers\HomeControllers;
 use App\Controllers\LoginControllers;
 use App\Controllers\UserControllers;
@@ -13,6 +14,7 @@ use Core\Route;
 Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(function(){
 
   Route::get("/", [DashboardControllers::class, "panel"]);
+  Route::post("/diseno", [DesignControllers::class, "configDesign"]);
 
 });
 

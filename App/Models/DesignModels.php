@@ -8,4 +8,6 @@ class DesignModels extends Builder{
 
   protected $table = "";
 
+
+
 }

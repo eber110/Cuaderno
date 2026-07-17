@@ -2,6 +2,7 @@
   
 namespace App\Middleware;
 
+use App\Controllers\DesignControllers;
 use App\Middleware\MiddlewareInterface\MiddlewareInterface;
 use App\Models\UserModels;
 use Base\Module\ResponseModule;
@@ -36,6 +37,9 @@ class DashboardMiddleware implements MiddlewareInterface{
     // 3. Consultar si existen los datos del usuario
     $userModel = new UserModels;
     $userData = $userModel->dataUser($user);
+
+    //crea una plantilla en caso de que el usuario no tenga profile
+    DesignControllers::initialDesign($user);
 
     // 4. Si está logueado pero userData entrega false (datos incompletos),
     // y no está ya en la página de /panel/:user, redirigir a rellenar sus datos

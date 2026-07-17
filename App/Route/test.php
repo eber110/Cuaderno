@@ -103,6 +103,8 @@ Route::post("/test/1/", function($param){
     "content" => $data
   ]);
 
+  $user = mb_strtolower($user, 'UTF-8');
+
   ResponseModule::redirect("/panel/{$user}"); 
 
 });

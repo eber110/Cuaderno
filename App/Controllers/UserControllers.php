@@ -11,6 +11,7 @@ class UserControllers extends Control{
 
   public function userPage(string $user){
   
+    $user = mb_strtolower($user, 'UTF-8');
     //crear un indice con los usuarios para consultar si existe. preferiblemente en formato json en la cache del proyecto
     //y si el usuario existe, se puede consultar la bd a traves de UserModels.
 

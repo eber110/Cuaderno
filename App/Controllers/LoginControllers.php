@@ -27,6 +27,8 @@ class LoginControllers extends Control{
         return ResponseModule::redirect("/ingresar", "Debes rellenar todos los datos", 2);
       }
     }
+    // Normalizar el nombre de usuario a minúsculas
+    $requestData["username"] = mb_strtolower($requestData["username"], 'UTF-8');
         
     $userExists = new LoginModels;
     $userTrue = $userExists->loginApp($requestData["username"], $requestData["pass"]);
@@ -47,42 +49,6 @@ class LoginControllers extends Control{
       if (!$userTrue[1] == 0) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
     }else{
       if (!$userTrue["encrypted"]) return ResponseModule::redirect("/", "Tú contraseña no esta encriptada", 1);
-    }
-
-    $user = Session::session_data("username");
-
-    $dataUser = LogModule::readLogLines("/Cache/UserData/{$user}.json");
-    if (!$dataUser) {
-      $data = [
-      "card" => [
-        "active" => false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
-        "hide" => false,//control de visualización del perfil. esto lo decide el usuario
-        "profile" => $user,
-        "avatar" => "no-user.webp",
-        "title" => "Titulo",
-        "desc" => "Descripción del usuario",
-        "header" => "regularHero",
-        "backCard" => [
-          "back_perfil" => "#a0a0a0",//color del background del perfil
-          "style_back" => "solid"//Tipo de background (solido, gradiente, etc.)
-        ],
-        "colorText" => "#383838",
-        "style" => "Regular",
-        "borders" => ["br0", "br0"],
-        "shadow" => "shadow-1",
-        "back" => "#d6d6d6",
-        "hover" => false,
-        "color" => "#494949",
-        "rrss" => [],
-        "content" => []
-        ]
-      ];
-      
-      LogModule::simpleLog([
-        "dir" => "/Cache/UserData/",
-        "name" => "{$user}",
-        "content" => $data
-      ]);
     }
 
     return ResponseModule::redirect("/");
@@ -112,6 +78,9 @@ class LoginControllers extends Control{
     if (!$userNameVal[0]) {
       return $this->json(["status" => "error", "message" => $userNameVal[1]], 400);
     }
+
+    // Normalizar a minúsculas para coincidir con el formato de la base de datos
+    $username = mb_strtolower($username, 'UTF-8');
 
     $model = new LoginModels();
     try {
@@ -206,6 +175,10 @@ class LoginControllers extends Control{
     if ($pass !== $repass) {
       return ResponseModule::redirect("/registrar", "Las contraseñas no coinciden", 2);
     }
+
+    // Normalizar el nombre de usuario a minúsculas
+    $username = mb_strtolower($username, 'UTF-8');
+    $email = mb_strtolower($email, 'UTF-8');
 
     $model = new LoginModels();
     
