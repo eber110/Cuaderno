@@ -34,6 +34,7 @@ class DesignControllers extends Control{
         "back" => "#d6d6d6",
         "hover" => false,
         "color" => "#494949",
+        "colorShadow3" => "#000000",
         "rrss" => [],
         "content" => []
         ]

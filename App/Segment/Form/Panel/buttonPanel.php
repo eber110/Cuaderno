@@ -119,7 +119,7 @@
     <div class="flex-row center-between">
       <p>Color de fondo</p>
 
-      <div class="border8 w-auto br15">
+      <div class="border8 wpx140 br15">
         <label for="select-color-button" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-button" name="back" value="<?= $card["back"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
@@ -132,13 +132,35 @@
     <div class="flex-row center-between">
       <p>Color de texto</p>
 
-      <div class="border8 w-auto br15">
+      <div class="border8 wpx140 br15">
         <label for="select-color-text" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-text" name="color" value="<?= $card["color"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 textb"><?= $card["color"]?></p>
         </label>
       </div>
+    </div>
+
+    <?php if ($card["shadow"] == "shadow-3"):?>
+      <!-- Estilo de color de la sombra shadow-3 -->
+      <div class="flex-row center-between">
+        <p>Color de sombra</p>
+  
+        <div class="border8 wpx140 br15">
+          <label for="select-color-shadow3" class="flex-row center-start p10 gap10 pointer">
+            <input type="color" id="select-color-shadow3" name="colorShadow3" value="<?= $card["colorShadow3"]?>" class="color-picker box-color-picker"
+            style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+            <p class="x16 bold500 textb"><?= $card["colorShadow3"]?></p>
+          </label>
+        </div>
+      </div>
+    <?php endif;?>
+
+    <!-- Habilita la animación hover en los botones -->
+    <div class="flex-row center-between">
+      <p>Activar hover</p>
+
+      <input type="checkbox" name="hover" id="" value="true" data-option="true,false" active="<?= ($card["hover"]) ? '1' : '2' ?>" class="checkbox-switch">
     </div>
 
   </div>

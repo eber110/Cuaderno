@@ -11,7 +11,6 @@ class AuthMiddleware implements MiddlewareInterface{
   public function handle($requestData, callable $next){
 
     $user = Session::session_data("username");
-    $user = mb_strtolower($user, 'UTF-8');
     if (Session::session_active() == true) return ResponseModule::redirect("/{$user}");
 
     return $next($requestData);

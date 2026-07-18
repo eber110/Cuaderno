@@ -50,8 +50,9 @@ Route::post("/test/1/", function($param){
       "borders" => $dataRequest["borders"],
       "shadow" => $shadow ?? $dataRequest["shadow"],
       "back" => $back ?? $dataRequest["back"],
-      "hover" => true ?? $dataRequest["hover"],
+      "hover" => isset($hover) ? ($hover === 'true' || $hover === true || $hover === 1 || $hover === '1') : $dataRequest["hover"],
       "color" => $color ?? $dataRequest["color"],
+      "colorShadow3" => $colorShadow3 ?? $dataRequest["colorShadow3"],
       "rrss" => [
         [
           "x",

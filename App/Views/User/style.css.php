@@ -6,7 +6,7 @@
   .theme-button{
     background-color: <?= $card["back"]?>;
     color: <?= $card["color"]?>;
-    <?php if ($card["hover"]) echo "&:hover{background-color:  oklch(from ".$card["back"]." calc(l * 0.92) c h);}"?>
+    <?php if ($card["hover"] === true || $card["hover"] === 'true' || $card["hover"] === 1 || $card["hover"] === '1') echo "&:hover{background-color:  oklch(from ".$card["back"]." calc(l * 0.92) c h);}"?>
   }
 
   .theme-button-menu{
@@ -56,9 +56,9 @@
 
   .shadow-3{
     box-sizing: content-box;
-    border: solid 1px #000000;
-    box-shadow: 4px 4px 0px #000000;
-    & img {border: solid 1px #000000;}
+    border: solid 1px <?= $card["colorShadow3"]?>;
+    box-shadow: 4px 4px 0px <?= $card["colorShadow3"]?>;
+    & img {border: solid 1px <?= $card["colorShadow3"]?>;}
   }
 
   .color-text-card{
