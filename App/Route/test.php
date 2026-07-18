@@ -28,26 +28,21 @@ Route::post("/test/1/", function($param){
 
   extract($param);
 
-  if (isset($param["avatar"])) {
-    if ($avatar == "") {
-      $avatar = $dataRequest["avatar"];
-    }
+  if (ImgProcessModule::imgUploaded()) {
+    $avatar = $_FILES["avatar"]["name"];
+    $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
+    $imgProcessor = new ImgProcessModule("", $customDir);
     
-    if (ImgProcessModule::imgUploaded()) {
-      $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
-      $imgProcessor = new ImgProcessModule("", $customDir);
-      
-      // Procesar y guardar la nueva imagen recortada en disco
-      $nombres = $imgProcessor->save_img_disk();
-      
-      if ($nombres !== false) {
-        // Eliminar la imagen anterior si existe
-        if (!empty($dataRequest["avatar"])) {
-          $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
-        }
-        // Asignar el nuevo nombre de archivo
-        $avatar = $nombres[0];
+    // Procesar y guardar la nueva imagen recortada en disco
+    $nombres = $imgProcessor->save_img_disk();
+    
+    if ($nombres !== false) {
+      // Eliminar la imagen anterior si existe
+      if (!empty($dataRequest["avatar"])) {
+        $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
       }
+      // Asignar el nuevo nombre de archivo
+      $avatar = $nombres[0];
     }
   }
 

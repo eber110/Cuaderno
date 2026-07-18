@@ -56,9 +56,9 @@
 
   .shadow-3{
     box-sizing: content-box;
-    border: solid 1px <?= $card["colorShadow3"]?>;
-    box-shadow: 4px 4px 0px <?= $card["colorShadow3"]?>;
-    & img {border: solid 1px <?= $card["colorShadow3"]?>;}
+    border: solid 2px <?= $card["colorShadow3"]?>;
+    box-shadow: 3px 5px 0px <?= $card["colorShadow3"]?>;
+    & img {border: solid 2px <?= $card["colorShadow3"]?>;}
   }
 
   .color-text-card{
