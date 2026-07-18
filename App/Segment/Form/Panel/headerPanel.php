@@ -18,7 +18,7 @@
             <div class="border8 p15 br20 flex-column center-center gap5 pointer <?php if ($card["header"] == "regularHero") echo $selected;?>">
               <div class="hpx70 wpx70 flex-column center-center gap10">
                 <figure class="hpx50 br50">
-                  <img src="<?= DIR_SHOW_MEDIA."custom/".$card["avatar"]?>" alt="" class="cover ar-square">
+                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$card["avatar"]?>" alt="" class="cover ar-square">
                 </figure>  
               </div>
               <p class="x16">Regular</p>
@@ -32,7 +32,7 @@
             <div class="border8 p15 br20 flex-column center-center gap5 pointer <?php if ($card["header"] == "midHero") echo $selected;?>">
               <div class="hpx70 wpx70 flex-column center-center gap10">
                 <figure class="brtl10 brtr10 hpx70 wpx70 faded-image">
-                  <img src="<?= DIR_SHOW_MEDIA."custom/".$card["avatar"]?>" alt="" class="cover">
+                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$card["avatar"]?>" alt="" class="cover">
                 </figure>  
               </div>
               <p class="x16">Hero</p>

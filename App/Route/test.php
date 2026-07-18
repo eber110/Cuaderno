@@ -38,7 +38,7 @@ Route::post("/test/1/", function($param){
     
     if ($nombres !== false) {
       // Eliminar la imagen anterior si existe y no es "no-user.webp"
-      if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "no-user.webp") {
+      if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "Origin/no-user.webp") {
         $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
       }
       // Asignar el nuevo nombre de archivo

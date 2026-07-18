@@ -19,7 +19,7 @@ class DesignControllers extends Control{
         "active" => false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
         "hide" => false,//control de visualización del perfil. esto lo decide el usuario
         "profile" => $user,
-        "avatar" => "../Origin/no-user.webp",
+        "avatar" => "Origin/no-user.webp",
         "title" => "Titulo",
         "desc" => "Descripción del usuario",
         "header" => "regularHero",
@@ -41,7 +41,7 @@ class DesignControllers extends Control{
       ];
       
       LogModule::simpleLog([
-        "dir" => "/Cache/UserData/",
+        "dir" => ROOT_PATH."/Cache/UserData/",
         "name" => "{$user}",
         "content" => $data
       ]);

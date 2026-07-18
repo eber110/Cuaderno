@@ -65,4 +65,13 @@
     color: <?=  (!$card["colorText"] || $card["colorText"] === "") ? $card["color"] : $card["colorText"]?>;
   }
 
+  .back-item-menu{
+    background-color: oklch(from <?= $card["backCard"]["back_perfil"]?> calc(l * 0.80) calc(c - 0.09) h / 90%);
+    padding: 5px 10px;
+    border-radius: 15px;
+    border-style: solid;
+    border-color: #ffffff98;
+    border-width: 1px;
+  }
+
 </style>

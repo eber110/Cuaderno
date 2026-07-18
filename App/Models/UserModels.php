@@ -13,7 +13,7 @@ class UserModels extends Builder{
   public static function userExists(string $user): bool{
     
     $user = mb_strtolower($user, 'UTF-8');
-    $userList = LogModule::readLogLines("/Cache/Users/userlist.json");
+    $userList = LogModule::readLogLines(ROOT_PATH."/Cache/Users/userlist.json");
     $dataUser = in_array($user, $userList, true);
     return $dataUser ?? false;
   
@@ -22,7 +22,7 @@ class UserModels extends Builder{
   public function dataUser(string $user): bool|array{
 
     $user = mb_strtolower($user, 'UTF-8');
-    $data = LogModule::readLogLines("/Cache/UserData/{$user}.json");//datos de prueba
+    $data = LogModule::readLogLines(ROOT_PATH."/Cache/UserData/{$user}.json");//datos de prueba
     $data =  (!$data || empty($data)) ? false : $data[0];
     return $data;
   

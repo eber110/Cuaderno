@@ -206,7 +206,7 @@ class LoginControllers extends Control{
         // Cuando se crea un nuevo usuario se cachea en userList.json en la carpeta de cache del sistema
         LogModule::simpleLog(
           [
-            "dir" => "/Cache/Users",
+            "dir" => ROOT_PATH."/Cache/Users",
             "name" => "userList",
             "content" => mb_strtolower($username, 'UTF-8')// todos los usuarios se crean en minúsculas en la bd
           ]

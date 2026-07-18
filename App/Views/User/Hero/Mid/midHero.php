@@ -6,11 +6,11 @@
     <?php _component("Menu.menuUser");?>
   </div>
 
-  <figure class="absolute top back1 ar-square hpx480 hpx-mid-460 hpx-sml-360 w100 faded-image">
+  <figure class="absolute top ar-square w100 faded-image">
     <img src="<?= DIR_SHOW_MEDIA."/Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected">
   </figure>
 
-  <div class="flex-column bottom-center gap10 position-inset-hero hpx500 hpx-sml-400 p20 pt0 pb5">
+  <div class="flex-column bottom-center gap10 position-inset-hero hpx580 hpx-sml-420 p20 pt0 pb5">
     <h1 class="x40 xp30 bold700"><?= $card["title"]?></h1>
     <p class="p20 p-sml-0 pb0 pt0 w100 w-sml-100 text-c hpxm230 hpxm-sml-150 cut-phrase" style="overflow: hidden;"><?= $card["desc"]?></p>
   </div>
