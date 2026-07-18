@@ -1,5 +1,6 @@
 <?php
 
+use Base\Module\ImgProcessModule;
 use Base\Module\LogModule;
 use Base\Module\ResponseModule;
 use Base\Module\Session;
@@ -31,8 +32,23 @@ Route::post("/test/1/", function($param){
     if ($avatar == "") {
       $avatar = $dataRequest["avatar"];
     }
-    //debo agregar el modelo para guardar la imagen en disco
-    //también hay que borrar la imagen anterior, para no generar peso adicional al servidor.
+    
+    if (ImgProcessModule::imgUploaded()) {
+      $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
+      $imgProcessor = new ImgProcessModule("", $customDir);
+      
+      // Procesar y guardar la nueva imagen recortada en disco
+      $nombres = $imgProcessor->save_img_disk();
+      
+      if ($nombres !== false) {
+        // Eliminar la imagen anterior si existe
+        if (!empty($dataRequest["avatar"])) {
+          $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
+        }
+        // Asignar el nuevo nombre de archivo
+        $avatar = $nombres[0];
+      }
+    }
   }
 
   if (isset($param["borders"])) {
