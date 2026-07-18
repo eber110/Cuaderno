@@ -6,7 +6,7 @@
     <?php _component("Menu.menuUser");?>
   </div>
 
-  <figure class="absolute top back1 ar-square hpx480 hpx-sml-360 w100 faded-image">
+  <figure class="absolute top back1 ar-square hpx480 hpx-mid-460 hpx-sml-360 w100 faded-image">
     <img src="<?= DIR_SHOW_MEDIA."/Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected">
   </figure>
 

@@ -116,8 +116,22 @@
   min-width: 550px;
 }
 
-.preview-profile{
-  min-height: 950px;
+.preview-profile {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: none; /* Oculta la barra en Firefox */
+  -ms-overflow-style: none;  /* Oculta la barra en Internet Explorer y Edge antiguo */
+  height: 950px !important;
+}
+/* Oculta la barra en navegadores basados en WebKit (Chrome, Safari, Opera, Edge Nuevo) */
+.preview-profile::-webkit-scrollbar {
+  display: none;
+}
+.user-profile-preview a,
+.user-profile-preview .modal-btn,
+.user-profile-preview .theme-button {
+  pointer-events: none !important;
+  cursor: default !important;
 }
 
 /*Estilo del input:radio*/

@@ -27,6 +27,13 @@ Route::post("/test/1/", function($param){
 
   extract($param);
 
+  if (isset($param["avatar"])) {
+    if ($avatar == "") {
+      $avatar = $dataRequest["avatar"];
+    }
+    //debo agregar el modelo para guardar la imagen en disco
+    //también hay que borrar la imagen anterior, para no generar peso adicional al servidor.
+  }
 
   if (isset($param["borders"])) {
     $dataRequest["borders"] = explode(",",$borders);

@@ -7,8 +7,10 @@
 <div class="remote-container animated p20">
 
   <div id="header-remote" class="remote-content flex-row top-center active">
-    <div class="wpx630 w-mid-100 w-sml-100 back-card |p20">
-      <?php _part("User.midHero")?>
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php 
+        _form("Panel.headerPanel");
+      ?>
     </div>
   </div>
 <!-- button-remote -->

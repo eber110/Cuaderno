@@ -32,7 +32,7 @@
         <div class="vertical-menu-content flex-column gap5 w100 hidden">
           <p class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="header-remote"><?= svg("angle-r")?>Cabecera</p>
           <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote"><?= svg("angle-r")?>Fondo</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote"><?= svg("angle-r")?>Tarjetas</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote"><?= svg("angle-r")?>Botones</p>
         </div>
       </div>
       

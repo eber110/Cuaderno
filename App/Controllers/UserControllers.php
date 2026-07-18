@@ -21,6 +21,10 @@ class UserControllers extends Control{
     $existsUser = new UserModels;
     $existsUser = $existsUser->userExists($user);
 
+    if (!$existsUser) {
+      return ResponseModule::redirect("/".Session::session_data("username"), "El usuario {$user}, no existe!", 2);
+    }
+
     //esta condición debe consultar a la cache del indice de usuarios, para la seguridad del sitio.
     //la cache se renovara cada ves que se registre un nuevo usuario
     //MODIFICAR ESTA CONDICIÓN
