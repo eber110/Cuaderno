@@ -22,9 +22,9 @@ Route::post("/test/1/", function($param){
 
   $user = Session::session_data("username");
 
-  $dataRequest = LogModule::readLogLines("/Cache/UserData/{$user}.json");
+  $dataRequest = LogModule::readLogLines(ROOT_PATH."/Cache/UserData/{$user}.json");
   $dataRequest = $dataRequest[0]["card"];
-  LogModule::deleteLog("/Cache/UserData/{$user}.json");
+  LogModule::deleteLog(ROOT_PATH."/Cache/UserData/{$user}.json");
 
   extract($param);
 
@@ -37,8 +37,8 @@ Route::post("/test/1/", function($param){
     $nombres = $imgProcessor->save_img_disk();
     
     if ($nombres !== false) {
-      // Eliminar la imagen anterior si existe
-      if (!empty($dataRequest["avatar"])) {
+      // Eliminar la imagen anterior si existe y no es "no-user.webp"
+      if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "no-user.webp") {
         $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
       }
       // Asignar el nuevo nombre de archivo
@@ -117,7 +117,7 @@ Route::post("/test/1/", function($param){
   ];
 
   LogModule::simpleLog([
-    "dir" => "/Cache/UserData/",
+    "dir" => ROOT_PATH."/Cache/UserData/",
     "name" => "{$user}",
     "content" => $data
   ]);
