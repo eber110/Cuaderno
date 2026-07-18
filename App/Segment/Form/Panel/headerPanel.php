@@ -2,7 +2,7 @@
   /** @var mixed $card */
   $selected = "border-selected-item";
 ?>
-<form class="auto-submit w100" action="/test/1" method="post">
+<form class="auto-submit w100" action="/test/1" method="post" enctype="multipart/form-data">
 
   <div class="flex-column top-between gap20">
     
