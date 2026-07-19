@@ -30,17 +30,11 @@
     </div>
   </div>
 
-  <div id="content-remote-3" class="remote-content hidden">
-    <div class="modal-btn">
-      <p>Abrir</p>
-    </div>
-    <div class="hidden">
-      <div class="flex-column center-center w100 before-menu-overlay">
-        <div class="absolute m20 top right pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
-          <?= svg("xmark")?>
-        </div>
-        <?php _component("UserPreview.userPreview", ["data" => $card])?>
-      </div>
+  <div id="Content-button" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php
+        _form("Panel.contentButtonPanel");
+      ?>
     </div>
   </div>
 
