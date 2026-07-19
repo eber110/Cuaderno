@@ -147,6 +147,12 @@
   border: dashed 3px var(--text-item-sidebar);
 }
 
+.border-item-panel{
+  border-style: solid;
+  border-color: #1b1b1b;
+  border-width: 1px;
+}
+
 .button-style-background{
   background-color: #838383;
   border-radius: 15px;

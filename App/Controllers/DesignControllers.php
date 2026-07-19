@@ -29,7 +29,7 @@ class DesignControllers extends Control{
           "style_back" => "solid"//Tipo de background (solido, gradiente, etc.)
         ],
         "colorText" => "#383838",
-        "style" => "Regular",
+        "style" => "buttonRegular",
         "borders" => ["br0", "br0"],
         "shadow" => "shadow-1",
         "back" => "#d6d6d6",

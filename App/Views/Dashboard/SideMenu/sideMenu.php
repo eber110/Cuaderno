@@ -37,7 +37,7 @@
       </div>
       
       <!-- Enlaces raíz -->
-      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="Content-button"><?= svg("file-pen")?>Contenido</p>
+      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="Content-button"><?= svg("file-pen")?>Links</p>
       <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4"><?= svg("list")?>Datos de usuario</p>
       <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5"><?= svg("list")?>Datos de sesión</p>
 

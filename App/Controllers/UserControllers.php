@@ -16,13 +16,13 @@ class UserControllers extends Control{
     //y si el usuario existe, se puede consultar la bd a traves de UserModels.
 
     //Si por cualquier caso el usuario no tiene un profile, se creara una plantilla para que la pueda editar
-    DesignControllers::initialDesign($user);
+    DesignControllers::initialDesign($user);//user_index
 
     $userData = new UserModels;
-    $userData = $userData->dataUser($user);
+    $userData = $userData->dataUser($user);//user_index
 
     $existsUser = new UserModels;
-    $existsUser = $existsUser->userExists($user);
+    $existsUser = $existsUser->userExists($user);//user_index
 
     if (!$existsUser) {
       return ResponseModule::redirect("/".Session::session_data("username"), "El usuario {$user}, no existe!", 2);

@@ -7,7 +7,10 @@
 
     for ($i=0; $i < count($card["content"]); $i++) {
       if ($card["content"][$i][0] == "link") {
-        _part("User.button".$card['style']."", ["dataContent" => $i]);
+        if ($card["content"][$i][4] == true) {
+          # code...
+          _part("User.".$card['style']."", ["dataContent" => $i]);
+        }
       }
     }
   ?>

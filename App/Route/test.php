@@ -19,8 +19,8 @@ Route::get("/test/2", function(){
 });
 
 Route::post("/test/1/", function($param){
-
-  $user = Session::session_data("username");
+  //return var_dump($param);
+  $user = Session::session_data("username");//user_index
 
   $dataRequest = LogModule::readLogLines(ROOT_PATH."/Cache/UserData/{$user}.json");
   $dataRequest = $dataRequest[0]["card"];
@@ -29,20 +29,33 @@ Route::post("/test/1/", function($param){
   extract($param);
 
   if (ImgProcessModule::imgUploaded()) {
-    $avatar = $_FILES["avatar"]["name"];
-    $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
-    $imgProcessor = new ImgProcessModule("", $customDir);
-    
-    // Procesar y guardar la nueva imagen recortada en disco
-    $nombres = $imgProcessor->save_img_disk();
-    
-    if ($nombres !== false) {
-      // Eliminar la imagen anterior si existe y no es "no-user.webp"
-      if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "Origin/no-user.webp") {
-        $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
+    // 1. Imagen del avatar de perfil
+    if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
+      $avatar = $_FILES["avatar"]["name"];
+      $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
+      $imgProcessor = new ImgProcessModule("avatar", $customDir);
+      $nombres = $imgProcessor->save_img_disk();
+      
+      if ($nombres !== false && !empty($nombres[0])) {
+        if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "Origin/no-user.webp") {
+          $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
+        }
+        $avatar = $nombres[0];
       }
-      // Asignar el nuevo nombre de archivo
-      $avatar = $nombres[0];
+    }
+
+    // 2. Imágenes de ítems de contenido (guardadas en /App/Public/Img/)
+    $contentImgDir = ROOT_PATH . '/App/Public/Img/';
+    $uploadedContentImgs = [];
+    foreach ($_FILES as $fileKey => $fileVal) {
+      if (strpos($fileKey, 'content_img_') === 0 && $fileVal['error'] === UPLOAD_ERR_OK) {
+        $itemIdx = (int)str_replace('content_img_', '', $fileKey);
+        $imgProc = new ImgProcessModule($fileKey, $contentImgDir);
+        $savedImgs = $imgProc->save_img_disk();
+        if ($savedImgs !== false && !empty($savedImgs[0])) {
+          $uploadedContentImgs[$itemIdx] = $savedImgs[0];
+        }
+      }
     }
   }
 
@@ -52,6 +65,50 @@ Route::post("/test/1/", function($param){
 
   if (isset($param["colorText"])) {
     $titleColor = $colorText;
+  }
+
+  if (isset($param["content"])) {
+    $content = [];
+    foreach ($param["content"] as $index => $item) {
+      // Si fue marcado para eliminar, omitir
+      if (isset($item['delete']) && ($item['delete'] === 'true' || $item['delete'] === true)) {
+        continue;
+      }
+
+      $type   = $item['type']  ?? $item[0] ?? 'link';
+      $img    = $uploadedContentImgs[$index] ?? $item['img'] ?? $item[1] ?? 'prod.webp';
+      $title  = trim($item['title'] ?? $item[2] ?? '');
+      $url    = trim($item['url']   ?? $item[3] ?? '');
+
+      // Determinar si el switch está marcado (activo)
+      $rawActive = $item['active'] ?? $item[4] ?? true;
+      $active = ($rawActive === 'true' || $rawActive === true || $rawActive === '1' || $rawActive === 1);
+
+      // Si tanto título como URL están vacíos, omitir
+      if ($title === '' && $url === '') {
+        continue;
+      }
+
+      $content[] = [$type, $img, $title, $url, $active];
+    }
+  }
+
+  // Si se presionó uno de los botones iniciadores (+ Enlace, + Producto, etc.)
+  if (isset($param['add_content_type'])) {
+    $newType = $param['add_content_type'];
+
+    // Plantillas base según el tipo seleccionado
+    $typeTemplates = [
+      'link'    => ['link', 'prod.webp', 'Nuevo Enlace', 'https://www.ebersanchez.cl', true],
+      'product' => ['product', 'prod.webp', 'Nuevo Producto', 'https://www.ebersanchez.cl', true]
+    ];
+
+    $newItem = $typeTemplates[$newType] ?? ['link', 'prod.webp', 'Nuevo Elemento', 'https://www.ebersanchez.cl', true];
+
+    if (!isset($content)) {
+      $content = $dataRequest['content'] ?? [];
+    }
+    $content[] = $newItem;
   }
 
   $data = [
@@ -86,38 +143,7 @@ Route::post("/test/1/", function($param){
           "https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"
         ]
       ],
-      "content" => [
-        [
-          "link",
-          "prod.webp",
-          "Este es mi primer link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "hero.webp",
-          "Este es mi segundo link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "desc.webp",
-          "Este es mi tercero link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "hero.webp",
-          "Este es mi super cuarto link",
-          "https://www.ebersanchez.cl"
-        ],
-        [
-          "link",
-          "prod.webp",
-          "Este es mi lindo y especial quinto link",
-          "https://www.ebersanchez.cl"
-        ]
-      ]
+      "content" => $content ?? $dataRequest["content"]
     ]
   ];
 
