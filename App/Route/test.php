@@ -50,6 +50,10 @@ Route::post("/test/1/", function($param){
     $dataRequest["borders"] = explode(",",$borders);
   }
 
+  if (isset($param["colorText"])) {
+    $titleColor = $colorText;
+  }
+
   $data = [
     "card" => [
       "active" => true ?? $dataRequest["active"],//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
@@ -57,6 +61,7 @@ Route::post("/test/1/", function($param){
       "profile" => $profile ?? $dataRequest["profile"],
       "avatar" => $avatar ?? $dataRequest["avatar"],
       "title" => $title ?? $dataRequest["title"],
+      "titleColor" => $titleColor ?? $dataRequest["titleColor"],
       "desc" => $desc ?? $dataRequest["desc"],
       "header" => $header ?? $dataRequest["header"],
       "backCard" => [

@@ -74,4 +74,8 @@
     border-width: 1px;
   }
 
+  .title-color{
+    color: <?= $card["titleColor"]?>;
+  }
+
 </style>

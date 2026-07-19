@@ -2,6 +2,7 @@
   
 namespace App\Middleware;
 
+use App\Controllers\DesignControllers;
 use App\Middleware\MiddlewareInterface\MiddlewareInterface;
 use Base\Module\ResponseModule;
 use Base\Module\Session;

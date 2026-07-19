@@ -21,6 +21,7 @@ class DesignControllers extends Control{
         "profile" => $user,
         "avatar" => "Origin/no-user.webp",
         "title" => "Titulo",
+        "titleColor" => "#383838",
         "desc" => "Descripción del usuario",
         "header" => "regularHero",
         "backCard" => [

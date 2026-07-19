@@ -13,7 +13,7 @@
       </figure>
     </div>
     
-    <h1 class="x30 xp25 bold500"><?= $card["title"]?></h1>
+    <h1 class="x30 xp25 bold500 title-color"><?= $card["title"]?></h1>
     <p class="p30 pb0 pt0 p-sml-0 w85 w-sml-90 text-c hpxm550"><?= $card["desc"]?></p>
     
   </div>

@@ -15,6 +15,9 @@ class UserControllers extends Control{
     //crear un indice con los usuarios para consultar si existe. preferiblemente en formato json en la cache del proyecto
     //y si el usuario existe, se puede consultar la bd a traves de UserModels.
 
+    //Si por cualquier caso el usuario no tiene un profile, se creara una plantilla para que la pueda editar
+    DesignControllers::initialDesign($user);
+
     $userData = new UserModels;
     $userData = $userData->dataUser($user);
 

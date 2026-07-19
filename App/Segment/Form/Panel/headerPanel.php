@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    <!-- Curvatura de las esquinas -->
+    <!-- Imagen de perfil -->
     <div class="flex-row center-between">
       <p>Imagen de perfil</p>
 
@@ -57,6 +57,37 @@
         box-btn-image="p10 back7 border8 textb br15 pointer">
       </div>
 
+    </div>
+
+    <!-- Titulo del perfil -->
+    <div class="flex-row center-between">
+      <p>Titulo</p>
+
+      <div class="border8 br15 p5">
+        <input type="text" name="title" id="" value="<?= $card["title"]?>" class="process-auto-submit wpx320">
+      </div>
+    </div>
+
+    <!-- Descripción del perfil -->
+    <div class="flex-row center-between">
+      <p>Bio</p>
+
+      <div class="border8 br15 p5">
+        <textarea name="desc" id="" class="process-auto-submit wpx320 hpx100"><?= $card["desc"]?></textarea>
+      </div>
+    </div>
+
+    <!-- Estilo de color del texto de los botones -->
+    <div class="flex-row center-between">
+      <p>Color de titulo</p>
+
+      <div class="border8 wpx140 br15">
+        <label for="select-color-title" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="select-color-title" name="titleColor" value="<?= $card["titleColor"]?>" class="color-picker box-color-picker"
+          style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+          <p class="x16 bold500 textb"><?= $card["titleColor"]?></p>
+        </label>
+      </div>
     </div>
 
   </div>  
