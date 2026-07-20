@@ -24,7 +24,8 @@
             "copyToClipboard": [],
             "tooltip": [],
             "autoSubmitForm": [],
-            "formComponents": []
+            "formComponents": [],
+            "sortableContent": []
         },
         "async": {}
     }

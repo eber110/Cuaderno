@@ -67,29 +67,56 @@ Route::post("/test/1/", function($param){
     $titleColor = $colorText;
   }
 
+  $contentImgDir = ROOT_PATH . '/App/Public/Img/';
+  $imgProcessor = new ImgProcessModule("", $contentImgDir);
+
   if (isset($param["content"])) {
     $content = [];
+    $existingContentList = $dataRequest["content"] ?? [];
+
     foreach ($param["content"] as $index => $item) {
-      // Si fue marcado para eliminar, omitir
+      // Imagen que tenía registrada el ítem en la versión previa del JSON
+      $oldImg = $existingContentList[$index][1] ?? 'Custom/Origin/no-user.webp';
+
+      // 1. Si el ítem fue marcado para eliminar
       if (isset($item['delete']) && ($item['delete'] === 'true' || $item['delete'] === true)) {
+        // Eliminar del disco únicamente si NO es la imagen por defecto
+        if (!empty($oldImg) && strpos($oldImg, 'Custom/Origin/') === false && $oldImg !== 'Origin/no-user.webp') {
+          $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+        }
         continue;
       }
 
-      $type   = $item['type']  ?? $item[0] ?? 'link';
-      $img    = $uploadedContentImgs[$index] ?? $item['img'] ?? $item[1] ?? 'prod.webp';
-      $title  = trim($item['title'] ?? $item[2] ?? '');
-      $url    = trim($item['url']   ?? $item[3] ?? '');
+      $type  = $item['type']  ?? $item[0] ?? 'link';
+      $title = trim($item['title'] ?? $item[2] ?? '');
+      $url   = trim($item['url']   ?? $item[3] ?? '');
 
-      // Determinar si el switch está marcado (activo)
-      $rawActive = $item['active'] ?? $item[4] ?? true;
-      $active = ($rawActive === 'true' || $rawActive === true || $rawActive === '1' || $rawActive === 1);
-
-      // Si tanto título como URL están vacíos, omitir
-      if ($title === '' && $url === '') {
-        continue;
+      // 2. Determinar la imagen e imgDefault (índice 5)
+      if (isset($uploadedContentImgs[$index])) {
+        // Eliminar la imagen vieja de disco si se sube una nueva y no era por defecto
+        if (!empty($oldImg) && strpos($oldImg, 'Custom/Origin/') === false && $oldImg !== 'Origin/no-user.webp') {
+          $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+        }
+        $img = $uploadedContentImgs[$index];
+        $imgDefault = true; // Imagen personalizada subida
+      } else {
+        $img = $item['img'] ?? $item[1] ?? 'Custom/Origin/no-user.webp';
+        // imgDefault: false si es por defecto, true si es personalizada
+        $isDefaultImg = (empty($img) || strpos($img, 'Custom/Origin/') !== false || $img === 'Origin/no-user.webp');
+        $imgDefault = !$isDefaultImg;
       }
 
-      $content[] = [$type, $img, $title, $url, $active];
+      // 3. Determinar si el switch está marcado (activo)
+      $rawActive = $item['active'] ?? $item[4] ?? false;
+      $active = ($rawActive === 'true' || $rawActive === true || $rawActive === 1 || $rawActive === '1');
+
+      // Si el título O la URL están en blanco, el enlace DEBE permanecer inactivo (false)
+      if ($title === '' || $url === '') {
+        $active = false;
+      }
+
+      // Array de 6 elementos: [type, img, title, url, active, imgDefault]
+      $content[] = [$type, $img, $title, $url, $active, $imgDefault];
     }
   }
 
@@ -97,13 +124,13 @@ Route::post("/test/1/", function($param){
   if (isset($param['add_content_type'])) {
     $newType = $param['add_content_type'];
 
-    // Plantillas base según el tipo seleccionado
+    // Plantillas base según el tipo seleccionado (imgDefault = false)
     $typeTemplates = [
-      'link'    => ['link', 'prod.webp', 'Nuevo Enlace', 'https://www.ebersanchez.cl', true],
-      'product' => ['product', 'prod.webp', 'Nuevo Producto', 'https://www.ebersanchez.cl', true]
+      'link'    => ['link', 'Custom/Origin/no-user.webp', '', '', false, false],
+      'product' => ['product', 'Custom/Origin/no-user.webp', '', '', false, false]
     ];
 
-    $newItem = $typeTemplates[$newType] ?? ['link', 'prod.webp', 'Nuevo Elemento', 'https://www.ebersanchez.cl', true];
+    $newItem = $typeTemplates[$newType] ?? ['link', 'Custom/Origin/no-user.webp', '', '', false, false];
 
     if (!isset($content)) {
       $content = $dataRequest['content'] ?? [];
