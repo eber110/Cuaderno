@@ -12,7 +12,7 @@
 
   <div class="flex-column bottom-center gap10 position-inset-hero hpx580 hpx-sml-420 p20 pt0 pb5">
     <h1 class="x40 xp30 bold700 title-color"><?= $card["title"]?></h1>
-    <p class="p20 p-sml-0 pb0 pt0 w100 w-sml-100 text-c hpxm230 hpxm-sml-150 cut-phrase" style="overflow: hidden;"><?= $card["desc"]?></p>
+    <p class="p20 p-sml-0 pb0 pt0 w100 w-sml-100 text-c hpxm230 hpxm-sml-150 |cut-phrase" style="overflow: hidden;"><?= $card["desc"]?></p>
   </div>
 
   <?php
