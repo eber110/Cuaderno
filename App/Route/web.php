@@ -8,7 +8,12 @@ use App\Controllers\UserControllers;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\DashboardMiddleware;
 use Base\Module\ImgProcessModule;
+use Base\Module\SeoModule;
 use Core\Route;
+
+#Configuración SEO
+Route::get("/robots.txt", function(){ SeoModule::robots(); });
+Route::get("/sitemap.xml", function(){ SeoModule::sitemap(["/salir", "/op/image", "/op/check", "/test/2"],['/' => ['priority' => 1.0, 'changefreq' => 'daily']]); });
 
 #este grupo de paginas son solo para el usuario logueado
 Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(function(){

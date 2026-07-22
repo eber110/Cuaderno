@@ -175,6 +175,11 @@
   box-shadow: 0px 0px 2px #000000;
 }
 
+/*Posición negativa en texto de midHero.php*/
+.mmt20{
+  margin-top: -20px;
+}
+
 /*desktop*/
 @media screen and (min-width: 993px) {
 
