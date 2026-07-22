@@ -12,8 +12,23 @@ use Base\Module\SeoModule;
 use Core\Route;
 
 #Configuración SEO
-Route::get("/robots.txt", function(){ SeoModule::robots(); });
+Route::get("/robots.txt", function(){ SeoModule::robots([],["llms.txt"]); });
 Route::get("/sitemap.xml", function(){ SeoModule::sitemap(["/salir", "/op/image", "/op/check", "/test/2"],['/' => ['priority' => 1.0, 'changefreq' => 'daily']]); });
+Route::get("/llms.txt", function(){ SeoModule::llms([
+    "title"    => "Mi Proyecto Web",
+    "summary"  => "Aplicación web optimizada construida con Eber-Framework (Software propietario).",
+    "details"  => "Este sitio proporciona herramientas de gestión y perfil de usuario.",
+    'sections' => [
+      'Recursos Externos' => [
+        [
+          "title"       => "Repositorio GitHub",
+          "url"         => "https://github.com/eber110/Cuaderno",
+          "description" => "Código fuente oficial."
+        ]
+      ]
+    ]
+  ])
+;});
 
 #este grupo de paginas son solo para el usuario logueado
 Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(function(){
