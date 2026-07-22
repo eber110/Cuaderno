@@ -6,7 +6,7 @@
     
     <?php foreach ($card["rrss"] as $value) :?>
 
-      <a href="<?= $value[1]?>" target="_blank" class="color-text-card hover-lift-ns">
+      <a href="<?= $value[1]?>" target="_blank" aria-label="<?= $value[0]?>" class="color-text-card hover-lift-ns">
         <?= svg($value[0])?>
       </a>
       

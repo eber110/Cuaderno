@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\ResponseModule;
+use Base\Module\SeoModule;
 use Base\Module\Session;
 
 class UserControllers extends Control{
@@ -40,9 +41,18 @@ class UserControllers extends Control{
     }
 
     $data = $userData;
-    
-    //var_dump($data);
-    //var_dump($_SESSION);
+
+    //configuración SEO
+    SeoModule::setMetaDescription($data["card"]["desc"]);
+    SeoModule::setTitle("Mi Cuaderno: ".$data["card"]["title"]);
+    SeoModule::setOpenGraph([
+      "title" => $data["card"]["title"],
+      "content" => $data["card"]["desc"],
+      "image" => DIR_SHOW_MEDIA.$data["card"]["avatar"],
+      "link" => DOMAIN.$data["card"]["profile"],
+      "type" => "website"
+    ]);
+
     return $this->view("User.index", $data);
   
   }

@@ -9,7 +9,7 @@
     
     <div class="flex-column center-center hpx120">
       <figure class="hpx100 wpx100 br100" style="background: transparent;">
-        <img src="<?= DIR_SHOW_MEDIA."/Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $card["title"]?>" class="cover br100 image-protected flex-row center-center">
+        <img src="<?= DIR_SHOW_MEDIA."Custom/{$card["avatar"]}"?>" alt="Avatar de <?= $card["title"]?>" class="cover br100 image-protected flex-row center-center" fetchpriority="high">
       </figure>
     </div>
     

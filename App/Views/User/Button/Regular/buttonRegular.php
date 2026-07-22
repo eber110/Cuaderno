@@ -11,7 +11,7 @@
 
   <a href="<?= $card["content"][$dataContent][3]?>" target="_blank" class="flex-row center-start h100" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 50px);">
     <figure class="ar-square p7 wpx65">
-      <img src="<?= DIR_SHOW_MEDIA?>/<?= $img?>" alt="" class="cover <?= $card["borders"][1]?>">
+      <img src="<?= DIR_SHOW_MEDIA?><?= $img?>" alt="" class="cover <?= $card["borders"][1]?>">
     </figure>
 
     <p class="flex-row center-center bold500 text-c cut-phrase hpx65" cant-col="2" style="flex-grow: 1;">
