@@ -1,6 +1,8 @@
 <?php
   /** @var mixed $card */
   $selected = "border-selected-item";
+  $headerVal = $card["header"] ?? 'regularHero';
+  $avatarVal = $card["avatar"] ?? 'Origin/no-user.webp';
 ?>
 <form class="auto-submit w100" action="/test/1" method="post" enctype="multipart/form-data">
 
@@ -13,12 +15,12 @@
       <div class="flex-row center-end gap10 w100">
 
         <div class="flex-row center-end gap10">
-          <input type="radio" id="regularHeader" name="header" class="hidden-radio" value="regularHero" <?php if ($card["header"] == "regularHero") echo "checked";?>>
+          <input type="radio" id="regularHeader" name="header" class="hidden-radio" value="regularHero" <?php if ($headerVal == "regularHero") echo "checked";?>>
           <label for="regularHeader">
-            <div class="border-item-panel p15 br20 flex-column center-center gap5 pointer <?php if ($card["header"] == "regularHero") echo $selected;?>">
+            <div class="border-item-panel p15 br20 flex-column center-center gap5 pointer <?php if ($headerVal == "regularHero") echo $selected;?>">
               <div class="hpx70 wpx70 flex-column center-center gap10">
                 <figure class="hpx50 br50">
-                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$card["avatar"]?>" alt="" class="cover ar-square">
+                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$avatarVal?>" alt="" class="cover ar-square">
                 </figure>  
               </div>
               <p class="x16">Regular</p>
@@ -27,12 +29,12 @@
         </div>
   
         <div class="flex-row center-end gap10">
-          <input type="radio" id="midHeader" name="header" class="hidden-radio" value="midHero" <?php if ($card["header"] == "midHero") echo "checked";?>>
+          <input type="radio" id="midHeader" name="header" class="hidden-radio" value="midHero" <?php if ($headerVal == "midHero") echo "checked";?>>
           <label for="midHeader">
-            <div class="border-item-panel p15 br20 flex-column center-center gap5 pointer <?php if ($card["header"] == "midHero") echo $selected;?>">
+            <div class="border-item-panel p15 br20 flex-column center-center gap5 pointer <?php if ($headerVal == "midHero") echo $selected;?>">
               <div class="hpx70 wpx70 flex-column center-center gap10">
                 <figure class="brtl10 brtr10 hpx70 wpx70 faded-image">
-                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$card["avatar"]?>" alt="" class="cover">
+                  <img src="<?= DIR_SHOW_MEDIA."Custom/".$avatarVal?>" alt="" class="cover">
                 </figure>  
               </div>
               <p class="x16">Hero</p>

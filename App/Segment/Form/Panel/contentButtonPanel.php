@@ -35,7 +35,7 @@
         $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
         $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
       ?>
-        <div id="content-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15" draggable="true">
+        <div id="content-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15 <?php if ($itemActive) echo $selected; ?>" draggable="true">
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>

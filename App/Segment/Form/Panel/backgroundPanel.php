@@ -1,6 +1,8 @@
 <?php
   /** @var mixed $card */
   $selected = "border-selected-item";
+  $styleBack  = $card["backCard"]["style_back"] ?? $card["backCard"][1] ?? 'solid';
+  $backPerfil = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
 ?>
 <form class="auto-submit w100" action="/test/1" method="post">
 
@@ -12,21 +14,21 @@
 
       <div class="flex-row center-end gap10 w100">
         
-        <input type="radio" id="op2" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") echo "checked";?>>
-        <label for="op2">
-          <div class="border-item-panel p5 br20 flex-column center-center gap5 <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") echo $selected;?>">
+        <input type="radio" id="style_gradient" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo "checked";?>>
+        <label for="style_gradient">
+          <div class="border-item-panel p5 br20 flex-column center-center gap5 <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo $selected;?>">
             <div class="hpx80 wpx80 br15" style="background: linear-gradient(180deg,
-              oklch(from <?= $card["backCard"]["back_perfil"]?> calc(l * 0.60) calc(c - 0.01) h / 88%),
-              oklch(from <?= $card["backCard"]["back_perfil"]?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
+              oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+              oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
               );"></div>
             <p class="x16">Degradado</p>
           </div>
         </label>
     
-        <input type="radio" id="op3" name="style_back" class="hidden-radio" value="solid" <?php if ($card["backCard"]["style_back"] == "solid") echo "checked";?>>
-        <label for="op3">
-          <div class="border-item-panel p5 br20 flex-column center-center gap5 <?php if ($card["backCard"]["style_back"] == "solid") echo $selected;?>">
-            <div class="hpx80 wpx80 br15" style="background-color: <?= $card["backCard"]["back_perfil"]?>;"></div>
+        <input type="radio" id="style_solid" name="style_back" class="hidden-radio" value="solid" <?php if ($styleBack == "solid") echo "checked";?>>
+        <label for="style_solid">
+          <div class="border-item-panel p5 br20 flex-column center-center gap5 <?php if ($styleBack == "solid") echo $selected;?>">
+            <div class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
             <p class="x16">Solido</p>
           </div>
         </label>
@@ -40,9 +42,9 @@
 
       <div class="border-item-panel wpx140 br15">
         <label for="select-color" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color" name="back_perfil" value="<?= $card["backCard"]["back_perfil"]?>" class="color-picker box-color-picker"
+          <input type="color" id="select-color" name="back_perfil" value="<?= $backPerfil?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-          <p class="x16 bold500 textb"><?= $card["backCard"]["back_perfil"]?></p>
+          <p class="x16 bold500 textb"><?= $backPerfil?></p>
         </label>
       </div>
     </div>
@@ -61,23 +63,23 @@
     </div>
   
     <!-- Dirección del degradado -->
-    <?php if ($card["backCard"]["style_back"] == "gradientUp" || $card["backCard"]["style_back"] == "gradientDown") :?>
+    <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") :?>
 
       <div class="flex-row center-between">
 
         <p>Dirección del degradado</p>
   
         <div class="flex-row center-end gap10">
-          <input type="radio" id="op1" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($card["backCard"]["style_back"] == "gradientUp") echo "checked";?>>
-          <label for="op1">
-            <div class="br15 p10 border-item-panel <?php if ($card["backCard"]["style_back"] == "gradientUp") echo $selected;?>">
+          <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
+          <label for="direction_up">
+            <div class="br15 p10 border-item-panel <?php if ($styleBack == "gradientUp") echo $selected;?>">
               <?= svg("arrow-up");?> Arriba
             </div>
           </label>
           
-          <input type="radio" id="op2" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($card["backCard"]["style_back"] == "gradientDown") echo "checked";?>>
-          <label for="op2">
-            <div class="br15 p10 border-item-panel <?php if ($card["backCard"]["style_back"] == "gradientDown") echo $selected;?>">
+          <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
+          <label for="direction_down">
+            <div class="br15 p10 border-item-panel <?php if ($styleBack == "gradientDown") echo $selected;?>">
               <?= svg("arrow-down");?> Abajo
             </div>
           </label>

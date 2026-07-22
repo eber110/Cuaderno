@@ -142,9 +142,9 @@
   height: 0;
 }
 
-/*estilo ára los elementos de formularios en el content de panel*/
+/*estilo para los elementos de formularios en el content de panel*/
 .border-selected-item{
-  border: dashed 3px var(--text-item-sidebar);
+  border: dashed 3px #1b1b1b !important;
 }
 
 .border-item-panel{
