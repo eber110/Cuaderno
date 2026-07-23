@@ -46,11 +46,14 @@ class UserControllers extends Control{
     SeoModule::setMetaDescription($data["card"]["desc"]);
     SeoModule::setTitle("Mi Cuaderno: ".$data["card"]["title"]);
     SeoModule::setOpenGraph([
-      "title" => $data["card"]["title"],
-      "content" => $data["card"]["desc"],
-      "image" => DIR_SHOW_MEDIA.$data["card"]["avatar"],
-      "link" => DOMAIN.$data["card"]["profile"],
-      "type" => "website"
+      "title"     => $data["card"]["title"].", revisa mi cuaderno.",
+      "site_name" => "Cuaderno",
+      "content"   => $data["card"]["desc"],
+      "image"     => DIR_SHOW_MEDIA . "Custom/" . $data["card"]["avatar"],
+      "image_width" => 500,
+      "image_height" => 500,
+      "link"      => DOMAIN . "/" . ltrim($data["card"]["profile"], '/'),
+      "type"      => "website"
     ]);
 
     return $this->view("User.index", $data);
