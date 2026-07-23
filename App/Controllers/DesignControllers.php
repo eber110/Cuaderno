@@ -52,7 +52,7 @@ class DesignControllers extends Control{
     }
   }
 
-  public function configDesign($user, $param){
+  public function configDesign(string $user, array | string $param){
     //return var_dump($param);
     //$user = Session::session_data("username");//user_index
 
@@ -68,7 +68,7 @@ class DesignControllers extends Control{
         $avatar = $_FILES["avatar"]["name"];
         $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
         $imgProcessor = new ImgProcessModule("avatar", $customDir);
-        $nombres = $imgProcessor->save_img_disk();
+        $nombres = $imgProcessor->save_img_disk(null);
 
         if ($nombres !== false && !empty($nombres[0])) {
           if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "Origin/no-user.webp") {
@@ -85,7 +85,7 @@ class DesignControllers extends Control{
         if (strpos($fileKey, 'content_img_') === 0 && $fileVal['error'] === UPLOAD_ERR_OK) {
           $itemIdx = (int)str_replace('content_img_', '', $fileKey);
           $imgProc = new ImgProcessModule($fileKey, $contentImgDir);
-          $savedImgs = $imgProc->save_img_disk();
+          $savedImgs = $imgProc->save_img_disk(null);
           if ($savedImgs !== false && !empty($savedImgs[0])) {
             $uploadedContentImgs[$itemIdx] = $savedImgs[0];
           }
