@@ -1,11 +1,14 @@
 <?php
-  /** @var mixed $card */
+  /** 
+   * @var mixed $card 
+   * @var mixed $uri
+   */
   $selected = "border-selected-item";
   $buttonStyle = $card["style"] ?? 'buttonRegular';
   $borderVal   = $card["borders"][0] ?? 'br0';
   $shadowVal   = $card["shadow"] ?? 'shadow-0';
 ?>
-<form class="auto-submit w100" action="/test/1" method="post">
+<form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
 
   <div class="flex-column top-between gap20">
     

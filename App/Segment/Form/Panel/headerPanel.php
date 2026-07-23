@@ -1,10 +1,13 @@
 <?php
-  /** @var mixed $card */
+  /** 
+   * @var mixed $card 
+   * @var mixed $uri
+   */
   $selected = "border-selected-item";
   $headerVal = $card["header"] ?? 'regularHero';
   $avatarVal = $card["avatar"] ?? 'Origin/no-user.webp';
 ?>
-<form class="auto-submit w100" action="/test/1" method="post" enctype="multipart/form-data">
+<form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
 
   <div class="flex-column top-between gap20">
     

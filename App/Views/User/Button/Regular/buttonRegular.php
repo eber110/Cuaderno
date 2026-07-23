@@ -1,6 +1,7 @@
 <?php
-  /** @var mixed $card 
-   *  @var mixed $dataContent
+  /** 
+   * @var mixed $card 
+   * @var mixed $dataContent
   */
   //var_dump($data);
   $img = $card["content"][$dataContent][1];

@@ -23,6 +23,7 @@ class DashboardControllers extends Control{
 
     $data = [
       "card" => $dataUser,
+      "uri" => ["formDesign" => "/panel/{$user}/diseno"],
       "session" => $_SESSION["user"] ?? false
     ];
 
