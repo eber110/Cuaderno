@@ -27,7 +27,6 @@
   ExpiresByType image/x-icon "access plus 1 year"
 </IfModule>
 
-
 <IfModule mod_headers.c>
   # Para asegurar que los proxies también cacheen los recursos
   Header append Cache-Control "public"
