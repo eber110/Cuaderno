@@ -14,9 +14,13 @@ class DesignControllers extends Control{
   public static function initialDesign(string $user){
 
     $user = mb_strtolower($user, 'UTF-8');
-    $existsProfile = new UserModels;
-    $dataUser = $existsProfile->dataUser($user);
-    if (!$dataUser) {
+    $userData = new UserModels;
+    $dataUser = $userData->dataUser($user);
+
+    $userExists = new UserModels;
+    $validUser = $userExists->userExists($user);
+
+    if ($validUser == true && $dataUser == false) {
       $data = [
       "card" => [
         "active" => false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
@@ -76,7 +80,7 @@ class DesignControllers extends Control{
         }
       }
 
-      // 2. Imágenes de ítems de contenido (guardadas en /App/Public/Img/)
+      // 2. Imágenes de ítems de contenido (guardadas en /Uploads/)
       $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
       $uploadedContentImgs = [];
       foreach ($_FILES as $fileKey => $fileVal) {
