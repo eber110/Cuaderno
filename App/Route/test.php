@@ -9,7 +9,7 @@ use Core\Route;
 Route::get("/test/2", function(){
 
   
-  $data = LogModule::readLogLines("/Cache/UserData/tomi.json");
+  $data = LogModule::readLogLines("/Cache/UserData/".Session::session_data("username").".json");
   if (!$data) {
     $data = false;
   }
