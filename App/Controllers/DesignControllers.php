@@ -53,8 +53,6 @@ class DesignControllers extends Control{
   }
 
   public function configDesign(string $user, array | string $param){
-    //return var_dump($param);
-    //$user = Session::session_data("username");//user_index
 
     $dataRequest = LogModule::readLogLines(ROOT_PATH."/Cache/UserData/{$user}.json");
     $dataRequest = $dataRequest[0]["card"];
@@ -66,7 +64,7 @@ class DesignControllers extends Control{
       // 1. Imagen del avatar de perfil
       if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
         $avatar = $_FILES["avatar"]["name"];
-        $customDir = ROOT_PATH . "/App/Public/Img/Custom/";
+        $customDir = ROOT_PATH . DIR_UPLOAD_MEDIA . "/Avatar/";
         $imgProcessor = new ImgProcessModule("avatar", $customDir);
         $nombres = $imgProcessor->save_img_disk(null);
 
@@ -79,7 +77,7 @@ class DesignControllers extends Control{
       }
 
       // 2. Imágenes de ítems de contenido (guardadas en /App/Public/Img/)
-      $contentImgDir = ROOT_PATH . "/App/Public/Img/";
+      $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
       $uploadedContentImgs = [];
       foreach ($_FILES as $fileKey => $fileVal) {
         if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
@@ -101,7 +99,7 @@ class DesignControllers extends Control{
       $titleColor = $colorText;
     }
 
-    $contentImgDir = ROOT_PATH . "/App/Public/Img/";
+    $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
     $imgProcessor = new ImgProcessModule("", $contentImgDir);
 
     if (isset($param["content"])) {

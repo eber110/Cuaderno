@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "9af4c8a6ea3c43bbed537e57d7001f10e84390b9"
+                "reference": "4c2c57b697779f4a31cf8ee4285ad576b59de00c"
             },
             "require": {
                 "matthiasmullie/minify": "^1.3",
@@ -64,7 +64,7 @@
                 }
             ],
             "description": "Mi increíble framework",
-            "time": "2026-07-23T23:49:18+00:00"
+            "time": "2026-07-24T20:40:24+00:00"
         },
         {
             "name": "graham-campbell/result-type",
