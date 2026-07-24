@@ -83,11 +83,11 @@
 
           <div class="flex-row center-between gap10">
             <?php 
-              $displayImg = (!empty($itemImg)) ? $itemImg : 'Custom/Origin/no-user.webp';
+              $displayImgSrc = $card["content"][$i]["imgSrc"] ?? '';
             ?>
             <div class="flex-row center-center gap10 relative">
               <figure class="wpx50 hpx50 ar-square border-item-panel br10">
-                <img src="<?= DIR_SHOW_MEDIA . e($displayImg) ?>" alt="Imagen del enlace" class="cover">
+                <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover">
               </figure>
               <?php if ($imgDefault) : ?>
                 <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center text-caution" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">

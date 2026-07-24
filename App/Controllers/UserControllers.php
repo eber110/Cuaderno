@@ -10,6 +10,29 @@ use Base\Module\Session;
 
 class UserControllers extends Control{
 
+  public static function formatCardImages(array $card): array {
+    $avatarVal = $card["avatar"] ?? 'no-user.webp';
+    $isDefaultAvatar = (empty($avatarVal) || $avatarVal === 'no-user.webp' || strpos($avatarVal, 'Origin/') !== false || strpos($avatarVal, 'Custom/') !== false);
+    
+    $card["avatarSrc"] = $isDefaultAvatar
+      ? DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp"
+      : DIR_SHOW_MEDIA . "Avatar/" . $avatarVal;
+
+    if (isset($card["content"]) && is_array($card["content"])) {
+      foreach ($card["content"] as &$item) {
+        $imgVal = $item["img"] ?? 'no-image.webp';
+        $isDefaultImg = (empty($imgVal) || $imgVal === 'no-image.webp' || strpos($imgVal, 'Origin/') !== false || strpos($imgVal, 'Custom/') !== false);
+        
+        $item["imgSrc"] = $isDefaultImg
+          ? DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp"
+          : DIR_SHOW_MEDIA . $imgVal;
+      }
+      unset($item);
+    }
+
+    return $card;
+  }
+
   public function userPage(string $user){
   
     $user = mb_strtolower($user, 'UTF-8');
@@ -41,6 +64,7 @@ class UserControllers extends Control{
     }
 
     $data = $userData;
+    $data["card"] = self::formatCardImages($data["card"]);
 
     //configuración SEO
     SeoModule::setMetaDescription($data["card"]["desc"]);
@@ -49,7 +73,7 @@ class UserControllers extends Control{
       "title"     => $data["card"]["title"].", revisa mi cuaderno.",
       "site_name" => "Cuaderno",
       "content"   => $data["card"]["desc"],
-      "image"     => DIR_SHOW_MEDIA . "Custom/" . $data["card"]["avatar"],
+      "image"     => $data["card"]["avatarSrc"],
       "image_width" => 500,
       "image_height" => 500,
       "link"      => DOMAIN . "/" . ltrim($data["card"]["profile"], '/'),

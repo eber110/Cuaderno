@@ -8,7 +8,7 @@
 
   <div class="flex-column center-center gap10 wpx260 p30 br20 border-card-modal hover-scale-soft" style="background-color: #ebebeb;">
     <figure class="ar-square wpx200 br15">
-      <img src="<?= DIR_SHOW_MEDIA.$data["img"]?>" alt="" class="cover">
+      <img src="<?= $data["imgSrc"] ?? '' ?>" alt="" class="cover">
     </figure>
 
     <p class="x16 bold500"><?= $data["content"]?></p>

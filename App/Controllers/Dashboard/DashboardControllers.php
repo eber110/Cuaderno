@@ -3,6 +3,7 @@
 namespace App\Controllers\Dashboard;
 
 use App\Controllers\DesignControllers;
+use App\Controllers\UserControllers;
 use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\LogModule;
@@ -18,7 +19,7 @@ class DashboardControllers extends Control{
     $dataUser = $dataUser->dataUser($user);
 
     if ($dataUser) {
-      $dataUser = $dataUser["card"];
+      $dataUser = UserControllers::formatCardImages($dataUser["card"]);
     }
 
     $data = [

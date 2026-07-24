@@ -26,7 +26,7 @@ class DesignControllers extends Control{
         "active" => false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
         "hide" => false,//control de visualización del perfil. esto lo decide el usuario
         "profile" => $user,
-        "avatar" => "Origin/no-user.webp",
+        "avatar" => "no-user.webp",
         "title" => "Titulo",
         "titleColor" => "#383838",
         "desc" => "Descripción del usuario",
@@ -73,7 +73,7 @@ class DesignControllers extends Control{
         $nombres = $imgProcessor->save_img_disk(null);
 
         if ($nombres !== false && !empty($nombres[0])) {
-          if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "Origin/no-user.webp") {
+          if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "no-user.webp" && strpos($dataRequest["avatar"], "Origin/") === false) {
             $imgProcessor->delete_img_disk($customDir, $dataRequest["avatar"]);
           }
           $avatar = $nombres[0];
@@ -112,12 +112,12 @@ class DesignControllers extends Control{
 
       foreach ($param["content"] as $index => $item) {
         // Imagen que tenía registrada el ítem en la versión previa del JSON
-        $oldImg = $existingContentList[$index]["img"] ?? "Custom/Origin/no-user.webp";
+        $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
 
         // 1. Si el ítem fue marcado para eliminar
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
           // Eliminar del disco únicamente si NO es la imagen por defecto
-          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
             $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
           }
           continue;
@@ -129,24 +129,24 @@ class DesignControllers extends Control{
 
         // 1.5 Si se solicitó borrar la imagen del ítem
         if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
-          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
             $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
           }
-          $item["img"] = "Custom/Origin/no-user.webp";
+          $item["img"] = "no-image.webp";
         }
 
-        // 2. Determinar la imagen e imgDefault (índice 5)
+        // 2. Determinar la imagen e imgDefault
         if (isset($uploadedContentImgs[$index])) {
           // Eliminar la imagen vieja de disco si se sube una nueva y no era por defecto
-          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
             $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
           }
           $img = $uploadedContentImgs[$index];
           $imgDefault = true; // Imagen personalizada subida
         } else {
-          $img = $item["img"] ?? "Custom/Origin/no-user.webp";
+          $img = $item["img"] ?? "no-image.webp";
           // imgDefault: false si es por defecto, true si es personalizada
-          $isDefaultImg = (empty($img) || strpos($img, "Custom/Origin/") !== false || $img === "Origin/no-user.webp");
+          $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
           $imgDefault = !$isDefaultImg;
         }
 
@@ -177,11 +177,11 @@ class DesignControllers extends Control{
 
       // Plantillas base según el tipo seleccionado (imgDefault = false)
       $typeTemplates = [
-        "link"    => ["type" => "link", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false],
-        "product" => ["type" => "product", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false]
+        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false],
+        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false]
       ];
 
-      $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false];
+      $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false];
 
       if (!isset($content)) {
         $content = $dataRequest["content"] ?? [];
