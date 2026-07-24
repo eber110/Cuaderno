@@ -1,7 +1,7 @@
 <?php
   /** @var mixed $data */
 ?>
-<div class="flex-column center-center gap15 back-modal-item">
+<div class="flex-column center-center gap15 h100 back-modal-item">
   <p class="absolute top right pointer modal-close-button"><?= svg("xmark")?></p>
 
   <p>Comparte estos links</p>

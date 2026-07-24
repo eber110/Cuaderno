@@ -6,12 +6,22 @@
     ($card["content"]) ?? "null";
 
     for ($i=0; $i < count($card["content"]); $i++) {
-      if ($card["content"][$i][0] == "link") {
-        if ($card["content"][$i][4] == true) {
+      $itemType = $card["content"][$i]["type"] ?? '';
+      $itemActive = $card["content"][$i]["active"] ?? false;
+      if ($itemType == "link") {
+        if ($itemActive == true) {
           # code...
           _part("User.".$card['style']."", ["dataContent" => $i]);
         }
       }
+
+      if ($itemType == "product") {
+        if ($itemActive == true) {
+          # code...
+          _part("User.".$card['style']."", ["dataContent" => $i]);
+        }
+      }
+
     }
   ?>
 

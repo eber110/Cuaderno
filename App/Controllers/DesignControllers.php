@@ -66,7 +66,7 @@ class DesignControllers extends Control{
       // 1. Imagen del avatar de perfil
       if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
         $avatar = $_FILES["avatar"]["name"];
-        $customDir = ROOT_PATH . '/App/Public/Img/Custom/';
+        $customDir = ROOT_PATH . "/App/Public/Img/Custom/";
         $imgProcessor = new ImgProcessModule("avatar", $customDir);
         $nombres = $imgProcessor->save_img_disk(null);
 
@@ -79,11 +79,11 @@ class DesignControllers extends Control{
       }
 
       // 2. Imágenes de ítems de contenido (guardadas en /App/Public/Img/)
-      $contentImgDir = ROOT_PATH . '/App/Public/Img/';
+      $contentImgDir = ROOT_PATH . "/App/Public/Img/";
       $uploadedContentImgs = [];
       foreach ($_FILES as $fileKey => $fileVal) {
-        if (strpos($fileKey, 'content_img_') === 0 && $fileVal['error'] === UPLOAD_ERR_OK) {
-          $itemIdx = (int)str_replace('content_img_', '', $fileKey);
+        if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
+          $itemIdx = (int)str_replace("content_img_", "", $fileKey);
           $imgProc = new ImgProcessModule($fileKey, $contentImgDir);
           $savedImgs = $imgProc->save_img_disk(null);
           if ($savedImgs !== false && !empty($savedImgs[0])) {
@@ -101,7 +101,7 @@ class DesignControllers extends Control{
       $titleColor = $colorText;
     }
 
-    $contentImgDir = ROOT_PATH . '/App/Public/Img/';
+    $contentImgDir = ROOT_PATH . "/App/Public/Img/";
     $imgProcessor = new ImgProcessModule("", $contentImgDir);
 
     if (isset($param["content"])) {
@@ -110,64 +110,79 @@ class DesignControllers extends Control{
 
       foreach ($param["content"] as $index => $item) {
         // Imagen que tenía registrada el ítem en la versión previa del JSON
-        $oldImg = $existingContentList[$index][1] ?? 'Custom/Origin/no-user.webp';
+        $oldImg = $existingContentList[$index]["img"] ?? "Custom/Origin/no-user.webp";
 
         // 1. Si el ítem fue marcado para eliminar
-        if (isset($item['delete']) && ($item['delete'] === 'true' || $item['delete'] === true)) {
+        if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
           // Eliminar del disco únicamente si NO es la imagen por defecto
-          if (!empty($oldImg) && strpos($oldImg, 'Custom/Origin/') === false && $oldImg !== 'Origin/no-user.webp') {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
             $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
           }
           continue;
         }
 
-        $type  = $item['type']  ?? $item[0] ?? 'link';
-        $title = trim($item['title'] ?? $item[2] ?? '');
-        $url   = trim($item['url']   ?? $item[3] ?? '');
+        $type  = $item["type"] ?? "link";
+        $titleBtn = trim($item["title"] ?? "");
+        $url   = trim($item["url"] ?? "");
+
+        // 1.5 Si se solicitó borrar la imagen del ítem
+        if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
+            $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+          }
+          $item["img"] = "Custom/Origin/no-user.webp";
+        }
 
         // 2. Determinar la imagen e imgDefault (índice 5)
         if (isset($uploadedContentImgs[$index])) {
           // Eliminar la imagen vieja de disco si se sube una nueva y no era por defecto
-          if (!empty($oldImg) && strpos($oldImg, 'Custom/Origin/') === false && $oldImg !== 'Origin/no-user.webp') {
+          if (!empty($oldImg) && strpos($oldImg, "Custom/Origin/") === false && $oldImg !== "Origin/no-user.webp") {
             $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
           }
           $img = $uploadedContentImgs[$index];
           $imgDefault = true; // Imagen personalizada subida
         } else {
-          $img = $item['img'] ?? $item[1] ?? 'Custom/Origin/no-user.webp';
+          $img = $item["img"] ?? "Custom/Origin/no-user.webp";
           // imgDefault: false si es por defecto, true si es personalizada
-          $isDefaultImg = (empty($img) || strpos($img, 'Custom/Origin/') !== false || $img === 'Origin/no-user.webp');
+          $isDefaultImg = (empty($img) || strpos($img, "Custom/Origin/") !== false || $img === "Origin/no-user.webp");
           $imgDefault = !$isDefaultImg;
         }
 
         // 3. Determinar si el switch está marcado (activo)
-        $rawActive = $item['active'] ?? $item[4] ?? false;
-        $active = ($rawActive === 'true' || $rawActive === true || $rawActive === 1 || $rawActive === '1');
+        $rawActive = $item["active"] ?? false;
+        $active = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
 
         // Si el título O la URL están en blanco, el enlace DEBE permanecer inactivo (false)
-        if ($title === '' || $url === '') {
+        if ($titleBtn === "" || $url === "") {
           $active = false;
         }
 
-        // Array de 6 elementos: [type, img, title, url, active, imgDefault]
-        $content[] = [$type, $img, $title, $url, $active, $imgDefault];
+        // Array asociativo
+        $content[] = [
+          "type" => $type,
+          "img" => $img,
+          "title" => $titleBtn,
+          "url" => $url,
+          "active" => $active,
+          "imgDefault" => $imgDefault
+        ];
       }
     }
 
     // Si se presionó uno de los botones iniciadores (+ Enlace, + Producto, etc.)
-    if (isset($param['add_content_type'])) {
-      $newType = $param['add_content_type'];
+    if (isset($param["add_content_type"])) {
+      $newType = $param["add_content_type"];
 
       // Plantillas base según el tipo seleccionado (imgDefault = false)
       $typeTemplates = [
-        'link'    => ['link', 'Custom/Origin/no-user.webp', '', '', false, false],
-        'product' => ['product', 'Custom/Origin/no-user.webp', '', '', false, false]
+        "link"    => ["type" => "link", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false],
+        "product" => ["type" => "product", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false]
       ];
 
-      $newItem = $typeTemplates[$newType] ?? ['link', 'Custom/Origin/no-user.webp', '', '', false, false];
+      $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "Custom/Origin/no-user.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false];
 
       if (!isset($content)) {
-        $content = $dataRequest['content'] ?? [];
+        $content = $dataRequest["content"] ?? [];
       }
       $content[] = $newItem;
     }
@@ -191,7 +206,7 @@ class DesignControllers extends Control{
         "borders" => $dataRequest["borders"],
         "shadow" => $shadow ?? $dataRequest["shadow"],
         "back" => $back ?? $dataRequest["back"],
-        "hover" => isset($hover) ? ($hover === 'true' || $hover === true || $hover === 1 || $hover === '1') : $dataRequest["hover"],
+        "hover" => isset($hover) ? ($hover === "true" || $hover === true || $hover === 1 || $hover === "1") : $dataRequest["hover"],
         "color" => $color ?? $dataRequest["color"],
         "colorShadow3" => $colorShadow3 ?? $dataRequest["colorShadow3"],
         "rrss" => [
@@ -214,7 +229,7 @@ class DesignControllers extends Control{
       "content" => $data
     ]);
 
-    $user = mb_strtolower($user, 'UTF-8');
+    $user = mb_strtolower($user, "UTF-8");
 
     ResponseModule::redirect("/panel/{$user}"); 
   

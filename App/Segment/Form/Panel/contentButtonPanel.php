@@ -26,12 +26,12 @@
     <!-- Lista de elementos existentes (Sortable Drag & Drop) -->
     <div id="sortable-content-list" class="flex-column gap20 w100">
       <?php for ($i=0; $i < $cant; $i++) :
-        $itemType   = $card["content"][$i][0] ?? 'link';
-        $itemImg    = $card["content"][$i][1] ?? '';
-        $itemTitle  = $card["content"][$i][2] ?? '';
-        $itemUrl    = $card["content"][$i][3] ?? '';
-        $rawActive  = $card["content"][$i][4] ?? false;
-        $rawImgDef  = $card["content"][$i][5] ?? false;
+        $itemType   = $card["content"][$i]["type"] ?? 'link';
+        $itemImg    = $card["content"][$i]["img"] ?? '';
+        $itemTitle  = $card["content"][$i]["title"] ?? '';
+        $itemUrl    = $card["content"][$i]["url"] ?? '';
+        $rawActive  = $card["content"][$i]["active"] ?? false;
+        $rawImgDef  = $card["content"][$i]["imgDefault"] ?? false;
         $imgDefault = ($rawImgDef === true || $rawImgDef === 'true' || $rawImgDef === 1 || $rawImgDef === '1');
         
         // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
@@ -42,32 +42,59 @@
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <p class="bold500 item-title-label">
-                <?= ($itemType === 'product') ? 'Producto #' . ($i + 1) : 'Enlace #' . ($i + 1) ?>
+              <p class="bold500 item-title-label cutPhrase">
+                <?= ($itemType === 'product') ? 'Producto - ' . $itemTitle : 'Enlace - ' . $itemTitle ?>
               </p>
             </div>
-            <div class="flex-row center-center gap15">
+            <div class="flex-row center-center gap10">
               <!-- Switch para activar / desactivar enlace -->
-              <input type="checkbox" name="content[<?= $i?>][4]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
+              <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
               <!-- Opción para eliminar enlace -->
-              <label class="pointer flex-row center-center gap5 x14 text-caution">
-                <input type="checkbox" name="content[<?= $i?>][delete]" value="true"> Eliminar
-              </label>
+              <div class="modal-btn"><p><?= svg("xmark")?> Eliminar</p></div>
+
+              <!-- modal menu eliminar enlace -->
+              <div class="hidden">
+                <div class="v-dvh w100 flex-column center-center">
+                  <div class="wpx580 w-sml-95 back-body br15 p20 flex-column center-center gap20">
+                    <p class="x30">¿Desea borrar este enlace?</p>
+
+                    <div class="flex-row center-around gap15 w100">
+                      <label for="delete-link-<?= $i?>" class="pointer flex-row center-center gap2 textw back-danger br15 p15">
+                         Eliminar
+                      </label>
+                      <div class="back7 p15 br15 pointer modal-close-button">
+                        <p>Cancelar</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- input para borrar los links (esta enlazado con su label con id delete-link) -->
+              <input id="delete-link-<?= $i?>" type="checkbox" name="content[<?= $i?>][delete]" value="true" class="hidden">
+              
             </div>
           </div>
 
-          <input type="hidden" name="content[<?= $i?>][0]" value="<?= e($itemType) ?>">
-          <input type="hidden" name="content[<?= $i?>][1]" value="<?= e($itemImg) ?>">
-          <input type="hidden" name="content[<?= $i?>][5]" value="<?= $imgDefault ? 'true' : 'false' ?>">
+          <input type="hidden" name="content[<?= $i?>][type]" value="<?= e($itemType) ?>">
+          <input type="hidden" name="content[<?= $i?>][img]" value="<?= e($itemImg) ?>">
+          <input type="hidden" name="content[<?= $i?>][imgDefault]" value="<?= $imgDefault ? 'true' : 'false' ?>">
 
           <div class="flex-row center-between gap10">
             <?php 
               $displayImg = (!empty($itemImg)) ? $itemImg : 'Custom/Origin/no-user.webp';
             ?>
-            <figure class="wpx50 hpx50 ar-square border-item-panel br10">
-              <img src="<?= DIR_SHOW_MEDIA . e($displayImg) ?>" alt="Imagen del enlace" class="cover">
-            </figure>
+            <div class="flex-row center-center gap10 relative">
+              <figure class="wpx50 hpx50 ar-square border-item-panel br10">
+                <img src="<?= DIR_SHOW_MEDIA . e($displayImg) ?>" alt="Imagen del enlace" class="cover">
+              </figure>
+              <?php if ($imgDefault) : ?>
+                <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center text-caution" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
+                  <?= svg("trash", "x20") ?>
+                </button>
+              <?php endif; ?>
+            </div>
             <div class="br15 p10 border-item-panel">
               <input type="file" 
                 name="content_img_<?= $i ?>" 
@@ -79,8 +106,8 @@
             </div>
           </div>
 
-          <input type="text" name="content[<?= $i?>][2]" class="border-item-panel br10 p10" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
-          <input type="text" name="content[<?= $i?>][3]" class="border-item-panel br10 p10" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
+          <input type="text" name="content[<?= $i?>][title]" class="border-item-panel br10 p10" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
+          <input type="text" name="content[<?= $i?>][url]" class="border-item-panel br10 p10" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
         </div>
       <?php endfor?>
     </div>
