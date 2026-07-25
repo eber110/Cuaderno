@@ -126,6 +126,9 @@ class DesignControllers extends Control{
         $type  = $item["type"] ?? "link";
         $titleBtn = trim($item["title"] ?? "");
         $url   = trim($item["url"] ?? "");
+        if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, 'mailto:') !== 0 && strpos($url, 'tel:') !== 0) {
+          $url = "https://" . $url;
+        }
 
         // 1.5 Si se solicitó borrar la imagen del ítem
         if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
@@ -200,6 +203,9 @@ class DesignControllers extends Control{
 
         $name = $item[0] ?? $item["name"] ?? "";
         $url  = trim($item[1] ?? $item["url"] ?? "");
+        if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, 'mailto:') !== 0 && strpos($url, 'tel:') !== 0) {
+          $url = "https://" . $url;
+        }
 
         if (!empty($name)) {
           $rrss[] = [$name, $url];

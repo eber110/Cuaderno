@@ -6,7 +6,7 @@
   $cant = count($card["rrss"] ?? []);
 
   $rrssList = [
-    'x', 'facebook', 'linkedin', 'reddit', 'tumblr', 'whatsapp',
+    'x', 'facebook', 'linkedin', 'reddit', 'tumblr', 'whatsapp', 'github',
     'pinterest', 'telegram', 'skype', 'email', 'threads', 'bluesky',
     'mastodon', 'vk', 'line', 'viber', 'pocket', 'flipboard',
     'hackernews', 'mix', 'snapchat'
@@ -43,6 +43,9 @@
       <?php for ($i = 0; $i < $cant; $i++) :
         $socialName = $card["rrss"][$i][0] ?? $card["rrss"][$i]["name"] ?? '';
         $socialUrl  = $card["rrss"][$i][1] ?? $card["rrss"][$i]["url"] ?? '';
+        if ($socialUrl !== '' && !preg_match('#^https?://#i', $socialUrl) && strpos($socialUrl, 'mailto:') !== 0 && strpos($socialUrl, 'tel:') !== 0) {
+          $socialUrl = "https://" . $socialUrl;
+        }
       ?>
         <div id="rrss-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15">
           <div class="flex-row center-between">

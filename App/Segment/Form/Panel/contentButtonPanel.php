@@ -30,6 +30,9 @@
         $itemImg    = $card["content"][$i]["img"] ?? '';
         $itemTitle  = $card["content"][$i]["title"] ?? '';
         $itemUrl    = $card["content"][$i]["url"] ?? '';
+        if ($itemUrl !== '' && !preg_match('#^https?://#i', $itemUrl) && strpos($itemUrl, 'mailto:') !== 0 && strpos($itemUrl, 'tel:') !== 0) {
+          $itemUrl = "https://" . $itemUrl;
+        }
         $rawActive  = $card["content"][$i]["active"] ?? false;
         $rawImgDef  = $card["content"][$i]["imgDefault"] ?? false;
         $imgDefault = ($rawImgDef === true || $rawImgDef === 'true' || $rawImgDef === 1 || $rawImgDef === '1');
