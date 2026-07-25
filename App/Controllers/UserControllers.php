@@ -7,6 +7,7 @@ use Base\Control\Control;
 use Base\Module\ResponseModule;
 use Base\Module\SeoModule;
 use Base\Module\Session;
+use Base\Module\ShareButtonModule;
 
 class UserControllers extends Control{
 
@@ -65,6 +66,11 @@ class UserControllers extends Control{
 
     $data = $userData;
     $data["card"] = self::formatCardImages($data["card"]);
+    $rrss = $data["card"]["content"];
+
+    foreach ($rrss as $key => $value) {
+      $data["card"]["content"][$key]["share"] = ShareButtonModule::share($value["url"], $data["card"]["desc"], []);
+    }
 
     //configuración SEO
     SeoModule::setMetaDescription($data["card"]["desc"]);
@@ -79,6 +85,7 @@ class UserControllers extends Control{
       "link"      => DOMAIN . "/" . ltrim($data["card"]["profile"], '/'),
       "type"      => "website"
     ]);
+    
 
     return $this->view("User.index", $data);
   

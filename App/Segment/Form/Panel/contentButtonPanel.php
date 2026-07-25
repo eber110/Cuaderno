@@ -49,12 +49,16 @@
                 <?= ($itemType === 'product') ? 'Producto - ' . $itemTitle : 'Enlace - ' . $itemTitle ?>
               </p>
             </div>
-            <div class="flex-row center-center gap10">
+            <div class="flex-row center-center gap20 tooltip left animated" data-tooltip="Ocultar enlace">
               <!-- Switch para activar / desactivar enlace -->
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
               <!-- Opción para eliminar enlace -->
-              <div class="modal-btn"><p class="x14"><?= svg("xmark")?> Eliminar</p></div>
+              <div class="modal-btn tooltip left" data-tooltip="Borrar enlace">
+                <p class="pointer flex-row center-center">
+                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textw p2 x16 ml5"><?= svg("xmark")?></span>
+                </p>
+              </div>
 
               <!-- modal menu eliminar enlace -->
               <div class="hidden">

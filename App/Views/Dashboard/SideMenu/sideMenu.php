@@ -46,8 +46,8 @@
           </div>
         </div>
         <div class="vertical-menu-content flex-column gap5 w100 hidden">
-          <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="Content-button"><?= svg("angle-r")?>Links</p>
-          <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="Content-rrss"><?= svg("angle-r")?>Redes sociales</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-button"><?= svg("angle-r")?>Links</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-rrss"><?= svg("angle-r")?>Redes sociales</p>
         </div>
       </div>
       

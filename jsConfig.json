@@ -25,7 +25,8 @@
             "tooltip": [],
             "autoSubmitForm": [],
             "formComponents": [],
-            "sortableContent": []
+            "sortableContent": [],
+            "inlineCarousel": []
         },
         "async": {}
     }

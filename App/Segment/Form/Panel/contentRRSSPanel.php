@@ -38,8 +38,8 @@
       </div>
     </div>
 
-    <!-- Lista de Redes Sociales existentes -->
-    <div class="flex-column gap20 w100">
+    <!-- Lista de Redes Sociales existentes (Sortable Drag & Drop) -->
+    <div id="sortable-rrss-list" class="flex-column gap20 w100">
       <?php for ($i = 0; $i < $cant; $i++) :
         $socialName = $card["rrss"][$i][0] ?? $card["rrss"][$i]["name"] ?? '';
         $socialUrl  = $card["rrss"][$i][1] ?? $card["rrss"][$i]["url"] ?? '';
@@ -47,10 +47,10 @@
           $socialUrl = "https://" . $socialUrl;
         }
       ?>
-        <div id="rrss-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15">
+        <div id="rrss-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15" draggable="true">
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
-              <span class="drag-icon text-muted pointer" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
+              <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
               <div class="flex-row center-start gap8 bold500 item-title-label capitalize">
                 <?= svg($socialName, "x20") ?>
                 <span><?= e(ucfirst($socialName)) ?></span>
@@ -58,7 +58,11 @@
             </div>
             <div class="flex-row center-center gap10">
               <!-- Opción para eliminar red social -->
-              <div class="modal-btn"><p class="pointer text-caution x14 flex-row center-center gap5"><?= svg("xmark")?> Eliminar</p></div>
+              <div class="modal-btn tooltip left animated" data-tooltip="Eliminar enlace">
+                <p class="pointer flex-row center-center">
+                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textw p2 x16 ml5"><?= svg("xmark")?></span>
+                </p>
+              </div>
 
               <!-- modal confirmación eliminar -->
               <div class="hidden">
