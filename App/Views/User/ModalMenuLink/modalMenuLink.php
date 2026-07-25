@@ -21,8 +21,8 @@
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
     <div class="|border-card-modal w100 p0 relative inline-carousel" data-loop="false" data-gap="10px">
       
-      <button class="ic-prev back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute left" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
-        &#10094;
+      <button class="ic-prev back7 shadow br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute left" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
+        <?= svg("angle-l");?>
       </button>
 
       <div class="ic-track w100">
@@ -33,8 +33,8 @@
         <?php endforeach; ?>
       </div>
 
-      <button class="ic-next back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute right" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-right: 5px; transition: opacity 0.3s;">
-        &#10095;
+      <button class="ic-next back7 shadow br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute right" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-right: 5px; transition: opacity 0.3s;">
+        <?= svg("angle-r");?>
       </button>
       
     </div>
