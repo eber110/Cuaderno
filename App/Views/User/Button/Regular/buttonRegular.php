@@ -11,7 +11,7 @@
 ?>
 <div class="flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 50px);">
+  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 65px);">
     <figure class="ar-square p7 wpx65">
       <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">
     </figure>

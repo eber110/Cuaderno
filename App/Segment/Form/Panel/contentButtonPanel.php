@@ -54,7 +54,7 @@
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
               <!-- Opción para eliminar enlace -->
-              <div class="modal-btn"><p><?= svg("xmark")?> Eliminar</p></div>
+              <div class="modal-btn"><p class="x14"><?= svg("xmark")?> Eliminar</p></div>
 
               <!-- modal menu eliminar enlace -->
               <div class="hidden">
