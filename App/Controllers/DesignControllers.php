@@ -189,6 +189,33 @@ class DesignControllers extends Control{
       $content[] = $newItem;
     }
 
+    // Procesar redes sociales (rrss)
+    if (isset($param["rrss"])) {
+      $rrss = [];
+      foreach ($param["rrss"] as $index => $item) {
+        // Si la red social fue marcada para eliminar
+        if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
+          continue;
+        }
+
+        $name = $item[0] ?? $item["name"] ?? "";
+        $url  = trim($item[1] ?? $item["url"] ?? "");
+
+        if (!empty($name)) {
+          $rrss[] = [$name, $url];
+        }
+      }
+    }
+
+    // Si se presionó el botón para añadir una nueva red social
+    if (isset($param["add_rrss_name"])) {
+      $newRrssName = $param["add_rrss_name"];
+      if (!isset($rrss)) {
+        $rrss = $dataRequest["rrss"] ?? [];
+      }
+      $rrss[] = [$newRrssName, ""];
+    }
+
     $data = [
       "card" => [
         "active" => true ?? $dataRequest["active"],//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
@@ -211,16 +238,7 @@ class DesignControllers extends Control{
         "hover" => isset($hover) ? ($hover === "true" || $hover === true || $hover === 1 || $hover === "1") : $dataRequest["hover"],
         "color" => $color ?? $dataRequest["color"],
         "colorShadow3" => $colorShadow3 ?? $dataRequest["colorShadow3"],
-        "rrss" => [
-          [
-            "x",
-            "https://x.com/eberestudio"
-          ],
-          [
-            "Linkedin",
-            "https://www.linkedin.com/in/eber-s%C3%A1nchez-cornejo-08b1456a/"
-          ]
-        ],
+        "rrss" => $rrss ?? $dataRequest["rrss"],
         "content" => $content ?? $dataRequest["content"]
       ]
     ];
