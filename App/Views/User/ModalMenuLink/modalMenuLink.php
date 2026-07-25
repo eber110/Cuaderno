@@ -19,21 +19,21 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="border-card-modal w100 br15 p10 flex-row center-between gap10 inline-carousel" data-loop="false" data-gap="10px">
+    <div class="|border-card-modal w100 p0 relative inline-carousel" data-loop="false" data-gap="10px">
       
-      <button class="ic-prev back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none" style="flex-shrink: 0; font-size: 14px;">
+      <button class="ic-prev back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute left" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         &#10094;
       </button>
 
-      <div class="ic-track w100 flex-row gap15">
+      <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
-          <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" class="ic-item p3 br100 x30 back8 ar-square hpx45 wpx45 flex-row center-center textw pointer" style="flex-shrink: 0;">
-            <?= svg($networkName, "x20"); ?>
+          <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" class="ic-item p3 br100 x30 back8 ar-square hpx50 wpx50 flex-row center-center textw pointer" style="flex-shrink: 0;">
+            <?= svg($networkName, "x30"); ?>
           </a>
         <?php endforeach; ?>
       </div>
 
-      <button class="ic-next back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none" style="flex-shrink: 0; font-size: 14px;">
+      <button class="ic-next back8 br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute right" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-right: 5px; transition: opacity 0.3s;">
         &#10095;
       </button>
       
