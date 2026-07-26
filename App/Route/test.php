@@ -2,6 +2,7 @@
 
 use Base\Module\ImgProcessModule;
 use Base\Module\LogModule;
+use Base\Module\RequestMetaModule;
 use Base\Module\ResponseModule;
 use Base\Module\Session;
 use Base\Module\ShareButtonModule;
@@ -22,11 +23,14 @@ Route::get("/test/2", function(){
 
   }*/
 
+  //$meta = RequestMetaModule::requestMeta("https://www.ebersanchez.cl");
+
+  //var_dump($meta);
   var_dump($data[0]["card"]);
 
-  $share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
+  //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
 
-  var_dump($share);
+  //var_dump($share);
 
 });
 

@@ -6,6 +6,7 @@ use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\LogModule;
 use Base\Module\ImgProcessModule;
+use Base\Module\RequestMetaModule;
 use Base\Module\ResponseModule;
 use Base\Module\Session;
 
@@ -162,6 +163,65 @@ class DesignControllers extends Control{
           $active = false;
         }
 
+        // 4. Extraer metadatos (metaTitle, metaDesc, metaImg) mediante RequestMetaModule
+        $cardDesc   = $desc ?? $dataRequest["desc"] ?? "";
+        $cardAvatar = $avatar ?? $dataRequest["avatar"] ?? "no-user.webp";
+
+        $metaTitle = $item["metaTitle"] ?? "";
+        $metaDesc  = $item["metaDesc"] ?? "";
+        $metaImg   = $item["metaImg"] ?? "";
+
+        if (!empty($url) && strpos($url, "http") === 0) {
+          $metaData = RequestMetaModule::requestMeta($url);
+          if ($metaData !== false && is_array($metaData)) {
+            // metaTitle: title -> og["title"] -> twitter["title"] -> $titleBtn
+            $metaTitle = !empty($metaData["title"])
+              ? $metaData["title"]
+              : (!empty($metaData["og"]["title"])
+                ? $metaData["og"]["title"]
+                : (!empty($metaData["twitter"]["title"])
+                  ? $metaData["twitter"]["title"]
+                  : $titleBtn));
+
+            // metaDesc: description -> og["description"] -> twitter["description"] -> $cardDesc
+            $metaDesc = !empty($metaData["description"])
+              ? $metaData["description"]
+              : (!empty($metaData["og"]["description"])
+                ? $metaData["og"]["description"]
+                : (!empty($metaData["twitter"]["description"])
+                  ? $metaData["twitter"]["description"]
+                  : $cardDesc));
+
+            // metaImg: og["image"] -> twitter["image"] -> og["logo"]
+            $metaImg = !empty($metaData["og"]["image"])
+              ? $metaData["og"]["image"]
+              : (!empty($metaData["twitter"]["image"])
+                ? $metaData["twitter"]["image"]
+                : (!empty($metaData["og"]["logo"])
+                  ? $metaData["og"]["logo"]
+                  : ""));
+          }
+        }
+
+        // Fallbacks en caso de estar vacíos
+        if (empty($metaTitle)) {
+          $metaTitle = $titleBtn;
+        }
+
+        if (empty($metaDesc)) {
+          $metaDesc = $cardDesc;
+        }
+
+        if (empty($metaImg)) {
+          if (!empty($img) && $img !== "no-image.webp" && $img !== "no-user.webp" && strpos($img, "Custom/") === false) {
+            $metaImg = $img;
+          } elseif (!empty($cardAvatar) && $cardAvatar !== "no-user.webp" && strpos($cardAvatar, "Custom/") === false) {
+            $metaImg = DIR_SHOW_MEDIA . "Avatar/" . $cardAvatar;
+          } else {
+            $metaImg = "no-image.webp";
+          }
+        }
+
         // Array asociativo
         $content[] = [
           "type" => $type,
@@ -169,7 +229,10 @@ class DesignControllers extends Control{
           "title" => $titleBtn,
           "url" => $url,
           "active" => $active,
-          "imgDefault" => $imgDefault
+          "imgDefault" => $imgDefault,
+          "metaTitle" => $metaTitle,
+          "metaDesc" => $metaDesc,
+          "metaImg" => $metaImg
         ];
       }
     }
@@ -180,8 +243,8 @@ class DesignControllers extends Control{
 
       // Plantillas base según el tipo seleccionado (imgDefault = false)
       $typeTemplates = [
-        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false],
-        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false]
+        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
+        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
       ];
 
       $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false];

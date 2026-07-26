@@ -335,8 +335,6 @@
 .pt8 { padding-top: 8px !important; }
 .x1 { font-size: 1px; }
 .x2 { font-size: 2px; }
-.br25 { border-radius: 25px !important; overflow: clip; }
-.p25 { padding: 25px !important; }
 .mt0 { margin-top: 0px; }
 .m5 { margin: 5px; }
 .x12 { font-size: 12px; }
@@ -346,8 +344,10 @@
 .hpx22 { height: 22px; }
 .pl25 { padding-left: 25px !important; }
 .pr45 { padding-right: 45px !important; }
-.ml10 { margin-left: 10px; }
 .h-2 { height: 2%; }
+.br25 { border-radius: 25px !important; overflow: clip; }
+.p25 { padding: 25px !important; }
+.ml10 { margin-left: 10px; }
 .h-vh { height: 100vh; }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-0 { width: 0%; }
