@@ -7,9 +7,9 @@
 <div class="flex-column center-center gap15 h100 back-modal-item">
   <p class="absolute top right pointer modal-close-button"><?= svg("xmark")?></p>
 
-  <p>Comparte estos links</p>
+  <p class="bold600">Comparte este link</p>
 
-  <a href="<?= $data["url"]?>" class="flex-column center-center gap10 wpx320 p30 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
+  <a href="<?= $data["url"]?>" class="flex-column center-center gap5 wpx320 p30 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
     <figure class="ar-square wpx200 br15">
       <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover">
     </figure>
@@ -19,11 +19,11 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="|border-card-modal w100 p0 relative inline-carousel" data-loop="false" data-gap="10px">
+    <div class="|border-card-modal w100 p0 flex-row center-center inline-carousel" data-loop="false" data-gap="10px">
       
-      <button class="ic-prev back7 shadow br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute left" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
-        <?= svg("angle-l");?>
-      </button>
+      <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
+        <?= svg("angle-l", "x30 opacity-slide-circle");?>
+      </div>
 
       <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
@@ -33,9 +33,9 @@
         <?php endforeach; ?>
       </div>
 
-      <button class="ic-next back7 shadow br100 ar-square wpx30 hpx30 flex-row center-center textw pointer border-none absolute right" style="flex-shrink: 0; font-size: 14px; top: 50%; transform: translateY(-50%); z-index: 10; margin-right: 5px; transition: opacity 0.3s;">
-        <?= svg("angle-r");?>
-      </button>
+      <div class="ic-next border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute right" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-right: 5px; transition: opacity 0.3s;">
+        <?= svg("angle-r", "x30 opacity-slide-circle");?>
+      </div>
       
     </div>
   <?php endif; ?>

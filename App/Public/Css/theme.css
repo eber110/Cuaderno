@@ -12,6 +12,10 @@
   --text-item-sidebar : #e6e6e6;
 }
 
+.opacity-slide-circle{
+  opacity: 0.5;
+}
+
 .back-body{
   background-color: var(--back-body-theme);
 }
