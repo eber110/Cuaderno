@@ -9,6 +9,9 @@
   $content = $card["content"][$dataContent]["title"] ?? '';
   $profile = $card["profile"];
   $url = $card["content"][$dataContent]["url"];
+  $metaTitle = $card["content"][$dataContent]["metaTitle"];
+  $metaDesc = $card["content"][$dataContent]["metaDesc"];
+  $metaImg = $card["content"][$dataContent]["metaImg"];
   $share = $card["content"][$dataContent]["share"] ?? [];
 ?>
 <div class="flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
@@ -18,7 +21,7 @@
       <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">
     </figure>
 
-    <p class="flex-row center-center bold500 text-c cut-phrase hpx65" cant-col="2" style="flex-grow: 1;">
+    <p class="flex-row center-center bold500 text-c cut-phrase" cant-col="2" style="flex-grow: 1;">
       <?= $content;?>
     </p>
   </a>
@@ -32,7 +35,20 @@
     <div class="hidden">
       <div class="flex-column center-center w100 wrap">
         <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
-          <?php _part("User.modalMenuLink", ["data" => ["img" => $img, "imgSrc" => $imgSrc, "content" => $content, "profile" => $profile, "url" => $url, "share" => $share]])?>
+          <?php _part("User.modalMenuLink", 
+          ["data" => 
+            [
+              "img" => $img,
+              "imgSrc" => $imgSrc,
+              "content" => $content,
+              "profile" => $profile,
+              "url" => $url,
+              "share" => $share,
+              "metaTitle" => $metaTitle,
+              "metaDesc" => $metaDesc,
+              "metaImg" => $metaImg,
+            ]
+          ])?>
         </div>
       </div>
     </div>

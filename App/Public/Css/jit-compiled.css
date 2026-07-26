@@ -355,12 +355,14 @@
 @media screen and (max-width: 576px) {
   .w-sml-0 { width: 0%; }
 }
+.x64 { font-size: 64px; }
 .mt5 { margin-top: 5px; }
 .x4 { font-size: 4px; }
 .h2 { height: 2%; }
 .m12 { margin: 12px; }
 .mr20 { margin-right: 20px; }
 .ml20 { margin-left: 20px; }
+.logo { height: 40px; width: auto; margin-right: 10px; padding: 5px 0px; object-fit: cover; }
 .hidden { display: none !important; }
 @media screen and (min-width: 993px) { .no-desk, .no-desk-css { display: none !important; } }
 @media screen and (min-width: 577px) and (max-width: 992px) { .no-tablet, .no-tablet-css { display: none !important; } }
@@ -369,7 +371,6 @@
 .inline-block { display: inline-block !important; }
 .inline { display: inline !important; }
 .textareaResize { field-sizing: content; }
-.logo { height: 40px; width: auto; margin-right: 10px; padding: 5px 0px; object-fit: cover; }
 @media screen and (min-width: 993px) { .no-desk, .no-desk-css { display: none !important; } }
 @media screen and (min-width: 577px) and (max-width: 992px) { .no-tablet, .no-tablet-css { display: none !important; } }
 @media screen and (max-width: 576px) { .no-phone, .no-phone-css { display: none !important; } }
