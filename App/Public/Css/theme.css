@@ -3,6 +3,7 @@
   --back-item : #e4e4e4;
   --back-sidebar : #e6e6e6;
   --text-item-sidebar : #353535;
+  --color-card-share-profile : #595a83;
 }
 
 [data-theme="dark"] {
@@ -12,8 +13,37 @@
   --text-item-sidebar : #e6e6e6;
 }
 
+.tl-max-reached {
+    color: red !important;
+    font-weight: bold;
+}
+
+/*Card share de perfil de usuario*/
 .opacity-slide-circle{
   opacity: 0.5;
+}
+
+.btn-share-profile-style1{
+  background-color: #e2e2e2;
+  box-shadow: inset 5px 5px 15px rgb(255, 255, 255), inset 2px 2px 5px rgb(255, 255, 255), inset -3px -3px 15px #a8a8a8, inset -1px -1px 3px #a8a8a8;
+  color: var(--color-card-share-profile);
+}
+
+.btn-share-profile{
+  color: var(--color-card-share-profile);
+  border: solid 2px var(--color-card-share-profile);
+  &:hover{border: solid 2px #444564;color: #444564;}
+}
+
+.btn-share-register{
+  background-color: var(--color-card-share-profile);
+  color: #ffffff;
+}
+
+.btn-share-see-more{
+  background-color: #ffffff00;
+  border: solid 2px var(--color-card-share-profile);
+  color: var(--color-card-share-profile);
 }
 
 .back-body{

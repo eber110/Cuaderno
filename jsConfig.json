@@ -1,33 +1,38 @@
 {
-    "priority": [
-        "aaSvgStore.js",
-        "component.js",
-        "config.js",
-        "querys.js"
-    ],
-    "exclude": [],
-    "functions": {
-        "defer": {
-            "notification": ["shadow border2 textw"],
-            "modalMenu": [],
-            "modal": [],
-            "protectedMenuImage": [false],
-            "loadImgModern": [],
-            "cropImage": [],
-            "cutPhrase": [],
-            "codeBlock": [],
-            "accordion": [],
-            "tabs": [],
-            "remoteContent": [],
-            "verticalMenu": [],
-            "animations": [],
-            "copyToClipboard": [],
-            "tooltip": [],
-            "autoSubmitForm": [],
-            "formComponents": [],
-            "sortableContent": [],
-            "inlineCarousel": []
-        },
-        "async": {}
-    }
+  "priority": [
+    "aaSvgStore.js",
+    "component.js",
+    "config.js",
+    "querys.js"
+  ],
+  "exclude": [],
+  "functions": {
+    "defer": {
+      "notification": [
+        "shadow border2 textw"
+      ],
+      "modalMenu": [],
+      "modal": [],
+      "protectedMenuImage": [
+        false
+      ],
+      "loadImgModern": [],
+      "cropImage": [],
+      "cutPhrase": [],
+      "codeBlock": [],
+      "accordion": [],
+      "tabs": [],
+      "remoteContent": [],
+      "verticalMenu": [],
+      "animations": [],
+      "copyToClipboard": [],
+      "tooltip": [],
+      "autoSubmitForm": [],
+      "formComponents": [],
+      "sortableContent": [],
+      "inlineCarousel": [],
+      "textLimiter": []
+    },
+    "async": {}
+  }
 }

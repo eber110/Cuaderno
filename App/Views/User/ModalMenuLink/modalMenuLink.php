@@ -19,7 +19,7 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="|border-card-modal w100 p0 flex-row center-center inline-carousel" data-loop="false" data-gap="10px">
+    <div class="w100 p0 flex-row center-center inline-carousel mt10" data-loop="false" data-gap="25px">
       
       <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         <?= svg("angle-l", "x30 opacity-slide-circle");?>
@@ -27,7 +27,8 @@
 
       <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
-          <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" class="ic-item p3 br100 x30 back8 ar-square hpx50 wpx50 flex-row center-center textw pointer" style="flex-shrink: 0;">
+          <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" 
+            class="ic-item p3 br100 x30 btn-share-profile hpx50 wpx50 flex-row center-center pointer" style="flex-shrink: 0;">
             <?= svg($networkName, "x30"); ?>
           </a>
         <?php endforeach; ?>
@@ -40,8 +41,16 @@
     </div>
   <?php endif; ?>
 
-  <div class="hem13 back7 border-card-modal w100 br15">
+  <div class="flex-column top-start gap20 w100 mt20">
+    <div class="">
+      <p class="bold700">Únete a <?= $card["profile"]?> en Cuaderno.</p>
+      <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
+    </div>
 
+    <div class="flex-row center-center gap15 w100">
+      <a href="/registrar" class="br50 w100 btn-share-register p15 flex-row center-center bold700">Regístrate gratis</a>
+      <a href="/" class="br50 w100 btn-share-see-more p15 flex-row center-center bold700">Descubre más</a>
+    </div>
   </div>
 
 </div>

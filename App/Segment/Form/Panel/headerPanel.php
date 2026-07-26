@@ -70,7 +70,16 @@
       <p>Titulo</p>
 
       <div class="border-item-panel br15 p5">
-        <input type="text" name="title" id="" value="<?= $card["title"]?>" class="process-auto-submit wpx320">
+        <input type="text" name="title" id="" value="<?= e($card["title"])?>" class="process-auto-submit wpx320 text-limiter"
+          data-limit-type="chars" 
+          data-limit="150" 
+          data-prevent-double-space="true"
+          data-counter-el="#my-counter-title">
+          <div id="my-counter-title" class="x14 flex-row center-end gap2 pr20">
+            <span class="tl-current bold500">0</span>
+            <p>/</p>
+            <span class="tl-limit">150</span>
+          </div>
       </div>
     </div>
 
@@ -79,7 +88,17 @@
       <p>Bio</p>
 
       <div class="border-item-panel br15 p5">
-        <textarea name="desc" id="" class="process-auto-submit wpx320 hpx100"><?= $card["desc"]?></textarea>
+        <textarea name="desc" id="" class="process-auto-submit wpx320 hpx100 text-limiter"
+          data-limit-type="chars" 
+          data-limit="280" 
+          data-prevent-double-space="true"
+          data-counter-el="#my-counter"><?= e($card["desc"])?>
+        </textarea>
+        <div id="my-counter" class="x14 flex-row center-end gap2 pr20">
+          <span class="tl-current bold500">0</span>
+          <p>/</p>
+          <span class="tl-limit">280</span>
+        </div>
       </div>
     </div>
 
