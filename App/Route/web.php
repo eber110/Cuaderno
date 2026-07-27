@@ -7,6 +7,7 @@ use App\Controllers\LoginControllers;
 use App\Controllers\UserControllers;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\DashboardMiddleware;
+use App\Middleware\VisitMiddleware;
 use Base\Module\ImgProcessModule;
 use Base\Module\SeoModule;
 use Core\Route;
@@ -61,7 +62,9 @@ Route::middleware([AuthMiddleware::class])->group(function(){
 Route::get("/salir", [LoginControllers::class, "exitApp"]);
 
 //UserControllers: Datos y personalización de los datos de usuario
-Route::get("/:user", [UserControllers::class, "userPage"]);
+Route::middleware([VisitMiddleware::class])->group(function(){
+  Route::get("/:user", [UserControllers::class, "userPage"]);
+});
 
 Route::get("/op/image", function(){
   // Optimizamos las imágenes de /App/Public/Img/ y las guardamos en /App/Public/Img/Optimized/ en formato WebP a un máximo de 50 KB

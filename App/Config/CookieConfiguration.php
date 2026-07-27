@@ -4,7 +4,7 @@ use Base\Module\CookieModule;
 
 /**
  * Creación de cookies del sitio.
- * En esta sección se configura todas las cookies del sitio 
+ * En esta sección se configuran todas las cookies del sitio 
  * para que estén disponibles al inicio de la aplicación.
  */
-//$cookie = CookieModule::set("NombreDeLaCookie", ["expired" => TIME_YEAR]);
+$cookieVisit = CookieModule::set("Visit_registration", ["expired" => 3600]);
