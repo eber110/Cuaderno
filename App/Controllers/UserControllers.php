@@ -50,7 +50,11 @@ class UserControllers extends Control{
     $existsUser = $existsUser->userExists($user);//user_index
 
     if (!$existsUser) {
-      return ResponseModule::redirect("/".Session::session_data("username"), "El usuario {$user}, no existe!", 2);
+      $sessionUser = Session::session_data("username");
+      if (!empty($sessionUser) && mb_strtolower($sessionUser, 'UTF-8') !== $user) {
+        return ResponseModule::redirect("/panel/" . mb_strtolower($sessionUser, 'UTF-8'), "El usuario {$user}, no existe!", 2);
+      }
+      return ResponseModule::redirect("/", "El usuario {$user}, no existe!", 2);
     }
 
     //esta condición debe consultar a la cache del indice de usuarios, para la seguridad del sitio.

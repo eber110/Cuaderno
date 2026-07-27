@@ -51,7 +51,8 @@ class LoginControllers extends Control{
       if (!$userTrue["encrypted"]) return ResponseModule::redirect("/", "Tú contraseña no esta encriptada", 1);
     }
 
-    return ResponseModule::redirect("/");
+    $usernameClean = mb_strtolower($requestData["username"], 'UTF-8');
+    return ResponseModule::redirect("/panel/" . $usernameClean);
 
   }
 
