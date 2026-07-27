@@ -2,6 +2,7 @@
   
 namespace App\Controllers;
 
+use App\Models\DesignModels;
 use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\LogModule;
@@ -59,9 +60,16 @@ class DesignControllers extends Control{
 
   public function configDesign(string $user, array | string $param){
 
-    $dataRequest = LogModule::readLogLines(ROOT_PATH."/Cache/UserData/{$user}.json");
+    $customPath = ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json";
+    $officialPath = ROOT_PATH . "/Cache/UserData/{$user}.json";
+
+    if (file_exists($customPath)) {
+      $dataRequest = LogModule::readLogLines($customPath);
+    } else {
+      $dataRequest = LogModule::readLogLines($officialPath);
+    }
+
     $dataRequest = $dataRequest[0]["card"];
-    LogModule::deleteLog(ROOT_PATH."/Cache/UserData/{$user}.json");
 
     extract($param);
 
@@ -287,7 +295,7 @@ class DesignControllers extends Control{
 
     $data = [
       "card" => [
-        "active" => true ?? $dataRequest["active"],//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
+        "active" => $dataRequest["active"] ?? false,//control de activación del perfil, esto lo decide un json el cual tenga todos los datos necesarios para poder visualizar el perfil
         "hide" => false ?? $dataRequest["hide"],//control de visualización del perfil. esto lo decide el usuario
         "profile" => $profile ?? $dataRequest["profile"],
         "avatar" => $avatar ?? $dataRequest["avatar"],
@@ -312,8 +320,10 @@ class DesignControllers extends Control{
       ]
     ];
 
+    LogModule::deleteLog(ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json");
+
     LogModule::simpleLog([
-      "dir" => ROOT_PATH."/Cache/UserData/",
+      "dir" => ROOT_PATH . "/Cache/UserData/UserCustom/",
       "name" => "{$user}",
       "content" => $data
     ]);
@@ -322,6 +332,49 @@ class DesignControllers extends Control{
 
     ResponseModule::redirect("/panel/{$user}"); 
   
+  }
+
+  public function saveDesign(string $user){
+    $user = mb_strtolower($user, "UTF-8");
+    $customPath   = ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json";
+    $officialPath = ROOT_PATH . "/Cache/UserData/{$user}.json";
+
+    $customData = DesignModels::getCustomDesign($user);
+
+    if ($customData !== false && isset($customData["card"])) {
+      $data = $customData;
+      // Forzar activación a true al guardar oficialmente
+      $data["card"]["active"] = true;
+
+      // 1. Borrar archivo oficial previo para evitar que simpleLog (FILE_APPEND) duplique registros
+      LogModule::deleteLog($officialPath);
+
+      // 2. Publicar el nuevo JSON oficial
+      LogModule::simpleLog([
+        "dir" => ROOT_PATH . "/Cache/UserData/",
+        "name" => "{$user}",
+        "content" => $data
+      ]);
+
+      // 3. Eliminar el archivo borrador temporal de UserCustom
+      LogModule::deleteLog($customPath);
+    } else {
+      $officialData = DesignModels::getOfficialDesign($user);
+      if ($officialData !== false && isset($officialData["card"])) {
+        $data = $officialData;
+        if (!($data["card"]["active"] ?? false)) {
+          $data["card"]["active"] = true;
+          LogModule::deleteLog($officialPath);
+          LogModule::simpleLog([
+            "dir" => ROOT_PATH . "/Cache/UserData/",
+            "name" => "{$user}",
+            "content" => $data
+          ]);
+        }
+      }
+    }
+
+    ResponseModule::redirect("/panel/{$user}");
   }
 
 }

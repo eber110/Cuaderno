@@ -35,6 +35,8 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
 
   Route::get("/", [DashboardControllers::class, "panel"]);
   Route::post("/diseno", [DesignControllers::class, "configDesign"]);
+  Route::get("/guardar", [DesignControllers::class, "saveDesign"]);
+  Route::post("/guardar", [DesignControllers::class, "saveDesign"]);
 
 });
 

@@ -4,7 +4,7 @@ namespace App\Controllers\Dashboard;
 
 use App\Controllers\DesignControllers;
 use App\Controllers\UserControllers;
-use App\Models\UserModels;
+use App\Models\DesignModels;
 use Base\Control\Control;
 use Base\Module\LogModule;
 use Base\Module\ResponseModule;
@@ -15,16 +15,22 @@ class DashboardControllers extends Control{
   public function panel(string $user){
 
     $user = mb_strtolower($user, 'UTF-8');
-    $dataUser = new UserModels;
-    $dataUser = $dataUser->dataUser($user);
+    $dataUser = DesignModels::dataUser($user);
+    $hasCustom = DesignModels::hasCustomDesign($user);
 
-    if ($dataUser) {
-      $dataUser = UserControllers::formatCardImages($dataUser["card"]);
+    if ($dataUser && isset($dataUser["card"])) {
+      $cardData = UserControllers::formatCardImages($dataUser["card"]);
+    } else {
+      $cardData = [];
     }
 
     $data = [
-      "card" => $dataUser,
-      "uri" => ["formDesign" => "/panel/{$user}/diseno"],
+      "card" => $cardData,
+      "hasCustom" => $hasCustom,
+      "uri" => [
+        "formDesign" => "/panel/{$user}/diseno",
+        "saveDesign" => "/panel/{$user}/guardar"
+      ],
       "session" => $_SESSION["user"] ?? false
     ];
 

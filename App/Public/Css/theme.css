@@ -4,6 +4,7 @@
   --back-sidebar : #e6e6e6;
   --text-item-sidebar : #353535;
   --color-card-share-profile : #595a83;
+  --back-danger-panel : #b43b3b;
 }
 
 [data-theme="dark"] {
@@ -11,6 +12,10 @@
   --back-item : #2e2e2e;
   --back-sidebar : #1b1b1b;
   --text-item-sidebar : #e6e6e6;
+}
+
+.back-save-panel{
+  background-color: var(--back-danger-panel);
 }
 
 .tl-max-reached {
