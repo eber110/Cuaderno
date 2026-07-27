@@ -11,25 +11,34 @@ class VisitMiddleware implements MiddlewareInterface {
 
   public function handle($requestData, callable $next) {
 
-    // 1. Obtener la URI y el nombre del usuario o perfil visitado
+    // 1. Obtener la URI
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+
+    // 2. Si la petición es para un archivo de recurso estático (css, js, imágenes, fuentes), ignorarla de inmediato
+    $extension = strtolower(pathinfo($uri, PATHINFO_EXTENSION));
+    $staticExtensions = ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'eot', 'map', 'json'];
+    
+    if (!empty($extension) && in_array($extension, $staticExtensions)) {
+      return $next($requestData);
+    }
+
     $segments = explode('/', trim($uri, '/'));
     $visitedUser = $segments[0] ?? '';
 
-    // Lista de rutas del sistema excluidas de ser registradas como visitas a perfiles
+    // Rutas y carpetas del sistema excluidas de ser registradas como perfiles de usuario
     $excluded = [
       'robots.txt', 'sitemap.xml', 'llms.txt',
       'ingresar', 'registrar', 'salir', 'panel',
-      'op', 'uploads', 'app', 'favicon.ico'
+      'op', 'uploads', 'app', 'favicon.ico', 'css', 'js', 'img', 'rsc', 'cache', 'vendor'
     ];
 
     if (!empty($visitedUser) && !in_array(mb_strtolower($visitedUser, 'UTF-8'), $excluded)) {
       $visitedUserClean = mb_strtolower($visitedUser, 'UTF-8');
 
-      // 2. Inicializar el módulo de visitas con la cookie 'Visit_registration'
+      // 3. Inicializar el módulo de visitas con la cookie 'Visit_registration'
       VisitModule::initSession("Visit_registration");
 
-      // 3. Crear una clave de cookie de control única por perfil visitado durante 1 hora (3600 seg)
+      // 4. Crear clave de cookie de control por perfil visitado durante 1 hora (3600 seg)
       $cookieKey = "Visit_registration_" . $visitedUserClean;
 
       if (!CookieModule::exists($cookieKey)) {
@@ -51,7 +60,7 @@ class VisitMiddleware implements MiddlewareInterface {
           "samesite" => "Lax"
         ]);
 
-        // 4. Extraer información geográfica e IP de la visita
+        // 5. Extraer información geográfica e IP de la visita
         $location = VisitModule::getLocation() ?? [];
         $ip = VisitModule::getClientIp() ?? '127.0.0.1';
 
@@ -68,7 +77,7 @@ class VisitMiddleware implements MiddlewareInterface {
           "timestamp" => time()
         ];
 
-        // 5. Registrar la visita en Cache/Visits/visit_register.json
+        // 6. Registrar la visita en Cache/Visits/visit_register.json
         $cacheDir = defined('ROOT_PATH') ? ROOT_PATH . "/Cache/Visits" : getcwd() . "/Cache/Visits";
 
         LogModule::simpleLog([
