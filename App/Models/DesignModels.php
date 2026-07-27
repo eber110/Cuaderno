@@ -14,7 +14,12 @@ class DesignModels extends Builder{
    */
   public static function dataUser(string $user): bool|array {
     $user = mb_strtolower($user, 'UTF-8');
-    $customFile = ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json";
+    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
+    if (!is_dir($customDir)) {
+      @mkdir($customDir, 0777, true);
+    }
+
+    $customFile = $customDir . "/{$user}.json";
     $officialFile = ROOT_PATH . "/Cache/UserData/{$user}.json";
 
     if (file_exists($customFile)) {

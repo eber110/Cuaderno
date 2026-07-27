@@ -60,7 +60,13 @@ class DesignControllers extends Control{
 
   public function configDesign(string $user, array | string $param){
 
-    $customPath = ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json";
+    $user = mb_strtolower($user, 'UTF-8');
+    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
+    if (!is_dir($customDir)) {
+      @mkdir($customDir, 0777, true);
+    }
+
+    $customPath = $customDir . "/{$user}.json";
     $officialPath = ROOT_PATH . "/Cache/UserData/{$user}.json";
 
     if (file_exists($customPath)) {
@@ -336,7 +342,12 @@ class DesignControllers extends Control{
 
   public function saveDesign(string $user){
     $user = mb_strtolower($user, "UTF-8");
-    $customPath   = ROOT_PATH . "/Cache/UserData/UserCustom/{$user}.json";
+    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
+    if (!is_dir($customDir)) {
+      @mkdir($customDir, 0777, true);
+    }
+
+    $customPath   = $customDir . "/{$user}.json";
     $officialPath = ROOT_PATH . "/Cache/UserData/{$user}.json";
 
     $customData = DesignModels::getCustomDesign($user);
