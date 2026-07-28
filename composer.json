@@ -7,7 +7,8 @@
     }
   ],
   "require": {
-    "eber/framework": "dev-main"
+    "eber/framework": "dev-main",
+    "geoip2/geoip2": "*"
   },
   "autoload": {
     "psr-4": {
@@ -20,6 +21,7 @@
     "min-script": "@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php",
     "create-table-mysql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php",
     "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
-    "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php"
+    "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
+    "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php"
   }
 }

@@ -37,7 +37,8 @@
       "codeBlock": [],
       "protectedMenuImage": [],
       "cropImage": [],
-      "cutPhrase": []
+      "cutPhrase": [],
+      "textLimiter": []
     },
     "async": {}
   }

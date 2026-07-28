@@ -11,7 +11,8 @@
         "matthiasmullie/minify": "^1.3",
         "phpmailer/phpmailer": "^6.10",
         "vlucas/phpdotenv": "^5.6",
-        "phenx/php-font-lib": "*"
+        "phenx/php-font-lib": "*",
+        "geoip2/geoip2": "*"
     },
     "autoload": {
         "psr-4": {
@@ -38,6 +39,7 @@
         "min-script": "php Base/ScriptComposer/MinJsCss.php",
         "create-table-mysql": "php Base/ScriptComposer/ConfigInitBdMySql.php",
         "create-table-pgsql": "php Base/ScriptComposer/ConfigInitBdPostgreSql.php",
-        "install-font": "php Base/ScriptComposer/InstallFont.php"
+        "install-font": "php Base/ScriptComposer/InstallFont.php",
+        "update-geoip": "php Base/ScriptComposer/UpdateGeoIp.php"
     }
 }

@@ -26,12 +26,12 @@ Route::get("/test/2", function(){
   //$meta = RequestMetaModule::requestMeta("https://www.ebersanchez.cl");
 
   //var_dump($meta);
-  var_dump($data[0]["card"]);
+  //var_dump($data[0]["card"]);
 
   //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
 
   //var_dump($share);
-  var_dump($_SESSION);
+  var_dump($_SESSION ?? []);
 
 });
 
@@ -41,18 +41,8 @@ Route::post("/test/1/", function($param){
 
 });
 
-Route::post("/test/3", function($param){
+Route::get("/test/3", function(){
 
-  extract($param);
-  $user = Session::session_data("username");
-  $data = LogModule::readLogLines("/Cache/UserData/{$user}.json");
 
-  if (isset($param["borders"])) {
-    # code...
-    $data[0]["card"]["borders"] = explode(",",$borders);
-  }
-
-  var_dump($user);
-  var_dump($param);
-  var_dump($data[0]["card"]);
+  
 });

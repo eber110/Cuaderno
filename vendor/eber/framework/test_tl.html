@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .tl-max-reached { color: red !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <textarea class="text-limiter" data-limit-type="chars" data-limit="10" data-counter-el="#mi-contador"></textarea>
+    <div id="mi-contador">0 / 10</div>
+    <script type="module">
+        import { textLimiter } from './Resources/Js/Components/textLimiter.js';
+        textLimiter();
+    </script>
+</body>
+</html>
