@@ -32,12 +32,16 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         ),
         'M' =>
         array (
+            'MaxMind\\WebService\\' => 19,
+            'MaxMind\\Exception\\' => 18,
+            'MaxMind\\Db\\' => 11,
             'MatthiasMullie\\PathConverter\\' => 29,
             'MatthiasMullie\\Minify\\' => 22,
         ),
         'G' =>
         array (
             'GrahamCampbell\\ResultType\\' => 26,
+            'GeoIp2\\' => 7,
         ),
         'F' =>
         array (
@@ -51,6 +55,7 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         array (
             'Core\\ConfigLoader\\' => 18,
             'Core\\' => 5,
+            'Composer\\CaBundle\\' => 18,
         ),
         'B' =>
         array (
@@ -79,6 +84,18 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
+        'MaxMind\\WebService\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/maxmind/web-service-common/src/WebService',
+        ),
+        'MaxMind\\Exception\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/maxmind/web-service-common/src/Exception',
+        ),
+        'MaxMind\\Db\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/maxmind-db/reader/src/MaxMind/Db',
+        ),
         'MatthiasMullie\\PathConverter\\' =>
         array (
             0 => __DIR__ . '/..' . '/matthiasmullie/path-converter/src',
@@ -90,6 +107,10 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         'GrahamCampbell\\ResultType\\' =>
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
+        ),
+        'GeoIp2\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/geoip2/geoip2/src',
         ),
         'FontLib\\' =>
         array (
@@ -106,6 +127,10 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         'Core\\' =>
         array (
             0 => __DIR__ . '/../..' . '/Core',
+        ),
+        'Composer\\CaBundle\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
         ),
         'Base\\' =>
         array (

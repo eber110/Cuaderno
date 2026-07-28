@@ -364,11 +364,17 @@
 @media screen and (max-width: 576px) {
   .pt-sml-20 { padding-top: 20px !important; }
 }
+@media screen and (min-width: 993px) {
+  .w-desk-100 { width: 100%; }
+}
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-0 { width: 0%; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-100 { width: 100%; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .w-mid-50 { width: 50%; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-70 { width: 70%; }

@@ -1,5 +1,6 @@
 <?php
 
+use Base\Module\GeoIpModule;
 use Base\Module\ImgProcessModule;
 use Base\Module\LogModule;
 use Base\Module\RequestMetaModule;
@@ -43,6 +44,9 @@ Route::post("/test/1/", function($param){
 
 Route::get("/test/3", function(){
 
-
+  echo "Hola";
+  echo GeoIpModule::getCountryName('179.60.66.196') . "<br>";
+  echo GeoIpModule::getCountryCode('179.60.66.196') . "<br>";
+  echo GeoIpModule::getCityName('179.60.66.196') . "<br>"; // Un IP de Chile
   
 });

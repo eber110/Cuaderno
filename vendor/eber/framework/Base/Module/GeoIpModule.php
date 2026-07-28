@@ -74,4 +74,92 @@ class GeoIpModule {
         $record = self::getCityRecord($ip);
         return $record ? $record->country->isoCode : null;
     }
+
+    /**
+     * Obtiene el nombre del estado/región/provincia a partir de una IP.
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getStateName(string $ip) {
+        $record = self::getCityRecord($ip);
+        return ($record && !empty($record->subdivisions)) ? $record->subdivisions[0]->name : null;
+    }
+
+    /**
+     * Obtiene el código ISO del estado/región/provincia a partir de una IP.
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getStateCode(string $ip) {
+        $record = self::getCityRecord($ip);
+        return ($record && !empty($record->subdivisions)) ? $record->subdivisions[0]->isoCode : null;
+    }
+
+    /**
+     * Obtiene el código postal a partir de una IP.
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getPostalCode(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->postal->code : null;
+    }
+
+    /**
+     * Obtiene la latitud de la ubicación de la IP.
+     * 
+     * @param string $ip
+     * @return float|null
+     */
+    public static function getLatitude(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->location->latitude : null;
+    }
+
+    /**
+     * Obtiene la longitud de la ubicación de la IP.
+     * 
+     * @param string $ip
+     * @return float|null
+     */
+    public static function getLongitude(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->location->longitude : null;
+    }
+
+    /**
+     * Obtiene la zona horaria a partir de la IP (ej: 'America/Santiago').
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getTimeZone(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->location->timeZone : null;
+    }
+
+    /**
+     * Obtiene el nombre del continente a partir de la IP.
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getContinentName(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->continent->name : null;
+    }
+
+    /**
+     * Obtiene el código del continente a partir de la IP (ej: 'SA', 'NA', 'EU').
+     * 
+     * @param string $ip
+     * @return string|null
+     */
+    public static function getContinentCode(string $ip) {
+        $record = self::getCityRecord($ip);
+        return $record ? $record->continent->code : null;
+    }
 }
