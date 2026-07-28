@@ -34,7 +34,7 @@ class VisitModule
    */
   private static function getGeoApiPrimary(): string
   {
-    return defined('GEO_API_PRIMARY') ? GEO_API_PRIMARY : 'http://ip-api.com/json/';
+    return defined('GEO_API_PRIMARY') ? GEO_API_PRIMARY : 'https://api.ipquery.io/';
   }
 
   /**
@@ -332,58 +332,39 @@ class VisitModule
    * @param string $source 'ipguide' o 'ipquery'.
    * @return array Datos normalizados.
    */
-  private static function normalizeGeoResponse(array $response, string $ip, string $source = 'ipapi'): array
+  private static function normalizeGeoResponse(array $response, string $ip, string $source = 'ipquery'): array
   {
-    // Formato ip-api.com: {"status":"success","country":"Chile","countryCode":"CL","regionName":"Santiago Metropolitan","city":"Santiago",...}
-    if (isset($response['countryCode']) || isset($response['regionName'])) {
+    if (empty($response) || (!isset($response['location']) && !isset($response['country']))) {
       return [
-        'ip' => $response['query'] ?? $ip,
-        'pais' => $response['country'] ?? '',
-        'codigo' => $response['countryCode'] ?? '',
-        'region' => $response['regionName'] ?? ($response['region'] ?? ''),
-        'ciudad' => $response['city'] ?? ''
+        'ip' => $ip,
+        'pais' => 'Desconocido',
+        'codigo' => 'N/A',
+        'region' => 'Desconocido',
+        'ciudad' => 'Desconocido'
       ];
     }
 
-    // Auto-detectar el formato si no se especifica o si hay un caché antiguo
-    // ip.guide tiene 'network.autonomous_system', ipquery tiene 'location.country_code'
-    if (
-      isset($response['network']['autonomous_system']) ||
-      (isset($response['location']['country']) && !isset($response['location']['country_code']))
-    ) {
-      $source = 'ipguide';
-    } elseif (isset($response['location']['country_code'])) {
-      $source = 'ipquery';
-    }
+    $loc = $response['location'] ?? [];
 
-    if ($source === 'ipguide') {
-      // Formato ip.guide:
-      // {"ip": "...", "location": {"city": "Santiago", "country": "Chile", ...}, "network": {...}}
-      $codigo = '';
-      if (isset($response['network']['autonomous_system']['country'])) {
-        $codigo = $response['network']['autonomous_system']['country'];
-      }
-
+    // 1. Formato ipquery.io (https://api.ipquery.io/)
+    if (isset($loc['country_code'])) {
       return [
         'ip' => $response['ip'] ?? $ip,
-        'pais' => $response['location']['country'] ?? '',
-        'codigo' => $codigo,
-        'region' => $response['location']['timezone'] ?? '',
-        'ciudad' => $response['location']['city'] ?? ''
+        'pais' => $loc['country'] ?? 'Desconocido',
+        'codigo' => $loc['country_code'] ?? 'N/A',
+        'region' => $loc['state'] ?? 'Desconocido',
+        'ciudad' => $loc['city'] ?? 'Desconocido'
       ];
     }
 
-    // Formato ipquery.io:
-    // {"ip": "...", "location": {"country": "Chile", "country_code": "CL", "state": "...", "city": "..."}}
-    $state = $response['location']['state'] ?? '';
-    $stateShort = !empty($state) ? explode(' ', $state)[0] : '';
-
+    // 2. Formato ip.guide (https://ip.guide/)
+    $codigo = $response['network']['autonomous_system']['country'] ?? 'N/A';
     return [
       'ip' => $response['ip'] ?? $ip,
-      'pais' => $response['location']['country'] ?? '',
-      'codigo' => $response['location']['country_code'] ?? '',
-      'region' => $stateShort,
-      'ciudad' => $response['location']['city'] ?? ''
+      'pais' => $loc['country'] ?? 'Desconocido',
+      'codigo' => $codigo,
+      'region' => $loc['timezone'] ?? 'Desconocido',
+      'ciudad' => $loc['city'] ?? 'Desconocido'
     ];
   }
 

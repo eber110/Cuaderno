@@ -31,7 +31,7 @@ Route::get("/test/2", function(){
   //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
 
   //var_dump($share);
-  //var_dump($_SESSION);
+  var_dump($_SESSION);
 
 });
 

@@ -48,11 +48,11 @@ class VisitMiddleware implements MiddlewareInterface {
 
           $visitContent = [
             "visited_user" => $visitedUserClean,
-            "ip"           => $location['ip'] ?? VisitModule::getClientIp() ?? '127.0.0.1',
-            "country"      => !empty($location['pais']) ? $location['pais'] : 'Desconocido',
-            "city"         => !empty($location['ciudad']) ? $location['ciudad'] : 'Desconocido',
-            "region"       => !empty($location['region']) ? $location['region'] : 'Desconocido',
-            "codigo"       => !empty($location['codigo']) ? $location['codigo'] : 'N/A',
+            "ip"           => $location['ip'] ?? VisitModule::getClientIp() ?? $_SESSION["location"]["ip"],
+            "country"      => !empty($location['pais']) ? $location['pais'] : $_SESSION["location"]["pais"],
+            "city"         => !empty($location['ciudad']) ? $location['ciudad'] : $_SESSION["location"]["ciudad"],
+            "region"       => !empty($location['region']) ? $location['region'] : $_SESSION["location"]["region"],
+            "codigo"       => !empty($location['codigo']) ? $location['codigo'] : $_SESSION["location"]["codigo"],
             "user_agent"   => $_SERVER['HTTP_USER_AGENT'] ?? '',
             "referer"      => $_SERVER['HTTP_REFERER'] ?? '',
             "visited_at"   => date('Y-m-d H:i:s'),
