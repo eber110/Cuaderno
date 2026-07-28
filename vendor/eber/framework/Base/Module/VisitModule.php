@@ -211,12 +211,11 @@ class VisitModule
    */
   private static function needsGeoUpdate(string $currentIp): bool
   {
-    // Si ya existe registro para esta IP y se consultó en los últimos 3600s, NO volver a consultar cURL
+    // Si la ubicación ya está guardada en la sesión y la IP no ha cambiado, NO volver a consultar la API externa
     if (
       !empty($_SESSION['location']) &&
-      ($_SESSION['location']['ip'] ?? '') === $currentIp &&
-      isset($_SESSION['location']['last_check']) &&
-      (time() - (int)$_SESSION['location']['last_check']) < 3600
+      is_array($_SESSION['location']) &&
+      ($_SESSION['location']['ip'] ?? '') === $currentIp
     ) {
       return false;
     }
