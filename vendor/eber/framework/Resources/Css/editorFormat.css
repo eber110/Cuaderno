@@ -1,0 +1,533 @@
+/* =========================================
+   EditorFormat.css
+   Estilos tipográficos para .post-content
+   Preparación para el editor de texto
+   ========================================= */
+
+
+/* Contenedor principal del contenido */
+.post-content {
+
+  font-family: var(--font);
+  font-size: var(--font-size);
+  line-height: 1.4em;
+  color: var(--back-color6);
+  word-break: break-word;
+
+}
+
+
+/* ---- Párrafos ---- */
+.post-content p {
+
+  margin: 0 0 1em 0;
+  line-height: 1.4em;
+  font-size: var(--font-size);
+  text-wrap: pretty;
+
+}
+
+
+/* ---- Encabezados ---- */
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+
+  font-family: var(--font);
+  font-weight: 700;
+  line-height: 1.2em;
+  text-wrap: balance;
+  margin: 1.2em 0 0.5em 0;
+  color: var(--back-color6);
+
+}
+
+.post-content h1 { font-size: 2.4em; }
+
+.post-content h2 { font-size: 1.9em; }
+
+.post-content h3 { font-size: 1.5em; }
+
+.post-content h4 { font-size: 1.25em; }
+
+.post-content h5 { font-size: 1.1em; }
+
+.post-content h6 { font-size: 1em; }
+
+
+/* ---- Énfasis de texto ---- */
+.post-content strong,
+.post-content b {
+
+  font-weight: 700;
+  color: var(--back-color6);
+
+}
+
+.post-content em,
+.post-content i {
+
+  font-style: italic;
+
+}
+
+.post-content u {
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+}
+
+.post-content s,
+.post-content del {
+
+  text-decoration: line-through;
+  opacity: 0.65;
+
+}
+
+.post-content mark {
+
+  background-color: color-mix(in srgb, var(--back-color5), transparent 50%);
+  color: var(--back-color6);
+  padding: 0 3px;
+  border-radius: 3px;
+
+}
+
+.post-content sup {
+
+  font-size: 0.65em;
+  vertical-align: super;
+
+}
+
+.post-content sub {
+
+  font-size: 0.65em;
+  vertical-align: sub;
+
+}
+
+
+/* ---- Enlace ---- */
+.post-content a {
+
+  color: var(--back-color5);
+  text-decoration: none;
+  font-weight: bold;
+  transition: var(--transition);
+
+}
+
+.post-content a:hover {
+
+  color: var(--back-color5-hover);
+
+}
+
+
+/* ---- Listas ---- */
+.post-content ul,
+.post-content ol {
+
+  margin: 0 0 1em 0;
+  padding-left: 1.6em;
+  line-height: 1.4em;
+
+}
+
+.post-content ul {
+
+  list-style-type: none;
+
+}
+
+.post-content ol {
+
+  list-style-type: none;
+
+}
+
+.post-content li {
+
+  margin-bottom: 0.3em;
+
+}
+
+/* Lista anidada */
+.post-content ul ul,
+.post-content ol ol,
+.post-content ul ol,
+.post-content ol ul {
+
+  margin: 0.3em 0 0.3em 0;
+
+}
+
+
+/* ---- Cita ---- */
+.post-content blockquote {
+
+  border-left: 4px solid var(--back-color5);
+  margin: 1.2em 0;
+  padding: 0.6em 0 0.6em 1.4em;
+  font-style: italic;
+  color: color-mix(in srgb, var(--back-color6), transparent 20%);
+  background-color: color-mix(in srgb, var(--back-color5), transparent 88%);
+  border-radius: 0 6px 6px 0;
+
+}
+
+.post-content blockquote p {
+
+  margin: 0;
+
+}
+
+
+/* ---- Código en línea (dentro de párrafo) ---- */
+.post-content p code,
+.post-content li code,
+.post-content td code {
+
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85em;
+  background-color: #1e1e1e;
+  color: #9cdcfe;  /* azul claro tipo VS Code */
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--back-color5), transparent 60%);
+  white-space: pre-wrap;
+  display: inline;
+  line-height: inherit;
+
+}
+
+/* Inline code en modo oscuro */
+[data-theme="dark"] .post-content p code,
+[data-theme="dark"] .post-content li code,
+[data-theme="dark"] .post-content td code {
+
+  background-color: #252526;
+  color: #4ec9b0;  /* verde agua tipo VS Code */
+  border-color: color-mix(in srgb, var(--back-color4), transparent 40%);
+
+}
+
+
+/* ============================================================
+   BLOQUE DE CÓDIGO — Estilo editor (VS Code dark theme)
+   Colores de sintaxis adaptados a las variables del framework
+   ============================================================ */
+
+/* Variables locales del editor */
+.post-content .code-block {
+
+  --editor-bg:        #1e1e1e;
+  --editor-header-bg: #252526;
+  --editor-border:    #323232;
+  --editor-text:      #d4d4d4;
+  --editor-accent:    var(--back-color5);
+  --editor-string:    #ce9178;
+  --editor-keyword:   #569cd6;
+  --editor-comment:   #6a9955;
+  --editor-number:    #b5cea8;
+  --editor-func:      #dcdcaa;
+
+}
+
+
+/* ---- Wrapper del bloque de código (generado por codeBlock.js) ---- */
+.post-content .code-block {
+
+  --editor-bg:        #1e1e1e;
+  --editor-header-bg: #252526;
+  --editor-border:    #3c3c3c;
+  --editor-text:      #d4d4d4;
+  --editor-dot1:      #ff5f57;
+  --editor-dot2:      #febc2e;
+  --editor-dot3:      #28c840;
+ 
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--editor-border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+
+}
+
+/* Modo oscuro - el borde usa el acento del framework */
+[data-theme="dark"] .post-content .code-block {
+
+  --editor-border: color-mix(in srgb, var(--back-color5), transparent 45%);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
+
+}
+
+
+/* Header: barra de título con los 3 puntos y el label */
+.post-content .code-block-header {
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px 9px 12px;
+  background-color: var(--editor-header-bg);
+  border-bottom: 1px solid var(--editor-border);
+  user-select: none;
+  gap: 10px;
+
+}
+
+/* Los 3 puntos decorativos tipo macOS */
+.post-content .code-block-header::before {
+
+  content: "";
+  display: block;
+  flex-shrink: 0;
+  width: 52px;
+  height: 12px;
+  background-image:
+    radial-gradient(circle, var(--editor-dot1) 45%, transparent 46%),
+    radial-gradient(circle, var(--editor-dot2) 45%, transparent 46%),
+    radial-gradient(circle, var(--editor-dot3) 45%, transparent 46%);
+  background-size: 12px 12px;
+  background-position: 0 center, 20px center, 40px center;
+  background-repeat: no-repeat;
+
+}
+
+/* Label del lenguaje */
+.post-content .code-block-lang {
+
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.73em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: var(--back-color4);
+  flex: 1;
+  text-align: center;
+
+}
+
+/* Label en modo oscuro usa el color 3 del framework */
+/*[data-theme="dark"] .post-content .code-block-lang {
+
+  color: color-mix(in srgb, var(--back-color2), transparent 20%);
+
+}*/
+
+
+/* Botón copiar */
+.post-content .code-copy-btn {
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid #404040;
+  border-radius: 5px;
+  background: transparent;
+  color: #858585;
+  font-size: 0.72em;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: var(--transition);
+  line-height: 1;
+
+}
+
+.post-content .code-copy-btn:hover {
+
+  background-color: #3c3c3c;
+  border-color: color-mix(in srgb, var(--back-color5), transparent 30%);
+  color: #d4d4d4;
+
+}
+
+/* Botón copiar en modo oscuro */
+[data-theme="dark"] .post-content .code-copy-btn:hover {
+
+  border-color: var(--back-color5);
+  color: var(--back-color6);
+
+}
+
+/* Estado copiado */
+.post-content .code-copy-btn.copied {
+
+  background-color: color-mix(in srgb, var(--success), transparent 80%);
+  border-color: var(--success);
+  color: var(--success);
+
+}
+
+/* Icono SVG dentro del botón */
+.post-content .code-copy-btn svg {
+
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+}
+
+
+/* Bloque pre dentro del wrapper */
+.post-content .code-block pre {
+
+  margin: 0;
+  padding: 1.1em 1.4em;
+  overflow-x: auto;
+  background-color: var(--editor-bg);
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  scrollbar-color: #404040 transparent;
+  scrollbar-width: thin;
+
+}
+
+/* code dentro del bloque */
+.post-content .code-block pre code {
+
+  display: block;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.87em;
+  color: var(--editor-text);
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  line-height: 1.35em;
+  white-space: pre;
+  tab-size: 2;
+  -moz-tab-size: 2;
+
+}
+
+
+/* ---- Bloque pre sin wrapper (fallback directo) ---- */
+.post-content > pre {
+
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1.1em 1.4em;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  font-size: 0.87em;
+  line-height: 1.35em;
+  border: 1px solid #3c3c3c;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+
+}
+
+.post-content > pre code {
+
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  border-radius: 0;
+  font-size: 1em;
+  display: block;
+  white-space: pre;
+  tab-size: 2;
+  -moz-tab-size: 2;
+
+}
+
+
+/* ---- Regla horizontal ---- */
+.post-content hr {
+
+  border: none;
+  border-top: 2px solid color-mix(in srgb, var(--back-color5), transparent 70%);
+  margin: 1.5em 0;
+
+}
+
+
+/* ---- Imagen ---- */
+.post-content img {
+
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 1em auto;
+
+}
+
+.post-content figure {
+
+  margin: 1em 0;
+
+}
+
+.post-content figcaption {
+
+  font-size: 0.82em;
+  text-align: center;
+  opacity: 0.65;
+  margin-top: 0.4em;
+  font-style: italic;
+
+}
+
+
+/* ---- Tabla ---- */
+.post-content table {
+
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.95em;
+
+}
+
+.post-content th {
+
+  background-color: var(--back-color5);
+  color: var(--back-color6);
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--back-color5), transparent 40%);
+
+}
+
+.post-content td {
+
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--back-color3), transparent 40%);
+  vertical-align: top;
+
+}
+
+.post-content tbody tr:nth-child(even) {
+
+  background-color: color-mix(in srgb, var(--back-color5), transparent 90%);
+
+}
+
+
+/* ---- Abreviatura ---- */
+.post-content abbr[title] {
+
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+
+}

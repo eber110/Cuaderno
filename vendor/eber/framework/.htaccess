@@ -1,0 +1,56 @@
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Fuentes Tipográficas (1 año de caché)
+  ExpiresByType application/font-woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  ExpiresByType application/font-ttf "access plus 1 year"
+  ExpiresByType application/x-font-ttf "access plus 1 year"
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+
+  # CSS y JavaScript (1 mes de caché)
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+
+  # Iconos e Imágenes (1 año de caché)
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/avif "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+
+<IfModule mod_headers.c>
+  # Para asegurar que los proxies también cacheen los recursos
+  Header append Cache-Control "public"
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+Options -MultiViews
+RewriteEngine On
+
+# --- PROTECCIÓN CONTRA HOTLINKING ---
+# Evita que otros sitios web roben ancho de banda incrustando tus imágenes.
+# Descomenta las siguientes líneas si deseas habilitarlo:
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^https?://([^/]+\.)?%{HTTP_HOST} [NC]
+# RewriteCond %{HTTP_REFERER} !google\. [NC]
+# RewriteCond %{HTTP_REFERER} !bing\. [NC]
+# RewriteCond %{HTTP_REFERER} !yahoo\. [NC]
+# RewriteRule \.(jpg|jpeg|png|gif|webp|svg|avif|ico)$ - [F,NC]
+
+RewriteCond %{REQUEST_FILENAME} !-s
+RewriteCond %{REQUEST_FILENAME} !-l
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]

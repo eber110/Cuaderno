@@ -1,0 +1,4 @@
+/Docs/     export-ignore
+/.vscode/  export-ignore
+/.env      export-ignore
+/README.md export-ignore

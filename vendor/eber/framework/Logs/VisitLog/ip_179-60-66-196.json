@@ -1,0 +1,25 @@
+{
+  "ip": "179.60.66.196",
+  "network": {
+    "cidr": "179.60.64.0\/21",
+    "hosts": {
+      "start": "179.60.64.1",
+      "end": "179.60.71.254"
+    },
+    "autonomous_system": {
+      "asn": 27901,
+      "name": "Pacifico Cable SPA.",
+      "organization": "Pacifico Cable SPA.",
+      "country": "CL",
+      "rir": "LACNIC"
+    }
+  },
+  "location": {
+    "city": "Santiago",
+    "country": "Chile",
+    "timezone": "America\/Santiago",
+    "latitude": -33.4521,
+    "longitude": -70.6536
+  },
+  "_api_source": "ipguide"
+}

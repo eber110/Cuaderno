@@ -1,0 +1,808 @@
+/*Filtro de sombras*/
+
+.shadow {
+  filter: drop-shadow(5px 5px 2.3px rgba(0, 0, 0, 0.43));
+}
+
+.shadow1 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color));
+}
+
+.shadow2 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color2));
+}
+
+.shadow3 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color3));
+}
+
+.shadow4 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color4));
+}
+
+.shadow5 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color5));
+}
+
+.shadow6 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color6));
+}
+
+.shadow7 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color7));
+}
+
+.shadow8 {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color8));
+}
+
+/* ========================================
+   SISTEMA DE SOMBRAS DIRECCIONALES COMBINABLES
+   ========================================
+   Uso: Combina clases de dirección con clases de color
+   Ejemplo: class="shadow-l shadow-b shadow-c-3"
+            -> Sombra hacia izquierda-abajo con color 3
+   
+   Direcciones disponibles: -l (left), -r (right), -t (top), -b (bottom)
+   Colores disponibles: -c (default negro), -c-1 a -c-8 (back-color vars)
+   ======================================== */
+
+/* Variables base de sombra */
+[class*="shadow-l"],
+[class*="shadow-r"],
+[class*="shadow-t"],
+[class*="shadow-b"] {
+  --shadow-x: 0px;
+  --shadow-y: 0px;
+  --shadow-blur: 2.3px;
+  --shadow-color: rgba(0, 0, 0, 0.43);
+}
+
+/* Clases de dirección horizontal */
+.shadow-l {
+  --shadow-x: -5px;
+}
+
+.shadow-r {
+  --shadow-x: 5px;
+}
+
+/* Clases de dirección vertical */
+.shadow-t {
+  --shadow-y: -5px;
+}
+
+.shadow-b {
+  --shadow-y: 5px;
+}
+
+/* Clases de tamaño/volumen de sombra */
+.shadow-s-xs {
+  --shadow-x: calc(var(--shadow-x, 0px) * 0.4);
+  --shadow-y: calc(var(--shadow-y, 0px) * 0.4);
+  --shadow-blur: 1px;
+}
+
+.shadow-s-sm {
+  --shadow-x: calc(var(--shadow-x, 0px) * 0.6);
+  --shadow-y: calc(var(--shadow-y, 0px) * 0.6);
+  --shadow-blur: 1.5px;
+}
+
+.shadow-s-md {
+  --shadow-blur: 2.3px;
+}
+
+/* Default */
+.shadow-s-lg {
+  --shadow-blur: 4px;
+}
+
+.shadow-s-xl {
+  --shadow-blur: 6px;
+}
+
+.shadow-s-2xl {
+  --shadow-blur: 10px;
+}
+
+/* Clases de offset numérico (sobrescriben la dirección base) */
+.shadow-l.shadow-o-3 {
+  --shadow-x: -3px;
+}
+
+.shadow-l.shadow-o-5 {
+  --shadow-x: -5px;
+}
+
+.shadow-l.shadow-o-8 {
+  --shadow-x: -8px;
+}
+
+.shadow-l.shadow-o-10 {
+  --shadow-x: -10px;
+}
+
+.shadow-l.shadow-o-15 {
+  --shadow-x: -15px;
+}
+
+.shadow-r.shadow-o-3 {
+  --shadow-x: 3px;
+}
+
+.shadow-r.shadow-o-5 {
+  --shadow-x: 5px;
+}
+
+.shadow-r.shadow-o-8 {
+  --shadow-x: 8px;
+}
+
+.shadow-r.shadow-o-10 {
+  --shadow-x: 10px;
+}
+
+.shadow-r.shadow-o-15 {
+  --shadow-x: 15px;
+}
+
+.shadow-t.shadow-o-3 {
+  --shadow-y: -3px;
+}
+
+.shadow-t.shadow-o-5 {
+  --shadow-y: -5px;
+}
+
+.shadow-t.shadow-o-8 {
+  --shadow-y: -8px;
+}
+
+.shadow-t.shadow-o-10 {
+  --shadow-y: -10px;
+}
+
+.shadow-t.shadow-o-15 {
+  --shadow-y: -15px;
+}
+
+.shadow-b.shadow-o-3 {
+  --shadow-y: 3px;
+}
+
+.shadow-b.shadow-o-5 {
+  --shadow-y: 5px;
+}
+
+.shadow-b.shadow-o-8 {
+  --shadow-y: 8px;
+}
+
+.shadow-b.shadow-o-10 {
+  --shadow-y: 10px;
+}
+
+.shadow-b.shadow-o-15 {
+  --shadow-y: 15px;
+}
+
+/* Clases de color de sombra */
+.shadow-c {
+  --shadow-color: rgba(0, 0, 0, 0.43);
+}
+
+.shadow-c-1 {
+  --shadow-color: var(--back-color);
+}
+
+.shadow-c-2 {
+  --shadow-color: var(--back-color2);
+}
+
+.shadow-c-3 {
+  --shadow-color: var(--back-color3);
+}
+
+.shadow-c-4 {
+  --shadow-color: var(--back-color4);
+}
+
+.shadow-c-5 {
+  --shadow-color: var(--back-color5);
+}
+
+.shadow-c-6 {
+  --shadow-color: var(--back-color6);
+}
+
+.shadow-c-7 {
+  --shadow-color: var(--back-color7);
+}
+
+.shadow-c-8 {
+  --shadow-color: var(--back-color8);
+}
+
+/* ========================================
+   SISTEMA DE SOMBRAS INTERIORES (INSET) COMBINABLES
+   ========================================
+   Uso: Combina clases de dirección con clases de color
+   Ejemplo: class="shadow-inset-l shadow-inset-b shadow-inset-c-3"
+            -> Sombra interior hacia izquierda-abajo con color 3
+   
+   Direcciones disponibles: -l (left), -r (right), -t (top), -b (bottom)
+   Colores disponibles: -c (default negro), -c-1 a -c-8 (back-color vars)
+   ======================================== */
+
+/* Variables base de sombra interior */
+[class*="shadow-inset-l"],
+[class*="shadow-inset-r"],
+[class*="shadow-inset-t"],
+[class*="shadow-inset-b"] {
+  --inset-x: 0px;
+  --inset-y: 0px;
+  --inset-blur: 4px;
+  --inset-spread: 0px;
+  --inset-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Clases de dirección horizontal */
+.shadow-inset-l {
+  --inset-x: 5px;
+}
+
+.shadow-inset-r {
+  --inset-x: -5px;
+}
+
+/* Clases de dirección vertical */
+.shadow-inset-t {
+  --inset-y: 5px;
+}
+
+.shadow-inset-b {
+  --inset-y: -5px;
+}
+
+/* Clases de color de sombra interior */
+.shadow-inset-c {
+  --inset-color: rgba(0, 0, 0, 0.25);
+}
+
+.shadow-inset-c-1 {
+  --inset-color: var(--back-color);
+}
+
+.shadow-inset-c-2 {
+  --inset-color: var(--back-color2);
+}
+
+.shadow-inset-c-3 {
+  --inset-color: var(--back-color3);
+}
+
+.shadow-inset-c-4 {
+  --inset-color: var(--back-color4);
+}
+
+.shadow-inset-c-5 {
+  --inset-color: var(--back-color5);
+}
+
+.shadow-inset-c-6 {
+  --inset-color: var(--back-color6);
+}
+
+.shadow-inset-c-7 {
+  --inset-color: var(--back-color7);
+}
+
+.shadow-inset-c-8 {
+  --inset-color: var(--back-color8);
+}
+
+/* Aplicar la sombra interior - se activa con cualquier clase direccional */
+.shadow-inset-l,
+.shadow-inset-r,
+.shadow-inset-t,
+.shadow-inset-b,
+.shadow-inset-l.shadow-inset-t,
+.shadow-inset-l.shadow-inset-b,
+.shadow-inset-r.shadow-inset-t,
+.shadow-inset-r.shadow-inset-b {
+  box-shadow: inset var(--inset-x) var(--inset-y) var(--inset-blur) var(--inset-spread) var(--inset-color);
+}
+
+/* Aplicar el filtro - se activa con cualquier clase direccional */
+.shadow-l,
+.shadow-r,
+.shadow-t,
+.shadow-b,
+.shadow-l.shadow-t,
+.shadow-l.shadow-b,
+.shadow-r.shadow-t,
+.shadow-r.shadow-b {
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+/* ========================================
+   CLASES LEGACY (compatibilidad hacia atrás)
+   ======================================== */
+.shadow-l-1 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-2 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color2);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-3 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color3);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-4 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color4);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-5 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color5);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-6 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color6);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-7 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color7);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-l-8 {
+  --shadow-x: -5px;
+  --shadow-color: var(--back-color8);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-1 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-2 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color2);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-3 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color3);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-4 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color4);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-5 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color5);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-6 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color6);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-7 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color7);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-t-8 {
+  --shadow-y: -5px;
+  --shadow-color: var(--back-color8);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-1 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-2 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color2);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-3 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color3);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-4 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color4);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-5 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color5);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-6 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color6);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-7 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color7);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-r-8 {
+  --shadow-x: 5px;
+  --shadow-color: var(--back-color8);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-1 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-2 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color2);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-3 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color3);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-4 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color4);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-5 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color5);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-6 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color6);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-7 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color7);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-b-8 {
+  --shadow-y: 5px;
+  --shadow-color: var(--back-color8);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color));
+}
+
+.shadow-hover {
+  filter: drop-shadow(5px 5px 2.3px rgba(0, 0, 0, 0.43));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px rgba(0, 0, 0, 0.43));
+  }
+}
+
+.shadow1-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color));
+  }
+}
+
+.shadow2-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color2));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color2));
+  }
+}
+
+.shadow3-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color3));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color3));
+  }
+}
+
+.shadow4-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color4));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color4));
+  }
+}
+
+.shadow5-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color5));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color5));
+  }
+}
+
+.shadow6-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color6));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color6));
+  }
+}
+
+.shadow7-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color7));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color7));
+  }
+}
+
+.shadow8-hover {
+  filter: drop-shadow(5px 5px 2.3px var(--back-color8));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(2px 2px 2.3px var(--back-color8));
+  }
+}
+
+.shine-border {
+  filter: drop-shadow(-0.01px -0.1px 0.2px rgb(255, 255, 255)) drop-shadow(0.01px 0.1px 0.2px rgb(44, 44, 44));
+
+  &:hover {
+    filter: drop-shadow(-0.1px -0.1px 0.2px rgb(255, 255, 255)) drop-shadow(0.01px 0.1px 0.2px rgb(44, 44, 44));
+  }
+}
+
+.shine-hover {
+  filter: drop-shadow(0px 0px 0px rgba(255, 255, 255, 0));
+  transition: var(--transition-slow);
+
+  &:hover {
+    filter: drop-shadow(0px 0px 1px rgb(255, 255, 255)) drop-shadow(0px 0px 10px rgba(255, 255, 255, 0.5));
+  }
+}
+
+.shine-shadow {
+  filter: drop-shadow(0px 0px 1px rgb(255, 255, 255)) drop-shadow(0px 0px 10px rgb(255, 255, 255));
+}
+
+.shadow-header {
+  box-shadow: 0px 15px 15px -23px rgba(0, 0, 0, 1);
+  -webkit-box-shadow: 0px 15px 15px -23px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 0px 15px 15px -23px rgba(0, 0, 0, 1);
+}
+
+.blur {
+  backdrop-filter: blur(5px) !important;
+}
+
+.sepia {
+  filter: sepia(40%) !important;
+}
+
+.sepia10 {
+  filter: sepia(10%) !important;
+}
+
+.sepia20 {
+  filter: sepia(20%) !important;
+}
+
+.sepia30 {
+  filter: sepia(30%) !important;
+}
+
+.sepia40 {
+  filter: sepia(40%) !important;
+}
+
+.sepia50 {
+  filter: sepia(50%) !important;
+}
+
+.sepia60 {
+  filter: sepia(60%) !important;
+}
+
+.sepia70 {
+  filter: sepia(70%) !important;
+}
+
+.sepia80 {
+  filter: sepia(80%) !important;
+}
+
+.sepia90 {
+  filter: sepia(90%) !important;
+}
+
+.sepia100 {
+  filter: sepia(100%) !important;
+}
+
+.shine1 {
+  filter: brightness(1);
+}
+
+.shine2 {
+  filter: brightness(0.9);
+}
+
+.shine3 {
+  filter: brightness(0.8);
+}
+
+.shine4 {
+  filter: brightness(0.7);
+}
+
+.shine5 {
+  filter: brightness(0.6);
+}
+
+.shine6 {
+  filter: brightness(0.5);
+}
+
+.shine7 {
+  filter: brightness(0.4);
+}
+
+.shine8 {
+  filter: brightness(0.3);
+}
+
+.shine9 {
+  filter: brightness(0.2);
+}
+
+.shine10 {
+  filter: brightness(0.1);
+}
+
+.outline1 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color));
+}
+
+.outline2 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color2));
+}
+
+.outline3 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color3));
+}
+
+.outline4 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color4));
+}
+
+.outline5 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color5));
+}
+
+.outline6 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color6));
+}
+
+.outline7 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color7));
+}
+
+.outline8 {
+  filter: drop-shadow(0.5px 0.5px 1px var(--back-color8));
+}
+
+.logo-overlay{
+  background-color: var(--body);
+  mix-blend-mode: luminosity;
+}
+
+/* Seleccionamos al padre si es 'a' o 'figure' y contiene nuestra imagen */
+/* Usamos :where() para reducir la especificidad de width y height a cero,
+   permitiendo que clases utilitarias como wpx40 o hpx40 funcionen perfectamente sin !important */
+:where(a:has(> img.photo-overlay)),
+:where(figure:has(> img.photo-overlay)) {
+  position: relative;
+  display: block; /* Usamos block en lugar de grid para evitar romper el flujo normal */
+  overflow: hidden; /* Nos aseguramos de contener el borde si hay radios (border-radius) */
+  width: 100%; /* Hacemos que la etiqueta 'a' oca el mismo ancho que 'figure' */
+  height: 100%; /* Hacemos que la etiqueta 'a' herede la altura del 'figure' (300px) para que img.cover sepa hasta dónde debe llegar */
+}
+
+/* La imagen */
+img.photo-overlay {
+  display: block;
+  width: 100%;
+  height: 100%; /* CLAVE: forzar la altura al 100% del padre 'a' */
+  object-fit: cover; /* Garantiza el relleno */
+}
+
+/* El overlay que se pone DELANTE */
+a:has(> img.photo-overlay)::after,
+figure:has(> img.photo-overlay)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Cuidado aquí: siempre 100% y NO 100dvh para que sea exacto al alto del figure */
+  
+  /* Usamos tu variable de color */
+  background-color: var(--body);
+  
+  /* Modo de mezcla para el tinte */
+  mix-blend-mode: color; /* 'color' es ideal para dar un tinte sin destruir el contraste. Prueba también con 'multiply' o 'hue' */
+  opacity: var(--photo-overlay-opacity, 0.2); /* Ajusta este valor entre 0.1 y 0.9 para controlar muy suavemente la intensidad */
+  
+  pointer-events: none; /* Para que el link (si es un <a>) siga funcionando */
+  z-index: 2;
+  transition: opacity var(--transition, 0.3s ease); /* Opcional: para suavidad si cambias el tinte por hover */
+}
+
+/* Clases auxiliares para modificar la opacidad del overlay */
+.opmix1 { --photo-overlay-opacity: 0.1 !important; }
+.opmix2 { --photo-overlay-opacity: 0.2 !important; }
+.opmix3 { --photo-overlay-opacity: 0.3 !important; }
+.opmix4 { --photo-overlay-opacity: 0.4 !important; }
+.opmix5 { --photo-overlay-opacity: 0.5 !important; }
+.opmix6 { --photo-overlay-opacity: 0.6 !important; }
+.opmix7 { --photo-overlay-opacity: 0.7 !important; }
+.opmix8 { --photo-overlay-opacity: 0.8 !important; }
+.opmix9 { --photo-overlay-opacity: 0.9 !important; }

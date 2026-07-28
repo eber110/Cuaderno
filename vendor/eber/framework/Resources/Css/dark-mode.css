@@ -1,0 +1,54 @@
+/**
+ * Dark Mode - Framework FME
+ * Transición global suave al cambiar de tema.
+ * Los colores se sobreescriben en _config-normalize.css usando [data-theme="dark"].
+ */
+
+/* Transición suave en todos los elementos al cambiar tema */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 0.25s ease-in-out,
+    color 0.25s ease-in-out,
+    border-color 0.25s ease-in-out,
+    box-shadow 0.25s ease-in-out !important;
+}
+
+/* Excepción: no transicionar transformaciones ni otros props no relacionados */
+.no-theme-transition {
+  transition: none !important;
+}
+
+/* ============================
+   Botón Toggle Dark Mode
+   ============================ */
+
+/*.dark-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 2px solid var(--back-color3);
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: var(--transition-slow);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.dark-mode-toggle:hover {
+  background-color: var(--back-color3);
+  border-color: var(--back-color4);
+}*/
+
+/* Iconos dentro del toggle */
+.dm-icon-light,
+.dm-icon-dark {
+  font-size: 18px;
+  line-height: 1;
+}
+

@@ -1,0 +1,147 @@
+/* CAROUSEL - Estilos base para evitar FOUC */
+.carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ocultar carousel hasta que JS lo inicialice */
+.carousel:not([data-carousel-ready]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Configurar layout flexbox antes de JS */
+.carousel-slide .carousel-inner,
+.carousel-slide-continuous .carousel-inner {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.carousel-slide .carousel-item,
+.carousel-slide-continuous .carousel-item {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+/* Para modo básico y fade, ocultar items no activos */
+.carousel:not(.carousel-slide):not(.carousel-slide-continuous) .carousel-item:not(.active) {
+  display: none;
+}
+
+.carousel-fade .carousel-item:not(.active) {
+  opacity: 0;
+  position: absolute;
+}
+
+/* Cuando el carousel está listo, mostrarlo con transición */
+.carousel[data-carousel-ready] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   🖼️ IMAGE GALLERY - Estilos base para evitar FOUC
+   ========================================================================== */
+.image-gallery {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ocultar galería hasta que JS lo inicialice */
+.image-gallery:not([data-gallery-ready]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Configurar layout flexbox antes de JS para evitar listado vertical */
+.image-gallery:not([data-gallery-ready]):not(.gallery-fade) .gallery-main {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.image-gallery:not([data-gallery-ready]):not(.gallery-fade) .gallery-item {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+/* Para modo fade, ocultar items no activos */
+.gallery-fade .gallery-item:not(.active) {
+  opacity: 0;
+  position: absolute;
+}
+
+/* Cuando la galería está lista, mostrarla con transición */
+.image-gallery[data-gallery-ready] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   🌓 DARK/LIGHT MODE - Evitar FOUC instantáneamente según el tema del <html>
+   ========================================================================== */
+html[data-theme="dark"] .no-dark-mode {
+  display: none !important;
+}
+
+html:not([data-theme="dark"]) .no-light-mode,
+html:not([data-theme="dark"]) .no-dark-light,
+html:not([data-theme="dark"]) .no-drak-light,
+html[data-theme="light"] .no-light-mode,
+html[data-theme="light"] .no-dark-light,
+html[data-theme="light"] .no-drak-light {
+  display: none !important;
+}
+
+/* ==========================================================================
+   📱 RESPONSIVE VISIBILITY - Evitar FOUC antes del procesado por JS
+   ========================================================================== */
+@media screen and (max-width: 576px) {
+  .no-phone:not([data-responsive-processed]) {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .no-tablet:not([data-responsive-processed]) {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 993px) {
+  .no-desk:not([data-responsive-processed]) {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   🎛️ VERTICAL MENU & REMOTE CONTENT - Evitar FOUC antes del procesado por JS
+   ========================================================================== */
+.vertical-menu:not([data-menu-ready]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.vertical-menu[data-menu-ready] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.vertical-menu.animated[data-menu-ready] {
+  transition: opacity 0.15s ease-in-out;
+}
+
+.remote-container:not([data-container-ready]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.remote-container[data-container-ready] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.remote-container.animated[data-container-ready] {
+  transition: opacity 0.15s ease-in-out;
+}

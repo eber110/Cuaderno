@@ -1,0 +1,167 @@
+/***CONFIG***/
+*{
+  box-sizing: border-box;
+}
+
+html{
+  margin: 0px;
+  padding: 0px;
+}
+
+/***VAR***/
+
+:root {
+  --font: 'Roboto', sans-serif;
+  --font2: 'RobotoCondensed', sans-serif;
+  --font3: 'AluminiSansSC', sans-serif;
+  --font-size: 20px;
+  --width-window: 1200px;
+  --scrollbar-width: thin;
+  --scrollbar-hide: none;
+
+  --body: #F3CBA5;
+
+  --text-primary:   #092743;
+  --text-secondary: #F6D8BC;
+  --text-inactive:   #bdbdbd;
+
+  /*Config color site*/
+  --back-color: #EFBB8A;
+  --back-color2: #E89E59;
+  --back-color3: #E2842C;
+  --back-color4: #BC681A;
+  --back-color5: #8B4D13;
+  --back-color6: #432509;
+  --back-color7: #BCDAF6;
+  --back-color8: #092743;
+
+  --back-color-hover: color-mix(in srgb, var(--back-color), white 30%);
+  --back-color2-hover: color-mix(in srgb, var(--back-color2), white 30%);
+  --back-color3-hover: color-mix(in srgb, var(--back-color3), white 30%);
+  --back-color4-hover: color-mix(in srgb, var(--back-color4), white 30%);
+  --back-color5-hover: color-mix(in srgb, var(--back-color5), white 30%);
+  --back-color6-hover: color-mix(in srgb, var(--back-color6), white 30%);
+  --back-color7-hover: color-mix(in srgb, var(--back-color7), black 10%);
+  --back-color8-hover: color-mix(in srgb, var(--back-color8), white 30%);
+
+  --success: #00b900;
+  --hover-success: #04ea04;
+
+  --caution: #ff8c00;
+  --hover-caution: #fead4b;
+
+  --danger: #ff0000;
+  --hover-danger: #fc6161;
+
+  --sepia: sepia(60%);
+
+  --transition: all 0.15s ease-in-out;
+  --transition-slow: all 0.25s ease-in-out;
+  
+}
+
+/* Modo oscuro - sobrescribe la paleta de colores */
+[data-theme="dark"] {
+
+  --body: #092743;
+
+  --text-primary:   #e6f3ff;
+  --text-secondary: #051c31;
+  --text-inactive:   #bdbdbd;
+
+  --back-color:  #0C345A;
+  --back-color2: #124E87;
+  --back-color3: #1869B4;
+  --back-color4: #4B9CE7;
+  --back-color5: #78B4ED;
+  --back-color6: #A5CDF3;
+  --back-color7: #432509;
+  --back-color8: #F6D8BC;
+
+  --back-color-hover:  color-mix(in srgb, var(--back-color), black 20%);
+  --back-color2-hover: color-mix(in srgb, var(--back-color2), white 20%);
+  --back-color3-hover: color-mix(in srgb, var(--back-color3), white 20%);
+  --back-color4-hover: color-mix(in srgb, var(--back-color4), white 20%);
+  --back-color5-hover: color-mix(in srgb, var(--back-color5), white 20%);
+  --back-color6-hover: color-mix(in srgb, var(--back-color6), black 20%);
+  --back-color7-hover: color-mix(in srgb, var(--back-color7), white 10%);
+  --back-color8-hover: color-mix(in srgb, var(--back-color8), black 10%);
+
+}
+
+*,
+*::after,
+*::before {
+  position: relative;
+  min-width: 0;
+  scrollbar-width: var(--scrollbar-width);
+  scrollbar-gutter: thin;
+  scrollbar-color: var(--text-inactive) hsla(0, 0%, 75%, 0);
+  scroll-behavior: smooth;
+  outline: 0;
+}
+
+/***GENERAL-STYLE***/
+
+body {
+  font-family: var(--font);
+  min-height: 100dvh;
+  font-size: var(--font-size);
+  margin: 0px;
+  text-wrap: pretty;
+
+  background-color: var(--body);
+  color: var(--text-primary);
+}
+
+a {
+  text-decoration: none;
+  margin: 0;
+}
+
+figure{
+  margin: 0px;
+  padding: 0px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+  line-height: 1.2em;
+  margin: 0px;
+}
+
+h1{font-size: 55px;}
+h2{font-size: 42px;}
+h3{font-size: 30px;}
+h4{font-size: 25px;}
+h5{font-size: 20px;}
+h6{font-size: 18px;}
+
+p {
+  text-indent: 0px;
+  font-size: var(--font-size);
+  text-wrap: pretty;
+  margin: 0;
+}
+
+img {
+  vertical-align: top;
+  width: 100%;
+}
+
+/* ==========================================================================
+   🔄 TRANSITION UTILITY CLASSES
+   ========================================================================== */
+
+.transition {
+  transition: var(--transition) !important;
+}
+
+.transition-slow {
+  transition: var(--transition-slow) !important;
+}

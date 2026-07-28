@@ -1,0 +1,1130 @@
+﻿.body-back {
+  background-color: var(--body);
+}
+
+/*Configuración de success*/
+.back-success {
+  position: relative;
+  z-index: 1;
+}
+
+.back-success::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--success);
+  filter: var(--sepia) !important;
+  z-index: -1;
+}
+
+.back-success-hover {
+  position: relative;
+  z-index: 1;
+}
+
+.back-success-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--success);
+  filter: var(--sepia) !important;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.back-success-hover:hover::before {
+  background-color: var(--hover-success);
+  filter: var(--sepia);
+}
+
+/*Fin de success*/
+
+/*Configuración de caution*/
+.back-caution {
+  position: relative;
+  z-index: 1;
+}
+
+.back-caution::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--caution);
+  filter: var(--sepia) !important;
+  z-index: -1;
+}
+
+.back-caution-hover {
+  position: relative;
+  z-index: 1;
+}
+
+.back-caution-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--caution);
+  filter: var(--sepia) !important;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.back-caution-hover:hover::before {
+  background-color: var(--hover-caution);
+  filter: var(--sepia);
+}
+
+/*Fin de caution*/
+
+/*Configuración de danger*/
+.back-danger {
+  position: relative;
+  z-index: 1;
+}
+
+.back-danger::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--danger);
+  filter: var(--sepia) !important;
+  z-index: -1;
+}
+
+.back-danger-hover {
+  position: relative;
+  z-index: 1;
+}
+
+.back-danger-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--danger);
+  filter: var(--sepia) !important;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.back-danger-hover:hover::before {
+  background-color: var(--hover-danger);
+  filter: var(--sepia);
+}
+
+/*Fin de danger*/
+
+.back-none {
+  background: none;
+}
+
+.back1 {
+  background-color: var(--back-color) !important;
+}
+
+.back1-hover {
+  background-color: var(--back-color) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color-hover) !important;
+  }
+}
+
+.back2 {
+  background-color: var(--back-color2) !important;
+}
+
+.back2-hover {
+  background-color: var(--back-color2) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color2-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color2-hover) !important;
+  }
+
+}
+
+.back3 {
+  background-color: var(--back-color3) !important;
+}
+
+.back3-hover {
+  background-color: var(--back-color3) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color3-hover) !important
+  }
+
+  &:focus {
+    background-color: var(--back-color3-hover) !important
+  }
+
+}
+
+.back4 {
+  background-color: var(--back-color4) !important;
+}
+
+.back4-hover {
+  background-color: var(--back-color4) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color4-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color4-hover) !important;
+  }
+
+}
+
+.back5 {
+  background-color: var(--back-color5) !important;
+}
+
+.back5-hover {
+  background-color: var(--back-color5) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color5-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color5-hover) !important;
+  }
+
+}
+
+.back6 {
+  background-color: var(--back-color6) !important;
+}
+
+.back6-hover {
+  background-color: var(--back-color6) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color6-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color6-hover) !important;
+  }
+
+}
+
+.back7 {
+  background-color: var(--back-color7);
+}
+
+.back7-hover {
+  background-color: var(--back-color7) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color7-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color7-hover) !important;
+  }
+
+}
+
+.back8 {
+  background-color: var(--back-color8);
+}
+
+.back8-hover {
+  background-color: var(--back-color8) !important;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: var(--back-color8-hover) !important;
+  }
+
+  &:focus {
+    background-color: var(--back-color8-hover) !important;
+  }
+
+}
+
+/* Clases con backdrop-filter blur (de 5px a 100px) */
+/* Variantes para back1 con variable de opacidad y blur */
+.back1-blur5 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back1-blur10 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back1-blur15 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back1-blur20 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back1-blur25 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back1-blur30 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back1-blur35 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back1-blur40 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back1-blur45 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back1-blur50 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back1-blur55 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back1-blur60 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back1-blur65 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back1-blur70 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back1-blur75 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back1-blur80 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back1-blur85 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back1-blur90 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back1-blur95 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back1-blur100 {
+  background-color: color-mix(in srgb, var(--back-color) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back2 con variable de opacidad y blur */
+.back2-blur5 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back2-blur10 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back2-blur15 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back2-blur20 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back2-blur25 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back2-blur30 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back2-blur35 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back2-blur40 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back2-blur45 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back2-blur50 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back2-blur55 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back2-blur60 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back2-blur65 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back2-blur70 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back2-blur75 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back2-blur80 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back2-blur85 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back2-blur90 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back2-blur95 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back2-blur100 {
+  background-color: color-mix(in srgb, var(--back-color2) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back3 con variable de opacidad y blur */
+.back3-blur5 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back3-blur10 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back3-blur15 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back3-blur20 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back3-blur25 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back3-blur30 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back3-blur35 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back3-blur40 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back3-blur45 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back3-blur50 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back3-blur55 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back3-blur60 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back3-blur65 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back3-blur70 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back3-blur75 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back3-blur80 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back3-blur85 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back3-blur90 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back3-blur95 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back3-blur100 {
+  background-color: color-mix(in srgb, var(--back-color3) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back4 con variable de opacidad y blur */
+.back4-blur5 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back4-blur10 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back4-blur15 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back4-blur20 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back4-blur25 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back4-blur30 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back4-blur35 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back4-blur40 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back4-blur45 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back4-blur50 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back4-blur55 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back4-blur60 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back4-blur65 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back4-blur70 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back4-blur75 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back4-blur80 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back4-blur85 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back4-blur90 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back4-blur95 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back4-blur100 {
+  background-color: color-mix(in srgb, var(--back-color4) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back5 con variable de opacidad y blur */
+.back5-blur5 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back5-blur10 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back5-blur15 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back5-blur20 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back5-blur25 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back5-blur30 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back5-blur35 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back5-blur40 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back5-blur45 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back5-blur50 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back5-blur55 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back5-blur60 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back5-blur65 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back5-blur70 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back5-blur75 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back5-blur80 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back5-blur85 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back5-blur90 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back5-blur95 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back5-blur100 {
+  background-color: color-mix(in srgb, var(--back-color5) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back6 con variable de opacidad y blur */
+.back6-blur5 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(5px);
+}
+
+.back6-blur10 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.back6-blur15 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(15px);
+}
+
+.back6-blur20 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(20px);
+}
+
+.back6-blur25 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(25px);
+}
+
+.back6-blur30 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(30px);
+}
+
+.back6-blur35 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(35px);
+}
+
+.back6-blur40 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(40px);
+}
+
+.back6-blur45 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(45px);
+}
+
+.back6-blur50 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(50px);
+}
+
+.back6-blur55 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(55px);
+}
+
+.back6-blur60 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(60px);
+}
+
+.back6-blur65 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(65px);
+}
+
+.back6-blur70 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(70px);
+}
+
+.back6-blur75 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(75px);
+}
+
+.back6-blur80 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(80px);
+}
+
+.back6-blur85 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(85px);
+}
+
+.back6-blur90 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(90px);
+}
+
+.back6-blur95 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(95px);
+}
+
+.back6-blur100 {
+  background-color: color-mix(in srgb, var(--back-color6) var(--blur-opacity, 40%), transparent) !important;
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back7 con variable de opacidad y blur */
+.back7-blur5 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(5px);
+}
+
+.back7-blur10 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(10px);
+}
+
+.back7-blur15 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(15px);
+}
+
+.back7-blur20 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(20px);
+}
+
+.back7-blur25 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(25px);
+}
+
+.back7-blur30 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(30px);
+}
+
+.back7-blur35 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(35px);
+}
+
+.back7-blur40 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(40px);
+}
+
+.back7-blur45 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(45px);
+}
+
+.back7-blur50 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(50px);
+}
+
+.back7-blur55 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(55px);
+}
+
+.back7-blur60 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(60px);
+}
+
+.back7-blur65 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(65px);
+}
+
+.back7-blur70 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(70px);
+}
+
+.back7-blur75 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(75px);
+}
+
+.back7-blur80 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(80px);
+}
+
+.back7-blur85 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(85px);
+}
+
+.back7-blur90 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(90px);
+}
+
+.back7-blur95 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(95px);
+}
+
+.back7-blur100 {
+  background-color: color-mix(in srgb, var(--back-color7) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(100px);
+}
+
+/* Variantes para back8 con variable de opacidad y blur */
+.back8-blur5 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(5px);
+}
+
+.back8-blur10 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(10px);
+}
+
+.back8-blur15 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(15px);
+}
+
+.back8-blur20 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(20px);
+}
+
+.back8-blur25 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(25px);
+}
+
+.back8-blur30 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(30px);
+}
+
+.back8-blur35 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(35px);
+}
+
+.back8-blur40 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(40px);
+}
+
+.back8-blur45 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(45px);
+}
+
+.back8-blur50 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(50px);
+}
+
+.back8-blur55 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(55px);
+}
+
+.back8-blur60 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(60px);
+}
+
+.back8-blur65 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(65px);
+}
+
+.back8-blur70 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(70px);
+}
+
+.back8-blur75 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(75px);
+}
+
+.back8-blur80 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(80px);
+}
+
+.back8-blur85 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(85px);
+}
+
+.back8-blur90 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(90px);
+}
+
+.back8-blur95 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(95px);
+}
+
+.back8-blur100 {
+  background-color: color-mix(in srgb, var(--back-color8) var(--blur-opacity, 40%), transparent);
+  backdrop-filter: blur(100px);
+}
+
+/* Clases auxiliares para controlar la opacidad del fondo blur (sin afectar al texto/contenido) */
+.op10 {
+  --blur-opacity: 10% !important;
+}
+
+.op20 {
+  --blur-opacity: 20% !important;
+}
+
+.op30 {
+  --blur-opacity: 30% !important;
+}
+
+.op40 {
+  --blur-opacity: 40% !important;
+}
+
+.op50 {
+  --blur-opacity: 50% !important;
+}
+
+.op60 {
+  --blur-opacity: 60% !important;
+}
+
+.op70 {
+  --blur-opacity: 70% !important;
+}
+
+.op80 {
+  --blur-opacity: 80% !important;
+}
+
+.op90 {
+  --blur-opacity: 90% !important;
+}
+
+.op100 {
+  --blur-opacity: 100% !important;
+}
+

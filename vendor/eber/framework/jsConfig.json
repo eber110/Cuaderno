@@ -1,0 +1,44 @@
+{
+  "priority": [
+    "aaSvgStore.js",
+    "component.js",
+    "config.js",
+    "querys.js"
+  ],
+  "exclude": [],
+  "functions": {
+    "defer": {
+      "animations": [],
+      "portfolioAnimation": [],
+      "toUp": [
+        "color2 flex row-direction center-center shine-hover"
+      ],
+      "contact": [],
+      "notification": [
+        "shadow border2"
+      ],
+      "loadImgModern": [],
+      "initResponsiveVisibility": [],
+      "sidebar": [],
+      "savePost": [],
+      "modalMenu": [],
+      "accordion": [],
+      "tabs": [],
+      "tooltip": [],
+      "carousel": [],
+      "dropdown": [],
+      "copyToClipboard": [],
+      "toastTrigger": [],
+      "modal": [],
+      "imageGallery": [],
+      "hamburgerMenu": [],
+      "initDarkMode": [],
+      "hideNavigationPath": [],
+      "codeBlock": [],
+      "protectedMenuImage": [],
+      "cropImage": [],
+      "cutPhrase": []
+    },
+    "async": {}
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "priority": [
+        "aaSvgStore.js",
+        "config.js"
+    ],
+    "exclude": [],
+    "functions": {
+        "defer": {
+            "animations": [],
+            "toUp": []
+        },
+        "async": []
+    }
+}

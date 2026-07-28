@@ -1,0 +1,98 @@
+/***FORMS***/
+
+textarea {
+  resize: none;
+}
+
+form * {
+  font-family: var(--font);
+}
+
+form input,
+textarea, select {
+  /* resize: none; */
+  font-size: var(--font-size);
+  padding: 10px 15px;
+  /* border-radius: 15px; */
+  /* border: 1px solid var(--back-color4); */
+  border: none;
+  transition: .3s ease all;
+  width: 100%;
+}
+
+form input:focus {
+  /* border: 1px solid var(--back-color2); */
+  outline: none;
+}
+
+form select:focus {
+  /* border: 1px solid var(--back-color2); */
+  outline: none;
+}
+
+textarea:focus{
+  /* border: 1px solid var(--back-color2); */
+  outline: none;
+}
+
+#media_upload{
+  background-color: var(--back-color5-hover);
+  color: var(--back-color);
+}
+
+.resize-textarea{
+  field-sizing: content;
+}
+
+.form-scroll{
+  max-height: 98dvh !important;
+  overflow-y: auto !important;
+}
+
+.input-note {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+input:focus + .input-note {
+  max-height: 100px;
+  opacity: 1;
+}
+
+/* Ocultar input original para evitar FOUC (parpadeo al cargar) */
+.loadImgModern,
+.selectAndCropImage {
+  display: none !important;
+}
+
+/* Truncamiento de texto dinámico */
+.cut-phrase {
+  overflow: hidden !important;
+}
+.cut-phrase-wrapper {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  max-height: 100% !important;
+  width: 100%;
+  box-sizing: border-box;
+  color: inherit !important;
+}
+
+/* Evitar FOUC (Flash of Unstyled Content) antes de calcular el truncamiento dinámico */
+:where(.cut-phrase-wrapper) {
+  -webkit-line-clamp: 2; /* Clamp preventivo en CSS mientras JS calcula las líneas exactas */
+}
+
+:where(.cut-phrase:not([data-cut-phrase-ready])),
+:where(.cut-phrase-wrapper:not([data-cut-phrase-ready])) {
+  opacity: 0;
+}
+
+:where(.cut-phrase[data-cut-phrase-ready]),
+:where(.cut-phrase-wrapper[data-cut-phrase-ready]) {
+  opacity: 1;
+  transition: opacity 0.15s ease-in-out;
+}

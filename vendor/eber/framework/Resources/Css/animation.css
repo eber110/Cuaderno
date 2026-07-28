@@ -1,0 +1,514 @@
+/* ==========================================================================
+   🎬 ANIMATION.CSS - FRAMEWORK ANIMATION SYSTEM (GSAP COMPATIBLE)
+   ========================================================================== */
+
+:root {
+  --animate-duration: 400ms;
+  --animate-delay: 0ms;
+  --animate-ease: cubic-bezier(0.25, 1, 0.5, 1); /* Suave Out (tipo power2.out) */
+  --animate-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1); /* Rebote Premium */
+  --animate-ease-in: cubic-bezier(0.55, 0, 1, 0.45); /* Suave In (tipo power2.in) */
+}
+
+/* Clases base utilitarias */
+.animated {
+  -webkit-animation-duration: var(--animate-duration);
+  animation-duration: var(--animate-duration);
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation-delay: var(--animate-delay);
+  animation-delay: var(--animate-delay);
+  -webkit-animation-timing-function: var(--animate-ease);
+  animation-timing-function: var(--animate-ease);
+}
+
+/* Variaciones de velocidad */
+.animate-fast {
+  --animate-duration: 250ms;
+}
+
+.animate-slow {
+  --animate-duration: 800ms;
+}
+
+/* Repeticiones */
+.animate-infinite {
+  animation-iteration-count: infinite;
+}
+
+/* ==========================================================================
+   ✨ 1. FADE ANIMATIONS
+   ========================================================================== */
+
+.fade-in {
+  -webkit-animation-name: fadeIn;
+  animation-name: fadeIn;
+  --animate-duration: 600ms;
+}
+
+.fade-out {
+  -webkit-animation-name: fadeOut;
+  animation-name: fadeOut;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+@-webkit-keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@-webkit-keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ==========================================================================
+   🚀 2. SLIDE ANIMATIONS
+   ========================================================================== */
+
+.slide-in-left {
+  -webkit-animation-name: slideInLeft;
+  animation-name: slideInLeft;
+  -webkit-animation-timing-function: var(--animate-ease);
+  animation-timing-function: var(--animate-ease);
+}
+
+.slide-in-right {
+  -webkit-animation-name: slideInRight;
+  animation-name: slideInRight;
+  -webkit-animation-timing-function: var(--animate-ease);
+  animation-timing-function: var(--animate-ease);
+}
+
+.slide-in-top {
+  -webkit-animation-name: slideInTop;
+  animation-name: slideInTop;
+  -webkit-animation-timing-function: var(--animate-ease);
+  animation-timing-function: var(--animate-ease);
+}
+
+.slide-in-bottom {
+  -webkit-animation-name: slideInBottom;
+  animation-name: slideInBottom;
+  -webkit-animation-timing-function: var(--animate-ease);
+  animation-timing-function: var(--animate-ease);
+}
+
+.slide-out-left {
+  -webkit-animation-name: slideOutLeft;
+  animation-name: slideOutLeft;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+.slide-out-right {
+  -webkit-animation-name: slideOutRight;
+  animation-name: slideOutRight;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+.slide-out-top {
+  -webkit-animation-name: slideOutTop;
+  animation-name: slideOutTop;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+.slide-out-bottom {
+  -webkit-animation-name: slideOutBottom;
+  animation-name: slideOutBottom;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+/* Keyframes Entrada */
+@-webkit-keyframes slideInLeft {
+  from {
+    -webkit-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+@keyframes slideInLeft {
+  from {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes slideInRight {
+  from {
+    -webkit-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+@keyframes slideInRight {
+  from {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes slideInTop {
+  from {
+    -webkit-transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+@keyframes slideInTop {
+  from {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes slideInBottom {
+  from {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+@keyframes slideInBottom {
+  from {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+/* Keyframes Salida */
+@-webkit-keyframes slideOutLeft {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+}
+@keyframes slideOutLeft {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes slideOutRight {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: translate3d(100%, 0, 0);
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+}
+@keyframes slideOutRight {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes slideOutTop {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+}
+@keyframes slideOutTop {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes slideOutBottom {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+}
+@keyframes slideOutBottom {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   🔍 3. ZOOM / SCALE ANIMATIONS
+   ========================================================================== */
+
+.zoom-in, .scale-in {
+  -webkit-animation-name: zoomIn;
+  animation-name: zoomIn;
+}
+
+.zoom-out, .scale-out {
+  -webkit-animation-name: zoomOut;
+  animation-name: zoomOut;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+@-webkit-keyframes zoomIn {
+  from {
+    -webkit-transform: scale3d(0.85, 0.85, 0.85);
+    transform: scale3d(0.85, 0.85, 0.85);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+@keyframes zoomIn {
+  from {
+    transform: scale3d(0.85, 0.85, 0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes zoomOut {
+  from {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: scale3d(0.85, 0.85, 0.85);
+    transform: scale3d(0.85, 0.85, 0.85);
+    opacity: 0;
+  }
+}
+@keyframes zoomOut {
+  from {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+  to {
+    transform: scale3d(0.85, 0.85, 0.85);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   💫 4. DYNAMIC & BOUNCE ANIMATIONS
+   ========================================================================== */
+
+.bounce-in {
+  -webkit-animation-name: bounceIn;
+  animation-name: bounceIn;
+  -webkit-animation-timing-function: var(--animate-ease-elastic);
+  animation-timing-function: var(--animate-ease-elastic);
+  --animate-duration: 550ms;
+}
+
+.bounce-out {
+  -webkit-animation-name: bounceOut;
+  animation-name: bounceOut;
+  -webkit-animation-timing-function: var(--animate-ease-in);
+  animation-timing-function: var(--animate-ease-in);
+}
+
+.spin {
+  -webkit-animation-name: spin;
+  animation-name: spin;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
+  --animate-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+.pulse {
+  -webkit-animation-name: pulse;
+  animation-name: pulse;
+  --animate-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes bounceIn {
+  from {
+    -webkit-transform: scale3d(0.3, 0.3, 0.3);
+    transform: scale3d(0.3, 0.3, 0.3);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+@keyframes bounceIn {
+  from {
+    transform: scale3d(0.3, 0.3, 0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes bounceOut {
+  from {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: scale3d(0.3, 0.3, 0.3);
+    transform: scale3d(0.3, 0.3, 0.3);
+    opacity: 0;
+  }
+}
+@keyframes bounceOut {
+  from {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+  to {
+    transform: scale3d(0.3, 0.3, 0.3);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    -webkit-transform: scale3d(1.05, 1.05, 1.05);
+    transform: scale3d(1.05, 1.05, 1.05);
+  }
+  100% {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    transform: scale3d(1.05, 1.05, 1.05);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+/* ==========================================================================
+   🚨 GSAP COMPATIBILITY: PREVENT CSS TRANSITION COLLISIONS
+   ========================================================================== */
+html.gsap-loaded .animated,
+html.gsap-loaded [data-animate] {
+  transition: none !important;
+}
