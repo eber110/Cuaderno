@@ -44,9 +44,12 @@ Route::post("/test/1/", function($param){
 
 Route::get("/test/3", function(){
 
-  echo "Hola";
-  echo GeoIpModule::getCountryName('179.60.66.196') . "<br>";
-  echo GeoIpModule::getCountryCode('179.60.66.196') . "<br>";
-  echo GeoIpModule::getCityName('179.60.66.196') . "<br>"; // Un IP de Chile
+  $ip = "179.60.66.196";
+
+  echo GeoIpModule::getCountryName($ip) . "<br>";
+  echo GeoIpModule::getCountryCode($ip) . "<br>";
+  echo GeoIpModule::getCityName($ip) . "<br>";
+  echo GeoIpModule::getStateName($ip) . "<br>";
+  echo GeoIpModule::getStateCode($ip) . "<br>";
   
 });
