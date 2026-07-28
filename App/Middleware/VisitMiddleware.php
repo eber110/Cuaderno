@@ -36,32 +36,18 @@ class VisitMiddleware implements MiddlewareInterface {
       if (!empty($visitedUser) && !in_array(mb_strtolower($visitedUser, 'UTF-8'), $excluded)) {
         $visitedUserClean = mb_strtolower($visitedUser, 'UTF-8');
 
-        // 3. Inicializar el módulo de visitas con la cookie 'Visit_registration'
-        VisitModule::initSession("Visit_registration");
+        // Usar la cookie 'Visit_registration' ya creada al inicio en CookieConfiguration.php
+        $visitorCookie = CookieModule::get("Visit_registration");
 
-        // 4. Crear clave de cookie de control por perfil visitado durante 1 hora (3600 seg)
-        $cookieKey = "Visit_registration_" . $visitedUserClean;
+        // Controlar en sesión la frecuencia de visitas al mismo perfil (1 vez cada 1 hora / 3600s)
+        $sessionKey = "visit_registered_" . $visitedUserClean;
+        $lastVisitTime = $_SESSION[$sessionKey] ?? 0;
 
-        if (!CookieModule::exists($cookieKey)) {
-          // Establecer la cookie de control para evitar visitas duplicadas al mismo perfil en 1 hora
-          CookieModule::set($cookieKey, [
-            "value" => (string)time(),
-            "expired" => 3600,
-            "path" => "/",
-            "httponly" => true,
-            "samesite" => "Lax"
-          ]);
+        if ((time() - (int)$lastVisitTime) > 3600) {
+          $_SESSION[$sessionKey] = time();
 
-          // Actualizar la cookie general Visit_registration por 1 hora
-          CookieModule::set("Visit_registration", [
-            "value" => (string)time(),
-            "expired" => 3600,
-            "path" => "/",
-            "httponly" => true,
-            "samesite" => "Lax"
-          ]);
-
-          // 5. Extraer información geográfica e IP de la visita
+          // Inicializar geolocalización sólo si es necesario (sin crear cookies nuevas)
+          VisitModule::initSession("Visit_registration");
           $location = VisitModule::getLocation() ?? [];
           $ip = VisitModule::getClientIp() ?? '127.0.0.1';
 
@@ -78,7 +64,7 @@ class VisitMiddleware implements MiddlewareInterface {
             "timestamp" => time()
           ];
 
-          // 6. Registrar la visita en Cache/Visits/visit_register.json
+          // Registrar la visita en Cache/Visits/visit_register.json
           $cacheDir = defined('ROOT_PATH') ? ROOT_PATH . "/Cache/Visits" : getcwd() . "/Cache/Visits";
 
           LogModule::simpleLog([
