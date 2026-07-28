@@ -3,7 +3,6 @@
 namespace App\Middleware;
 
 use App\Middleware\MiddlewareInterface\MiddlewareInterface;
-use Base\Module\CookieModule;
 use Base\Module\LogModule;
 use Base\Module\VisitModule;
 
@@ -36,9 +35,6 @@ class VisitMiddleware implements MiddlewareInterface {
       if (!empty($visitedUser) && !in_array(mb_strtolower($visitedUser, 'UTF-8'), $excluded)) {
         $visitedUserClean = mb_strtolower($visitedUser, 'UTF-8');
 
-        // Usar la cookie 'Visit_registration' ya creada al inicio en CookieConfiguration.php
-        $visitorCookie = CookieModule::get("Visit_registration");
-
         // Controlar en sesión la frecuencia de visitas al mismo perfil (1 vez cada 1 hora / 3600s)
         $sessionKey = "visit_registered_" . $visitedUserClean;
         $lastVisitTime = $_SESSION[$sessionKey] ?? 0;
@@ -46,22 +42,21 @@ class VisitMiddleware implements MiddlewareInterface {
         if ((time() - (int)$lastVisitTime) > 3600) {
           $_SESSION[$sessionKey] = time();
 
-          // Inicializar geolocalización sólo si es necesario (sin crear cookies nuevas)
+          // Inicializar geolocalización y clasificación de sesión usando exclusivamente VisitModule
           VisitModule::initSession("Visit_registration");
           $location = VisitModule::getLocation() ?? [];
-          $ip = VisitModule::getClientIp() ?? '127.0.0.1';
 
           $visitContent = [
             "visited_user" => $visitedUserClean,
-            "ip" => $ip,
-            "country" => $location['pais'] ?? '',
-            "city" => $location['ciudad'] ?? '',
-            "region" => $location['region'] ?? '',
-            "codigo" => $location['codigo'] ?? '',
-            "user_agent" => $_SERVER['HTTP_USER_AGENT'] ?? '',
-            "referer" => $_SERVER['HTTP_REFERER'] ?? '',
-            "visited_at" => date('Y-m-d H:i:s'),
-            "timestamp" => time()
+            "ip"           => $location['ip'] ?? VisitModule::getClientIp() ?? '127.0.0.1',
+            "country"      => !empty($location['pais']) ? $location['pais'] : 'Desconocido',
+            "city"         => !empty($location['ciudad']) ? $location['ciudad'] : 'Desconocido',
+            "region"       => !empty($location['region']) ? $location['region'] : 'Desconocido',
+            "codigo"       => !empty($location['codigo']) ? $location['codigo'] : 'N/A',
+            "user_agent"   => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            "referer"      => $_SERVER['HTTP_REFERER'] ?? '',
+            "visited_at"   => date('Y-m-d H:i:s'),
+            "timestamp"    => time()
           ];
 
           // Registrar la visita en Cache/Visits/visit_register.json
