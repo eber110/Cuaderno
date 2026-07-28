@@ -34,7 +34,7 @@ class VisitModule
    */
   private static function getGeoApiPrimary(): string
   {
-    return defined('GEO_API_PRIMARY') ? GEO_API_PRIMARY : 'https://ip.guide/';
+    return defined('GEO_API_PRIMARY') ? GEO_API_PRIMARY : 'http://ip-api.com/json/';
   }
 
   /**
@@ -42,7 +42,7 @@ class VisitModule
    */
   private static function getGeoApiFallback(): string
   {
-    return defined('GEO_API_FALLBACK') ? GEO_API_FALLBACK : 'https://api.ipquery.io/';
+    return defined('GEO_API_FALLBACK') ? GEO_API_FALLBACK : 'https://ip.guide/';
   }
 
   /**
@@ -50,7 +50,7 @@ class VisitModule
    */
   private static function getConnectTimeout(): int
   {
-    return defined('GEO_CONNECT_TIMEOUT') ? GEO_CONNECT_TIMEOUT : 1;
+    return defined('GEO_CONNECT_TIMEOUT') ? GEO_CONNECT_TIMEOUT : 3;
   }
 
   /**
@@ -58,7 +58,7 @@ class VisitModule
    */
   private static function getRequestTimeout(): int
   {
-    return defined('GEO_REQUEST_TIMEOUT') ? GEO_REQUEST_TIMEOUT : 1;
+    return defined('GEO_REQUEST_TIMEOUT') ? GEO_REQUEST_TIMEOUT : 3;
   }
 
   /**
@@ -332,8 +332,19 @@ class VisitModule
    * @param string $source 'ipguide' o 'ipquery'.
    * @return array Datos normalizados.
    */
-  private static function normalizeGeoResponse(array $response, string $ip, string $source = 'ipguide'): array
+  private static function normalizeGeoResponse(array $response, string $ip, string $source = 'ipapi'): array
   {
+    // Formato ip-api.com: {"status":"success","country":"Chile","countryCode":"CL","regionName":"Santiago Metropolitan","city":"Santiago",...}
+    if (isset($response['countryCode']) || isset($response['regionName'])) {
+      return [
+        'ip' => $response['query'] ?? $ip,
+        'pais' => $response['country'] ?? '',
+        'codigo' => $response['countryCode'] ?? '',
+        'region' => $response['regionName'] ?? ($response['region'] ?? ''),
+        'ciudad' => $response['city'] ?? ''
+      ];
+    }
+
     // Auto-detectar el formato si no se especifica o si hay un caché antiguo
     // ip.guide tiene 'network.autonomous_system', ipquery tiene 'location.country_code'
     if (
