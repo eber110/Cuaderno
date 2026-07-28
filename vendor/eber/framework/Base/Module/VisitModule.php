@@ -207,15 +207,16 @@ class VisitModule
   }
 
   /**
-   * Determina si se necesita actualizar la geolocalización.
-   */
-  private static function needsGeoUpdate(string $currentIp): bool
+   * Determina si se necesita actualizar l  private static function needsGeoUpdate(string $currentIp): bool
   {
-    // Si la ubicación ya está guardada en la sesión y la IP no ha cambiado, NO volver a consultar la API externa
+    // Si la ubicación ya está guardada en la sesión, la IP no ha cambiado Y el país es válido, no volver a consultar
     if (
       !empty($_SESSION['location']) &&
       is_array($_SESSION['location']) &&
-      ($_SESSION['location']['ip'] ?? '') === $currentIp
+      ($_SESSION['location']['ip'] ?? '') === $currentIp &&
+      !empty($_SESSION['location']['pais']) &&
+      $_SESSION['location']['pais'] !== 'Desconocido' &&
+      $_SESSION['location']['pais'] !== 'Local Development'
     ) {
       return false;
     }
@@ -255,29 +256,31 @@ class VisitModule
         }
       }
 
-      // Consultar API primaria (ip.guide)
+      // Consultar API primaria (api.ipquery.io)
       $response = self::queryGeoApi($ip, self::getGeoApiPrimary());
       if (!empty($response) && is_array($response)) {
-        $data = self::normalizeGeoResponse($response, $ip, 'ipguide');
-        $data['last_check'] = time();
-        self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipguide']));
-        return $data;
+        $data = self::normalizeGeoResponse($response, $ip, 'ipquery');
+        if (!empty($data['pais']) && $data['pais'] !== 'Desconocido') {
+          $data['last_check'] = time();
+          self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipquery']));
+          return $data;
+        }
       }
 
-      // Fallback: API secundaria (ipquery.io)
+      // Fallback: API secundaria (ip.guide)
       $response = self::queryGeoApi($ip, self::getGeoApiFallback());
       if (!empty($response) && is_array($response)) {
-        $data = self::normalizeGeoResponse($response, $ip, 'ipquery');
-        $data['last_check'] = time();
-        self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipquery']));
-        return $data;
+        $data = self::normalizeGeoResponse($response, $ip, 'ipguide');
+        if (!empty($data['pais']) && $data['pais'] !== 'Desconocido') {
+          $data['last_check'] = time();
+          self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipguide']));
+          return $data;
+        }
       }
     } catch (\Throwable $e) {
       error_log("VisitModule fetchGeoData error: " . $e->getMessage());
     }
 
-    // Si fallan las APIs o hay rate limit (403), guardar fallback por 1 hora para evitar re-intentos constantes
-    self::saveToCache($ip, $defaultData);
     return $defaultData;
   }
 
@@ -298,24 +301,15 @@ class VisitModule
       CURLOPT_CONNECTTIMEOUT => self::getConnectTimeout(),
       CURLOPT_TIMEOUT => self::getRequestTimeout(),
       CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_USERAGENT => 'VisitModule/2.0',
+      CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+      CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       CURLOPT_SSL_VERIFYPEER => false,
       CURLOPT_SSL_VERIFYHOST => 0
     ]);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    $errno = curl_errno($ch);
     curl_close($ch);
-
-    if (self::DEBUG) {
-      error_log("visitModule API Request: $apiUrl$ip");
-      error_log("visitModule API HTTP Code: $httpCode");
-      error_log("visitModule API cURL errno: $errno");
-      error_log("visitModule API cURL error: $error");
-      error_log("visitModule API Response: " . substr($response ?: '', 0, 500));
-    }
 
     if ($response === false || $httpCode < 200 || $httpCode >= 300) {
       return null;
@@ -394,8 +388,14 @@ class VisitModule
     }
 
     // Usar la fuente guardada en caché para normalizar correctamente
-    $source = $data['_api_source'] ?? 'ipguide';
-    return self::normalizeGeoResponse($data, $ip, $source);
+    $source = $data['_api_source'] ?? 'ipquery';
+    $normalized = self::normalizeGeoResponse($data, $ip, $source);
+
+    if (empty($normalized['pais']) || $normalized['pais'] === 'Desconocido') {
+      return null;
+    }
+
+    return $normalized;
   }
 
   /**
@@ -403,6 +403,11 @@ class VisitModule
    */
   private static function saveToCache(string $ip, array $data): void
   {
+    // Solo guardar en caché de disco si contiene datos reales de ubicación
+    if (empty($data['location']) && empty($data['country'])) {
+      return;
+    }
+
     $cacheDir = self::getCacheDir();
 
     if (!is_dir($cacheDir)) {
