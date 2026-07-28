@@ -82,36 +82,29 @@ class VisitModule
    */
   public static function initSession(string $cookieName): void
   {
-    $currentIp = self::getClientIp();
+    if (session_status() === PHP_SESSION_NONE) {
+      if (class_exists('\Base\Module\Session')) {
+        \Base\Module\Session::start();
+      } else {
+        @session_start();
+      }
+    }
+
+    $currentIp = self::getClientIp() ?? '127.0.0.1';
     $needsUpdate = self::needsGeoUpdate($currentIp);
 
     // Calcular clasificación del visitante PRIMERO
     $visitorData = self::getVisitorClassification($cookieName);
 
-    if (self::DEBUG) {
-      echo "<pre>DEBUG VisitModule::initSession\n";
-      echo "Current IP: $currentIp\n";
-      echo "Is Local IP: " . (self::isLocalIp($currentIp) ? 'true' : 'false') . "\n";
-      echo "Needs Update: " . ($needsUpdate ? 'true' : 'false') . "\n";
-      echo "Is Visitor: " . ($visitorData['is_visitor'] ? 'true' : 'false') . "\n";
-      echo "</pre>";
-    }
-
     if ($needsUpdate) {
       $geoData = self::fetchGeoData($currentIp);
-
-      if (self::DEBUG) {
-        echo "<pre>DEBUG geoData received:\n";
-        var_dump($geoData);
-        echo "</pre>";
-      }
 
       if (!empty($geoData)) {
         // Incluir datos del visitante junto con geo data
         $_SESSION['location'] = array_merge($geoData, $visitorData);
       } else {
         // Si no hay geoData pero necesitamos clasificar
-        $_SESSION['location'] = array_merge($_SESSION['location'] ?? [], $visitorData);
+        $_SESSION['location'] = array_merge($_SESSION['location'] ?? [], $visitorData, ['last_check' => time()]);
       }
     } else {
       // Siempre actualizar la clasificación del visitante incluso sin update de geo
@@ -218,17 +211,17 @@ class VisitModule
    */
   private static function needsGeoUpdate(string $currentIp): bool
   {
-    // Sin datos de ubicación
-    if (empty($_SESSION['location']['pais'])) {
-      return true;
+    // Si ya existe registro para esta IP y se consultó en los últimos 3600s, NO volver a consultar cURL
+    if (
+      !empty($_SESSION['location']) &&
+      ($_SESSION['location']['ip'] ?? '') === $currentIp &&
+      isset($_SESSION['location']['last_check']) &&
+      (time() - (int)$_SESSION['location']['last_check']) < 3600
+    ) {
+      return false;
     }
 
-    // IP ha cambiado
-    if (($_SESSION['location']['ip'] ?? '') !== $currentIp) {
-      return true;
-    }
-
-    return false;
+    return true;
   }
 
   /**
@@ -236,77 +229,57 @@ class VisitModule
    */
   private static function fetchGeoData(?string $ip, bool $forceRefresh = false): array
   {
-    if (self::DEBUG) {
-      error_log("visitModule fetchGeoData: IP=$ip, forceRefresh=" . ($forceRefresh ? 'true' : 'false'));
-    }
+    $defaultData = [
+      'ip' => $ip ?? '127.0.0.1',
+      'pais' => 'Desconocido',
+      'codigo' => 'N/A',
+      'region' => 'Desconocido',
+      'ciudad' => 'Desconocido',
+      'last_check' => time()
+    ];
 
-    // IP local - datos de desarrollo
-    if (self::isLocalIp($ip)) {
-      if (self::DEBUG) {
-        error_log("visitModule fetchGeoData: IP detectada como local");
-      }
-      return [
-        'ip' => $ip ?? 'localhost',
+    if (empty($ip) || self::isLocalIp($ip)) {
+      return array_merge($defaultData, [
         'pais' => 'Local Development',
         'codigo' => 'DEV',
         'region' => 'Local',
         'ciudad' => 'Localhost'
-      ];
+      ]);
     }
 
-    // Intentar caché primero
-    if (!$forceRefresh) {
-      $cached = self::getFromCache($ip);
-      if ($cached !== null) {
-        if (self::DEBUG) {
-          error_log("visitModule fetchGeoData: Datos obtenidos de caché");
+    try {
+      // Intentar caché en disco primero
+      if (!$forceRefresh) {
+        $cached = self::getFromCache($ip);
+        if ($cached !== null) {
+          return array_merge($defaultData, $cached, ['last_check' => time()]);
         }
-        return $cached;
       }
-    }
 
-    // Consultar API primaria (ip.guide)
-    if (self::DEBUG) {
-      error_log("visitModule fetchGeoData: Consultando API primaria (ip.guide) para IP=$ip");
-    }
-    $response = self::queryGeoApi($ip, self::getGeoApiPrimary());
-
-    if ($response !== null) {
-      if (self::DEBUG) {
-        error_log("visitModule fetchGeoData: API primaria respondió correctamente");
+      // Consultar API primaria (ip.guide)
+      $response = self::queryGeoApi($ip, self::getGeoApiPrimary());
+      if (!empty($response) && is_array($response)) {
+        $data = self::normalizeGeoResponse($response, $ip, 'ipguide');
+        $data['last_check'] = time();
+        self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipguide']));
+        return $data;
       }
-      $data = self::normalizeGeoResponse($response, $ip, 'ipguide');
-      self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipguide']));
-      return $data;
-    }
 
-    // Fallback: API secundaria (ipquery.io)
-    if (self::DEBUG) {
-      error_log("visitModule fetchGeoData: API primaria falló, intentando fallback (ipquery.io)");
-    }
-    $response = self::queryGeoApi($ip, self::getGeoApiFallback());
-
-    if ($response !== null) {
-      if (self::DEBUG) {
-        error_log("visitModule fetchGeoData: API fallback respondió correctamente");
+      // Fallback: API secundaria (ipquery.io)
+      $response = self::queryGeoApi($ip, self::getGeoApiFallback());
+      if (!empty($response) && is_array($response)) {
+        $data = self::normalizeGeoResponse($response, $ip, 'ipquery');
+        $data['last_check'] = time();
+        self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipquery']));
+        return $data;
       }
-      $data = self::normalizeGeoResponse($response, $ip, 'ipquery');
-      self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipquery']));
-      return $data;
+    } catch (\Throwable $e) {
+      error_log("VisitModule fetchGeoData error: " . $e->getMessage());
     }
 
-    if (self::DEBUG) {
-      error_log("visitModule fetchGeoData: API falló, devolviendo fallback vacío");
-    }
-
-    // Fallback vacío
-    return [
-      'ip' => $ip,
-      'pais' => '',
-      'codigo' => '',
-      'region' => '',
-      'ciudad' => ''
-    ];
+    // Si fallan las APIs o hay rate limit (403), guardar fallback por 1 hora para evitar re-intentos constantes
+    self::saveToCache($ip, $defaultData);
+    return $defaultData;
   }
 
   /**
