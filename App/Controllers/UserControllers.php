@@ -60,12 +60,20 @@ class UserControllers extends Control{
     //esta condición debe consultar a la cache del indice de usuarios, para la seguridad del sitio.
     //la cache se renovara cada ves que se registre un nuevo usuario
     //MODIFICAR ESTA CONDICIÓN
-    if (!$userData  && !Session::session_active()) {// si el usuario no existe
+    if (!$userData) {
       return ResponseModule::redirect("/", "El usuario {$user}, no existe!", 2);
     }
 
-    if ($userData["card"]["active"] === false) {
-      return ResponseModule::redirect("/panel/".Session::session_data("username"));
+    $isActive = filter_var($userData["card"]["active"] ?? false, FILTER_VALIDATE_BOOLEAN);
+    if (!$isActive) {
+      $sessionUser = Session::session_data("username");
+      $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, 'UTF-8') : null;
+
+      if ($sessionUserClean && $sessionUserClean === $user) {
+        return ResponseModule::redirect("/panel/" . $user);
+      }
+
+      return ResponseModule::redirect("/", "El perfil de {$user} aún no está activo.", 2);
     }
 
     $data = $userData;

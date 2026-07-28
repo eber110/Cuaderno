@@ -1,5 +1,5 @@
 <?php
-  
+
 namespace App\Middleware;
 
 use App\Controllers\DesignControllers;
@@ -8,47 +8,49 @@ use App\Models\UserModels;
 use Base\Module\ResponseModule;
 use Base\Module\Session;
 
-class DashboardMiddleware implements MiddlewareInterface{
+class DashboardMiddleware implements MiddlewareInterface {
 
-  public function handle($requestData, callable $next){
+  public function handle($requestData, callable $next) {
 
     // 1. Si el usuario no está logueado, redirigir a ingresar
     if (!Session::session_active()) {
-      ResponseModule::redirect("/ingresar");
+      return ResponseModule::redirect("/ingresar");
     }
 
-    // 2. Obtener el nombre de usuario de la sesión
-    $user = Session::session_data("username");
-    $user = mb_strtolower($user, 'UTF-8');
+    // 2. Obtener el nombre de usuario de la sesión activa
+    $sessionUser = Session::session_data("username");
+    if (empty($sessionUser)) {
+      return ResponseModule::redirect("/ingresar");
+    }
+    $sessionUserClean = mb_strtolower($sessionUser, 'UTF-8');
 
-    // --- NUEVA VALIDACIÓN: Asegurar que el usuario de la URL coincide con la sesión activa ---
+    // 3. Extraer de forma robusta el parámetro :user de la URL /panel/:user
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-    $segments = explode('/', trim($uri, '/'));
-    $urlUser = $segments[1] ?? null;
-
-    if ($urlUser !== null) {
-      $urlUserClean = mb_strtolower($urlUser, 'UTF-8');
-      if ($urlUserClean !== $user) {
-        // Redirigir al usuario logueado a su propio panel con un aviso
-        ResponseModule::redirect("/panel/" . $user, "No tienes permisos para acceder al panel de otro usuario.", 1);
-      }
+    $urlUserClean = null;
+    if (preg_match('#/panel/([^/]+)#i', $uri, $matches)) {
+      $urlUserClean = mb_strtolower(rawurldecode($matches[1]), 'UTF-8');
     }
 
-    // 3. Consultar si existen los datos del usuario
+    // 4. Validar que el usuario de la URL coincide con la sesión activa
+    if (!empty($urlUserClean) && $urlUserClean !== $sessionUserClean) {
+      return ResponseModule::redirect("/panel/" . $sessionUserClean, "No tienes permisos para acceder al panel de otro usuario.", 1);
+    }
+
+    // 5. Consultar si existen los datos del usuario
     $userModel = new UserModels;
-    $userData = $userModel->dataUser($user);
+    $userData = $userModel->dataUser($sessionUserClean);
 
-    //crea una plantilla en caso de que el usuario no tenga profile
-    DesignControllers::initialDesign($user);
+    // Crea una plantilla en caso de que el usuario no tenga profile
+    DesignControllers::initialDesign($sessionUserClean);
 
-    // 4. Si está logueado pero userData entrega false (datos incompletos),
-    // y no está ya en la página de /panel/:user, redirigir a rellenar sus datos
-    $currentUri = parse_url($_SERVER['REQUEST_URI'] ?? null, PHP_URL_PATH);
+    // 6. Si está logueado pero userData entrega false (datos incompletos),
+    // y no está ya en la página de /panel/:user, redirigir a su propio panel
+    $currentUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
     $currentUri = '/' . trim($currentUri, '/');
-    $panelUri = '/panel/' . trim($user, '/');
+    $panelUri = '/panel/' . $sessionUserClean;
 
     if (($userData === false || empty($userData)) && $currentUri !== $panelUri) {
-      ResponseModule::redirect($panelUri);
+      return ResponseModule::redirect($panelUri);
     }
 
     return $next($requestData);
