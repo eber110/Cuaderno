@@ -181,11 +181,20 @@ class DesignControllers extends Control{
         $cardDesc   = $desc ?? $dataRequest["desc"] ?? "";
         $cardAvatar = $avatar ?? $dataRequest["avatar"] ?? "no-user.webp";
 
+        $existingItem = $existingContentList[$index] ?? [];
+        $existingUrl  = $existingItem["url"] ?? "";
+
         $metaTitle = $item["metaTitle"] ?? "";
         $metaDesc  = $item["metaDesc"] ?? "";
         $metaImg   = $item["metaImg"] ?? "";
 
-        if (!empty($url) && strpos($url, "http") === 0) {
+        // Si la URL no cambió y ya tenemos metadatos guardados previamente, reutilizarlos de inmediato (0ms sin cURL)
+        if ($existingUrl === $url && !empty($existingItem["metaTitle"])) {
+          $metaTitle = $existingItem["metaTitle"];
+          $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : "";
+          $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : "";
+        } elseif (!empty($url) && strpos($url, "http") === 0) {
+          // Solo consultar cURL si la URL es totalmente nueva o ha sido modificada
           $metaData = RequestMetaModule::requestMeta($url);
           if ($metaData !== false && is_array($metaData)) {
             // metaTitle: title -> og["title"] -> twitter["title"] -> $titleBtn
