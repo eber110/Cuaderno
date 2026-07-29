@@ -5,6 +5,14 @@
 /Cache/
 /Logs/
 /Docs/
+/Database/*
+!/Database/.gitkeep
+
+# SQLite Databases & WAL journal files
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
 
 # Multimedia & Media
 *.jpg
