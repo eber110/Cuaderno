@@ -248,6 +248,9 @@
 
 }
 @media screen and (max-width: 576px) {
+  .gap-sml-5 { gap: 5px; }
+}
+@media screen and (max-width: 576px) {
   .gap-sml-8 { gap: 8px; }
 }
 @media screen and (max-width: 576px) {
@@ -339,6 +342,12 @@
 }
 @media screen and (max-width: 576px) {
   .p-sml-0 { padding: 0px !important; }
+}
+@media screen and (max-width: 576px) {
+  .p-sml-10 { padding: 10px !important; }
+}
+@media screen and (max-width: 576px) {
+  .p-sml-15 { padding: 15px !important; }
 }
 @media screen and (max-width: 576px) {
   .p-sml-20 { padding: 20px !important; }

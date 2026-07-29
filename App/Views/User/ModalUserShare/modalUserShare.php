@@ -5,7 +5,7 @@
    */
 ?>
 <div class="flex-column center-center gap15 h100 back-modal-item">
-  <p class="absolute top right pointer modal-close-button"><?= svg("xmark")?></p>
+  <p class="absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 
   <p class="bold600">Comparte este link</p>
 
@@ -19,7 +19,7 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="w100 p0 flex-row center-center inline-carousel mt10" data-loop="false" data-gap="25px">
+    <div class="w100 p0 flex-row center-center wrap inline-carousel mt10" data-loop="false" data-gap="25px">
       
       <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         <?= svg("angle-l", "x30 opacity-slide-circle");?>
@@ -48,8 +48,8 @@
     </div>
 
     <div class="flex-row center-center gap15 w100">
-      <a href="/registrar" class="br50 w100 btn-share-register p15 flex-row center-center bold700">Regístrate gratis</a>
-      <a href="/" class="br50 w100 btn-share-see-more p15 flex-row center-center bold700">Descubre más</a>
+      <a href="/registrar" class="br50 w100 btn-share-register p15 flex-row center-center text-c bold700">Regístrate gratis</a>
+      <a href="/" class="br50 w100 btn-share-see-more p15 flex-row center-center text-c bold700">Descubre más</a>
     </div>
   </div>
 
