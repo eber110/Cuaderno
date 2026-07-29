@@ -35,6 +35,7 @@
         }
         $rawActive  = $card["content"][$i]["active"] ?? false;
         $rawImgDef  = $card["content"][$i]["imgDefault"] ?? false;
+        $imgDefault = ($rawImgDef === true || $rawImgDef === 'true' || $rawImgDef === 1 || $rawImgDef === '1');
         $rawImgShow = $card["content"][$i]["imgShow"] ?? true;
         $imgShow    = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
         
