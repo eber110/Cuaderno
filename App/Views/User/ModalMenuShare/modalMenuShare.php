@@ -9,12 +9,12 @@
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= $data["url"]?>" target="_blank" class="flex-column center-center gap5 wpx320 p30 p-sml-15 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
-    <figure class="ar-square wpx200 br15">
+  <a href="<?= $data["url"]?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
+    <figure class="ar-square wpx200 wpx-sml-160 br15">
       <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover">
     </figure>
 
-    <p class="x16 bold500 text-c bold900 x22 cut-phrase"><?= $data["metaDesc"]?>...</p>
+    <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= $data["metaDesc"]?>...</p>
     <p class="x16" style="color: <?= $card["colorText"]?>;"><?= \Base\Module\TextModule::truncateRaw(urldecode($data["url"])), 1?></p>
   </a>
 
@@ -41,7 +41,7 @@
     </div>
   <?php endif; ?>
 
-  <div class="flex-column top-start gap20 w100 mt20">
+  <div class="flex-column top-start gap20 gap-sml-10 w100 mt20 mt5">
     <div class="">
       <p class="bold700">Únete a <?= $card["profile"]?> en Cuaderno.</p>
       <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
