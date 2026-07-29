@@ -245,6 +245,14 @@ class DesignControllers extends Control{
           }
         }
 
+        // 5. Determinar visibilidad de imagen (imgShow)
+        $rawImgShow = $item["imgShow"] ?? true;
+        $imgShow = ($rawImgShow === "true" || $rawImgShow === true || $rawImgShow === 1 || $rawImgShow === "1");
+
+        if (isset($item["toggle_img_show"]) && ($item["toggle_img_show"] === "true" || $item["toggle_img_show"] === true)) {
+          $imgShow = !$imgShow;
+        }
+
         // Array asociativo
         $content[] = [
           "type" => $type,
@@ -253,6 +261,7 @@ class DesignControllers extends Control{
           "url" => $url,
           "active" => $active,
           "imgDefault" => $imgDefault,
+          "imgShow" => $imgShow,
           "metaTitle" => $metaTitle,
           "metaDesc" => $metaDesc,
           "metaImg" => $metaImg
@@ -264,13 +273,13 @@ class DesignControllers extends Control{
     if (isset($param["add_content_type"])) {
       $newType = $param["add_content_type"];
 
-      // Plantillas base según el tipo seleccionado (imgDefault = false)
+      // Plantillas base según el tipo seleccionado (imgDefault = false, imgShow = true)
       $typeTemplates = [
-        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
-        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
+        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
+        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
       ];
 
-      $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false];
+      $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true];
 
       if (!isset($content)) {
         $content = $dataRequest["content"] ?? [];

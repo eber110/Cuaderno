@@ -22,11 +22,19 @@ class UserControllers extends Control{
     if (isset($card["content"]) && is_array($card["content"])) {
       foreach ($card["content"] as &$item) {
         $imgVal = $item["img"] ?? 'no-image.webp';
+        $metaImgVal = $item["metaImg"] ?? '';
         $isDefaultImg = (empty($imgVal) || $imgVal === 'no-image.webp' || strpos($imgVal, 'Origin/') !== false || strpos($imgVal, 'Custom/') !== false);
         
-        $item["imgSrc"] = $isDefaultImg
-          ? DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp"
-          : DIR_SHOW_MEDIA . $imgVal;
+        if (!$isDefaultImg) {
+          $item["imgSrc"] = DIR_SHOW_MEDIA . $imgVal;
+        } elseif (!empty($metaImgVal) && $metaImgVal !== 'no-image.webp' && (strpos($metaImgVal, 'http://') === 0 || strpos($metaImgVal, 'https://') === 0)) {
+          $item["imgSrc"] = $metaImgVal;
+        } else {
+          $item["imgSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+        }
+
+        $rawImgShow = $item["imgShow"] ?? true;
+        $item["imgShow"] = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
       }
       unset($item);
     }

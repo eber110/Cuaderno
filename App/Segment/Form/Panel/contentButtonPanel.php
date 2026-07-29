@@ -35,7 +35,8 @@
         }
         $rawActive  = $card["content"][$i]["active"] ?? false;
         $rawImgDef  = $card["content"][$i]["imgDefault"] ?? false;
-        $imgDefault = ($rawImgDef === true || $rawImgDef === 'true' || $rawImgDef === 1 || $rawImgDef === '1');
+        $rawImgShow = $card["content"][$i]["imgShow"] ?? true;
+        $imgShow    = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
         
         // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
         $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
@@ -87,10 +88,21 @@
           <input type="hidden" name="content[<?= $i?>][type]" value="<?= e($itemType) ?>">
           <input type="hidden" name="content[<?= $i?>][img]" value="<?= e($itemImg) ?>">
           <input type="hidden" name="content[<?= $i?>][imgDefault]" value="<?= $imgDefault ? 'true' : 'false' ?>">
+          <input type="hidden" name="content[<?= $i?>][imgShow]" value="<?= $imgShow ? 'true' : 'false' ?>">
 
           <div class="flex-row center-between gap10">
             <?php 
               $displayImgSrc = $card["content"][$i]["imgSrc"] ?? '';
+              if (empty($displayImgSrc)) {
+                $itemMetaImg = $card["content"][$i]["metaImg"] ?? '';
+                if ($imgDefault && !empty($itemImg)) {
+                  $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
+                } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                  $displayImgSrc = $itemMetaImg;
+                } else {
+                  $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+                }
+              }
             ?>
             <div class="flex-row center-center gap10 relative">
               <figure class="wpx50 hpx50 ar-square border-item-panel br10">
@@ -101,6 +113,9 @@
                   <?= svg("trash", "x20") ?>
                 </button>
               <?php endif; ?>
+              <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center text-muted" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+              </button>
             </div>
             <div class="br15 p10 border-item-panel">
               <input type="file" 
