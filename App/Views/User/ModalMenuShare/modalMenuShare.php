@@ -19,7 +19,7 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="w100 p0 flex-row center-center inline-carousel mt10" data-loop="false" data-gap="25px">
+    <div class="w100 p0 flex-row center-center wrap inline-carousel mt10" data-loop="false" data-gap="25px">
       
       <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         <?= svg("angle-l", "x30 opacity-slide-circle");?>
@@ -28,8 +28,8 @@
       <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
           <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" 
-            class="ic-item p3 br100 x30 btn-share-profile hpx50 wpx50 flex-row center-center pointer" style="flex-shrink: 0;">
-            <?= svg($networkName, "x30"); ?>
+            class="ic-item p5 br100 btn-share-profile hpx50 hpx-sml-40 wpx50 wpx-sml-40 flex-row center-center pointer" style="flex-shrink: 0;">
+            <?= svg($networkName, "x30 x-sml-25"); ?>
           </a>
         <?php endforeach; ?>
       </div>

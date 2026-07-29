@@ -28,8 +28,8 @@
       <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
           <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" 
-            class="ic-item p3 br100 x30 btn-share-profile hpx50 wpx50 flex-row center-center pointer" style="flex-shrink: 0;">
-            <?= svg($networkName, "x30"); ?>
+            class="ic-item p5 br100 btn-share-profile hpx50 hpx-sml-40 wpx50 wpx-sml-40 flex-row center-center pointer" style="flex-shrink: 0;">
+            <?= svg($networkName, "x30 x-sml-25"); ?>
           </a>
         <?php endforeach; ?>
       </div>
