@@ -1,6 +1,8 @@
 /vendor/*
 !/vendor/eber/
 .env
+/.vscode/
+/scratch/
 /App/Public/Min/
 /Cache/
 /Logs/
