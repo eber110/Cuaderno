@@ -27,7 +27,7 @@ Route::get("/test/2", function(){
   //$meta = RequestMetaModule::requestMeta("https://www.ebersanchez.cl");
 
   //var_dump($meta);
-  //var_dump($data[0]["card"]);
+  var_dump($data[0]["card"]);
 
   //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
 
@@ -55,5 +55,18 @@ Route::get("/test/3", function(){
   $meta = RequestMetaModule::requestMeta("https://www.linkedin.com/in/eber-sánchez-cornejo-08b1456a/");
 
   var_dump($meta);
-  
+
+  if (!empty($meta['og']['image'])) {
+      $proxyUrl = "/proxy?url=" . urlencode($meta['og']['image']);
+      echo "<h3>Imagen a través de Proxy:</h3>";
+      echo "<img src='{$proxyUrl}' alt='Perfil' style='max-width: 200px;'/>";
+  }
+});
+
+Route::get("/proxy", function(){
+    $url = $_GET['url'] ?? '';
+    if ($url) {
+        // Usamos el ProxyModule que creamos en el framework
+        \Base\Module\ProxyModule::proxyImage($url, ['licdn.com', 'linkedin.com']);
+    }
 });
