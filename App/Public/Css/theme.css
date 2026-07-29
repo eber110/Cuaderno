@@ -5,6 +5,7 @@
   --text-item-sidebar : #353535;
   --color-card-share-profile : #595a83;
   --back-danger-panel : #b43b3b;
+  --back-menu-img-form : #525252;
 }
 
 [data-theme="dark"] {
@@ -12,6 +13,10 @@
   --back-item : #2e2e2e;
   --back-sidebar : #1b1b1b;
   --text-item-sidebar : #e6e6e6;
+}
+
+.back-menu-img-form{
+  background-color: var(--back-menu-img-form);
 }
 
 .back-save-panel{

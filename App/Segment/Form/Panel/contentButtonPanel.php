@@ -109,14 +109,17 @@
               <figure class="wpx50 hpx50 ar-square border-item-panel br10">
                 <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover">
               </figure>
-              <?php if ($imgDefault) : ?>
-                <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center text-caution" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
-                  <?= svg("trash", "x20") ?>
+
+              <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pr10">
+                <?php if ($imgDefault) : ?>
+                  <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textw" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
+                    <?= svg("trash", "x20") ?>
+                  </button>
+                <?php endif; ?>
+                <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textw" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                  <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
                 </button>
-              <?php endif; ?>
-              <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center text-muted" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
-                <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
-              </button>
+              </div>
             </div>
             <div class="br15 p10 border-item-panel">
               <input type="file" 
