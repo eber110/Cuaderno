@@ -16,7 +16,13 @@ class ProxyModule
      */
     public static function proxyImage(string $url, array $allowedDomains = []): never
     {
-        // Validar URL
+        // Si la URL es una ruta relativa (local del servidor), simplemente redirigimos.
+        if (str_starts_with($url, '/')) {
+            header("Location: " . $url);
+            exit;
+        }
+
+        // Validar URL externa
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             ResponseModule::error("URL inválida", 400);
         }

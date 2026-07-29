@@ -61,6 +61,25 @@ Route::middleware([AuthMiddleware::class])->group(function(){
 //LoginController: métodos de registro y validación de ingreso de usuarios
 Route::get("/salir", [LoginControllers::class, "exitApp"]);
 
+//Proxy global
+Route::get("/proxy", function() {
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $url = '';
+    $matches = '';
+    
+    // Extraer todo lo que viene después de 'url=' para evitar que parámetros como &t= de LinkedIn se pierdan 
+    // si el frontend olvidó hacer encodeURIComponent().
+    if (preg_match('/[?&]url=(.*)$/', $requestUri, $matches)) {
+        $url = urldecode($matches[1]);
+    } else {
+        $url = $_GET['url'] ?? '';
+    }
+
+    if ($url) {
+        \Base\Module\ProxyModule::proxyImage($url, ['licdn.com', 'linkedin.com', 'githubusercontent.com', 'ebersanchez.cl']);
+    }
+});
+
 //UserControllers: Datos y personalización de los datos de usuario
 Route::middleware([VisitMiddleware::class])->group(function(){
   Route::get("/:user", [UserControllers::class, "userPage"]);

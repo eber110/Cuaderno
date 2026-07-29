@@ -15,7 +15,7 @@
     </figure>
 
     <p class="x16 bold500 text-c bold900 x22 cut-phrase flex-row center-center"><?= svg("email")."/".$data["metaDesc"]?></p>
-    <p class="x16" style="color: <?= $card["colorText"]?>;"><?= \Base\Module\TextModule::truncateRaw($data["url"], 1)?></p>
+    <p class="x16" style="color: <?= $card["colorText"]?>;"><?= \Base\Module\TextModule::truncateRaw(urldecode($data["url"]), 1)?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
