@@ -24,12 +24,16 @@ class DashboardControllers extends Control{
       $cardData = [];
     }
 
+    $stats = \App\Controllers\StatisticsControllers::getStatsData($user);
+
     $data = [
       "card" => $cardData,
+      "stats" => $stats,
       "hasCustom" => $hasCustom,
       "uri" => [
         "formDesign" => "/panel/{$user}/diseno",
-        "saveDesign" => "/panel/{$user}/guardar"
+        "saveDesign" => "/panel/{$user}/guardar",
+        "simularDatos" => "/panel/{$user}/simular-datos"
       ],
       "session" => $_SESSION["user"] ?? false
     ];

@@ -52,6 +52,7 @@
       </div>
       
       <!-- Enlaces raíz -->
+      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote"><?= svg("chart")?>Estadísticas</p>
       <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4"><?= svg("list")?>Datos de usuario</p>
       <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5"><?= svg("list")?>Datos de sesión</p>
 

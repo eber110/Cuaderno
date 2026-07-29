@@ -54,6 +54,14 @@
     </div>
   </div>
 
+  <div id="statistics-remote" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php
+        _part("Dashboard.statisticsPanel", ["stats" => $stats ?? [], "card" => $card ?? []]);
+      ?>
+    </div>
+  </div>
+
   <div id="content-remote-4" class="remote-content hidden">
     <div class="post-content">
       <code data-lang="json"><?php print_r($card)?></code>
