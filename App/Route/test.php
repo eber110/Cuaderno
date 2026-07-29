@@ -51,5 +51,9 @@ Route::get("/test/3", function(){
   echo GeoIpModule::getCityName($ip) . "<br>";
   echo GeoIpModule::getStateName($ip) . "<br>";
   echo GeoIpModule::getStateCode($ip) . "<br>";
+
+  $meta = RequestMetaModule::requestMeta("https://www.linkedin.com/in/eber-sánchez-cornejo-08b1456a/");
+
+  var_dump($meta);
   
 });

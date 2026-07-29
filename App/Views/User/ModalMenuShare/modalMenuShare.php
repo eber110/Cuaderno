@@ -9,7 +9,7 @@
 
   <p class="bold600">Comparte este link</p>
 
-  <a href="<?= $data["url"]?>" class="flex-column center-center gap5 wpx320 p30 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
+  <a href="<?= $data["url"]?>" target="_blank" class="flex-column center-center gap5 wpx320 p30 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
     <figure class="ar-square wpx200 br15">
       <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover">
     </figure>

@@ -29,8 +29,10 @@ class RequestMetaModule
         // Deshabilitar la verificación SSL estricta para evitar errores con certificados locales o autofirmados
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        // Fingir ser un navegador común para que los sitios no bloqueen la petición
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+        // Usar el User-Agent del crawler de Facebook. 
+        // Sitios como LinkedIn, Twitter o Instagram bloquean peticiones automatizadas con User-Agents genéricos (HTTP 999),
+        // pero tienen listas blancas (whitelist) para los bots de redes sociales y así poder mostrar las "cards" al compartir enlaces.
+        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
 
         $html = curl_exec($ch);
         $error = curl_error($ch);

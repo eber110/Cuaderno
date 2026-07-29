@@ -11,6 +11,7 @@ class UpdateGeoIp
 {
     public static function run()
     {
+        ini_set('memory_limit', '512M'); // Increase memory limit for PharData extraction
         echo "Iniciando actualizacion de la base de datos GeoIP...\n";
 
         // Cargar variables de entorno si existe .env
