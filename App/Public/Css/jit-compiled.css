@@ -356,6 +356,9 @@
   .pb-mid-200 { padding-bottom: 200px !important; }
 }
 @media screen and (max-width: 576px) {
+  .pb-sml-10 { padding-bottom: 10px !important; }
+}
+@media screen and (max-width: 576px) {
   .pb-sml-100 { padding-bottom: 100px !important; }
 }
 @media screen and (max-width: 576px) {

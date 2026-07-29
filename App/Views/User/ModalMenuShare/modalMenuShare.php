@@ -7,7 +7,7 @@
 <div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
   <p class="absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 
-  <p class="bold600">Comparte este link</p>
+  <p class="bold600 pb-sml-10">Comparte este link</p>
 
   <a href="<?= $data["url"]?>" target="_blank" class="flex-column center-center gap5 wpx320 p30 p-sml-15 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"]?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"]?> !important;">
     <figure class="ar-square wpx200 br15">
