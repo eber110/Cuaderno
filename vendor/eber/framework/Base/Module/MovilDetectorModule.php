@@ -114,12 +114,26 @@ class MovilDetectorModule
     }
 
     /**
-     * Identifica el navegador.
+     * Identifica el tipo de dispositivo como string para almacenamiento estructurado (mobile, tablet, desktop).
+     */
+    public static function getDeviceType(): string
+    {
+        if (self::isTablet()) return 'tablet';
+        if (self::isMobile()) return 'mobile';
+        return 'desktop';
+    }
+
+    /**
+     * Identifica el navegador, incluyendo navegadores integrados In-App (Instagram, TikTok, Facebook).
      */
     public static function getBrowser(): string
     {
         $ua = self::getUserAgent();
         
+        if (preg_match('/Instagram/i', $ua)) return 'Instagram App';
+        if (preg_match('/TikTok|musical_ly|ByteLocale/i', $ua)) return 'TikTok App';
+        if (preg_match('/FBAN|FBAV|FB_IAB/i', $ua)) return 'Facebook App';
+        if (preg_match('/Twitter/i', $ua)) return 'X (Twitter) App';
         if (preg_match('/MSIE/i', $ua) || preg_match('/Trident/i', $ua)) return 'Internet Explorer';
         if (preg_match('/Edg/i', $ua)) return 'Edge';
         if (preg_match('/Firefox/i', $ua)) return 'Firefox';
@@ -137,6 +151,7 @@ class MovilDetectorModule
     public static function deviceInfo(): array
     {
         return [
+            'device_type'=> self::getDeviceType(),
             'is_mobile'  => self::isMobile(),
             'is_tablet'  => self::isTablet(),
             'is_desktop' => self::isDesktop(),
