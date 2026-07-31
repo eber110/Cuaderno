@@ -2,7 +2,7 @@
  * Componente Save Button Controller.
  * 
  * Controla la visibilidad del botón "Guardar" según la sección activa del sidebar (data-savable="true" / "false"),
- * gestiona su estado habilitado/desactivado y aplica una animación de pulso de entrada (one-shot).
+ * gestiona su estado habilitado/desactivado y aplica una animación de pulso de entrada (one-shot) con delay suave tras la carga.
  */
 export function saveButtonController() {
   const saveContainer = document.getElementById("save-btn-container");
@@ -21,7 +21,7 @@ export function saveButtonController() {
       const wasHidden = saveContainer.classList.contains("hidden");
       saveContainer.classList.remove("hidden");
 
-      // Si pasa de oculto a visible y está habilitado, aplicar animación de pulso de entrada una sola vez
+      // Si pasa de oculto a visible y está habilitado, aplicar animación de pulso de entrada
       if (wasHidden && !saveBtn.classList.contains("disabled-save-btn")) {
         triggerPulseAnimation();
       }
@@ -35,7 +35,7 @@ export function saveButtonController() {
    */
   function triggerPulseAnimation() {
     saveBtn.classList.remove("pulse-once");
-    // Forzar reflow para reiniciar la animación
+    // Forzar reflow para reiniciar la animación limpiamente
     void saveBtn.offsetWidth;
     saveBtn.classList.add("pulse-once");
   }
@@ -81,5 +81,16 @@ export function saveButtonController() {
   const initialActiveBtn = document.querySelector(".remote-btn.active");
   if (initialActiveBtn) {
     updateSaveButtonVisibility(initialActiveBtn);
+  }
+
+  // Si al recargar la página ya hay cambios pendientes (hasCustom === true),
+  // aguardamos a que el layout y fuentes se estabilicen (200ms) para lanzar la onda suavemente sin FOUC
+  const hasCustom = saveContainer.dataset.hasCustom === "true";
+  if (hasCustom && !saveBtn.classList.contains("disabled-save-btn")) {
+    setTimeout(() => {
+      if (!saveContainer.classList.contains("hidden")) {
+        triggerPulseAnimation();
+      }
+    }, 200);
   }
 }
