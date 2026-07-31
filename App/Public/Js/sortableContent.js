@@ -5,7 +5,7 @@
  * dentro del contenedor #sortable-content-list o #sortable-rrss-list. Al soltar la tarjeta, re-indexa
  * automáticamente los atributos `name` de los campos e impulsa el auto-submit del formulario.
  */
-document.addEventListener("DOMContentLoaded", () => {
+export function sortableContent() {
   const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
   if (!containers.length) return;
 
@@ -138,4 +138,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   }
-});
+}
