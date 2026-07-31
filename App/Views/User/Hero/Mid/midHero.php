@@ -7,7 +7,7 @@
   </div>
 
   <figure class="ar-square w100 faded-image">
-    <img src="<?= $card["avatarSrc"] ?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected" fetchpriority=high>
+    <img src="<?= $card["avatarSrc"] ?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected" fetchpriority="high">
   </figure>
 
   <div class="flex-column center-center gap0 position-inset-hero p20 pt0 pb5 mmt20">

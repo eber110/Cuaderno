@@ -81,6 +81,11 @@ class UserControllers extends Control {
       "type"         => "website"
     ]);
 
+    // Preload de la imagen LCP en el head para PageSpeed / Lighthouse
+    if (!empty($data["card"]["avatarSrc"])) {
+      \Base\Module\ViewOptimizerModule::preload($data["card"]["avatarSrc"], "image", ["fetchpriority" => "high"]);
+    }
+
     return $this->view("User.index", $data);
   }
 
