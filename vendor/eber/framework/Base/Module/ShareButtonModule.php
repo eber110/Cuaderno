@@ -48,37 +48,38 @@ class ShareButtonModule
 
   /**
    * Configuración de URLs por red social.
-   * Cada red tiene 'mobile' (app scheme) y 'desktop' (web URL).
+   * Utiliza Universal Links (https://...) para máxima compatibilidad 
+   * entre Desktop, Android, iOS y Tablets.
    */
   private static function getNetworkConfig(): array
   {
     return [
       'whatsapp' => [
-        'mobile' => 'whatsapp://send?text={text}%20{url}',
+        'mobile' => 'https://wa.me/?text={text}%20{url}',
         'desktop' => 'https://wa.me/?text={text}%20{url}'
       ],
       'facebook' => [
-        'mobile' => 'fb://facewebmodal/f?href={url}',
+        'mobile' => 'https://www.facebook.com/sharer/sharer.php?u={url}',
         'desktop' => 'https://www.facebook.com/sharer/sharer.php?u={url}'
       ],
       'x' => [
-        'mobile' => 'twitter://post?message={text}&url={url}',
-        'desktop' => 'https://x.com/intent/tweet?url={url}&text={text}'
+        'mobile' => 'https://twitter.com/intent/tweet?url={url}&text={text}',
+        'desktop' => 'https://twitter.com/intent/tweet?url={url}&text={text}'
       ],
       'linkedin' => [
-        'mobile' => 'linkedin://sharing/share-offsite/?url={url}',
+        'mobile' => 'https://www.linkedin.com/sharing/share-offsite/?url={url}',
         'desktop' => 'https://www.linkedin.com/sharing/share-offsite/?url={url}'
       ],
       'pinterest' => [
-        'mobile' => 'pinterest://pin/create/button/?url={url}&description={text}',
+        'mobile' => 'https://pinterest.com/pin/create/button/?url={url}&description={text}',
         'desktop' => 'https://pinterest.com/pin/create/button/?url={url}&description={text}'
       ],
       'reddit' => [
-        'mobile' => 'reddit://submit?url={url}&title={text}',
+        'mobile' => 'https://www.reddit.com/submit?url={url}&title={text}',
         'desktop' => 'https://www.reddit.com/submit?url={url}&title={text}'
       ],
       'telegram' => [
-        'mobile' => 'tg://msg_url?url={url}&text={text}',
+        'mobile' => 'https://t.me/share/url?url={url}&text={text}',
         'desktop' => 'https://t.me/share/url?url={url}&text={text}'
       ],
       'email' => [
@@ -86,44 +87,45 @@ class ShareButtonModule
         'desktop' => 'mailto:?subject={text}&body={url}'
       ],
       'skype' => [
-        'mobile' => 'skype:?chat&topic={text}&url={url}',
+        'mobile' => 'https://web.skype.com/share?url={url}&text={text}',
         'desktop' => 'https://web.skype.com/share?url={url}&text={text}'
       ],
       'tumblr' => [
-        'mobile' => 'tumblr://x-callback-url/share?url={url}&caption={text}',
+        'mobile' => 'https://www.tumblr.com/widgets/share/tool?canonicalUrl={url}&caption={text}',
         'desktop' => 'https://www.tumblr.com/widgets/share/tool?canonicalUrl={url}&caption={text}'
       ],
       // === NUEVAS REDES SOCIALES ===
       'threads' => [
-        'mobile' => 'barcelona://create?text={text}%20{url}',
+        'mobile' => 'https://www.threads.net/intent/post?text={text}%20{url}',
         'desktop' => 'https://www.threads.net/intent/post?text={text}%20{url}'
       ],
       'bluesky' => [
-        'mobile' => 'bluesky://compose?text={text}%20{url}',
+        'mobile' => 'https://bsky.app/intent/compose?text={text}%20{url}',
         'desktop' => 'https://bsky.app/intent/compose?text={text}%20{url}'
       ],
       'mastodon' => [
-        'mobile' => 'mastodon://share?text={text}%20{url}',
+        'mobile' => 'https://mastodon.social/share?text={text}%20{url}',
         'desktop' => 'https://mastodon.social/share?text={text}%20{url}'
       ],
       'vk' => [
-        'mobile' => 'vk://vk.com/share.php?url={url}',
+        'mobile' => 'https://vk.com/share.php?url={url}&title={text}',
         'desktop' => 'https://vk.com/share.php?url={url}&title={text}'
       ],
       'line' => [
-        'mobile' => 'line://msg/text/{text}%20{url}',
+        'mobile' => 'https://social-plugins.line.me/lineit/share?url={url}',
         'desktop' => 'https://social-plugins.line.me/lineit/share?url={url}'
       ],
       'viber' => [
+        // Viber es la rara excepción que aún depende fuertemente de viber://
         'mobile' => 'viber://forward?text={text}%20{url}',
         'desktop' => 'viber://forward?text={text}%20{url}'
       ],
       'pocket' => [
-        'mobile' => 'pocket://add?url={url}',
+        'mobile' => 'https://getpocket.com/save?url={url}&title={text}',
         'desktop' => 'https://getpocket.com/save?url={url}&title={text}'
       ],
       'flipboard' => [
-        'mobile' => 'flipboard://share?url={url}&title={text}',
+        'mobile' => 'https://share.flipboard.com/bookmarklet/popout?v=2&url={url}&title={text}',
         'desktop' => 'https://share.flipboard.com/bookmarklet/popout?v=2&url={url}&title={text}'
       ],
       'hackernews' => [
@@ -135,7 +137,7 @@ class ShareButtonModule
         'desktop' => 'https://mix.com/add?url={url}'
       ],
       'snapchat' => [
-        'mobile' => 'snapchat://creativeKitWeb/share?link={url}',
+        'mobile' => 'https://www.snapchat.com/share?link={url}',
         'desktop' => 'https://www.snapchat.com/share?link={url}'
       ]
     ];
