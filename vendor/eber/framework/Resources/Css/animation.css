@@ -505,14 +505,23 @@
   }
 }
 
-@keyframes pulseOnce {
-  0% { transform: scale(0.9); opacity: 0.7; }
-  50% { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+@keyframes sonarRipple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.85);
+    transform: scale(0.97);
+  }
+  60% {
+    box-shadow: 0 0 0 14px rgba(220, 38, 38, 0.25);
+    transform: scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 0 24px rgba(220, 38, 38, 0);
+    transform: scale(1);
+  }
 }
 
 .pulse-once {
-  animation: pulseOnce 0.4s ease-out 1 forwards !important;
+  animation: sonarRipple 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards !important;
 }
 
 .disabled-save-btn {
