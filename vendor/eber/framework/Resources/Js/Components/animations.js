@@ -443,6 +443,10 @@ export function initGsapHoverAnimations() {
  * Inicializador automático del sistema de animaciones.
  * Escucha elementos con atributos 'data-animate' y los vincula.
  */
+export function animations() {
+  initAnimations();
+}
+
 export function initAnimations() {
   // Registrar efectos
   registerGsapEffects();
