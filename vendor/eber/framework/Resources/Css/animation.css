@@ -508,24 +508,16 @@
 @keyframes sonarRipple {
   0% {
     box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.85);
-    transform: scale(0.98);
-  }
-  25% {
-    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0.45);
-    transform: scale(1.02);
-  }
-  65% {
-    box-shadow: 0 0 0 20px rgba(220, 38, 38, 0.12);
-    transform: scale(1);
+    transform: scale(0.96);
   }
   100% {
-    box-shadow: 0 0 0 28px rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 26px rgba(220, 38, 38, 0);
     transform: scale(1);
   }
 }
 
 .pulse-once {
-  animation: sonarRipple 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards !important;
+  animation: sonarRipple 0.75s ease-out 1 forwards !important;
 }
 
 .disabled-save-btn {
