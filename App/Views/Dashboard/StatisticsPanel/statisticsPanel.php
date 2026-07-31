@@ -12,6 +12,48 @@
   $topHours    = $stats["topHours"] ?? [];
   $recentViews = $stats["recentViews"] ?? [];
   $userProfile = $card["profile"] ?? "user";
+
+  // Si no hay visitas registradas en SQLite, habilitar datos de muestra (Sample Mode)
+  $isSample = empty($devices) && empty($topDays) && ($summary['total_views'] ?? 0) === 0;
+
+  if ($isSample) {
+    $summary = ['total_views' => 150, 'unique_views' => 98, 'total_clicks' => 42, 'ctr' => 28.0];
+    $topDays = [
+      ["day_num" => "1", "day_name" => "Lunes",     "total" => 48],
+      ["day_num" => "3", "day_name" => "Miércoles", "total" => 36],
+      ["day_num" => "5", "day_name" => "Viernes",   "total" => 29],
+      ["day_num" => "6", "day_name" => "Sábado",    "total" => 22],
+      ["day_num" => "0", "day_name" => "Domingo",   "total" => 15]
+    ];
+    $topHours = [
+      ["hour_num" => "18", "label" => "18:00 - 19:00", "total" => 34],
+      ["hour_num" => "20", "label" => "20:00 - 21:00", "total" => 28],
+      ["hour_num" => "14", "label" => "14:00 - 15:00", "total" => 21],
+      ["hour_num" => "12", "label" => "12:00 - 13:00", "total" => 16],
+      ["hour_num" => "09", "label" => "09:00 - 10:00", "total" => 11]
+    ];
+    $devices = [
+      ['device_type' => 'mobile',  'total' => 105],
+      ['device_type' => 'desktop', 'total' => 38],
+      ['device_type' => 'tablet',  'total' => 7]
+    ];
+    $browsers = [
+      ['browser' => 'Instagram App', 'total' => 62],
+      ['browser' => 'Chrome',        'total' => 45],
+      ['browser' => 'Safari',        'total' => 28],
+      ['browser' => 'TikTok App',    'total' => 15]
+    ];
+    $countries = [
+      ['country_name' => 'Chile',  'country_code' => 'CL', 'total' => 95],
+      ['country_name' => 'México', 'country_code' => 'MX', 'total' => 32],
+      ['country_name' => 'España', 'country_code' => 'ES', 'total' => 23]
+    ];
+    $referrers = [
+      ['referrer' => 'https://instagram.com', 'total' => 74],
+      ['referrer' => 'https://tiktok.com',    'total' => 41],
+      ['referrer' => 'Tráfico Directo',       'total' => 35]
+    ];
+  }
 ?>
 
 <div class="flex-column gap20 w100 textb">
@@ -19,8 +61,15 @@
   <!-- Encabezado con Botón de Simulación para Depuración -->
   <div class="flex-row center-between wrap gap10 p20 br15 border-item-panel back-body">
     <div>
-      <h3 class="bold700 x20 flex-row center-start gap10"><?= svg("chart", "x24") ?> Estadísticas y Analíticas</h3>
-      <p class="text-muted x14">Monitoreo en tiempo real almacenado en SQLite</p>
+      <h3 class="bold700 x20 flex-row center-start gap10">
+        <?= svg("chart", "x24") ?> Estadísticas y Analíticas
+        <?php if ($isSample) : ?>
+          <span class="x11 p5 pl10 pr10 br50 back-modal-item text-muted bold600">Vista de Muestra</span>
+        <?php endif; ?>
+      </h3>
+      <p class="text-muted x14">
+        <?= $isSample ? 'Ejemplo demostrativo de cómo se visualizarán las métricas de tu perfil' : 'Monitoreo en tiempo real almacenado en SQLite' ?>
+      </p>
     </div>
 
     <!-- Botón para simular visita/clic de prueba -->
@@ -220,21 +269,23 @@
   </div>
 
   <!-- Registros Recientes en SQLite (Tabla de Depuración) -->
-  <div class="flex-column gap15 p20 br15 border-item-panel w100">
-    <p class="bold600 x16">Registros Recientes (SQLite Debug Log)</p>
-    <?php if (!empty($recentViews)) : ?>
-      <div class="flex-column gap10 w100">
-        <?php foreach ($recentViews as $rv) : ?>
-          <div class="flex-row center-between wrap p10 br10 border-item-panel gap5 x13">
-            <span class="bold600"><?= e($rv['ip_address']) ?> (<?= e($rv['country_name']) ?>)</span>
-            <span class="text-muted"><?= e($rv['device_type']) ?> | <?= e($rv['os']) ?> | <?= e($rv['browser']) ?></span>
-            <span class="bold500 text-primary"><?= e($rv['created_at']) ?></span>
-          </div>
-        <?php endforeach; ?>
-      </div>
-    <?php else : ?>
-      <p class="text-muted x14">No hay visitas registradas aún.</p>
-    <?php endif; ?>
-  </div>
+  <?php if (!$isSample) : ?>
+    <div class="flex-column gap15 p20 br15 border-item-panel w100">
+      <p class="bold600 x16">Registros Recientes (SQLite Debug Log)</p>
+      <?php if (!empty($recentViews)) : ?>
+        <div class="flex-column gap10 w100">
+          <?php foreach ($recentViews as $rv) : ?>
+            <div class="flex-row center-between wrap p10 br10 border-item-panel gap5 x13">
+              <span class="bold600"><?= e($rv['ip_address']) ?> (<?= e($rv['country_name']) ?>)</span>
+              <span class="text-muted"><?= e($rv['device_type']) ?> | <?= e($rv['os']) ?> | <?= e($rv['browser']) ?></span>
+              <span class="bold500 text-primary"><?= e($rv['created_at']) ?></span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php else : ?>
+        <p class="text-muted x14">No hay visitas registradas aún.</p>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 
 </div>
