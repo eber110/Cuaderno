@@ -2,6 +2,7 @@
 
 namespace App\Components\Menu;
 
+use App\Controllers\DesignControllers;
 use App\Models\UserModels;
 use Base\Module\Session;
 use Base\Module\ShareButtonModule;
@@ -52,7 +53,10 @@ class menuUserComponent {
     $profileDesc   = $card["desc"] ?? "";
     $profileAvatar = $card["avatarSrc"] ?? (DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp");
 
-    $share = ShareButtonModule::share($profileUrl, $profileDesc, []);
+    //redes aceptadas con card og:
+    $acceptedLinks = DesignControllers::orderShare();
+
+    $share = ShareButtonModule::share($profileUrl, $profileDesc, $acceptedLinks);
 
     return [
       "connect"       => $connect,

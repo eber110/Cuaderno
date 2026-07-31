@@ -168,10 +168,17 @@ class ShareButtonModule
     // Detectar si es móvil
     $isMobile = MovilDetectorModule::is_movil() === 1;
 
-    // Determinar qué redes generar
-    $networksToGenerate = empty($networks)
-      ? self::NETWORKS
-      : array_intersect_key(self::NETWORKS, array_flip($networks));
+    // Determinar qué redes generar respetando el orden del array de entrada
+    $networksToGenerate = [];
+    if (empty($networks)) {
+      $networksToGenerate = self::NETWORKS;
+    } else {
+      foreach ($networks as $id) {
+        if (isset(self::NETWORKS[$id])) {
+          $networksToGenerate[$id] = self::NETWORKS[$id];
+        }
+      }
+    }
 
     $config = self::getNetworkConfig();
     $result = [];

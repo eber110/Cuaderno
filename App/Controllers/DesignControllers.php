@@ -57,4 +57,12 @@ class DesignControllers extends Control {
     ResponseModule::redirect("/panel/{$userClean}");
   }
 
+  public static function orderShare() : array{
+    
+    //redes aceptadas con card og:
+    $acceptedLinks = [1,2,3,6,8,21,4,5,11,12,13,14,15,16,17,18,20,10];
+    return $acceptedLinks;
+  
+  }
+
 }

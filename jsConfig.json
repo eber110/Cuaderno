@@ -32,7 +32,8 @@
       "sortableContent": [],
       "inlineCarousel": [],
       "textLimiter": [],
-      "saveButtonController": []
+      "saveButtonController": [],
+      "shareModalColor": []
     },
     "async": {}
   }

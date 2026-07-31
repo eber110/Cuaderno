@@ -63,8 +63,11 @@ class UserControllers extends Control {
     $data["card"] = UserModels::formatCardImages($data["card"]);
     $contentItems = $data["card"]["content"] ?? [];
 
+    //redes aceptadas con card og:
+    $acceptedLinks = DesignControllers::orderShare();
+
     foreach ($contentItems as $key => $value) {
-      $data["card"]["content"][$key]["share"] = ShareButtonModule::share($value["url"] ?? "", $data["card"]["desc"] ?? "", []);
+      $data["card"]["content"][$key]["share"] = ShareButtonModule::share($value["url"] ?? "", $data["card"]["desc"] ?? "", $acceptedLinks);
     }
 
     // Configuración de metadatos SEO
