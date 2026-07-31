@@ -1,19 +1,31 @@
 <?php
 
-namespace App\Components\Menu;use App\Controllers\UserControllers;
+namespace App\Components\Menu;
+
 use App\Models\UserModels;
 use Base\Module\Session;
 use Base\Module\ShareButtonModule;
 
-class menuUserComponent
-{
+/**
+ * Clase menuUserComponent
+ * 
+ * Componente autocontenido para renderizar el menú y modales de compartir usuario.
+ * Utiliza UserModels para obtener y formatear los datos de la tarjeta.
+ */
+class menuUserComponent {
 
-  public static function data($view = "User.menuUser", $viewType = 'menu', $params = [])
-  {
-
-    $requestUri = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : '';
-    $user = trim(parse_url($requestUri, PHP_URL_PATH), "/");
-    $connect = false;
+  /**
+   * Obtiene los datos necesarios para el componente del menú de usuario.
+   *
+   * @param string $view Vista objetivo.
+   * @param string $viewType Tipo de vista.
+   * @param array $params Parámetros del componente.
+   * @return array Datos formateados para el menú.
+   */
+  public static function data($view = "User.menuUser", $viewType = "menu", $params = []) {
+    $requestUri = $_SERVER["REQUEST_URI"] ?? "";
+    $user       = trim(parse_url($requestUri, PHP_URL_PATH), "/");
+    $connect    = false;
 
     if (Session::session_active() && Session::session_data("username") == $user) {
       $connect = true;
@@ -32,28 +44,29 @@ class menuUserComponent
 
     $card = $userData["card"] ?? [];
     if (!empty($card)) {
-      $card = UserControllers::formatCardImages($card);
+      $card = UserModels::formatCardImages($card);
     }
 
-    $profileUrl = DOMAIN . ($card["profile"] ?? $user);
-    $profileTitle = $card["title"] ?? $user;
-    $profileDesc = $card["profile"] ?? "";
+    $profileUrl    = DOMAIN . ($card["profile"] ?? $user);
+    $profileTitle  = $card["title"] ?? $user;
+    $profileDesc   = $card["desc"] ?? "";
     $profileAvatar = $card["avatarSrc"] ?? (DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp");
 
     $share = ShareButtonModule::share($profileUrl, $profileDesc, []);
 
     return [
-      "connect" => $connect,
-      "username" => Session::session_data("username"),
-      "card" => $card,
+      "connect"       => $connect,
+      "username"      => Session::session_data("username"),
+      "card"          => $card,
       "userShareData" => [
-        "url" => $profileUrl,
+        "url"       => $profileUrl,
         "metaTitle" => $profileTitle,
-        "metaDesc" => $profileDesc,
-        "metaImg" => $profileAvatar,
-        "share" => $share
+        "metaDesc"  => $profileDesc,
+        "metaImg"   => $profileAvatar,
+        "share"     => $share
       ],
-      "share" => $share
+      "share"         => $share
     ];
   }
+
 }
