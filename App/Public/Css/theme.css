@@ -15,6 +15,11 @@
   --text-item-sidebar : #e6e6e6;
 }
 
+.overflow-y-scroll{
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
 .back-menu-img-form{
   background-color: var(--back-menu-img-form);
 }

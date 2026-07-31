@@ -13,7 +13,7 @@
     <?php _part("Dashboard.sideMenu")?>
 
     <!-- contenedor de items del panel y el contenido remoto -->
-    <div class="h-dvh panel-container">
+    <div class="h-dvh panel-container overflow-y-scroll">
 
       <!-- Menu superior del panel de administración -->
       <?php _part("Dashboard.navPanel");?>
