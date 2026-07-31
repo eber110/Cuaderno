@@ -17,10 +17,11 @@ class StatisticsModels extends Builder {
   protected $table = "profile_views";
 
   /**
-   * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario.
+   * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario,
+   * incluyendo desgloses por días más visitados y horarios de mayor tráfico.
    *
    * @param string $user Nombre de usuario del perfil.
-   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes y registros recientes.
+   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top y registros recientes.
    */
   public static function getStatsData(string $user): array {
     $userClean = mb_strtolower($user, "UTF-8");
@@ -56,7 +57,64 @@ class StatisticsModels extends Builder {
       $stmtClicks->execute([":user" => $userClean]);
       $clicksByLink = $stmtClicks->fetchAll() ?: [];
 
-      // 6. Últimos registros recientes para depuración
+      // 6. Desglose por Días de la Semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+      $stmtDays = $pdo->prepare("
+        SELECT strftime('%w', created_at) as day_num, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user 
+        GROUP BY day_num 
+        ORDER BY total DESC
+      ");
+      $stmtDays->execute([":user" => $userClean]);
+      $rawDays = $stmtDays->fetchAll() ?: [];
+
+      $dayMap = [
+        "0" => "Domingo",
+        "1" => "Lunes",
+        "2" => "Martes",
+        "3" => "Miércoles",
+        "4" => "Jueves",
+        "5" => "Viernes",
+        "6" => "Sábado"
+      ];
+
+      $topDays = [];
+      foreach ($rawDays as $d) {
+        $num = (string)($d["day_num"] ?? "");
+        if (isset($dayMap[$num])) {
+          $topDays[] = [
+            "day_num"  => $num,
+            "day_name" => $dayMap[$num],
+            "total"    => (int)$d["total"]
+          ];
+        }
+      }
+
+      // 7. Desglose por Horarios de Mayor Tráfico (Franja de 00:00 a 23:00)
+      $stmtHours = $pdo->prepare("
+        SELECT strftime('%H', created_at) as hour_num, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user 
+        GROUP BY hour_num 
+        ORDER BY total DESC 
+        LIMIT 6
+      ");
+      $stmtHours->execute([":user" => $userClean]);
+      $rawHours = $stmtHours->fetchAll() ?: [];
+
+      $topHours = [];
+      foreach ($rawHours as $h) {
+        $hNum = (int)($h["hour_num"] ?? 0);
+        $nextH = ($hNum + 1) % 24;
+        $label = sprintf("%02d:00 - %02d:00", $hNum, $nextH);
+        $topHours[] = [
+          "hour_num" => sprintf("%02d", $hNum),
+          "label"    => $label,
+          "total"    => (int)$h["total"]
+        ];
+      }
+
+      // 8. Últimos registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
       $stmtRecentViews->execute([":user" => $userClean]);
       $recentViews = $stmtRecentViews->fetchAll() ?: [];
@@ -68,6 +126,8 @@ class StatisticsModels extends Builder {
         "countries"    => $countries,
         "referrers"    => $referrers,
         "clicksByLink" => $clicksByLink,
+        "topDays"      => $topDays,
+        "topHours"     => $topHours,
         "recentViews"  => $recentViews
       ];
     } catch (Exception $e) {
@@ -79,13 +139,16 @@ class StatisticsModels extends Builder {
         "countries"    => [],
         "referrers"    => [],
         "clicksByLink" => [],
+        "topDays"      => [],
+        "topHours"     => [],
         "recentViews"  => []
       ];
     }
   }
 
   /**
-   * Genera registros simulados de prueba en la base de datos SQLite para depuración.
+   * Genera registros simulados de prueba en la base de datos SQLite para depuración,
+   * distribuyendo fechas entre varios días y horas para alimentar las estadísticas de tráfico.
    *
    * @param string $user Nombre de usuario objetivo.
    * @return bool True si los registros simulados fueron insertados con éxito.
@@ -102,6 +165,12 @@ class StatisticsModels extends Builder {
 
     $sample = $samples[array_rand($samples)];
 
+    // Generar marca temporal distribuida en los últimos 14 días y horas variadas
+    $randomDays = rand(0, 14);
+    $randomHours = rand(0, 23);
+    $randomMinutes = rand(0, 59);
+    $randomCreatedAt = date("Y-m-d H:i:s", strtotime("-{$randomDays} days -{$randomHours} hours -{$randomMinutes} minutes"));
+
     // Insertar visita de prueba
     $viewLogged = AnalyticsModule::logProfileView($userClean, [
       "ip_address"   => rand(170, 200) . "." . rand(1, 255) . "." . rand(1, 255) . "." . rand(1, 255),
@@ -111,13 +180,15 @@ class StatisticsModels extends Builder {
       "device_type"  => $sample["device"],
       "os"           => $sample["os"],
       "browser"      => $sample["browser"],
-      "referrer"     => $sample["ref"]
+      "referrer"     => $sample["ref"],
+      "created_at"   => $randomCreatedAt
     ]);
 
     // Insertar clic de prueba
     $clickLogged = AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
       "country_code" => $sample["code"],
-      "device_type"  => $sample["device"]
+      "device_type"  => $sample["device"],
+      "created_at"   => $randomCreatedAt
     ]);
 
     return $viewLogged && $clickLogged;
