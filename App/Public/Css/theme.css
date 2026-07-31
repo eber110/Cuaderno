@@ -202,6 +202,12 @@
   border-width: 1px;
 }
 
+.border-item-panel-red{
+  border-style: solid;
+  border-color: var(--back-danger-panel);
+  border-width: 1px;
+}
+
 .button-style-background{
   background-color: #838383;
   border-radius: 15px;

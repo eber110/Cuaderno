@@ -8,7 +8,7 @@
   $profile = $card["profile"] ?? "";
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
   $saveClass = $hasCustom 
-    ? "p5 pl15 pr15 br15 pointer back-save-panel textw bold500 |border-item-panel pulse-once" 
+    ? "p5 pl15 pr15 br15 pointer back-save-panel textw bold500 border-item-panel-red pulse-once" 
     : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
 ?>
 <nav class="flex-row center-end gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">

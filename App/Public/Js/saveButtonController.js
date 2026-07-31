@@ -31,6 +31,13 @@ export function saveButtonController() {
   }
 
   /**
+   * Obtiene el botón remoto activo actual soportando clases de estado activo personalizadas (ej: back-item-active)
+   */
+  function getActiveRemoteBtn() {
+    return document.querySelector(".remote-btn.back-item-active, .remote-btn.active, .remote-btn[class*='active']");
+  }
+
+  /**
    * Ejecuta la animación de pulso de entrada una sola vez (one-shot)
    */
   function triggerPulseAnimation() {
@@ -77,20 +84,18 @@ export function saveButtonController() {
     }
   });
 
-  // Inicializar visibilidad al cargar la página según el botón activo inicial
-  const initialActiveBtn = document.querySelector(".remote-btn.active");
-  if (initialActiveBtn) {
-    updateSaveButtonVisibility(initialActiveBtn);
-  }
+  // Sincronizar visibilidad tras la carga inicial esperando que verticalMenu restaure el estado desde localStorage
+  setTimeout(() => {
+    const activeBtn = getActiveRemoteBtn();
+    if (activeBtn) {
+      updateSaveButtonVisibility(activeBtn);
+    }
 
-  // Si al recargar la página ya hay cambios pendientes (hasCustom === true),
-  // aguardamos a que el layout y fuentes se estabilicen (200ms) para lanzar la onda suavemente sin FOUC
-  const hasCustom = saveContainer.dataset.hasCustom === "true";
-  if (hasCustom && !saveBtn.classList.contains("disabled-save-btn")) {
-    setTimeout(() => {
+    const hasCustom = saveContainer.dataset.hasCustom === "true";
+    if (hasCustom && !saveBtn.classList.contains("disabled-save-btn")) {
       if (!saveContainer.classList.contains("hidden")) {
         triggerPulseAnimation();
       }
-    }, 200);
-  }
+    }
+  }, 100);
 }
