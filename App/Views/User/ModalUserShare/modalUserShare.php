@@ -11,7 +11,7 @@
 
   <a href="<?= $data["url"]?>" target="_blank" class="js-share-card-color flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b' ?> calc(l * 0.4) c h /60%); color: <?= $card["colorText"] ?? '#ffffff' ?> !important;">
     <figure class="ar-square wpx200 wpx-sml-160 br15">
-      <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover js-share-card-img" crossorigin="anonymous">
+      <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover js-share-card-img">
     </figure>
 
     <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= e($data["metaDesc"] ?? '') ?></p>

@@ -2,15 +2,20 @@
  * Componente shareModalColor.
  * 
  * Analiza el color predominante de la imagen en los modales de compartir (modalMenuShare y modalUserShare).
- * - Si el color predominante es CLARO (luminancia > 0.65): ajusta el fondo a #f3f3f1 y el texto a negro.
- * - Si el color predominante es OSCURO: oscurece el color para lograr máximo contraste con el texto blanco.
+ * Utiliza un objeto Image temporal en memoria con crossOrigin = "anonymous" para intentar la lectura por Canvas.
+ * Si el servidor de la imagen externa no permite CORS, falla de manera silenciosa manteniendo la imagen visible
+ * en el DOM sin generar errores de bloqueo CORS en la consola ni romper el renderizado.
  */
 export function shareModalColor() {
   function processShareCard(card) {
     const img = card.querySelector(".js-share-card-img");
-    if (!img) return;
+    if (!img || !img.src) return;
 
-    function applyDominantColor() {
+    // Probar lectura de color en una imagen temporal aislada en memoria
+    const tempImg = new Image();
+    tempImg.crossOrigin = "anonymous";
+
+    tempImg.onload = function () {
       try {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -19,7 +24,7 @@ export function shareModalColor() {
         canvas.width = w;
         canvas.height = h;
 
-        ctx.drawImage(img, 0, 0, w, h);
+        ctx.drawImage(tempImg, 0, 0, w, h);
         const imageData = ctx.getImageData(0, 0, w, h).data;
 
         let totalR = 0;
@@ -42,7 +47,7 @@ export function shareModalColor() {
         const g = Math.round(totalG / count);
         const b = Math.round(totalB / count);
 
-        // Calcular luminancia relativa (fórmula estándar 0.299R + 0.587G + 0.114B)
+        // Calcular luminancia relativa (0.299R + 0.587G + 0.114B)
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
         if (luminance > 0.65) {
@@ -63,33 +68,30 @@ export function shareModalColor() {
           if (urlEl) urlEl.style.setProperty("color", "#ffffff", "important");
         }
       } catch (err) {
-        // En caso de bloqueo por CORS (imágenes externas sin cabecera Access-Control-Allow-Origin),
-        // se conserva el color de respaldo por defecto sin interrumpir la experiencia.
+        // Fallback silencioso sin alertas en consola
       }
-    }
+    };
 
-    if (img.complete && img.naturalWidth > 0) {
-      applyDominantColor();
-    } else {
-      img.addEventListener("load", applyDominantColor);
-    }
+    tempImg.onerror = function () {
+      // Si el dominio externo no tiene cabeceras CORS, se descarta silenciosamente la extracción de color
+      // y la imagen del DOM se visualiza normalmente sin ningún error de red bloqueante.
+    };
+
+    tempImg.src = img.src;
   }
 
   function init() {
     document.querySelectorAll(".js-share-card-color").forEach(processShareCard);
   }
 
-  // Inicializar inmediatamente
   init();
 
-  // Escuchar aperturas dinámicas de modales en el DOM
   document.addEventListener("click", (e) => {
     if (e.target.closest(".modal-btn, [data-modal]")) {
       setTimeout(init, 80);
     }
   });
 
-  // Observador de mutaciones para modales inyectados dinámicamente
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length > 0) {

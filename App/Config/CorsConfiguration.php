@@ -65,5 +65,12 @@ return [
     
   'paths' => [
     // Define tus patrones de ruta y configuraciones específicas
+    '/' => [
+      'allowed_origins' => ['*'],
+      'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
+      'allowed_headers' => ['Content-Type', 'Authorization', 'X-Requested-With'],
+      'supports_credentials' => false,
+      'max_age' => 86400,
+    ]
   ]
 ];
