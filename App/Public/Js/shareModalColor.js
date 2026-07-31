@@ -2,9 +2,11 @@
  * Componente shareModalColor.
  * 
  * Analiza el color predominante de la imagen en los modales de compartir (modalMenuShare y modalUserShare).
- * Utiliza un objeto Image temporal en memoria con crossOrigin = "anonymous" para intentar la lectura por Canvas.
- * Si el servidor de la imagen externa no permite CORS, falla de manera silenciosa manteniendo la imagen visible
- * en el DOM sin generar errores de bloqueo CORS en la consola ni romper el renderizado.
+ * Aplica la fórmula OKLCH solicitada para transformar dinámicamente el fondo de la tarjeta:
+ * oklch(from rgb(r,g,b) calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
+ * 
+ * - Si el color predominante es CLARO (luminancia > 0.65): fija el fondo a #f3f3f1 y el texto a negro.
+ * - Si el color es OSCURO / MEDIO: aplica la fórmula OKLCH sobre el color predominante y texto blanco.
  */
 export function shareModalColor() {
   function processShareCard(card) {
@@ -57,24 +59,19 @@ export function shareModalColor() {
           const urlEl = card.querySelector(".js-share-card-url");
           if (urlEl) urlEl.style.setProperty("color", "#000000", "important");
         } else {
-          // Color oscuro/medio: oscurecer al 35% para máximo contraste con texto blanco
-          const darkR = Math.floor(r * 0.35);
-          const darkG = Math.floor(g * 0.35);
-          const darkB = Math.floor(b * 0.35);
-
-          card.style.setProperty("background-color", `rgb(${darkR}, ${darkG}, ${darkB})`, "important");
+          // Color oscuro/medio: aplicar fórmula OKLCH sobre el color predominante extraído
+          card.style.setProperty("background-color", `oklch(from rgb(${r}, ${g}, ${b}) calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)`, "important");
           card.style.setProperty("color", "#ffffff", "important");
           const urlEl = card.querySelector(".js-share-card-url");
           if (urlEl) urlEl.style.setProperty("color", "#ffffff", "important");
         }
       } catch (err) {
-        // Fallback silencioso sin alertas en consola
+        // Fallback silencioso
       }
     };
 
     tempImg.onerror = function () {
-      // Si el dominio externo no tiene cabeceras CORS, se descarta silenciosamente la extracción de color
-      // y la imagen del DOM se visualiza normalmente sin ningún error de red bloqueante.
+      // Fallback silencioso sin errores bloqueantes en consola
     };
 
     tempImg.src = img.src;
