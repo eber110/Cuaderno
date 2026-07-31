@@ -30,10 +30,10 @@
           </div>
         </div>
         <div class="vertical-menu-content flex-column gap5 w100 hidden">
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="header-remote"><?= svg("angle-r")?>Cabecera</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote"><?= svg("angle-r")?>Fondo</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote"><?= svg("angle-r")?>Botones</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="color-remote"><?= svg("angle-r")?>Colores</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="header-remote" data-savable="true"><?= svg("angle-r")?>Cabecera</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote" data-savable="true"><?= svg("angle-r")?>Fondo</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote" data-savable="true"><?= svg("angle-r")?>Botones</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="color-remote" data-savable="true"><?= svg("angle-r")?>Colores</p>
         </div>
       </div>
 
@@ -46,15 +46,15 @@
           </div>
         </div>
         <div class="vertical-menu-content flex-column gap5 w100 hidden">
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-button"><?= svg("angle-r")?>Enlaces</p>
-          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-rrss"><?= svg("angle-r")?>Redes sociales</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-button" data-savable="true"><?= svg("angle-r")?>Enlaces</p>
+          <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-rrss" data-savable="true"><?= svg("angle-r")?>Redes sociales</p>
         </div>
       </div>
       
-      <!-- Enlaces raíz -->
-      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote"><?= svg("chart")?>Estadísticas</p>
-      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4"><?= svg("list")?>Datos de usuario</p>
-      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5"><?= svg("list")?>Datos de sesión</p>
+      <!-- Enlaces raíz (no editables) -->
+      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote" data-savable="false"><?= svg("chart")?>Estadísticas</p>
+      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4" data-savable="false"><?= svg("list")?>Datos de usuario</p>
+      <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5" data-savable="false"><?= svg("list")?>Datos de sesión</p>
 
     </div>
   </div>

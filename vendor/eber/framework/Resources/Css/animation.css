@@ -505,6 +505,23 @@
   }
 }
 
+@keyframes pulseOnce {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pulse-once {
+  animation: pulseOnce 0.4s ease-out 1 forwards !important;
+}
+
+.disabled-save-btn {
+  opacity: 0.4;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.5);
+}
+
 /* ==========================================================================
    🚨 GSAP COMPATIBILITY: PREVENT CSS TRANSITION COLLISIONS
    ========================================================================== */

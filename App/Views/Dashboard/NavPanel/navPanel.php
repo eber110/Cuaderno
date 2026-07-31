@@ -7,10 +7,14 @@
   $hasCustom = $hasCustom ?? false;
   $profile = $card["profile"] ?? "";
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
-  $saveClass = $hasCustom ? "p5 pl15 pr15 br15 pointer back-save-panel textw bold500 border-item-panel" : "p5 pl15 pr15 br15 pointer border-item-panel texto";
+  $saveClass = $hasCustom 
+    ? "p5 pl15 pr15 br15 pointer back-save-panel textw bold500 border-item-panel pulse-once" 
+    : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
 ?>
 <nav class="flex-row center-end gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
-    <div><a href="<?= $saveUrl ?>" class="<?= $saveClass ?>">Guardar</a></div>
+    <div id="save-btn-container" class="save-btn-wrapper">
+      <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
+    </div>
 
     <div class="no-desk">
       <div class="modal-btn animated pointer before-menu-overlay">

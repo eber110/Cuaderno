@@ -31,7 +31,8 @@
       "formComponents": [],
       "sortableContent": [],
       "inlineCarousel": [],
-      "textLimiter": []
+      "textLimiter": [],
+      "saveButtonController": []
     },
     "async": {}
   }
