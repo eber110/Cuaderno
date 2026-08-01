@@ -10,7 +10,7 @@ use Exception;
  * Clase StatisticsModels
  * 
  * Modelo encargado de la consulta, procesamiento y generación de datos estadísticos y analíticas.
- * Cumple con el Principio de Responsabilidad Única (SRP) concentrando todas las consultas a SQLite.
+ * Respeta la zona horaria del servidor/aplicación (America/Santiago) garantizando coherencia absoluta.
  */
 class StatisticsModels extends Builder {
 
@@ -18,7 +18,7 @@ class StatisticsModels extends Builder {
 
   /**
    * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario,
-   * garantizando coherencia absoluta entre el total de visitas y todos los desgloses del mes activo.
+   * utilizando la fecha/mes local de PHP según date.timezone (ej: America/Santiago).
    *
    * @param string $user Nombre de usuario del perfil.
    * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top, redes sociales y registros recientes.
@@ -29,20 +29,21 @@ class StatisticsModels extends Builder {
     try {
       $pdo = AnalyticsModule::getPdo();
 
-      $currentUtcMonth = gmdate("Y-m");
+      // Utilizar la fecha local configurada en PHP (date.timezone)
+      $currentLocalMonth = date("Y-m");
 
-      // Verificar si existen registros para el mes UTC actual
+      // Verificar si existen registros para el mes local actual
       $stmtCheckCurrent = $pdo->prepare("SELECT COUNT(*) FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :currentMonth");
-      $stmtCheckCurrent->execute([":user" => $userClean, ":currentMonth" => $currentUtcMonth]);
+      $stmtCheckCurrent->execute([":user" => $userClean, ":currentMonth" => $currentLocalMonth]);
       $hasCurrentMonthData = ((int)$stmtCheckCurrent->fetchColumn()) > 0;
 
       if ($hasCurrentMonthData) {
-        $activeMonth = $currentUtcMonth;
+        $activeMonth = $currentLocalMonth;
       } else {
-        // Si no hay datos este mes, buscar el último mes con visitas registradas
+        // Si no hay datos este mes local, buscar el último mes registrado
         $stmtLatestMonth = $pdo->prepare("SELECT strftime('%Y-%m', created_at) as active_month FROM profile_views WHERE profile_id = :user ORDER BY created_at DESC LIMIT 1");
         $stmtLatestMonth->execute([":user" => $userClean]);
-        $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? $currentUtcMonth;
+        $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? $currentLocalMonth;
       }
 
       // 1. Resumen de Métricas del Mes Activo
@@ -355,7 +356,7 @@ class StatisticsModels extends Builder {
 
   /**
    * Genera un lote de registros simulados de prueba (por defecto 25 visitas y clics)
-   * distribuidos exclusivamente dentro del mes activo UTC.
+   * distribuidos exclusivamente dentro del mes actual según date.timezone de PHP.
    *
    * @param string $user Nombre de usuario objetivo.
    * @param int $count Cantidad de visitas simuladas a insertar.
@@ -373,8 +374,8 @@ class StatisticsModels extends Builder {
       ["device" => "desktop", "os" => "Windows", "browser" => "Firefox",       "country" => "Argentina", "code" => "AR", "city" => "Buenos Aires",  "ref" => ""]
     ];
 
-    $currentMonth = gmdate("Y-m");
-    $currentDay   = max(1, (int)gmdate("d"));
+    $currentMonth = date("Y-m");
+    $currentDay   = max(1, (int)date("d"));
     $successCount = 0;
 
     for ($i = 0; $i < $count; $i++) {
