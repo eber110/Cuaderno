@@ -18,10 +18,10 @@ class StatisticsModels extends Builder {
 
   /**
    * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario,
-   * incluyendo desgloses por días más visitados y horarios de mayor tráfico.
+   * incluyendo desgloses por días más visitados, horarios de mayor tráfico y recomendación inteligente.
    *
    * @param string $user Nombre de usuario del perfil.
-   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top y registros recientes.
+   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top, recomendación y registros recientes.
    */
   public static function getStatsData(string $user): array {
     $userClean = mb_strtolower($user, "UTF-8");
@@ -114,34 +114,54 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 8. Últimos registros recientes para depuración
+      // 8. Recomendación Inteligente de Horario y Día Pico
+      $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : "Lunes";
+      $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : "18:00 - 19:00";
+      $bestDayTotal  = !empty($topDays)  ? $topDays[0]["total"]    : 0;
+      $bestHourTotal = !empty($topHours) ? $topHours[0]["total"]   : 0;
+
+      $recommendation = [
+        "bestDay"       => $bestDayName,
+        "bestHour"      => $bestHourLabel,
+        "bestDayTotal"  => $bestDayTotal,
+        "bestHourTotal" => $bestHourTotal
+      ];
+
+      // 9. Últimos registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
       $stmtRecentViews->execute([":user" => $userClean]);
       $recentViews = $stmtRecentViews->fetchAll() ?: [];
 
       return [
-        "summary"      => $summary,
-        "devices"      => $devices,
-        "browsers"     => $browsers,
-        "countries"    => $countries,
-        "referrers"    => $referrers,
-        "clicksByLink" => $clicksByLink,
-        "topDays"      => $topDays,
-        "topHours"     => $topHours,
-        "recentViews"  => $recentViews
+        "summary"        => $summary,
+        "devices"        => $devices,
+        "browsers"       => $browsers,
+        "countries"      => $countries,
+        "referrers"      => $referrers,
+        "clicksByLink"   => $clicksByLink,
+        "topDays"        => $topDays,
+        "topHours"       => $topHours,
+        "recommendation" => $recommendation,
+        "recentViews"    => $recentViews
       ];
     } catch (Exception $e) {
       error_log("Error en StatisticsModels::getStatsData: " . $e->getMessage());
       return [
-        "summary"      => $summary,
-        "devices"      => [],
-        "browsers"     => [],
-        "countries"    => [],
-        "referrers"    => [],
-        "clicksByLink" => [],
-        "topDays"      => [],
-        "topHours"     => [],
-        "recentViews"  => []
+        "summary"        => $summary,
+        "devices"        => [],
+        "browsers"       => [],
+        "countries"      => [],
+        "referrers"      => [],
+        "clicksByLink"   => [],
+        "topDays"        => [],
+        "topHours"       => [],
+        "recommendation" => [
+          "bestDay"       => "Lunes",
+          "bestHour"      => "18:00 - 19:00",
+          "bestDayTotal"  => 0,
+          "bestHourTotal" => 0
+        ],
+        "recentViews"    => []
       ];
     }
   }

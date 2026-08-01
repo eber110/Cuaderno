@@ -3,18 +3,19 @@
    * @var mixed $stats 
    * @var mixed $card 
    */
-  $summary     = $stats["summary"] ?? ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
-  $devices     = $stats["devices"] ?? [];
-  $browsers    = $stats["browsers"] ?? [];
-  $countries   = $stats["countries"] ?? [];
-  $referrers   = $stats["referrers"] ?? [];
-  $topDays     = $stats["topDays"] ?? [];
-  $topHours    = $stats["topHours"] ?? [];
-  $recentViews = $stats["recentViews"] ?? [];
-  $userProfile = $card["profile"] ?? "user";
+  $summary        = $stats["summary"] ?? ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
+  $devices        = $stats["devices"] ?? [];
+  $browsers       = $stats["browsers"] ?? [];
+  $countries      = $stats["countries"] ?? [];
+  $referrers      = $stats["referrers"] ?? [];
+  $topDays        = $stats["topDays"] ?? [];
+  $topHours       = $stats["topHours"] ?? [];
+  $recommendation = $stats["recommendation"] ?? ['bestDay' => 'Lunes', 'bestHour' => '18:00 - 19:00', 'bestDayTotal' => 0, 'bestHourTotal' => 0];
+  $recentViews    = $stats["recentViews"] ?? [];
+  $userProfile    = $card["profile"] ?? "user";
 
-  // Si no hay visitas registradas en SQLite, habilitar datos de muestra (Sample Mode)
-  $isSample = empty($devices) && empty($topDays) && ($summary['total_views'] ?? 0) === 0;
+  // Si no hay visitas registradas en SQLite o días registrados, habilitar datos de muestra (Sample Mode)
+  $isSample = empty($topDays) && empty($topHours);
 
   if ($isSample) {
     $summary = ['total_views' => 150, 'unique_views' => 98, 'total_clicks' => 42, 'ctr' => 28.0];
@@ -32,27 +33,41 @@
       ["hour_num" => "12", "label" => "12:00 - 13:00", "total" => 16],
       ["hour_num" => "09", "label" => "09:00 - 10:00", "total" => 11]
     ];
-    $devices = [
-      ['device_type' => 'mobile',  'total' => 105],
-      ['device_type' => 'desktop', 'total' => 38],
-      ['device_type' => 'tablet',  'total' => 7]
+    $recommendation = [
+      'bestDay'       => 'Lunes',
+      'bestHour'      => '18:00 - 19:00',
+      'bestDayTotal'  => 48,
+      'bestHourTotal' => 34
     ];
-    $browsers = [
-      ['browser' => 'Instagram App', 'total' => 62],
-      ['browser' => 'Chrome',        'total' => 45],
-      ['browser' => 'Safari',        'total' => 28],
-      ['browser' => 'TikTok App',    'total' => 15]
-    ];
-    $countries = [
-      ['country_name' => 'Chile',  'country_code' => 'CL', 'total' => 95],
-      ['country_name' => 'México', 'country_code' => 'MX', 'total' => 32],
-      ['country_name' => 'España', 'country_code' => 'ES', 'total' => 23]
-    ];
-    $referrers = [
-      ['referrer' => 'https://instagram.com', 'total' => 74],
-      ['referrer' => 'https://tiktok.com',    'total' => 41],
-      ['referrer' => 'Tráfico Directo',       'total' => 35]
-    ];
+    if (empty($devices)) {
+      $devices = [
+        ['device_type' => 'mobile',  'total' => 105],
+        ['device_type' => 'desktop', 'total' => 38],
+        ['device_type' => 'tablet',  'total' => 7]
+      ];
+    }
+    if (empty($browsers)) {
+      $browsers = [
+        ['browser' => 'Instagram App', 'total' => 62],
+        ['browser' => 'Chrome',        'total' => 45],
+        ['browser' => 'Safari',        'total' => 28],
+        ['browser' => 'TikTok App',    'total' => 15]
+      ];
+    }
+    if (empty($countries)) {
+      $countries = [
+        ['country_name' => 'Chile',  'country_code' => 'CL', 'total' => 95],
+        ['country_name' => 'México', 'country_code' => 'MX', 'total' => 32],
+        ['country_name' => 'España', 'country_code' => 'ES', 'total' => 23]
+      ];
+    }
+    if (empty($referrers)) {
+      $referrers = [
+        ['referrer' => 'https://instagram.com', 'total' => 74],
+        ['referrer' => 'https://tiktok.com',    'total' => 41],
+        ['referrer' => 'Tráfico Directo',       'total' => 35]
+      ];
+    }
   }
 ?>
 
@@ -97,6 +112,48 @@
     <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
       <span class="text-muted bold500 x13">CTR Global</span>
       <span class="x24 bold700 text-success"><?= number_format($summary['ctr'] ?? 0, 2) ?>%</span>
+    </div>
+  </div>
+
+  <!-- Card Destacada de Recomendación de Horario -->
+  <div class="flex-column gap15 p20 br20 border-item-panel back-body shadow-soft w100" style="border-left: 5px solid var(--primary-color, #dc2626);">
+    <div class="flex-row center-between wrap gap10">
+      <div class="flex-row center-start gap10">
+        <div class="br100 p10 back-modal-item flex-row center-center text-primary" style="flex-shrink: 0;">
+          <?= svg("clock", "x24") ?>
+        </div>
+        <div>
+          <h4 class="bold700 x18">💡 Recomendación de Horario para Publicar</h4>
+          <p class="text-muted x13">Optimizado según la actividad de tus visitantes</p>
+        </div>
+      </div>
+      <span class="x12 p6 pl12 pr12 br50 back-primary textw bold700 flex-row center-center gap5 shadow-soft">
+        ⚡️ Horario Sugerido
+      </span>
+    </div>
+
+    <div class="grid col-desk-3 col-mid-3 col-sml-1 gap15 w100 mt5">
+      <!-- Mejor Día -->
+      <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+        <span class="text-muted bold500 x12">Mejor Día de la Semana</span>
+        <span class="x20 bold700 text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></span>
+        <span class="x12 text-muted"><?= e($recommendation['bestDayTotal'] ?? 0) ?> visitas ese día</span>
+      </div>
+
+      <!-- Mejor Horario -->
+      <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+        <span class="text-muted bold500 x12">Franja Horaria Pico</span>
+        <span class="x20 bold700 text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?></span>
+        <span class="x12 text-muted"><?= e($recommendation['bestHourTotal'] ?? 0) ?> visitas en esa franja</span>
+      </div>
+
+      <!-- Consejo de Impacto -->
+      <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+        <span class="text-muted bold500 x12">Consejo de Impacto</span>
+        <p class="x13 bold500 textb leading-normal">
+          Tus seguidores están más activos los <strong class="text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></strong> entre las <strong class="text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?> hrs</strong>.
+        </p>
+      </div>
     </div>
   </div>
 
