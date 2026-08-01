@@ -5,10 +5,13 @@
 
 .gap0 { gap: 0px; }
 .gap10 { gap: 10px; }
+.gap12 { gap: 12px; }
 .gap15 { gap: 15px; }
 .gap2 { gap: 2px; }
 .gap20 { gap: 20px; }
+.gap3 { gap: 3px; }
 .gap5 { gap: 5px; }
+.gap6 { gap: 6px; }
 .gap8 { gap: 8px; }
 .flex-column.around-start, .flex-column-desk.around-start, .flex-column-mid.around-start, .flex-column-sml.around-start { justify-content: space-around; align-items: start; }
   .flex-row.around-start, .flex-row-desk.around-start, .flex-row-mid.around-start, .flex-row-sml.around-start { align-items: space-around; justify-content: start; }
@@ -119,6 +122,7 @@
 .h100 { height: 100%; }
 .h2 { height: 2%; }
 .h3 { height: 3%; }
+.h4 { height: 4%; }
 .hem20 { min-height: 20em; }
 .hem5 { min-height: 5em; }
 .hpx100 { height: 100px; }
@@ -128,14 +132,17 @@
 .hpx30 { height: 30px; }
 .hpx40 { height: 40px; }
 .hpx50 { height: 50px; }
+.hpx6 { height: 6px; }
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
+.hpx8 { height: 8px; }
 .hpx80 { height: 80px; }
 .m0 { margin: 0px; }
 .m12 { margin: 12px; }
 .m20 { margin: 20px; }
 .m5 { margin: 5px; }
 .mb10 { margin-bottom: 10px; }
+.mb2 { margin-bottom: 2px; }
 .mb5 { margin-bottom: 5px; }
 .ml10 { margin-left: 10px; }
 .ml20 { margin-left: 20px; }
@@ -146,10 +153,12 @@
 .mt0 { margin-top: 0px; }
 .mt10 { margin-top: 10px; }
 .mt16 { margin-top: 16px; }
+.mt2 { margin-top: 2px; }
 .mt20 { margin-top: 20px; }
 .mt5 { margin-top: 5px; }
 .p0 { padding: 0px !important; }
 .p10 { padding: 10px !important; }
+.p12 { padding: 12px !important; }
 .p15 { padding: 15px !important; }
 .p2 { padding: 2px !important; }
 .p20 { padding: 20px !important; }
@@ -157,7 +166,9 @@
 .p3 { padding: 3px !important; }
 .p30 { padding: 30px !important; }
 .p5 { padding: 5px !important; }
+.p6 { padding: 6px !important; }
 .p7 { padding: 7px !important; }
+.p8 { padding: 8px !important; }
 .pb0 { padding-bottom: 0px !important; }
 .pb10 { padding-bottom: 10px !important; }
 .pb100 { padding-bottom: 100px !important; }
@@ -165,15 +176,21 @@
 .pb40 { padding-bottom: 40px !important; }
 .pb5 { padding-bottom: 5px !important; }
 .pl10 { padding-left: 10px !important; }
+.pl12 { padding-left: 12px !important; }
 .pl15 { padding-left: 15px !important; }
 .pl20 { padding-left: 20px !important; }
 .pl25 { padding-left: 25px !important; }
 .pl30 { padding-left: 30px !important; }
+.pl6 { padding-left: 6px !important; }
+.pl8 { padding-left: 8px !important; }
 .pr10 { padding-right: 10px !important; }
+.pr12 { padding-right: 12px !important; }
 .pr15 { padding-right: 15px !important; }
 .pr20 { padding-right: 20px !important; }
 .pr30 { padding-right: 30px !important; }
 .pr45 { padding-right: 45px !important; }
+.pr6 { padding-right: 6px !important; }
+.pr8 { padding-right: 8px !important; }
 .pt0 { padding-top: 0px !important; }
 .pt10 { padding-top: 10px !important; }
 .pt100 { padding-top: 100px !important; }
@@ -206,10 +223,11 @@
 .wpx630 { width: 630px; }
 .wpx65 { width: 65px; }
 .wpx70 { width: 70px; }
+.wpx8 { width: 8px; }
 .wpx80 { width: 80px; }
+.wpx890 { width: 890px; }
 .x1 { font-size: 1px; }
 .x12 { font-size: 12px; }
-.x13 { font-size: 13px; }
 .x14 { font-size: 14px; }
 .x16 { font-size: 16px; }
 .x17 { font-size: 17px; }
@@ -217,7 +235,6 @@
 .x2 { font-size: 2px; }
 .x20 { font-size: 20px; }
 .x22 { font-size: 22px; }
-.x24 { font-size: 24px; }
 .x25 { font-size: 25px; }
 .x28 { font-size: 28px; }
 .x30 { font-size: 30px; }
@@ -296,6 +313,9 @@
   .col-desk-2 { grid-template-columns: repeat(2, 1fr); }
 }
 @media screen and (min-width: 993px) {
+  .col-desk-3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media screen and (min-width: 993px) {
   .col-desk-4 { grid-template-columns: repeat(4, 1fr); }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
@@ -303,6 +323,9 @@
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .col-mid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .col-mid-3 { grid-template-columns: repeat(3, 1fr); }
 }
 @media screen and (max-width: 576px) {
   .col-sml-1 { grid-template-columns: repeat(1, 1fr); }

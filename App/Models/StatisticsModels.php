@@ -29,13 +29,18 @@ class StatisticsModels extends Builder {
     try {
       $pdo = AnalyticsModule::getPdo();
 
-      // 1. Resumen de Métricas del Mes Actual
-      $stmtMonthViews = $pdo->prepare("SELECT COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')");
-      $stmtMonthViews->execute([":user" => $userClean]);
+      // Obtener el mes más reciente activo para la consulta mensual
+      $stmtLatestMonth = $pdo->prepare("SELECT strftime('%Y-%m', created_at) as active_month FROM profile_views WHERE profile_id = :user ORDER BY created_at DESC LIMIT 1");
+      $stmtLatestMonth->execute([":user" => $userClean]);
+      $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? date("Y-m");
+
+      // 1. Resumen de Métricas del Mes Activo
+      $stmtMonthViews = $pdo->prepare("SELECT COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth");
+      $stmtMonthViews->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $monthViewsData = $stmtMonthViews->fetch() ?: ['total_views' => 0, 'unique_views' => 0];
 
-      $stmtMonthClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks FROM link_clicks WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')");
-      $stmtMonthClicks->execute([":user" => $userClean]);
+      $stmtMonthClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks FROM link_clicks WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth");
+      $stmtMonthClicks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $monthClicksData = $stmtMonthClicks->fetch() ?: ['total_clicks' => 0];
 
       $mViews   = (int)($monthViewsData['total_views'] ?? 0);
@@ -64,26 +69,26 @@ class StatisticsModels extends Builder {
         'total_clicks' => $allClicksCount
       ];
 
-      // 3. Desglose de Visitas por Día del Mes Actual
+      // 3. Desglose de Visitas por Día del Mes Activo
       $stmtDayMonth = $pdo->prepare("
         SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total
         FROM profile_views
-        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY date_str
         ORDER BY date_str ASC
       ");
-      $stmtDayMonth->execute([":user" => $userClean]);
+      $stmtDayMonth->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $viewsByDayOfMonth = $stmtDayMonth->fetchAll() ?: [];
 
-      // 4. Desglose de Visitas por Semana del Mes Actual
+      // 4. Desglose de Visitas por Semana del Mes Activo
       $stmtWeekMonth = $pdo->prepare("
         SELECT strftime('%W', created_at) as week_num, COUNT(*) as total
         FROM profile_views
-        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY week_num
         ORDER BY week_num ASC
       ");
-      $stmtWeekMonth->execute([":user" => $userClean]);
+      $stmtWeekMonth->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $rawWeeks = $stmtWeekMonth->fetchAll() ?: [];
 
       $viewsByWeekOfMonth = [];
@@ -311,8 +316,7 @@ class StatisticsModels extends Builder {
   }
 
   /**
-   * Genera registros simulados de prueba en la base de datos SQLite para depuración,
-   * distribuyendo fechas entre varios días y horas para alimentar las estadísticas de tráfico.
+   * Genera registros simulados de prueba en la base de datos SQLite para depuración.
    *
    * @param string $user Nombre de usuario objetivo.
    * @return bool True si los registros simulados fueron insertados con éxito.
@@ -328,14 +332,9 @@ class StatisticsModels extends Builder {
     ];
 
     $sample = $samples[array_rand($samples)];
+    $nowFormatted = date("Y-m-d H:i:s");
 
-    // Generar marca temporal distribuida en el mes actual y días pasados
-    $randomDays = rand(0, 20);
-    $randomHours = rand(0, 23);
-    $randomMinutes = rand(0, 59);
-    $randomCreatedAt = date("Y-m-d H:i:s", strtotime("-{$randomDays} days -{$randomHours} hours -{$randomMinutes} minutes"));
-
-    // Insertar visita de prueba
+    // Insertar visita de prueba con la fecha exacta del momento
     $viewLogged = AnalyticsModule::logProfileView($userClean, [
       "ip_address"   => rand(170, 200) . "." . rand(1, 255) . "." . rand(1, 255) . "." . rand(1, 255),
       "country_code" => $sample["code"],
@@ -345,14 +344,14 @@ class StatisticsModels extends Builder {
       "os"           => $sample["os"],
       "browser"      => $sample["browser"],
       "referrer"     => $sample["ref"],
-      "created_at"   => $randomCreatedAt
+      "created_at"   => $nowFormatted
     ]);
 
     // Insertar clic de prueba
     $clickLogged = AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
       "country_code" => $sample["code"],
       "device_type"  => $sample["device"],
-      "created_at"   => $randomCreatedAt
+      "created_at"   => $nowFormatted
     ]);
 
     return $viewLogged && $clickLogged;

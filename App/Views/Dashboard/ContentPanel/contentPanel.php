@@ -55,7 +55,7 @@
   </div>
 
   <div id="statistics-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx890 w-mid-100 w-sml-100 p20">
       <?php
         _part("Dashboard.statisticsPanel", ["stats" => $stats ?? [], "card" => $card ?? []]);
       ?>
