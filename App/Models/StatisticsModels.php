@@ -316,45 +316,65 @@ class StatisticsModels extends Builder {
   }
 
   /**
-   * Genera registros simulados de prueba en la base de datos SQLite para depuración.
+   * Genera un lote de registros simulados de prueba (por defecto 25 visitas y clics)
+   * distribuidos a lo largo del mes actual y de diferentes redes sociales/dispositivos.
    *
    * @param string $user Nombre de usuario objetivo.
-   * @return bool True si los registros simulados fueron insertados con éxito.
+   * @param int $count Cantidad de visitas simuladas a insertar.
+   * @return bool True si los registros fueron insertados con éxito.
    */
-  public static function generateTestData(string $user): bool {
+  public static function generateTestData(string $user, int $count = 25): bool {
     $userClean = mb_strtolower($user, "UTF-8");
 
     $samples = [
       ["device" => "mobile",  "os" => "iOS",     "browser" => "Instagram App", "country" => "Chile",  "code" => "CL", "city" => "Santiago",        "ref" => "https://instagram.com"],
       ["device" => "mobile",  "os" => "Android", "browser" => "TikTok App",    "country" => "Chile",  "code" => "CL", "city" => "Valparaíso",      "ref" => "https://tiktok.com"],
       ["device" => "desktop", "os" => "Windows", "browser" => "Chrome",        "country" => "México", "code" => "MX", "city" => "Ciudad de México", "ref" => "https://google.com"],
-      ["device" => "desktop", "os" => "macOS",   "browser" => "Safari",        "country" => "España", "code" => "ES", "city" => "Madrid",           "ref" => ""]
+      ["device" => "desktop", "os" => "macOS",   "browser" => "Safari",        "country" => "España", "code" => "ES", "city" => "Madrid",           "ref" => "https://facebook.com"],
+      ["device" => "mobile",  "os" => "iOS",     "browser" => "Safari",        "country" => "Chile",  "code" => "CL", "city" => "Concepción",      "ref" => "https://t.co"],
+      ["device" => "desktop", "os" => "Windows", "browser" => "Firefox",       "country" => "Argentina", "code" => "AR", "city" => "Buenos Aires",  "ref" => ""]
     ];
 
-    $sample = $samples[array_rand($samples)];
-    $nowFormatted = date("Y-m-d H:i:s");
+    $successCount = 0;
+    $currentDayNum = (int)date("d");
 
-    // Insertar visita de prueba con la fecha exacta del momento
-    $viewLogged = AnalyticsModule::logProfileView($userClean, [
-      "ip_address"   => rand(170, 200) . "." . rand(1, 255) . "." . rand(1, 255) . "." . rand(1, 255),
-      "country_code" => $sample["code"],
-      "country_name" => $sample["country"],
-      "city_name"    => $sample["city"],
-      "device_type"  => $sample["device"],
-      "os"           => $sample["os"],
-      "browser"      => $sample["browser"],
-      "referrer"     => $sample["ref"],
-      "created_at"   => $nowFormatted
-    ]);
+    for ($i = 0; $i < $count; $i++) {
+      $sample = $samples[array_rand($samples)];
 
-    // Insertar clic de prueba
-    $clickLogged = AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
-      "country_code" => $sample["code"],
-      "device_type"  => $sample["device"],
-      "created_at"   => $nowFormatted
-    ]);
+      // Generar marcas temporales variadas dentro del mes actual
+      $daysBack = rand(0, max(0, $currentDayNum - 1));
+      $hours = rand(0, 23);
+      $minutes = rand(0, 59);
 
-    return $viewLogged && $clickLogged;
+      $timestamp = strtotime("-{$daysBack} days -{$hours} hours -{$minutes} minutes");
+      $formattedDate = date("Y-m-d H:i:s", $timestamp);
+
+      // Insertar visita de prueba
+      $viewLogged = AnalyticsModule::logProfileView($userClean, [
+        "ip_address"   => rand(170, 200) . "." . rand(1, 255) . "." . rand(1, 255) . "." . rand(1, 255),
+        "country_code" => $sample["code"],
+        "country_name" => $sample["country"],
+        "city_name"    => $sample["city"],
+        "device_type"  => $sample["device"],
+        "os"           => $sample["os"],
+        "browser"      => $sample["browser"],
+        "referrer"     => $sample["ref"],
+        "created_at"   => $formattedDate
+      ]);
+
+      // Generar clic en 70% de las visitas simuladas
+      if (rand(1, 100) <= 70) {
+        AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
+          "country_code" => $sample["code"],
+          "device_type"  => $sample["device"],
+          "created_at"   => $formattedDate
+        ]);
+      }
+
+      if ($viewLogged) $successCount++;
+    }
+
+    return $successCount > 0;
   }
 
 }
