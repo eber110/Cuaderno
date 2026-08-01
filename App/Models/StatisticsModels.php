@@ -18,7 +18,7 @@ class StatisticsModels extends Builder {
 
   /**
    * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario,
-   * incluyendo desgloses por días más visitados, horarios de mayor tráfico, recomendación e indicadores por red social.
+   * garantizando coherencia absoluta entre el total de visitas y todos los desgloses del mes activo.
    *
    * @param string $user Nombre de usuario del perfil.
    * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top, redes sociales y registros recientes.
@@ -29,10 +29,21 @@ class StatisticsModels extends Builder {
     try {
       $pdo = AnalyticsModule::getPdo();
 
-      // Obtener el mes más reciente activo para la consulta mensual
-      $stmtLatestMonth = $pdo->prepare("SELECT strftime('%Y-%m', created_at) as active_month FROM profile_views WHERE profile_id = :user ORDER BY created_at DESC LIMIT 1");
-      $stmtLatestMonth->execute([":user" => $userClean]);
-      $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? date("Y-m");
+      $currentUtcMonth = gmdate("Y-m");
+
+      // Verificar si existen registros para el mes UTC actual
+      $stmtCheckCurrent = $pdo->prepare("SELECT COUNT(*) FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :currentMonth");
+      $stmtCheckCurrent->execute([":user" => $userClean, ":currentMonth" => $currentUtcMonth]);
+      $hasCurrentMonthData = ((int)$stmtCheckCurrent->fetchColumn()) > 0;
+
+      if ($hasCurrentMonthData) {
+        $activeMonth = $currentUtcMonth;
+      } else {
+        // Si no hay datos este mes, buscar el último mes con visitas registradas
+        $stmtLatestMonth = $pdo->prepare("SELECT strftime('%Y-%m', created_at) as active_month FROM profile_views WHERE profile_id = :user ORDER BY created_at DESC LIMIT 1");
+        $stmtLatestMonth->execute([":user" => $userClean]);
+        $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? $currentUtcMonth;
+      }
 
       // 1. Resumen de Métricas del Mes Activo
       $stmtMonthViews = $pdo->prepare("SELECT COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth");
@@ -100,35 +111,62 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Desglose por tipo de dispositivo (mobile, tablet, desktop)
-      $stmtDevices = $pdo->prepare("SELECT device_type, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY device_type ORDER BY total DESC");
-      $stmtDevices->execute([":user" => $userClean]);
+      // 5. Desglose por tipo de dispositivo del Mes Activo
+      $stmtDevices = $pdo->prepare("
+        SELECT device_type, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
+        GROUP BY device_type 
+        ORDER BY total DESC
+      ");
+      $stmtDevices->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $devices = $stmtDevices->fetchAll() ?: [];
 
-      // 6. Desglose por navegador (incluyendo aplicaciones In-App)
-      $stmtBrowsers = $pdo->prepare("SELECT browser, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY browser ORDER BY total DESC LIMIT 5");
-      $stmtBrowsers->execute([":user" => $userClean]);
+      // 6. Desglose por navegador del Mes Activo
+      $stmtBrowsers = $pdo->prepare("
+        SELECT browser, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
+        GROUP BY browser 
+        ORDER BY total DESC 
+        LIMIT 5
+      ");
+      $stmtBrowsers->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $browsers = $stmtBrowsers->fetchAll() ?: [];
 
-      // 7. Desglose por ubicación geográfica (Países)
-      $stmtCountries = $pdo->prepare("SELECT country_name, country_code, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY country_name ORDER BY total DESC LIMIT 5");
-      $stmtCountries->execute([":user" => $userClean]);
+      // 7. Desglose por ubicación geográfica (Países) del Mes Activo
+      $stmtCountries = $pdo->prepare("
+        SELECT country_name, country_code, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
+        GROUP BY country_name 
+        ORDER BY total DESC 
+        LIMIT 5
+      ");
+      $stmtCountries->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $countries = $stmtCountries->fetchAll() ?: [];
 
-      // 8. Desglose por fuentes de tráfico (Referrers)
-      $stmtReferrers = $pdo->prepare("SELECT referrer, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY referrer ORDER BY total DESC LIMIT 5");
-      $stmtReferrers->execute([":user" => $userClean]);
+      // 8. Desglose por fuentes de tráfico (Referrers) del Mes Activo
+      $stmtReferrers = $pdo->prepare("
+        SELECT referrer, COUNT(*) as total 
+        FROM profile_views 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
+        GROUP BY referrer 
+        ORDER BY total DESC 
+        LIMIT 5
+      ");
+      $stmtReferrers->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $referrers = $stmtReferrers->fetchAll() ?: [];
 
-      // 9. Desglose por Días de la Semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+      // 9. Desglose por Días de la Semana del Mes Activo
       $stmtDays = $pdo->prepare("
         SELECT strftime('%w', created_at) as day_num, COUNT(*) as total 
         FROM profile_views 
-        WHERE profile_id = :user 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
         GROUP BY day_num 
         ORDER BY total DESC
       ");
-      $stmtDays->execute([":user" => $userClean]);
+      $stmtDays->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $rawDays = $stmtDays->fetchAll() ?: [];
 
       $dayMap = [
@@ -148,16 +186,16 @@ class StatisticsModels extends Builder {
         }
       }
 
-      // 10. Desglose por Horarios de Mayor Tráfico (Franja de 00:00 a 23:00)
+      // 10. Desglose por Horarios de Mayor Tráfico del Mes Activo
       $stmtHours = $pdo->prepare("
         SELECT strftime('%H', created_at) as hour_num, COUNT(*) as total 
         FROM profile_views 
-        WHERE profile_id = :user 
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
         GROUP BY hour_num 
         ORDER BY total DESC 
         LIMIT 6
       ");
-      $stmtHours->execute([":user" => $userClean]);
+      $stmtHours->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $rawHours = $stmtHours->fetchAll() ?: [];
 
       $topHours = [];
@@ -172,7 +210,7 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 11. Recomendación Inteligente de Horario y Día Pico
+      // 11. Recomendación Inteligente de Horario y Día Pico del Mes Activo
       $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : "Lunes";
       $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : "18:00 - 19:00";
       $bestDayTotal  = !empty($topDays)  ? $topDays[0]["total"]    : 0;
@@ -185,8 +223,8 @@ class StatisticsModels extends Builder {
         "bestHourTotal" => $bestHourTotal
       ];
 
-      // 12. Métricas detalladas por Red Social
-      $socialStats = self::getSocialNetworksStats($pdo, $userClean);
+      // 12. Métricas detalladas por Red Social del Mes Activo
+      $socialStats = self::getSocialNetworksStats($pdo, $userClean, $activeMonth);
 
       // 13. Registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
@@ -234,9 +272,9 @@ class StatisticsModels extends Builder {
   }
 
   /**
-   * Obtiene desgloses detallados por Red Social (Visitas Totales, Mejor Día y Mejor Hora por cada Red Social).
+   * Obtiene desgloses detallados por Red Social del Mes Activo.
    */
-  private static function getSocialNetworksStats($pdo, string $userClean): array {
+  private static function getSocialNetworksStats($pdo, string $userClean, string $activeMonth): array {
     $networksConfig = [
       'instagram' => ['name' => 'Instagram',       'icon' => 'instagram',   'patterns' => ['%instagram%']],
       'tiktok'    => ['name' => 'TikTok',          'icon' => 'tiktok',      'patterns' => ['%tiktok%']],
@@ -257,42 +295,42 @@ class StatisticsModels extends Builder {
 
     foreach ($networksConfig as $key => $net) {
       if ($key === 'direct') {
-        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo')");
-        $stmtCount->execute([':user' => $userClean]);
+        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo')");
+        $stmtCount->execute([':user' => $userClean, ':activeMonth' => $activeMonth]);
       } else {
         $whereConditions = [];
-        $params = [':user' => $userClean];
+        $params = [':user' => $userClean, ':activeMonth' => $activeMonth];
         foreach ($net['patterns'] as $i => $pattern) {
           $paramName = ":p{$i}";
           $whereConditions[] = "referrer LIKE {$paramName}";
           $params[$paramName] = $pattern;
         }
         $whereClause = implode(" OR ", $whereConditions);
-        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND ({$whereClause})");
+        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND ({$whereClause})");
         $stmtCount->execute($params);
       }
 
       $total = (int)($stmtCount->fetch()['total'] ?? 0);
       if ($total === 0) continue;
 
-      // Obtener día pico para esta red social
+      // Obtener día pico para esta red social en el mes activo
       if ($key === 'direct') {
-        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
-        $stmtDay->execute([':user' => $userClean]);
+        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
+        $stmtDay->execute([':user' => $userClean, ':activeMonth' => $activeMonth]);
       } else {
-        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND ({$whereClause}) GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
+        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND ({$whereClause}) GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
         $stmtDay->execute($params);
       }
       $rowDay = $stmtDay->fetch();
       $bestDayNum = (string)($rowDay['day_num'] ?? "1");
       $bestDayName = $dayMap[$bestDayNum] ?? "Lunes";
 
-      // Obtener hora pico para esta red social
+      // Obtener hora pico para esta red social en el mes activo
       if ($key === 'direct') {
-        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
-        $stmtHour->execute([':user' => $userClean]);
+        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
+        $stmtHour->execute([':user' => $userClean, ':activeMonth' => $activeMonth]);
       } else {
-        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND ({$whereClause}) GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
+        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND ({$whereClause}) GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
         $stmtHour->execute($params);
       }
       $rowHour = $stmtHour->fetch();
@@ -317,7 +355,7 @@ class StatisticsModels extends Builder {
 
   /**
    * Genera un lote de registros simulados de prueba (por defecto 25 visitas y clics)
-   * distribuidos a lo largo del mes actual y de diferentes redes sociales/dispositivos.
+   * distribuidos exclusivamente dentro del mes activo UTC.
    *
    * @param string $user Nombre de usuario objetivo.
    * @param int $count Cantidad de visitas simuladas a insertar.
@@ -335,19 +373,19 @@ class StatisticsModels extends Builder {
       ["device" => "desktop", "os" => "Windows", "browser" => "Firefox",       "country" => "Argentina", "code" => "AR", "city" => "Buenos Aires",  "ref" => ""]
     ];
 
+    $currentMonth = gmdate("Y-m");
+    $currentDay   = max(1, (int)gmdate("d"));
     $successCount = 0;
-    $currentDayNum = (int)date("d");
 
     for ($i = 0; $i < $count; $i++) {
       $sample = $samples[array_rand($samples)];
 
-      // Generar marcas temporales variadas dentro del mes actual
-      $daysBack = rand(0, max(0, $currentDayNum - 1));
-      $hours = rand(0, 23);
-      $minutes = rand(0, 59);
+      $day     = sprintf("%02d", rand(1, $currentDay));
+      $hours   = sprintf("%02d", rand(0, 23));
+      $minutes = sprintf("%02d", rand(0, 59));
+      $seconds = sprintf("%02d", rand(0, 59));
 
-      $timestamp = strtotime("-{$daysBack} days -{$hours} hours -{$minutes} minutes");
-      $formattedDate = date("Y-m-d H:i:s", $timestamp);
+      $formattedDate = "{$currentMonth}-{$day} {$hours}:{$minutes}:{$seconds}";
 
       // Insertar visita de prueba
       $viewLogged = AnalyticsModule::logProfileView($userClean, [
