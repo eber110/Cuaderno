@@ -71,7 +71,7 @@
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
-          <div id="apex-combo-chart-days" class="w100" style="min-height: 260px;"></div>
+          <div id="apex-combo-chart-days" class="w100" style="min-height: 270px;"></div>
         </div>
   
         <!-- SECCIÓN A: Desglose por Día del Mes -->
@@ -157,7 +157,7 @@
 
 </div>
 
-<!-- CARGA E INICIALIZACIÓN DE APEXCHARTS COMBO/MIXED CHART -->
+<!-- CARGA E INICIALIZACIÓN DE APEXCHARTS EN MODAL DINÁMICO -->
 <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
 <script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js"></script>
 <script>
@@ -165,99 +165,125 @@
     var dates = <?= json_encode($chartDates) ?>;
     var views = <?= json_encode($chartViews) ?>;
 
-    function initComboChart() {
+    function renderChartInModal() {
       if (typeof ApexCharts === 'undefined') {
-        setTimeout(initComboChart, 100);
+        setTimeout(renderChartInModal, 100);
         return;
       }
 
-      var containers = document.querySelectorAll("#apex-combo-chart-days");
-      containers.forEach(function (container) {
-        if (container.dataset.rendered === "true") return;
-        container.dataset.rendered = "true";
+      // Buscar el contenedor del gráfico dentro del modal desplegado o la página
+      var chartContainer = document.querySelector(".modal-overlay #apex-combo-chart-days") || document.querySelector("#apex-combo-chart-days");
+      if (!chartContainer) return;
 
-        var options = {
-          series: [
-            {
-              name: 'Visitas Diarias',
-              type: 'column',
-              data: views
-            },
-            {
-              name: 'Tendencia de Tráfico',
-              type: 'line',
-              data: views
-            }
-          ],
-          chart: {
-            height: 270,
+      if (chartContainer.dataset.rendered === "true") return;
+      chartContainer.dataset.rendered = "true";
+
+      chartContainer.innerHTML = "";
+
+      var options = {
+        series: [
+          {
+            name: 'Visitas Diarias',
+            type: 'column',
+            data: views
+          },
+          {
+            name: 'Tendencia',
             type: 'line',
-            toolbar: { show: false },
-            animations: {
-              enabled: true,
-              easing: 'easeinout',
-              speed: 800
-            }
-          },
-          stroke: {
-            width: [0, 3],
-            curve: 'smooth'
-          },
-          plotOptions: {
-            bar: {
-              columnWidth: '45%',
-              borderRadius: 5
-            }
-          },
-          colors: ['#dc2626', '#2563eb'],
-          labels: dates,
-          markers: {
-            size: 4,
-            strokeWidth: 2,
-            hover: { size: 6 }
-          },
-          xaxis: {
-            type: 'category',
-            labels: {
-              rotate: -45,
-              style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }
-            }
-          },
-          yaxis: {
-            labels: {
-              style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
-              formatter: function (val) { return Math.round(val); }
-            }
-          },
-          grid: {
-            borderColor: '#e2e8f0',
-            strokeDashArray: 4
-          },
-          tooltip: {
-            shared: true,
-            intersect: false,
-            theme: 'dark',
-            y: {
-              formatter: function (y) {
-                if (typeof y !== "undefined") {
-                  return y.toFixed(0) + " visitas";
-                }
-                return y;
+            data: views
+          }
+        ],
+        chart: {
+          height: 260,
+          type: 'line',
+          toolbar: { show: false },
+          animations: {
+            enabled: true,
+            easing: 'easeinout',
+            speed: 800
+          }
+        },
+        stroke: {
+          width: [0, 3],
+          curve: 'smooth'
+        },
+        plotOptions: {
+          bar: {
+            columnWidth: '45%',
+            borderRadius: 5
+          }
+        },
+        colors: ['#dc2626', '#2563eb'],
+        labels: dates,
+        markers: {
+          size: 4,
+          strokeWidth: 2,
+          hover: { size: 6 }
+        },
+        xaxis: {
+          type: 'category',
+          labels: {
+            rotate: -45,
+            style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }
+          }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
+            formatter: function (val) { return Math.round(val); }
+          }
+        },
+        grid: {
+          borderColor: '#e2e8f0',
+          strokeDashArray: 4
+        },
+        tooltip: {
+          shared: true,
+          intersect: false,
+          theme: 'dark',
+          y: {
+            formatter: function (y) {
+              if (typeof y !== "undefined") {
+                return y.toFixed(0) + " visitas";
               }
+              return y;
             }
           }
-        };
+        }
+      };
 
-        var chart = new ApexCharts(container, options);
-        chart.render();
-      });
+      var chart = new ApexCharts(chartContainer, options);
+      chart.render();
     }
 
-    // Inicializar al cargar el DOM y al hacer clic en ver modal
-    document.addEventListener("DOMContentLoaded", initComboChart);
+    // MutationObserver para detectar la apertura del modal en el body
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length) {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('#apex-combo-chart-days'))) {
+              setTimeout(renderChartInModal, 120);
+            }
+          });
+        }
+      });
+    });
+
+    var startObserve = function() {
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", startObserve);
+    } else {
+      startObserve();
+    }
+
     document.addEventListener("click", function(e) {
       if (e.target.closest('.modal-btn')) {
-        setTimeout(initComboChart, 150);
+        setTimeout(renderChartInModal, 150);
       }
     });
   })();

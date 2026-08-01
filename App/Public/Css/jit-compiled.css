@@ -115,7 +115,10 @@
 .br50 { border-radius: 50px !important; overflow: clip; }
 .brtl10 { border-top-left-radius: 10px !important; }
 .brtr10 { border-top-right-radius: 10px !important; }
+.h-1 { height: 1%; }
+.h-10 { height: 10%; }
 .h-2 { height: 2%; }
+.h-90 { height: 90%; }
 .h-dvh { height: 100dvh; }
 .h-vh { height: 100vh; }
 .h1 { height: 1%; }
@@ -137,8 +140,8 @@
 .hpx70 { height: 70px; }
 .hpx8 { height: 8px; }
 .hpx80 { height: 80px; }
+.m-1 { margin: 1px; }
 .m0 { margin: 0px; }
-.m10 { margin: 10px; }
 .m12 { margin: 12px; }
 .m20 { margin: 20px; }
 .m5 { margin: 5px; }
@@ -220,6 +223,7 @@
 .wpx50 { width: 50px; }
 .wpx520 { width: 520px; }
 .wpx580 { width: 580px; }
+.wpx600 { width: 600px; }
 .wpx610 { width: 610px; }
 .wpx630 { width: 630px; }
 .wpx65 { width: 65px; }
@@ -227,6 +231,10 @@
 .wpx8 { width: 8px; }
 .wpx80 { width: 80px; }
 .wpx890 { width: 890px; }
+.x-2 { font-size: 2px; }
+.x01 { font-size: 01px; }
+.x02 { font-size: 02px; }
+.x03 { font-size: 03px; }
 .x1 { font-size: 1px; }
 .x12 { font-size: 12px; }
 .x14 { font-size: 14px; }
