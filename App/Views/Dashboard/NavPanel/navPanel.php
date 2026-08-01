@@ -15,6 +15,25 @@
     <div id="save-btn-container" class="save-btn-wrapper">
       <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
     </div>
+    <!-- Script Anti-FOUT: Oculta el contenedor inmediatamente antes del primer pintado del navegador si el menú activo es data-savable="false" -->
+    <script>
+      (function() {
+        try {
+          var key = 'vertical_menu_active_' + window.location.pathname + '_default';
+          var saved = localStorage.getItem(key);
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            if (parsed.remote) {
+              var btn = document.querySelector('.remote-btn[data-remote="' + parsed.remote + '"]');
+              if (btn && btn.getAttribute('data-savable') === 'false') {
+                var container = document.getElementById('save-btn-container');
+                if (container) container.classList.add('hidden');
+              }
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
 
     <div class="no-desk">
       <div class="modal-btn animated pointer before-menu-overlay">

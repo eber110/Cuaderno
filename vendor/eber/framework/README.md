@@ -104,11 +104,21 @@ resources/           # Assets del framework
 *   **Cero Pestañeo en Animaciones:** Remueve el `href` en tiempo de carga, lo que previene mutaciones del DOM al pasar el cursor. Esto asegura transiciones y animaciones (CSS/GSAP) 100% fluidas y libres de parpadeos.
 *   **Acciones Nativas Preservadas:** Restaura de forma instantánea y síncrona el `href` real durante eventos de clic derecho (`contextmenu`), clic de rueda (`mousedown`), arrastre (`dragstart`) y teclado (`focus`). Esto mantiene el comportamiento nativo de copiar dirección, abrir en nueva pestaña, arrastrar y la accesibilidad de lectores de pantalla.
 
-### 🔤 Instalador de Fuentes y Precargador Crítico Tipográfico (`InstallFont.php` & `LoadViewStyle.php`)
-*   **Instalador Interactivo (`composer install-font`):** Herramienta por consola para instalar fuentes físicas (WOFF2, TTF, OTF). Copia los archivos a `App/Rsc/Fonts`, autogenera las clases CSS `@font-face` en `font-project.css` y compila los bundles minificados en caliente.
-*   **Precarga Dinámica Inteligente:** Escanea recursivamente las fuentes `.woff2` y genera etiquetas `<link rel="preload">` en el `<head>`.
-*   **Optimización Core Web Vitals:** Si hay menos de 5 fuentes, las precarga todas; si hay más de 5, filtra y precarga únicamente las variantes *Regular / 400* para evitar congestionar la red y mejorar el First Contentful Paint.
-*   **Prevención de CLS:** Inyecta la clase de estado `.fonts-loaded` en el `<html>` de forma sincrónica una vez cargadas las fuentes en el navegador.
+### 🔤 Ecosistema de Fuentes: Instalador, Gestor y Precarga Inteligente
+*   **Instalador Interactivo (`composer install-font`):** Herramienta por consola para instalar fuentes (WOFF2, TTF, OTF).
+    *   **Detección Automática Variable vs Estática:** Analiza la estructura binaria de la fuente (`fvar`). Si es variable, genera un `@font-face` único con rango amplio (`font-weight: 100 900`) y todas las clases utilitarias (`.fontName100` a `.fontName900`). Si es estática, genera reglas por peso individual.
+    *   **Compresión Optimizada:** Convierte automáticamente fuentes TTF/OTF a formato web ultraligero WOFF2.
+    *   **Generación de Clases CSS:** Registra las fuentes en `App/Public/Css/font-project.css`.
+*   **Gestor y Reseteador (`composer reset-font`):**
+    *   Muestra un listado interactivo numerado de todas las fuentes instaladas en el proyecto.
+    *   Permite eliminar fuentes individuales o múltiples por índice (ej: `1, 3`), o resetear todas escribiendo `all`.
+    *   Elimina los archivos físicos del disco (`App/Rsc/Fonts/...`), limpia las carpetas vacías y purga las definiciones en `font-project.css`.
+    *   Ejecuta `min-script` automáticamente para recompilar el CSS y la configuración de precarga.
+*   **Precarga Dinámica Inteligente (JIT):**
+    *   Escanea el uso de fuentes en templates, scripts y CSS (`--font: 'FamilyName'`).
+    *   Para fuentes variables, precarga únicamente el archivo único variable.
+    *   Para fuentes estáticas, precarga todas las variantes activas de la familia.
+    *   Si no se usan fuentes personalizadas, el sistema usa la tipografía sans-serif del navegador con cero peticiones de precarga.
 
 ### 🌓 Gestión del Tema y Prevención del FOUC
 *   **Control Centralizado en .env:** Permite definir un tema inicial (`system` para tomar el del sistema, `dark` o `light`) mediante la variable `DEFAULT_THEME`.

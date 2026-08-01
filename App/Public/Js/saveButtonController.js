@@ -31,9 +31,23 @@ export function saveButtonController() {
   }
 
   /**
-   * Obtiene el botón remoto activo actual soportando clases de estado activo personalizadas (ej: back-item-active)
+   * Obtiene el botón remoto activo actual soportando estado guardado en localStorage y clases de estado activo
    */
   function getActiveRemoteBtn() {
+    // 1. Priorizar búsqueda según estado guardado en localStorage
+    const storageKey = `vertical_menu_active_${window.location.pathname}_default`;
+    const savedStateStr = localStorage.getItem(storageKey);
+    if (savedStateStr) {
+      try {
+        const savedState = JSON.parse(savedStateStr);
+        if (savedState.remote) {
+          const targetBtn = document.querySelector(`.remote-btn[data-remote="${savedState.remote}"]`);
+          if (targetBtn) return targetBtn;
+        }
+      } catch (e) {}
+    }
+
+    // 2. Fallback a clases activas en el DOM
     return document.querySelector(".remote-btn.back-item-active, .remote-btn.active, .remote-btn[class*='active']");
   }
 
@@ -42,7 +56,6 @@ export function saveButtonController() {
    */
   function triggerPulseAnimation() {
     saveBtn.classList.remove("pulse-once");
-    // Forzar reflow para reiniciar la animación limpiamente
     void saveBtn.offsetWidth;
     saveBtn.classList.add("pulse-once");
   }
@@ -84,18 +97,16 @@ export function saveButtonController() {
     }
   });
 
-  // Sincronizar visibilidad tras la carga inicial esperando que verticalMenu restaure el estado desde localStorage
-  setTimeout(() => {
-    const activeBtn = getActiveRemoteBtn();
-    if (activeBtn) {
-      updateSaveButtonVisibility(activeBtn);
-    }
+  // Sincronización síncrona inmediata al arrancar el controlador
+  const activeBtn = getActiveRemoteBtn();
+  if (activeBtn) {
+    updateSaveButtonVisibility(activeBtn);
+  }
 
-    const hasCustom = saveContainer.dataset.hasCustom === "true";
-    if (hasCustom && !saveBtn.classList.contains("disabled-save-btn")) {
-      if (!saveContainer.classList.contains("hidden")) {
-        triggerPulseAnimation();
-      }
+  const hasCustom = saveContainer.dataset.hasCustom === "true";
+  if (hasCustom && !saveBtn.classList.contains("disabled-save-btn")) {
+    if (!saveContainer.classList.contains("hidden")) {
+      triggerPulseAnimation();
     }
-  }, 100);
+  }
 }

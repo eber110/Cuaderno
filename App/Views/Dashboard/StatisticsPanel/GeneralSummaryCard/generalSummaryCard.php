@@ -67,7 +67,7 @@
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap5 textb">
-              <?= svg("chart", "x16") ?> Gráfico Mixto (Barras + Tendencia)
+              <?= svg("chart", "x16") ?> Visitas del mes actual
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>

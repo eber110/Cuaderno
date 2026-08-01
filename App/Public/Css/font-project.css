@@ -1,6 +1,9 @@
+/* ==========================================================================
+   🔤 FUENTES PERSONALIZADAS DEL PROYECTO
+   ========================================================================== */
 
 /* ==========================================================================
-   🔤 FUENTE: GoogleSansFlex_120pt (Peso: 400)
+   🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 400)
    ========================================================================== */
 
 @font-face {
@@ -11,30 +14,34 @@
   font-display: swap;
 }
 
+.googleFlex {
+  font-family: 'GoogleSansFlex_120pt' !important;
+}
+
 .googleFlex400 {
   font-family: 'GoogleSansFlex_120pt' !important;
   font-weight: 400 !important;
 }
 
 /* ==========================================================================
-   🔤 FUENTE: GoogleSansFlex_120pt (Peso: 900)
+   🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 500)
    ========================================================================== */
 
 @font-face {
   font-family: 'GoogleSansFlex_120pt';
-  src: url('/App/Rsc/Fonts/googlesansflex120pt/GoogleSansFlex_120pt-ExtraBold.woff2') format('woff2');
-  font-weight: 900;
+  src: url('/App/Rsc/Fonts/googlesansflex120pt/GoogleSansFlex_120pt-Medium.woff2') format('woff2');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
-.googleFlex900 {
+.googleFlex500 {
   font-family: 'GoogleSansFlex_120pt' !important;
-  font-weight: 900 !important;
+  font-weight: 500 !important;
 }
 
 /* ==========================================================================
-   🔤 FUENTE: GoogleSansFlex_120pt (Peso: 700)
+   🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 700)
    ========================================================================== */
 
 @font-face {
@@ -51,18 +58,36 @@
 }
 
 /* ==========================================================================
-   🔤 FUENTE: GoogleSansFlex_120pt (Peso: 500)
+   🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 900)
    ========================================================================== */
 
 @font-face {
   font-family: 'GoogleSansFlex_120pt';
-  src: url('/App/Rsc/Fonts/googlesansflex120pt/GoogleSansFlex_120pt-Medium.woff2') format('woff2');
-  font-weight: 500;
+  src: url('/App/Rsc/Fonts/googlesansflex120pt/GoogleSansFlex_120pt-Black.woff2') format('woff2');
+  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
-.googleFlex500 {
+.googleFlex900 {
   font-family: 'GoogleSansFlex_120pt' !important;
-  font-weight: 500 !important;
+  font-weight: 900 !important;
+}
+
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 200)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'GoogleSansFlex_120pt';
+  src: url('/App/Rsc/Fonts/googlesansflex_120pt/GoogleSansFlex_120pt-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+.googleFlex200 {
+  font-family: 'GoogleSansFlex_120pt' !important;
+  font-weight: 200 !important;
 }

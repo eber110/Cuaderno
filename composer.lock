@@ -84,7 +84,7 @@
             "source": {
                 "type": "git",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "0d0f6f7a9ae1f26cf20ca4bbff70cb88efddf8f7"
+                "reference": "08ba88baa75ab781ed1de07913fa71d7100cd8ab"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -129,6 +129,9 @@
                 "install-font": [
                     "php Base/ScriptComposer/InstallFont.php"
                 ],
+                "reset-font": [
+                    "php Base/ScriptComposer/ResetFont.php"
+                ],
                 "update-geoip": [
                     "php Base/ScriptComposer/UpdateGeoIp.php"
                 ]
@@ -140,7 +143,7 @@
                 }
             ],
             "description": "Mi increíble framework",
-            "time": "2026-08-01T18:20:23+00:00"
+            "time": "2026-08-01T18:58:17+00:00"
         },
         {
             "name": "geoip2/geoip2",

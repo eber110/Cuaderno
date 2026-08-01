@@ -21,7 +21,7 @@ class JitCssModule
             echo "🔍 Analizando uso de clases para JIT CSS Compiler...\n";
         }
 
-        // Búsqueda recursiva
+        // Búsqueda recursiva en plantillas y código fuente (PHP, JS, HTML)
         foreach ($scanDirs as $dir) {
             $scanFiles = array_merge(
                 MinifyModule::getDirectoryFilesRecursive($dir, 'php'),
@@ -79,6 +79,12 @@ class JitCssModule
         if (file_exists($fontCssPath)) {
             $cssContent = file_get_contents($fontCssPath);
             
+            // Construir diccionario insensible a mayúsculas/minúsculas para máxima robustez
+            $lowerWords = [];
+            foreach ($words as $word => $val) {
+                $lowerWords[strtolower($word)] = true;
+            }
+
             // Separar por bloques de @font-face
             $blocks = explode('@font-face', $cssContent);
             
@@ -95,31 +101,65 @@ class JitCssModule
                     preg_match_all('/\.([a-zA-Z0-9_-]+)\s*\{/i', $block, $classMatches);
                     $classes = $classMatches[1] ?? [];
                     
-                    // Extraer nombre de la font-family si existe
-                    $fontFamilyWords = [];
+                    // Extraer candidatos para el nombre de la font-family si existe
+                    $fontFamilyCandidates = [];
                     if (preg_match('/font-family:\s*[\'"]?([^\'";]+)[\'"]?/i', $block, $familyMatches)) {
                         $familyClean = trim($familyMatches[1]);
-                        $fontFamilyWords = preg_split('/[\s_-]+/', $familyClean);
-                    }
-
-                    $isUsed = false;
-                    foreach ($classes as $class) {
-                        if (isset($words[$class])) {
-                            $isUsed = true;
-                            break;
-                        }
-                    }
-
-                    if (!$isUsed) {
-                        foreach ($fontFamilyWords as $fWord) {
-                            if (!empty($fWord) && isset($words[$fWord])) {
-                                $isUsed = true;
-                                break;
+                        $fontFamilyCandidates[] = $familyClean;
+                        $fontFamilyCandidates[] = strtolower($familyClean);
+                        $fontFamilyCandidates[] = preg_replace('/[^a-zA-Z0-9]/', '', $familyClean);
+                        $subParts = preg_split('/[\s_-]+/', $familyClean);
+                        foreach ($subParts as $sp) {
+                            if (!empty($sp)) {
+                                $fontFamilyCandidates[] = $sp;
                             }
                         }
                     }
 
-                    if ($isUsed && !in_array($fontUrl, $activeFonts, true)) {
+                    // Extraer font-weight para identificar si es variable o estática
+                    $fontWeight = '';
+                    if (preg_match('/font-weight:\s*([^;]+);/i', $block, $weightMatches)) {
+                        $fontWeight = trim($weightMatches[1]);
+                    }
+                    $isVariable = (strpos($fontWeight, ' ') !== false || $fontWeight === '100 900');
+                    $isBaseRegularWeight = ($fontWeight === '400' || strtolower($fontWeight) === 'normal');
+
+                    // 1. Verificar si la clase específica (ej. googleFlex200, googleFlex700) está en uso explícito
+                    $isUsedClass = false;
+                    foreach ($classes as $class) {
+                        // Omitir la clase base genérica (ej. googleFlex) para no marcar todos los pesos como clase específica
+                        if (isset($familyClean) && (strtolower($class) === strtolower($familyClean) || strtolower($class) === strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $familyClean)))) {
+                            continue;
+                        }
+                        if (isset($words[$class]) || isset($lowerWords[strtolower($class)])) {
+                            $isUsedClass = true;
+                            break;
+                        }
+                    }
+
+                    // 2. Verificar si se invocó la familia globalmente (ej. en variables CSS como --font o la clase base de la fuente)
+                    $isUsedFamily = false;
+                    foreach ($fontFamilyCandidates as $fCandidate) {
+                        if (!empty($fCandidate) && (isset($words[$fCandidate]) || isset($lowerWords[strtolower($fCandidate)]))) {
+                            $isUsedFamily = true;
+                            break;
+                        }
+                    }
+
+                    // Decisión de precarga para optimización máxima de red:
+                    // 1. Si es Fuente Variable: precargar el archivo único (contiene todos los pesos 100-900 en un solo archivo).
+                    // 2. Si son Fuentes Estáticas (por peso): precargar ÚNICAMENTE el peso base regular (400 / normal).
+                    //    Los demás pesos (100, 200, 300, 500, 600, 700, 800, 900) están declarados en @font-face (css.min.css)
+                    //    y el navegador los descargará de forma nativa bajo demanda (lazy loading) SOLO en las páginas
+                    //    cuyo DOM contenga elementos con esos pesos específicos.
+                    $shouldPreload = false;
+                    if ($isVariable && $isUsedFamily) {
+                        $shouldPreload = true;
+                    } elseif (!$isVariable && $isUsedFamily && $isBaseRegularWeight) {
+                        $shouldPreload = true;
+                    }
+
+                    if ($shouldPreload && !in_array($fontUrl, $activeFonts, true)) {
                         $activeFonts[] = $fontUrl;
                     }
                 }

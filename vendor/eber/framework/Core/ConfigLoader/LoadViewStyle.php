@@ -67,7 +67,7 @@ class LoadViewStyle
       $fullPath = ROOT_PATH . $fontPathClean;
       if (file_exists($fullPath)) {
         $mimeType = $this->getFontMimeType($fontPathClean);
-        print '<link rel="preload" href="' . URL . ltrim($fontPathClean, '/') . '" as="font" type="' . $mimeType . '" crossorigin>';
+        print '<link rel="preload" href="' . DOMAIN . ltrim($fontPathClean, '/') . '" as="font" type="' . $mimeType . '" crossorigin>';
         $preloadedCount++;
       }
     }
@@ -88,10 +88,8 @@ class LoadViewStyle
     $files = $this->getDirectoryFiles($ruteCss);
     $urlPath = $this->fsPathToUrl($ruteCss);
     foreach ($files as $file) {
-      $href = URL . ltrim($urlPath, '/') . $file;
-      // Preload inmediato de alta prioridad
-      print '<link rel="preload" href="' . $href . '" as="style">';
-      print '<link rel="stylesheet" href="' . $href . '" ' . $param . '>';
+      $href = DOMAIN . ltrim($urlPath, '/') . $file;
+      print '<link rel="stylesheet" href="' . $href . '"' . ($param ? ' ' . $param : '') . '>';
     }
   }
 
@@ -100,7 +98,7 @@ class LoadViewStyle
     $files = $this->getDirectoryFiles($ruteJs);
     $urlPath = $this->fsPathToUrl($ruteJs);
     foreach ($files as $file) {
-      print '<script src="' . URL . ltrim($urlPath, '/') . $file . '" ' . $param . '></script>';
+      print '<script src="' . DOMAIN . ltrim($urlPath, '/') . $file . '"' . ($param ? ' ' . $param : '') . '></script>';
     }
   }
 
@@ -108,15 +106,6 @@ class LoadViewStyle
   {
     $files = $this->getDirectoryFiles($rute);
     $urlPath = $this->fsPathToUrl($rute);
-
-    foreach ($files as $file) {
-      $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-      if ($extension === 'css') {
-        print '<link rel="preload" href="' . DOMAIN . ltrim($urlPath, '/') . $file . '" as="style">';
-      } elseif ($extension === 'js') {
-        print '<link rel="preload" href="' . DOMAIN . ltrim($urlPath, '/') . $file . '" as="script" crossorigin>';
-      }
-    }
 
     foreach ($files as $file) {
       $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
@@ -310,6 +299,8 @@ class LoadViewStyle
   {
     if ($configFile === null) {
       $configFile = ROOT_PATH . '/jsConfig.json';
+    } elseif (!file_exists($configFile) && file_exists(ROOT_PATH . '/' . ltrim($configFile, '/\\'))) {
+      $configFile = ROOT_PATH . '/' . ltrim($configFile, '/\\');
     }
 
     if (!file_exists($configFile)) {

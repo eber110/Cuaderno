@@ -22,6 +22,7 @@
     "create-table-mysql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php",
     "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
     "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
+    "reset-font": "@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php",
     "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php"
   }
 }
