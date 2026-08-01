@@ -25,7 +25,7 @@
     <div class="flex-column center-center w100 p20 h-dvh">
       <!-- Botón de Cierre -->
       <div class="wpx580 w-sml-100">
-        <div id="close-modal-btn" class="modal-close-button pointer absolute top right p15 z-index-20">
+        <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
           <?= svg("xmark", "x20") ?>
         </div>
       </div>
