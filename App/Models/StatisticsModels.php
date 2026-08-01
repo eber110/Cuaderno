@@ -355,14 +355,13 @@ class StatisticsModels extends Builder {
   }
 
   /**
-   * Genera un lote de registros simulados de prueba (por defecto 25 visitas y clics)
-   * distribuidos exclusivamente dentro del mes actual según date.timezone de PHP.
+   * Genera 1 registro simulado de visita (+1 clic) por cada clic al botón "Simular Visita / Clic".
    *
    * @param string $user Nombre de usuario objetivo.
-   * @param int $count Cantidad de visitas simuladas a insertar.
-   * @return bool True si los registros fueron insertados con éxito.
+   * @param int $count Cantidad de visitas a simular por clic (por defecto 1).
+   * @return bool True si el registro fue insertado con éxito.
    */
-  public static function generateTestData(string $user, int $count = 25): bool {
+  public static function generateTestData(string $user, int $count = 1): bool {
     $userClean = mb_strtolower($user, "UTF-8");
 
     $samples = [
@@ -374,19 +373,12 @@ class StatisticsModels extends Builder {
       ["device" => "desktop", "os" => "Windows", "browser" => "Firefox",       "country" => "Argentina", "code" => "AR", "city" => "Buenos Aires",  "ref" => ""]
     ];
 
-    $currentMonth = date("Y-m");
-    $currentDay   = max(1, (int)date("d"));
     $successCount = 0;
 
     for ($i = 0; $i < $count; $i++) {
       $sample = $samples[array_rand($samples)];
 
-      $day     = sprintf("%02d", rand(1, $currentDay));
-      $hours   = sprintf("%02d", rand(0, 23));
-      $minutes = sprintf("%02d", rand(0, 59));
-      $seconds = sprintf("%02d", rand(0, 59));
-
-      $formattedDate = "{$currentMonth}-{$day} {$hours}:{$minutes}:{$seconds}";
+      $formattedDate = date("Y-m-d H:i:s");
 
       // Insertar visita de prueba
       $viewLogged = AnalyticsModule::logProfileView($userClean, [
@@ -401,14 +393,12 @@ class StatisticsModels extends Builder {
         "created_at"   => $formattedDate
       ]);
 
-      // Generar clic en 70% de las visitas simuladas
-      if (rand(1, 100) <= 70) {
-        AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
-          "country_code" => $sample["code"],
-          "device_type"  => $sample["device"],
-          "created_at"   => $formattedDate
-        ]);
-      }
+      // Insertar clic de prueba
+      $clickLogged = AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
+        "country_code" => $sample["code"],
+        "device_type"  => $sample["device"],
+        "created_at"   => $formattedDate
+      ]);
 
       if ($viewLogged) $successCount++;
     }

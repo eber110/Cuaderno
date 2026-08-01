@@ -22,13 +22,15 @@
 
   <!-- MODAL DE DESGLOSE DE VISITAS -->
   <div class="hidden">
-    <div class="flex-column center-center w100 p20">
-      <div class="wpx580 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
-        
-        <!-- Botón de Cierre -->
+    <div class="flex-column center-center w100 p20 h-dvh">
+      <!-- Botón de Cierre -->
+      <div class="wpx580 w-sml-100">
         <div id="close-modal-btn" class="modal-close-button pointer absolute top right p15 z-index-20">
           <?= svg("xmark", "x20") ?>
         </div>
+      </div>
+      <div class="wpx580 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        
   
         <!-- Encabezado del Modal -->
         <div class="flex-column gap5">
