@@ -15,7 +15,6 @@
 ?>
 <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
 <script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js" defer></script>
-<script src="/App/Public/Js/Charts/generalSummaryChart.js" defer></script>
 
 <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
 
