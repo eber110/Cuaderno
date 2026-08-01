@@ -8,7 +8,7 @@
   
   <!-- Países -->
   <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x16">Ubicación Geográfica</p>
+    <p class="bold600 x20">Ubicación Geográfica</p>
     <?php if (!empty($countries)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($countries as $c) : ?>
@@ -19,13 +19,13 @@
         <?php endforeach; ?>
       </div>
     <?php else : ?>
-      <p class="text-muted x14">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos registrados aún.</p>
     <?php endif; ?>
   </div>
 
   <!-- Referrers -->
   <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x16">Orígenes de Tráfico (Referrer)</p>
+    <p class="bold600 x20">Orígenes de Tráfico (Referrer)</p>
     <?php if (!empty($referrers)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($referrers as $r) : 
@@ -38,7 +38,7 @@
         <?php endforeach; ?>
       </div>
     <?php else : ?>
-      <p class="text-muted x14">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos registrados aún.</p>
     <?php endif; ?>
   </div>
 

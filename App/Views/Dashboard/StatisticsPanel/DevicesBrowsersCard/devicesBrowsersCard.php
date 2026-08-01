@@ -8,7 +8,7 @@
   
   <!-- Dispositivos -->
   <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x16">Dispositivos</p>
+    <p class="bold600 x20">Dispositivos</p>
     <?php if (!empty($devices)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($devices as $d) : 
@@ -22,13 +22,13 @@
         <?php endforeach; ?>
       </div>
     <?php else : ?>
-      <p class="text-muted x14">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos registrados aún.</p>
     <?php endif; ?>
   </div>
 
   <!-- Navegadores -->
   <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x16">Navegadores & In-App</p>
+    <p class="bold600 x20">Navegadores & In-App</p>
     <?php if (!empty($browsers)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($browsers as $b) : ?>
@@ -39,7 +39,7 @@
         <?php endforeach; ?>
       </div>
     <?php else : ?>
-      <p class="text-muted x14">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos registrados aún.</p>
     <?php endif; ?>
   </div>
 
