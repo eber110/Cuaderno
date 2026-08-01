@@ -13,6 +13,10 @@
     $chartViews[] = (int)($d['total'] ?? 0);
   }
 ?>
+<link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
+<script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js" defer></script>
+<script src="/App/Public/Js/Charts/generalSummaryChart.js" defer></script>
+
 <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
 
   <!-- 1. Card Total Visitas (Del Mes) con Modal de Desglose Integrado -->
@@ -67,11 +71,16 @@
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap5 textb">
-              <?= svg("chart", "x16") ?> Visitas del mes actual
+              <?= svg("chart", "x16") ?> Gráfico Mixto (Barras + Tendencia)
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
-          <div id="apex-combo-chart-days" class="w100" style="min-height: 270px;"></div>
+          <!-- Contenedor desacoplado con clase CSS e inyección de datos mediante data-attributes -->
+          <div class="chart-summary-combo w100" 
+               style="min-height: 270px;"
+               data-chart-dates='<?= json_encode($chartDates) ?>'
+               data-chart-views='<?= json_encode($chartViews) ?>'>
+          </div>
         </div>
   
         <!-- SECCIÓN B: Desglose por Semana del Mes -->
@@ -125,138 +134,3 @@
   </div>
 
 </div>
-
-<!-- CARGA E INICIALIZACIÓN DE APEXCHARTS EN MODAL DINÁMICO -->
-<!-- <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css"> -->
-<!-- <script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js"></script> -->
-<script>
-  (function () {
-    var dates = <?= json_encode($chartDates) ?>;
-    var views = <?= json_encode($chartViews) ?>;
-
-    function renderChartInModal() {
-      if (typeof ApexCharts === 'undefined') {
-        setTimeout(renderChartInModal, 100);
-        return;
-      }
-
-      var chartContainer = document.querySelector(".modal-overlay #apex-combo-chart-days") || document.querySelector("#apex-combo-chart-days");
-      if (!chartContainer) return;
-
-      if (chartContainer.dataset.rendered === "true") return;
-      chartContainer.dataset.rendered = "true";
-
-      chartContainer.innerHTML = "";
-
-      var options = {
-        series: [
-          {
-            name: 'Visitas Diarias',
-            type: 'column',
-            data: views
-          },
-          {
-            name: 'Tendencia',
-            type: 'line',
-            data: views
-          }
-        ],
-        chart: {
-          height: 260,
-          type: 'line',
-          toolbar: { show: false },
-          animations: {
-            enabled: true,
-            easing: 'easeinout',
-            speed: 800
-          }
-        },
-        stroke: {
-          width: [0, 3],
-          curve: 'smooth'
-        },
-        plotOptions: {
-          bar: {
-            columnWidth: '45%',
-            borderRadius: 5
-          }
-        },
-        colors: ['#dc2626', '#2563eb'],
-        labels: dates,
-        markers: {
-          size: 4,
-          strokeWidth: 2,
-          hover: { size: 6 }
-        },
-        xaxis: {
-          type: 'category',
-          labels: {
-            show: false
-          },
-          axisBorder: {
-            show: false
-          },
-          axisTicks: {
-            show: false
-          }
-        },
-        yaxis: {
-          labels: {
-            style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
-            formatter: function (val) { return Math.round(val); }
-          }
-        },
-        grid: {
-          borderColor: '#e2e8f0',
-          strokeDashArray: 4
-        },
-        tooltip: {
-          shared: true,
-          intersect: false,
-          theme: 'dark',
-          y: {
-            formatter: function (y) {
-              if (typeof y !== "undefined") {
-                return y.toFixed(0) + " visitas";
-              }
-              return y;
-            }
-          }
-        }
-      };
-
-      var chart = new ApexCharts(chartContainer, options);
-      chart.render();
-    }
-
-    var observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.addedNodes.length) {
-          mutation.addedNodes.forEach(function(node) {
-            if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('#apex-combo-chart-days'))) {
-              setTimeout(renderChartInModal, 120);
-            }
-          });
-        }
-      });
-    });
-
-    var startObserve = function() {
-      if (document.body) {
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
-    };
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", startObserve);
-    } else {
-      startObserve();
-    }
-
-    document.addEventListener("click", function(e) {
-      if (e.target.closest('.modal-btn')) {
-        setTimeout(renderChartInModal, 150);
-      }
-    });
-  })();
-</script>
