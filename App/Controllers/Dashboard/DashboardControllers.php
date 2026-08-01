@@ -33,10 +33,16 @@ class DashboardControllers extends Control {
       $cardData = [];
     }
 
+    // Asegurar que el perfil esté configurado en cardData
+    if (empty($cardData["profile"])) {
+      $cardData["profile"] = $userClean;
+    }
+
     // Consultar métricas a través de StatisticsModels
     $stats = StatisticsModels::getStatsData($userClean);
 
     $data = [
+      "user"      => $userClean,
       "card"      => $cardData,
       "stats"     => $stats,
       "hasCustom" => $hasCustom,

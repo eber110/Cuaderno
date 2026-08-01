@@ -2,6 +2,8 @@
   /** 
    * @var mixed $stats 
    * @var mixed $card 
+   * @var mixed $user
+   * @var mixed $uri
    */
   $summary            = $stats["summary"] ?? ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
   $allTimeSummary     = $stats["allTimeSummary"] ?? ['total_views' => 0, 'total_clicks' => 0];
@@ -16,7 +18,7 @@
   $recommendation     = $stats["recommendation"] ?? ['bestDay' => 'Lunes', 'bestHour' => '18:00 - 19:00', 'bestDayTotal' => 0, 'bestHourTotal' => 0];
   $socialStats        = $stats["socialStats"] ?? [];
   $recentViews        = $stats["recentViews"] ?? [];
-  $userProfile        = $card["profile"] ?? "user";
+  $userProfile        = !empty($user) ? $user : ($card["profile"] ?? "user");
 
   // Si no hay días u horas calculadas, habilitar datos de muestra (Sample Mode)
   $isSample = empty($topDays) && empty($topHours);

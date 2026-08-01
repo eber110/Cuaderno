@@ -22,7 +22,7 @@
 
   <!-- MODAL DE DESGLOSE DE VISITAS -->
   <div class="hidden">
-    <div class="flex-column center-center w100">
+    <div class="flex-column center-center w100 p20">
       <div class="wpx580 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
         
         <!-- Botón de Cierre -->

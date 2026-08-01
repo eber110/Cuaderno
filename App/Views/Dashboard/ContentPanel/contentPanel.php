@@ -1,6 +1,9 @@
 <?php
   /**
    * @var mixed $card
+   * @var mixed $stats
+   * @var mixed $user
+   * @var mixed $uri
    * @var mixed $session
    */
 ?>
@@ -57,7 +60,12 @@
   <div id="statistics-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx890 w-mid-100 w-sml-100 p20">
       <?php
-        _part("Dashboard.statisticsPanel", ["stats" => $stats ?? [], "card" => $card ?? []]);
+        _part("Dashboard.statisticsPanel", [
+          "stats" => $stats ?? [], 
+          "card"  => $card ?? [],
+          "user"  => $user ?? $card["profile"] ?? "",
+          "uri"   => $uri ?? []
+        ]);
       ?>
     </div>
   </div>
