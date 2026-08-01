@@ -26,38 +26,96 @@ class StatisticsModels extends Builder {
   public static function getStatsData(string $user): array {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    // Resumen general (Totales, Únicas, Clics, CTR)
-    $summary = AnalyticsModule::getProfileSummary($userClean);
-
     try {
       $pdo = AnalyticsModule::getPdo();
 
-      // 1. Desglose por tipo de dispositivo (mobile, tablet, desktop)
+      // 1. Resumen de Métricas del Mes Actual
+      $stmtMonthViews = $pdo->prepare("SELECT COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')");
+      $stmtMonthViews->execute([":user" => $userClean]);
+      $monthViewsData = $stmtMonthViews->fetch() ?: ['total_views' => 0, 'unique_views' => 0];
+
+      $stmtMonthClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks FROM link_clicks WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')");
+      $stmtMonthClicks->execute([":user" => $userClean]);
+      $monthClicksData = $stmtMonthClicks->fetch() ?: ['total_clicks' => 0];
+
+      $mViews   = (int)($monthViewsData['total_views'] ?? 0);
+      $mUniques = (int)($monthViewsData['unique_views'] ?? 0);
+      $mClicks  = (int)($monthClicksData['total_clicks'] ?? 0);
+      $mCtr     = ($mViews > 0) ? round(($mClicks / $mViews) * 100, 2) : 0;
+
+      $monthlySummary = [
+        'total_views'  => $mViews,
+        'unique_views' => $mUniques,
+        'total_clicks' => $mClicks,
+        'ctr'          => $mCtr
+      ];
+
+      // 2. Resumen Histórico Acumulado (Todos los tiempos)
+      $stmtAllViews = $pdo->prepare("SELECT COUNT(*) as total_views_all_time FROM profile_views WHERE profile_id = :user");
+      $stmtAllViews->execute([":user" => $userClean]);
+      $allViewsCount = (int)($stmtAllViews->fetch()['total_views_all_time'] ?? 0);
+
+      $stmtAllClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks_all_time FROM link_clicks WHERE profile_id = :user");
+      $stmtAllClicks->execute([":user" => $userClean]);
+      $allClicksCount = (int)($stmtAllClicks->fetch()['total_clicks_all_time'] ?? 0);
+
+      $allTimeSummary = [
+        'total_views'  => $allViewsCount,
+        'total_clicks' => $allClicksCount
+      ];
+
+      // 3. Desglose de Visitas por Día del Mes Actual
+      $stmtDayMonth = $pdo->prepare("
+        SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total
+        FROM profile_views
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        GROUP BY date_str
+        ORDER BY date_str ASC
+      ");
+      $stmtDayMonth->execute([":user" => $userClean]);
+      $viewsByDayOfMonth = $stmtDayMonth->fetchAll() ?: [];
+
+      // 4. Desglose de Visitas por Semana del Mes Actual
+      $stmtWeekMonth = $pdo->prepare("
+        SELECT strftime('%W', created_at) as week_num, COUNT(*) as total
+        FROM profile_views
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        GROUP BY week_num
+        ORDER BY week_num ASC
+      ");
+      $stmtWeekMonth->execute([":user" => $userClean]);
+      $rawWeeks = $stmtWeekMonth->fetchAll() ?: [];
+
+      $viewsByWeekOfMonth = [];
+      foreach ($rawWeeks as $idx => $w) {
+        $viewsByWeekOfMonth[] = [
+          'week_label' => "Semana " . ($idx + 1),
+          'week_num'   => $w['week_num'],
+          'total'      => (int)$w['total']
+        ];
+      }
+
+      // 5. Desglose por tipo de dispositivo (mobile, tablet, desktop)
       $stmtDevices = $pdo->prepare("SELECT device_type, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY device_type ORDER BY total DESC");
       $stmtDevices->execute([":user" => $userClean]);
       $devices = $stmtDevices->fetchAll() ?: [];
 
-      // 2. Desglose por navegador (incluyendo aplicaciones In-App)
+      // 6. Desglose por navegador (incluyendo aplicaciones In-App)
       $stmtBrowsers = $pdo->prepare("SELECT browser, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY browser ORDER BY total DESC LIMIT 5");
       $stmtBrowsers->execute([":user" => $userClean]);
       $browsers = $stmtBrowsers->fetchAll() ?: [];
 
-      // 3. Desglose por ubicación geográfica (Países)
+      // 7. Desglose por ubicación geográfica (Países)
       $stmtCountries = $pdo->prepare("SELECT country_name, country_code, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY country_name ORDER BY total DESC LIMIT 5");
       $stmtCountries->execute([":user" => $userClean]);
       $countries = $stmtCountries->fetchAll() ?: [];
 
-      // 4. Desglose por fuentes de tráfico (Referrers)
+      // 8. Desglose por fuentes de tráfico (Referrers)
       $stmtReferrers = $pdo->prepare("SELECT referrer, COUNT(*) as total FROM profile_views WHERE profile_id = :user GROUP BY referrer ORDER BY total DESC LIMIT 5");
       $stmtReferrers->execute([":user" => $userClean]);
       $referrers = $stmtReferrers->fetchAll() ?: [];
 
-      // 5. Desglose de clics por enlace
-      $stmtClicks = $pdo->prepare("SELECT link_id, COUNT(*) as total FROM link_clicks WHERE profile_id = :user GROUP BY link_id ORDER BY total DESC LIMIT 10");
-      $stmtClicks->execute([":user" => $userClean]);
-      $clicksByLink = $stmtClicks->fetchAll() ?: [];
-
-      // 6. Desglose por Días de la Semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+      // 9. Desglose por Días de la Semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
       $stmtDays = $pdo->prepare("
         SELECT strftime('%w', created_at) as day_num, COUNT(*) as total 
         FROM profile_views 
@@ -69,13 +127,8 @@ class StatisticsModels extends Builder {
       $rawDays = $stmtDays->fetchAll() ?: [];
 
       $dayMap = [
-        "0" => "Domingo",
-        "1" => "Lunes",
-        "2" => "Martes",
-        "3" => "Miércoles",
-        "4" => "Jueves",
-        "5" => "Viernes",
-        "6" => "Sábado"
+        "0" => "Domingo", "1" => "Lunes", "2" => "Martes", "3" => "Miércoles",
+        "4" => "Jueves", "5" => "Viernes", "6" => "Sábado"
       ];
 
       $topDays = [];
@@ -90,7 +143,7 @@ class StatisticsModels extends Builder {
         }
       }
 
-      // 7. Desglose por Horarios de Mayor Tráfico (Franja de 00:00 a 23:00)
+      // 10. Desglose por Horarios de Mayor Tráfico (Franja de 00:00 a 23:00)
       $stmtHours = $pdo->prepare("
         SELECT strftime('%H', created_at) as hour_num, COUNT(*) as total 
         FROM profile_views 
@@ -114,7 +167,7 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 8. Recomendación Inteligente de Horario y Día Pico
+      // 11. Recomendación Inteligente de Horario y Día Pico
       $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : "Lunes";
       $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : "18:00 - 19:00";
       $bestDayTotal  = !empty($topDays)  ? $topDays[0]["total"]    : 0;
@@ -127,46 +180,50 @@ class StatisticsModels extends Builder {
         "bestHourTotal" => $bestHourTotal
       ];
 
-      // 9. Métricas detalladas por Red Social (Visitas, Mejor Día y Hora por Red)
+      // 12. Métricas detalladas por Red Social
       $socialStats = self::getSocialNetworksStats($pdo, $userClean);
 
-      // 10. Últimos registros recientes para depuración
+      // 13. Registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
       $stmtRecentViews->execute([":user" => $userClean]);
       $recentViews = $stmtRecentViews->fetchAll() ?: [];
 
       return [
-        "summary"        => $summary,
-        "devices"        => $devices,
-        "browsers"       => $browsers,
-        "countries"      => $countries,
-        "referrers"      => $referrers,
-        "clicksByLink"   => $clicksByLink,
-        "topDays"        => $topDays,
-        "topHours"       => $topHours,
-        "recommendation" => $recommendation,
-        "socialStats"    => $socialStats,
-        "recentViews"    => $recentViews
+        "summary"             => $monthlySummary,
+        "allTimeSummary"      => $allTimeSummary,
+        "viewsByDayOfMonth"   => $viewsByDayOfMonth,
+        "viewsByWeekOfMonth"  => $viewsByWeekOfMonth,
+        "devices"             => $devices,
+        "browsers"            => $browsers,
+        "countries"           => $countries,
+        "referrers"           => $referrers,
+        "topDays"             => $topDays,
+        "topHours"            => $topHours,
+        "recommendation"      => $recommendation,
+        "socialStats"         => $socialStats,
+        "recentViews"         => $recentViews
       ];
     } catch (Exception $e) {
       error_log("Error en StatisticsModels::getStatsData: " . $e->getMessage());
       return [
-        "summary"        => $summary,
-        "devices"        => [],
-        "browsers"       => [],
-        "countries"      => [],
-        "referrers"      => [],
-        "clicksByLink"   => [],
-        "topDays"        => [],
-        "topHours"       => [],
-        "recommendation" => [
+        "summary"             => ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0],
+        "allTimeSummary"      => ['total_views' => 0, 'total_clicks' => 0],
+        "viewsByDayOfMonth"   => [],
+        "viewsByWeekOfMonth"  => [],
+        "devices"             => [],
+        "browsers"            => [],
+        "countries"           => [],
+        "referrers"           => [],
+        "topDays"             => [],
+        "topHours"            => [],
+        "recommendation"      => [
           "bestDay"       => "Lunes",
           "bestHour"      => "18:00 - 19:00",
           "bestDayTotal"  => 0,
           "bestHourTotal" => 0
         ],
-        "socialStats"    => [],
-        "recentViews"    => []
+        "socialStats"        => [],
+        "recentViews"        => []
       ];
     }
   }
@@ -272,8 +329,8 @@ class StatisticsModels extends Builder {
 
     $sample = $samples[array_rand($samples)];
 
-    // Generar marca temporal distribuida en los últimos 14 días y horas variadas
-    $randomDays = rand(0, 14);
+    // Generar marca temporal distribuida en el mes actual y días pasados
+    $randomDays = rand(0, 20);
     $randomHours = rand(0, 23);
     $randomMinutes = rand(0, 59);
     $randomCreatedAt = date("Y-m-d H:i:s", strtotime("-{$randomDays} days -{$randomHours} hours -{$randomMinutes} minutes"));

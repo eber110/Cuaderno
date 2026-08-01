@@ -1,23 +1,140 @@
 <?php
   /** 
-   * @var array $summary 
+   * @var array $summary                Métricas del mes actual (total_views, unique_views, total_clicks, ctr)
+   * @var array $allTimeSummary         Métricas históricas acumuladas (total_views, total_clicks)
+   * @var array $viewsByDayOfMonth      Desglose de visitas por día del mes actual
+   * @var array $viewsByWeekOfMonth     Desglose de visitas por semana del mes actual
    */
 ?>
 <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
-  <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
-    <span class="text-muted bold500 x13">Total Visitas</span>
-    <span class="x24 bold700"><?= number_format($summary['total_views'] ?? 0) ?></span>
+
+  <!-- 1. Card Total Visitas (Del Mes) con Modal de Desglose Integrado -->
+  <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn pointer |hover-scale-soft relative">
+    <div class="flex-row center-between w100">
+      <span class="text-muted bold500 x13">Total Visitas (Mes)</span>
+      <span class="x11 p2 pl6 pr6 br50 back-modal-item text-primary bold600 flex-row center-center gap3">
+        <?= svg("eye", "x12") ?> Ver
+      </span>
+    </div>
+    <span class="x24 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
+    <span class="x11 text-muted">Clic para ver desglose y gráfico</span>
   </div>
+
+  <!-- MODAL DE DESGLOSE DE VISITAS (El helper del framework lo clona al hacer clic) -->
+  <div class="display-none">
+    <div class="wpx580 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+      
+      <!-- Botón de Cierre -->
+      <div id="close-modal-btn" class="modal-close-button pointer absolute top right p15 text-muted hover-textb">
+        <?= svg("xmark", "x20") ?>
+      </div>
+
+      <!-- Encabezado del Modal -->
+      <div class="flex-column gap5">
+        <h3 class="bold700 x20 flex-row center-start gap10 textb">
+          <?= svg("chart", "x24") ?> Desglose de Visitas
+        </h3>
+        <p class="text-muted x13">
+          Estadísticas detalladas por día, semana y acumulado histórico.
+        </p>
+      </div>
+
+      <!-- Indicadores Resumen (Histórico vs Mes Actual) -->
+      <div class="grid col-desk-2 col-sml-2 gap12 w100">
+        <div class="flex-column p15 br12 border-item-panel back-body gap3">
+          <span class="text-muted bold500 x12">Total Histórico Completo</span>
+          <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['total_views'] ?? 0) ?></span>
+          <span class="x11 text-muted">Todas las visitas acumuladas</span>
+        </div>
+        <div class="flex-column p15 br12 border-item-panel back-body gap3">
+          <span class="text-muted bold500 x12">Visitas Mes Actual</span>
+          <span class="x22 bold700 textb"><?= number_format($summary['total_views'] ?? 0) ?></span>
+          <span class="x11 text-muted">Período en curso</span>
+        </div>
+      </div>
+
+      <div class="w100 border-top"></div>
+
+      <!-- SECCIÓN A: Desglose por Día del Mes (Estructura lista para gráficos) -->
+      <div class="flex-column gap10 w100" id="chart-data-days-month">
+        <div class="flex-row center-between">
+          <h4 class="bold600 x15 flex-row center-start gap5 textb">
+            <?= svg("calendar", "x16") ?> Visitas por Día (Mes Actual)
+          </h4>
+          <span class="x12 text-muted font-mono"><?= count($viewsByDayOfMonth) ?> días registrados</span>
+        </div>
+
+        <!-- Contenedor estructurado de Datos por Día (Atributos data-day y data-views preparados para JS Chart library) -->
+        <?php if (!empty($viewsByDayOfMonth)) : ?>
+          <div class="flex-column gap8 max-h200 overflow-y p5">
+            <?php foreach ($viewsByDayOfMonth as $d) : 
+              $dayLabel = $d['date_str'] ?? ($d['day_num'] ?? 'N/A');
+              $dayViews = (int)($d['total'] ?? 0);
+            ?>
+              <div class="flex-row center-between p10 br10 border-item-panel back-body x13 chart-item-day" 
+                   data-day="<?= e($dayLabel) ?>" 
+                   data-views="<?= $dayViews ?>">
+                <span class="bold500 textb flex-row center-start gap5">
+                  <span class="wpx8 hpx8 br100 back-primary"></span>
+                  <?= e($dayLabel) ?>
+                </span>
+                <span class="bold700 text-primary"><?= number_format($dayViews) ?> <span class="x11 font-normal text-muted">visitas</span></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php else : ?>
+          <p class="text-muted x13 p10 border-item-panel br10 text-c">No se registran visitas por día en este mes aún.</p>
+        <?php endif; ?>
+      </div>
+
+      <!-- SECCIÓN B: Desglose por Semana del Mes (Estructura lista para gráficos) -->
+      <div class="flex-column gap10 w100 mt5" id="chart-data-weeks-month">
+        <div class="flex-row center-between">
+          <h4 class="bold600 x15 flex-row center-start gap5 textb">
+            <?= svg("clock", "x16") ?> Visitas por Semana (Mes Actual)
+          </h4>
+          <span class="x12 text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
+        </div>
+
+        <!-- Contenedor estructurado de Datos por Semana (Atributos data-week y data-views preparados para JS Chart library) -->
+        <?php if (!empty($viewsByWeekOfMonth)) : ?>
+          <div class="grid col-desk-2 col-sml-1 gap10 w100">
+            <?php foreach ($viewsByWeekOfMonth as $w) : 
+              $weekLabel = $w['week_label'] ?? ('Semana ' . ($w['week_num'] ?? ''));
+              $weekViews = (int)($w['total'] ?? 0);
+            ?>
+              <div class="flex-row center-between p12 br10 border-item-panel back-body x13 chart-item-week" 
+                   data-week="<?= e($weekLabel) ?>" 
+                   data-views="<?= $weekViews ?>">
+                <span class="bold600 textb"><?= e($weekLabel) ?></span>
+                <span class="bold700 text-primary"><?= number_format($weekViews) ?> <span class="x11 font-normal text-muted">visitas</span></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php else : ?>
+          <p class="text-muted x13 p10 border-item-panel br10 text-c">No se registran visitas semanales en este mes aún.</p>
+        <?php endif; ?>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Card Visitas Únicas (Del Mes) -->
   <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
-    <span class="text-muted bold500 x13">Visitas Únicas</span>
+    <span class="text-muted bold500 x13">Visitas Únicas (Mes)</span>
     <span class="x24 bold700"><?= number_format($summary['unique_views'] ?? 0) ?></span>
   </div>
+
+  <!-- 3. Card Total Clics (Del Mes) -->
   <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
-    <span class="text-muted bold500 x13">Total Clics</span>
+    <span class="text-muted bold500 x13">Total Clics (Mes)</span>
     <span class="x24 bold700"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
   </div>
+
+  <!-- 4. Card CTR Global (Del Mes) -->
   <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
-    <span class="text-muted bold500 x13">CTR Global</span>
+    <span class="text-muted bold500 x13">CTR Global (Mes)</span>
     <span class="x24 bold700 text-success"><?= number_format($summary['ctr'] ?? 0, 2) ?>%</span>
   </div>
+
 </div>

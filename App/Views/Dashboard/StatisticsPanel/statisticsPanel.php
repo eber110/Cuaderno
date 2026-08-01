@@ -3,23 +3,42 @@
    * @var mixed $stats 
    * @var mixed $card 
    */
-  $summary        = $stats["summary"] ?? ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
-  $devices        = $stats["devices"] ?? [];
-  $browsers       = $stats["browsers"] ?? [];
-  $countries      = $stats["countries"] ?? [];
-  $referrers      = $stats["referrers"] ?? [];
-  $topDays        = $stats["topDays"] ?? [];
-  $topHours       = $stats["topHours"] ?? [];
-  $recommendation = $stats["recommendation"] ?? ['bestDay' => 'Lunes', 'bestHour' => '18:00 - 19:00', 'bestDayTotal' => 0, 'bestHourTotal' => 0];
-  $socialStats    = $stats["socialStats"] ?? [];
-  $recentViews    = $stats["recentViews"] ?? [];
-  $userProfile    = $card["profile"] ?? "user";
+  $summary            = $stats["summary"] ?? ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
+  $allTimeSummary     = $stats["allTimeSummary"] ?? ['total_views' => 0, 'total_clicks' => 0];
+  $viewsByDayOfMonth  = $stats["viewsByDayOfMonth"] ?? [];
+  $viewsByWeekOfMonth = $stats["viewsByWeekOfMonth"] ?? [];
+  $devices            = $stats["devices"] ?? [];
+  $browsers           = $stats["browsers"] ?? [];
+  $countries          = $stats["countries"] ?? [];
+  $referrers          = $stats["referrers"] ?? [];
+  $topDays            = $stats["topDays"] ?? [];
+  $topHours           = $stats["topHours"] ?? [];
+  $recommendation     = $stats["recommendation"] ?? ['bestDay' => 'Lunes', 'bestHour' => '18:00 - 19:00', 'bestDayTotal' => 0, 'bestHourTotal' => 0];
+  $socialStats        = $stats["socialStats"] ?? [];
+  $recentViews        = $stats["recentViews"] ?? [];
+  $userProfile        = $card["profile"] ?? "user";
 
   // Si no hay días u horas calculadas, habilitar datos de muestra (Sample Mode)
   $isSample = empty($topDays) && empty($topHours);
 
   if ($isSample) {
-    $summary = ['total_views' => 150, 'unique_views' => 98, 'total_clicks' => 42, 'ctr' => 28.0];
+    $summary = ['total_views' => 29, 'unique_views' => 29, 'total_clicks' => 29, 'ctr' => 100.0];
+    $allTimeSummary = ['total_views' => 480, 'total_clicks' => 310];
+
+    $viewsByDayOfMonth = [
+      ['date_str' => date('Y-m-01'), 'day_num' => '01', 'total' => 4],
+      ['date_str' => date('Y-m-05'), 'day_num' => '05', 'total' => 8],
+      ['date_str' => date('Y-m-10'), 'day_num' => '10', 'total' => 12],
+      ['date_str' => date('Y-m-15'), 'day_num' => '15', 'total' => 5]
+    ];
+
+    $viewsByWeekOfMonth = [
+      ['week_label' => 'Semana 1', 'total' => 35],
+      ['week_label' => 'Semana 2', 'total' => 58],
+      ['week_label' => 'Semana 3', 'total' => 72],
+      ['week_label' => 'Semana 4', 'total' => 45]
+    ];
+
     $topDays = [
       ["day_num" => "1", "day_name" => "Lunes",     "total" => 48],
       ["day_num" => "3", "day_name" => "Miércoles", "total" => 36],
@@ -80,18 +99,21 @@
   }
 
   $data = [
-    'isSample'       => $isSample,
-    'userProfile'    => $userProfile,
-    'summary'        => $summary,
-    'recommendation' => $recommendation,
-    'socialStats'    => $socialStats,
-    'topDays'        => $topDays,
-    'topHours'       => $topHours,
-    'devices'        => $devices,
-    'browsers'       => $browsers,
-    'countries'      => $countries,
-    'referrers'      => $referrers,
-    'recentViews'    => $recentViews
+    'isSample'           => $isSample,
+    'userProfile'        => $userProfile,
+    'summary'            => $summary,
+    'allTimeSummary'     => $allTimeSummary,
+    'viewsByDayOfMonth'  => $viewsByDayOfMonth,
+    'viewsByWeekOfMonth' => $viewsByWeekOfMonth,
+    'recommendation'     => $recommendation,
+    'socialStats'        => $socialStats,
+    'topDays'            => $topDays,
+    'topHours'           => $topHours,
+    'devices'            => $devices,
+    'browsers'           => $browsers,
+    'countries'          => $countries,
+    'referrers'          => $referrers,
+    'recentViews'        => $recentViews
   ];
 ?>
 
@@ -100,7 +122,7 @@
   <!-- 1. Encabezado de la Vista -->
   <?php _part("Dashboard.statisticsHeader", $data); ?>
 
-  <!-- 2. Recuento: Métricas Generales (Total Visitas, Visitas Únicas, Clics y CTR) -->
+  <!-- 2. Recuento: Métricas del Mes Actual con Modal de Desglose Integrado -->
   <?php _part("Dashboard.generalSummaryCard", $data); ?>
 
   <!-- 3. Card Destacada de Recomendación de Horario para Publicar -->
