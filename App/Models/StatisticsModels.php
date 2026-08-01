@@ -18,10 +18,10 @@ class StatisticsModels extends Builder {
 
   /**
    * Obtiene la estructura completa de estadísticas y métricas para un perfil de usuario,
-   * incluyendo desgloses por días más visitados, horarios de mayor tráfico y recomendación inteligente.
+   * incluyendo desgloses por días más visitados, horarios de mayor tráfico, recomendación e indicadores por red social.
    *
    * @param string $user Nombre de usuario del perfil.
-   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top, recomendación y registros recientes.
+   * @return array Resumen de métricas, dispositivos, navegadores, países, fuentes, días/horas top, redes sociales y registros recientes.
    */
   public static function getStatsData(string $user): array {
     $userClean = mb_strtolower($user, "UTF-8");
@@ -127,7 +127,10 @@ class StatisticsModels extends Builder {
         "bestHourTotal" => $bestHourTotal
       ];
 
-      // 9. Últimos registros recientes para depuración
+      // 9. Métricas detalladas por Red Social (Visitas, Mejor Día y Hora por Red)
+      $socialStats = self::getSocialNetworksStats($pdo, $userClean);
+
+      // 10. Últimos registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
       $stmtRecentViews->execute([":user" => $userClean]);
       $recentViews = $stmtRecentViews->fetchAll() ?: [];
@@ -142,6 +145,7 @@ class StatisticsModels extends Builder {
         "topDays"        => $topDays,
         "topHours"       => $topHours,
         "recommendation" => $recommendation,
+        "socialStats"    => $socialStats,
         "recentViews"    => $recentViews
       ];
     } catch (Exception $e) {
@@ -161,9 +165,92 @@ class StatisticsModels extends Builder {
           "bestDayTotal"  => 0,
           "bestHourTotal" => 0
         ],
+        "socialStats"    => [],
         "recentViews"    => []
       ];
     }
+  }
+
+  /**
+   * Obtiene desgloses detallados por Red Social (Visitas Totales, Mejor Día y Mejor Hora por cada Red Social).
+   */
+  private static function getSocialNetworksStats($pdo, string $userClean): array {
+    $networksConfig = [
+      'instagram' => ['name' => 'Instagram',       'icon' => 'instagram', 'patterns' => ['%instagram%']],
+      'tiktok'    => ['name' => 'TikTok',          'icon' => 'tiktok',    'patterns' => ['%tiktok%']],
+      'facebook'  => ['name' => 'Facebook',        'icon' => 'facebook',  'patterns' => ['%facebook%']],
+      'twitter'   => ['name' => 'Twitter / X',     'icon' => 'twitter',   'patterns' => ['%twitter%', '%t.co%', '%x.com%']],
+      'youtube'   => ['name' => 'YouTube',         'icon' => 'youtube',   'patterns' => ['%youtube%']],
+      'linkedin'  => ['name' => 'LinkedIn',        'icon' => 'linkedin',  'patterns' => ['%linkedin%']],
+      'google'    => ['name' => 'Google',          'icon' => 'google',    'patterns' => ['%google%']],
+      'direct'    => ['name' => 'Tráfico Directo', 'icon' => 'globe',     'patterns' => ['']]
+    ];
+
+    $dayMap = [
+      "0" => "Domingo", "1" => "Lunes", "2" => "Martes", "3" => "Miércoles",
+      "4" => "Jueves", "5" => "Viernes", "6" => "Sábado"
+    ];
+
+    $socialStats = [];
+
+    foreach ($networksConfig as $key => $net) {
+      if ($key === 'direct') {
+        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo')");
+        $stmtCount->execute([':user' => $userClean]);
+      } else {
+        $whereConditions = [];
+        $params = [':user' => $userClean];
+        foreach ($net['patterns'] as $i => $pattern) {
+          $paramName = ":p{$i}";
+          $whereConditions[] = "referrer LIKE {$paramName}";
+          $params[$paramName] = $pattern;
+        }
+        $whereClause = implode(" OR ", $whereConditions);
+        $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM profile_views WHERE profile_id = :user AND ({$whereClause})");
+        $stmtCount->execute($params);
+      }
+
+      $total = (int)($stmtCount->fetch()['total'] ?? 0);
+      if ($total === 0) continue;
+
+      // Obtener día pico para esta red social
+      if ($key === 'direct') {
+        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
+        $stmtDay->execute([':user' => $userClean]);
+      } else {
+        $stmtDay = $pdo->prepare("SELECT strftime('%w', created_at) as day_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND ({$whereClause}) GROUP BY day_num ORDER BY cnt DESC LIMIT 1");
+        $stmtDay->execute($params);
+      }
+      $rowDay = $stmtDay->fetch();
+      $bestDayNum = (string)($rowDay['day_num'] ?? "1");
+      $bestDayName = $dayMap[$bestDayNum] ?? "Lunes";
+
+      // Obtener hora pico para esta red social
+      if ($key === 'direct') {
+        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo') GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
+        $stmtHour->execute([':user' => $userClean]);
+      } else {
+        $stmtHour = $pdo->prepare("SELECT strftime('%H', created_at) as hour_num, COUNT(*) as cnt FROM profile_views WHERE profile_id = :user AND ({$whereClause}) GROUP BY hour_num ORDER BY cnt DESC LIMIT 1");
+        $stmtHour->execute($params);
+      }
+      $rowHour = $stmtHour->fetch();
+      $hNum = (int)($rowHour['hour_num'] ?? 18);
+      $nextH = ($hNum + 1) % 24;
+      $bestHourLabel = sprintf("%02d:00 - %02d:00", $hNum, $nextH);
+
+      $socialStats[] = [
+        'key'      => $key,
+        'name'     => $net['name'],
+        'icon'     => $net['icon'],
+        'total'    => $total,
+        'bestDay'  => $bestDayName,
+        'bestHour' => $bestHourLabel
+      ];
+    }
+
+    usort($socialStats, fn($a, $b) => $b['total'] <=> $a['total']);
+
+    return $socialStats;
   }
 
   /**
