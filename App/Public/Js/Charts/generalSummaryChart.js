@@ -11,8 +11,8 @@ export function generalSummaryChart() {
       return;
     }
 
-    // Buscar el contenedor objetivo mediante su clase identificadora (.chart-summary-combo)
-    const container = document.querySelector('.modal-overlay .chart-summary-combo') || document.querySelector('.chart-summary-combo');
+    // Buscar el contenedor objetivo ÚNICAMENTE dentro del modal activo (.modal-overlay)
+    const container = document.querySelector('.modal-overlay .chart-summary-combo');
     if (!container) return;
 
     if (container.dataset.rendered === 'true') return;
@@ -148,6 +148,6 @@ export function generalSummaryChart() {
     }
   });
 
-  // Intentar renderizar de inmediato si el contenedor ya existe
+  // Intentar renderizar si el modal ya está desplegado
   renderChart();
 }
