@@ -83,3 +83,67 @@
   </div>
 
 </div>
+
+<!-- Script Anti-FOUT / Anti-Parpadeo Síncrono: Restaura el estado guardado del menú y panel antes del primer pintado del navegador -->
+<script>
+  (function() {
+    try {
+      var key = 'vertical_menu_active_' + window.location.pathname + '_default';
+      var saved = localStorage.getItem(key);
+      if (!saved) return;
+      
+      var parsed = JSON.parse(saved);
+      if (!parsed || !parsed.remote) return;
+      
+      var targetId = parsed.remote;
+      var container = document.querySelector('.remote-container');
+      var menu = document.querySelector('.vertical-menu');
+
+      // 1. Activar de inmediato el panel de contenido remoto correspondiente
+      if (container && document.getElementById(targetId)) {
+        var contents = container.querySelectorAll('.remote-content');
+        contents.forEach(function(c) {
+          if (c.id === targetId) {
+            c.classList.remove('hidden');
+            c.classList.add('active');
+          } else {
+            c.classList.remove('active');
+            c.classList.add('hidden');
+          }
+        });
+      }
+
+      // 2. Activar de inmediato el enlace del menú y expandir su acordeón si aplica
+      if (menu) {
+        var activeClass = menu.getAttribute('active-item') || 'active';
+        var links = menu.querySelectorAll('.vertical-menu-link');
+        var targetLink = menu.querySelector('.vertical-menu-link[data-remote="' + targetId + '"]');
+
+        if (targetLink) {
+          links.forEach(function(l) {
+            l.classList.remove(activeClass, 'active');
+          });
+          targetLink.classList.add(activeClass);
+
+          var parentItem = targetLink.closest('.vertical-menu-item');
+          if (parentItem) {
+            parentItem.classList.add('open');
+            var parentContent = parentItem.querySelector('.vertical-menu-content');
+            if (parentContent) {
+              parentContent.classList.remove('hidden');
+              parentContent.style.height = 'auto';
+            }
+            var parentHeader = parentItem.querySelector('.vertical-menu-header');
+            if (parentHeader) {
+              var pClass = menu.getAttribute('active-principal') || 'active';
+              parentHeader.classList.add(pClass);
+              if (parentHeader.firstElementChild) {
+                parentHeader.firstElementChild.classList.add(pClass);
+              }
+            }
+          }
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
