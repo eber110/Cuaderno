@@ -74,37 +74,6 @@
           <div id="apex-combo-chart-days" class="w100" style="min-height: 270px;"></div>
         </div>
   
-        <!-- SECCIÓN A: Desglose por Día del Mes -->
-        <div class="flex-column gap10 w100" id="chart-data-days-month">
-          <div class="flex-row center-between">
-            <h4 class="bold600 x20 flex-row center-start gap5 textb">
-              <?= svg("calendar", "x16") ?> Visitas por Día (Mes Actual)
-            </h4>
-            <span class="text-muted font-mono"><?= count($viewsByDayOfMonth) ?> días registrados</span>
-          </div>
-  
-          <?php if (!empty($viewsByDayOfMonth)) : ?>
-            <div class="flex-column gap8 max-h200 overflow-y p5">
-              <?php foreach ($viewsByDayOfMonth as $d) : 
-                $dayLabel = $d['date_str'] ?? ($d['day_num'] ?? 'N/A');
-                $dayViews = (int)($d['total'] ?? 0);
-              ?>
-                <div class="flex-row center-between p10 br10 border-item-panel back-body chart-item-day" 
-                     data-day="<?= e($dayLabel) ?>" 
-                     data-views="<?= $dayViews ?>">
-                  <span class="bold500 textb flex-row center-start gap5">
-                    <span class="wpx8 hpx8 br100 back-primary"></span>
-                    <?= e($dayLabel) ?>
-                  </span>
-                  <span class="bold700 text-primary"><?= number_format($dayViews) ?> <span class="font-normal text-muted">visitas</span></span>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          <?php else : ?>
-            <p class="text-muted p10 border-item-panel br10 text-c">No se registran visitas por día en este mes aún.</p>
-          <?php endif; ?>
-        </div>
-  
         <!-- SECCIÓN B: Desglose por Semana del Mes -->
         <div class="flex-column gap10 w100 mt5" id="chart-data-weeks-month">
           <div class="flex-row center-between">
@@ -171,7 +140,6 @@
         return;
       }
 
-      // Buscar el contenedor del gráfico dentro del modal desplegado o la página
       var chartContainer = document.querySelector(".modal-overlay #apex-combo-chart-days") || document.querySelector("#apex-combo-chart-days");
       if (!chartContainer) return;
 
@@ -223,8 +191,13 @@
         xaxis: {
           type: 'category',
           labels: {
-            rotate: -45,
-            style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }
+            show: false
+          },
+          axisBorder: {
+            show: false
+          },
+          axisTicks: {
+            show: false
           }
         },
         yaxis: {
@@ -256,7 +229,6 @@
       chart.render();
     }
 
-    // MutationObserver para detectar la apertura del modal en el body
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.addedNodes.length) {
