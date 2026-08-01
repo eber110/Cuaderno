@@ -127,8 +127,8 @@
 </div>
 
 <!-- CARGA E INICIALIZACIÓN DE APEXCHARTS EN MODAL DINÁMICO -->
-<link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
-<script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js"></script>
+<!-- <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css"> -->
+<!-- <script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js"></script> -->
 <script>
   (function () {
     var dates = <?= json_encode($chartDates) ?>;

@@ -9,7 +9,12 @@ class LoadViewStyle
    */
   private function fsPathToUrl(string $fsPath): string
   {
-    return str_replace(ROOT_PATH, '', str_replace('\\', '/', $fsPath));
+    $normalizedFs = str_replace('\\', '/', $fsPath);
+    $normalizedRoot = str_replace('\\', '/', defined('ROOT_PATH') ? ROOT_PATH : '');
+    if ($normalizedRoot !== '' && stripos($normalizedFs, $normalizedRoot) === 0) {
+      return substr($normalizedFs, strlen($normalizedRoot));
+    }
+    return str_ireplace($normalizedRoot, '', $normalizedFs);
   }
 
   private function getDirectoryFiles($dir)
@@ -34,132 +39,48 @@ class LoadViewStyle
     return $mimeTypes[$ext] ?? 'font/woff2';
   }
 
-  public function ruteFont($ruteFont = null, $param = '')
+  /**
+   * Precarga automáticamente las fuentes personalizadas activas detectadas por JIT
+   * desde App/Config/preloadFonts.json.
+   * Si no hay fuentes en uso, no inyecta nada (usando tipografía del sistema a máxima velocidad).
+   *
+   * @param string|null $configPath Ruta opcional personalizada al archivo JSON
+   */
+  public function ruteFont(?string $configPath = null): void
   {
-    $foundFonts = [];
-    
-    // 1. Escanear fuentes declaradas explícitamente en font-project.css si existe
-    $fontProjectCss = ROOT_PATH . '/App/Public/Css/font-project.css';
-    if (file_exists($fontProjectCss)) {
-      $cssContent = file_get_contents($fontProjectCss);
-      if (preg_match_all('/url\([\'"]?([^\'")]+)[\'"]?\)/i', $cssContent, $matches)) {
-        foreach ($matches[1] as $fontUrl) {
-          $fontPathClean = '/' . ltrim(parse_url($fontUrl, PHP_URL_PATH), '/');
-          $ext = strtolower(pathinfo($fontPathClean, PATHINFO_EXTENSION));
-          $foundFonts[] = [
-            'path' => $fontPathClean,
-            'name' => strtolower(basename($fontPathClean)),
-            'ext'  => $ext,
-            'isCustom' => true
-          ];
-        }
-      }
+    $jsonFile = $configPath ?? (ROOT_PATH . '/App/Config/preloadFonts.json');
+
+    if (!file_exists($jsonFile)) {
+      return;
     }
 
-    // 2. Escanear el directorio físico de fuentes
-    $fontsDirs = [
-      ROOT_PATH . '/App/Rsc/Fonts',
-      ROOT_PATH . '/App/Rsc/Font'
-    ];
+    $content = file_get_contents($jsonFile);
+    $fonts = json_decode($content, true);
 
-    $validExtensions = ['woff2', 'woff', 'ttf', 'otf'];
-
-    foreach ($fontsDirs as $dir) {
-      if (is_dir($dir)) {
-        try {
-          $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::LEAVES_ONLY
-          );
-          foreach ($iterator as $file) {
-            $ext = strtolower($file->getExtension());
-            if ($file->isFile() && in_array($ext, $validExtensions)) {
-              $realPath = str_replace('\\', '/', $file->getRealPath());
-              $rootPathClean = str_replace('\\', '/', ROOT_PATH);
-              $relativePath = '/' . ltrim(str_replace($rootPathClean, '', $realPath), '/');
-              $foundFonts[] = [
-                'path' => $relativePath,
-                'name' => strtolower($file->getFilename()),
-                'ext'  => $ext,
-                'isCustom' => (strpos($relativePath, 'Alumini-sans') === false && strpos($relativePath, 'Roboto-condensed') === false)
-              ];
-            }
-          }
-        } catch (\Exception $e) {
-          // Ignorar de forma segura cualquier error de escaneo
-        }
-      }
+    if (!is_array($fonts) || empty($fonts)) {
+      return;
     }
 
-    // Si hay fuentes personalizadas del proyecto, darles prioridad sobre las fuentes por defecto
-    $customFonts = array_filter($foundFonts, fn($f) => $f['isCustom']);
-    $targetFonts = !empty($customFonts) ? array_values($customFonts) : $foundFonts;
-
-    // Preferir .woff2 cuando existan múltiples formatos del mismo archivo
-    $groupedByName = [];
-    foreach ($targetFonts as $font) {
-      $baseName = pathinfo($font['name'], PATHINFO_FILENAME);
-      if (!isset($groupedByName[$baseName]) || $font['ext'] === 'woff2') {
-        $groupedByName[$baseName] = $font;
-      }
-    }
-
-    $fontsToPreload = array_values(array_map(fn($f) => $f['path'], $groupedByName));
-
-    // Filtrado inteligente para evitar congestión de red (Core Web Vitals Boost)
-    if (count($fontsToPreload) > 5) {
-      $criticalPreloads = [];
-      foreach ($fontsToPreload as $fontPath) {
-        $lowercaseName = strtolower(basename($fontPath));
-        if (
-          (strpos($lowercaseName, 'regular') !== false || 
-           strpos($lowercaseName, 'normal') !== false || 
-           strpos($lowercaseName, 'medium') !== false || 
-           strpos($lowercaseName, 'bold') !== false || 
-           strpos($lowercaseName, '400') !== false || 
-           strpos($lowercaseName, '500') !== false || 
-           strpos($lowercaseName, '700') !== false) && 
-          strpos($lowercaseName, 'italic') === false
-        ) {
-          $criticalPreloads[] = $fontPath;
-        }
-      }
-
-      if (empty($criticalPreloads)) {
-        foreach ($fontsToPreload as $fontPath) {
-          $lowercaseName = strtolower(basename($fontPath));
-          if (strpos($lowercaseName, 'italic') === false) {
-            $criticalPreloads[] = $fontPath;
-          }
-        }
-      }
-
-      $fontsToPreload = array_slice(!empty($criticalPreloads) ? $criticalPreloads : $fontsToPreload, 0, 5);
-    }
-
-    // Fallback inteligente si no hay fuentes encontradas en el proyecto
-    if (empty($fontsToPreload)) {
-      $fontsToPreload = [
-        '/App/Rsc/Fonts/Roboto-condensed/Roboto_Condensed-Regular.woff2',
-        '/App/Rsc/Fonts/Alumini-sans/AlumniSansSC-Regular.woff2',
-      ];
-    }
-
-    foreach ($fontsToPreload as $fontPath) {
-      $fullPath = ROOT_PATH . '/' . ltrim($fontPath, '/');
+    $preloadedCount = 0;
+    foreach ($fonts as $fontUrl) {
+      $fontPathClean = '/' . ltrim(parse_url($fontUrl, PHP_URL_PATH), '/');
+      $fullPath = ROOT_PATH . $fontPathClean;
       if (file_exists($fullPath)) {
-        $mimeType = $this->getFontMimeType($fontPath);
-        print '<link rel="preload" href="' . URL . ltrim($fontPath, '/') . '" as="font" type="' . $mimeType . '" crossorigin>';
+        $mimeType = $this->getFontMimeType($fontPathClean);
+        print '<link rel="preload" href="' . URL . ltrim($fontPathClean, '/') . '" as="font" type="' . $mimeType . '" crossorigin>';
+        $preloadedCount++;
       }
     }
 
-    print "<script>\n";
-    print "if ('fonts' in document) {\n";
-    print "  document.fonts.ready.then(function() {\n";
-    print "    document.documentElement.classList.add('fonts-loaded');\n";
-    print "  });\n";
-    print "}\n";
-    print "</script>\n";
+    if ($preloadedCount > 0) {
+      print "<script>\n";
+      print "if ('fonts' in document) {\n";
+      print "  document.fonts.ready.then(function() {\n";
+      print "    document.documentElement.classList.add('fonts-loaded');\n";
+      print "  });\n";
+      print "}\n";
+      print "</script>\n";
+    }
   }
 
   public function ruteCss($ruteCss, $param = '')
@@ -211,11 +132,129 @@ class LoadViewStyle
     }
   }
 
-  public function library($rute, $param = null)
+  /**
+   * Carga una librería (o conjunto de archivos CSS y JS) desde App/Rsc/Library/{$rute}
+   * Escanea automáticamente la carpeta para detectar y cargar archivos .css y .js
+   * 
+   * @param string $rute Nombre de la carpeta de la librería o archivo.
+   * @param string|null $param Atributos adicionales para las etiquetas (ej. 'defer', 'async', etc.)
+   */
+  public function library(string $rute, ?string $param = null): void
   {
-    $js = '<script src="' . DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $rute . '.js' .
-      ($param ? ' ' . $param : '') . '"></script>';
+    $ruteClean = trim($rute, '/\\');
+    
+    // Posibles rutas físicas de la librería
+    $searchPaths = [
+      ROOT_PATH . '/App/Rsc/Library/' . $ruteClean,
+      ROOT_PATH . '/App/Rcs/Library/' . $ruteClean,
+      ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $ruteClean,
+    ];
+
+    $libDir = null;
+    $urlBase = null;
+
+    foreach ($searchPaths as $path) {
+      if (is_dir($path)) {
+        $libDir = $path;
+        $urlBase = DOMAIN . ltrim($this->fsPathToUrl($path), '/') . '/';
+        break;
+      }
+    }
+
+    // Caso 1: Es una carpeta con archivos
+    if ($libDir !== null) {
+      $files = $this->getDirectoryFiles($libDir);
+      
+      $cssFiles = [];
+      $jsFiles = [];
+
+      foreach ($files as $file) {
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if ($ext === 'css') {
+          $cssFiles[] = $file;
+        } elseif ($ext === 'js') {
+          $jsFiles[] = $file;
+        }
+      }
+
+      // Excluir CSS redundante en librerías que ya inyectan sus estilos dinámicamente vía JS (ej. ApexCharts)
+      $selfStyledLibs = ['apexcharts'];
+      if (in_array(strtolower($ruteClean), $selfStyledLibs, true)) {
+        $cssFiles = [];
+      }
+
+      // Ordenar JS: archivo principal (que coincide con el nombre de la librería o core) primero
+      usort($jsFiles, function($a, $b) use ($ruteClean) {
+        $aLower = strtolower($a);
+        $bLower = strtolower($b);
+        $ruteLower = strtolower($ruteClean);
+
+        $aIsCore = (strpos($aLower, $ruteLower) !== false || strpos($aLower, 'core') !== false || strpos($aLower, 'main') !== false);
+        $bIsCore = (strpos($bLower, $ruteLower) !== false || strpos($bLower, 'core') !== false || strpos($bLower, 'main') !== false);
+
+        if ($aIsCore && !$bIsCore) return -1;
+        if (!$aIsCore && $bIsCore) return 1;
+        return strcmp($aLower, $bLower);
+      });
+
+      // 1. Inyección de CSS (sin preloads duplicados; el parser del navegador los procesa de inmediato en el <head>)
+      foreach ($cssFiles as $css) {
+        print '<link rel="stylesheet" href="' . $urlBase . $css . '"' . ($param ? ' ' . $param : '') . ' fetchpriority="high">';
+      }
+
+      // 2. Inyección de JS (con defer)
+      $jsParam = $param ?? 'defer';
+      foreach ($jsFiles as $js) {
+        print '<script src="' . $urlBase . $js . '" ' . $jsParam . '></script>';
+      }
+
+      return;
+    }
+
+    // Caso 2: Es un archivo directo o compatibilidad anterior
+    $fileName = pathinfo($ruteClean, PATHINFO_EXTENSION) ? $ruteClean : $ruteClean . '.js';
+    $jsParam = $param ?? 'defer';
+    $js = '<script src="' . DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $fileName . '" ' . $jsParam . '></script>';
     print $js;
+  }
+
+  /**
+   * Carga automáticamente todas las librerías configuradas en loadLibraryJsConfiguration.php
+   * 
+   * @param string|null $configFile Ruta al archivo de configuración
+   */
+  public function loadLibraries(?string $configFile = null): void
+  {
+    if ($configFile === null) {
+      $configFile = ROOT_PATH . '/App/Config/loadLibraryJsConfiguration.php';
+    }
+
+    if (!file_exists($configFile)) {
+      return;
+    }
+
+    $libraries = require $configFile;
+
+    if (!is_array($libraries)) {
+      return;
+    }
+
+    foreach ($libraries as $key => $value) {
+      if (is_string($value)) {
+        // Formato simple de lista: ['Gsap', 'ApexCharts']
+        $this->library($value);
+      } elseif (is_array($value)) {
+        // Formato asociativo o con parámetros: ['Gsap' => ['param' => 'defer']]
+        $libName = is_string($key) ? $key : ($value['name'] ?? null);
+        $param = $value['param'] ?? ($value['attr'] ?? null);
+        if ($libName) {
+          $this->library($libName, $param);
+        }
+      } elseif (is_string($key) && $value === true) {
+        // Formato booleano: ['Gsap' => true, 'ApexCharts' => false]
+        $this->library($key);
+      }
+    }
   }
 
   public function cdn_load($cdn)

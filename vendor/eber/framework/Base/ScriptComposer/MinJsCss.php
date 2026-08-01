@@ -46,8 +46,13 @@ if (is_dir(ROOT_PATH . '/vendor/eber/framework/Resources')) {
 }
 
 $jitOutPath = ROOT_PATH . '/App/Public/Css/jit-compiled.css';
-JitCssModule::generateJitCss($purgePaths, $jitOutPath);
+$words = JitCssModule::generateJitCss($purgePaths, $jitOutPath);
 $cssPaths[] = $jitOutPath;
+
+// Detección y configuración automática de precarga de fuentes activas (JIT Font Preload)
+$fontCssPath = ROOT_PATH . '/App/Public/Css/font-project.css';
+$preloadJsonPath = ROOT_PATH . '/App/Config/preloadFonts.json';
+JitCssModule::generatePreloadFontsConfig($words, $fontCssPath, $preloadJsonPath);
 
 // Flujo original de minificación
 MinifyModule::minifyCss(

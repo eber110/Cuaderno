@@ -10,8 +10,8 @@ $load_style->inlineJsConfig('jsConfig.json');
 // Precargar fuentes críticas (solo Regular weight para inicio rápido)
 $load_style->ruteFont();
 
-// Carga de GSAP con scrollTrigger
-$load_style->gsapLoad(['ScrollTrigger']);
+// Carga automática de librerías configuradas en App/Config/loadLibraryJsConfiguration.php
+$load_style->loadLibraries();
 
 // Precargar el bundle principal de JavaScript modular en paralelo
 $load_style->modulePreloadJs();
