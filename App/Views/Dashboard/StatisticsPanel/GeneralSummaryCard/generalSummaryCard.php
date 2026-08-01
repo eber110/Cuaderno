@@ -5,6 +5,13 @@
    * @var array $viewsByDayOfMonth      Desglose de visitas por día del mes actual
    * @var array $viewsByWeekOfMonth     Desglose de visitas por semana del mes actual
    */
+
+  $chartDates = [];
+  $chartViews = [];
+  foreach ($viewsByDayOfMonth as $d) {
+    $chartDates[] = $d['date_str'] ?? ($d['day_num'] ?? '');
+    $chartViews[] = (int)($d['total'] ?? 0);
+  }
 ?>
 <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
 
@@ -20,25 +27,23 @@
     <span class="text-muted">Clic para ver desglose y gráfico</span>
   </div>
 
-  <!-- MODAL DE DESGLOSE DE VISITAS -->
+  <!-- MODAL DE DESGLOSE DE VISITAS CON GRÁFICO MIXTO / COMBO APEXCHARTS -->
   <div class="hidden">
     <div class="flex-column center-center w100 p20 h-dvh">
-      <!-- Botón de Cierre -->
-      <div class="wpx580 w-sml-100">
+      <div class="wpx600 w-sml-100">
         <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
           <?= svg("xmark", "x20") ?>
         </div>
       </div>
-      <div class="wpx580 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+      <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
         
-  
         <!-- Encabezado del Modal -->
         <div class="flex-column gap5">
           <h3 class="bold700 x20 flex-row center-start gap10 textb">
-            <?= svg("chart", "x20") ?> Desglose de Visitas
+            <?= svg("chart", "x20") ?> Desglose de Visitas y Gráfico
           </h3>
           <p class="text-muted">
-            Estadísticas detalladas por día, semana y acumulado histórico.
+            Estadísticas detalladas por día, semana y gráfico interactivo Combo (Línea + Barras).
           </p>
         </div>
   
@@ -57,6 +62,17 @@
         </div>
   
         <div class="w100 border-top"></div>
+
+        <!-- SECCIÓN DE GRÁFICO MIXTO / COMBO (APEXCHARTS) -->
+        <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-row center-between">
+            <h4 class="bold600 x20 flex-row center-start gap5 textb">
+              <?= svg("chart", "x16") ?> Gráfico Mixto (Barras + Tendencia)
+            </h4>
+            <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+          </div>
+          <div id="apex-combo-chart-days" class="w100" style="min-height: 260px;"></div>
+        </div>
   
         <!-- SECCIÓN A: Desglose por Día del Mes -->
         <div class="flex-column gap10 w100" id="chart-data-days-month">
@@ -140,3 +156,109 @@
   </div>
 
 </div>
+
+<!-- CARGA E INICIALIZACIÓN DE APEXCHARTS COMBO/MIXED CHART -->
+<link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
+<script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js"></script>
+<script>
+  (function () {
+    var dates = <?= json_encode($chartDates) ?>;
+    var views = <?= json_encode($chartViews) ?>;
+
+    function initComboChart() {
+      if (typeof ApexCharts === 'undefined') {
+        setTimeout(initComboChart, 100);
+        return;
+      }
+
+      var containers = document.querySelectorAll("#apex-combo-chart-days");
+      containers.forEach(function (container) {
+        if (container.dataset.rendered === "true") return;
+        container.dataset.rendered = "true";
+
+        var options = {
+          series: [
+            {
+              name: 'Visitas Diarias',
+              type: 'column',
+              data: views
+            },
+            {
+              name: 'Tendencia de Tráfico',
+              type: 'line',
+              data: views
+            }
+          ],
+          chart: {
+            height: 270,
+            type: 'line',
+            toolbar: { show: false },
+            animations: {
+              enabled: true,
+              easing: 'easeinout',
+              speed: 800
+            }
+          },
+          stroke: {
+            width: [0, 3],
+            curve: 'smooth'
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '45%',
+              borderRadius: 5
+            }
+          },
+          colors: ['#dc2626', '#2563eb'],
+          labels: dates,
+          markers: {
+            size: 4,
+            strokeWidth: 2,
+            hover: { size: 6 }
+          },
+          xaxis: {
+            type: 'category',
+            labels: {
+              rotate: -45,
+              style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }
+            }
+          },
+          yaxis: {
+            labels: {
+              style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
+              formatter: function (val) { return Math.round(val); }
+            }
+          },
+          grid: {
+            borderColor: '#e2e8f0',
+            strokeDashArray: 4
+          },
+          tooltip: {
+            shared: true,
+            intersect: false,
+            theme: 'dark',
+            y: {
+              formatter: function (y) {
+                if (typeof y !== "undefined") {
+                  return y.toFixed(0) + " visitas";
+                }
+                return y;
+              }
+            }
+          }
+        };
+
+        var chart = new ApexCharts(container, options);
+        chart.render();
+      });
+    }
+
+    // Inicializar al cargar el DOM y al hacer clic en ver modal
+    document.addEventListener("DOMContentLoaded", initComboChart);
+    document.addEventListener("click", function(e) {
+      if (e.target.closest('.modal-btn')) {
+        setTimeout(initComboChart, 150);
+      }
+    });
+  })();
+</script>
