@@ -42,10 +42,10 @@
     ];
     if (empty($socialStats)) {
       $socialStats = [
-        ['key' => 'instagram', 'name' => 'Instagram',       'icon' => 'instagram', 'total' => 74, 'bestDay' => 'Miércoles', 'bestHour' => '20:00 - 21:00'],
-        ['key' => 'tiktok',    'name' => 'TikTok',          'icon' => 'tiktok',    'total' => 41, 'bestDay' => 'Viernes',   'bestHour' => '22:00 - 23:00'],
-        ['key' => 'facebook',  'name' => 'Facebook',        'icon' => 'facebook',  'total' => 28, 'bestDay' => 'Domingo',   'bestHour' => '15:00 - 16:00'],
-        ['key' => 'direct',    'name' => 'Tráfico Directo', 'icon' => 'globe',     'total' => 35, 'bestDay' => 'Lunes',     'bestHour' => '12:00 - 13:00']
+        ['key' => 'instagram', 'name' => 'Instagram',       'icon' => 'instagram',   'total' => 74, 'bestDay' => 'Miércoles', 'bestHour' => '20:00 - 21:00'],
+        ['key' => 'tiktok',    'name' => 'TikTok',          'icon' => 'tiktok',      'total' => 41, 'bestDay' => 'Viernes',   'bestHour' => '22:00 - 23:00'],
+        ['key' => 'facebook',  'name' => 'Facebook',        'icon' => 'facebook',    'total' => 28, 'bestDay' => 'Domingo',   'bestHour' => '15:00 - 16:00'],
+        ['key' => 'direct',    'name' => 'Tráfico Directo', 'icon' => 'globe-solid', 'total' => 35, 'bestDay' => 'Lunes',     'bestHour' => '12:00 - 13:00']
       ];
     }
     if (empty($devices)) {
@@ -171,7 +171,7 @@
     <div class="flex-row center-between wrap gap10">
       <div>
         <h4 class="bold700 x18 flex-row center-start gap10">
-          <?= svg("share", "x22") ?> Rendimiento y Horarios por Red Social
+          <?= svg("share-from", "x22") ?> Rendimiento y Horarios por Red Social
         </h4>
         <p class="text-muted x13">Desglose de visitas, día pico y hora óptima según la fuente de tráfico (Referrer)</p>
       </div>

@@ -176,14 +176,14 @@ class StatisticsModels extends Builder {
    */
   private static function getSocialNetworksStats($pdo, string $userClean): array {
     $networksConfig = [
-      'instagram' => ['name' => 'Instagram',       'icon' => 'instagram', 'patterns' => ['%instagram%']],
-      'tiktok'    => ['name' => 'TikTok',          'icon' => 'tiktok',    'patterns' => ['%tiktok%']],
-      'facebook'  => ['name' => 'Facebook',        'icon' => 'facebook',  'patterns' => ['%facebook%']],
-      'twitter'   => ['name' => 'Twitter / X',     'icon' => 'twitter',   'patterns' => ['%twitter%', '%t.co%', '%x.com%']],
-      'youtube'   => ['name' => 'YouTube',         'icon' => 'youtube',   'patterns' => ['%youtube%']],
-      'linkedin'  => ['name' => 'LinkedIn',        'icon' => 'linkedin',  'patterns' => ['%linkedin%']],
-      'google'    => ['name' => 'Google',          'icon' => 'google',    'patterns' => ['%google%']],
-      'direct'    => ['name' => 'Tráfico Directo', 'icon' => 'globe',     'patterns' => ['']]
+      'instagram' => ['name' => 'Instagram',       'icon' => 'instagram',   'patterns' => ['%instagram%']],
+      'tiktok'    => ['name' => 'TikTok',          'icon' => 'tiktok',      'patterns' => ['%tiktok%']],
+      'facebook'  => ['name' => 'Facebook',        'icon' => 'facebook',    'patterns' => ['%facebook%']],
+      'twitter'   => ['name' => 'Twitter / X',     'icon' => 'x',           'patterns' => ['%twitter%', '%t.co%', '%x.com%']],
+      'youtube'   => ['name' => 'YouTube',         'icon' => 'globe-solid', 'patterns' => ['%youtube%']],
+      'linkedin'  => ['name' => 'LinkedIn',        'icon' => 'linkedin',    'patterns' => ['%linkedin%']],
+      'google'    => ['name' => 'Google',          'icon' => 'google',      'patterns' => ['%google%']],
+      'direct'    => ['name' => 'Tráfico Directo', 'icon' => 'globe-solid', 'patterns' => ['']]
     ];
 
     $dayMap = [
