@@ -299,6 +299,47 @@ class StatisticsModels extends Builder {
         $topLinks = $rawFormattedLinks;
       }
 
+      // 5.5 Clics Exclusivos en Redes Sociales (RRSS)
+      $stmtTopRrss = $pdo->prepare("
+        SELECT link_id, COUNT(*) as total
+        FROM link_clicks
+        WHERE profile_id = :user 
+          AND strftime('%Y-%m', created_at) = :activeMonth
+          AND (link_id LIKE 'rrss_%' OR LOWER(link_id) IN ('github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp'))
+        GROUP BY link_id
+        ORDER BY total DESC
+      ");
+      $stmtTopRrss->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
+      $rawTopRrss = $stmtTopRrss->fetchAll() ?: [];
+
+      $rrssClicksMap = [];
+      $totalRrssClicks = 0;
+      foreach ($rawTopRrss as $l) {
+        $rawId = trim($l['link_id'] ?? '');
+        if (empty($rawId)) continue;
+
+        $netKey = str_replace('rrss_', '', strtolower($rawId));
+        $netTitle = $netNamesMap[$netKey] ?? (ucwords($netKey) . " (Red Social)");
+        $displayName = (mb_strlen($netTitle, 'UTF-8') > 22) ? mb_strimwidth($netTitle, 0, 20, '...', 'UTF-8') : $netTitle;
+
+        if (!isset($rrssClicksMap[$displayName])) {
+          $rrssClicksMap[$displayName] = 0;
+        }
+        $val = (int)$l['total'];
+        $rrssClicksMap[$displayName] += $val;
+        $totalRrssClicks += $val;
+      }
+
+      arsort($rrssClicksMap);
+      $rrssLinks = [];
+      foreach ($rrssClicksMap as $name => $tot) {
+        $rrssLinks[] = [
+          'link_id'   => $name,
+          'link_name' => $name,
+          'total'     => $tot
+        ];
+      }
+
       // 6. Desglose por tipo de dispositivo del Mes Activo
       $stmtDevices = $pdo->prepare("
         SELECT device_type, COUNT(*) as total 
@@ -425,6 +466,8 @@ class StatisticsModels extends Builder {
         "viewsByDayOfMonth"   => $viewsByDayOfMonth,
         "viewsByWeekOfMonth"  => $viewsByWeekOfMonth,
         "topLinks"            => $topLinks,
+        "totalRrssClicks"     => $totalRrssClicks,
+        "rrssLinks"           => $rrssLinks,
         "devices"             => $devices,
         "browsers"            => $browsers,
         "countries"           => $countries,

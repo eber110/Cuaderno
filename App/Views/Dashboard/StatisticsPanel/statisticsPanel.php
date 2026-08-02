@@ -103,6 +103,18 @@
     }
   }
 
+  $totalRrssClicks    = $stats["totalRrssClicks"] ?? 0;
+  $rrssLinks          = $stats["rrssLinks"] ?? [];
+
+  if ($isSample && empty($rrssLinks)) {
+    $totalRrssClicks = 28;
+    $rrssLinks = [
+      ['link_id' => 'github',   'link_name' => 'GitHub (Red Social)',   'total' => 15],
+      ['link_id' => 'linkedin', 'link_name' => 'LinkedIn (Red Social)', 'total' => 8],
+      ['link_id' => 'x',        'link_name' => 'X / Twitter (Red)',     'total' => 5]
+    ];
+  }
+
   $data = [
     'isSample'           => $isSample,
     'userProfile'        => $userProfile,
@@ -111,6 +123,8 @@
     'viewsByDayOfMonth'  => $viewsByDayOfMonth,
     'viewsByWeekOfMonth' => $viewsByWeekOfMonth,
     'topLinks'           => $topLinks,
+    'totalRrssClicks'    => $totalRrssClicks,
+    'rrssLinks'          => $rrssLinks,
     'recommendation'     => $recommendation,
     'socialStats'        => $socialStats,
     'topDays'            => $topDays,

@@ -11,6 +11,8 @@
  * 7. Gráfico Stacked Column por Red Social (Rendimiento por Día de la Semana y Franja Horaria)
  * 8. Gráfico Directo de Línea con Data Labels para Horarios Más Concurridos
  * 9. Gráfico Directo de Columnas con Data Labels para Días Más Visitados
+ * 10. Medidor Radial / Gauge Chart para CTR Global
+ * 11. Gráfico Horizontal Dynamic Loaded para Clics en Redes Sociales
  */
 export function generalSummaryChart() {
   /**
@@ -658,6 +660,159 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 10. Renderiza el gráfico de Medidor Radial / Gauge para CTR Global
+   */
+  function renderCtrGaugeChart() {
+    const container = document.querySelector('.chart-ctr-gauge');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let ctrVal = 0;
+    try {
+      if (container.dataset.ctrValue) ctrVal = parseFloat(container.dataset.ctrValue) || 0;
+    } catch (e) {
+      console.error('Error al parsear datos en renderCtrGaugeChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+
+    const options = {
+      series: [Math.min(100, Math.max(0, ctrVal))],
+      chart: {
+        type: 'radialBar',
+        height: 220,
+        sparkline: { enabled: true }
+      },
+      plotOptions: {
+        radialBar: {
+          startAngle: -135,
+          endAngle: 135,
+          hollow: {
+            margin: 0,
+            size: '70%',
+            background: 'transparent'
+          },
+          track: {
+            background: themeColors.gridBorder,
+            strokeWidth: '100%',
+            margin: 0
+          },
+          dataLabels: {
+            name: {
+              show: true,
+              fontSize: '13px',
+              fontWeight: '600',
+              color: themeColors.axisText,
+              offsetY: -10,
+              formatter: () => 'CTR Global'
+            },
+            value: {
+              offsetY: 5,
+              fontSize: '22px',
+              fontWeight: '700',
+              color: '#2563eb',
+              formatter: (val) => `${val.toFixed(1)}%`
+            }
+          }
+        }
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'dark',
+          type: 'horizontal',
+          shadeIntensity: 0.5,
+          gradientToColors: ['#10b981'],
+          inverseColors: true,
+          opacityFrom: 1,
+          opacityTo: 1,
+          stops: [0, 100]
+        }
+      },
+      colors: ['#2563eb'],
+      stroke: { lineCap: 'round' }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
+  /**
+   * 11. Renderiza el gráfico Horizontal Dynamic Loaded para Clics en Redes Sociales
+   */
+  function renderRrssLinksChart() {
+    const container = document.querySelector('.modal-overlay .chart-summary-rrss-links');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let links  = [];
+    let clicks = [];
+
+    try {
+      if (container.dataset.chartLinks)      links  = JSON.parse(container.dataset.chartLinks);
+      if (container.dataset.chartLinkClicks) clicks = JSON.parse(container.dataset.chartLinkClicks);
+    } catch (e) {
+      console.error('Error al parsear datos en renderRrssLinksChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+    const dynamicHeight = Math.max(200, links.length * 45);
+
+    const options = {
+      series: [{ name: 'Clics RRSS', data: clicks }],
+      chart: {
+        type: 'bar',
+        height: dynamicHeight,
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          horizontal: true,
+          distributed: true,
+          barHeight: '55%'
+        }
+      },
+      colors: distributedColors,
+      dataLabels: {
+        enabled: true,
+        textAnchor: 'start',
+        style: { colors: ['#ffffff'], fontWeight: 600, fontSize: '11px' },
+        formatter: (val) => `${val} clics`,
+        offsetX: 5
+      },
+      xaxis: {
+        categories: links,
+        labels: { show: false },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          align: 'left',
+          minWidth: 140,
+          maxWidth: 170,
+          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
+        }
+      },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      legend: { show: false },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} clics registrados` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -672,13 +827,15 @@ export function generalSummaryChart() {
     renderSocialStackedCharts();
     renderPeakHoursLineChart();
     renderPeakDaysColumnChart();
+    renderCtrGaugeChart();
+    renderRrssLinksChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column, .chart-ctr-gauge, .chart-summary-rrss-links'))) {
             setTimeout(renderAllCharts, 120);
           }
         });
