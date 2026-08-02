@@ -99,7 +99,7 @@
               <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
                 <div class="flex-row center-between">
                   <h4 class="bold600 x20 flex-row center-start gap5 textb">
-                    <?= svg("chart-column-solid", "x20") ?> Rendimiento Semanal (Día y Horarios)
+                    <?= svg("chart", "x20") ?> Rendimiento Semanal (Día y Horarios)
                   </h4>
                 </div>
                 <p class="text-muted">
