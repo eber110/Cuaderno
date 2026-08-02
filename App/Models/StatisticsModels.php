@@ -99,12 +99,19 @@ class StatisticsModels extends Builder {
         $activeMonth = $stmtLatestMonth->fetch()['active_month'] ?? $currentLocalMonth;
       }
 
-      // 1. Resumen de Métricas del Mes Activo
+      // 1. Resumen de Métricas del Mes Activo (Solo Clics en Enlaces del Widget de Contenido)
       $stmtMonthViews = $pdo->prepare("SELECT COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views FROM profile_views WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth");
       $stmtMonthViews->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $monthViewsData = $stmtMonthViews->fetch() ?: ['total_views' => 0, 'unique_views' => 0];
 
-      $stmtMonthClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks FROM link_clicks WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth");
+      $stmtMonthClicks = $pdo->prepare("
+        SELECT COUNT(*) as total_clicks 
+        FROM link_clicks 
+        WHERE profile_id = :user 
+          AND strftime('%Y-%m', created_at) = :activeMonth
+          AND link_id NOT LIKE 'rrss_%'
+          AND LOWER(link_id) NOT IN ('github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp')
+      ");
       $stmtMonthClicks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $monthClicksData = $stmtMonthClicks->fetch() ?: ['total_clicks' => 0];
 
@@ -125,7 +132,13 @@ class StatisticsModels extends Builder {
       $stmtAllViews->execute([":user" => $userClean]);
       $allViewsData = $stmtAllViews->fetch() ?: ['total_views_all_time' => 0, 'unique_views_all_time' => 0];
 
-      $stmtAllClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks_all_time FROM link_clicks WHERE profile_id = :user");
+      $stmtAllClicks = $pdo->prepare("
+        SELECT COUNT(*) as total_clicks_all_time 
+        FROM link_clicks 
+        WHERE profile_id = :user
+          AND link_id NOT LIKE 'rrss_%'
+          AND LOWER(link_id) NOT IN ('github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp')
+      ");
       $stmtAllClicks->execute([":user" => $userClean]);
       $allClicksCount = (int)($stmtAllClicks->fetch()['total_clicks_all_time'] ?? 0);
 
@@ -135,7 +148,7 @@ class StatisticsModels extends Builder {
         'total_clicks' => $allClicksCount
       ];
 
-      // 3. Desglose de Visitas y Clics por Día del Mes Activo
+      // 3. Desglose de Visitas y Clics por Día del Mes Activo (Solo Enlaces del Widget)
       $stmtDayMonthViews = $pdo->prepare("
         SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views
         FROM profile_views
@@ -149,7 +162,10 @@ class StatisticsModels extends Builder {
       $stmtDayMonthClicks = $pdo->prepare("
         SELECT strftime('%Y-%m-%d', created_at) as date_str, COUNT(*) as total_clicks
         FROM link_clicks
-        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
+        WHERE profile_id = :user 
+          AND strftime('%Y-%m', created_at) = :activeMonth
+          AND link_id NOT LIKE 'rrss_%'
+          AND LOWER(link_id) NOT IN ('github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp')
         GROUP BY date_str
         ORDER BY date_str ASC
       ");
@@ -195,11 +211,14 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Top Enlaces más Clicados del Mes Activo (Content Links + RRSS)
+      // 5. Top Enlaces más Clicados del Mes Activo (Solo Enlaces del Widget de Contenido)
       $stmtTopLinks = $pdo->prepare("
         SELECT link_id, COUNT(*) as total
         FROM link_clicks
-        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
+        WHERE profile_id = :user 
+          AND strftime('%Y-%m', created_at) = :activeMonth
+          AND link_id NOT LIKE 'rrss_%'
+          AND LOWER(link_id) NOT IN ('github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp')
         GROUP BY link_id
         ORDER BY total DESC
       ");
@@ -212,14 +231,14 @@ class StatisticsModels extends Builder {
       foreach ($rawTopLinks as $l) {
         $rawId = trim($l['link_id'] ?? '');
         if (empty($rawId)) continue;
+        if (strpos($rawId, 'rrss_') === 0 || in_array(strtolower($rawId), ['github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp'])) {
+          continue; // Excluir redes sociales de los enlaces del widget
+        }
 
-        if (isset($linkTitleMap[$rawId])) {
+        if (isset($linkTitleMap[$rawId]) && strpos($rawId, 'rrss_') !== 0 && !in_array(strtolower($rawId), ['github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp'])) {
           $realName = $linkTitleMap[$rawId];
         } else {
-          if (strpos($rawId, 'rrss_') === 0) {
-            $netKey = str_replace('rrss_', '', $rawId);
-            $realName = $netNamesMap[$netKey] ?? (ucwords($netKey) . " (Red)");
-          } elseif (preg_match('/(\d+)/', $rawId, $matches)) {
+          if (preg_match('/(\d+)/', $rawId, $matches)) {
             $num = (int)$matches[1];
             if (isset($userContent[$num - 1]['title'])) {
               $realName = $userContent[$num - 1]['title'];

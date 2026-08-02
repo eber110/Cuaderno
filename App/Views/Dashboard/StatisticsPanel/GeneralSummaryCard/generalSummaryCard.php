@@ -101,7 +101,7 @@
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
           <p class="text-muted">
-            Compara la cantidad total de visitas por día (barras) con la cantidad de clics en tus enlaces (línea) para evaluar la conversión diaria de tus usuarios.
+            Compara la cantidad total de visitas por día (barras) con la cantidad de clics en los enlaces de tu widget (línea) para evaluar la conversión diaria de tus usuarios.
           </p>
           <div class="chart-summary-combo w100" 
                style="min-height: 270px;"
@@ -219,7 +219,7 @@
     </div>
   </div>
 
-  <!-- 3. Card Total Clics (Del Mes) con Modal de Desglose Integrado -->
+  <!-- 3. Card Total Clics (Del Mes) con Modal de Desglose Integrado (Solo Enlaces del Widget) -->
   <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
     <div class="flex-row center-center w100">
       <span class="text-muted bold500">Total Clics (Mes)</span>
@@ -228,7 +228,7 @@
     <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver desglose y gráfico</span>
   </div>
 
-  <!-- MODAL DE DESGLOSE DE TOTAL CLICS -->
+  <!-- MODAL DE DESGLOSE DE TOTAL CLICS DE ENLACES DEL WIDGET -->
   <div class="hidden">
     <div class="flex-column center-center w100 p20 h-dvh">
       <div class="wpx600 w-sml-100">
@@ -241,10 +241,10 @@
         <!-- Encabezado del Modal -->
         <div class="flex-column gap5">
           <h3 class="bold700 x20 flex-row center-start gap10 textb">
-            <?= svg("chart", "x20") ?> Desglose de Clics y Rendimiento
+            <?= svg("chart", "x20") ?> Desglose de Clics en Enlaces del Widget
           </h3>
           <p class="text-muted">
-            Análisis detallado de interacción en tus botones y enlaces con ranking de enlaces más populares.
+            Análisis detallado de interacción en los enlaces principales de tu widget (las redes sociales se miden por separado).
           </p>
         </div>
   
@@ -253,12 +253,12 @@
           <div class="flex-column p15 br12 border-item-panel back-body gap3">
             <span class="text-muted bold500">Clics Históricos</span>
             <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['total_clicks'] ?? 0) ?></span>
-            <span class="text-muted">Total acumulado de clics</span>
+            <span class="text-muted">Total acumulado en enlaces</span>
           </div>
           <div class="flex-column p15 br12 border-item-panel back-body gap3">
             <span class="text-muted bold500">Clics Mes Actual</span>
             <span class="x22 bold700 textb"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
-            <span class="text-muted">Interacciones este mes</span>
+            <span class="text-muted">Interacciones en enlaces</span>
           </div>
         </div>
   
@@ -273,7 +273,7 @@
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
           <p class="text-muted">
-            Muestra la cantidad total de clics registrados en tus enlaces día a día durante el mes activo.
+            Muestra la cantidad total de clics registrados exclusivamente en los enlaces de tu widget día a día durante el mes activo.
           </p>
           <div class="chart-summary-clicks-daily w100" 
                style="min-height: 270px;"
@@ -291,7 +291,7 @@
             <span class="text-muted font-mono"><?= count($topLinks) ?> enlaces</span>
           </div>
           <p class="text-muted">
-            Ranking de los enlaces y botones con mayor cantidad de interacción acumulada durante este mes.
+            Ranking de los enlaces y botones de tu widget con mayor cantidad de interacción acumulada (las redes sociales se miden en su propia sección).
           </p>
           <div class="chart-summary-top-links w100" 
                style="min-height: 230px;"
