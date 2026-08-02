@@ -484,7 +484,7 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 8. Renderiza el gráfico directo de Línea con Data Labels Visibles para Horarios Más Concurridos
+   * 8. Renderiza el gráfico directo de Línea con Data Labels Visibles en Fondo Azul Oscuro/Vibrante
    */
   function renderPeakHoursLineChart() {
     const container = document.querySelector('.chart-peak-hours-line');
@@ -524,12 +524,14 @@ export function generalSummaryChart() {
         enabled: true,
         background: {
           enabled: true,
-          color: '#1e293b',
-          borderRadius: 6,
+          foreColor: '#ffffff',
+          color: '#2563eb',
+          borderRadius: 4,
           padding: 6,
           borderWidth: 1,
-          borderColor: '#334155',
-          opacity: 1
+          borderColor: '#1d4ed8',
+          opacity: 1,
+          dropShadow: { enabled: true, top: 1, left: 1, blur: 2, opacity: 0.3 }
         },
         style: {
           fontSize: '12px',
