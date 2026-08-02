@@ -157,7 +157,10 @@
   <!-- 6. Desglose por Dispositivos y Navegadores (In-App) -->
   <?php _part("Dashboard.devicesBrowsersCard", $data); ?>
 
-  <!-- 7. Ubicaciones Principales (Países) y Fuentes de Tráfico (Referrers) -->
+  <!-- 7. Ranking de Países Visitantes (Gráfico y Resumen) -->
+  <?php _part("Dashboard.countryRankingCard", $data); ?>
+
+  <!-- 8. Fuentes de Tráfico (Referrers) y Ubicaciones -->
   <?php _part("Dashboard.locationsSourcesCard", $data); ?>
 
 </div>

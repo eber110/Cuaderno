@@ -1003,6 +1003,84 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 14. Renderiza el gráfico Horizontal Directo (Ranking de Países Visitantes)
+   */
+  function renderCountriesRankingChart() {
+    const container = document.querySelector('.chart-countries-ranking');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let labels = [];
+    let totals = [];
+
+    try {
+      if (container.dataset.chartLabels) labels = JSON.parse(container.dataset.chartLabels);
+      if (container.dataset.chartTotals) totals = JSON.parse(container.dataset.chartTotals);
+    } catch (e) {
+      console.error('Error al parsear datos en renderCountriesRankingChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+    const dynamicHeight = Math.max(260, labels.length * 45);
+
+    const options = {
+      series: [{ name: 'Visitas', data: totals }],
+      chart: {
+        type: 'bar',
+        height: dynamicHeight,
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          horizontal: true,
+          distributed: true,
+          barHeight: '60%'
+        }
+      },
+      colors: distributedColors,
+      dataLabels: {
+        enabled: true,
+        textAnchor: 'start',
+        style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
+        formatter: (val) => `${val} visitas`,
+        offsetX: 10
+      },
+      xaxis: {
+        categories: labels,
+        labels: { show: false },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          align: 'left',
+          offsetX: 0,
+          minWidth: 110,
+          maxWidth: 150,
+          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
+        }
+      },
+      grid: {
+        borderColor: themeColors.gridBorder,
+        strokeDashArray: 4,
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
+      },
+      legend: { show: false },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} visitas registradas` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -1021,13 +1099,14 @@ export function generalSummaryChart() {
     renderRrssLinksChart();
     renderDevicesDonutChart();
     renderBrowsersBarChart();
+    renderCountriesRankingChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column, .chart-ctr-gauge, .chart-summary-rrss-links, .chart-devices-donut, .chart-browsers-bar'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column, .chart-ctr-gauge, .chart-summary-rrss-links, .chart-devices-donut, .chart-browsers-bar, .chart-countries-ranking'))) {
             setTimeout(renderAllCharts, 120);
           }
         });

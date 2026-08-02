@@ -363,14 +363,14 @@ class StatisticsModels extends Builder {
       $stmtBrowsers->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $browsers = $stmtBrowsers->fetchAll() ?: [];
 
-      // 8. Desglose por ubicación geográfica (Países) del Mes Activo
+      // 8. Desglose por ubicación geográfica (Países) del Mes Activo (Top 10)
       $stmtCountries = $pdo->prepare("
         SELECT country_name, country_code, COUNT(*) as total 
         FROM profile_views 
         WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth 
         GROUP BY country_name 
         ORDER BY total DESC 
-        LIMIT 5
+        LIMIT 10
       ");
       $stmtCountries->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $countries = $stmtCountries->fetchAll() ?: [];
