@@ -2,17 +2,19 @@
   /** 
    * @var array $summary                Métricas del mes actual (total_views, unique_views, total_clicks, ctr)
    * @var array $allTimeSummary         Métricas históricas acumuladas (total_views, unique_views, total_clicks)
-   * @var array $viewsByDayOfMonth      Desglose de visitas y clics por día del mes actual
+   * @var array $viewsByDayOfMonth      Desglose de visitas, visitas únicas y clics por día del mes actual
    * @var array $viewsByWeekOfMonth     Desglose de visitas y visitas únicas por semana del mes actual
    */
 
-  $chartDates  = [];
-  $chartViews  = [];
-  $chartClicks = [];
+  $chartDates       = [];
+  $chartViews       = [];
+  $chartClicks      = [];
+  $chartUniqueViews = [];
   foreach ($viewsByDayOfMonth as $d) {
-    $chartDates[]  = $d['date_str'] ?? ($d['day_num'] ?? '');
-    $chartViews[]  = (int)($d['total_views'] ?? $d['total'] ?? 0);
-    $chartClicks[] = (int)($d['total_clicks'] ?? 0);
+    $chartDates[]       = $d['date_str'] ?? ($d['day_num'] ?? '');
+    $chartViews[]       = (int)($d['total_views'] ?? $d['total'] ?? 0);
+    $chartClicks[]      = (int)($d['total_clicks'] ?? 0);
+    $chartUniqueViews[] = (int)($d['unique_views'] ?? 0);
   }
 
   $weekLabels  = [];
@@ -102,7 +104,6 @@
             <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
           </div>
   
-          <!-- Contenedor para el gráfico de barras horizontales multicolor -->
           <div class="chart-summary-weeks w100" 
                style="min-height: 220px;"
                data-chart-weeks='<?= json_encode($weekLabels) ?>'
@@ -123,10 +124,10 @@
       </span>
     </div>
     <span class="x22 bold700 text-primary"><?= number_format($summary['unique_views'] ?? 0) ?></span>
-    <span class="text-muted">Clic para ver desglose por semana</span>
+    <span class="text-muted">Clic para ver desglose y gráfico</span>
   </div>
 
-  <!-- MODAL DE DESGLOSE DE VISITAS ÚNICAS (GRÁFICO HORIZONTAL DYNAMIC LOADED) -->
+  <!-- MODAL DE DESGLOSE DE VISITAS ÚNICAS -->
   <div class="hidden">
     <div class="flex-column center-center w100 p20 h-dvh">
       <div class="wpx600 w-sml-100">
@@ -142,7 +143,7 @@
             <?= svg("chart", "x20") ?> Desglose de Visitas Únicas
           </h3>
           <p class="text-muted">
-            Análisis de usuarios únicos (IPs distintas) registrados semana a semana en el mes activo.
+            Análisis de usuarios únicos (IPs distintas) registrados por día y semana en el mes activo.
           </p>
         </div>
   
@@ -162,15 +163,29 @@
   
         <div class="w100 border-top"></div>
 
-        <!-- SECCIÓN: GRÁFICO HORIZONTAL DYNAMIC LOADED DE VISITAS ÚNICAS POR SEMANA -->
+        <!-- SECCIÓN A: GRÁFICO DE BARRAS DE VISITAS ÚNICAS POR DÍA (SOLO BARRAS) -->
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap5 textb">
-              <?= svg("chart", "x16") ?> Visitas Únicas por Semana
+              <?= svg("chart", "x16") ?> Visitas Únicas por Día (Mes Actual)
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
-          <!-- Contenedor desacoplado con barras horizontales multicolor -->
+          <div class="chart-summary-uniques-combo w100" 
+               style="min-height: 270px;"
+               data-chart-dates='<?= json_encode($chartDates) ?>'
+               data-chart-uniques='<?= json_encode($chartUniqueViews) ?>'>
+          </div>
+        </div>
+
+        <!-- SECCIÓN B: GRÁFICO HORIZONTAL DYNAMIC LOADED DE VISITAS ÚNICAS POR SEMANA -->
+        <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-row center-between">
+            <h4 class="bold600 x20 flex-row center-start gap5 textb">
+              <?= svg("clock", "x16") ?> Visitas Únicas por Semana
+            </h4>
+            <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
+          </div>
           <div class="chart-summary-uniques-weeks w100" 
                style="min-height: 230px;"
                data-chart-weeks='<?= json_encode($weekLabels) ?>'

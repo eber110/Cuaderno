@@ -4,7 +4,8 @@
  * Gestiona desacopladamente:
  * 1. Gráfico Mixto / Combo (Visitas Diarias [Barras] vs Clics Diarios [Línea])
  * 2. Gráfico Horizontal Dynamic Loaded (Visitas por Semana)
- * 3. Gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
+ * 3. Gráfico de Barras de Visitas Únicas por Día (Solo Barras)
+ * 4. Gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
  */
 export function generalSummaryChart() {
   /**
@@ -163,7 +164,55 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 3. Renderiza el gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
+   * 3. Renderiza el gráfico de Barras de Visitas Únicas por Día (Solo Barras)
+   */
+  function renderUniquesComboChart() {
+    const container = document.querySelector('.modal-overlay .chart-summary-uniques-combo');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let dates   = [];
+    let uniques = [];
+
+    try {
+      if (container.dataset.chartDates)   dates   = JSON.parse(container.dataset.chartDates);
+      if (container.dataset.chartUniques) uniques = JSON.parse(container.dataset.chartUniques);
+    } catch (e) {
+      console.error('Error al parsear datos en renderUniquesComboChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+
+    const options = {
+      series: [
+        { name: 'Visitas Únicas', data: uniques }
+      ],
+      chart: {
+        height: 260,
+        type: 'bar',
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: { bar: { columnWidth: '45%', borderRadius: 5 } },
+      colors: [themeColors.barPrimary],
+      labels: dates,
+      xaxis: { type: 'category', labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
+      yaxis: { labels: { style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} visitas únicas` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
+  /**
+   * 4. Renderiza el gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
    */
   function renderUniquesWeekChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-uniques-weeks');
@@ -238,6 +287,7 @@ export function generalSummaryChart() {
     }
     renderComboChart();
     renderWeekChart();
+    renderUniquesComboChart();
     renderUniquesWeekChart();
   }
 
@@ -245,7 +295,7 @@ export function generalSummaryChart() {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-weeks'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks'))) {
             setTimeout(renderAllCharts, 120);
           }
         });
