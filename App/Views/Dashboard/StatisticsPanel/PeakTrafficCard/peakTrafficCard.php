@@ -8,20 +8,25 @@
   
   <!-- Días Más Visitados (Gráfico de Columnas Directo con Data Labels) -->
   <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
-    <div class="flex-row center-between wrap gap5">
-      <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
-      <?php if (!empty($topDays)) : 
-        $peakDay = $topDays[0];
-        foreach ($topDays as $td) {
-          if ((int)($td['total'] ?? 0) > (int)($peakDay['total'] ?? 0)) {
-            $peakDay = $td;
+    <div class="flex-column gap5">
+      <div class="flex-row center-between wrap gap5">
+        <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
+        <?php if (!empty($topDays)) : 
+          $peakDay = $topDays[0];
+          foreach ($topDays as $td) {
+            if ((int)($td['total'] ?? 0) > (int)($peakDay['total'] ?? 0)) {
+              $peakDay = $td;
+            }
           }
-        }
-      ?>
-        <span class="p5 pl10 pr10 br50 back-primary textw bold600">
-          Día Pico: <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
-        </span>
-      <?php endif; ?>
+        ?>
+          <span class="p5 pl10 pr10 br50 back-primary textw bold600">
+            Día Pico: <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
+          </span>
+        <?php endif; ?>
+      </div>
+      <p class="text-muted">
+        Distribución total de visitas recibidas según el día de la semana (Lunes a Domingo), identificando el día pico de mayor afluencia de usuarios.
+      </p>
     </div>
 
     <?php if (!empty($topDays)) : 
@@ -61,13 +66,18 @@
 
   <!-- Horarios Más Concurridos (Gráfico de Línea Directo con Data Labels) -->
   <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
-    <div class="flex-row center-between wrap gap5">
-      <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
-      <?php if (!empty($topHours)) : ?>
-        <span class="p5 pl10 pr10 br50 back-primary textw bold600">
-          Hora Pico: <?= e($topHours[0]['label']) ?>
-        </span>
-      <?php endif; ?>
+    <div class="flex-column gap5">
+      <div class="flex-row center-between wrap gap5">
+        <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
+        <?php if (!empty($topHours)) : ?>
+          <span class="p5 pl10 pr10 br50 back-primary textw bold600">
+            Hora Pico: <?= e($topHours[0]['label']) ?>
+          </span>
+        <?php endif; ?>
+      </div>
+      <p class="text-muted">
+        Curva de tendencia de tráfico por franjas horarias del día (ordenadas cronológicamente), destacando los picos de mayor concurrencia de visitas.
+      </p>
     </div>
 
     <?php if (!empty($topHours)) : 
