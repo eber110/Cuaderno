@@ -56,10 +56,10 @@
         <!-- Encabezado del Modal -->
         <div class="flex-column gap5">
           <h3 class="bold700 x20 flex-row center-start gap10 textb">
-            <?= svg("chart", "x20") ?> Desglose de Visitas y Gráfico
+            <?= svg("chart", "x20") ?> Desglose de Visitas y Gráficos
           </h3>
           <p class="text-muted">
-            Estadísticas detalladas por día, semana y gráfico interactivo Combo (Visitas vs Clics).
+            Monitoreo detallado de tráfico diario y semanal para medir el rendimiento de tu cuaderno digital.
           </p>
         </div>
   
@@ -87,6 +87,9 @@
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
+          <p class="text-muted">
+            Compara la cantidad total de visitas por día (barras) con la cantidad de clics en tus enlaces (línea) para evaluar la conversión diaria de tus usuarios.
+          </p>
           <div class="chart-summary-combo w100" 
                style="min-height: 270px;"
                data-chart-dates='<?= json_encode($chartDates) ?>'
@@ -103,6 +106,9 @@
             </h4>
             <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
           </div>
+          <p class="text-muted">
+            Mide el volumen total de impresiones y visitas acumuladas en cada semana del mes activo para identificar períodos de mayor actividad.
+          </p>
   
           <div class="chart-summary-weeks w100" 
                style="min-height: 220px;"
@@ -143,7 +149,7 @@
             <?= svg("chart", "x20") ?> Desglose de Visitas Únicas
           </h3>
           <p class="text-muted">
-            Análisis de usuarios únicos (IPs distintas) registrados por día y semana en el mes activo.
+            Monitoreo exclusivo de usuarios únicos (IPs distintas) para medir el alcance real sin contabilizar visitas repetidas.
           </p>
         </div>
   
@@ -171,6 +177,9 @@
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
+          <p class="text-muted">
+            Mide la cantidad de dispositivos únicos distintos que ingresaron a tu perfil cada día, descartando accesos múltiples del mismo usuario.
+          </p>
           <div class="chart-summary-uniques-combo w100" 
                style="min-height: 270px;"
                data-chart-dates='<?= json_encode($chartDates) ?>'
@@ -186,6 +195,9 @@
             </h4>
             <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
           </div>
+          <p class="text-muted">
+            Muestra el alcance semanal deduplicado, permitiéndote saber cuántas personas distintas atrajo tu contenido cada semana.
+          </p>
           <div class="chart-summary-uniques-weeks w100" 
                style="min-height: 230px;"
                data-chart-weeks='<?= json_encode($weekLabels) ?>'
