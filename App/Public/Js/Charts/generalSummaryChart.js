@@ -482,8 +482,8 @@ export function generalSummaryChart() {
         },
         grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
         legend: {
-          position: 'right',
-          verticalAlign: 'middle',
+          position: 'top',
+          horizontalAlign: 'center',
           labels: { colors: themeColors.axisText },
           fontSize: '12px',
           fontWeight: 600
