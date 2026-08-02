@@ -10,33 +10,39 @@
         <?= svg("clock", "x20") ?>
       </div>
       <div>
-        <h4 class="bold700 x20">💡 Recomendación de Horario para Publicar</h4>
-        <p class="text-muted">Optimizado según la actividad de tus visitantes</p>
+        <h4 class="bold700 x20 flex-row center-start gap8 textb">Recomendación de Horario para Publicar</h4>
+        <p class="text-muted">Optimizado según la actividad real de tus visitantes</p>
       </div>
     </div>
     <span class="p6 pl12 pr12 br50 back-primary textw bold700 flex-row center-center gap5 shadow-soft">
-      ⚡️ Horario Sugerido
+      <?= svg("lightbulb", "x14") ?> Horario Sugerido
     </span>
   </div>
 
   <div class="grid col-desk-3 col-mid-3 col-sml-1 gap15 w100 mt5">
     <!-- Mejor Día -->
     <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
-      <span class="text-muted bold500">Mejor Día de la Semana</span>
+      <span class="text-muted bold500 flex-row center-start gap5">
+        <?= svg("calendar", "x14") ?> Mejor Día de la Semana
+      </span>
       <span class="x20 bold700 text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></span>
       <span class="text-muted"><?= e($recommendation['bestDayTotal'] ?? 0) ?> visitas ese día</span>
     </div>
 
     <!-- Mejor Horario -->
     <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
-      <span class="text-muted bold500">Franja Horaria Pico</span>
+      <span class="text-muted bold500 flex-row center-start gap5">
+        <?= svg("clock", "x14") ?> Franja Horaria Pico
+      </span>
       <span class="x20 bold700 text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?></span>
       <span class="text-muted"><?= e($recommendation['bestHourTotal'] ?? 0) ?> visitas en esa franja</span>
     </div>
 
     <!-- Consejo de Impacto -->
     <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
-      <span class="text-muted bold500">Consejo de Impacto</span>
+      <span class="text-muted bold500 flex-row center-start gap5">
+        <?= svg("lightbulb", "x14") ?> Consejo de Impacto
+      </span>
       <p class="bold500 textb leading-normal">
         Tus seguidores están más activos los <strong class="text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></strong> entre las <strong class="text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?> hrs</strong>.
       </p>

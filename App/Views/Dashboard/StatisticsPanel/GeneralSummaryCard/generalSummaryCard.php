@@ -356,7 +356,7 @@
             <span class="text-muted bold500">Diagnóstico</span>
             <?php 
               $ctrVal = (float)($summary['ctr'] ?? 0);
-              $diagText  = ($ctrVal >= 50) ? 'Excelente 🚀' : (($ctrVal >= 25) ? 'Bueno 👍' : 'Mejorable 💡');
+              $diagText  = ($ctrVal >= 50) ? 'Excelente' : (($ctrVal >= 25) ? 'Bueno' : 'Mejorable');
               $diagColor = ($ctrVal >= 50) ? 'text-success' : (($ctrVal >= 25) ? 'text-primary' : 'text-danger');
             ?>
             <span class="x22 bold700 <?= $diagColor ?>"><?= $diagText ?></span>
