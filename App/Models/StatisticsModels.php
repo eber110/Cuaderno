@@ -30,19 +30,55 @@ class StatisticsModels extends Builder {
     try {
       $pdo = AnalyticsModule::getPdo();
 
-      // Cargar datos de la tarjeta del usuario para mapear los nombres reales de los enlaces
-      $userData  = DesignModels::dataUser($userClean);
-      $userLinks = $userData['card']['content'] ?? [];
+      // Cargar datos de la tarjeta del usuario para mapear nombres de enlaces de contenido y redes sociales (RRSS)
+      $userData    = DesignModels::dataUser($userClean);
+      $userContent = $userData['card']['content'] ?? [];
+      $userRrss    = $userData['card']['rrss'] ?? [];
 
       $linkTitleMap = [];
-      foreach ($userLinks as $idx => $linkItem) {
-        $title = !empty($linkItem['title']) ? $linkItem['title'] : (!empty($linkItem['metaTitle']) ? $linkItem['metaTitle'] : "Enlace #" . ($idx + 1));
-        $linkTitleMap["enlace_" . ($idx + 1)] = $title;
-        $linkTitleMap["enlace_" . $idx]       = $title;
-        $linkTitleMap[(string)$idx]          = $title;
-        $linkTitleMap[(string)($idx + 1)]    = $title;
+
+      // 1. Mapear enlaces de contenido principal
+      foreach ($userContent as $idx => $linkItem) {
+        $rawTitle = !empty($linkItem['title']) ? $linkItem['title'] : (!empty($linkItem['metaTitle']) ? $linkItem['metaTitle'] : "Enlace #" . ($idx + 1));
+        $cleanTitle = (mb_strlen($rawTitle, 'UTF-8') > 22) ? mb_strimwidth($rawTitle, 0, 20, '...', 'UTF-8') : $rawTitle;
+
+        $linkTitleMap["enlace_" . ($idx + 1)] = $cleanTitle;
+        $linkTitleMap["enlace_" . $idx]       = $cleanTitle;
+        $linkTitleMap["content_" . $idx]      = $cleanTitle;
+        $linkTitleMap[(string)$idx]          = $cleanTitle;
+        $linkTitleMap[(string)($idx + 1)]    = $cleanTitle;
         if (!empty($linkItem['url'])) {
-          $linkTitleMap[$linkItem['url']] = $title;
+          $linkTitleMap[$linkItem['url']] = $cleanTitle;
+        }
+      }
+
+      // 2. Mapear enlaces de redes sociales (RRSS)
+      $netNamesMap = [
+        'github'    => 'GitHub (Red Social)',
+        'linkedin'  => 'LinkedIn (Red Social)',
+        'x'         => 'X / Twitter (Red Social)',
+        'twitter'   => 'X / Twitter (Red Social)',
+        'instagram' => 'Instagram (Red Social)',
+        'tiktok'    => 'TikTok (Red Social)',
+        'facebook'  => 'Facebook (Red Social)',
+        'youtube'   => 'YouTube (Red Social)',
+        'pinterest' => 'Pinterest (Red Social)',
+        'whatsapp'  => 'WhatsApp (Contacto)'
+      ];
+
+      foreach ($userRrss as $idx => $rItem) {
+        $netKey = strtolower(trim($rItem[0] ?? ''));
+        $netUrl = trim($rItem[1] ?? '');
+        if (empty($netKey)) continue;
+
+        $netTitle = $netNamesMap[$netKey] ?? (ucwords($netKey) . " (Red)");
+        $cleanTitle = (mb_strlen($netTitle, 'UTF-8') > 22) ? mb_strimwidth($netTitle, 0, 20, '...', 'UTF-8') : $netTitle;
+
+        $linkTitleMap[$netKey]          = $cleanTitle;
+        $linkTitleMap["rrss_" . $netKey] = $cleanTitle;
+        $linkTitleMap["rrss_" . $idx]    = $cleanTitle;
+        if (!empty($netUrl)) {
+          $linkTitleMap[$netUrl] = $cleanTitle;
         }
       }
 
@@ -159,7 +195,7 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Top Enlaces más Clicados del Mes Activo (Mapeando títulos reales del usuario)
+      // 5. Top Enlaces más Clicados del Mes Activo (Content Links + RRSS)
       $stmtTopLinks = $pdo->prepare("
         SELECT link_id, COUNT(*) as total
         FROM link_clicks
@@ -171,7 +207,7 @@ class StatisticsModels extends Builder {
       $rawTopLinks = $stmtTopLinks->fetchAll() ?: [];
 
       $processedClicks = [];
-      $activeLinksCount = count($userLinks);
+      $activeContentCount = count($userContent);
 
       foreach ($rawTopLinks as $l) {
         $rawId = trim($l['link_id'] ?? '');
@@ -180,14 +216,17 @@ class StatisticsModels extends Builder {
         if (isset($linkTitleMap[$rawId])) {
           $realName = $linkTitleMap[$rawId];
         } else {
-          if (preg_match('/(\d+)/', $rawId, $matches)) {
+          if (strpos($rawId, 'rrss_') === 0) {
+            $netKey = str_replace('rrss_', '', $rawId);
+            $realName = $netNamesMap[$netKey] ?? (ucwords($netKey) . " (Red)");
+          } elseif (preg_match('/(\d+)/', $rawId, $matches)) {
             $num = (int)$matches[1];
-            if (isset($userLinks[$num - 1]['title'])) {
-              $realName = $userLinks[$num - 1]['title'];
-            } elseif (isset($userLinks[$num]['title'])) {
-              $realName = $userLinks[$num]['title'];
+            if (isset($userContent[$num - 1]['title'])) {
+              $realName = $userContent[$num - 1]['title'];
+            } elseif (isset($userContent[$num]['title'])) {
+              $realName = $userContent[$num]['title'];
             } else {
-              if ($activeLinksCount > 0 && $num > $activeLinksCount) {
+              if ($activeContentCount > 0 && $num > $activeContentCount) {
                 continue;
               }
               $realName = "Enlace " . $num;
@@ -197,7 +236,6 @@ class StatisticsModels extends Builder {
           }
         }
 
-        // Formatear/Recortar títulos largos para mantener al menos 20 caracteres legibles alineados a la izquierda
         $displayName = (mb_strlen($realName, 'UTF-8') > 22) ? mb_strimwidth($realName, 0, 20, '...', 'UTF-8') : $realName;
 
         if (!isset($processedClicks[$displayName])) {
@@ -497,9 +535,28 @@ class StatisticsModels extends Builder {
   public static function generateTestData(string $user, int $count = 20): bool {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    $userData  = DesignModels::dataUser($userClean);
-    $userLinks = $userData['card']['content'] ?? [];
-    $userContentCount = !empty($userLinks) ? count($userLinks) : 3;
+    $userData    = DesignModels::dataUser($userClean);
+    $userContent = $userData['card']['content'] ?? [];
+    $userRrss    = $userData['card']['rrss'] ?? [];
+
+    $possibleTargets = [];
+
+    // 1. Incluir todos los enlaces de contenido principal
+    foreach ($userContent as $idx => $item) {
+      $possibleTargets[] = "enlace_" . ($idx + 1);
+    }
+
+    // 2. Incluir todas las redes sociales configuradas
+    foreach ($userRrss as $rItem) {
+      $netKey = strtolower(trim($rItem[0] ?? ''));
+      if (!empty($netKey)) {
+        $possibleTargets[] = "rrss_" . $netKey;
+      }
+    }
+
+    if (empty($possibleTargets)) {
+      $possibleTargets = ["enlace_1", "enlace_2", "enlace_3", "rrss_github", "rrss_linkedin"];
+    }
 
     $samples = [
       ["device" => "mobile",  "os" => "iOS",     "browser" => "Instagram App", "country" => "Chile",  "code" => "CL", "city" => "Santiago",        "ref" => "https://instagram.com"],
@@ -537,10 +594,10 @@ class StatisticsModels extends Builder {
         "created_at"   => $formattedDate
       ]);
 
-      // Generar clic en 75% de las visitas simuladas usando solo índices de enlaces activos del usuario
+      // Generar clic en 75% de las visitas simuladas distribuyendo entre TODOS los enlaces (Contenido + Redes Sociales)
       if (rand(1, 100) <= 75) {
-        $randomLinkIndex = rand(1, max(1, $userContentCount));
-        AnalyticsModule::logLinkClick($userClean, "enlace_" . $randomLinkIndex, [
+        $randomTarget = $possibleTargets[array_rand($possibleTargets)];
+        AnalyticsModule::logLinkClick($userClean, $randomTarget, [
           "country_code" => $sample["code"],
           "device_type"  => $sample["device"],
           "created_at"   => $formattedDate
