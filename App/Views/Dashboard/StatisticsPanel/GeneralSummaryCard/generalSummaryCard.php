@@ -2,15 +2,17 @@
   /** 
    * @var array $summary                Métricas del mes actual (total_views, unique_views, total_clicks, ctr)
    * @var array $allTimeSummary         Métricas históricas acumuladas (total_views, total_clicks)
-   * @var array $viewsByDayOfMonth      Desglose de visitas por día del mes actual
+   * @var array $viewsByDayOfMonth      Desglose de visitas y clics por día del mes actual
    * @var array $viewsByWeekOfMonth     Desglose de visitas por semana del mes actual
    */
 
-  $chartDates = [];
-  $chartViews = [];
+  $chartDates  = [];
+  $chartViews  = [];
+  $chartClicks = [];
   foreach ($viewsByDayOfMonth as $d) {
-    $chartDates[] = $d['date_str'] ?? ($d['day_num'] ?? '');
-    $chartViews[] = (int)($d['total'] ?? 0);
+    $chartDates[]  = $d['date_str'] ?? ($d['day_num'] ?? '');
+    $chartViews[]  = (int)($d['total_views'] ?? $d['total'] ?? 0);
+    $chartClicks[] = (int)($d['total_clicks'] ?? 0);
   }
 ?>
 <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
@@ -46,7 +48,7 @@
             <?= svg("chart", "x20") ?> Desglose de Visitas y Gráfico
           </h3>
           <p class="text-muted">
-            Estadísticas detalladas por día, semana y gráfico interactivo Combo (Línea + Barras).
+            Estadísticas detalladas por día, semana y gráfico interactivo Combo (Visitas vs Clics).
           </p>
         </div>
   
@@ -70,7 +72,7 @@
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap5 textb">
-              <?= svg("chart", "x16") ?> Gráfico Mixto (Barras + Tendencia)
+              <?= svg("chart", "x16") ?> Gráfico Mixto (Visitas vs Clics)
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
           </div>
@@ -78,7 +80,8 @@
           <div class="chart-summary-combo w100" 
                style="min-height: 270px;"
                data-chart-dates='<?= json_encode($chartDates) ?>'
-               data-chart-views='<?= json_encode($chartViews) ?>'>
+               data-chart-views='<?= json_encode($chartViews) ?>'
+               data-chart-clicks='<?= json_encode($chartClicks) ?>'>
           </div>
         </div>
   

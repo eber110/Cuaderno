@@ -1,8 +1,8 @@
 /**
  * Componente General Summary Chart - ApexCharts Combo Chart.
  * 
- * Renderiza de forma desacoplada el gráfico mixto (Barras + Tendencia) para el resumen general
- * dentro del modal de desglose de visitas de la tarjeta de estadísticas.
+ * Renderiza de forma desacoplada el gráfico mixto (Visitas Diarias [Barras] vs Clics Diarios [Línea])
+ * para medir la conversión diaria dentro del modal de desglose de estadísticas.
  */
 export function generalSummaryChart() {
   function renderChart() {
@@ -17,8 +17,9 @@ export function generalSummaryChart() {
 
     if (container.dataset.rendered === 'true') return;
 
-    let dates = [];
-    let views = [];
+    let dates  = [];
+    let views  = [];
+    let clicks = [];
 
     try {
       if (container.dataset.chartDates) {
@@ -26,6 +27,9 @@ export function generalSummaryChart() {
       }
       if (container.dataset.chartViews) {
         views = JSON.parse(container.dataset.chartViews);
+      }
+      if (container.dataset.chartClicks) {
+        clicks = JSON.parse(container.dataset.chartClicks);
       }
     } catch (e) {
       console.error('Error al parsear datos en generalSummaryChart:', e);
@@ -43,9 +47,9 @@ export function generalSummaryChart() {
           data: views
         },
         {
-          name: 'Tendencia',
+          name: 'Clics Diarios',
           type: 'line',
-          data: views
+          data: clicks
         }
       ],
       chart: {
@@ -102,9 +106,10 @@ export function generalSummaryChart() {
         intersect: false,
         theme: 'dark',
         y: {
-          formatter: (y) => {
+          formatter: (y, { seriesIndex }) => {
             if (typeof y !== 'undefined') {
-              return `${y.toFixed(0)} visitas`;
+              const label = seriesIndex === 0 ? 'visitas' : 'clics';
+              return `${y.toFixed(0)} ${label}`;
             }
             return y;
           }

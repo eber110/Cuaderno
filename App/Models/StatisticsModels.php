@@ -81,16 +81,43 @@ class StatisticsModels extends Builder {
         'total_clicks' => $allClicksCount
       ];
 
-      // 3. Desglose de Visitas por Día del Mes Activo
-      $stmtDayMonth = $pdo->prepare("
-        SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total
+      // 3. Desglose de Visitas y Clics por Día del Mes Activo
+      $stmtDayMonthViews = $pdo->prepare("
+        SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total_views
         FROM profile_views
         WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY date_str
         ORDER BY date_str ASC
       ");
-      $stmtDayMonth->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
-      $viewsByDayOfMonth = $stmtDayMonth->fetchAll() ?: [];
+      $stmtDayMonthViews->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
+      $rawDayViews = $stmtDayMonthViews->fetchAll() ?: [];
+
+      $stmtDayMonthClicks = $pdo->prepare("
+        SELECT strftime('%Y-%m-%d', created_at) as date_str, COUNT(*) as total_clicks
+        FROM link_clicks
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
+        GROUP BY date_str
+        ORDER BY date_str ASC
+      ");
+      $stmtDayMonthClicks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
+      $rawDayClicks = $stmtDayMonthClicks->fetchAll() ?: [];
+
+      $clicksMap = [];
+      foreach ($rawDayClicks as $c) {
+        $clicksMap[$c['date_str']] = (int)$c['total_clicks'];
+      }
+
+      $viewsByDayOfMonth = [];
+      foreach ($rawDayViews as $v) {
+        $dateStr = $v['date_str'];
+        $viewsByDayOfMonth[] = [
+          'date_str'     => $dateStr,
+          'day_num'      => $v['day_num'],
+          'total'        => (int)$v['total_views'],
+          'total_views'  => (int)$v['total_views'],
+          'total_clicks' => $clicksMap[$dateStr] ?? 0
+        ];
+      }
 
       // 4. Desglose de Visitas por Semana del Mes Activo
       $stmtWeekMonth = $pdo->prepare("
