@@ -68,22 +68,23 @@ class StatisticsModels extends Builder {
       ];
 
       // 2. Resumen Histórico Acumulado (Todos los tiempos)
-      $stmtAllViews = $pdo->prepare("SELECT COUNT(*) as total_views_all_time FROM profile_views WHERE profile_id = :user");
+      $stmtAllViews = $pdo->prepare("SELECT COUNT(*) as total_views_all_time, COUNT(DISTINCT ip_address) as unique_views_all_time FROM profile_views WHERE profile_id = :user");
       $stmtAllViews->execute([":user" => $userClean]);
-      $allViewsCount = (int)($stmtAllViews->fetch()['total_views_all_time'] ?? 0);
+      $allViewsData = $stmtAllViews->fetch() ?: ['total_views_all_time' => 0, 'unique_views_all_time' => 0];
 
       $stmtAllClicks = $pdo->prepare("SELECT COUNT(*) as total_clicks_all_time FROM link_clicks WHERE profile_id = :user");
       $stmtAllClicks->execute([":user" => $userClean]);
       $allClicksCount = (int)($stmtAllClicks->fetch()['total_clicks_all_time'] ?? 0);
 
       $allTimeSummary = [
-        'total_views'  => $allViewsCount,
+        'total_views'  => (int)($allViewsData['total_views_all_time'] ?? 0),
+        'unique_views' => (int)($allViewsData['unique_views_all_time'] ?? 0),
         'total_clicks' => $allClicksCount
       ];
 
       // 3. Desglose de Visitas y Clics por Día del Mes Activo
       $stmtDayMonthViews = $pdo->prepare("
-        SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total_views
+        SELECT strftime('%Y-%m-%d', created_at) as date_str, strftime('%d', created_at) as day_num, COUNT(*) as total_views, COUNT(DISTINCT ip_address) as unique_views
         FROM profile_views
         WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY date_str
@@ -115,13 +116,14 @@ class StatisticsModels extends Builder {
           'day_num'      => $v['day_num'],
           'total'        => (int)$v['total_views'],
           'total_views'  => (int)$v['total_views'],
+          'unique_views' => (int)($v['unique_views'] ?? 0),
           'total_clicks' => $clicksMap[$dateStr] ?? 0
         ];
       }
 
-      // 4. Desglose de Visitas por Semana del Mes Activo
+      // 4. Desglose de Visitas y Visitas Únicas por Semana del Mes Activo
       $stmtWeekMonth = $pdo->prepare("
-        SELECT strftime('%W', created_at) as week_num, COUNT(*) as total
+        SELECT strftime('%W', created_at) as week_num, COUNT(*) as total, COUNT(DISTINCT ip_address) as unique_total
         FROM profile_views
         WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY week_num
@@ -133,9 +135,10 @@ class StatisticsModels extends Builder {
       $viewsByWeekOfMonth = [];
       foreach ($rawWeeks as $idx => $w) {
         $viewsByWeekOfMonth[] = [
-          'week_label' => "Semana " . ($idx + 1),
-          'week_num'   => $w['week_num'],
-          'total'      => (int)$w['total']
+          'week_label'   => "Semana " . ($idx + 1),
+          'week_num'     => $w['week_num'],
+          'total'        => (int)$w['total'],
+          'unique_total' => (int)($w['unique_total'] ?? 0)
         ];
       }
 
@@ -278,7 +281,7 @@ class StatisticsModels extends Builder {
       error_log("Error en StatisticsModels::getStatsData: " . $e->getMessage());
       return [
         "summary"             => ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0],
-        "allTimeSummary"      => ['total_views' => 0, 'total_clicks' => 0],
+        "allTimeSummary"      => ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0],
         "viewsByDayOfMonth"   => [],
         "viewsByWeekOfMonth"  => [],
         "devices"             => [],
