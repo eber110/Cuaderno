@@ -7,7 +7,7 @@
  * 3. Gráfico de Barras de Visitas Únicas por Día (Solo Barras)
  * 4. Gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
  * 5. Gráfico de Barras de Clics por Día (Solo Barras)
- * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados)
+ * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
  */
 export function generalSummaryChart() {
   /**
@@ -30,7 +30,8 @@ export function generalSummaryChart() {
   // Paleta vibrante distribuida para los gráficos horizontales (Dynamic Loaded Chart)
   const distributedColors = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
-    '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'
+    '#8b5cf6', '#06b6d4', '#ec4899', '#f97316',
+    '#14b8a6', '#6366f1'
   ];
 
   /**
@@ -118,12 +119,13 @@ export function generalSummaryChart() {
     container.innerHTML = '';
 
     const themeColors = getChartColors();
+    const dynamicHeight = Math.max(180, weeks.length * 45);
 
     const options = {
       series: [{ name: 'Visitas', data: views }],
       chart: {
         type: 'bar',
-        height: 220,
+        height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
       },
@@ -235,12 +237,13 @@ export function generalSummaryChart() {
     container.innerHTML = '';
 
     const themeColors = getChartColors();
+    const dynamicHeight = Math.max(180, weeks.length * 45);
 
     const options = {
       series: [{ name: 'Usuarios Únicos', data: uniques }],
       chart: {
         type: 'bar',
-        height: 220,
+        height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
       },
@@ -331,7 +334,7 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados)
+   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
    */
   function renderTopLinksChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-top-links');
@@ -352,12 +355,13 @@ export function generalSummaryChart() {
     container.innerHTML = '';
 
     const themeColors = getChartColors();
+    const dynamicHeight = Math.max(200, links.length * 40);
 
     const options = {
       series: [{ name: 'Clics', data: clicks }],
       chart: {
         type: 'bar',
-        height: 220,
+        height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
       },

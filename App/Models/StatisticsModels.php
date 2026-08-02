@@ -142,27 +142,53 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Top Enlaces más Clicados del Mes Activo
+      // 5. Top Enlaces más Clicados del Mes Activo (Top 9 + "Otros Enlaces")
       $stmtTopLinks = $pdo->prepare("
         SELECT link_id, COUNT(*) as total
         FROM link_clicks
         WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
         GROUP BY link_id
         ORDER BY total DESC
-        LIMIT 5
       ");
       $stmtTopLinks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $rawTopLinks = $stmtTopLinks->fetchAll() ?: [];
 
       $topLinks = [];
-      foreach ($rawTopLinks as $l) {
-        $rawId = $l['link_id'] ?? '';
-        $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
-        $topLinks[] = [
-          'link_id'   => $rawId,
-          'link_name' => $linkName,
-          'total'     => (int)$l['total']
-        ];
+      if (count($rawTopLinks) > 10) {
+        $top9 = array_slice($rawTopLinks, 0, 9);
+        foreach ($top9 as $l) {
+          $rawId = $l['link_id'] ?? '';
+          $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
+          $topLinks[] = [
+            'link_id'   => $rawId,
+            'link_name' => $linkName,
+            'total'     => (int)$l['total']
+          ];
+        }
+
+        $others = array_slice($rawTopLinks, 9);
+        $othersTotal = 0;
+        foreach ($others as $o) {
+          $othersTotal += (int)($o['total'] ?? 0);
+        }
+
+        if ($othersTotal > 0) {
+          $topLinks[] = [
+            'link_id'   => 'otros',
+            'link_name' => 'Otros Enlaces',
+            'total'     => $othersTotal
+          ];
+        }
+      } else {
+        foreach ($rawTopLinks as $l) {
+          $rawId = $l['link_id'] ?? '';
+          $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
+          $topLinks[] = [
+            'link_id'   => $rawId,
+            'link_name' => $linkName,
+            'total'     => (int)$l['total']
+          ];
+        }
       }
 
       // 6. Desglose por tipo de dispositivo del Mes Activo

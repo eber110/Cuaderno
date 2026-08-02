@@ -103,6 +103,7 @@
 .sticky-top { position: sticky !important; top: 0%; }
 .top { top: 0%; }
 .top2 { top: 2%; }
+.top9 { top: 9%; }
 .br0 { border-radius: 0px !important; overflow: clip; }
 .br10 { border-radius: 10px !important; overflow: clip; }
 .br100 { border-radius: 100px !important; overflow: clip; }
