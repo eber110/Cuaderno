@@ -20,6 +20,13 @@
     $deviceLabels[] = $deviceNamesMap[$rawType] ?? ucfirst($rawType);
     $deviceSeries[] = (int)($d['total'] ?? 0);
   }
+
+  $browserLabels = [];
+  $browserTotals = [];
+  foreach ($browsers as $b) {
+    $browserLabels[] = $b['browser'] ?? 'Desconocido';
+    $browserTotals[] = (int)($b['total'] ?? 0);
+  }
 ?>
 
 <div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
@@ -51,7 +58,7 @@
     <?php endif; ?>
   </div>
 
-  <!-- 2. Navegadores & Apps Integradas (In-App) -->
+  <!-- 2. Navegadores & Apps Integradas (In-App) con Gráfico Horizontal Basic Bar Directo -->
   <div class="flex-column gap15 p20 br20 border-item-panel back-body shadow-soft">
     <div class="flex-row center-between wrap gap10">
       <div>
@@ -59,7 +66,7 @@
           <?= svg("server-solid", "x20") ?> Navegadores & In-App
         </h4>
         <p class="text-muted mt3">
-          Principales navegadores y aplicaciones donde los usuarios abrieron tu cuaderno digital este mes.
+          Principales navegadores y aplicaciones integradas donde los usuarios abrieron tu cuaderno digital este mes.
         </p>
       </div>
       <span class="p5 pl10 pr10 br50 back-modal-item bold600 text-muted">
@@ -68,13 +75,10 @@
     </div>
 
     <?php if (!empty($browsers)) : ?>
-      <div class="flex-column gap10 w100 mt5">
-        <?php foreach ($browsers as $b) : ?>
-          <div class="flex-row center-between p12 br12 border-item-panel back-modal-item">
-            <span class="bold600 textb"><?= e($b['browser'] ?? 'Desconocido') ?></span>
-            <span class="bold700 text-primary"><?= number_format($b['total'] ?? 0) ?> <span class="font-normal text-muted x12">visitas</span></span>
-          </div>
-        <?php endforeach; ?>
+      <div class="chart-browsers-bar w100 mt5" 
+           style="min-height: 250px;"
+           data-chart-labels='<?= json_encode($browserLabels) ?>'
+           data-chart-totals='<?= json_encode($browserTotals) ?>'>
       </div>
     <?php else : ?>
       <p class="text-muted">No hay datos de navegadores registrados este mes.</p>
