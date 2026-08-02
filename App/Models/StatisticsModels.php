@@ -142,7 +142,30 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Desglose por tipo de dispositivo del Mes Activo
+      // 5. Top Enlaces más Clicados del Mes Activo
+      $stmtTopLinks = $pdo->prepare("
+        SELECT link_id, COUNT(*) as total
+        FROM link_clicks
+        WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth
+        GROUP BY link_id
+        ORDER BY total DESC
+        LIMIT 5
+      ");
+      $stmtTopLinks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
+      $rawTopLinks = $stmtTopLinks->fetchAll() ?: [];
+
+      $topLinks = [];
+      foreach ($rawTopLinks as $l) {
+        $rawId = $l['link_id'] ?? '';
+        $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
+        $topLinks[] = [
+          'link_id'   => $rawId,
+          'link_name' => $linkName,
+          'total'     => (int)$l['total']
+        ];
+      }
+
+      // 6. Desglose por tipo de dispositivo del Mes Activo
       $stmtDevices = $pdo->prepare("
         SELECT device_type, COUNT(*) as total 
         FROM profile_views 
@@ -153,7 +176,7 @@ class StatisticsModels extends Builder {
       $stmtDevices->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $devices = $stmtDevices->fetchAll() ?: [];
 
-      // 6. Desglose por navegador del Mes Activo
+      // 7. Desglose por navegador del Mes Activo
       $stmtBrowsers = $pdo->prepare("
         SELECT browser, COUNT(*) as total 
         FROM profile_views 
@@ -165,7 +188,7 @@ class StatisticsModels extends Builder {
       $stmtBrowsers->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $browsers = $stmtBrowsers->fetchAll() ?: [];
 
-      // 7. Desglose por ubicación geográfica (Países) del Mes Activo
+      // 8. Desglose por ubicación geográfica (Países) del Mes Activo
       $stmtCountries = $pdo->prepare("
         SELECT country_name, country_code, COUNT(*) as total 
         FROM profile_views 
@@ -177,7 +200,7 @@ class StatisticsModels extends Builder {
       $stmtCountries->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $countries = $stmtCountries->fetchAll() ?: [];
 
-      // 8. Desglose por fuentes de tráfico (Referrers) del Mes Activo
+      // 9. Desglose por fuentes de tráfico (Referrers) del Mes Activo
       $stmtReferrers = $pdo->prepare("
         SELECT referrer, COUNT(*) as total 
         FROM profile_views 
@@ -189,7 +212,7 @@ class StatisticsModels extends Builder {
       $stmtReferrers->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $referrers = $stmtReferrers->fetchAll() ?: [];
 
-      // 9. Desglose por Días de la Semana del Mes Activo
+      // 10. Desglose por Días de la Semana del Mes Activo
       $stmtDays = $pdo->prepare("
         SELECT strftime('%w', created_at) as day_num, COUNT(*) as total 
         FROM profile_views 
@@ -217,7 +240,7 @@ class StatisticsModels extends Builder {
         }
       }
 
-      // 10. Desglose por Horarios de Mayor Tráfico del Mes Activo
+      // 11. Desglose por Horarios de Mayor Tráfico del Mes Activo
       $stmtHours = $pdo->prepare("
         SELECT strftime('%H', created_at) as hour_num, COUNT(*) as total 
         FROM profile_views 
@@ -241,7 +264,7 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 11. Recomendación Inteligente de Horario y Día Pico del Mes Activo
+      // 12. Recomendación Inteligente de Horario y Día Pico del Mes Activo
       $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : "Lunes";
       $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : "18:00 - 19:00";
       $bestDayTotal  = !empty($topDays)  ? $topDays[0]["total"]    : 0;
@@ -254,10 +277,10 @@ class StatisticsModels extends Builder {
         "bestHourTotal" => $bestHourTotal
       ];
 
-      // 12. Métricas detalladas por Red Social del Mes Activo
+      // 13. Métricas detalladas por Red Social del Mes Activo
       $socialStats = self::getSocialNetworksStats($pdo, $userClean, $activeMonth);
 
-      // 13. Registros recientes para depuración
+      // 14. Registros recientes para depuración
       $stmtRecentViews = $pdo->prepare("SELECT ip_address, country_name, device_type, os, browser, referrer, created_at FROM profile_views WHERE profile_id = :user ORDER BY id DESC LIMIT 5");
       $stmtRecentViews->execute([":user" => $userClean]);
       $recentViews = $stmtRecentViews->fetchAll() ?: [];
@@ -267,6 +290,7 @@ class StatisticsModels extends Builder {
         "allTimeSummary"      => $allTimeSummary,
         "viewsByDayOfMonth"   => $viewsByDayOfMonth,
         "viewsByWeekOfMonth"  => $viewsByWeekOfMonth,
+        "topLinks"            => $topLinks,
         "devices"             => $devices,
         "browsers"            => $browsers,
         "countries"           => $countries,
@@ -284,6 +308,7 @@ class StatisticsModels extends Builder {
         "allTimeSummary"      => ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0],
         "viewsByDayOfMonth"   => [],
         "viewsByWeekOfMonth"  => [],
+        "topLinks"            => [],
         "devices"             => [],
         "browsers"            => [],
         "countries"           => [],

@@ -6,6 +6,8 @@
  * 2. Gráfico Horizontal Dynamic Loaded (Visitas por Semana)
  * 3. Gráfico de Barras de Visitas Únicas por Día (Solo Barras)
  * 4. Gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
+ * 5. Gráfico de Barras de Clics por Día (Solo Barras)
+ * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados)
  */
 export function generalSummaryChart() {
   /**
@@ -280,6 +282,123 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 5. Renderiza el gráfico de Clics por Día (Solo Barras)
+   */
+  function renderClicksDailyChart() {
+    const container = document.querySelector('.modal-overlay .chart-summary-clicks-daily');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let dates  = [];
+    let clicks = [];
+
+    try {
+      if (container.dataset.chartDates)  dates  = JSON.parse(container.dataset.chartDates);
+      if (container.dataset.chartClicks) clicks = JSON.parse(container.dataset.chartClicks);
+    } catch (e) {
+      console.error('Error al parsear datos en renderClicksDailyChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+
+    const options = {
+      series: [
+        { name: 'Clics Diarios', data: clicks }
+      ],
+      chart: {
+        height: 260,
+        type: 'bar',
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: { bar: { columnWidth: '45%', borderRadius: 5 } },
+      colors: [themeColors.linePrimary],
+      labels: dates,
+      xaxis: { type: 'category', labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
+      yaxis: { labels: { style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} clics` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
+  /**
+   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados)
+   */
+  function renderTopLinksChart() {
+    const container = document.querySelector('.modal-overlay .chart-summary-top-links');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let links  = [];
+    let clicks = [];
+
+    try {
+      if (container.dataset.chartLinks)      links  = JSON.parse(container.dataset.chartLinks);
+      if (container.dataset.chartLinkClicks) clicks = JSON.parse(container.dataset.chartLinkClicks);
+    } catch (e) {
+      console.error('Error al parsear datos en renderTopLinksChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+
+    const options = {
+      series: [{ name: 'Clics', data: clicks }],
+      chart: {
+        type: 'bar',
+        height: 220,
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          horizontal: true,
+          distributed: true,
+          barHeight: '55%'
+        }
+      },
+      colors: distributedColors,
+      dataLabels: {
+        enabled: true,
+        textAnchor: 'start',
+        style: { colors: ['#ffffff'], fontWeight: 600, fontSize: '11px' },
+        formatter: (val) => `${val} clics`,
+        offsetX: 5
+      },
+      xaxis: {
+        categories: links,
+        labels: { show: false },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
+        }
+      },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      legend: { show: false },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} clics registrados` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -289,13 +408,15 @@ export function generalSummaryChart() {
     renderWeekChart();
     renderUniquesComboChart();
     renderUniquesWeekChart();
+    renderClicksDailyChart();
+    renderTopLinksChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links'))) {
             setTimeout(renderAllCharts, 120);
           }
         });

@@ -4,6 +4,7 @@
    * @var array $allTimeSummary         Métricas históricas acumuladas (total_views, unique_views, total_clicks)
    * @var array $viewsByDayOfMonth      Desglose de visitas, visitas únicas y clics por día del mes actual
    * @var array $viewsByWeekOfMonth     Desglose de visitas y visitas únicas por semana del mes actual
+   * @var array $topLinks               Top enlaces con mayor cantidad de clics en el mes activo
    */
 
   $chartDates       = [];
@@ -24,6 +25,13 @@
     $weekLabels[]  = $w['week_label'] ?? ('Semana ' . ($w['week_num'] ?? ''));
     $weekViews[]   = (int)($w['total'] ?? 0);
     $weekUniques[] = (int)($w['unique_total'] ?? 0);
+  }
+
+  $linkLabels = [];
+  $linkClicks = [];
+  foreach ($topLinks as $l) {
+    $linkLabels[] = $l['link_name'] ?? 'Enlace';
+    $linkClicks[] = (int)($l['total'] ?? 0);
   }
 ?>
 <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
@@ -169,7 +177,7 @@
   
         <div class="w100 border-top"></div>
 
-        <!-- SECCIÓN A: GRÁFICO DE BARRAS DE VISITAS ÚNICAS POR DÍA (SOLO BARRAS) -->
+        <!-- SECCIÓN A: GRÁFICO DE BARRAS DE VISITAS ÚNICAS POR DÍA -->
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap5 textb">
@@ -209,10 +217,92 @@
     </div>
   </div>
 
-  <!-- 3. Card Total Clics (Del Mes) -->
-  <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft">
-    <span class="text-muted bold500">Total Clics (Mes)</span>
-    <span class="x22 bold700"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
+  <!-- 3. Card Total Clics (Del Mes) con Modal de Desglose Integrado -->
+  <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
+    <div class="flex-row center-between w100">
+      <span class="text-muted bold500">Total Clics (Mes)</span>
+      <span class="p2 pl6 pr6 br50 back-modal-item text-primary bold600 flex-row center-center gap3">
+        <?= svg("eye", "x14") ?> Ver
+      </span>
+    </div>
+    <span class="x22 bold700 text-primary"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
+    <span class="text-muted">Clic para ver desglose y gráfico</span>
+  </div>
+
+  <!-- MODAL DE DESGLOSE DE TOTAL CLICS -->
+  <div class="hidden">
+    <div class="flex-column center-center w100 p20 h-dvh">
+      <div class="wpx600 w-sml-100">
+        <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+          <?= svg("xmark", "x20") ?>
+        </div>
+      </div>
+      <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        
+        <!-- Encabezado del Modal -->
+        <div class="flex-column gap5">
+          <h3 class="bold700 x20 flex-row center-start gap10 textb">
+            <?= svg("chart", "x20") ?> Desglose de Clics y Rendimiento
+          </h3>
+          <p class="text-muted">
+            Análisis detallado de interacción en tus botones y enlaces con ranking de enlaces más populares.
+          </p>
+        </div>
+  
+        <!-- Indicadores Resumen (Histórico vs Mes Actual) -->
+        <div class="grid col-desk-2 col-sml-2 gap12 w100">
+          <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <span class="text-muted bold500">Clics Históricos</span>
+            <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['total_clicks'] ?? 0) ?></span>
+            <span class="text-muted">Total acumulado de clics</span>
+          </div>
+          <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <span class="text-muted bold500">Clics Mes Actual</span>
+            <span class="x22 bold700 textb"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
+            <span class="text-muted">Interacciones este mes</span>
+          </div>
+        </div>
+  
+        <div class="w100 border-top"></div>
+
+        <!-- SECCIÓN A: GRÁFICO DE BARRAS DE CLICS POR DÍA -->
+        <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-row center-between">
+            <h4 class="bold600 x20 flex-row center-start gap5 textb">
+              <?= svg("chart", "x16") ?> Clics por Día (Mes Actual)
+            </h4>
+            <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+          </div>
+          <p class="text-muted">
+            Muestra la cantidad total de clics registrados en tus enlaces día a día durante el mes activo.
+          </p>
+          <div class="chart-summary-clicks-daily w100" 
+               style="min-height: 270px;"
+               data-chart-dates='<?= json_encode($chartDates) ?>'
+               data-chart-clicks='<?= json_encode($chartClicks) ?>'>
+          </div>
+        </div>
+
+        <!-- SECCIÓN B: GRÁFICO HORIZONTAL DYNAMIC LOADED DE TOP ENLACES MÁS CLICADOS -->
+        <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-row center-between">
+            <h4 class="bold600 x20 flex-row center-start gap5 textb">
+              <?= svg("link", "x16") ?> Top Enlaces más Clicados
+            </h4>
+            <span class="text-muted font-mono"><?= count($topLinks) ?> enlaces</span>
+          </div>
+          <p class="text-muted">
+            Ranking de los enlaces y botones con mayor cantidad de interacción acumulada durante este mes.
+          </p>
+          <div class="chart-summary-top-links w100" 
+               style="min-height: 230px;"
+               data-chart-links='<?= json_encode($linkLabels) ?>'
+               data-chart-link-clicks='<?= json_encode($linkClicks) ?>'>
+          </div>
+        </div>
+  
+      </div>
+    </div>
   </div>
 
   <!-- 4. Card CTR Global (Del Mes) -->
