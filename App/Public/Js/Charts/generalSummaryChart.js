@@ -936,16 +936,16 @@ export function generalSummaryChart() {
           borderRadius: 6,
           horizontal: true,
           distributed: true,
-          barHeight: '55%'
+          barHeight: '60%'
         }
       },
       colors: distributedColors,
       dataLabels: {
         enabled: true,
         textAnchor: 'start',
-        style: { colors: ['#ffffff'], fontWeight: 600, fontSize: '11px' },
+        style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} visitas`,
-        offsetX: 5
+        offsetX: 6
       },
       xaxis: {
         categories: labels,
@@ -956,12 +956,16 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          minWidth: 120,
-          maxWidth: 160,
+          minWidth: 90,
+          maxWidth: 120,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
         }
       },
-      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      grid: {
+        borderColor: themeColors.gridBorder,
+        strokeDashArray: 4,
+        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+      },
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
