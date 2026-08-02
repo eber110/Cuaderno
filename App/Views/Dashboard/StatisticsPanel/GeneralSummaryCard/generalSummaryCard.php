@@ -374,22 +374,19 @@
   </div>
 
   <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
-  <div class="grid col-desk-12 gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
+  <div class="flex-row  gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
     
     <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
-    <div class="col-span-desk-5 col-span-mid-5 col-span-sml-12 flex-column center-center w100 h100 relative">
-      <div class="chart-ctr-gauge w100 flex-row center-center" data-ctr-value="<?= $ctrValue ?>"></div>
+    <div class="flex-column center-center w100 h100 relative">
+      <div class="chart-ctr-gauge w100 flex-row center-center pb30" data-ctr-value="<?= $ctrValue ?>"></div>
     </div>
 
     <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
-    <div class="col-span-desk-7 col-span-mid-7 col-span-sml-12 flex-column center-start gap12 w100">
+    <div class="flex-column center-start gap12 w100">
       <div class="flex-row center-between wrap w100 gap10">
         <h4 class="bold700 x20 textb flex-row center-start gap8">
-          <?= svg("chart", "x20") ?> CTR Global (Tasa de Conversión)
+          CTR Global (Tasa de Conversión)
         </h4>
-        <span class="p5 pl12 pr12 br50 back-modal-item text-success bold700 x18">
-          <?= number_format($ctrValue, 2) ?>%
-        </span>
       </div>
 
       <p class="text-muted line-height-1-5">

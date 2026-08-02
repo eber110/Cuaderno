@@ -316,9 +316,6 @@
   .flex-row.top-start-sml, .flex-row-desk.top-start-sml, .flex-row-mid.top-start-sml, .flex-row-sml.top-start-sml { align-items: start !important; justify-content: start !important; }
 }
 @media screen and (min-width: 993px) {
-  .col-desk-12 { grid-template-columns: repeat(12, 1fr); }
-}
-@media screen and (min-width: 993px) {
   .col-desk-2 { grid-template-columns: repeat(2, 1fr); }
 }
 @media screen and (min-width: 993px) {

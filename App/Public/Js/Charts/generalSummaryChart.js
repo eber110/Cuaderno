@@ -527,7 +527,7 @@ export function generalSummaryChart() {
         enabled: true,
         background: {
           enabled: true,
-          foreColor: '#ffffff',
+          foreColor: '#888888',
           color: '#2563eb',
           borderRadius: 4,
           padding: 6,
@@ -630,7 +630,7 @@ export function generalSummaryChart() {
         style: {
           fontSize: '11px',
           fontWeight: '700',
-          colors: [themeColors.axisText]
+          colors: [themeColors.gridBorder]
         },
         offsetY: -20,
         formatter: (val) => val
