@@ -159,7 +159,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          offsetX: -10,
+          offsetX: 0,
           minWidth: 90,
           maxWidth: 130,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -168,7 +168,7 @@ export function generalSummaryChart() {
       grid: {
         borderColor: themeColors.gridBorder,
         strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
       },
       legend: { show: false },
       tooltip: {
@@ -285,7 +285,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          offsetX: -10,
+          offsetX: 0,
           minWidth: 90,
           maxWidth: 130,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -294,7 +294,7 @@ export function generalSummaryChart() {
       grid: {
         borderColor: themeColors.gridBorder,
         strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
       },
       legend: { show: false },
       tooltip: {
@@ -411,7 +411,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          offsetX: -10,
+          offsetX: 0,
           minWidth: 100,
           maxWidth: 140,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -420,7 +420,7 @@ export function generalSummaryChart() {
       grid: {
         borderColor: themeColors.gridBorder,
         strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
       },
       legend: { show: false },
       tooltip: {
@@ -831,7 +831,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          offsetX: -10,
+          offsetX: 0,
           minWidth: 100,
           maxWidth: 140,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -840,7 +840,7 @@ export function generalSummaryChart() {
       grid: {
         borderColor: themeColors.gridBorder,
         strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
       },
       legend: { show: false },
       tooltip: {
@@ -982,7 +982,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
-          offsetX: -10,
+          offsetX: 0,
           minWidth: 90,
           maxWidth: 120,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -991,7 +991,7 @@ export function generalSummaryChart() {
       grid: {
         borderColor: themeColors.gridBorder,
         strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 0 }
+        padding: { top: 0, right: 15, bottom: 0, left: 10 }
       },
       legend: { show: false },
       tooltip: {
