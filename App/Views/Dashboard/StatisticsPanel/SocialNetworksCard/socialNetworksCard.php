@@ -37,11 +37,11 @@
           <!-- Mejor Día y Hora de esta Red -->
           <div class="flex-column gap6">
             <div class="flex-row center-between">
-              <span class="text-muted bold500 flex-row center-start gap5"><?= svg("calendar", "x14") ?> Día Pico:</span>
+              <span class="text-muted bold500 flex-row center-start gap5"><?= svg("calendar", "x16") ?> Día Pico:</span>
               <span class="bold700 textb"><?= e($sNet['bestDay']) ?></span>
             </div>
             <div class="flex-row center-between">
-              <span class="text-muted bold500 flex-row center-start gap5"><?= svg("clock", "x14") ?> Hora Pico:</span>
+              <span class="text-muted bold500 flex-row center-start gap5"><?= svg("clock", "x16") ?> Hora Pico:</span>
               <span class="bold700 text-primary"><?= e($sNet['bestHour']) ?></span>
             </div>
           </div>
