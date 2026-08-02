@@ -392,7 +392,7 @@ class StatisticsModels extends Builder {
         "bestHourTotal" => $bestHourTotal
       ];
 
-      // 13. Métricas detalladas por Red Social del Mes Activo
+      // 13. Métricas detalladas por Red Social del Mes Activo con Desglose Semanal (Stacked Column)
       $socialStats = self::getSocialNetworksStats($pdo, $userClean, $activeMonth);
 
       // 14. Registros recientes para depuración
@@ -443,7 +443,7 @@ class StatisticsModels extends Builder {
   }
 
   /**
-   * Obtiene desgloses detallados por Red Social del Mes Activo.
+   * Obtiene desgloses detallados por Red Social del Mes Activo incluyendo datos para gráfico de columnas apiladas (Stacked Column) por día y rango de horario.
    */
   private static function getSocialNetworksStats($pdo, string $userClean, string $activeMonth): array {
     $networksConfig = [
@@ -460,6 +460,17 @@ class StatisticsModels extends Builder {
     $dayMap = [
       "0" => "Domingo", "1" => "Lunes", "2" => "Martes", "3" => "Miércoles",
       "4" => "Jueves", "5" => "Viernes", "6" => "Sábado"
+    ];
+
+    // Días de la semana en orden de lunes a domingo
+    $daysOrderKeys = ["1", "2", "3", "4", "5", "6", "0"];
+    $dayLabels     = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+    $timeSlots = [
+      'Mañana (06:00-12:00)',
+      'Tarde (12:00-18:00)',
+      'Noche (18:00-00:00)',
+      'Madrugada (00:00-06:00)'
     ];
 
     $socialStats = [];
@@ -509,13 +520,77 @@ class StatisticsModels extends Builder {
       $nextH = ($hNum + 1) % 24;
       $bestHourLabel = sprintf("%02d:00 - %02d:00", $hNum, $nextH);
 
+      // Obtener desglose por día de la semana y rangos de horarios para el Stacked Column chart
+      if ($key === 'direct') {
+        $stmtDetail = $pdo->prepare("
+          SELECT 
+            strftime('%w', created_at) as day_num,
+            CASE 
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 6 AND 11 THEN 'Mañana (06:00-12:00)'
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 12 AND 17 THEN 'Tarde (12:00-18:00)'
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 18 AND 23 THEN 'Noche (18:00-00:00)'
+              ELSE 'Madrugada (00:00-06:00)'
+            END as time_slot,
+            COUNT(*) as total
+          FROM profile_views 
+          WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND (referrer IS NULL OR referrer = '' OR referrer = 'Tráfico Directo')
+          GROUP BY day_num, time_slot
+        ");
+        $stmtDetail->execute([':user' => $userClean, ':activeMonth' => $activeMonth]);
+      } else {
+        $stmtDetail = $pdo->prepare("
+          SELECT 
+            strftime('%w', created_at) as day_num,
+            CASE 
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 6 AND 11 THEN 'Mañana (06:00-12:00)'
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 12 AND 17 THEN 'Tarde (12:00-18:00)'
+              WHEN CAST(strftime('%H', created_at) AS INTEGER) BETWEEN 18 AND 23 THEN 'Noche (18:00-00:00)'
+              ELSE 'Madrugada (00:00-06:00)'
+            END as time_slot,
+            COUNT(*) as total
+          FROM profile_views 
+          WHERE profile_id = :user AND strftime('%Y-%m', created_at) = :activeMonth AND ({$whereClause})
+          GROUP BY day_num, time_slot
+        ");
+        $stmtDetail->execute($params);
+      }
+
+      $rawDetails = $stmtDetail->fetchAll() ?: [];
+
+      // Mapear matriz [slot][dayIndex]
+      $slotData = [];
+      foreach ($timeSlots as $slot) {
+        $slotData[$slot] = array_fill(0, 7, 0);
+      }
+
+      foreach ($rawDetails as $rd) {
+        $dNum = (string)$rd['day_num'];
+        $slot = $rd['time_slot'];
+        $countVal = (int)$rd['total'];
+
+        $dayIndex = array_search($dNum, $daysOrderKeys);
+        if ($dayIndex !== false && isset($slotData[$slot])) {
+          $slotData[$slot][$dayIndex] = $countVal;
+        }
+      }
+
+      $stackedSeries = [];
+      foreach ($timeSlots as $slot) {
+        $stackedSeries[] = [
+          'name' => $slot,
+          'data' => $slotData[$slot]
+        ];
+      }
+
       $socialStats[] = [
-        'key'      => $key,
-        'name'     => $net['name'],
-        'icon'     => $net['icon'],
-        'total'    => $total,
-        'bestDay'  => $bestDayName,
-        'bestHour' => $bestHourLabel
+        'key'            => $key,
+        'name'           => $net['name'],
+        'icon'           => $net['icon'],
+        'total'          => $total,
+        'bestDay'        => $bestDayName,
+        'bestHour'       => $bestHourLabel,
+        'dayLabels'      => $dayLabels,
+        'stackedSeries'  => $stackedSeries
       ];
     }
 

@@ -8,6 +8,7 @@
  * 4. Gráfico Horizontal Dynamic Loaded (Visitas Únicas por Semana)
  * 5. Gráfico de Barras de Clics por Día (Solo Barras)
  * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
+ * 7. Gráfico Stacked Column por Red Social (Rendimiento por Día de la Semana y Franja Horaria)
  */
 export function generalSummaryChart() {
   /**
@@ -334,7 +335,7 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Alineación Izquierda y Min 20 Caracteres)
+   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados)
    */
   function renderTopLinksChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-top-links');
@@ -406,6 +407,81 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 7. Renderiza los gráficos Stacked Column por Red Social (Rendimiento por Día y Franja Horaria)
+   */
+  function renderSocialStackedCharts() {
+    const containers = document.querySelectorAll('.modal-overlay .chart-social-stacked');
+    if (!containers.length) return;
+
+    containers.forEach((container) => {
+      if (container.dataset.rendered === 'true') return;
+
+      let categories = [];
+      let series     = [];
+
+      try {
+        if (container.dataset.chartCategories) categories = JSON.parse(container.dataset.chartCategories);
+        if (container.dataset.chartSeries)     series     = JSON.parse(container.dataset.chartSeries);
+      } catch (e) {
+        console.error('Error al parsear datos en renderSocialStackedCharts:', e);
+        return;
+      }
+
+      container.dataset.rendered = 'true';
+      container.innerHTML = '';
+
+      const themeColors = getChartColors();
+      const timeSlotColors = ['#059669', '#2563eb', '#8b5cf6', '#dc2626'];
+
+      const options = {
+        series: series,
+        chart: {
+          type: 'bar',
+          height: 260,
+          stacked: true,
+          toolbar: { show: false },
+          animations: { enabled: true, easing: 'easeinout', speed: 800 }
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '45%',
+            borderRadius: 4
+          }
+        },
+        colors: timeSlotColors,
+        xaxis: {
+          categories: categories,
+          labels: {
+            style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 }
+          },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 },
+            formatter: (val) => Math.round(val)
+          }
+        },
+        grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'center',
+          labels: { colors: themeColors.axisText },
+          fontSize: '11px'
+        },
+        tooltip: {
+          theme: themeColors.tooltipTheme,
+          y: { formatter: (val) => `${val} visitas` }
+        }
+      };
+
+      new ApexCharts(container, options).render();
+    });
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -417,13 +493,14 @@ export function generalSummaryChart() {
     renderUniquesWeekChart();
     renderClicksDailyChart();
     renderTopLinksChart();
+    renderSocialStackedCharts();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked'))) {
             setTimeout(renderAllCharts, 120);
           }
         });
