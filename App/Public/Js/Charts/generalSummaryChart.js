@@ -2,9 +2,25 @@
  * Componente General Summary Chart - ApexCharts Combo Chart.
  * 
  * Renderiza de forma desacoplada el gráfico mixto (Visitas Diarias [Barras] vs Clics Diarios [Línea])
- * para medir la conversión diaria dentro del modal de desglose de estadísticas.
+ * utilizando la paleta de colores global definida en App/Public/Css/chart-theme.css.
  */
 export function generalSummaryChart() {
+  /**
+   * Obtiene los colores configurados dinámicamente en las variables CSS del archivo chart-theme.css
+   */
+  function getChartColors() {
+    const style = getComputedStyle(document.documentElement);
+    const getVar = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+
+    return {
+      barPrimary:   getVar('--chart-bar-primary', '#dc2626'),
+      linePrimary:  getVar('--chart-line-primary', '#2563eb'),
+      gridBorder:   getVar('--chart-grid-border', '#e2e8f0'),
+      axisText:     getVar('--chart-axis-text', '#64748b'),
+      tooltipTheme: getVar('--chart-tooltip-theme', 'dark')
+    };
+  }
+
   function renderChart() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderChart, 100);
@@ -22,15 +38,9 @@ export function generalSummaryChart() {
     let clicks = [];
 
     try {
-      if (container.dataset.chartDates) {
-        dates = JSON.parse(container.dataset.chartDates);
-      }
-      if (container.dataset.chartViews) {
-        views = JSON.parse(container.dataset.chartViews);
-      }
-      if (container.dataset.chartClicks) {
-        clicks = JSON.parse(container.dataset.chartClicks);
-      }
+      if (container.dataset.chartDates)  dates  = JSON.parse(container.dataset.chartDates);
+      if (container.dataset.chartViews)  views  = JSON.parse(container.dataset.chartViews);
+      if (container.dataset.chartClicks) clicks = JSON.parse(container.dataset.chartClicks);
     } catch (e) {
       console.error('Error al parsear datos en generalSummaryChart:', e);
       return;
@@ -38,6 +48,8 @@ export function generalSummaryChart() {
 
     container.dataset.rendered = 'true';
     container.innerHTML = '';
+
+    const themeColors = getChartColors();
 
     const options = {
       series: [
@@ -72,7 +84,7 @@ export function generalSummaryChart() {
           borderRadius: 5
         }
       },
-      colors: ['#dc2626', '#2563eb'],
+      colors: [themeColors.barPrimary, themeColors.linePrimary],
       labels: dates,
       markers: {
         size: 4,
@@ -93,18 +105,18 @@ export function generalSummaryChart() {
       },
       yaxis: {
         labels: {
-          style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 },
+          style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 },
           formatter: (val) => Math.round(val)
         }
       },
       grid: {
-        borderColor: '#e2e8f0',
+        borderColor: themeColors.gridBorder,
         strokeDashArray: 4
       },
       tooltip: {
         shared: true,
         intersect: false,
-        theme: 'dark',
+        theme: themeColors.tooltipTheme,
         y: {
           formatter: (y, { seriesIndex }) => {
             if (typeof y !== 'undefined') {

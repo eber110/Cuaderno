@@ -1,0 +1,41 @@
+/**
+ * chart-theme.css
+ * 
+ * Configuración global de colores y estilos para todos los gráficos (ApexCharts).
+ * Permite mantener una identidad visual coherente en toda la aplicación y 
+ * ofrece soporte dinámico para Modo Claro y Modo Oscuro.
+ */
+
+:root {
+  /* Color de barras principales (ej: Visitas Diarias) */
+  --chart-bar-primary: #dc2626;
+
+  /* Color de línea / tendencia / métrica destacada (ej: Clics Diarios) */
+  --chart-line-primary: #2563eb;
+
+  /* Color para segunda barra o serie secundaria (ej: Visitas Únicas) */
+  --chart-bar-secondary: #059669;
+
+  /* Color de puntos y marcadores interactivos */
+  --chart-point-color: #2563eb;
+
+  /* Color de las líneas de cuadrícula (grid) */
+  --chart-grid-border: #e2e8f0;
+
+  /* Color del texto y etiquetas en ejes X e Y */
+  --chart-axis-text: #64748b;
+
+  /* Tema predeterminado para los tooltips */
+  --chart-tooltip-theme: dark;
+}
+
+/* Configuración automática para Modo Oscuro */
+[data-theme="dark"] {
+  --chart-bar-primary: #ef4444;
+  --chart-line-primary: #3b82f6;
+  --chart-bar-secondary: #10b981;
+  --chart-point-color: #3b82f6;
+  --chart-grid-border: #334155;
+  --chart-axis-text: #94a3b8;
+  --chart-tooltip-theme: dark;
+}
