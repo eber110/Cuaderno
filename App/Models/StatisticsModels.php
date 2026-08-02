@@ -187,7 +187,6 @@ class StatisticsModels extends Builder {
             } elseif (isset($userLinks[$num]['title'])) {
               $realName = $userLinks[$num]['title'];
             } else {
-              // Si no existe un enlace activo para este índice (ej. simulaciones antiguas), omitir
               if ($activeLinksCount > 0 && $num > $activeLinksCount) {
                 continue;
               }
@@ -198,10 +197,13 @@ class StatisticsModels extends Builder {
           }
         }
 
-        if (!isset($processedClicks[$realName])) {
-          $processedClicks[$realName] = 0;
+        // Formatear/Recortar títulos largos para mantener al menos 20 caracteres legibles alineados a la izquierda
+        $displayName = (mb_strlen($realName, 'UTF-8') > 22) ? mb_strimwidth($realName, 0, 20, '...', 'UTF-8') : $realName;
+
+        if (!isset($processedClicks[$displayName])) {
+          $processedClicks[$displayName] = 0;
         }
-        $processedClicks[$realName] += (int)$l['total'];
+        $processedClicks[$displayName] += (int)$l['total'];
       }
 
       arsort($processedClicks);

@@ -334,7 +334,7 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
+   * 6. Renderiza el gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Alineación Izquierda y Min 20 Caracteres)
    */
   function renderTopLinksChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-top-links');
@@ -355,7 +355,7 @@ export function generalSummaryChart() {
     container.innerHTML = '';
 
     const themeColors = getChartColors();
-    const dynamicHeight = Math.max(200, links.length * 40);
+    const dynamicHeight = Math.max(200, links.length * 45);
 
     const options = {
       series: [{ name: 'Clics', data: clicks }],
@@ -389,6 +389,9 @@ export function generalSummaryChart() {
       },
       yaxis: {
         labels: {
+          align: 'left',
+          minWidth: 150,
+          maxWidth: 180,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
         }
       },
