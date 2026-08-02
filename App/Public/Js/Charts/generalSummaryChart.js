@@ -484,7 +484,7 @@ export function generalSummaryChart() {
   }
 
   /**
-   * 8. Renderiza el gráfico directo de Línea con Data Labels para Horarios Más Concurridos
+   * 8. Renderiza el gráfico directo de Línea con Data Labels Visibles para Horarios Más Concurridos
    */
   function renderPeakHoursLineChart() {
     const container = document.querySelector('.chart-peak-hours-line');
@@ -519,34 +519,36 @@ export function generalSummaryChart() {
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
       },
-      colors: [themeColors.linePrimary],
+      colors: ['#2563eb'],
       dataLabels: {
         enabled: true,
         background: {
           enabled: true,
-          color: themeColors.linePrimary,
-          borderRadius: 4,
-          padding: 5,
-          borderWidth: 0,
+          color: '#1e293b',
+          borderRadius: 6,
+          padding: 6,
+          borderWidth: 1,
+          borderColor: '#334155',
           opacity: 1
         },
         style: {
-          fontSize: '11px',
+          fontSize: '12px',
           fontWeight: '700',
           colors: ['#ffffff']
         },
-        offsetY: -10
+        offsetY: -12,
+        formatter: (val) => val
       },
       stroke: {
         curve: 'smooth',
         width: 3.5
       },
       markers: {
-        size: 7,
-        colors: [themeColors.linePrimary],
+        size: 6,
+        colors: ['#f59e0b'],
         strokeColors: '#ffffff',
-        strokeWidth: 3,
-        hover: { size: 9 }
+        strokeWidth: 2,
+        hover: { size: 8 }
       },
       xaxis: {
         categories: hours,
