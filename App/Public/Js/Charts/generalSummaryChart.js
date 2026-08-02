@@ -148,7 +148,7 @@ export function generalSummaryChart() {
         textAnchor: 'start',
         style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} visitas`,
-        offsetX: 6
+        offsetX: 10
       },
       xaxis: {
         categories: weeks,
@@ -159,6 +159,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
+          offsetX: -10,
           minWidth: 90,
           maxWidth: 130,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -273,7 +274,7 @@ export function generalSummaryChart() {
         textAnchor: 'start',
         style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} únicas`,
-        offsetX: 6
+        offsetX: 10
       },
       xaxis: {
         categories: weeks,
@@ -284,6 +285,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
+          offsetX: -10,
           minWidth: 90,
           maxWidth: 130,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -398,7 +400,7 @@ export function generalSummaryChart() {
         textAnchor: 'start',
         style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} clics`,
-        offsetX: 6
+        offsetX: 10
       },
       xaxis: {
         categories: links,
@@ -409,6 +411,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
+          offsetX: -10,
           minWidth: 100,
           maxWidth: 140,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -817,7 +820,7 @@ export function generalSummaryChart() {
         textAnchor: 'start',
         style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} clics`,
-        offsetX: 6
+        offsetX: 10
       },
       xaxis: {
         categories: links,
@@ -828,6 +831,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
+          offsetX: -10,
           minWidth: 100,
           maxWidth: 140,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
@@ -967,7 +971,7 @@ export function generalSummaryChart() {
         textAnchor: 'start',
         style: { colors: ['#ffffff'], fontWeight: 700, fontSize: '11px' },
         formatter: (val) => `${val} visitas`,
-        offsetX: 6
+        offsetX: 10
       },
       xaxis: {
         categories: labels,
@@ -978,6 +982,7 @@ export function generalSummaryChart() {
       yaxis: {
         labels: {
           align: 'left',
+          offsetX: -10,
           minWidth: 90,
           maxWidth: 120,
           style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
