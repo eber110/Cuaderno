@@ -54,51 +54,64 @@
 
         </div>
 
-        <!-- 2. Contenido oculto del Modal como Hermano Siguiente (nextElementSibling) -->
+        <!-- 2. MODAL CON FORMATO IDÉNTICO A GENERALSUMMARYCARD -->
         <div class="hidden">
-          <div class="flex-column center-center w100 wrap">
-            <div class="wpx600 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
-              <div class="flex-column gap15 w100">
-                
-                <!-- Encabezado del Modal -->
-                <div class="flex-row center-between wrap border-bottom pb10">
-                  <div class="flex-row center-start gap10">
-                    <span class="p8 br100 back-body flex-row center-center text-primary shadow-soft">
-                      <?= svg($sNet['icon'], "x20") ?>
-                    </span>
-                    <h3 class="bold700 x20 textb"><?= e($sNet['name']) ?></h3>
-                  </div>
-                  <span class="p5 pl12 pr12 br50 back-body bold700 text-primary">
-                    <?= number_format($sNet['total']) ?> visitas
-                  </span>
-                </div>
-
-                <!-- Resumen de Día y Hora Pico -->
-                <div class="grid col-desk-2 col-mid-2 col-sml-1 gap10 w100">
-                  <div class="flex-row center-between p12 br12 border-item-panel back-body">
-                    <span class="text-muted bold500 flex-row center-start gap5"><?= svg("calendar", "x16") ?> Día Pico:</span>
-                    <span class="bold700 textb"><?= e($sNet['bestDay']) ?></span>
-                  </div>
-                  <div class="flex-row center-between p12 br12 border-item-panel back-body">
-                    <span class="text-muted bold500 flex-row center-start gap5"><?= svg("clock", "x16") ?> Hora Pico:</span>
-                    <span class="bold700 text-primary"><?= e($sNet['bestHour']) ?></span>
-                  </div>
-                </div>
-
-                <!-- Gráfico Stacked Column de Visitas por Día de la Semana -->
-                <div class="flex-column gap8 p15 br15 border-item-panel back-body shadow-soft w100">
-                  <h5 class="bold700 x16 flex-row center-start gap8">
-                    <?= svg("chart-column-solid", "x18") ?> Rendimiento Semanal (Día y Horarios)
-                  </h5>
-                  <p class="text-muted x12">Distribución de tráfico semanal desglosada por franja horaria.</p>
-
-                  <div class="chart-social-stacked w100 mt5" 
-                       data-chart-categories='<?= json_encode($sNet['dayLabels'] ?? []) ?>'
-                       data-chart-series='<?= json_encode($sNet['stackedSeries'] ?? []) ?>'>
-                  </div>
-                </div>
-
+          <div class="flex-column center-center w100 p20 h-dvh">
+            <div class="wpx600 w-sml-100">
+              <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+                <?= svg("xmark", "x20") ?>
               </div>
+            </div>
+            <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+              
+              <!-- Encabezado del Modal -->
+              <div class="flex-column gap5">
+                <h3 class="bold700 x20 flex-row center-start gap10 textb">
+                  <?= svg($sNet['icon'], "x20") ?> Desglose de <?= e($sNet['name']) ?>
+                </h3>
+                <p class="text-muted">
+                  Monitoreo detallado de tráfico diario y franjas horarias óptimas recibidas desde <?= e($sNet['name']) ?>.
+                </p>
+              </div>
+
+              <!-- Indicadores Resumen (Día Pico vs Hora Pico vs Total) -->
+              <div class="grid col-desk-3 col-sml-3 gap10 w100">
+                <div class="flex-column p12 br12 border-item-panel back-body gap3">
+                  <span class="text-muted bold500">Total Visitas</span>
+                  <span class="x20 bold700 text-primary"><?= number_format($sNet['total']) ?></span>
+                  <span class="text-muted x12">Mes activo</span>
+                </div>
+                <div class="flex-column p12 br12 border-item-panel back-body gap3">
+                  <span class="text-muted bold500 flex-row center-start gap5"><?= svg("calendar", "x16") ?> Día Pico</span>
+                  <span class="x20 bold700 textb"><?= e($sNet['bestDay']) ?></span>
+                  <span class="text-muted x12">Mayor interacción</span>
+                </div>
+                <div class="flex-column p12 br12 border-item-panel back-body gap3">
+                  <span class="text-muted bold500 flex-row center-start gap5"><?= svg("clock", "x16") ?> Hora Pico</span>
+                  <span class="x20 bold700 text-primary"><?= e($sNet['bestHour']) ?></span>
+                  <span class="text-muted x12">Horario óptimo</span>
+                </div>
+              </div>
+
+              <div class="w100 border-top"></div>
+
+              <!-- SECCIÓN DE GRÁFICO (STACKED COLUMN) -->
+              <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+                <div class="flex-row center-between">
+                  <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                    <?= svg("chart-column-solid", "x20") ?> Rendimiento Semanal (Día y Horarios)
+                  </h4>
+                </div>
+                <p class="text-muted">
+                  Distribución del volumen de visitas recibidas desde <?= e($sNet['name']) ?> por cada día de la semana (columnas), clasificada en 4 franjas horarias (Mañana, Tarde, Noche y Madrugada).
+                </p>
+
+                <div class="chart-social-stacked w100 mt5" 
+                     data-chart-categories='<?= json_encode($sNet['dayLabels'] ?? []) ?>'
+                     data-chart-series='<?= json_encode($sNet['stackedSeries'] ?? []) ?>'>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
