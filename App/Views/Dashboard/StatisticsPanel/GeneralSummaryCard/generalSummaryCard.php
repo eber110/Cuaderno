@@ -373,16 +373,16 @@
 
   </div>
 
-  <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL CON GRÁFICO GAUGE Y MODAL DE OPTIMIZACIÓN -->
-  <div class="flex-row center-between wrap gap20 p20 br20 border-item-panel back-body shadow-soft w100">
+  <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
+  <div class="grid col-desk-12 gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
     
-    <!-- Lado Izquierdo: Gráfico Gauge / Medidor Radial ApexCharts -->
-    <div class="flex-column center-center wpx220 min-wpx200">
+    <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
+    <div class="col-span-desk-4 col-span-mid-5 col-span-sml-12 flex-column center-center w100">
       <div class="chart-ctr-gauge w100" data-ctr-value="<?= $ctrValue ?>"></div>
     </div>
 
-    <!-- Lado Derecho: Descripción y Botón Modal de Optimización -->
-    <div class="flex-column center-start gap10 flex-1 min-wpx260">
+    <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
+    <div class="col-span-desk-8 col-span-mid-7 col-span-sml-12 flex-column center-start gap12 w100">
       <div class="flex-row center-between wrap w100 gap10">
         <h4 class="bold700 x20 textb flex-row center-start gap8">
           <?= svg("chart", "x20") ?> CTR Global (Tasa de Conversión)
@@ -392,11 +392,11 @@
         </span>
       </div>
 
-      <p class="text-muted">
+      <p class="text-muted line-height-1-5">
         El CTR (Click-Through Rate) mide el porcentaje de visitantes que hicieron clic en al menos uno de tus enlaces respecto al total de visitas recibidas. Un CTR más alto indica mayor efectividad y atractivo en tu llamado a la acción.
       </p>
 
-      <div class="flex-row center-start modal-btn pointer darken mt5">
+      <div class="modal-btn pointer darken mt5">
         <span class="flex-row center-center gap8 back-primary textw pl15 pr15 p10 br50 bold600 shadow-soft |hover-scale-soft">
           <?= svg("lightbulb", "x18") ?> Ver cómo optimizarlo
         </span>
@@ -499,7 +499,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
   </div>
