@@ -436,23 +436,33 @@ export function generalSummaryChart() {
       container.innerHTML = '';
 
       const themeColors = getChartColors();
-      const timeSlotColors = ['#059669', '#2563eb', '#8b5cf6', '#dc2626'];
+      const timeSlotColors = ['#0284c7', '#10b981', '#d97706', '#8b5cf6'];
 
       const options = {
         series: series,
         chart: {
           type: 'bar',
-          height: 260,
+          height: 300,
           stacked: true,
+          stackType: '100%',
           toolbar: { show: false },
           animations: { enabled: true, easing: 'easeinout', speed: 800 }
         },
         plotOptions: {
           bar: {
             horizontal: false,
-            columnWidth: '45%',
+            columnWidth: '50%',
             borderRadius: 4
           }
+        },
+        dataLabels: {
+          enabled: true,
+          style: {
+            fontSize: '11px',
+            fontWeight: '700',
+            colors: ['#ffffff']
+          },
+          formatter: (val) => (val > 4 ? `${Math.round(val)}%` : '')
         },
         colors: timeSlotColors,
         xaxis: {
@@ -464,17 +474,19 @@ export function generalSummaryChart() {
           axisTicks: { show: false }
         },
         yaxis: {
+          max: 100,
           labels: {
             style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 },
-            formatter: (val) => Math.round(val)
+            formatter: (val) => `${Math.round(val)}%`
           }
         },
         grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
         legend: {
-          position: 'top',
-          horizontalAlign: 'center',
+          position: 'right',
+          verticalAlign: 'middle',
           labels: { colors: themeColors.axisText },
-          fontSize: '11px'
+          fontSize: '12px',
+          fontWeight: 600
         },
         tooltip: {
           theme: themeColors.tooltipTheme,

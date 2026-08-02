@@ -99,11 +99,12 @@
               <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
                 <div class="flex-row center-between">
                   <h4 class="bold600 x20 flex-row center-start gap5 textb">
-                    <?= svg("chart", "x20") ?> Rendimiento Semanal (Día y Horarios)
+                    <?= svg("chart", "x20") ?> Distribución Porcentual (Stacked Column 100%)
                   </h4>
+                  <span class="p2 pl8 pr8 br50 back-primary textw bold600">100% Stacked</span>
                 </div>
                 <p class="text-muted">
-                  Distribución del volumen de visitas recibidas desde <?= e($sNet['name']) ?> por cada día de la semana (columnas), clasificada en 4 franjas horarias (Mañana, Tarde, Noche y Madrugada).
+                  Porcentaje de tráfico aportado desde <?= e($sNet['name']) ?> por día de la semana (columnas al 100%), desglosado en franjas horarias con etiquetas directas.
                 </p>
 
                 <div class="chart-social-stacked w100 mt5" 
