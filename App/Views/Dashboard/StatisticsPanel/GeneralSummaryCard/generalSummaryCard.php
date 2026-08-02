@@ -377,12 +377,12 @@
   <div class="grid col-desk-12 gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
     
     <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
-    <div class="col-span-desk-4 col-span-mid-5 col-span-sml-12 flex-column center-center w100">
-      <div class="chart-ctr-gauge w100" data-ctr-value="<?= $ctrValue ?>"></div>
+    <div class="col-span-desk-5 col-span-mid-5 col-span-sml-12 flex-column center-center w100 h100 relative">
+      <div class="chart-ctr-gauge w100 flex-row center-center" data-ctr-value="<?= $ctrValue ?>"></div>
     </div>
 
     <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
-    <div class="col-span-desk-8 col-span-mid-7 col-span-sml-12 flex-column center-start gap12 w100">
+    <div class="col-span-desk-7 col-span-mid-7 col-span-sml-12 flex-column center-start gap12 w100">
       <div class="flex-row center-between wrap w100 gap10">
         <h4 class="bold700 x20 textb flex-row center-start gap8">
           <?= svg("chart", "x20") ?> CTR Global (Tasa de Conversión)
@@ -397,7 +397,7 @@
       </p>
 
       <div class="modal-btn pointer darken mt5">
-        <span class="flex-row center-center gap8 back-primary textw pl15 pr15 p10 br50 bold600 shadow-soft |hover-scale-soft">
+        <span class="flex-row center-center gap8 back-modal-item textb pl15 pr15 p10 br50 bold500 shadow-soft |hover-scale-soft">
           <?= svg("lightbulb", "x18") ?> Ver cómo optimizarlo
         </span>
       </div>

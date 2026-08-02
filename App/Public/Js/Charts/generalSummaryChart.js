@@ -684,16 +684,17 @@ export function generalSummaryChart() {
       series: [Math.min(100, Math.max(0, ctrVal))],
       chart: {
         type: 'radialBar',
-        height: 220,
+        height: 270,
         sparkline: { enabled: true }
       },
       plotOptions: {
         radialBar: {
           startAngle: -135,
           endAngle: 135,
+          offsetY: -5,
           hollow: {
             margin: 0,
-            size: '70%',
+            size: '72%',
             background: 'transparent'
           },
           track: {
@@ -704,15 +705,15 @@ export function generalSummaryChart() {
           dataLabels: {
             name: {
               show: true,
-              fontSize: '13px',
+              fontSize: '14px',
               fontWeight: '600',
               color: themeColors.axisText,
-              offsetY: -10,
+              offsetY: -12,
               formatter: () => 'CTR Global'
             },
             value: {
-              offsetY: 5,
-              fontSize: '22px',
+              offsetY: 8,
+              fontSize: '26px',
               fontWeight: '700',
               color: '#2563eb',
               formatter: (val) => `${val.toFixed(1)}%`
