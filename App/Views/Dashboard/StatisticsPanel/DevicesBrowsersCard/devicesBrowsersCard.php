@@ -1,45 +1,83 @@
 <?php
   /** 
-   * @var array $devices 
-   * @var array $browsers 
+   * @var array $devices   Métricas del mes activo por tipo de dispositivo
+   * @var array $browsers  Métricas del mes activo por navegador
    */
+
+  $devices  = $devices ?? [];
+  $browsers = $browsers ?? [];
+
+  $deviceNamesMap = [
+    'mobile'  => 'Móvil',
+    'desktop' => 'Escritorio',
+    'tablet'  => 'Tablet'
+  ];
+
+  $deviceLabels = [];
+  $deviceSeries = [];
+  foreach ($devices as $d) {
+    $rawType = strtolower(trim($d['device_type'] ?? 'desktop'));
+    $deviceLabels[] = $deviceNamesMap[$rawType] ?? ucfirst($rawType);
+    $deviceSeries[] = (int)($d['total'] ?? 0);
+  }
 ?>
+
 <div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
   
-  <!-- Dispositivos -->
-  <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x20">Dispositivos</p>
+  <!-- 1. Dispositivos de Acceso con Gráfico Donut Directo -->
+  <div class="flex-column gap15 p20 br20 border-item-panel back-body shadow-soft">
+    <div class="flex-row center-between wrap gap10">
+      <div>
+        <h4 class="bold700 x20 flex-row center-start gap8">
+          <?= svg("user-solid", "x20") ?> Dispositivos de Acceso
+        </h4>
+        <p class="text-muted mt3">
+          Distribución de las visitas recibidas en el mes activo según el tipo de dispositivo de tus usuarios.
+        </p>
+      </div>
+      <span class="p5 pl10 pr10 br50 back-modal-item bold600 text-muted">
+        Período Mensual
+      </span>
+    </div>
+
     <?php if (!empty($devices)) : ?>
-      <div class="flex-column gap10 w100">
-        <?php foreach ($devices as $d) : 
-          $devName = ucfirst($d['device_type'] ?? 'desktop');
-          $devIcon = ($devName === 'Mobile') ? 'user-solid' : (($devName === 'Tablet') ? 'user' : 'server-solid');
-        ?>
-          <div class="flex-row center-between p10 br10 border-item-panel">
-            <span class="bold500 flex-row center-start gap5"><?= svg($devIcon, "x16") ?> <?= e($devName) ?></span>
-            <span class="bold700 text-muted"><?= e($d['total']) ?> visitas</span>
-          </div>
-        <?php endforeach; ?>
+      <div class="chart-devices-donut w100 mt5" 
+           style="min-height: 250px;"
+           data-chart-labels='<?= json_encode($deviceLabels) ?>'
+           data-chart-series='<?= json_encode($deviceSeries) ?>'>
       </div>
     <?php else : ?>
-      <p class="text-muted">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos de dispositivos registrados este mes.</p>
     <?php endif; ?>
   </div>
 
-  <!-- Navegadores -->
-  <div class="flex-column gap15 p20 br15 border-item-panel">
-    <p class="bold600 x20">Navegadores & In-App</p>
+  <!-- 2. Navegadores & Apps Integradas (In-App) -->
+  <div class="flex-column gap15 p20 br20 border-item-panel back-body shadow-soft">
+    <div class="flex-row center-between wrap gap10">
+      <div>
+        <h4 class="bold700 x20 flex-row center-start gap8">
+          <?= svg("server-solid", "x20") ?> Navegadores & In-App
+        </h4>
+        <p class="text-muted mt3">
+          Principales navegadores y aplicaciones donde los usuarios abrieron tu cuaderno digital este mes.
+        </p>
+      </div>
+      <span class="p5 pl10 pr10 br50 back-modal-item bold600 text-muted">
+        Período Mensual
+      </span>
+    </div>
+
     <?php if (!empty($browsers)) : ?>
-      <div class="flex-column gap10 w100">
+      <div class="flex-column gap10 w100 mt5">
         <?php foreach ($browsers as $b) : ?>
-          <div class="flex-row center-between p10 br10 border-item-panel">
-            <span class="bold500"><?= e($b['browser'] ?? 'Desconocido') ?></span>
-            <span class="bold700 text-muted"><?= e($b['total']) ?> visitas</span>
+          <div class="flex-row center-between p12 br12 border-item-panel back-modal-item">
+            <span class="bold600 textb"><?= e($b['browser'] ?? 'Desconocido') ?></span>
+            <span class="bold700 text-primary"><?= number_format($b['total'] ?? 0) ?> <span class="font-normal text-muted x12">visitas</span></span>
           </div>
         <?php endforeach; ?>
       </div>
     <?php else : ?>
-      <p class="text-muted">No hay datos registrados aún.</p>
+      <p class="text-muted">No hay datos de navegadores registrados este mes.</p>
     <?php endif; ?>
   </div>
 

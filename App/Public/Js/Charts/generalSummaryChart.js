@@ -826,6 +826,79 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 12. Renderiza el gráfico de Dona (Donut) Directo para Dispositivos de Acceso
+   */
+  function renderDevicesDonutChart() {
+    const container = document.querySelector('.chart-devices-donut');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let labels = [];
+    let series = [];
+
+    try {
+      if (container.dataset.chartLabels) labels = JSON.parse(container.dataset.chartLabels);
+      if (container.dataset.chartSeries) series = JSON.parse(container.dataset.chartSeries);
+    } catch (e) {
+      console.error('Error al parsear datos en renderDevicesDonutChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+    const donutColors = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+    const options = {
+      series: series,
+      labels: labels,
+      chart: {
+        type: 'donut',
+        height: 250,
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      colors: donutColors,
+      stroke: { width: 2, colors: [themeColors.gridBorder] },
+      dataLabels: {
+        enabled: true,
+        style: { fontSize: '11px', fontWeight: '700', colors: ['#ffffff'] },
+        dropShadow: { enabled: false }
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '65%',
+            labels: {
+              show: true,
+              total: {
+                show: true,
+                label: 'Total Visitas',
+                color: themeColors.axisText,
+                fontSize: '12px',
+                fontWeight: '600',
+                formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+              }
+            }
+          }
+        }
+      },
+      legend: {
+        position: 'right',
+        verticalAlign: 'middle',
+        labels: { colors: themeColors.axisText },
+        fontSize: '12px',
+        fontWeight: 600
+      },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} visitas` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -842,13 +915,14 @@ export function generalSummaryChart() {
     renderPeakDaysColumnChart();
     renderCtrGaugeChart();
     renderRrssLinksChart();
+    renderDevicesDonutChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column, .chart-ctr-gauge, .chart-summary-rrss-links'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column, .chart-ctr-gauge, .chart-summary-rrss-links, .chart-devices-donut'))) {
             setTimeout(renderAllCharts, 120);
           }
         });
