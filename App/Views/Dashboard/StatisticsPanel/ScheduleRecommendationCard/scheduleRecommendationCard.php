@@ -21,31 +21,22 @@
 
   <div class="grid col-desk-3 col-mid-3 col-sml-1 gap15 w100 mt5">
     <!-- Mejor Día -->
-    <div class="flex-column p15 br12 border-item-panel gap8 back-modal-item">
-      <span class="bold600 x15 flex-row center-start gap8 textb">
-        <span class="text-primary flex-row center-center"><?= svg("calendar", "x18") ?></span>
-        Mejor Día de la Semana
-      </span>
+    <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+      <span class="text-muted bold600">Mejor Día de la Semana</span>
       <span class="x22 bold700 text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></span>
       <span class="text-muted"><?= e($recommendation['bestDayTotal'] ?? 0) ?> visitas ese día</span>
     </div>
 
     <!-- Mejor Horario -->
-    <div class="flex-column p15 br12 border-item-panel gap8 back-modal-item">
-      <span class="bold600 x15 flex-row center-start gap8 textb">
-        <span class="text-primary flex-row center-center"><?= svg("clock", "x18") ?></span>
-        Franja Horaria Pico
-      </span>
+    <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+      <span class="text-muted bold600">Franja Horaria Pico</span>
       <span class="x22 bold700 text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?></span>
       <span class="text-muted"><?= e($recommendation['bestHourTotal'] ?? 0) ?> visitas en esa franja</span>
     </div>
 
     <!-- Consejo de Impacto -->
-    <div class="flex-column p15 br12 border-item-panel gap8 back-modal-item">
-      <span class="bold600 x15 flex-row center-start gap8 textb">
-        <span class="text-primary flex-row center-center"><?= svg("lightbulb", "x18") ?></span>
-        Consejo de Impacto
-      </span>
+    <div class="flex-column p15 br12 border-item-panel gap5 back-modal-item">
+      <span class="text-muted bold600">Consejo de Impacto</span>
       <p class="bold500 textb leading-normal">
         Tus seguidores están más activos los <strong class="text-primary"><?= e($recommendation['bestDay'] ?? 'Lunes') ?></strong> entre las <strong class="text-primary"><?= e($recommendation['bestHour'] ?? '18:00 - 19:00') ?> hrs</strong>.
       </p>
