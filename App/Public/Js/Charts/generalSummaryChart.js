@@ -9,6 +9,7 @@
  * 5. Gráfico de Barras de Clics por Día (Solo Barras)
  * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
  * 7. Gráfico Stacked Column por Red Social (Rendimiento por Día de la Semana y Franja Horaria)
+ * 8. Gráfico Directo de Línea con Data Labels para Horarios Más Concurridos
  */
 export function generalSummaryChart() {
   /**
@@ -482,6 +483,101 @@ export function generalSummaryChart() {
     });
   }
 
+  /**
+   * 8. Renderiza el gráfico directo de Línea con Data Labels para Horarios Más Concurridos
+   */
+  function renderPeakHoursLineChart() {
+    const container = document.querySelector('.chart-peak-hours-line');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let hours  = [];
+    let totals = [];
+
+    try {
+      if (container.dataset.chartHours)  hours  = JSON.parse(container.dataset.chartHours);
+      if (container.dataset.chartTotals) totals = JSON.parse(container.dataset.chartTotals);
+    } catch (e) {
+      console.error('Error al parsear datos en renderPeakHoursLineChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+
+    const options = {
+      series: [
+        {
+          name: 'Visitas',
+          data: totals
+        }
+      ],
+      chart: {
+        type: 'line',
+        height: 250,
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 },
+        dropShadow: {
+          enabled: true,
+          color: themeColors.linePrimary,
+          top: 3,
+          left: 2,
+          blur: 4,
+          opacity: 0.2
+        }
+      },
+      colors: [themeColors.linePrimary],
+      dataLabels: {
+        enabled: true,
+        background: {
+          enabled: true,
+          color: themeColors.linePrimary,
+          borderRadius: 4,
+          padding: 4,
+          borderWidth: 0
+        },
+        style: {
+          fontSize: '11px',
+          fontWeight: '700',
+          colors: ['#ffffff']
+        }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      markers: {
+        size: 5,
+        colors: ['#ffffff'],
+        strokeColors: themeColors.linePrimary,
+        strokeWidth: 3,
+        hover: { size: 7 }
+      },
+      xaxis: {
+        categories: hours,
+        labels: {
+          style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 }
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 },
+          formatter: (val) => Math.round(val)
+        }
+      },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} visitas` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -494,13 +590,14 @@ export function generalSummaryChart() {
     renderClicksDailyChart();
     renderTopLinksChart();
     renderSocialStackedCharts();
+    renderPeakHoursLineChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line'))) {
             setTimeout(renderAllCharts, 120);
           }
         });

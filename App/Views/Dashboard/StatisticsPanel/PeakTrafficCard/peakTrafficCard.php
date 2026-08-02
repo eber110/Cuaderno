@@ -7,7 +7,7 @@
 <div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
   
   <!-- Días de la Semana Más Visitados -->
-  <div class="flex-column gap15 p20 br15 border-item-panel">
+  <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
     <div class="flex-row center-between wrap gap5">
       <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
       <?php if (!empty($topDays)) : ?>
@@ -46,8 +46,8 @@
     <?php endif; ?>
   </div>
 
-  <!-- Horarios de Mayor Tráfico -->
-  <div class="flex-column gap15 p20 br15 border-item-panel">
+  <!-- Horarios Más Concurridos (Gráfico de Línea Directo con Data Labels) -->
+  <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
     <div class="flex-row center-between wrap gap5">
       <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
       <?php if (!empty($topHours)) : ?>
@@ -58,28 +58,22 @@
     </div>
 
     <?php if (!empty($topHours)) : 
-      $maxHourTotal = max(array_column($topHours, 'total')) ?: 1;
+      // Ordenar cronológicamente por hora para el gráfico de línea
+      $hoursSorted = $topHours;
+      usort($hoursSorted, function($a, $b) {
+        return (int)($a['hour_num'] ?? 0) <=> (int)($b['hour_num'] ?? 0);
+      });
+
+      $chartHourLabels = [];
+      $chartHourTotals = [];
+      foreach ($hoursSorted as $h) {
+        $chartHourLabels[] = $h['label'] ?? '';
+        $chartHourTotals[] = (int)($h['total'] ?? 0);
+      }
     ?>
-      <div class="flex-column gap10 w100">
-        <?php foreach ($topHours as $index => $h) : 
-          $percent = round(($h['total'] / $maxHourTotal) * 100);
-          $isPeak = ($index === 0);
-        ?>
-          <div class="flex-column gap5 p10 br10 border-item-panel <?= $isPeak ? 'back-modal-item' : '' ?>">
-            <div class="flex-row center-between">
-              <span class="bold600 flex-row center-start gap5">
-                <?= e($h['label']) ?>
-                <?php if ($isPeak) : ?>
-                  <span class="p2 pl8 pr8 br50 back-primary textw bold700">Pico</span>
-                <?php endif; ?>
-              </span>
-              <span class="bold700 text-muted"><?= e($h['total']) ?> visitas</span>
-            </div>
-            <div class="w100 br10 overflow-hidden hpx6 back-body">
-              <div class="h100 br10 <?= $isPeak ? 'back-primary' : 'back-muted' ?>" style="width: <?= $percent ?>%;"></div>
-            </div>
-          </div>
-        <?php endforeach; ?>
+      <div class="chart-peak-hours-line w100 mt5"
+           data-chart-hours='<?= json_encode($chartHourLabels) ?>'
+           data-chart-totals='<?= json_encode($chartHourTotals) ?>'>
       </div>
     <?php else : ?>
       <p class="text-muted">No hay datos registrados aún.</p>
