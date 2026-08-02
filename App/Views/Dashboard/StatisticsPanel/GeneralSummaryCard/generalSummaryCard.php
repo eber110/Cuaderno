@@ -60,6 +60,133 @@
 
 <div class="flex-column gap15 w100">
 
+  <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
+  <div class="flex-row  gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
+    
+    <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
+    <div class="flex-column center-center w100 h100 relative">
+      <div class="chart-ctr-gauge w100 flex-row center-center pb30" data-ctr-value="<?= $ctrValue ?>"></div>
+    </div>
+
+    <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
+    <div class="flex-column center-start gap12 w100">
+      <div class="flex-row center-between wrap w100 gap10">
+        <h4 class="bold700 x20 textb flex-row center-start gap8">
+          CTR Global (Tasa de Conversión)
+        </h4>
+      </div>
+
+      <p class="text-muted line-height-1-5">
+        El CTR (Click-Through Rate) mide el porcentaje de visitantes que hicieron clic en al menos uno de tus enlaces respecto al total de visitas recibidas. Un CTR más alto indica mayor efectividad y atractivo en tu llamado a la acción.
+      </p>
+
+      <div class="modal-btn pointer darken mt5">
+        <span class="flex-row center-center gap8 back-modal-item textb pl15 pr15 p10 br50 bold500 shadow-soft |hover-scale-soft">
+          <?= svg("lightbulb", "x18") ?> Ver cómo optimizarlo
+        </span>
+      </div>
+
+      <!-- MODAL DE OPTIMIZACIÓN Y ESTRATEGIA DE CTR -->
+      <div class="hidden">
+        <div class="flex-column center-center w100 p20 h-dvh">
+          <div class="wpx600 w-sml-100">
+            <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+              <?= svg("xmark", "x20") ?>
+            </div>
+          </div>
+          <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+            
+            <!-- Encabezado del Modal -->
+            <div class="flex-column gap5">
+              <h3 class="bold700 x20 flex-row center-start gap10 textb">
+                <?= svg("chart", "x20") ?> ¿Qué es el CTR y cómo mejorarlo?
+              </h3>
+              <p class="text-muted">
+                Explicación detallada de la Tasa de Clics (Click-Through Rate) y estrategia recomendada para maximizar la conversión de tus visitas.
+              </p>
+            </div>
+
+            <!-- Indicadores de Diagnóstico del CTR -->
+            <div class="grid col-desk-2 col-sml-2 gap12 w100">
+              <div class="flex-column p15 br12 border-item-panel back-body gap3">
+                <span class="text-muted bold500">Tu CTR Actual</span>
+                <span class="x22 bold700 text-success"><?= number_format($ctrValue, 2) ?>%</span>
+                <span class="text-muted">Porcentaje de conversión</span>
+              </div>
+              <div class="flex-column p15 br12 border-item-panel back-body gap3">
+                <span class="text-muted bold500">Diagnóstico</span>
+                <?php 
+                  $diagText  = ($ctrValue >= 50) ? 'Excelente' : (($ctrValue >= 25) ? 'Bueno' : 'Mejorable');
+                  $diagColor = ($ctrValue >= 50) ? 'text-success' : (($ctrValue >= 25) ? 'text-primary' : 'text-danger');
+                ?>
+                <span class="x22 bold700 <?= $diagColor ?>"><?= $diagText ?></span>
+                <span class="text-muted">Basado en visitas vs clics</span>
+              </div>
+            </div>
+
+            <div class="w100 border-top"></div>
+
+            <!-- CONSEJO ESTRATÉGICO PERSONALIZADO (DÍA Y RED SOCIAL RECOMENDADA) -->
+            <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+              <div class="flex-row center-between">
+                <h4 class="bold600 x20 flex-row center-start gap8 textb">
+                  <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
+                </h4>
+                <span class="p2 pl8 pr8 br50 back-primary textw bold600">Recomendación</span>
+              </div>
+              <p class="text-muted">
+                Según tus datos estadísticos, la mayor tasa de interacción la obtienes desde 
+                <strong class="textb"><?= e($topSocial['name'] ?? 'Instagram') ?></strong>.
+              </p>
+              <div class="p15 br12 border-item-panel back-modal-item flex-column gap8">
+                <span class="bold600 text-primary flex-row center-start gap5">
+                  <?= svg("clock", "x14") ?> Ejemplo de Publicación Sugerida:
+                </span>
+                <p class="textb">
+                  Publica o promociona tu enlace en <strong class="text-primary"><?= e($topSocial['name'] ?? 'Instagram') ?></strong> los días 
+                  <strong class="textb"><?= e($recommendation['bestDay'] ?? 'Sábado') ?></strong> cerca de las 
+                  <strong class="textb"><?= e($recommendation['bestHour'] ?? '14:00 - 15:00') ?></strong>.
+                  En este horario tu audiencia muestra mayor propensión a hacer clic.
+                </p>
+              </div>
+            </div>
+
+            <!-- CONSEJOS PRÁCTICOS Y AVANZADOS PARA POTENCIAR EL CTR -->
+            <div class="flex-column gap12 w100 p15 br15 border-item-panel back-body shadow-soft">
+              <h4 class="bold600 x20 flex-row center-start gap8 textb">
+                <?= svg("check", "x16") ?> 5 Estrategias Clave para Potenciar tu CTR
+              </h4>
+              <div class="flex-column gap12">
+                <div class="flex-row center-start gap10">
+                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">1</span>
+                  <span class="textb"><strong>Llamados a la acción directos y claros:</strong> Usa verbos de acción en tus botones como <em>"Escríbeme por WhatsApp"</em>, <em>"Ver mi portafolio"</em> o <em>"Descargar plantilla gratis"</em> en lugar de títulos genéricos.</span>
+                </div>
+                <div class="flex-row center-start gap10">
+                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">2</span>
+                  <span class="textb"><strong>Jerarquía visual y posición estratégica:</strong> Ubica tus 2 o 3 enlaces principales en la parte superior de tu tarjeta para captar la atención en los primeros 3 segundos de lectura.</span>
+                </div>
+                <div class="flex-row center-start gap10">
+                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">3</span>
+                  <span class="textb"><strong>Imágenes y miniaturas atractivas:</strong> Agrega íconos o portadas visuales representativas a cada enlace para incentivar el clic impulsivo.</span>
+                </div>
+                <div class="flex-row center-start gap10">
+                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">4</span>
+                  <span class="textb"><strong>Promoción activa en horario pico:</strong> Difunde tu enlace en historias o publicaciones de tu red social principal coincidiendo con el día y hora pico recomendados arriba.</span>
+                </div>
+                <div class="flex-row center-start gap10">
+                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">5</span>
+                  <span class="textb"><strong>Pruebas A/B y renovación continua:</strong> Modifica periódicamente los textos de tus botones y evalúa cuál genera más clics para mantener enganchada a tu audiencia.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- GRID DE 4 TARJETAS PRINCIPALES -->
   <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
 
@@ -367,133 +494,6 @@
             </div>
           </div>
 
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
-  <div class="flex-row  gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
-    
-    <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
-    <div class="flex-column center-center w100 h100 relative">
-      <div class="chart-ctr-gauge w100 flex-row center-center pb30" data-ctr-value="<?= $ctrValue ?>"></div>
-    </div>
-
-    <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
-    <div class="flex-column center-start gap12 w100">
-      <div class="flex-row center-between wrap w100 gap10">
-        <h4 class="bold700 x20 textb flex-row center-start gap8">
-          CTR Global (Tasa de Conversión)
-        </h4>
-      </div>
-
-      <p class="text-muted line-height-1-5">
-        El CTR (Click-Through Rate) mide el porcentaje de visitantes que hicieron clic en al menos uno de tus enlaces respecto al total de visitas recibidas. Un CTR más alto indica mayor efectividad y atractivo en tu llamado a la acción.
-      </p>
-
-      <div class="modal-btn pointer darken mt5">
-        <span class="flex-row center-center gap8 back-modal-item textb pl15 pr15 p10 br50 bold500 shadow-soft |hover-scale-soft">
-          <?= svg("lightbulb", "x18") ?> Ver cómo optimizarlo
-        </span>
-      </div>
-
-      <!-- MODAL DE OPTIMIZACIÓN Y ESTRATEGIA DE CTR -->
-      <div class="hidden">
-        <div class="flex-column center-center w100 p20 h-dvh">
-          <div class="wpx600 w-sml-100">
-            <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
-              <?= svg("xmark", "x20") ?>
-            </div>
-          </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
-            
-            <!-- Encabezado del Modal -->
-            <div class="flex-column gap5">
-              <h3 class="bold700 x20 flex-row center-start gap10 textb">
-                <?= svg("chart", "x20") ?> ¿Qué es el CTR y cómo mejorarlo?
-              </h3>
-              <p class="text-muted">
-                Explicación detallada de la Tasa de Clics (Click-Through Rate) y estrategia recomendada para maximizar la conversión de tus visitas.
-              </p>
-            </div>
-
-            <!-- Indicadores de Diagnóstico del CTR -->
-            <div class="grid col-desk-2 col-sml-2 gap12 w100">
-              <div class="flex-column p15 br12 border-item-panel back-body gap3">
-                <span class="text-muted bold500">Tu CTR Actual</span>
-                <span class="x22 bold700 text-success"><?= number_format($ctrValue, 2) ?>%</span>
-                <span class="text-muted">Porcentaje de conversión</span>
-              </div>
-              <div class="flex-column p15 br12 border-item-panel back-body gap3">
-                <span class="text-muted bold500">Diagnóstico</span>
-                <?php 
-                  $diagText  = ($ctrValue >= 50) ? 'Excelente' : (($ctrValue >= 25) ? 'Bueno' : 'Mejorable');
-                  $diagColor = ($ctrValue >= 50) ? 'text-success' : (($ctrValue >= 25) ? 'text-primary' : 'text-danger');
-                ?>
-                <span class="x22 bold700 <?= $diagColor ?>"><?= $diagText ?></span>
-                <span class="text-muted">Basado en visitas vs clics</span>
-              </div>
-            </div>
-
-            <div class="w100 border-top"></div>
-
-            <!-- CONSEJO ESTRATÉGICO PERSONALIZADO (DÍA Y RED SOCIAL RECOMENDADA) -->
-            <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
-              <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap8 textb">
-                  <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
-                </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textw bold600">Recomendación</span>
-              </div>
-              <p class="text-muted">
-                Según tus datos estadísticos, la mayor tasa de interacción la obtienes desde 
-                <strong class="textb"><?= e($topSocial['name'] ?? 'Instagram') ?></strong>.
-              </p>
-              <div class="p15 br12 border-item-panel back-modal-item flex-column gap8">
-                <span class="bold600 text-primary flex-row center-start gap5">
-                  <?= svg("clock", "x14") ?> Ejemplo de Publicación Sugerida:
-                </span>
-                <p class="textb">
-                  Publica o promociona tu enlace en <strong class="text-primary"><?= e($topSocial['name'] ?? 'Instagram') ?></strong> los días 
-                  <strong class="textb"><?= e($recommendation['bestDay'] ?? 'Sábado') ?></strong> cerca de las 
-                  <strong class="textb"><?= e($recommendation['bestHour'] ?? '14:00 - 15:00') ?></strong>.
-                  En este horario tu audiencia muestra mayor propensión a hacer clic.
-                </p>
-              </div>
-            </div>
-
-            <!-- CONSEJOS PRÁCTICOS Y AVANZADOS PARA POTENCIAR EL CTR -->
-            <div class="flex-column gap12 w100 p15 br15 border-item-panel back-body shadow-soft">
-              <h4 class="bold600 x20 flex-row center-start gap8 textb">
-                <?= svg("check", "x16") ?> 5 Estrategias Clave para Potenciar tu CTR
-              </h4>
-              <div class="flex-column gap12">
-                <div class="flex-row center-start gap10">
-                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">1</span>
-                  <span class="textb"><strong>Llamados a la acción directos y claros:</strong> Usa verbos de acción en tus botones como <em>"Escríbeme por WhatsApp"</em>, <em>"Ver mi portafolio"</em> o <em>"Descargar plantilla gratis"</em> en lugar de títulos genéricos.</span>
-                </div>
-                <div class="flex-row center-start gap10">
-                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">2</span>
-                  <span class="textb"><strong>Jerarquía visual y posición estratégica:</strong> Ubica tus 2 o 3 enlaces principales en la parte superior de tu tarjeta para captar la atención en los primeros 3 segundos de lectura.</span>
-                </div>
-                <div class="flex-row center-start gap10">
-                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">3</span>
-                  <span class="textb"><strong>Imágenes y miniaturas atractivas:</strong> Agrega íconos o portadas visuales representativas a cada enlace para incentivar el clic impulsivo.</span>
-                </div>
-                <div class="flex-row center-start gap10">
-                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">4</span>
-                  <span class="textb"><strong>Promoción activa en horario pico:</strong> Difunde tu enlace en historias o publicaciones de tu red social principal coincidiendo con el día y hora pico recomendados arriba.</span>
-                </div>
-                <div class="flex-row center-start gap10">
-                  <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">5</span>
-                  <span class="textb"><strong>Pruebas A/B y renovación continua:</strong> Modifica periódicamente los textos de tus botones y evalúa cuál genera más clics para mantener enganchada a tu audiencia.</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
         </div>
       </div>
     </div>
