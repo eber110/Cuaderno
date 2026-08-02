@@ -370,7 +370,7 @@
         <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
           <div class="flex-row center-between">
             <h4 class="bold600 x20 flex-row center-start gap8 textb">
-              <?= svg("chart", "x16") ?> Recomendación de Estrategia Pico
+              <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
             </h4>
             <span class="p2 pl8 pr8 br50 back-primary textw bold600">Recomendación</span>
           </div>
