@@ -6,40 +6,53 @@
 ?>
 <div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
   
-  <!-- Días de la Semana Más Visitados -->
+  <!-- Días Más Visitados (Gráfico de Columnas Directo con Data Labels) -->
   <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
     <div class="flex-row center-between wrap gap5">
       <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
-      <?php if (!empty($topDays)) : ?>
+      <?php if (!empty($topDays)) : 
+        $peakDay = $topDays[0];
+        foreach ($topDays as $td) {
+          if ((int)($td['total'] ?? 0) > (int)($peakDay['total'] ?? 0)) {
+            $peakDay = $td;
+          }
+        }
+      ?>
         <span class="p5 pl10 pr10 br50 back-primary textw bold600">
-          Día Pico: <?= e($topDays[0]['day_name']) ?>
+          Día Pico: <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
         </span>
       <?php endif; ?>
     </div>
 
     <?php if (!empty($topDays)) : 
-      $maxDayTotal = max(array_column($topDays, 'total')) ?: 1;
+      // Ordenar los 7 días de la semana cronológicamente de Lunes a Domingo
+      $daysChronological = [
+        "1" => ["day_name" => "Lunes",     "total" => 0],
+        "2" => ["day_name" => "Martes",    "total" => 0],
+        "3" => ["day_name" => "Miércoles", "total" => 0],
+        "4" => ["day_name" => "Jueves",    "total" => 0],
+        "5" => ["day_name" => "Viernes",   "total" => 0],
+        "6" => ["day_name" => "Sábado",    "total" => 0],
+        "0" => ["day_name" => "Domingo",   "total" => 0],
+      ];
+
+      foreach ($topDays as $d) {
+        $num = (string)($d['day_num'] ?? '');
+        if (isset($daysChronological[$num])) {
+          $daysChronological[$num]['total'] = (int)$d['total'];
+        }
+      }
+
+      $chartDayNames  = [];
+      $chartDayTotals = [];
+      foreach ($daysChronological as $dc) {
+        $chartDayNames[]  = $dc['day_name'];
+        $chartDayTotals[] = $dc['total'];
+      }
     ?>
-      <div class="flex-column gap10 w100">
-        <?php foreach ($topDays as $index => $d) : 
-          $percent = round(($d['total'] / $maxDayTotal) * 100);
-          $isPeak = ($index === 0);
-        ?>
-          <div class="flex-column gap5 p10 br10 border-item-panel <?= $isPeak ? 'back-modal-item' : '' ?>">
-            <div class="flex-row center-between">
-              <span class="bold600 flex-row center-start gap5">
-                <?= e($d['day_name']) ?>
-                <?php if ($isPeak) : ?>
-                  <span class="p2 pl8 pr8 br50 back-primary textw bold700">Pico</span>
-                <?php endif; ?>
-              </span>
-              <span class="bold700 text-muted"><?= e($d['total']) ?> visitas</span>
-            </div>
-            <div class="w100 br10 overflow-hidden hpx6 back-body">
-              <div class="h100 br10 <?= $isPeak ? 'back-primary' : 'back-muted' ?>" style="width: <?= $percent ?>%;"></div>
-            </div>
-          </div>
-        <?php endforeach; ?>
+      <div class="chart-peak-days-column w100 mt5"
+           data-chart-days='<?= json_encode($chartDayNames) ?>'
+           data-chart-totals='<?= json_encode($chartDayTotals) ?>'>
       </div>
     <?php else : ?>
       <p class="text-muted">No hay datos registrados aún.</p>

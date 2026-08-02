@@ -10,6 +10,7 @@
  * 6. Gráfico Horizontal Dynamic Loaded (Top Enlaces más Clicados - Máximo Top 10)
  * 7. Gráfico Stacked Column por Red Social (Rendimiento por Día de la Semana y Franja Horaria)
  * 8. Gráfico Directo de Línea con Data Labels para Horarios Más Concurridos
+ * 9. Gráfico Directo de Columnas con Data Labels para Días Más Visitados
  */
 export function generalSummaryChart() {
   /**
@@ -576,6 +577,87 @@ export function generalSummaryChart() {
     new ApexCharts(container, options).render();
   }
 
+  /**
+   * 9. Renderiza el gráfico directo de Columnas con Data Labels para Días Más Visitados
+   */
+  function renderPeakDaysColumnChart() {
+    const container = document.querySelector('.chart-peak-days-column');
+    if (!container || container.dataset.rendered === 'true') return;
+
+    let days   = [];
+    let totals = [];
+
+    try {
+      if (container.dataset.chartDays)   days   = JSON.parse(container.dataset.chartDays);
+      if (container.dataset.chartTotals) totals = JSON.parse(container.dataset.chartTotals);
+    } catch (e) {
+      console.error('Error al parsear datos en renderPeakDaysColumnChart:', e);
+      return;
+    }
+
+    container.dataset.rendered = 'true';
+    container.innerHTML = '';
+
+    const themeColors = getChartColors();
+    const maxVal = Math.max(...totals, 0);
+
+    const options = {
+      series: [
+        {
+          name: 'Visitas',
+          data: totals
+        }
+      ],
+      chart: {
+        type: 'bar',
+        height: 250,
+        toolbar: { show: false },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          columnWidth: '45%',
+          distributed: true
+        }
+      },
+      colors: totals.map((val) => (val === maxVal && val > 0 ? '#2563eb' : '#3b82f6')),
+      dataLabels: {
+        enabled: true,
+        position: 'top',
+        style: {
+          fontSize: '11px',
+          fontWeight: '700',
+          colors: [themeColors.axisText]
+        },
+        offsetY: -20,
+        formatter: (val) => val
+      },
+      xaxis: {
+        categories: days,
+        labels: {
+          style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 }
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: themeColors.axisText, fontSize: '11px', fontWeight: 600 },
+          formatter: (val) => Math.round(val)
+        }
+      },
+      grid: { borderColor: themeColors.gridBorder, strokeDashArray: 4 },
+      legend: { show: false },
+      tooltip: {
+        theme: themeColors.tooltipTheme,
+        y: { formatter: (val) => `${val} visitas` }
+      }
+    };
+
+    new ApexCharts(container, options).render();
+  }
+
   function renderAllCharts() {
     if (typeof ApexCharts === 'undefined') {
       setTimeout(renderAllCharts, 100);
@@ -589,13 +671,14 @@ export function generalSummaryChart() {
     renderTopLinksChart();
     renderSocialStackedCharts();
     renderPeakHoursLineChart();
+    renderPeakDaysColumnChart();
   }
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.addedNodes.length) {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line'))) {
+          if (node.nodeType === 1 && (node.classList.contains('modal-overlay') || node.querySelector('.chart-summary-combo, .chart-summary-weeks, .chart-summary-uniques-combo, .chart-summary-uniques-weeks, .chart-summary-clicks-daily, .chart-summary-top-links, .chart-social-stacked, .chart-peak-hours-line, .chart-peak-days-column'))) {
             setTimeout(renderAllCharts, 120);
           }
         });
