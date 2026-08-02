@@ -49,14 +49,11 @@
 
   <!-- 1. Card Total Visitas (Del Mes) con Modal de Desglose Integrado -->
   <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
-    <div class="flex-row center-between w100">
+    <div class="flex-row center-center w100">
       <span class="text-muted bold500">Total Visitas (Mes)</span>
-      <span class="p2 pl6 pr6 br50 back-modal-item text-primary bold600 flex-row center-center gap3">
-        <?= svg("eye", "x14") ?> Ver
-      </span>
     </div>
     <span class="x22 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
-    <span class="text-muted">Clic para ver desglose y gráfico</span>
+    <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20")?> Ver desglose y gráfico</span>
   </div>
 
   <!-- MODAL DE DESGLOSE DE TOTAL VISITAS CON GRÁFICOS APEXCHARTS -->
