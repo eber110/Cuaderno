@@ -312,7 +312,12 @@ export function verticalMenu() {
       }
     });
 
-    // 4. Marcar el menú y el contenedor remoto como listos para evitar FOUC
+    // 4. Si se restauró un link activo que contiene data-remote, simular el click de manera síncrona para evitar FOUC
+    if (activeLink && activeLink.dataset.remote) {
+      activeLink.click();
+    }
+
+    // 5. Marcar el menú y el contenedor remoto como listos para evitar FOUC
     menu.setAttribute('data-menu-ready', 'true');
     const container = document.querySelector('.remote-container');
     if (container) {

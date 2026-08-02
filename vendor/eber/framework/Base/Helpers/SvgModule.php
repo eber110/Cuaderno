@@ -56,6 +56,9 @@ function svg($name_icon, $class = '', $transform = '')
     $pathsHtml .= '<path d="' . $d . '"' . $attrs . $transformAttr . ' />';
   }
 
-  // Estilos base inline para retrocompatibilidad (width/height 1.1em, fill currentColor)
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' . $viewBox . '" fill="currentColor" class="' . $class . '" style="width: 1.1em;height: 1.1em;vertical-align: middle;display: inline-block;">' . $pathsHtml . '</svg>';
+  // Estilos base inline:
+  // - width: 1em y height: 1em: hereda y respeta estrictamente el font-size (del padre o el asignado vía clase)
+  // - flex-shrink: 0: evita que contenedores flex compriman o redimensionen el icono
+  // - vertical-align: middle y display: inline-block: alineación con el texto
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' . $viewBox . '" fill="currentColor" class="' . $class . '" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">' . $pathsHtml . '</svg>';
 }

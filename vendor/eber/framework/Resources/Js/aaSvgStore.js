@@ -23,7 +23,7 @@ export async function svg(name_icon, classNames = '', transform = '') {
       // Si el archivo no existe o no se puede cargar, retorna un SVG de error
       console.warn(`SVG '${name_icon}' no encontrado o error al cargar en: ${route_svg}`);
       return `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1.1em;height: 1.1em;vertical-align: middle;display: inline-block;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
           <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"></circle>
           <line x1="15" y1="9" x2="9" y2="15" stroke="red" stroke-width="2"></line>
           <line x1="9" y1="9" x2="15" y2="15" stroke="red" stroke-width="2"></line>
@@ -41,7 +41,7 @@ export async function svg(name_icon, classNames = '', transform = '') {
     if (!svgElement) {
       console.error(`Contenido SVG inválido para '${name_icon}': no se encontró el elemento <svg> raíz.`);
       return `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1.1em;height: 1.1em;vertical-align: middle;display: inline-block;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
           <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"></circle>
           <line x1="15" y1="9" x2="9" y2="15" stroke="red" stroke-width="2"></line>
           <line x1="9" y1="9" x2="15" y2="15" stroke="red" stroke-width="2"></line>
@@ -63,7 +63,7 @@ export async function svg(name_icon, classNames = '', transform = '') {
     // Reconstruye el SVG con los parámetros dados
     const return_svg = `
       <svg xmlns="http://www.w3.org/2000/svg"
-           viewBox="${viewBox}" fill="currentColor" class="svg-style ${classNames}" style="width: 1.1em;height: 1.1em;vertical-align: middle;display: inline-block;">
+           viewBox="${viewBox}" fill="currentColor" class="svg-style ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
         <path ${transform ? `transform="${transform}"` : ''} d="${pathData}" />
       </svg>`;
 
@@ -73,7 +73,7 @@ export async function svg(name_icon, classNames = '', transform = '') {
     console.error(`Error procesando SVG '${name_icon}':`, error);
     // Retorna un SVG de error genérico si ocurre una excepción
     return `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1.1em;height: 1.1em;vertical-align: middle;display: inline-block;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
         <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"></circle>
         <line x1="15" y1="9" x2="9" y2="15" stroke="red" stroke-width="2"></line>
         <line x1="9" y1="9" x2="15" y2="15" stroke="red" stroke-width="2"></line>
