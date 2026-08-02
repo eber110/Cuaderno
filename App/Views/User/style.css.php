@@ -78,4 +78,45 @@
     color: <?= $card["titleColor"]?>;
   }
 
+  /* Estilos rápidos, que después pasaran a su propio archivo css*/
+  .back-container-graphic{
+    background-color: #f0f0f0;
+  }
+
+  .back-card-graphic{
+    background-color: #ffffff;
+    filter: drop-shadow(0px 0px 1px #bdbdbd);
+  }
+
+  .shadow-card-graphic{
+    filter: drop-shadow(0px 1px 2px #b6b6b6);
+  }
+
+  .btn-card-graphic{
+    background-color: #e2e2e2;
+    padding: 10px 15px;
+    border-radius: 100px;
+    filter: drop-shadow(0px 1px 2px #d8d7d7);
+  }
+
+  .closed-modal-preview{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    margin: 10px;
+    z-index: 20;
+    object-fit: contain;
+    width: 28px;
+    height: 28px;
+    border-radius: 50px;
+    background-color: #000000;
+    color: #ffffff;
+    &:hover{
+      background-color: #464646;
+    }
+  }
+
 </style>

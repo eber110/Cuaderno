@@ -103,14 +103,6 @@
   background-color: #cecece;
 }
 
-.closed-modal-preview{
-  background-color: #000000;
-  color: #ffffff;
-  &:hover{
-    background-color: #464646;
-  }
-}
-
 .border-card-modal{
   border: #bdbdbd solid 1px;
 }

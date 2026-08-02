@@ -61,7 +61,7 @@
 <div class="flex-column gap15 w100">
 
   <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
-  <div class="flex-row  gap20 p20 br20 border-item-panel back-body shadow-soft w100 center-center">
+  <div class="flex-row  gap20 p20 br20 back-card-graphic hover-scale-soft w100 center-center">
     
     <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
     <div class="flex-column center-center w100 h100 relative">
@@ -81,7 +81,7 @@
       </p>
 
       <div class="modal-btn pointer darken mt5">
-        <span class="flex-row center-center gap8 back-modal-item textb pl15 pr15 p10 br50 bold500 shadow-soft |hover-scale-soft">
+        <span class="flex-row center-center gap8 btn-card-graphic hover-scale-soft">
           <?= svg("lightbulb", "x18") ?> Ver cómo optimizarlo
         </span>
       </div>
@@ -90,11 +90,11 @@
       <div class="hidden">
         <div class="flex-column center-center w100 p20 h-dvh">
           <div class="wpx600 w-sml-100">
-            <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
-              <?= svg("xmark", "x20") ?>
+            <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
+              <?= svg("xmark") ?>
             </div>
           </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+          <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
             
             <!-- Encabezado del Modal -->
             <div class="flex-column gap5">
@@ -108,12 +108,12 @@
 
             <!-- Indicadores de Diagnóstico del CTR -->
             <div class="grid col-desk-2 col-sml-2 gap12 w100">
-              <div class="flex-column p15 br12 border-item-panel back-body gap3">
+              <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Tu CTR Actual</span>
                 <span class="x22 bold700 text-success"><?= number_format($ctrValue, 2) ?>%</span>
                 <span class="text-muted">Porcentaje de conversión</span>
               </div>
-              <div class="flex-column p15 br12 border-item-panel back-body gap3">
+              <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Diagnóstico</span>
                 <?php 
                   $diagText  = ($ctrValue >= 50) ? 'Excelente' : (($ctrValue >= 25) ? 'Bueno' : 'Mejorable');
@@ -127,7 +127,7 @@
             <div class="w100 border-top"></div>
 
             <!-- CONSEJO ESTRATÉGICO PERSONALIZADO (DÍA Y RED SOCIAL RECOMENDADA) -->
-            <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+            <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
                 <h4 class="bold600 x20 flex-row center-start gap8 textb">
                   <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
@@ -138,7 +138,7 @@
                 Según tus datos estadísticos, la mayor tasa de interacción la obtienes desde 
                 <strong class="textb"><?= e($topSocial['name'] ?? 'Instagram') ?></strong>.
               </p>
-              <div class="p15 br12 border-item-panel back-modal-item flex-column gap8">
+              <div class="p15 br12 back-container-graphic shadow-card-graphic flex-column gap8">
                 <span class="bold600 text-primary flex-row center-start gap5">
                   <?= svg("clock", "x14") ?> Ejemplo de Publicación Sugerida:
                 </span>
@@ -152,7 +152,7 @@
             </div>
 
             <!-- CONSEJOS PRÁCTICOS Y AVANZADOS PARA POTENCIAR EL CTR -->
-            <div class="flex-column gap12 w100 p15 br15 border-item-panel back-body shadow-soft">
+            <div class="flex-column gap12 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <h4 class="bold600 x20 flex-row center-start gap8 textb">
                 <?= svg("check", "x16") ?> 5 Estrategias Clave para Potenciar tu CTR
               </h4>
@@ -188,26 +188,26 @@
   </div>
 
   <!-- GRID DE 4 TARJETAS PRINCIPALES -->
-  <div class="grid col-desk-4 col-mid-2 col-sml-2 gap15 w100">
+  <div class="grid col-desk-2 col-mid-2 col-sml-1 gap15 w100">
 
     <!-- 1. Card Total Visitas (Del Mes) -->
-    <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
-      <div class="flex-row center-center w100">
+    <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
+      <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Total Visitas (Mes)</span>
+        <span class="x22 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
       </div>
-      <span class="x22 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
-      <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver desglose y gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE TOTAL VISITAS -->
     <div class="hidden">
       <div class="flex-column center-center w100 p20 h-dvh">
         <div class="wpx600 w-sml-100">
-          <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+          <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
           
           <div class="flex-column gap5">
             <h3 class="bold700 x20 flex-row center-start gap10 textb">
@@ -219,12 +219,12 @@
           </div>
     
           <div class="grid col-desk-2 col-sml-2 gap12 w100">
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Total Histórico Completo</span>
               <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['total_views'] ?? 0) ?></span>
               <span class="text-muted">Todas las visitas acumuladas</span>
             </div>
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Visitas Mes Actual</span>
               <span class="x22 bold700 textb"><?= number_format($summary['total_views'] ?? 0) ?></span>
               <span class="text-muted">Período en curso</span>
@@ -233,7 +233,7 @@
     
           <div class="w100 border-top"></div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("chart", "x16") ?> Gráfico Mixto (Visitas vs Clics)
@@ -251,7 +251,7 @@
             </div>
           </div>
     
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("clock", "x16") ?> Visitas por Semana (Mes Actual)
@@ -273,23 +273,23 @@
     </div>
 
     <!-- 2. Card Visitas Únicas (Del Mes) -->
-    <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
-      <div class="flex-row center-center w100">
+    <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
+      <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Visitas Únicas (Mes)</span>
+        <span class="x22 bold700 text-primary"><?= number_format($summary['unique_views'] ?? 0) ?></span>
       </div>
-      <span class="x22 bold700 text-primary"><?= number_format($summary['unique_views'] ?? 0) ?></span>
-      <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver desglose y gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE VISITAS ÚNICAS -->
     <div class="hidden">
       <div class="flex-column center-center w100 p20 h-dvh">
         <div class="wpx600 w-sml-100">
-          <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+          <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
           
           <div class="flex-column gap5">
             <h3 class="bold700 x20 flex-row center-start gap10 textb">
@@ -301,12 +301,12 @@
           </div>
     
           <div class="grid col-desk-2 col-sml-2 gap12 w100">
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Únicas Históricas</span>
               <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['unique_views'] ?? 0) ?></span>
               <span class="text-muted">Total acumulado de IPs únicas</span>
             </div>
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Únicas Mes Actual</span>
               <span class="x22 bold700 textb"><?= number_format($summary['unique_views'] ?? 0) ?></span>
               <span class="text-muted">Usuarios únicos este mes</span>
@@ -315,7 +315,7 @@
     
           <div class="w100 border-top"></div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("chart", "x16") ?> Visitas Únicas por Día (Mes Actual)
@@ -332,7 +332,7 @@
             </div>
           </div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("clock", "x16") ?> Visitas Únicas por Semana
@@ -340,7 +340,7 @@
               <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
             </div>
             <p class="text-muted">
-              Muestra el alcance semanal deduplicado, permitiéndote saber cuántas personas distintas atrajo tu contenido cada semana.
+              Muestra el alcance semanal desacoplado, permitiéndote saber cuántas personas distintas atrajo tu contenido cada semana.
             </p>
             <div class="chart-summary-uniques-weeks w100" 
                  style="min-height: 230px;"
@@ -354,23 +354,23 @@
     </div>
 
     <!-- 3. Card Total Clics (Del Mes - Enlaces del Widget) -->
-    <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
-      <div class="flex-row center-center w100">
+    <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
+      <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Total Clics (Mes)</span>
+        <span class="x22 bold700 text-primary"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
       </div>
-      <span class="x22 bold700 text-primary"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
-      <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver desglose y gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE CLICS EN ENLACES DEL WIDGET -->
     <div class="hidden">
       <div class="flex-column center-center w100 p20 h-dvh">
         <div class="wpx600 w-sml-100">
-          <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+          <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
           
           <div class="flex-column gap5">
             <h3 class="bold700 x20 flex-row center-start gap10 textb">
@@ -382,12 +382,12 @@
           </div>
     
           <div class="grid col-desk-2 col-sml-2 gap12 w100">
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Clics Históricos</span>
               <span class="x22 bold700 text-primary"><?= number_format($allTimeSummary['total_clicks'] ?? 0) ?></span>
               <span class="text-muted">Total acumulado en enlaces</span>
             </div>
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Clics Mes Actual</span>
               <span class="x22 bold700 textb"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
               <span class="text-muted">Interacciones en enlaces</span>
@@ -396,7 +396,7 @@
     
           <div class="w100 border-top"></div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("chart", "x16") ?> Clics por Día (Mes Actual)
@@ -413,7 +413,7 @@
             </div>
           </div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("link", "x16") ?> Top Enlaces más Clicados
@@ -435,23 +435,23 @@
     </div>
 
     <!-- 4. NUEVA CARD: Clics a mis RRSS (Mes) -->
-    <div class="flex-column center-center p15 br15 border-item-panel text-c gap5 shadow-soft modal-btn darken pointer |hover-scale-soft relative">
-      <div class="flex-row center-center w100">
+    <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
+      <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Clics a mis RRSS (Mes)</span>
+        <span class="x22 bold700 text-primary"><?= number_format($totalRrssClicks) ?></span>
       </div>
-      <span class="x22 bold700 text-primary"><?= number_format($totalRrssClicks) ?></span>
-      <span class="flex-row center-center gap5 back-modal-item pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver desglose y gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE CLICS A REDES SOCIALES -->
     <div class="hidden">
       <div class="flex-column center-center w100 p20 h-dvh">
         <div class="wpx600 w-sml-100">
-          <div id="close-modal-btn" class="modal-close-button pointer absolute top right p2 m5 closed-modal-preview br50 z-index-20">
+          <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="wpx600 w-sml-100 overflow-y-scroll back-modal-item br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+        <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
           
           <div class="flex-column gap5">
             <h3 class="bold700 x20 flex-row center-start gap10 textb">
@@ -463,12 +463,12 @@
           </div>
     
           <div class="grid col-desk-2 col-sml-2 gap12 w100">
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Total Clics RRSS</span>
               <span class="x22 bold700 text-primary"><?= number_format($totalRrssClicks) ?></span>
               <span class="text-muted">Interacciones este mes</span>
             </div>
-            <div class="flex-column p15 br12 border-item-panel back-body gap3">
+            <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
               <span class="text-muted bold500">Redes Activas</span>
               <span class="x22 bold700 textb"><?= count($rrssLinks) ?></span>
               <span class="text-muted">Perfiles vinculados</span>
@@ -477,7 +477,7 @@
     
           <div class="w100 border-top"></div>
 
-          <div class="flex-column gap10 w100 p15 br15 border-item-panel back-body shadow-soft">
+          <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
             <div class="flex-row center-between">
               <h4 class="bold600 x20 flex-row center-start gap5 textb">
                 <?= svg("chart", "x16") ?> Clics por Red Social (Ranking)

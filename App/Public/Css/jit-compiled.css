@@ -10,6 +10,7 @@
 .gap2 { gap: 2px; }
 .gap20 { gap: 20px; }
 .gap3 { gap: 3px; }
+.gap30 { gap: 30px; }
 .gap5 { gap: 5px; }
 .gap6 { gap: 6px; }
 .gap8 { gap: 8px; }
@@ -133,6 +134,7 @@
 .hpx120 { height: 120px; }
 .hpx22 { height: 22px; }
 .hpx25 { height: 25px; }
+.hpx250 { height: 250px; }
 .hpx30 { height: 30px; }
 .hpx40 { height: 40px; }
 .hpx50 { height: 50px; }
