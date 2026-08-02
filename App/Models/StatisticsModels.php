@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Base\Builder\Builder;
 use Base\Module\AnalyticsModule;
+use App\Models\DesignModels;
 use Exception;
 
 /**
@@ -28,6 +29,22 @@ class StatisticsModels extends Builder {
 
     try {
       $pdo = AnalyticsModule::getPdo();
+
+      // Cargar datos de la tarjeta del usuario para mapear los nombres reales de los enlaces
+      $userData  = DesignModels::dataUser($userClean);
+      $userLinks = $userData['card']['content'] ?? [];
+
+      $linkTitleMap = [];
+      foreach ($userLinks as $idx => $linkItem) {
+        $title = !empty($linkItem['title']) ? $linkItem['title'] : (!empty($linkItem['metaTitle']) ? $linkItem['metaTitle'] : "Enlace #" . ($idx + 1));
+        $linkTitleMap["enlace_" . ($idx + 1)] = $title;
+        $linkTitleMap["enlace_" . $idx]       = $title;
+        $linkTitleMap[(string)$idx]          = $title;
+        $linkTitleMap[(string)($idx + 1)]    = $title;
+        if (!empty($linkItem['url'])) {
+          $linkTitleMap[$linkItem['url']] = $title;
+        }
+      }
 
       // Utilizar la fecha local configurada en PHP (date.timezone)
       $currentLocalMonth = date("Y-m");
@@ -142,7 +159,7 @@ class StatisticsModels extends Builder {
         ];
       }
 
-      // 5. Top Enlaces más Clicados del Mes Activo (Top 9 + "Otros Enlaces")
+      // 5. Top Enlaces más Clicados del Mes Activo (Mapeando títulos reales del usuario)
       $stmtTopLinks = $pdo->prepare("
         SELECT link_id, COUNT(*) as total
         FROM link_clicks
@@ -153,20 +170,60 @@ class StatisticsModels extends Builder {
       $stmtTopLinks->execute([":user" => $userClean, ":activeMonth" => $activeMonth]);
       $rawTopLinks = $stmtTopLinks->fetchAll() ?: [];
 
-      $topLinks = [];
-      if (count($rawTopLinks) > 10) {
-        $top9 = array_slice($rawTopLinks, 0, 9);
-        foreach ($top9 as $l) {
-          $rawId = $l['link_id'] ?? '';
-          $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
-          $topLinks[] = [
-            'link_id'   => $rawId,
-            'link_name' => $linkName,
-            'total'     => (int)$l['total']
-          ];
+      $processedClicks = [];
+      $activeLinksCount = count($userLinks);
+
+      foreach ($rawTopLinks as $l) {
+        $rawId = trim($l['link_id'] ?? '');
+        if (empty($rawId)) continue;
+
+        if (isset($linkTitleMap[$rawId])) {
+          $realName = $linkTitleMap[$rawId];
+        } else {
+          if (preg_match('/(\d+)/', $rawId, $matches)) {
+            $num = (int)$matches[1];
+            if (isset($userLinks[$num - 1]['title'])) {
+              $realName = $userLinks[$num - 1]['title'];
+            } elseif (isset($userLinks[$num]['title'])) {
+              $realName = $userLinks[$num]['title'];
+            } else {
+              // Si no existe un enlace activo para este índice (ej. simulaciones antiguas), omitir
+              if ($activeLinksCount > 0 && $num > $activeLinksCount) {
+                continue;
+              }
+              $realName = "Enlace " . $num;
+            }
+          } else {
+            $realName = ucwords(str_replace(['_', '-'], ' ', $rawId));
+          }
         }
 
-        $others = array_slice($rawTopLinks, 9);
+        if (!isset($processedClicks[$realName])) {
+          $processedClicks[$realName] = 0;
+        }
+        $processedClicks[$realName] += (int)$l['total'];
+      }
+
+      arsort($processedClicks);
+
+      $rawFormattedLinks = [];
+      foreach ($processedClicks as $name => $totalClicks) {
+        $rawFormattedLinks[] = [
+          'link_id'   => $name,
+          'link_name' => $name,
+          'total'     => $totalClicks
+        ];
+      }
+
+      // Regla de Top 9 + "Otros Enlaces"
+      $topLinks = [];
+      if (count($rawFormattedLinks) > 10) {
+        $top9 = array_slice($rawFormattedLinks, 0, 9);
+        foreach ($top9 as $l) {
+          $topLinks[] = $l;
+        }
+
+        $others = array_slice($rawFormattedLinks, 9);
         $othersTotal = 0;
         foreach ($others as $o) {
           $othersTotal += (int)($o['total'] ?? 0);
@@ -180,15 +237,7 @@ class StatisticsModels extends Builder {
           ];
         }
       } else {
-        foreach ($rawTopLinks as $l) {
-          $rawId = $l['link_id'] ?? '';
-          $linkName = !empty($rawId) ? ucwords(str_replace(['_', '-'], ' ', $rawId)) : 'Enlace Principal';
-          $topLinks[] = [
-            'link_id'   => $rawId,
-            'link_name' => $linkName,
-            'total'     => (int)$l['total']
-          ];
-        }
+        $topLinks = $rawFormattedLinks;
       }
 
       // 6. Desglose por tipo de dispositivo del Mes Activo
@@ -446,6 +495,10 @@ class StatisticsModels extends Builder {
   public static function generateTestData(string $user, int $count = 20): bool {
     $userClean = mb_strtolower($user, "UTF-8");
 
+    $userData  = DesignModels::dataUser($userClean);
+    $userLinks = $userData['card']['content'] ?? [];
+    $userContentCount = !empty($userLinks) ? count($userLinks) : 3;
+
     $samples = [
       ["device" => "mobile",  "os" => "iOS",     "browser" => "Instagram App", "country" => "Chile",  "code" => "CL", "city" => "Santiago",        "ref" => "https://instagram.com"],
       ["device" => "mobile",  "os" => "Android", "browser" => "TikTok App",    "country" => "Chile",  "code" => "CL", "city" => "Valparaíso",      "ref" => "https://tiktok.com"],
@@ -482,9 +535,10 @@ class StatisticsModels extends Builder {
         "created_at"   => $formattedDate
       ]);
 
-      // Generar clic en 75% de las visitas simuladas
+      // Generar clic en 75% de las visitas simuladas usando solo índices de enlaces activos del usuario
       if (rand(1, 100) <= 75) {
-        AnalyticsModule::logLinkClick($userClean, "enlace_" . rand(1, 4), [
+        $randomLinkIndex = rand(1, max(1, $userContentCount));
+        AnalyticsModule::logLinkClick($userClean, "enlace_" . $randomLinkIndex, [
           "country_code" => $sample["code"],
           "device_type"  => $sample["device"],
           "created_at"   => $formattedDate
