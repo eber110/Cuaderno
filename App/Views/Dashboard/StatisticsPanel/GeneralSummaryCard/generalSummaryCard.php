@@ -7,6 +7,8 @@
    * @var array $topLinks               Top enlaces con mayor cantidad de clics en el mes activo
    */
 
+  $topLinks = $topLinks ?? [];
+
   $chartDates       = [];
   $chartViews       = [];
   $chartClicks      = [];

@@ -9,6 +9,7 @@
   $allTimeSummary     = $stats["allTimeSummary"] ?? ['total_views' => 0, 'total_clicks' => 0];
   $viewsByDayOfMonth  = $stats["viewsByDayOfMonth"] ?? [];
   $viewsByWeekOfMonth = $stats["viewsByWeekOfMonth"] ?? [];
+  $topLinks           = $stats["topLinks"] ?? [];
   $devices            = $stats["devices"] ?? [];
   $browsers           = $stats["browsers"] ?? [];
   $countries          = $stats["countries"] ?? [];
@@ -28,18 +29,26 @@
     $allTimeSummary = ['total_views' => 480, 'total_clicks' => 310];
 
     $viewsByDayOfMonth = [
-      ['date_str' => date('Y-m-01'), 'day_num' => '01', 'total' => 4],
-      ['date_str' => date('Y-m-05'), 'day_num' => '05', 'total' => 8],
-      ['date_str' => date('Y-m-10'), 'day_num' => '10', 'total' => 12],
-      ['date_str' => date('Y-m-15'), 'day_num' => '15', 'total' => 5]
+      ['date_str' => date('Y-m-01'), 'day_num' => '01', 'total' => 4, 'total_views' => 4, 'unique_views' => 4, 'total_clicks' => 3],
+      ['date_str' => date('Y-m-05'), 'day_num' => '05', 'total' => 8, 'total_views' => 8, 'unique_views' => 8, 'total_clicks' => 6],
+      ['date_str' => date('Y-m-10'), 'day_num' => '10', 'total' => 12, 'total_views' => 12, 'unique_views' => 12, 'total_clicks' => 9],
+      ['date_str' => date('Y-m-15'), 'day_num' => '15', 'total' => 5, 'total_views' => 5, 'unique_views' => 5, 'total_clicks' => 4]
     ];
 
     $viewsByWeekOfMonth = [
-      ['week_label' => 'Semana 1', 'total' => 35],
-      ['week_label' => 'Semana 2', 'total' => 58],
-      ['week_label' => 'Semana 3', 'total' => 72],
-      ['week_label' => 'Semana 4', 'total' => 45]
+      ['week_label' => 'Semana 1', 'total' => 35, 'unique_total' => 30],
+      ['week_label' => 'Semana 2', 'total' => 58, 'unique_total' => 50],
+      ['week_label' => 'Semana 3', 'total' => 72, 'unique_total' => 65],
+      ['week_label' => 'Semana 4', 'total' => 45, 'unique_total' => 40]
     ];
+
+    if (empty($topLinks)) {
+      $topLinks = [
+        ['link_id' => 'whatsapp',  'link_name' => 'WhatsApp Contacto', 'total' => 45],
+        ['link_id' => 'instagram', 'link_name' => 'Instagram Perfil',  'total' => 30],
+        ['link_id' => 'tienda',    'link_name' => 'Tienda Online',     'total' => 25]
+      ];
+    }
 
     $topDays = [
       ["day_num" => "1", "day_name" => "Lunes",     "total" => 48],
@@ -48,45 +57,39 @@
       ["day_num" => "6", "day_name" => "Sábado",    "total" => 22],
       ["day_num" => "0", "day_name" => "Domingo",   "total" => 15]
     ];
+
     $topHours = [
-      ["hour_num" => "18", "label" => "18:00 - 19:00", "total" => 34],
-      ["hour_num" => "20", "label" => "20:00 - 21:00", "total" => 28],
-      ["hour_num" => "14", "label" => "14:00 - 15:00", "total" => 21],
-      ["hour_num" => "12", "label" => "12:00 - 13:00", "total" => 16],
-      ["hour_num" => "09", "label" => "09:00 - 10:00", "total" => 11]
+      ["hour_num" => "18", "label" => "18:00 - 19:00", "total" => 42],
+      ["hour_num" => "19", "label" => "19:00 - 20:00", "total" => 35],
+      ["hour_num" => "12", "label" => "12:00 - 13:00", "total" => 28],
+      ["hour_num" => "20", "label" => "20:00 - 21:00", "total" => 24],
+      ["hour_num" => "14", "label" => "14:00 - 15:00", "total" => 21]
     ];
+
     $recommendation = [
-      'bestDay'       => 'Lunes',
-      'bestHour'      => '18:00 - 19:00',
-      'bestDayTotal'  => 48,
-      'bestHourTotal' => 34
+      "bestDay"       => "Lunes",
+      "bestHour"      => "18:00 - 19:00",
+      "bestDayTotal"  => 48,
+      "bestHourTotal" => 42
     ];
-    if (empty($socialStats)) {
-      $socialStats = [
-        ['key' => 'instagram', 'name' => 'Instagram',       'icon' => 'instagram',   'total' => 74, 'bestDay' => 'Miércoles', 'bestHour' => '20:00 - 21:00'],
-        ['key' => 'tiktok',    'name' => 'TikTok',          'icon' => 'tiktok',      'total' => 41, 'bestDay' => 'Viernes',   'bestHour' => '22:00 - 23:00'],
-        ['key' => 'facebook',  'name' => 'Facebook',        'icon' => 'facebook',    'total' => 28, 'bestDay' => 'Domingo',   'bestHour' => '15:00 - 16:00'],
-        ['key' => 'direct',    'name' => 'Tráfico Directo', 'icon' => 'globe-solid', 'total' => 35, 'bestDay' => 'Lunes',     'bestHour' => '12:00 - 13:00']
-      ];
-    }
+
     if (empty($devices)) {
       $devices = [
-        ['device_type' => 'mobile',  'total' => 105],
-        ['device_type' => 'desktop', 'total' => 38],
-        ['device_type' => 'tablet',  'total' => 7]
+        ['device_type' => 'mobile',  'total' => 142],
+        ['device_type' => 'desktop', 'total' => 88]
       ];
     }
     if (empty($browsers)) {
       $browsers = [
-        ['browser' => 'Instagram App', 'total' => 62],
-        ['browser' => 'Chrome',        'total' => 45],
-        ['browser' => 'Safari',        'total' => 28],
-        ['browser' => 'TikTok App',    'total' => 15]
+        ['browser' => 'Chrome',        'total' => 95],
+        ['browser' => 'Instagram App', 'total' => 64],
+        ['browser' => 'Safari',        'total' => 45],
+        ['browser' => 'TikTok App',    'total' => 26]
       ];
     }
     if (empty($countries)) {
       $countries = [
-        ['country_name' => 'Chile',  'country_code' => 'CL', 'total' => 95],
+        ['country_name' => 'Chile',  'country_code' => 'CL', 'total' => 173],
         ['country_name' => 'México', 'country_code' => 'MX', 'total' => 32],
         ['country_name' => 'España', 'country_code' => 'ES', 'total' => 23]
       ];
@@ -107,6 +110,7 @@
     'allTimeSummary'     => $allTimeSummary,
     'viewsByDayOfMonth'  => $viewsByDayOfMonth,
     'viewsByWeekOfMonth' => $viewsByWeekOfMonth,
+    'topLinks'           => $topLinks,
     'recommendation'     => $recommendation,
     'socialStats'        => $socialStats,
     'topDays'            => $topDays,
@@ -139,10 +143,7 @@
   <!-- 6. Desglose por Dispositivos y Navegadores (In-App) -->
   <?php _part("Dashboard.devicesBrowsersCard", $data); ?>
 
-  <!-- 7. Ubicación Geográfica y Fuentes de Tráfico -->
-  <?php _part("Dashboard.locationReferrersCard", $data); ?>
-
-  <!-- 8. Registros Recientes en SQLite (Log Debug) -->
-  <?php _part("Dashboard.recentLogCard", $data); ?>
+  <!-- 7. Ubicaciones Principales (Países) y Fuentes de Tráfico (Referrers) -->
+  <?php _part("Dashboard.locationsSourcesCard", $data); ?>
 
 </div>
