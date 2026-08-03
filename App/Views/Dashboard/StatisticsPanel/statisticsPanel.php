@@ -139,8 +139,14 @@
 
 <div class="flex-column gap20 w100 textb">
 
-  <!-- 1. Encabezado de la Vista -->
-  <?php _part("Dashboard.statisticsHeader", $data); ?>
+  <!-- 1. Encabezado de la Vista (Simulación de Tráfico) -->
+  <?php 
+    $clickSimulationRaw = $_ENV['CLICK_SIMULATION'] ?? getenv('CLICK_SIMULATION') ?? 'false';
+    $isClickSimulationActive = filter_var($clickSimulationRaw, FILTER_VALIDATE_BOOLEAN);
+    if ($isClickSimulationActive) {
+      _part("Dashboard.statisticsHeader", $data);
+    }
+  ?>
 
   <!-- 2. Recuento: Métricas del Mes Actual con Modal de Desglose Integrado -->
   <?php _part("Dashboard.generalSummaryCard", $data); ?>
