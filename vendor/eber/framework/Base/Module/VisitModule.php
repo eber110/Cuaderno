@@ -207,9 +207,7 @@ class VisitModule
   }
 
   /**
-   * Determina si se necesita actualizar la ubicación.
-   */
-  private static function needsGeoUpdate(string $currentIp): bool
+   * Determina si se necesita actualizar l  private static function needsGeoUpdate(string $currentIp): bool
   {
     // Si la ubicación ya está guardada en la sesión, la IP no ha cambiado Y el país es válido, no volver a consultar
     if (

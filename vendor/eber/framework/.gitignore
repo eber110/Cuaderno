@@ -1,3 +1,30 @@
-#archivos ignorados por git
-.zip
+# ===== Dependencias y entorno =====
+/vendor/
+.env
+.env.local
+
+# ===== Archivos generados por scripts =====
+# Regenerables con: composer min-script
+/App/Public/Min/*
+!/App/Public/Min/.gitkeep
+/App/Public/Css/font-project.css
+/App/Config/preloadFonts.json
+/App/Public/Css/jit-compiled.css
+
+# ===== Datos de ejecución =====
+/Logs/
+/Cache/
+/Uploads/
+/App/Public/Uploads/
+*.log
+
+# ===== Bases de datos de geolocalización (descargables) =====
+*.mmdb
+
+# ===== Herramientas / descriptores IDE =====
+.scratch/
+.vscode/
+
+# ===== Archivos auxiliares =====
+*.zip
 App.zip
