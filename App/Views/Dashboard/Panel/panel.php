@@ -26,7 +26,7 @@
     <!-- Vista previa para desktop -->
     <div class="no-tablet no-phone flex-column center-center h-dvh sticky top" style="min-width: 550px;border-left: solid 0.5px #f0f0f0;">
 
-      <button class="absolute z-index-10 top mt20 p5 pl15 pr15 br15 copy-btn" data-copy="<?= DOMAIN.$card["profile"]?>" style="border: solid 0.5px #000000;">
+      <button class="absolute z-index-10 top mt20 p10 pl20 pr20 br50 bold500 pointer copy-btn back-card-graphic shadow-card-graphic hover-scale-soft" data-copy="<?= DOMAIN.$card["profile"]?>" style="border: none;">
         cuaderno/<?= $card["profile"]?>
       </button>
 

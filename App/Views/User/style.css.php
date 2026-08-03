@@ -99,6 +99,13 @@
     filter: drop-shadow(0px 1px 2px #d8d7d7);
   }
 
+  .btn-card-graphic-red{
+    background-color: #e94646;
+    padding: 10px 15px;
+    border-radius: 100px;
+    filter: drop-shadow(0px 1px 2px #d8d7d7);
+  }
+
   .advice{
     border-left: #b6b6b6 5px solid;
     padding-left: 10px !important;

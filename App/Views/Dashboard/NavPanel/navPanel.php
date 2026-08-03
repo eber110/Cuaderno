@@ -37,7 +37,7 @@
 
     <div class="no-desk">
       <div class="modal-btn animated pointer before-menu-overlay">
-        <p class="p5 pl15 pr15 br15 border-item-panel">Vista previa</p>
+        <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft">Vista previa</p>
       </div>
       <div class="hidden">
         <div class="flex-column center-center w100">

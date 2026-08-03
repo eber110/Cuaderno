@@ -17,7 +17,7 @@
     <div class="flex-row center-between">
       <p>Color de fondo</p>
 
-      <div class="border-item-panel wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color" name="back_perfil" value="<?= $backPerfil?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
@@ -30,7 +30,7 @@
     <div class="flex-row center-between">
       <p>Color de texto</p>
 
-      <div class="border-item-panel wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-text-app" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker box-color-picker">
@@ -44,7 +44,7 @@
     <div class="flex-row center-between">
       <p>Color de titulo</p>
 
-      <div class="border-item-panel wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-title" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-title" name="titleColor" value="<?= $card["titleColor"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
@@ -58,7 +58,7 @@
     <div class="flex-row center-between">
       <p>Color de fondo</p>
 
-      <div class="border-item-panel wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-button" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-button" name="back" value="<?= $card["back"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
@@ -71,7 +71,7 @@
     <div class="flex-row center-between">
       <p>Color de texto</p>
 
-      <div class="border-item-panel wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-text" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-text" name="color" value="<?= $card["color"]?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
@@ -85,7 +85,7 @@
       <div class="flex-row center-between">
         <p>Color de sombra</p>
   
-        <div class="border-item-panel wpx140 br15">
+        <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
           <label for="select-color-shadow3" class="flex-row center-start p10 gap10 pointer">
             <input type="color" id="select-color-shadow3" name="colorShadow3" value="<?= $card["colorShadow3"]?>" class="color-picker box-color-picker"
             style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">

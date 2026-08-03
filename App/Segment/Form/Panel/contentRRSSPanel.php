@@ -21,14 +21,14 @@
       <p class="bold500 x16">Añadir nueva red social</p>
       
       <div class="relative">
-        <button type="button" class="open-modal-menu p10 pl15 pr15 br20 border-item-panel pointer flex-row center-center gap5 bold500 textb" style="background: transparent;">
+        <button type="button" class="open-modal-menu p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
           <?= svg("add") ?> Red social
         </button>
 
-        <div class="content-modal-menu hidden back-body br15 p15 shadow-1 border-item-panel z-index-900" style="max-height: 300px; overflow-y: auto; width: 220px;">
-          <div class="flex-column gap5">
+        <div class="content-modal-menu hidden back-body br15 p15 shadow-1 back-card-graphic shadow-card-graphic |hover-scale-soft z-index-900" style="max-height: 300px; overflow-y: auto; width: 220px;">
+          <div class="flex-column gap10">
             <?php foreach ($rrssList as $social) : ?>
-              <button type="submit" name="add_rrss_name" value="<?= $social ?>" class="p10 br10 border-item-panel pointer flex-row center-start gap10 bold500 textb w100" style="background: transparent;">
+              <button type="submit" name="add_rrss_name" value="<?= $social ?>" class="p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-start gap10 bold500 textb w100" style="border: none;">
                 <?= svg($social, "x18") ?>
                 <span class="capitalize"><?= ucfirst($social) ?></span>
               </button>
@@ -47,7 +47,7 @@
           $socialUrl = "https://" . $socialUrl;
         }
       ?>
-        <div id="rrss-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15" draggable="true">
+        <div id="rrss-item-<?= $i?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15" draggable="true">
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
@@ -91,7 +91,7 @@
           <input type="hidden" name="rrss[<?= $i?>][0]" value="<?= e($socialName) ?>">
 
           <!-- Input para la URL -->
-          <input type="text" name="rrss[<?= $i?>][1]" class="border-item-panel br10 p10" value="<?= e($socialUrl) ?>" placeholder="URL (ej: https://...)">
+          <input type="text" name="rrss[<?= $i?>][1]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($socialUrl) ?>" placeholder="URL (ej: https://...)">
         </div>
       <?php endfor; ?>
     </div>

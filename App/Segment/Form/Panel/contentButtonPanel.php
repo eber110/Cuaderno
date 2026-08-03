@@ -3,7 +3,7 @@
    * @var mixed $card 
    * @var mixed $uri
    */
-  $selected = "border-selected-item";
+  $selected = "";
   $cant = count($card["content"]);
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
@@ -14,10 +14,10 @@
     <div class="flex-column top-start gap10 w100">
       <p class="bold500 x16">Añadir nuevo elemento</p>
       <div class="flex-row center-start gap10 w100 wrap">
-        <button type="submit" name="add_content_type" value="link" class="p10 pl15 pr15 br20 border-item-panel pointer flex-row center-center gap5 bold500 textb" style="background: transparent;">
+        <button type="submit" name="add_content_type" value="link" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
           <?= svg("add") ?> Enlace
         </button>
-        <button type="submit" name="add_content_type" value="product" class="p10 pl15 pr15 br20 border-item-panel pointer flex-row center-center gap5 bold500 textb" style="background: transparent;">
+        <button type="submit" name="add_content_type" value="product" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
           <?= svg("add") ?> Producto
         </button>
       </div>
@@ -43,7 +43,7 @@
         $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
         $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
       ?>
-        <div id="content-item-<?= $i?>" class="sortable-item link border-item-panel flex-column gap10 w100 p20 br15 <?php if ($itemActive) echo $selected; ?>" draggable="true">
+        <div id="content-item-<?= $i?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?php if ($itemActive) echo $selected; ?>" draggable="true">
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
@@ -106,7 +106,7 @@
               }
             ?>
             <div class="flex-row center-center gap10 relative">
-              <figure class="wpx50 hpx50 ar-square border-item-panel br10">
+              <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
                 <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover">
               </figure>
 
@@ -121,19 +121,19 @@
                 </button>
               </div>
             </div>
-            <div class="br15 p10 border-item-panel">
+            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
               <input type="file" 
                 name="content_img_<?= $i ?>" 
                 class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
                 placeholder="Elige una imagen" 
                 cropping-size="500x500"
-                box-image="back-menu-sidebar textb br15 border-item-panel p20 shadow-1"
-                box-btn-image="p10 back7 border-item-panel textb br15 pointer">
+                box-image="back-menu-sidebar textb br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+                box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft textb br15 pointer">
             </div>
           </div>
 
-          <input type="text" name="content[<?= $i?>][title]" class="border-item-panel br10 p10" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
-          <input type="text" name="content[<?= $i?>][url]" class="border-item-panel br10 p10" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
+          <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
+          <input type="text" name="content[<?= $i?>][url]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
         </div>
       <?php endfor?>
     </div>
