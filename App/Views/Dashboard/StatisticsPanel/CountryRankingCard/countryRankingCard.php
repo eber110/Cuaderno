@@ -19,7 +19,7 @@
   }
 ?>
 
-<div class="flex-column gap15 p20 br20 border-item-panel back-body shadow-soft w100">
+<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft w100">
   
   <!-- Encabezado de la Card -->
   <div class="flex-row center-between wrap gap10">
@@ -31,7 +31,7 @@
         Distribución geográfica de las visitas recibidas en el mes activo según el país de procedencia de la dirección IP.
       </p>
     </div>
-    <span class="p5 pl10 pr10 br50 back-modal-item bold600 text-muted">
+    <span class="advice bold500">
       Período Mensual
     </span>
   </div>

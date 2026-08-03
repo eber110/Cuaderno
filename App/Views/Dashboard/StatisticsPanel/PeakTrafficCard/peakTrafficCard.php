@@ -7,7 +7,7 @@
 <div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
   
   <!-- Días Más Visitados (Gráfico de Columnas Directo con Data Labels) -->
-  <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
+  <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-column gap5">
       <div class="flex-row center-between wrap gap5">
         <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
@@ -19,13 +19,13 @@
             }
           }
         ?>
-          <span class="p5 pl10 pr10 br50 back-primary textw bold600">
-            Día Pico: <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
+          <span class="bold600 textb">
+            <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
           </span>
         <?php endif; ?>
       </div>
       <p class="text-muted">
-        Distribución total de visitas recibidas según el día de la semana (Lunes a Domingo), identificando el día pico de mayor afluencia de usuarios.
+        Distribución total de visitas recibidas según el día de la semana (Lunes a Domingo), identificando el día de mayor afluencia de usuarios.
       </p>
     </div>
 
@@ -65,13 +65,13 @@
   </div>
 
   <!-- Horarios Más Concurridos (Gráfico de Línea Directo con Data Labels) -->
-  <div class="flex-column gap15 p20 br15 border-item-panel back-body shadow-soft">
+  <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-column gap5">
       <div class="flex-row center-between wrap gap5">
         <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
         <?php if (!empty($topHours)) : ?>
-          <span class="p5 pl10 pr10 br50 back-primary textw bold600">
-            Hora Pico: <?= e($topHours[0]['label']) ?>
+          <span class="bold600 textb">
+            <?= e($topHours[0]['label']) ?>
           </span>
         <?php endif; ?>
       </div>

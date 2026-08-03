@@ -194,9 +194,9 @@
     <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
       <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Total Visitas (Mes)</span>
-        <span class="x22 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
+        <span class="x35 bold700 text-primary"><?= number_format($summary['total_views'] ?? 0) ?></span>
       </div>
-      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft bold500"><?//= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE TOTAL VISITAS -->
@@ -276,9 +276,9 @@
     <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
       <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Visitas Únicas (Mes)</span>
-        <span class="x22 bold700 text-primary"><?= number_format($summary['unique_views'] ?? 0) ?></span>
+        <span class="x35 bold700 text-primary"><?= number_format($summary['unique_views'] ?? 0) ?></span>
       </div>
-      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft bold500"><?//= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE VISITAS ÚNICAS -->
@@ -357,9 +357,9 @@
     <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
       <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Total Clics (Mes)</span>
-        <span class="x22 bold700 text-primary"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
+        <span class="x35 bold700 text-primary"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
       </div>
-      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft bold500"><?//= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE CLICS EN ENLACES DEL WIDGET -->
@@ -438,9 +438,9 @@
     <div class="flex-column center-center p15 br15 text-c gap30 modal-btn darken pointer back-card-graphic hpx250 w100 hover-scale-soft relative">
       <div class="flex-column center-center gap10 w100">
         <span class="text-muted bold500">Clics a mis RRSS (Mes)</span>
-        <span class="x22 bold700 text-primary"><?= number_format($totalRrssClicks) ?></span>
+        <span class="x35 bold700 text-primary"><?= number_format($totalRrssClicks) ?></span>
       </div>
-      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft pl10 pr10 p5 br50"><?= svg("eye", "x20") ?> Ver gráfico</span>
+      <span class="flex-row center-center gap5 btn-card-graphic hover-scale-soft bold500"><?//= svg("eye", "x20") ?> Ver gráfico</span>
     </div>
 
     <!-- MODAL DE DESGLOSE DE CLICS A REDES SOCIALES -->

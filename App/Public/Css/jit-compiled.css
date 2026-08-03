@@ -147,7 +147,6 @@
 .m20 { margin: 20px; }
 .m5 { margin: 5px; }
 .mb10 { margin-bottom: 10px; }
-.mb2 { margin-bottom: 2px; }
 .mb5 { margin-bottom: 5px; }
 .ml10 { margin-left: 10px; }
 .ml20 { margin-left: 20px; }
@@ -158,7 +157,6 @@
 .mt0 { margin-top: 0px; }
 .mt10 { margin-top: 10px; }
 .mt16 { margin-top: 16px; }
-.mt2 { margin-top: 2px; }
 .mt20 { margin-top: 20px; }
 .mt3 { margin-top: 3px; }
 .mt5 { margin-top: 5px; }
@@ -175,7 +173,6 @@
 .p5 { padding: 5px !important; }
 .p6 { padding: 6px !important; }
 .p7 { padding: 7px !important; }
-.p8 { padding: 8px !important; }
 .pb0 { padding-bottom: 0px !important; }
 .pb10 { padding-bottom: 10px !important; }
 .pb100 { padding-bottom: 100px !important; }
@@ -247,6 +244,7 @@
 .x25 { font-size: 25px; }
 .x28 { font-size: 28px; }
 .x30 { font-size: 30px; }
+.x35 { font-size: 35px; }
 .x4 { font-size: 4px; }
 .x40 { font-size: 40px; }
 .x50 { font-size: 50px; }
@@ -323,9 +321,6 @@
 }
 @media screen and (min-width: 993px) {
   .col-desk-3 { grid-template-columns: repeat(3, 1fr); }
-}
-@media screen and (min-width: 993px) {
-  .col-desk-4 { grid-template-columns: repeat(4, 1fr); }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .col-mid-1 { grid-template-columns: repeat(1, 1fr); }

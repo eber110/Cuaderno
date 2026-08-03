@@ -5,7 +5,7 @@
    */
   if ($isSample) return;
 ?>
-<div class="flex-column gap15 p20 br15 border-item-panel w100">
+<div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft w100">
   <p class="bold600 x20">Registros Recientes (SQLite Debug Log)</p>
   <?php if (!empty($recentViews)) : ?>
     <div class="flex-column gap10 w100">

@@ -99,6 +99,17 @@
     filter: drop-shadow(0px 1px 2px #d8d7d7);
   }
 
+  .advice{
+    border-left: #b6b6b6 5px solid;
+    padding-left: 10px !important;
+    padding: 5px;
+    filter: drop-shadow(-1px 1px 1px #b6b6b6);
+  }
+
+  .text-advice{
+    filter: drop-shadow(-1px 1px 1px #b6b6b6);
+  }
+
   .closed-modal-preview{
     position: absolute;
     display: flex;
