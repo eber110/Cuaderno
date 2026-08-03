@@ -33,7 +33,8 @@
       "inlineCarousel": [],
       "textLimiter": [],
       "saveButtonController": [],
-      "generalSummaryChart": []
+      "generalSummaryChart": [],
+      "trackClick": []
     },
     "async": {}
   }

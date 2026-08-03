@@ -20,7 +20,7 @@
 ?>
 <div class="flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 65px);">
+  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100 track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 65px);">
     <?php if ($imgShow && $hasImg) :?>
       <figure class="ar-square p7 wpx65">
         <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">

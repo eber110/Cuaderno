@@ -111,3 +111,16 @@ Route::get("/op/check", function(){
   ], JSON_PRETTY_PRINT);
   exit;
 });
+
+Route::post("/op/track-click", function(){
+  header('Content-Type: application/json');
+  $rawInput = file_get_contents('php://input');
+  $input = json_decode($rawInput, true) ?: $_POST;
+
+  $user   = $input['user'] ?? '';
+  $linkId = $input['linkId'] ?? '';
+
+  $success = \App\Models\VisitModels::processClick($user, $linkId);
+  echo json_encode(['success' => $success]);
+  exit;
+});
