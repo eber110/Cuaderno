@@ -21,8 +21,11 @@
   $recentViews        = $stats["recentViews"] ?? [];
   $userProfile        = !empty($user) ? $user : ($card["profile"] ?? "user");
 
-  // Si no hay días u horas calculadas, habilitar datos de muestra (Sample Mode)
-  $isSample = empty($topDays) && empty($topHours);
+  // Solo habilitar datos de muestra (Sample Mode) si CLICK_SIMULATION está activo en .env y no hay datos
+  $clickSimulationRaw = $_ENV['CLICK_SIMULATION'] ?? getenv('CLICK_SIMULATION') ?? 'false';
+  $isClickSimulationActive = filter_var($clickSimulationRaw, FILTER_VALIDATE_BOOLEAN);
+
+  $isSample = $isClickSimulationActive && empty($topDays) && empty($topHours);
 
   if ($isSample) {
     $summary = ['total_views' => 29, 'unique_views' => 29, 'total_clicks' => 29, 'ctr' => 100.0];
