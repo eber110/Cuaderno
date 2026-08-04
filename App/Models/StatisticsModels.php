@@ -440,8 +440,8 @@ class StatisticsModels extends Builder {
       }
 
       // 12. Recomendación Inteligente de Horario y Día Pico del Mes Activo
-      $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : "Lunes";
-      $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : "18:00 - 19:00";
+      $bestDayName   = !empty($topDays)  ? $topDays[0]["day_name"] : null;
+      $bestHourLabel = !empty($topHours) ? $topHours[0]["label"]   : null;
       $bestDayTotal  = !empty($topDays)  ? $topDays[0]["total"]    : 0;
       $bestHourTotal = !empty($topHours) ? $topHours[0]["total"]   : 0;
 
@@ -493,8 +493,8 @@ class StatisticsModels extends Builder {
         "topDays"             => [],
         "topHours"            => [],
         "recommendation"      => [
-          "bestDay"       => "Lunes",
-          "bestHour"      => "18:00 - 19:00",
+          "bestDay"       => null,
+          "bestHour"      => null,
           "bestDayTotal"  => 0,
           "bestHourTotal" => 0
         ],

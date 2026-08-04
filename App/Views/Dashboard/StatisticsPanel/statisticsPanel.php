@@ -16,7 +16,7 @@
   $referrers          = $stats["referrers"] ?? [];
   $topDays            = $stats["topDays"] ?? [];
   $topHours           = $stats["topHours"] ?? [];
-  $recommendation     = $stats["recommendation"] ?? ['bestDay' => 'Lunes', 'bestHour' => '18:00 - 19:00', 'bestDayTotal' => 0, 'bestHourTotal' => 0];
+  $recommendation     = $stats["recommendation"] ?? ['bestDay' => null, 'bestHour' => null, 'bestDayTotal' => 0, 'bestHourTotal' => 0];
   $socialStats        = $stats["socialStats"] ?? [];
   $recentViews        = $stats["recentViews"] ?? [];
   $userProfile        = !empty($user) ? $user : ($card["profile"] ?? "user");

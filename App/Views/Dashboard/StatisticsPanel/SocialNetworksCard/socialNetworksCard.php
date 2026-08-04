@@ -1,7 +1,12 @@
 <?php
   /** 
+   * @var array $summary
    * @var array $socialStats 
    */
+  $uniqueViews = (int)($summary['unique_views'] ?? 0);
+  if ($uniqueViews < 120) {
+    return;
+  }
 ?>
 <div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic |hover-scale-soft w100">
   <div class="flex-row center-between wrap gap10">
