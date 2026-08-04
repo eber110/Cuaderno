@@ -239,7 +239,7 @@ class StatisticsModels extends Builder {
         if (isset($linkTitleMap[$rawId]) && strpos($rawId, 'rrss_') !== 0 && !in_array(strtolower($rawId), ['github','linkedin','x','twitter','facebook','instagram','tiktok','youtube','pinterest','whatsapp'])) {
           $realName = $linkTitleMap[$rawId];
         } else {
-          if (preg_match('/(\d+)/', $rawId, $matches)) {
+          if (preg_match('/^(?:enlace|content)_?(\d+)$/i', $rawId, $matches)) {
             $num = (int)$matches[1];
             if (isset($userContent[$num - 1]['title'])) {
               $realName = $userContent[$num - 1]['title'];
