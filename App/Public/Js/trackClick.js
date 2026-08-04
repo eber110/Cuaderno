@@ -1,4 +1,4 @@
-function trackClick() {
+export function trackClick() {
   document.addEventListener('click', function(e) {
     const link = e.target.closest('.track-link-click');
     if (!link) return;
@@ -23,8 +23,3 @@ function trackClick() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', trackClick);
-} else {
-  trackClick();
-}
