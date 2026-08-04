@@ -127,6 +127,7 @@ class InitAppStructure
     $this->createGitignore();
     $this->copyErrorView();
     $this->createThemeConfig();
+    $this->copyAgentsFile();
 
     echo "\n📊 Resumen:\n";
     echo "   Directorios creados: {$created}\n";
@@ -957,6 +958,37 @@ CSS;
       echo "✅ Creado: App/Public/Css/_configTheme.css\n";
     } else {
       echo "❌ Error: No se pudo crear App/Public/Css/_configTheme.css\n";
+    }
+  }
+
+  /**
+   * Copia el AGENTS.md del framework al proyecto nuevo.
+   * Así todos los agentes y desarrolladores del proyecto siguen las mismas convenciones.
+   */
+  private function copyAgentsFile()
+  {
+    $source = __DIR__ . '/../../AGENTS_PROYECTO.md';
+    $dest = $this->basePath . '/AGENTS.md';
+
+    if ($this->isFrameworkRepo) {
+      echo "⏭️  Saltado: AGENTS.md (repo del framework, usa su propia guía)\n";
+      return;
+    }
+
+    if (file_exists($dest)) {
+      echo "⏭️  Saltado: AGENTS.md (ya existe)\n";
+      return;
+    }
+
+    if (!file_exists($source)) {
+      echo "⚠️  No se encontró el template AGENTS.md en: {$source}\n";
+      return;
+    }
+
+    if (@copy($source, $dest)) {
+      echo "✅ Creado: AGENTS.md (guía de trabajo del proyecto)\n";
+    } else {
+      echo "❌ Error: No se pudo crear AGENTS.md\n";
     }
   }
 

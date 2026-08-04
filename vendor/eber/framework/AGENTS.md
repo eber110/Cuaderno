@@ -180,6 +180,8 @@ La documentación por módulo está en `Docs/*.md`: `Route.md` (rutas), `grid`, 
 
 Mantener la documentación actualizada cuando cambies módulos.
 
+> **Proyectos nuevos:** `InitAppStructure.php` copia `AGENTS_PROYECTO.md` como `AGENTS.md` a la raíz de cada proyecto derivado. Esa guía contiene las convenciones MVC estrictas (controladores → modelos → vistas + componentes + middlewares) y los ejemplos de uso. Mantenerla sincronizada con este archivo.
+
 ---
 
 ## 9. Antipatrones a evitar

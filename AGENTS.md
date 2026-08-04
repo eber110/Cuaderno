@@ -133,7 +133,7 @@ App/Views/
 └── Home/                  # Carpeta de la vista (PascalCase)
     ├── home.php           # ⭐ BASE: plantilla que conecta las partes
     ├── Hero/              # Subcarpeta por parte (PascalCase)
-    │   └── hero.php       # Parte (archivo en minúsculas)
+    │   └── hero.php       # Parte (archivo en camelCase)
     ├── Description/
     │   └── description.php
     └── Product/
