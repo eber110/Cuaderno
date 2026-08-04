@@ -227,6 +227,7 @@ class StatisticsModels extends Builder {
 
       $processedClicks = [];
       $activeContentCount = count($userContent);
+      $matches = [];
 
       foreach ($rawTopLinks as $l) {
         $rawId = trim($l['link_id'] ?? '');
