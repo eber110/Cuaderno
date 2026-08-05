@@ -45,8 +45,21 @@ class VisitMiddleware implements MiddlewareInterface {
       ];
 
       if (!empty($visitedUser) && !in_array(mb_strtolower($visitedUser, "UTF-8"), $excluded)) {
-        // Delegar el procesamiento y registro de la visita al modelo VisitModels
-        VisitModels::processVisit($visitedUser);
+        $visitedUserClean = mb_strtolower($visitedUser, "UTF-8");
+
+        // Validar si el usuario está logueado y visitando su propio perfil
+        $isOwnProfile = false;
+        if (\Base\Module\Session::session_active()) {
+          $sessionUser = \Base\Module\Session::session_data("username");
+          if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean) {
+            $isOwnProfile = true;
+          }
+        }
+
+        if (!$isOwnProfile) {
+          // Delegar el procesamiento y registro de la visita al modelo VisitModels
+          VisitModels::processVisit($visitedUser);
+        }
       }
     } catch (\Throwable $e) {
       error_log("VisitMiddleware error: " . $e->getMessage());

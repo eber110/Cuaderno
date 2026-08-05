@@ -124,3 +124,60 @@ Route::post("/op/track-click", function(){
   echo json_encode(['success' => $success]);
   exit;
 });
+
+Route::post("/op/active-viewers", function(){
+  header('Content-Type: application/json');
+  $rawInput = file_get_contents('php://input');
+  $input = json_decode($rawInput, true) ?: $_POST;
+
+  $user  = mb_strtolower(trim($input['user'] ?? $_GET['user'] ?? ''), 'UTF-8');
+  $token = trim($input['token'] ?? $_GET['token'] ?? '');
+
+  if (empty($user)) {
+    echo json_encode(['success' => false, 'count' => 0]);
+    exit;
+  }
+
+  if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+  }
+
+  if (empty($token)) {
+    $token = $_SESSION['viewer_token'] ?? null;
+    if (empty($token)) {
+      $token = bin2hex(random_bytes(16));
+      $_SESSION['viewer_token'] = $token;
+    }
+  }
+
+  $count = \App\Rsc\Helper\ActiveViewersHelper::registerHeartbeat($user, $token);
+  echo json_encode(['success' => true, 'count' => $count, 'token' => $token]);
+  exit;
+});
+
+Route::get("/op/active-viewers", function(){
+  header('Content-Type: application/json');
+  $user  = mb_strtolower(trim($_GET['user'] ?? ''), 'UTF-8');
+  $token = trim($_GET['token'] ?? '');
+
+  if (empty($user)) {
+    echo json_encode(['success' => false, 'count' => 0]);
+    exit;
+  }
+
+  if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+  }
+
+  if (empty($token)) {
+    $token = $_SESSION['viewer_token'] ?? null;
+    if (empty($token)) {
+      $token = bin2hex(random_bytes(16));
+      $_SESSION['viewer_token'] = $token;
+    }
+  }
+
+  $count = \App\Rsc\Helper\ActiveViewersHelper::registerHeartbeat($user, $token);
+  echo json_encode(['success' => true, 'count' => $count, 'token' => $token]);
+  exit;
+});

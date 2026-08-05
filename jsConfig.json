@@ -34,7 +34,8 @@
       "textLimiter": [],
       "saveButtonController": [],
       "generalSummaryChart": [],
-      "trackClick": []
+      "trackClick": [],
+      "activeViewers": []
     },
     "async": {}
   }

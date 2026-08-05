@@ -27,12 +27,20 @@ class VisitModels extends Builder {
   public static function processVisit(string $visitedUser): bool {
     $visitedUserClean = mb_strtolower($visitedUser, "UTF-8");
 
-    // Controlar en sesión la frecuencia de visitas al mismo perfil (1 vez cada 1 hora / 3600s)
+    // Omitir registro si el usuario está logueado y visita su propio perfil
+    if (\Base\Module\Session::session_active()) {
+      $sessionUser = \Base\Module\Session::session_data("username");
+      if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean) {
+        return false;
+      }
+    }
+
+    // Controlar en sesión la frecuencia de visitas al mismo perfil (1 vez cada 24 horas / 86400s)
     $sessionKey = "visit_registered_" . $visitedUserClean;
     $lastVisitTime = $_SESSION[$sessionKey] ?? 0;
 
-    if ((time() - (int)$lastVisitTime) <= 3600) {
-      return false; // Visita omitida por restricción de tiempo en sesión
+    if ((time() - (int)$lastVisitTime) <= 86400) {
+      return false; // Visita omitida por restricción de tiempo diaria (24h)
     }
 
     try {
@@ -87,12 +95,20 @@ class VisitModels extends Builder {
       @session_start();
     }
 
-    // Controlar en sesión la frecuencia de clics por enlace individual (1 clic por link cada 1 hora / 3600s)
+    // Omitir registro si el usuario está logueado y hace clic en su propio perfil
+    if (\Base\Module\Session::session_active()) {
+      $sessionUser = \Base\Module\Session::session_data("username");
+      if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean) {
+        return false;
+      }
+    }
+
+    // Controlar en sesión la frecuencia de clics por enlace individual (1 clic por link cada 24 horas / 86400s)
     $sessionKey = "click_registered_" . $visitedUserClean . "_" . $linkIdClean;
     $lastClickTime = $_SESSION[$sessionKey] ?? 0;
 
-    if ((time() - (int)$lastClickTime) <= 3600) {
-      return false; // Clic en este enlace omitido por restricción de tiempo en sesión
+    if ((time() - (int)$lastClickTime) <= 86400) {
+      return false; // Clic en este enlace omitido por restricción de tiempo diaria (24h)
     }
 
     try {
