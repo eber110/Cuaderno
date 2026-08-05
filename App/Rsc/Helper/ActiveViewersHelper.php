@@ -48,16 +48,31 @@ class ActiveViewersHelper
       $profile = mb_strtolower($profileId, 'UTF-8');
       $nowUtc = gmdate('Y-m-d H:i:s');
 
-      // Insertar o actualizar la sesión activa
-      $stmt = $pdo->prepare("
-        REPLACE INTO active_sessions (session_token, profile_id, updated_at)
-        VALUES (:token, :profile, :updated)
-      ");
-      $stmt->execute([
-        ':token'   => $sessionToken,
-        ':profile' => $profile,
-        ':updated' => $nowUtc
-      ]);
+      // Verificar si el usuario actual logueado es el mismo dueño del perfil
+      $isOwner = false;
+      if (\Base\Module\Session::session_active()) {
+        $loggedInUser = mb_strtolower(\Base\Module\Session::session_data("username") ?? '', 'UTF-8');
+        if (!empty($loggedInUser) && $loggedInUser === $profile) {
+          $isOwner = true;
+        }
+      }
+
+      if (!$isOwner) {
+        // Solo registrar/actualizar si NO es el propio dueño del perfil
+        $stmt = $pdo->prepare("
+          REPLACE INTO active_sessions (session_token, profile_id, updated_at)
+          VALUES (:token, :profile, :updated)
+        ");
+        $stmt->execute([
+          ':token'   => $sessionToken,
+          ':profile' => $profile,
+          ':updated' => $nowUtc
+        ]);
+      } else {
+        // Si es el dueño, eliminar su token por si estuvo registrado antes como visitante
+        $stmtDel = $pdo->prepare("DELETE FROM active_sessions WHERE session_token = :token");
+        $stmtDel->execute([':token' => $sessionToken]);
+      }
 
       // Limpiar sesiones inactivas de más de 60 segundos
       $cutoffUtc = gmdate('Y-m-d H:i:s', time() - 60);
@@ -76,10 +91,10 @@ class ActiveViewersHelper
         ':activeCutoff' => $activeCutoffUtc
       ]);
 
-      return (int)($stmtCount->fetchColumn() ?: 1);
+      return (int)($stmtCount->fetchColumn() ?: 0);
     } catch (Exception $e) {
       error_log("ActiveViewersHelper registerHeartbeat Error: " . $e->getMessage());
-      return 1;
+      return 0;
     }
   }
 }

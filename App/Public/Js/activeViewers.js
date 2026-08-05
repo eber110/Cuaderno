@@ -5,16 +5,25 @@
  * y actualiza dinámicamente el badge de usuarios en línea en el perfil.
  */
 export function activeViewers() {
+  const badgeEl = document.getElementById('active-viewers-badge');
   const container = document.querySelector('[data-profile-user], .track-link-click[data-user], .back-card-container');
-  if (!container) return;
+  if (!badgeEl && !container) return;
 
-  const targetUser = container.dataset.profileUser || 
-                     container.dataset.user || 
-                     window.location.pathname.split('/')[1] || '';
+  const pathSegments = window.location.pathname.split('/').filter(Boolean);
+  let urlUser = '';
+  if (pathSegments[0] === 'panel' && pathSegments[1]) {
+    urlUser = pathSegments[1];
+  } else if (pathSegments[0] && pathSegments[0] !== 'panel') {
+    urlUser = pathSegments[0];
+  }
+
+  const targetUser = badgeEl?.dataset.profileUser || 
+                     container?.dataset.profileUser || 
+                     container?.dataset.user || 
+                     urlUser || '';
 
   if (!targetUser) return;
 
-  const badgeEl = document.getElementById('active-viewers-badge');
   const countEl = document.getElementById('active-viewers-count');
   const textEl  = document.getElementById('active-viewers-text');
 
@@ -43,7 +52,7 @@ export function activeViewers() {
           localStorage.setItem('viewer_session_token', activeToken);
         }
 
-        const count = data.count || 1;
+        const count = (typeof data.count === 'number') ? data.count : 0;
         updateBadgeUI(count);
       }
     } catch (e) {}
@@ -51,6 +60,11 @@ export function activeViewers() {
 
   function updateBadgeUI(count) {
     if (!badgeEl) return;
+
+    if (count <= 0) {
+      badgeEl.classList.add('hidden');
+      return;
+    }
 
     badgeEl.classList.remove('hidden');
 

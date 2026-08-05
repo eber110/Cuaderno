@@ -11,40 +11,32 @@
     ? "p5 pl15 pr15 br15 pointer back-save-panel textw bold500 border-item-panel-red pulse-once" 
     : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
 ?>
-<nav class="flex-row center-end gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
-    <div id="save-btn-container" class="save-btn-wrapper">
-      <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
-    </div>
-    <!-- Script Anti-FOUT: Oculta el contenedor inmediatamente antes del primer pintado del navegador si el menú activo es data-savable="false" -->
-    <script>
-      (function() {
-        try {
-          var key = 'vertical_menu_active_' + window.location.pathname + '_default';
-          var saved = localStorage.getItem(key);
-          if (saved) {
-            var parsed = JSON.parse(saved);
-            if (parsed.remote) {
-              var btn = document.querySelector('.remote-btn[data-remote="' + parsed.remote + '"]');
-              if (btn && btn.getAttribute('data-savable') === 'false') {
-                var container = document.getElementById('save-btn-container');
-                if (container) container.classList.add('hidden');
-              }
-            }
-          }
-        } catch(e) {}
-      })();
-    </script>
-
-    <div class="no-desk">
-      <div class="modal-btn animated pointer before-menu-overlay">
-        <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft">Vista previa</p>
+<nav class="flex-row center-between gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
+    <!-- Badge de Usuarios en Línea (Sección izquierda) -->
+    <div class="wpx116 hpx32">
+      <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="flex-row center-center gap8 p5 pr12 pl12 br20 hidden" style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25);">
+        <span class="live-dot-pulse"></span>
+        <span id="active-viewers-text" class="x18 bold500" style="color: #22c55e;">1 en línea</span>
       </div>
-      <div class="hidden">
-        <div class="flex-column center-center w100">
-          <div class="absolute m20 top right fadeIn pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
-            <?= svg("xmark")?>
+    </div>
+
+    <!-- Botones de Acción (Sección derecha) -->
+    <div class="flex-row center-end gap10">
+      <div id="save-btn-container" class="save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
+        <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
+      </div>
+
+      <div class="no-desk">
+        <div class="modal-btn animated pointer before-menu-overlay">
+          <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft">Vista previa</p>
+        </div>
+        <div class="hidden">
+          <div class="flex-column center-center w100">
+            <div class="absolute m20 top right fadeIn pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
+              <?= svg("xmark")?>
+            </div>
+            <?php _component("UserPreview.userPreview", ["data" => $card])?>
           </div>
-          <?php _component("UserPreview.userPreview", ["data" => $card])?>
         </div>
       </div>
     </div>
