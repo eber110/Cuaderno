@@ -41,6 +41,14 @@
     </div>
   </div>
 
+  <div id="hide-profile-remote" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100 p20">
+      <?php
+        _form("Panel.hideProfile");
+      ?>
+    </div>
+  </div>
+
   <div id="Content-button" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100 p20">
       <?php

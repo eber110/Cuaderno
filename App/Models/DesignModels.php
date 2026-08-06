@@ -393,7 +393,9 @@ class DesignModels extends Builder {
     $data = [
       "card" => [
         "active"       => $dataRequest["active"] ?? false,
-        "hide"         => $dataRequest["hide"] ?? false,
+        "hide"         => isset($param["hide_form_submitted"])
+          ? (isset($param["hide"]) && ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1"))
+          : (isset($param["hide"]) ? ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1") : ($dataRequest["hide"] ?? false)),
         "profile"      => $param["profile"] ?? $dataRequest["profile"] ?? $userClean,
         "avatar"       => $avatar ?? $dataRequest["avatar"] ?? "no-user.webp",
         "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
