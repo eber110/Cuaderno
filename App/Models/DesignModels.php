@@ -99,7 +99,7 @@ class DesignModels extends Builder {
     $userClean = mb_strtolower($user, "UTF-8");
     return [
       "active"       => false,
-      "hide"         => false,
+      "hide"         => true,
       "profile"      => $userClean,
       "avatar"       => "no-user.webp",
       "title"        => "Titulo",
