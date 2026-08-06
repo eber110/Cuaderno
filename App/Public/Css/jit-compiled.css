@@ -20,8 +20,6 @@
   .flex-row.between-center, .flex-row-desk.between-center, .flex-row-mid.between-center, .flex-row-sml.between-center { align-items: space-between; justify-content: center; }
 .flex-column.between-start, .flex-column-desk.between-start, .flex-column-mid.between-start, .flex-column-sml.between-start { justify-content: space-between; align-items: start; }
   .flex-row.between-start, .flex-row-desk.between-start, .flex-row-mid.between-start, .flex-row-sml.between-start { align-items: space-between; justify-content: start; }
-.flex-column.center-around, .flex-column-desk.center-around, .flex-column-mid.center-around, .flex-column-sml.center-around { justify-content: center; align-items: space-around; }
-  .flex-row.center-around, .flex-row-desk.center-around, .flex-row-mid.center-around, .flex-row-sml.center-around { align-items: center; justify-content: space-around; }
 .flex-column.center-between, .flex-column-desk.center-between, .flex-column-mid.center-between, .flex-column-sml.center-between { justify-content: center; align-items: space-between; }
   .flex-row.center-between, .flex-row-desk.center-between, .flex-row-mid.center-between, .flex-row-sml.center-between { align-items: center; justify-content: space-between; }
 .flex-column.center-center, .flex-column-desk.center-center, .flex-column-mid.center-center, .flex-column-sml.center-center { justify-content: center; align-items: center; }
