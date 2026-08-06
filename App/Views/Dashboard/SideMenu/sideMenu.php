@@ -55,8 +55,8 @@
         
         <!-- Enlaces raíz (no editables) -->
         <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote" data-savable="false"><?= svg("chart")?>Estadísticas</p>
-        <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4" data-savable="false"><?= svg("list")?>Datos de usuario</p>
-        <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5" data-savable="false"><?= svg("list")?>Datos de sesión</p>
+        <!-- <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-4" data-savable="false"><?= svg("list")?>Datos de usuario</p>
+        <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="content-remote-5" data-savable="false"><?= svg("list")?>Datos de sesión</p> -->
   
       </div>
     </div>

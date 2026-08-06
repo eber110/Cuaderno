@@ -80,13 +80,13 @@
 
   <div id="content-remote-4" class="remote-content hidden">
     <div class="post-content">
-      <code data-lang="json"><?php print_r($card)?></code>
+      <code data-lang="json"><?php// print_r($card)?></code>
     </div>
   </div>
 
   <div id="content-remote-5" class="remote-content hidden">
     <div class="post-content">
-      <code data-lang="json"><?php print_r(json_encode($session))?></code>
+      <code data-lang="json"><?php// print_r(json_encode($session))?></code>
     </div>
   </div>
 
