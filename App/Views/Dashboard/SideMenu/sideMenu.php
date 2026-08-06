@@ -6,7 +6,7 @@
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
 ?>
 <div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar">
-  <div class="flex-column top-start gap20 |h-dvh |back-menu-sidebar |panel-sidebar p15 bold500 x17 sticky top">
+  <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
     <?php if (!empty($card["active"])) :?>
       <?php if ($card["active"] == true && $card["hide"] == true):?>
@@ -73,6 +73,20 @@
 
   <div class="flex-column top-start gap10 p20 w100">
     <!-- <div class="flex-row center-between w100" data-savable="false">Ocultar perfil <?php _form("Panel.hideProfile")?></div> -->
-    <a href="/salir">Cerrar sesión</a>
+    <p class="modal-btn animated darken <?= $item?>"><?= svg("out")?>Cerrar sesión</p>
+
+    <div class="hidden">
+      <div class="w100 flex-column center-center h-dvh">
+        <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
+          <p class="x24 bold500">¿Desea cerrar sesión?</p>
+
+          <div class="flex-row center-between gap10">
+            <a href="/salir" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500">Salir</a>
+            <p class="btn-card-graphic-red shadow-card-graphic hover-scale-soft text-c textc w100 pointer bold500 modal-close-button">Cancelar</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </div>

@@ -66,17 +66,15 @@
 
               <!-- modal confirmación eliminar -->
               <div class="hidden">
-                <div class="v-dvh w100 flex-column center-center">
-                  <div class="wpx580 w-sml-95 back-body br15 p20 flex-column center-center gap20">
-                    <p class="x30">¿Desea borrar esta red social?</p>
+                <div class="w100 flex-column center-center h-dvh">
+                  <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
+                    <p class="x24 bold500">¿Desea borrar este enlace?</p>
 
-                    <div class="flex-row center-around gap15 w100">
-                      <label for="delete-rrss-<?= $i?>" class="pointer flex-row center-center gap2 textw back-danger br15 p15">
+                    <div class="flex-row center-between gap10">
+                      <label for="delete-rrss-<?= $i?>" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
                          Eliminar
                       </label>
-                      <div class="back7 p15 br15 pointer modal-close-button">
-                        <p>Cancelar</p>
-                      </div>
+                      <p class="btn-card-graphic-red shadow-card-graphic hover-scale-soft text-c textc w100 pointer bold500 modal-close-button">Cancelar</p>
                     </div>
                   </div>
                 </div>
