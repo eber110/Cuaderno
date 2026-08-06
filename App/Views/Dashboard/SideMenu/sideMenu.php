@@ -7,7 +7,7 @@
 ?>
 <div class="flex-column top-start gap20 h-dvh back-menu-sidebar panel-sidebar p15 bold500 x17 sticky top">
 
-  <?php if ($card["active"]) :?>
+  <?php if (!empty($card["active"])) :?>
     <a href="/<?= $session["username"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
   <?php else:?>
     <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 

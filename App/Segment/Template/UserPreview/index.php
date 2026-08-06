@@ -8,7 +8,7 @@
     <header class="w100">
       <?php
         
-        _part("User.".$card["header"]);
+        _part("User." . ($card["header"] ?? "regularHero"));
         _part("User.widget");
         
       ?>

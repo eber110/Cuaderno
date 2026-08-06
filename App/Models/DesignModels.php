@@ -90,6 +90,40 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Retorna la estructura por defecto para la tarjeta de perfil de usuario.
+   *
+   * @param string $user Nombre de usuario.
+   * @return array Estructura con datos predeterminados.
+   */
+  public static function getDefaultCard(string $user = ""): array {
+    $userClean = mb_strtolower($user, "UTF-8");
+    return [
+      "active"       => false,
+      "hide"         => false,
+      "profile"      => $userClean,
+      "avatar"       => "no-user.webp",
+      "title"        => "Titulo",
+      "titleColor"   => "#383838",
+      "desc"         => "Descripción del usuario",
+      "header"       => "regularHero",
+      "backCard"     => [
+        "back_perfil" => "#a0a0a0",
+        "style_back"  => "solid"
+      ],
+      "colorText"    => "#383838",
+      "style"        => "buttonRegular",
+      "borders"      => ["br0", "br0"],
+      "shadow"       => "shadow-1",
+      "back"         => "#d6d6d6",
+      "hover"        => false,
+      "color"        => "#494949",
+      "colorShadow3" => "#000000",
+      "rrss"         => [],
+      "content"      => []
+    ];
+  }
+
+  /**
    * Inicializa la tarjeta de diseño por defecto para un nuevo usuario registrado.
    *
    * @param string $user Nombre de usuario.
@@ -97,35 +131,12 @@ class DesignModels extends Builder {
    */
   public static function createInitialDesign(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    $dataUser  = (new UserModels())->dataUser($userClean);
+    $dataUser  = self::dataUser($userClean);
     $validUser = UserModels::userExists($userClean);
 
     if ($validUser === true && $dataUser === false) {
       $data = [
-        "card" => [
-          "active"      => false,
-          "hide"        => false,
-          "profile"     => $userClean,
-          "avatar"      => "no-user.webp",
-          "title"       => "Titulo",
-          "titleColor"  => "#383838",
-          "desc"        => "Descripción del usuario",
-          "header"      => "regularHero",
-          "backCard"    => [
-            "back_perfil" => "#a0a0a0",
-            "style_back"  => "solid"
-          ],
-          "colorText"   => "#383838",
-          "style"       => "buttonRegular",
-          "borders"     => ["br0", "br0"],
-          "shadow"      => "shadow-1",
-          "back"        => "#d6d6d6",
-          "hover"       => false,
-          "color"       => "#494949",
-          "colorShadow3"=> "#000000",
-          "rrss"        => [],
-          "content"     => []
-        ]
+        "card" => self::getDefaultCard($userClean)
       ];
       
       LogModule::simpleLog([

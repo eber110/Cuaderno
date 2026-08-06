@@ -16,7 +16,7 @@ class UserModels extends Builder {
   protected $table = "users";
 
   /**
-   * Verifica si un usuario existe en el índice del sistema (userlist.json).
+   * Verifica si un usuario existe en el índice del sistema (userlist.json) o en la base de datos.
    *
    * @param string $user Nombre de usuario.
    * @return bool True si el usuario existe, false en caso contrario.
@@ -24,7 +24,22 @@ class UserModels extends Builder {
   public static function userExists(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
     $userList  = LogModule::readLogLines(ROOT_PATH . "/Cache/Users/userlist.json");
-    return in_array($userClean, $userList, true);
+    if (in_array($userClean, $userList, true)) {
+      return true;
+    }
+
+    // Consultar en la base de datos si no se encuentra en el archivo JSON
+    $dbUser = (new self())->where("username", $userClean)->get_one();
+    if ($dbUser) {
+      LogModule::simpleLog([
+        "dir"     => ROOT_PATH . "/Cache/Users",
+        "name"    => "userList",
+        "content" => $userClean
+      ]);
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -40,12 +55,22 @@ class UserModels extends Builder {
   }
 
   /**
-   * Formatea las rutas absolutas/públicas de avatars e imágenes de ítems de contenido para una tarjeta de perfil.
+   * Formatea las rutas absolutas/públicas de avatars e imágenes de ítems de contenido para una tarjeta de perfil,
+   * garantizando que todos los atributos requeridos existan.
    *
    * @param array $card Estructura de la tarjeta del perfil.
    * @return array Estructura formateada con avatarSrc, imgSrc e imgShow.
    */
   public static function formatCardImages(array $card): array {
+    $defaultCard = DesignModels::getDefaultCard($card["profile"] ?? "");
+    $card = array_merge($defaultCard, $card);
+
+    if (!isset($card["backCard"]) || !is_array($card["backCard"])) {
+      $card["backCard"] = $defaultCard["backCard"];
+    } else {
+      $card["backCard"] = array_merge($defaultCard["backCard"], $card["backCard"]);
+    }
+
     $avatarVal = $card["avatar"] ?? "no-user.webp";
     $isDefaultAvatar = (empty($avatarVal) || $avatarVal === "no-user.webp" || strpos($avatarVal, "Origin/") !== false || strpos($avatarVal, "Custom/") !== false);
     
@@ -71,6 +96,8 @@ class UserModels extends Builder {
         $item["imgShow"] = ($rawImgShow === true || $rawImgShow === "true" || $rawImgShow === 1 || $rawImgShow === "1");
       }
       unset($item);
+    } else {
+      $card["content"] = [];
     }
 
     return $card;
@@ -88,6 +115,48 @@ class UserModels extends Builder {
       return false;
     }
     return mb_strtolower($sessionUser, "UTF-8") === mb_strtolower($requestedUser, "UTF-8");
+  }
+
+  /**
+   * Verifica si la tarjeta/perfil del usuario está activa (active = true).
+   *
+   * @param array|string $userOrData Nombre de usuario o estructura de datos del usuario.
+   * @return bool True si el perfil está activo, false si no se ha personalizado o está inactivo.
+   */
+  public static function isUserActive(array|string $userOrData): bool {
+    if (is_string($userOrData)) {
+      $userData = (new self())->dataUser($userOrData);
+      if (!$userData) {
+        return false;
+      }
+      $card = $userData["card"] ?? [];
+    } else {
+      $card = $userOrData["card"] ?? $userOrData;
+    }
+
+    $rawActive = $card["active"] ?? false;
+    return filter_var($rawActive, FILTER_VALIDATE_BOOLEAN);
+  }
+
+  /**
+   * Verifica si el perfil del usuario ha sido ocultado por decisión del usuario (hide = true).
+   *
+   * @param array|string $userOrData Nombre de usuario o estructura de datos del usuario.
+   * @return bool True si el perfil está oculto, false en caso contrario.
+   */
+  public static function isUserHidden(array|string $userOrData): bool {
+    if (is_string($userOrData)) {
+      $userData = (new self())->dataUser($userOrData);
+      if (!$userData) {
+        return false;
+      }
+      $card = $userData["card"] ?? [];
+    } else {
+      $card = $userOrData["card"] ?? $userOrData;
+    }
+
+    $rawHide = $card["hide"] ?? false;
+    return filter_var($rawHide, FILTER_VALIDATE_BOOLEAN);
   }
 
 }

@@ -23,6 +23,8 @@ class DashboardControllers extends Control {
    */
   public function panel(string $user) {
     $userClean  = mb_strtolower($user, "UTF-8");
+    DesignModels::createInitialDesign($userClean);
+
     $dataUser   = DesignModels::dataUser($userClean);
     $hasCustom  = DesignModels::hasCustomDesign($userClean);
 
@@ -30,7 +32,7 @@ class DashboardControllers extends Control {
       // Formatear imágenes a través de UserModels
       $cardData = UserModels::formatCardImages($dataUser["card"]);
     } else {
-      $cardData = [];
+      $cardData = UserModels::formatCardImages(DesignModels::getDefaultCard($userClean));
     }
 
     // Asegurar que el perfil esté configurado en cardData

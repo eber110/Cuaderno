@@ -4,7 +4,7 @@
    * @var mixed $uri
    */
   $selected = "";
-  $cant = count($card["content"]);
+  $cant = is_array($card["content"] ?? null) ? count($card["content"]) : 0;
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
 

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\DesignModels;
 use App\Models\LoginModels;
 use Base\Control\Control;
 use Base\Module\DateTimeModule;
@@ -234,6 +235,7 @@ class LoginControllers extends Control {
           "name"    => "userList",
           "content" => $usernameClean
         ]);
+        DesignModels::createInitialDesign($usernameClean);
         return ResponseModule::redirect("/ingresar", "¡Registro exitoso! Ya puedes iniciar sesión.", 0);
       } else {
         return ResponseModule::redirect("/registrar", "Hubo un error al registrar al usuario. Inténtelo más tarde.", 2);

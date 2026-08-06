@@ -58,9 +58,9 @@
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-text-app" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"]?>" class="color-picker box-color-picker"
+          <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"] ?? "#383838"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker box-color-picker">
-          <p class="x16 bold500 textb"><?= $card["colorText"]?></p>
+          <p class="x16 bold500 textb"><?= $card["colorText"] ?? "#383838"?></p>
         </label>
       </div>
     </div>

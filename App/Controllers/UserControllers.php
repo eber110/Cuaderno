@@ -46,8 +46,8 @@ class UserControllers extends Control {
       return ResponseModule::redirect("/", "El usuario {$userClean}, no existe!", 2);
     }
 
-    $isActive = filter_var($userData["card"]["active"] ?? false, FILTER_VALIDATE_BOOLEAN);
-    if (!$isActive) {
+    // 1. Verificar si el perfil está activo (active == true)
+    if (!UserModels::isUserActive($userData)) {
       $sessionUser = Session::session_data("username");
       $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
 
@@ -56,6 +56,18 @@ class UserControllers extends Control {
       }
 
       return ResponseModule::redirect("/", "El perfil de {$userClean} aún no está activo.", 2);
+    }
+
+    // 2. Verificar si el perfil está oculto por el usuario (hide == true)
+    if (UserModels::isUserHidden($userData)) {
+      $sessionUser = Session::session_data("username");
+      $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
+
+      if ($sessionUserClean && $sessionUserClean === $userClean) {
+        return ResponseModule::redirect("/panel/" . $userClean, "Tu perfil actualmente está oculto.", 1);
+      }
+
+      return ResponseModule::redirect("/", "El perfil de {$userClean} está oculto.", 2);
     }
 
     $data = $userData;

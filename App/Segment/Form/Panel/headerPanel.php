@@ -70,7 +70,7 @@
       <p>Titulo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
-        <input type="text" name="title" id="" value="<?= e($card["title"])?>" class="process-auto-submit wpx320 text-limiter"
+        <input type="text" name="title" id="" value="<?= e($card["title"] ?? "")?>" class="process-auto-submit wpx320 text-limiter"
           data-limit-type="chars" 
           data-limit="150" 
           data-prevent-double-space="true"
@@ -92,7 +92,7 @@
           data-limit-type="chars" 
           data-limit="280" 
           data-prevent-double-space="true"
-          data-counter-el="#my-counter"><?= e($card["desc"])?>
+          data-counter-el="#my-counter"><?= e($card["desc"] ?? "")?>
         </textarea>
         <div id="my-counter" class="x14 flex-row center-end gap2 pr20">
           <span class="tl-current bold500">0</span>
@@ -108,9 +108,9 @@
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-title" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color-title" name="titleColor" value="<?= $card["titleColor"]?>" class="color-picker box-color-picker"
+          <input type="color" id="select-color-title" name="titleColor" value="<?= $card["titleColor"] ?? "#383838"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-          <p class="x16 bold500 textb"><?= $card["titleColor"]?></p>
+          <p class="x16 bold500 textb"><?= $card["titleColor"] ?? "#383838"?></p>
         </label>
       </div>
     </div>

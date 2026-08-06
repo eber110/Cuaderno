@@ -2,26 +2,17 @@
 
   <?php 
     /** @var mixed $card */
-    
-    ($card["content"]) ?? "null";
+    $content   = is_array($card["content"] ?? null) ? $card["content"] : [];
+    $cardStyle = $card["style"] ?? "buttonRegular";
 
-    for ($i=0; $i < count($card["content"]); $i++) {
-      $itemType = $card["content"][$i]["type"] ?? '';
-      $itemActive = $card["content"][$i]["active"] ?? false;
-      if ($itemType == "link") {
-        if ($itemActive == true) {
-          # code...
-          _part("User.".$card['style']."", ["dataContent" => $i]);
+    for ($i = 0; $i < count($content); $i++) {
+      $itemType   = $content[$i]["type"] ?? '';
+      $itemActive = $content[$i]["active"] ?? false;
+      if ($itemType === "link" || $itemType === "product") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User." . $cardStyle, ["dataContent" => $i]);
         }
       }
-
-      if ($itemType == "product") {
-        if ($itemActive == true) {
-          # code...
-          _part("User.".$card['style']."", ["dataContent" => $i]);
-        }
-      }
-
     }
   ?>
 
