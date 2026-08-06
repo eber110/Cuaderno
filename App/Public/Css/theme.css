@@ -15,6 +15,10 @@
   --text-item-sidebar : #e6e6e6;
 }
 
+.toppx40{
+  top: 40px;
+}
+
 .overflow-y-scroll{
   overflow-y: scroll;
   scrollbar-width: none;
