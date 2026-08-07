@@ -38,19 +38,80 @@ class LoginModels extends Builder{
    * 
    * @param string $username Nombre de usuario a comprobar.
    * @return array|false Datos del usuario si existe, o false.
+   * @throws \Exception Si se excede el límite de tasa.
    */
   public function checkUserExists(string $username) {
-    return $this->rate(10, 300)->where("username", $username)->get_one();
+    $this->rate(10, 300);
+    $actionKey = 'register:check_username';
+
+    $rateStatus = $this->checkRateLimit($actionKey);
+    if ($rateStatus !== true) {
+      $this->reset();
+      throw new \Exception("Rate limit exceeded. Try again in " . $rateStatus . " seconds.");
+    }
+
+    $this->incrementRateLimit($actionKey);
+    $this->rateLimitMaxAttempts = null;
+
+    return $this->where("username", $username)->get_one();
   }
 
   /**
-   * Verifica si un correo electrónico ya está registrado.
+   * Verifica si un correo electrónico ya está registrado, aplicando un límite de tasa (Rate Limit).
+   * Permite 10 intentos por IP y bloquea por 5 minutos (300 segundos).
    * 
    * @param string $email Correo a comprobar.
    * @return array|false Datos del usuario si existe, o false.
+   * @throws \Exception Si se excede el límite de tasa.
    */
   public function checkEmailExists(string $email) {
+    $this->rate(10, 300);
+    $actionKey = 'register:check_email';
+
+    $rateStatus = $this->checkRateLimit($actionKey);
+    if ($rateStatus !== true) {
+      $this->reset();
+      throw new \Exception("Rate limit exceeded. Try again in " . $rateStatus . " seconds.");
+    }
+
+    $this->incrementRateLimit($actionKey);
+    $this->rateLimitMaxAttempts = null;
+
     return $this->where("email", $email)->get_one();
+  }
+
+  /**
+   * Comprueba y aplica el límite de tasa para el envío final de registro por IP.
+   * Permite 10 intentos por IP y bloquea por 5 minutos (300 segundos).
+   *
+   * @param int $attempts Cantidad máxima de intentos.
+   * @param int $seconds Segundos de bloqueo.
+   * @return true|int True si está permitido, o número de segundos restantes de bloqueo.
+   */
+  public function checkSubmitRegisterRate(int $attempts = 10, int $seconds = 300): true|int {
+    $this->rate($attempts, $seconds);
+    $actionKey = 'register:submit';
+
+    $rateStatus = $this->checkRateLimit($actionKey);
+    if ($rateStatus !== true) {
+      $this->reset();
+      return (int)$rateStatus;
+    }
+
+    $this->incrementRateLimit($actionKey);
+    return true;
+  }
+
+  /**
+   * Limpia los límites de tasa relacionados con el proceso de registro para la IP actual.
+   *
+   * @param string|null $ip Dirección IP opcional (por defecto la actual).
+   * @return void
+   */
+  public function clearRegistrationRateLimits(?string $ip = null): void {
+    $this->clearRateLimit('register:check_username', $ip);
+    $this->clearRateLimit('register:check_email', $ip);
+    $this->clearRateLimit('register:submit', $ip);
   }
 
 }

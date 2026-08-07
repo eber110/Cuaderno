@@ -40,9 +40,10 @@ class InitAppStructure
     'App/Segment/Form',
     'App/Segment/Menu',
     'App/Segment/Template',
-    // Rsc (solo Fonts, Ico y Library de resources)
+    // Rsc (Fonts, Helper, Ico y Library)
     'App/Rsc',
     'App/Rsc/Fonts',
+    'App/Rsc/Helper',
     'App/Rsc/Ico',
     'App/Rsc/Library',
     // Vistas de error (independientes de App/Views)
@@ -165,6 +166,13 @@ class InitAppStructure
       $this->copyDirectory($srcFonts, $destFonts, $copied, $skipped);
     }
 
+    // Copiar Helper
+    $srcHelper = $frameworkResources . '/Helper';
+    $destHelper = $projectRsc . '/Helper';
+    if (is_dir($srcHelper)) {
+      $this->copyDirectory($srcHelper, $destHelper, $copied, $skipped);
+    }
+
     // Copiar Ico
     $srcIco = $frameworkResources . '/Ico';
     $destIco = $projectRsc . '/Ico';
@@ -179,7 +187,7 @@ class InitAppStructure
       $this->copyDirectory($srcLibrary, $destLibrary, $copied, $skipped);
     }
 
-    echo "\n📦 Recursos (Fonts, Ico y Library) copiados: {$copied} archivos, {$skipped} existentes\n";
+    echo "\n📦 Recursos (Fonts, Helper, Ico y Library) copiados: {$copied} archivos, {$skipped} existentes\n";
   }
 
   /**
@@ -967,7 +975,7 @@ CSS;
    */
   private function copyAgentsFile()
   {
-    $source = __DIR__ . '/../../AGENTS_PROYECTO.md';
+    $source = __DIR__ . '/../../AGENTS_PROJECTS.md';
     $dest = $this->basePath . '/AGENTS.md';
 
     if ($this->isFrameworkRepo) {

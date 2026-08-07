@@ -154,6 +154,16 @@ class LoginControllers extends Control {
         return $this->json(["status" => "available", "message" => "El correo electrónico está disponible."]);
       }
     } catch (\Exception $e) {
+      $matches = [];
+      if (strpos($e->getMessage(), "Rate limit exceeded") !== false) {
+        preg_match('/Try again in (\d+) seconds/', $e->getMessage(), $matches);
+        $seconds = isset($matches[1]) ? intval($matches[1]) : 300;
+        return $this->json([
+          "status"  => "rate_limited",
+          "message" => "Límite de intentos superado. Inténtalo de nuevo en " . $seconds . " segundos.",
+          "seconds" => $seconds
+        ], 429);
+      }
       return $this->json(["status" => "error", "message" => "Error interno del servidor: " . $e->getMessage()], 500);
     }
   }
@@ -172,6 +182,18 @@ class LoginControllers extends Control {
 
     if ($username === "" || $email === "" || $pass === "" || $repass === "") {
       return ResponseModule::redirect("/registrar", "Debes rellenar todos los datos", 2);
+    }
+
+    $model = new LoginModels();
+
+    // Verificación de límite de tasa para el registro
+    $rateCheck = $model->checkSubmitRegisterRate(10, 300);
+    if ($rateCheck !== true) {
+      $timeAgo    = DateTimeModule::countdown($rateCheck);
+      $timeAgoSec = ($timeAgo["sec"] != 0) ? "{$timeAgo['sec']} segundos" : "";
+      $timeAgoMin = ($timeAgo["min"] != 0) ? "{$timeAgo['min']} minutos con " : "";
+      $timeMsg    = "inténtalo nuevamente en {$timeAgoMin}{$timeAgoSec}";
+      return ResponseModule::redirect("/registrar", "Has sobrepasado los intentos para registrarte<br>{$timeMsg}", 2);
     }
 
     // Validación de usuario
@@ -207,8 +229,6 @@ class LoginControllers extends Control {
 
     $usernameClean = mb_strtolower($username, "UTF-8");
     $emailClean    = mb_strtolower($email, "UTF-8");
-
-    $model = new LoginModels();
     
     // Verificación de duplicados en la base de datos
     $userExists = $model->where("username", $usernameClean)->get_one();
@@ -230,6 +250,7 @@ class LoginControllers extends Control {
       ], "index_user");
 
       if ($insertId) {
+        $model->clearRegistrationRateLimits();
         LogModule::simpleLog([
           "dir"     => ROOT_PATH . "/Cache/Users",
           "name"    => "userList",

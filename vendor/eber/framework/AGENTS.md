@@ -62,7 +62,9 @@ frame/                         # Repositorio del framework (también es un proye
 │   │   ├── Css/               # theme.css, _configTheme.css (+ generados jit/compilado)
 │   │   ├── Js/               # JS propio del proyecto (se minifica a Min/Js)
 │   │   └── Min/               # ⚠ GENERADO por min-script (gitignored)
-│   └── Rsc/                   # Recursos copiados del framework (Fonts, Ico, Library)
+│   └── Rsc/                   # Recursos del proyecto y framework (Fonts, Helper, Ico, Library)
+│       ├── Fonts/             # Fuentes tipográficas del proyecto
+│       ├── Helper/            # Helpers y utilidades personalizadas de la aplicación
 │       ├── Ico/               # Iconos SVG runtime (svg() los lee de aquí)
 │       └── Library/           # Librerías (Gsap/…; carga config en App/Config/loadLibraryJsConfiguration.php)
 │
@@ -85,7 +87,7 @@ frame/                         # Repositorio del framework (también es un proye
 
 ## 3. Reglas críticas (IMPORTANTE)
 
-1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` copia `Resources/{Ico,Fonts,Library}` a `App/Rsc/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
+1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` inicializa la estructura de `App/` y copia recursos base (`Resources/{Ico,Fonts,Library}` y `App/Rsc/Helper`) a `App/Rsc/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
 2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/SvgModule.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono: agréguelo a `Resources/Ico` y **luego** a `App/Rsc/Ico`. Uso: `svg('heart-fill', 'color2 x25')`.
 3. **No editar archivos generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `preloadFonts.json`. Se regeneran con `composer min-script`.
 4. **`.env` nunca se commitea** (está en `.gitignore`). Usa `.env.example` como plantilla.
@@ -180,7 +182,7 @@ La documentación por módulo está en `Docs/*.md`: `Route.md` (rutas), `grid`, 
 
 Mantener la documentación actualizada cuando cambies módulos.
 
-> **Proyectos nuevos:** `InitAppStructure.php` copia `AGENTS_PROYECTO.md` como `AGENTS.md` a la raíz de cada proyecto derivado. Esa guía contiene las convenciones MVC estrictas (controladores → modelos → vistas + componentes + middlewares) y los ejemplos de uso. Mantenerla sincronizada con este archivo.
+> **Proyectos nuevos:** `InitAppStructure.php` copia `AGENTS_PROJECTS.md` como `AGENTS.md` a la raíz de cada proyecto derivado. Esa guía contiene las convenciones MVC estrictas (controladores → modelos → vistas + componentes + middlewares) y los ejemplos de uso. Mantenerla sincronizada con este archivo.
 
 ---
 

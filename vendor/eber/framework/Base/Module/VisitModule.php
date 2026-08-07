@@ -250,22 +250,7 @@ class VisitModule
     }
 
     try {
-      // 1. Intentar obtener datos desde la base de datos local MaxMind GeoIP2 primero (GeoIpModule)
-      if (class_exists('\Base\Module\GeoIpModule')) {
-        $countryName = GeoIpModule::getCountryName($ip);
-        if (!empty($countryName)) {
-          return [
-            'ip'         => $ip,
-            'pais'       => $countryName,
-            'codigo'     => GeoIpModule::getCountryCode($ip) ?? 'N/A',
-            'region'     => GeoIpModule::getStateName($ip) ?? 'Desconocido',
-            'ciudad'     => GeoIpModule::getCityName($ip) ?? 'Desconocido',
-            'last_check' => time()
-          ];
-        }
-      }
-
-      // 2. Intentar caché en disco si no se usó la BD local
+      // Intentar caché en disco primero
       if (!$forceRefresh) {
         $cached = self::getFromCache($ip);
         if ($cached !== null) {

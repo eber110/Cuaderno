@@ -192,6 +192,28 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.disabled = false;
         submitBtn.textContent = "Continuar";
 
+        if (response.status === 429) {
+          // Límite de tasa (Rate limit)
+          const seconds = result.seconds || 300;
+          submitBtn.disabled = true;
+          
+          let remaining = seconds;
+          showError(errorEmail, `Has sobrepasado los intentos para verificar el correo.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`);
+          
+          if (countdownInterval) clearInterval(countdownInterval);
+          countdownInterval = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+              clearInterval(countdownInterval);
+              submitBtn.disabled = false;
+              hideError(errorEmail);
+            } else {
+              errorEmail.innerHTML = `Has sobrepasado los intentos para verificar el correo.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`;
+            }
+          }, 1000);
+          return;
+        }
+
         if (!response.ok || result.status === "error") {
           showError(errorEmail, result.message || "Error al verificar el correo.");
           return;

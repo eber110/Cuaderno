@@ -1,7 +1,9 @@
+/***UTILITY***/
+.toppx40{
+  top: 40px;
+}
+
 /***COMPONENT***/
-
-
-
 .card {
   padding: 20px;
   border-radius: 5px;

@@ -50,7 +50,7 @@ tu-proyecto/
 │   ├── Providers/             # Service Providers del proyecto
 │   ├── Config/                # config.php, CookieConfiguration, TokenConfiguration…
 │   ├── Public/                # Css/, Js/ (proyecto), Min/ (generado), Img/, Uploads/
-│   └── Rsc/                   # Ico/, Fonts/, Library/ (copiados del framework)
+│   └── Rsc/                   # Fonts/, Helper/, Ico/, Library/ (recursos del proyecto y framework)
 │
 ├── Bootstrap/App.php          # Ciclo de vida de providers (no tocar)
 ├── Cache/                     # Caché (gitignored)
@@ -306,7 +306,7 @@ composer update-geoip        # Descargar GeoLite2 actualizado
 
 ## 6. Reglas críticas
 
-1. **No editar `vendor/eber/framework/`** (Core, Base, Resources, config). Si falta algo, es un cambio del framework: hacerlo ahí con su propio AGENTS.md, no en el proyecto.
+1. **NUNCA escribir código en el framework (`vendor/eber/framework/`)**: Todos los módulos, helpers, modelos y utilidades adicionales del proyecto deben residir dentro de `App/` (como en `/App/Rsc/Helper/`). Si se requiere una funcionalidad o módulo a nivel de framework, **NUNCA debes modificar `vendor/eber/framework/` directamente**; debes **SOLICITARLO AL USUARIO** para que sea escrito directamente en el repositorio del framework y luego poder utilizarlo.
 2. **MVC estricto:** controladores sin SQL ni HTML, modelos sin HTML, vistas sin lógica de negocio.
 3. **Iconos:** `svg("nombre-icono", "clases")` lee de `App/Rsc/Ico/` (copiado del framework). Para un icono nuevo: añadirlo en el framework (`Resources/Ico`) y copiarlo a `App/Rsc/Ico/`.
 4. **No editar generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `App/Config/preloadFonts.json` → se regeneran con `composer min-script`.
@@ -377,4 +377,4 @@ Ejemplo: `feat(home): agregar hero con datos de HomeModels`, `fix(middleware): r
 - ❌ Duplicar piezas entre vistas — mover a `App/Segment/` o componente.
 - ❌ Añadir frameworks/libs frontend sin avisar.
 - ❌ Comitear `.env`, `Logs/`, `Cache/`, `App/Public/Min/`, mmdb.
-- ❌ Editar archivos del framework (`vendor/eber/framework/`).
+- ❌ Escribir o editar código en los archivos del framework (`vendor/eber/framework/`). Si se necesita un módulo del framework, solicitarlo al usuario para que se escriba en el repositorio del framework primero.
