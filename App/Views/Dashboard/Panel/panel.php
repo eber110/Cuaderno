@@ -5,7 +5,7 @@
    */
 ?>
 
-<div class="container-xl h-dvh back-body text-protected">
+<div class="container-xl h-dvh back-body overflow-y-scroll text-protected">
 
   <div class="flex-row top-start">
 

@@ -5,7 +5,7 @@
    */
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
 ?>
-<div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar">
+<div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar no-phone">
   <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
     <?php if (!empty($card["active"])) :?>

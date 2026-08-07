@@ -62,7 +62,7 @@
 <div class="flex-column gap15 w100">
 
   <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
-  <div class="flex-row  gap20 p20 br20 back-card-graphic hover-scale-soft w100 center-center">
+  <div class="flex-row-desk flex-row-mid flex-column-sml gap20 p20 br20 back-card-graphic hover-scale-soft w100 center-center">
     
     <!-- Columna Izquierda: Gráfico Gauge / Medidor Radial ApexCharts -->
     <div class="flex-column center-center w100 h100 relative">

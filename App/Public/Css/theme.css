@@ -152,11 +152,6 @@
   min-width: 250px;
 }
 
-.panel-container{
-  width: calc(100% - 800px);
-  min-width: 550px;
-}
-
 .preview-profile {
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -231,7 +226,10 @@
 /*desktop*/
 @media screen and (min-width: 993px) {
 
-
+  .panel-container{
+    width: calc(100% - 800px);
+    min-width: 550px;
+  }
 
 }
 
@@ -266,6 +264,10 @@
 
   .hpxm-sml-150{
     max-height: 150px;
+  }
+
+  .panel-container{
+    width: 100%;
   }
 
 }
