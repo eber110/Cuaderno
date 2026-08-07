@@ -102,25 +102,21 @@ class LoginControllers extends Control {
     $usernameClean = mb_strtolower($username, "UTF-8");
     $model = new LoginModels();
 
-    try {
-      $exists = $model->checkUserExists($usernameClean);
-      if ($exists) {
-        return $this->json(["status" => "taken", "message" => "El nombre de usuario ya está en uso."]);
-      } else {
-        return $this->json(["status" => "available", "message" => "El nombre de usuario está disponible."]);
-      }
-    } catch (\Exception $e) {
-      $matches = [];
-      if (strpos($e->getMessage(), "Rate limit exceeded") !== false) {
-        preg_match('/Try again in (\d+) seconds/', $e->getMessage(), $matches);
-        $seconds = isset($matches[1]) ? intval($matches[1]) : 300;
-        return $this->json([
-          "status"  => "rate_limited",
-          "message" => "Límite de intentos superado. Inténtalo de nuevo en " . $seconds . " segundos.",
-          "seconds" => $seconds
-        ], 429);
-      }
-      return $this->json(["status" => "error", "message" => "Error interno del servidor: " . $e->getMessage()], 500);
+    $exists = $model->checkUserExists($usernameClean);
+
+    if (is_array($exists) && isset($exists["rate_limited"])) {
+      $seconds = (int)($exists["seconds"] ?? 300);
+      return $this->json([
+        "status"  => "rate_limited",
+        "message" => "Límite de intentos superado. Inténtalo de nuevo en " . $seconds . " segundos.",
+        "seconds" => $seconds
+      ], 429);
+    }
+
+    if ($exists) {
+      return $this->json(["status" => "taken", "message" => "El nombre de usuario ya está en uso."]);
+    } else {
+      return $this->json(["status" => "available", "message" => "El nombre de usuario está disponible."]);
     }
   }
 
@@ -146,25 +142,21 @@ class LoginControllers extends Control {
     }
 
     $model = new LoginModels();
-    try {
-      $exists = $model->checkEmailExists($email);
-      if ($exists) {
-        return $this->json(["status" => "taken", "message" => "El correo electrónico ya está registrado."]);
-      } else {
-        return $this->json(["status" => "available", "message" => "El correo electrónico está disponible."]);
-      }
-    } catch (\Exception $e) {
-      $matches = [];
-      if (strpos($e->getMessage(), "Rate limit exceeded") !== false) {
-        preg_match('/Try again in (\d+) seconds/', $e->getMessage(), $matches);
-        $seconds = isset($matches[1]) ? intval($matches[1]) : 300;
-        return $this->json([
-          "status"  => "rate_limited",
-          "message" => "Límite de intentos superado. Inténtalo de nuevo en " . $seconds . " segundos.",
-          "seconds" => $seconds
-        ], 429);
-      }
-      return $this->json(["status" => "error", "message" => "Error interno del servidor: " . $e->getMessage()], 500);
+    $exists = $model->checkEmailExists($email);
+
+    if (is_array($exists) && isset($exists["rate_limited"])) {
+      $seconds = (int)($exists["seconds"] ?? 300);
+      return $this->json([
+        "status"  => "rate_limited",
+        "message" => "Límite de intentos superado. Inténtalo de nuevo en " . $seconds . " segundos.",
+        "seconds" => $seconds
+      ], 429);
+    }
+
+    if ($exists) {
+      return $this->json(["status" => "taken", "message" => "El correo electrónico ya está registrado."]);
+    } else {
+      return $this->json(["status" => "available", "message" => "El correo electrónico está disponible."]);
     }
   }
 

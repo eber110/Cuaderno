@@ -37,17 +37,19 @@ class LoginModels extends Builder{
    * Permite 10 intentos por IP y bloquea por 5 minutos (300 segundos).
    * 
    * @param string $username Nombre de usuario a comprobar.
-   * @return array|false Datos del usuario si existe, o false.
-   * @throws \Exception Si se excede el límite de tasa.
+   * @return array|false Datos del usuario si existe, false si no existe, o array con clave rate_limited si está bloqueado.
    */
-  public function checkUserExists(string $username) {
+  public function checkUserExists(string $username): array|false {
     $this->rate(10, 300);
     $actionKey = 'register:check_username';
 
     $rateStatus = $this->checkRateLimit($actionKey);
     if ($rateStatus !== true) {
       $this->reset();
-      throw new \Exception("Rate limit exceeded. Try again in " . $rateStatus . " seconds.");
+      return [
+        "rate_limited" => true,
+        "seconds"      => (int)$rateStatus
+      ];
     }
 
     $this->incrementRateLimit($actionKey);
@@ -61,17 +63,19 @@ class LoginModels extends Builder{
    * Permite 10 intentos por IP y bloquea por 5 minutos (300 segundos).
    * 
    * @param string $email Correo a comprobar.
-   * @return array|false Datos del usuario si existe, o false.
-   * @throws \Exception Si se excede el límite de tasa.
+   * @return array|false Datos del usuario si existe, false si no existe, o array con clave rate_limited si está bloqueado.
    */
-  public function checkEmailExists(string $email) {
+  public function checkEmailExists(string $email): array|false {
     $this->rate(10, 300);
     $actionKey = 'register:check_email';
 
     $rateStatus = $this->checkRateLimit($actionKey);
     if ($rateStatus !== true) {
       $this->reset();
-      throw new \Exception("Rate limit exceeded. Try again in " . $rateStatus . " seconds.");
+      return [
+        "rate_limited" => true,
+        "seconds"      => (int)$rateStatus
+      ];
     }
 
     $this->incrementRateLimit($actionKey);
