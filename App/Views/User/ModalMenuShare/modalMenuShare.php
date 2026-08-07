@@ -15,7 +15,7 @@
     </figure>
 
     <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= $data["metaDesc"]?>...</p>
-    <p class="x16" style="color: <?= $card["colorText"]?>;"><?= \Base\Module\TextModule::truncateRaw(urldecode($data["url"])), 1?></p>
+    <p class="x16" style="color: <?= $card["colorText"]?>;"><?= \Base\Module\TextModule::truncate(urldecode($data["url"]), 1)?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
