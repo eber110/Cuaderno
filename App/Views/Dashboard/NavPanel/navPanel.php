@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="no-desk no-tablet hamburger-toggle pointer border-none |back-menu-sidebar flex-row center-center" aria-label="Menú">
+    <div class="no-desk no-tablet hamburger-toggle pointer border-none flex-row center-center" aria-label="Menú">
        <?= svg("bars", "x30");?>
     </div>
     <nav class="hamburger-menu from-left with-overlay animated hidden back-menu-sidebar shadow-card">
@@ -30,7 +30,7 @@
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="closed-hamburger">
+        <div class="">
           <?php _part("Dashboard.sideMenu")?>
         </div>
       </div>
