@@ -7,10 +7,10 @@
    * @var mixed $session
    */
 ?>
-<div class="remote-container animated p20">
+<div class="remote-container animated p40 p-sml-20">
 
   <div id="header-remote" class="remote-content flex-row top-center active">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php 
         _form("Panel.headerPanel");
       ?>
@@ -18,7 +18,7 @@
   </div>
 <!-- button-remote -->
   <div id="background-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php
         _form("Panel.backgroundPanel");
       ?>
@@ -26,7 +26,7 @@
   </div>
 
   <div id="button-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php
         _form("Panel.buttonPanel");
       ?>
@@ -34,7 +34,7 @@
   </div>
 
   <div id="color-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php
         _form("Panel.colorPanel");
       ?>
@@ -42,7 +42,7 @@
   </div>
 
   <div id="hide-profile-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <div class="mb20 p20 br15 back-card-graphic shadow-card-graphic">
         <p>Tu perfil esta <span class="bold600"><?= $card["hide"] ? "oculto" : "visible";?></span> para todo publico.</p>
       </div>
@@ -54,7 +54,7 @@
   </div>
 
   <div id="Content-button" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php
         _form("Panel.contentButtonPanel");
       ?>
@@ -62,7 +62,7 @@
   </div>
 
   <div id="Content-rrss" class="remote-content flex-row top-center hidden">
-    <div class="wpx630 w-mid-100 w-sml-100 p20">
+    <div class="wpx630 w-mid-100 w-sml-100">
       <?php
         _form("Panel.contentRRSSPanel");
       ?>
@@ -70,7 +70,7 @@
   </div>
 
   <div id="statistics-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx890 w-mid-100 w-sml-100 p20">
+    <div class="wpx890 w-mid-100 w-sml-100">
       <?php
         _part("Dashboard.statisticsPanel", [
           "stats" => $stats ?? [], 
