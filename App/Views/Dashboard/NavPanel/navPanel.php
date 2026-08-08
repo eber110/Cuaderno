@@ -24,7 +24,7 @@
        <?= svg("bars", "x30");?>
     </div>
     <nav class="hamburger-menu from-left with-overlay animated hidden back-menu-sidebar shadow-card">
-      <div class="hamburger-content flex-column wpx280 h-dvh p0 overflow-y-auto">
+      <div class="hamburger-content flex-column wpx280 h-dvh p0 overflow-y-auto before-menu">
         <div class="flex-row center-end w100 p5 top3">
           <div class="closed-hamburger closed-modal-preview flex-row center-center back-transparent border-none" aria-label="Cerrar menú">
             <?= svg("xmark", "x20") ?>
