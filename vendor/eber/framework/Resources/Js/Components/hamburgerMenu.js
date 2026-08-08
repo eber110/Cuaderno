@@ -3,11 +3,15 @@
  * 
  * @function hamburgerMenu
  * @description Implementa un menú de navegación móvil que se activa mediante
- *              un botón hamburguesa animado. Incluye animaciones GSAP opcionales,
- *              cierre con overlay y bloqueo de scroll del body.
+ *              cualquier elemento con la clase .hamburger-toggle (button, div, span, p, a, etc.).
+ *              El activador no requiere ser un elemento <button> específico; funciona
+ *              con cualquier etiqueta HTML mediante clases CSS y atributos opcionales
+ *              (data-target, aria-controls, o por proximidad DOM).
+ *              Incluye animaciones GSAP opcionales, cierre con overlay, bloqueo de scroll
+ *              del body y soporte completo de accesibilidad (teclado / roles ARIA).
  * 
  * @example
- * // HTML - Estructura básica
+ * // HTML - Activador como botón
  * <button class="hamburger-toggle" aria-label="Menú">
  *   <span class="hamburger-line"></span>
  *   <span class="hamburger-line"></span>
@@ -20,20 +24,21 @@
  * </nav>
  * 
  * @example
- * // HTML - Con overlay y animación
- * <button class="hamburger-toggle" aria-label="Menú">
+ * // HTML - Activador como div, span o párrafo (con data-target opcional)
+ * <div class="hamburger-toggle" data-target="#miMenu" aria-label="Abrir Menú">
  *   <span class="hamburger-line"></span>
  *   <span class="hamburger-line"></span>
  *   <span class="hamburger-line"></span>
- * </button>
- * <nav class="hamburger-menu animated with-overlay hidden">
+ * </div>
+ * <nav id="miMenu" class="hamburger-menu animated with-overlay hidden">
  *   <div class="hamburger-content">
+ *     <span class="closed-hamburger" aria-label="Cerrar">✕</span>
  *     <a href="#">Enlace 1</a>
  *     <a href="#">Enlace 2</a>
  *   </div>
  * </nav>
  * 
- * @css .hamburger-toggle - Botón activador del menú hamburguesa
+ * @css .hamburger-toggle - Elemento activador del menú hamburguesa (cualquier etiqueta)
  * @css .hamburger-toggle.active - Estado activo (menú abierto)
  * @css .hamburger-line - Líneas del ícono hamburguesa
  * @css .hamburger-menu - Contenedor del menú de navegación
@@ -42,14 +47,15 @@
  * @css .hamburger-menu.from-right - Menú desliza desde la derecha (por defecto)
  * @css .hidden - Clase para ocultar el menú
  * @css .hamburger-menu.animated - Habilita animaciones GSAP de deslizamiento
+ * @css .closed-hamburger - Elemento interno para cerrar el menú (cualquier etiqueta)
  * 
  * @requires gsap - GreenSock Animation Platform (opcional)
  * @returns {void}
  */
 export function hamburgerMenu() {
-  const toggleButtons = document.querySelectorAll('.hamburger-toggle');
+  const toggles = document.querySelectorAll('.hamburger-toggle');
 
-  if (!toggleButtons.length) return;
+  if (!toggles.length) return;
 
   // Verificar si GSAP está disponible
   const hasGsap = typeof gsap !== 'undefined';
@@ -60,6 +66,87 @@ export function hamburgerMenu() {
     ease: 'power2.out',
     stagger: 0.05
   };
+
+  /**
+   * Encuentra el menú correspondiente a un elemento activador.
+   * Admite resolución por:
+   * 1. Atributo data-target o data-menu (ej: data-target="#miMenu" o data-target=".hamburger-menu")
+   * 2. Atributo aria-controls (ej: aria-controls="miMenuId")
+   * 3. Atributo href (ej: href="#miMenuId")
+   * 4. Hermano siguiente directo (.nextElementSibling)
+   * 5. Hermano siguiente del contenedor padre
+   * 6. Menú dentro del contenedor/header más cercano
+   * 7. Fallback: primer .hamburger-menu en el DOM
+   * 
+   * @param {HTMLElement} toggle - Elemento activador
+   * @returns {HTMLElement|null} - Elemento menú encontrado o null
+   */
+  function findMenuForToggle(toggle) {
+    // 1. data-target o data-menu
+    const targetSelector = toggle.getAttribute('data-target') || toggle.getAttribute('data-menu');
+    if (targetSelector) {
+      const targetEl = document.querySelector(targetSelector);
+      if (targetEl) return targetEl;
+    }
+
+    // 2. aria-controls
+    const ariaControls = toggle.getAttribute('aria-controls');
+    if (ariaControls) {
+      const controlledEl = document.getElementById(ariaControls);
+      if (controlledEl) return controlledEl;
+    }
+
+    // 3. href (para enlaces <a>)
+    const href = toggle.getAttribute('href');
+    if (href && href.startsWith('#') && href.length > 1) {
+      const hrefEl = document.querySelector(href);
+      if (hrefEl) return hrefEl;
+    }
+
+    // 4. Hermano siguiente directo con clase .hamburger-menu
+    if (toggle.nextElementSibling && toggle.nextElementSibling.classList.contains('hamburger-menu')) {
+      return toggle.nextElementSibling;
+    }
+
+    // 5. Hermano siguiente del padre
+    if (toggle.parentElement && toggle.parentElement.nextElementSibling && toggle.parentElement.nextElementSibling.classList.contains('hamburger-menu')) {
+      return toggle.parentElement.nextElementSibling;
+    }
+
+    // 6. Menú dentro del contenedor común más cercano
+    const container = toggle.closest('header, nav, .header, .nav, .navbar, .nav-panel, [class*="nav"], body');
+    if (container) {
+      const menuInContainer = container.querySelector('.hamburger-menu');
+      if (menuInContainer) return menuInContainer;
+    }
+
+    // 7. Fallback global
+    return document.querySelector('.hamburger-menu');
+  }
+
+  /**
+   * Obtiene todos los activadores asociados a un menú específico.
+   * @param {HTMLElement} menu - Menú de navegación
+   * @returns {HTMLElement[]} - Lista de elementos activadores
+   */
+  function getTogglesForMenu(menu) {
+    const menuId = menu.id ? `#${menu.id}` : null;
+    const result = [];
+
+    toggles.forEach(toggle => {
+      const target = toggle.getAttribute('data-target') || toggle.getAttribute('data-menu');
+      const aria = toggle.getAttribute('aria-controls');
+      const href = toggle.getAttribute('href');
+
+      if (menuId && (target === menuId || aria === menu.id || href === menuId)) {
+        result.push(toggle);
+      } else if (findMenuForToggle(toggle) === menu) {
+        result.push(toggle);
+      }
+    });
+
+    return result.length ? result : Array.from(toggles);
+  }
 
   /**
    * Crea el overlay de fondo si el menú tiene la clase with-overlay.
@@ -97,17 +184,23 @@ export function hamburgerMenu() {
   }
 
   /**
-   * Anima la apertura del menú usando GSAP.
+   * Anima la apertura del menú usando GSAP o transiciones CSS.
    * @param {HTMLElement} menu - Menú a animar
-   * @param {HTMLElement} button - Botón activador
+   * @param {HTMLElement|null} toggle - Elemento activador que disparó la acción
    */
-  function animateMenuOpen(menu, button) {
+  function animateMenuOpen(menu, toggle = null) {
     const isFromLeft = menu.classList.contains('from-left');
     const overlay = createOverlay(menu);
-    const content = menu.querySelector('.hamburger-content') || menu;
 
     menu.classList.remove('hidden');
-    button.classList.add('active');
+
+    // Sincronizar estado visual y accesibilidad en los activadores
+    const relatedToggles = toggle ? [toggle] : getTogglesForMenu(menu);
+    relatedToggles.forEach(t => {
+      t.classList.add('active');
+      t.setAttribute('aria-expanded', 'true');
+    });
+
     toggleBodyScroll(true);
 
     if (!hasGsap || !menu.classList.contains('animated')) {
@@ -139,15 +232,20 @@ export function hamburgerMenu() {
   }
 
   /**
-   * Anima el cierre del menú usando GSAP.
+   * Anima el cierre del menú usando GSAP o transiciones CSS.
    * @param {HTMLElement} menu - Menú a animar
-   * @param {HTMLElement} button - Botón activador
+   * @param {HTMLElement|null} toggle - Elemento activador
    */
-  function animateMenuClose(menu, button) {
+  function animateMenuClose(menu, toggle = null) {
     const isFromLeft = menu.classList.contains('from-left');
     const overlay = menu.querySelector('.hamburger-overlay');
 
-    button.classList.remove('active');
+    // Sincronizar estado visual y accesibilidad en los activadores
+    const relatedToggles = toggle ? [toggle] : getTogglesForMenu(menu);
+    relatedToggles.forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-expanded', 'false');
+    });
 
     if (!hasGsap || !menu.classList.contains('animated')) {
       menu.classList.add('hidden');
@@ -180,16 +278,16 @@ export function hamburgerMenu() {
 
   /**
    * Alterna el estado del menú (abrir/cerrar).
-   * @param {HTMLElement} button - Botón activador
+   * @param {HTMLElement} toggle - Elemento activador
    * @param {HTMLElement} menu - Menú a alternar
    */
-  function toggleMenu(button, menu) {
+  function toggleMenu(toggle, menu) {
     const isHidden = menu.classList.contains('hidden');
 
     if (isHidden) {
-      animateMenuOpen(menu, button);
+      animateMenuOpen(menu, toggle);
     } else {
-      animateMenuClose(menu, button);
+      animateMenuClose(menu, toggle);
     }
   }
 
@@ -198,48 +296,100 @@ export function hamburgerMenu() {
    */
   function closeAllMenus() {
     document.querySelectorAll('.hamburger-menu:not(.hidden)').forEach(menu => {
-      const button = menu.previousElementSibling;
-      if (button && button.classList.contains('hamburger-toggle')) {
-        animateMenuClose(menu, button);
-      }
+      animateMenuClose(menu);
+    });
+
+    // Asegurar que todos los activadores queden inactivos
+    toggles.forEach(toggle => {
+      toggle.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
     });
   }
 
-  // Event listeners para cada botón hamburguesa
-  toggleButtons.forEach(button => {
-    const menu = button.nextElementSibling;
+  // Configuración de cada activador (.hamburger-toggle)
+  toggles.forEach(toggle => {
+    const menu = findMenuForToggle(toggle);
 
-    if (!menu || !menu.classList.contains('hamburger-menu')) {
-      console.warn('hamburgerMenu: No se encontró .hamburger-menu después de .hamburger-toggle:', button);
+    if (!menu) {
+      console.warn('hamburgerMenu: No se encontró .hamburger-menu para el activador:', toggle);
       return;
     }
 
-    // Click en el botón hamburguesa
-    button.addEventListener('click', (e) => {
+    // Configurar accesibilidad si no es un <button> nativo
+    if (toggle.tagName !== 'BUTTON' && toggle.tagName !== 'A') {
+      if (!toggle.hasAttribute('role')) {
+        toggle.setAttribute('role', 'button');
+      }
+      if (!toggle.hasAttribute('tabindex')) {
+        toggle.setAttribute('tabindex', '0');
+      }
+    }
+
+    // Atributo aria-expanded inicial
+    const isInitialHidden = menu.classList.contains('hidden');
+    toggle.setAttribute('aria-expanded', isInitialHidden ? 'false' : 'true');
+
+    // Click en el activador
+    toggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleMenu(button, menu);
+      toggleMenu(toggle, menu);
+    });
+
+    // Accesibilidad por teclado (Enter / Espacio) para cualquier tipo de elemento
+    toggle.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMenu(toggle, menu);
+      }
     });
 
     // Click en el overlay para cerrar
     const overlay = createOverlay(menu);
-    if (overlay) {
+    if (overlay && !overlay._hasHamburgerListener) {
+      overlay._hasHamburgerListener = true;
       overlay.addEventListener('click', () => {
-        animateMenuClose(menu, button);
+        animateMenuClose(menu, toggle);
       });
     }
 
     // Click en enlaces del menú para cerrar automáticamente
     menu.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        animateMenuClose(menu, button);
-      });
+      if (!link._hasHamburgerListener) {
+        link._hasHamburgerListener = true;
+        link.addEventListener('click', () => {
+          animateMenuClose(menu, toggle);
+        });
+      }
     });
 
-    // Click en botón de cerrar (.closed-hamburger) para cerrar el menú
-    menu.querySelectorAll('.closed-hamburger').forEach(closeBtn => {
-      closeBtn.addEventListener('click', () => {
-        animateMenuClose(menu, button);
-      });
+    // Click en cualquier elemento de cerrar (.closed-hamburger) dentro del menú
+    menu.querySelectorAll('.closed-hamburger').forEach(closeEl => {
+      // Accesibilidad si no es un botón nativo
+      if (closeEl.tagName !== 'BUTTON' && closeEl.tagName !== 'A') {
+        if (!closeEl.hasAttribute('role')) {
+          closeEl.setAttribute('role', 'button');
+        }
+        if (!closeEl.hasAttribute('tabindex')) {
+          closeEl.setAttribute('tabindex', '0');
+        }
+      }
+
+      if (!closeEl._hasHamburgerListener) {
+        closeEl._hasHamburgerListener = true;
+        closeEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          animateMenuClose(menu, toggle);
+        });
+
+        closeEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            animateMenuClose(menu, toggle);
+          }
+        });
+      }
     });
   });
 

@@ -253,6 +253,17 @@ body:has(.hamburger-menu) {
   /* transform controlado por JavaScript/GSAP */
 }
 
+.hamburger-toggle {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hamburger-line {
+  display: block;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
 .hamburger-toggle.active .hamburger-line:nth-child(1) {
   transform: rotate(45deg) translate(5px, 5px);
 }
@@ -263,6 +274,12 @@ body:has(.hamburger-menu) {
 
 .hamburger-toggle.active .hamburger-line:nth-child(3) {
   transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.closed-hamburger {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 

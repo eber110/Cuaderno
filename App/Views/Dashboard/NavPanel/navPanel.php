@@ -30,7 +30,7 @@
             <?= svg("xmark", "x20") ?>
           </div>
         </div>
-        <div class="">
+        <div class="closed-hamburger">
           <?php _part("Dashboard.sideMenu")?>
         </div>
       </div>
