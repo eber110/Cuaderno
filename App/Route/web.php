@@ -119,7 +119,8 @@ Route::get("/op/check", function(){
 Route::post("/op/track-click", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
-  $input = json_decode($rawInput, true) ?: $_POST;
+  $decoded  = json_decode($rawInput, true);
+  $input    = is_array($decoded) ? $decoded : ($_POST ?? []);
 
   $user   = $input['user'] ?? '';
   $linkId = $input['linkId'] ?? '';
@@ -132,7 +133,8 @@ Route::post("/op/track-click", function(){
 Route::post("/op/active-viewers", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
-  $input = json_decode($rawInput, true) ?: $_POST;
+  $decoded  = json_decode($rawInput, true);
+  $input    = is_array($decoded) ? $decoded : ($_POST ?? []);
 
   $user  = mb_strtolower(trim($input['user'] ?? $_GET['user'] ?? ''), 'UTF-8');
   $token = trim($input['token'] ?? $_GET['token'] ?? '');
