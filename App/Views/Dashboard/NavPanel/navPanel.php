@@ -31,7 +31,7 @@
           </div>
         </div>
         <div class="">
-          <?php _part("Dashboard.sideMenu")?>
+          <?php _part("Dashboard.SideMenu.sideMenuPhone")?>
         </div>
       </div>
     </nav>
