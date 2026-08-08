@@ -18,17 +18,17 @@
 
     <!-- Botón Iniciador con Menú Modal para Añadir Red Social -->
     <div class="flex-column top-start gap10 w100">
-      <p class="bold500 x16">Añadir nueva red social</p>
+      <p class="bold500 x16 texto">Añadir nueva red social</p>
       
       <div class="relative">
-        <button type="button" class="open-modal-menu p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
+        <button type="button" class="open-modal-menu p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Red social
         </button>
 
         <div class="content-modal-menu hidden back-body br15 p15 shadow-1 back-card-graphic shadow-card-graphic |hover-scale-soft z-index-900" style="max-height: 300px; overflow-y: auto; width: 220px;">
           <div class="flex-column gap10">
             <?php foreach ($rrssList as $social) : ?>
-              <button type="submit" name="add_rrss_name" value="<?= $social ?>" class="p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-start gap10 bold500 textb w100" style="border: none;">
+              <button type="submit" name="add_rrss_name" value="<?= $social ?>" class="p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-start gap10 bold500 texto w100" style="border: none;">
                 <?= svg($social, "x18") ?>
                 <span class="capitalize"><?= ucfirst($social) ?></span>
               </button>
@@ -51,7 +51,7 @@
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <div class="flex-row center-start gap8 bold500 item-title-label capitalize">
+              <div class="flex-row center-start gap8 bold500 item-title-label capitalize texto">
                 <?= svg($socialName, "x20") ?>
                 <span><?= e(ucfirst($socialName)) ?></span>
               </div>
@@ -59,8 +59,8 @@
             <div class="flex-row center-center gap10">
               <!-- Opción para eliminar red social -->
               <div class="modal-btn tooltip left animated" data-tooltip="Eliminar enlace">
-                <p class="pointer flex-row center-center">
-                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textw p2 x16 ml5"><?= svg("xmark")?></span>
+                <p class="pointer flex-row center-center texto">
+                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
                 </p>
               </div>
 
@@ -68,7 +68,7 @@
               <div class="hidden">
                 <div class="w100 flex-column center-center h-dvh">
                   <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-                    <p class="x24 bold500">¿Desea borrar este enlace?</p>
+                    <p class="x24 bold500 texto">¿Desea borrar este enlace?</p>
 
                     <div class="flex-row center-between gap10">
                       <label for="delete-rrss-<?= $i?>" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
@@ -89,7 +89,7 @@
           <input type="hidden" name="rrss[<?= $i?>][0]" value="<?= e($socialName) ?>">
 
           <!-- Input para la URL -->
-          <input type="text" name="rrss[<?= $i?>][1]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($socialUrl) ?>" placeholder="URL (ej: https://...)">
+          <input type="text" name="rrss[<?= $i?>][1]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($socialUrl) ?>" placeholder="URL (ej: https://...)">
         </div>
       <?php endfor; ?>
     </div>

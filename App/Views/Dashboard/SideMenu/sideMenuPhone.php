@@ -35,7 +35,7 @@
         <div class="vertical-menu-item flex-column top-start gap10 w100">
           <div class="vertical-menu-header w100 br10">
             <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
-              <p class="flex-row center-start gap5"><?= svg("palette")?>Diseño</p>
+              <p class="flex-row center-start gap5 texto"><?= svg("palette")?>Diseño</p>
               <p class="color-icon-accordion"><?= svg("angle-d")?></p>
             </div>
           </div>
@@ -52,7 +52,7 @@
         <div class="vertical-menu-item flex-column top-start gap10 w100">
           <div class="vertical-menu-header w100 br10">
             <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
-              <p class="flex-row center-start gap5"><?= svg("file-pen")?>Contenido</p>
+              <p class="flex-row center-start gap5 texto"><?= svg("file-pen")?>Contenido</p>
               <p class="color-icon-accordion"><?= svg("angle-d")?></p>
             </div>
           </div>
@@ -75,7 +75,7 @@
     <div class="hidden">
       <div class="w100 flex-column center-center h-dvh">
         <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-          <p class="x24 bold500">¿Desea cerrar sesión?</p>
+          <p class="x24 bold500 texto">¿Desea cerrar sesión?</p>
 
           <div class="flex-row center-between gap10">
             <a href="/salir" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500">Salir</a>

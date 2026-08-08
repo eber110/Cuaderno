@@ -10,7 +10,7 @@
   <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-column gap5">
       <div class="flex-row center-between wrap gap5">
-        <p class="bold600 x20 flex-row center-start gap5"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
+        <p class="bold600 x20 flex-row center-start gap5 texto"><?= svg("calendar", "x18") ?> Días Más Visitados</p>
         <?php if (!empty($topDays)) : 
           $peakDay = $topDays[0];
           foreach ($topDays as $td) {
@@ -68,7 +68,7 @@
   <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-column gap5">
       <div class="flex-row center-between wrap gap5">
-        <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
+        <p class="bold600 x20 flex-row center-start gap5 texto"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
         <?php if (!empty($topHours)) : ?>
           <span class="bold600 texto">
             <?= e($topHours[0]['label']) ?>

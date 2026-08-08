@@ -13,7 +13,7 @@
 
     <!-- Estilo del fondo, opciones de como mostrar el fondo -->
     <div class="flex-column top-start gap10 w100">
-      <p>Estilo del fondo</p>
+      <p class="texto">Estilo del fondo</p>
 
       <div class="flex-row center-end gap10 w100">
         
@@ -24,7 +24,7 @@
               oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
               oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
               );"></div>
-            <p class="x16">Degradado</p>
+            <p class="x16 texto">Degradado</p>
           </div>
         </label>
     
@@ -32,7 +32,7 @@
         <label for="style_solid">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 <?php if ($styleBack == "solid") echo $selected;?>">
             <div class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
-            <p class="x16">Solido</p>
+            <p class="x16 texto">Solido</p>
           </div>
         </label>
   
@@ -41,26 +41,26 @@
 
     <!-- Color de fondo de la aplicación -->
     <div class="flex-row center-between">
-      <p>Color de fondo</p>
+      <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color" name="back_perfil" value="<?= $backPerfil?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-          <p class="x16 bold500 textb"><?= $backPerfil?></p>
+          <p class="x16 bold500 texto"><?= $backPerfil?></p>
         </label>
       </div>
     </div>
 
     <!-- Color de texto global -->
     <div class="flex-row center-between">
-      <p>Color de texto</p>
+      <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
         <label for="select-color-text-app" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"] ?? "#383838"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker box-color-picker">
-          <p class="x16 bold500 textb"><?= $card["colorText"] ?? "#383838"?></p>
+          <p class="x16 bold500 texto"><?= $card["colorText"] ?? "#383838"?></p>
         </label>
       </div>
     </div>
@@ -70,19 +70,19 @@
 
       <div class="flex-row center-between">
 
-        <p>Dirección del degradado</p>
+        <p class="texto">Dirección del degradado</p>
   
         <div class="flex-row center-end gap10">
           <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
           <label for="direction_up">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft <?php if ($styleBack == "gradientUp") echo $selected;?>">
+            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto <?php if ($styleBack == "gradientUp") echo $selected;?>">
               <?= svg("arrow-up");?> Arriba
             </div>
           </label>
           
           <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
           <label for="direction_down">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft <?php if ($styleBack == "gradientDown") echo $selected;?>">
+            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto <?php if ($styleBack == "gradientDown") echo $selected;?>">
               <?= svg("arrow-down");?> Abajo
             </div>
           </label>

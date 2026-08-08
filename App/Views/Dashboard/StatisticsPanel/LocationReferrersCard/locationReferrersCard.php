@@ -8,12 +8,12 @@
   
   <!-- Países -->
   <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
-    <p class="bold600 x20">Ubicación Geográfica</p>
+    <p class="bold600 x20 texto">Ubicación Geográfica</p>
     <?php if (!empty($countries)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($countries as $c) : ?>
           <div class="flex-row center-between p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft">
-            <span class="bold500"><?= e($c['country_name'] ?? 'Desconocido') ?> (<?= e($c['country_code'] ?? 'N/A') ?>)</span>
+            <span class="bold500 texto"><?= e($c['country_name'] ?? 'Desconocido') ?> (<?= e($c['country_code'] ?? 'N/A') ?>)</span>
             <span class="bold700 text-muted"><?= e($c['total']) ?> visitas</span>
           </div>
         <?php endforeach; ?>
@@ -25,14 +25,14 @@
 
   <!-- Referrers -->
   <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">
-    <p class="bold600 x20">Orígenes de Tráfico (Referrer)</p>
+    <p class="bold600 x20 texto">Orígenes de Tráfico (Referrer)</p>
     <?php if (!empty($referrers)) : ?>
       <div class="flex-column gap10 w100">
         <?php foreach ($referrers as $r) : 
           $refText = empty($r['referrer']) ? 'Tráfico Directo / Desconocido' : $r['referrer'];
         ?>
           <div class="flex-row center-between p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft">
-            <span class="bold500 cut-phrase wpx250"><?= e($refText) ?></span>
+            <span class="bold500 texto cut-phrase wpx250"><?= e($refText) ?></span>
             <span class="bold700 text-muted"><?= e($r['total']) ?> visitas</span>
           </div>
         <?php endforeach; ?>

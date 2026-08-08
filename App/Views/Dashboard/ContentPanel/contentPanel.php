@@ -44,10 +44,10 @@
   <div id="hide-profile-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <div class="mb20 p20 br15 back-card-graphic shadow-card-graphic">
-        <p>Tu perfil esta <span class="bold600"><?= $card["hide"] ? "oculto" : "visible";?></span> para todo publico.</p>
+        <p class="texto">Tu perfil esta <span class="bold600"><?= $card["hide"] ? "oculto" : "visible";?></span> para todo publico.</p>
       </div>
       <div class="flex-row center-between">
-        <div>Ocultar perfil</div>
+        <div class="texto">Ocultar perfil</div>
         <?php _form("Panel.hideProfile");?>
       </div>
     </div>

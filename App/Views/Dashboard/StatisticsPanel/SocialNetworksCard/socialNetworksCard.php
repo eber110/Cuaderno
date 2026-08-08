@@ -11,7 +11,7 @@
 <div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic |hover-scale-soft w100">
   <div class="flex-row center-between wrap gap10">
     <div>
-      <h4 class="bold700 x20 flex-row center-start gap10">
+      <h4 class="bold700 x20 flex-row center-start gap10 texto">
         <?= svg("share-from", "x20") ?> Rendimiento y Horarios por Red Social
       </h4>
       <p class="text-muted">Desglose de visitas, día pico y hora óptima según la fuente de tráfico (Referrer)</p>

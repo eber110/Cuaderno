@@ -12,12 +12,12 @@
 
     <!-- Botones Iniciadores para Añadir Contenido -->
     <div class="flex-column top-start gap10 w100">
-      <p class="bold500 x16">Añadir nuevo elemento</p>
+      <p class="bold500 x16 texto">Añadir nuevo elemento</p>
       <div class="flex-row center-start gap10 w100 wrap">
-        <button type="submit" name="add_content_type" value="link" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
+        <button type="submit" name="add_content_type" value="link" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Enlace
         </button>
-        <button type="submit" name="add_content_type" value="product" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 textb" style="border: none;">
+        <button type="submit" name="add_content_type" value="product" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Producto
         </button>
       </div>
@@ -47,7 +47,7 @@
           <div class="flex-row center-between w100">
             <div class="flex-row top-start gap10 pointer drag-handle w100">
               <span class="flex-row top-center drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <p class="bold500 item-title-label w100">
+              <p class="bold500 item-title-label w100 texto">
                 <?= ($itemType === 'product') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") : 'Enlace - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") ?>
               </p>
             </div>
@@ -57,8 +57,8 @@
               
               <!-- Opción para eliminar enlace -->
               <div class="modal-btn tooltip left" data-tooltip="Borrar enlace">
-                <p class="pointer flex-row center-center">
-                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textw p2 x16 ml5"><?= svg("xmark")?></span>
+                <p class="pointer flex-row center-center texto">
+                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
                 </p>
               </div>
 
@@ -66,7 +66,7 @@
               <div class="hidden">
                 <div class="w100 flex-column center-center h-dvh">
                   <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-                    <p class="x24 bold500">¿Desea borrar este enlace?</p>
+                    <p class="x24 bold500 texto">¿Desea borrar este enlace?</p>
 
                     <div class="flex-row center-between gap10">
                       <label for="delete-link-<?= $i?>" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
@@ -110,11 +110,11 @@
 
               <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
                 <?php if ($imgDefault) : ?>
-                  <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textw" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
+                  <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
                     <?= svg("trash", "x20") ?>
                   </button>
                 <?php endif; ?>
-                <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textw" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
                   <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
                 </button>
               </div>
@@ -125,13 +125,13 @@
                 class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
                 placeholder="Elige una imagen" 
                 cropping-size="500x500"
-                box-image="back-menu-sidebar textb br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft textb br15 pointer">
+                box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+                box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
             </div>
           </div>
 
-          <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
-          <input type="text" name="content[<?= $i?>][url]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
+          <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
+          <input type="text" name="content[<?= $i?>][url]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
         </div>
       <?php endfor?>
     </div>

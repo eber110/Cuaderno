@@ -24,7 +24,7 @@
   <!-- Encabezado de la Card -->
   <div class="flex-row center-between wrap gap10">
     <div>
-      <h4 class="bold700 x20 flex-row center-start gap8">
+      <h4 class="bold700 x20 texto flex-row center-start gap8">
         <?= svg("globe", "x20") ?> Ranking de Países Visitantes
       </h4>
       <p class="text-muted mt3">

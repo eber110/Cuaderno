@@ -35,7 +35,7 @@
   <div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-row center-between wrap gap10">
       <div>
-        <h4 class="bold700 x20 flex-row center-start gap8">
+        <h4 class="bold700 x20 texto flex-row center-start gap8">
           <?= svg("user-solid", "x20") ?> Dispositivos de Acceso
         </h4>
         <p class="text-muted mt3">
@@ -62,7 +62,7 @@
   <div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft">
     <div class="flex-row center-between wrap gap10">
       <div>
-        <h4 class="bold700 x20 flex-row center-start gap8">
+        <h4 class="bold700 x20 texto flex-row center-start gap8">
           <?= svg("server-solid", "x20") ?> Navegadores & In-App
         </h4>
         <p class="text-muted mt3">

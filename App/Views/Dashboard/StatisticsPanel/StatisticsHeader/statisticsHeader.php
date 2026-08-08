@@ -6,7 +6,7 @@
 ?>
 <div class="flex-row center-between wrap gap10 p20 br15 border-item-panel back-body">
   <div>
-    <h3 class="bold700 x20 flex-row center-start gap10">
+    <h3 class="bold700 x20 flex-row center-start gap10 texto">
       <?= svg("chart", "x20") ?> Estadísticas y Analíticas
       <?php if ($isSample) : ?>
         <span class="p5 pl10 pr10 br50 back-modal-item text-muted bold600">Vista de Muestra</span>

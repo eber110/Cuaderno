@@ -123,7 +123,7 @@
 /*.shadow-3 se encuentra en style.css.php ya que cuenta con variables para el color de la sombra*/
 
 .text-menu-modal{
-  color: #252525;
+  color: var(--text-primary);
 }
 
 .faded-image{
@@ -270,4 +270,12 @@
     width: 100%;
   }
 
+}
+
+.texto, .texto a, .texto input, .texto textarea, .texto select, .texto button, input.texto, textarea.texto, select.texto, button.texto {
+  color: var(--text-primary) !important;
+}
+
+.textc, .textc a, .textc input, .textc textarea, .textc select, .textc button, input.textc, textarea.textc, select.textc, button.textc {
+  color: var(--text-secondary) !important;
 }
