@@ -465,6 +465,9 @@
   .wpx-sml-160 { width: 160px; }
 }
 @media screen and (max-width: 576px) {
+  .wpx-sml-270 { width: 270px; }
+}
+@media screen and (max-width: 576px) {
   .wpx-sml-40 { width: 40px; }
 }
 @media screen and (max-width: 576px) {

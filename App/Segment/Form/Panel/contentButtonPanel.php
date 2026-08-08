@@ -44,14 +44,14 @@
         $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
       ?>
         <div id="content-item-<?= $i?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?php if ($itemActive) echo $selected; ?>" draggable="true">
-          <div class="flex-row center-between">
-            <div class="flex-row center-start gap10 pointer drag-handle">
-              <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <p class="bold500 item-title-label">
+          <div class="flex-row center-between w100">
+            <div class="flex-row top-start gap10 pointer drag-handle w100">
+              <span class="flex-row top-center drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
+              <p class="bold500 item-title-label w100">
                 <?= ($itemType === 'product') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") : 'Enlace - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") ?>
               </p>
             </div>
-            <div class="flex-row center-center gap20 tooltip left animated" data-tooltip="Ocultar enlace">
+            <div class="flex-row center-end gap20 tooltip left animated wpx-sml-270" data-tooltip="Ocultar enlace">
               <!-- Switch para activar / desactivar enlace -->
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
