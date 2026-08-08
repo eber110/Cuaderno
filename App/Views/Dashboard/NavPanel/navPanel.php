@@ -20,16 +20,23 @@
       </div>
     </div>
 
-    <button class="no-desk no-tablet hamburger-toggle hpx45 wpx45" aria-label="Menú"  style="z-index: 9999999999900000000;">
-       <?= svg("bars");?>
-     </button>
-     <nav class="hamburger-menu from-left with-overlay animated hidden">
-       <?php _part("Dashboard.sideMenu")?>
-     </nav>
+    <button class="no-desk no-tablet hamburger-toggle hpx45 wpx45 pointer border-none back-menu-sidebar flex-row center-center" aria-label="Menú">
+       <?= svg("bars", "x24");?>
+    </button>
+    <nav class="hamburger-menu from-left with-overlay animated hidden back-menu-sidebar shadow-card">
+      <div class="hamburger-content flex-column wpx280 h-dvh p10 overflow-y-auto">
+        <div class="flex-row center-end w100 p5">
+          <button class="closed-hamburger pointer p5 br50 flex-row center-center back-transparent border-none" aria-label="Cerrar menú">
+            <?= svg("xmark", "x20") ?>
+          </button>
+        </div>
+        <?php _part("Dashboard.sideMenu")?>
+      </div>
+    </nav>
 
     <!-- Botones de Acción (Sección derecha) -->
     <div class="flex-row center-end gap10 w100">
-      <div id="save-btn-container" class="before-menu save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
+      <div id="save-btn-container" class="save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
         <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
       </div>
 
