@@ -17,11 +17,11 @@
         <?= svg("clock", "x20") ?>
       </div>
       <div>
-        <h4 class="bold700 x20 flex-row center-start gap8 textb">Recomendación de Horario para Publicar</h4>
+        <h4 class="bold700 x20 flex-row center-start gap8 texto">Recomendación de Horario para Publicar</h4>
         <p class="text-muted">Optimizado según la actividad real de tus visitantes</p>
       </div>
     </div>
-    <span class="textb bold700 flex-row center-center gap6 advice">
+    <span class="texto bold700 flex-row center-center gap6 advice">
       <?= svg("lightbulb", "x16") ?> Horario Sugerido
     </span>
   </div>
@@ -54,7 +54,7 @@
     <!-- Consejo de Impacto -->
     <div class="flex-column p15 br12 btn-card-graphic hover-scale-soft shadow-card-graphic gap5 back-modal-item">
       <span class="text-muted bold600">Consejo de Impacto</span>
-      <p class="bold500 textb leading-normal">
+      <p class="bold500 texto leading-normal">
         <?php if ($hasRecommendation) : ?>
           Tus seguidores están más activos los <strong class="text-primary"><?= e($recommendation['bestDay']) ?></strong> entre las <strong class="text-primary"><?= e($recommendation['bestHour']) ?> hrs</strong>.
         <?php else : ?>

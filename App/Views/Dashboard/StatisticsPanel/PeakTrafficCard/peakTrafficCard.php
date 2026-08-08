@@ -19,7 +19,7 @@
             }
           }
         ?>
-          <span class="bold600 textb">
+          <span class="bold600 texto">
             <?= e($peakDay['day_name']) ?> (<?= number_format($peakDay['total']) ?> visitas)
           </span>
         <?php endif; ?>
@@ -70,7 +70,7 @@
       <div class="flex-row center-between wrap gap5">
         <p class="bold600 x20 flex-row center-start gap5"><?= svg("clock", "x18") ?> Horarios Más Concurridos</p>
         <?php if (!empty($topHours)) : ?>
-          <span class="bold600 textb">
+          <span class="bold600 texto">
             <?= e($topHours[0]['label']) ?>
           </span>
         <?php endif; ?>

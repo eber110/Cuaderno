@@ -3,16 +3,16 @@
    * @var mixed $card 
    * @var mixed $session
    */
-  $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
+  $item = "p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-start gap5 pointer";
 ?>
 <div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar pt-sml-35 no-phone">
   <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
     <?php if (!empty($card["active"])) :?>
       <?php if ($card["active"] == true && $card["hide"] == true):?>
-        <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
+        <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
           data-tooltip="Puedes ocultar o mostrar tu perfil desde el menú «Visibilidad»."
-          style-tooltip="back5 textw shadow x18">
+          style-tooltip="back5 textc shadow x18">
             <?= svg("triangle-exclamation-fill","x16 mr5");?> Perfil oculto
             <span class="flex-row center-center pointer"><?= svg("question");?></span>
         </p>
@@ -20,9 +20,9 @@
         <a href="/<?= $session["username"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
       <?php endif?>
     <?php else:?>
-      <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
+      <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
       data-tooltip="Completa los datos requeridos en tu perfil para activarlo."
-      style-tooltip="back5 textw shadow x18">
+      style-tooltip="back5 textc shadow x18">
         <?= svg("triangle-exclamation-fill","x16 mr5");?> Activa tu perfil
         <span class="flex-row center-center pointer"><?= svg("question");?></span>
       </p>
@@ -34,7 +34,7 @@
         <!-- Grupo colapsable: Diseño -->
         <div class="vertical-menu-item flex-column top-start gap10 w100">
           <div class="vertical-menu-header w100 br10">
-            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-between gap5 pointer">
+            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
               <p class="flex-row center-start gap5"><?= svg("palette")?>Diseño</p>
               <p class="color-icon-accordion"><?= svg("angle-d")?></p>
             </div>
@@ -51,7 +51,7 @@
         <!-- Grupo colapsable: Contenido -->
         <div class="vertical-menu-item flex-column top-start gap10 w100">
           <div class="vertical-menu-header w100 br10">
-            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-between gap5 pointer">
+            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
               <p class="flex-row center-start gap5"><?= svg("file-pen")?>Contenido</p>
               <p class="color-icon-accordion"><?= svg("angle-d")?></p>
             </div>

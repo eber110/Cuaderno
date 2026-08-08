@@ -72,7 +72,7 @@
     <!-- Columna Derecha: Título, Porcentaje, Descripción y Botón Modal de Optimización -->
     <div class="flex-column center-start gap12 w100">
       <div class="flex-row center-between wrap w100 gap10">
-        <h4 class="bold700 x20 textb flex-row center-start gap8">
+        <h4 class="bold700 x20 texto flex-row center-start gap8">
           CTR Global (Tasa de Conversión)
         </h4>
       </div>
@@ -100,7 +100,7 @@
               
               <!-- Encabezado del Modal -->
               <div class="flex-column gap5">
-                <h3 class="bold700 x20 flex-row center-start gap10 textb">
+                <h3 class="bold700 x20 flex-row center-start gap10 texto">
                   <?= svg("chart", "x20") ?> ¿Qué es el CTR y cómo mejorarlo?
                 </h3>
                 <p class="text-muted">
@@ -131,10 +131,10 @@
               <!-- CONSEJO ESTRATÉGICO PERSONALIZADO (DÍA Y RED SOCIAL RECOMENDADA) -->
               <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
                 <div class="flex-row center-between">
-                  <h4 class="bold600 x20 flex-row center-start gap8 textb">
+                  <h4 class="bold600 x20 flex-row center-start gap8 texto">
                     <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
                   </h4>
-                  <span class="p2 pl8 pr8 br50 back-primary textw bold600">Recomendación</span>
+                  <span class="p2 pl8 pr8 br50 back-primary textc bold600">Recomendación</span>
                 </div>
                 <?php 
                   $hasPicoRec = !empty($topSocial) && !empty($recommendation['bestDay']) && !empty($recommendation['bestHour']) && (($recommendation['bestDayTotal'] ?? 0) > 0 || ($recommendation['bestHourTotal'] ?? 0) > 0);
@@ -142,16 +142,16 @@
                 <?php if ($hasPicoRec): ?>
                   <p class="text-muted">
                     Según tus datos estadísticos, la mayor tasa de interacción la obtienes desde 
-                    <strong class="textb"><?= e($topSocial['name']) ?></strong>.
+                    <strong class="texto"><?= e($topSocial['name']) ?></strong>.
                   </p>
                   <div class="p15 br12 back-container-graphic shadow-card-graphic flex-column gap8">
                     <span class="bold600 text-primary flex-row center-start gap5">
                       <?= svg("clock", "x14") ?> Ejemplo de Publicación Sugerida:
                     </span>
-                    <p class="textb">
+                    <p class="texto">
                       Publica o promociona tu enlace en <strong class="text-primary"><?= e($topSocial['name']) ?></strong> los días 
-                      <strong class="textb"><?= e($recommendation['bestDay']) ?></strong> cerca de las 
-                      <strong class="textb"><?= e($recommendation['bestHour']) ?></strong>.
+                      <strong class="texto"><?= e($recommendation['bestDay']) ?></strong> cerca de las 
+                      <strong class="texto"><?= e($recommendation['bestHour']) ?></strong>.
                       En este horario tu audiencia muestra mayor propensión a hacer clic.
                     </p>
                   </div>
@@ -164,29 +164,29 @@
 
               <!-- CONSEJOS PRÁCTICOS Y AVANZADOS PARA POTENCIAR EL CTR -->
               <div class="flex-column gap12 w100 p15 br15 back-card-graphic shadow-card-graphic">
-                <h4 class="bold600 x20 flex-row center-start gap8 textb">
+                <h4 class="bold600 x20 flex-row center-start gap8 texto">
                   <?= svg("check", "x16") ?> 5 Estrategias Clave para Potenciar tu CTR
                 </h4>
                 <div class="flex-column gap12">
                   <div class="flex-row center-start gap10">
-                    <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">1</span>
-                    <span class="textb"><strong>Llamados a la acción directos y claros:</strong> Usa verbos de acción en tus botones como <em>"Escríbeme por WhatsApp"</em>, <em>"Ver mi portafolio"</em> o <em>"Descargar plantilla gratis"</em> en lugar de títulos genéricos.</span>
+                    <span class="p4 br50 back-primary textc bold700 x12 flex-row center-center min-wpx24 min-hpx24">1</span>
+                    <span class="texto"><strong>Llamados a la acción directos y claros:</strong> Usa verbos de acción en tus botones como <em>"Escríbeme por WhatsApp"</em>, <em>"Ver mi portafolio"</em> o <em>"Descargar plantilla gratis"</em> en lugar de títulos genéricos.</span>
                   </div>
                   <div class="flex-row center-start gap10">
-                    <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">2</span>
-                    <span class="textb"><strong>Jerarquía visual y posición estratégica:</strong> Ubica tus 2 o 3 enlaces principales en la parte superior de tu tarjeta para captar la atención en los primeros 3 segundos de lectura.</span>
+                    <span class="p4 br50 back-primary textc bold700 x12 flex-row center-center min-wpx24 min-hpx24">2</span>
+                    <span class="texto"><strong>Jerarquía visual y posición estratégica:</strong> Ubica tus 2 o 3 enlaces principales en la parte superior de tu tarjeta para captar la atención en los primeros 3 segundos de lectura.</span>
                   </div>
                   <div class="flex-row center-start gap10">
-                    <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">3</span>
-                    <span class="textb"><strong>Imágenes y miniaturas atractivas:</strong> Agrega íconos o portadas visuales representativas a cada enlace para incentivar el clic impulsivo.</span>
+                    <span class="p4 br50 back-primary textc bold700 x12 flex-row center-center min-wpx24 min-hpx24">3</span>
+                    <span class="texto"><strong>Imágenes y miniaturas atractivas:</strong> Agrega íconos o portadas visuales representativas a cada enlace para incentivar el clic impulsivo.</span>
                   </div>
                   <div class="flex-row center-start gap10">
-                    <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">4</span>
-                    <span class="textb"><strong>Promoción activa en horario pico:</strong> Difunde tu enlace en historias o publicaciones de tu red social principal coincidiendo con el día y hora pico recomendados arriba.</span>
+                    <span class="p4 br50 back-primary textc bold700 x12 flex-row center-center min-wpx24 min-hpx24">4</span>
+                    <span class="texto"><strong>Promoción activa en horario pico:</strong> Difunde tu enlace en historias o publicaciones de tu red social principal coincidiendo con el día y hora pico recomendados arriba.</span>
                   </div>
                   <div class="flex-row center-start gap10">
-                    <span class="p4 br50 back-primary textw bold700 x12 flex-row center-center min-wpx24 min-hpx24">5</span>
-                    <span class="textb"><strong>Pruebas A/B y renovación continua:</strong> Modifica periódicamente los textos de tus botones y evalúa cuál genera más clics para mantener enganchada a tu audiencia.</span>
+                    <span class="p4 br50 back-primary textc bold700 x12 flex-row center-center min-wpx24 min-hpx24">5</span>
+                    <span class="texto"><strong>Pruebas A/B y renovación continua:</strong> Modifica periódicamente los textos de tus botones y evalúa cuál genera más clics para mantener enganchada a tu audiencia.</span>
                   </div>
                 </div>
               </div>
@@ -225,7 +225,7 @@
           <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
-              <h3 class="bold700 x20 flex-row center-start gap10 textb">
+              <h3 class="bold700 x20 flex-row center-start gap10 texto">
                 <?= svg("chart", "x20") ?> Desglose de Visitas y Gráficos
               </h3>
               <p class="text-muted">
@@ -241,7 +241,7 @@
               </div>
               <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Visitas Mes Actual</span>
-                <span class="x22 bold700 textb"><?= number_format($summary['total_views'] ?? 0) ?></span>
+                <span class="x22 bold700 texto"><?= number_format($summary['total_views'] ?? 0) ?></span>
                 <span class="text-muted">Período en curso</span>
               </div>
             </div>
@@ -250,10 +250,10 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Gráfico Mixto (Visitas vs Clics)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Compara la cantidad total de visitas por día (barras) con la cantidad de clics en los enlaces de tu widget (línea) para evaluar la conversión diaria.
@@ -268,7 +268,7 @@
       
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("clock", "x16") ?> Visitas por Semana (Mes Actual)
                 </h4>
                 <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
@@ -311,7 +311,7 @@
           <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
-              <h3 class="bold700 x20 flex-row center-start gap10 textb">
+              <h3 class="bold700 x20 flex-row center-start gap10 texto">
                 <?= svg("chart", "x20") ?> Desglose de Visitas Únicas
               </h3>
               <p class="text-muted">
@@ -327,7 +327,7 @@
               </div>
               <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Únicas Mes Actual</span>
-                <span class="x22 bold700 textb"><?= number_format($summary['unique_views'] ?? 0) ?></span>
+                <span class="x22 bold700 texto"><?= number_format($summary['unique_views'] ?? 0) ?></span>
                 <span class="text-muted">Usuarios únicos este mes</span>
               </div>
             </div>
@@ -336,10 +336,10 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Visitas Únicas por Día (Mes Actual)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Mide la cantidad de dispositivos únicos distintos que ingresaron a tu perfil cada día, descartando accesos múltiples del mismo usuario.
@@ -353,7 +353,7 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("clock", "x16") ?> Visitas Únicas por Semana
                 </h4>
                 <span class="text-muted font-mono"><?= count($viewsByWeekOfMonth) ?> semanas</span>
@@ -396,7 +396,7 @@
           <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
-              <h3 class="bold700 x20 flex-row center-start gap10 textb">
+              <h3 class="bold700 x20 flex-row center-start gap10 texto">
                 <?= svg("chart", "x20") ?> Desglose de Clics en Enlaces del Widget
               </h3>
               <p class="text-muted">
@@ -412,7 +412,7 @@
               </div>
               <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Clics Mes Actual</span>
-                <span class="x22 bold700 textb"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
+                <span class="x22 bold700 texto"><?= number_format($summary['total_clicks'] ?? 0) ?></span>
                 <span class="text-muted">Interacciones en enlaces</span>
               </div>
             </div>
@@ -421,10 +421,10 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Clics por Día (Mes Actual)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Muestra la cantidad total de clics registrados exclusivamente en los enlaces de tu widget día a día durante el mes activo.
@@ -438,7 +438,7 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("link", "x16") ?> Top Enlaces más Clicados
                 </h4>
                 <span class="text-muted font-mono"><?= count($topLinks) ?> enlaces</span>
@@ -481,7 +481,7 @@
           <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
-              <h3 class="bold700 x20 flex-row center-start gap10 textb">
+              <h3 class="bold700 x20 flex-row center-start gap10 texto">
                 <?= svg("share-from", "x20") ?> Desglose de Clics a tus Redes Sociales
               </h3>
               <p class="text-muted">
@@ -497,7 +497,7 @@
               </div>
               <div class="flex-column p15 br12 back-card-graphic shadow-card-graphic gap3">
                 <span class="text-muted bold500">Redes Activas</span>
-                <span class="x22 bold700 textb"><?= count($rrssLinks) ?></span>
+                <span class="x22 bold700 texto"><?= count($rrssLinks) ?></span>
                 <span class="text-muted">Perfiles vinculados</span>
               </div>
             </div>
@@ -506,10 +506,10 @@
 
             <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
               <div class="flex-row center-between">
-                <h4 class="bold600 x20 flex-row center-start gap5 textb">
+                <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Clics por Red Social (Ranking)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textw bold600">ApexCharts</span>
+                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Gráfico de barras que compara la cantidad de clics que recibió cada una de tus redes sociales (GitHub, LinkedIn, Instagram, X/Twitter, etc.).

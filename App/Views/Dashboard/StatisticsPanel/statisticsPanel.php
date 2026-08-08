@@ -140,7 +140,7 @@
   ];
 ?>
 
-<div class="flex-column gap20 w100 textb">
+<div class="flex-column gap20 w100 texto">
 
   <!-- 1. Encabezado de la Vista (Simulación de Tráfico) -->
   <?php 

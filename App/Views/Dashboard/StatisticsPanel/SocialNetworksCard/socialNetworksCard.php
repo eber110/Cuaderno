@@ -33,7 +33,7 @@
               <span class="flex-row center-center text-primary">
                 <?= svg($sNet['icon'], "x20") ?>
               </span>
-              <span class="bold700 textb x18"><?= e($sNet['name']) ?></span>
+              <span class="bold700 texto x18"><?= e($sNet['name']) ?></span>
             </div>
           </div>
           
@@ -71,7 +71,7 @@
               
               <!-- Encabezado del Modal -->
               <div class="flex-column gap5">
-                <h3 class="bold700 x20 flex-row center-start gap10 textb">
+                <h3 class="bold700 x20 flex-row center-start gap10 texto">
                   <?= svg($sNet['icon'], "x20") ?> Desglose de <?= e($sNet['name']) ?>
                 </h3>
                 <p class="text-muted">
@@ -88,7 +88,7 @@
                 </div>
                 <div class="flex-column p12 br12 back-card-graphic shadow-card-graphic gap3">
                   <span class="text-muted bold500 flex-row top-start gap5"><?//= svg("calendar", "x16") ?> Día recomendado</span>
-                  <span class="x20 bold700 textb"><?= e($sNet['bestDay']) ?></span>
+                  <span class="x20 bold700 texto"><?= e($sNet['bestDay']) ?></span>
                   <span class="text-muted x12">Mayor interacción</span>
                 </div>
                 <div class="flex-column p12 br12 back-card-graphic shadow-card-graphic gap3">
@@ -103,10 +103,10 @@
               <!-- SECCIÓN DE GRÁFICO (STACKED COLUMN) -->
               <div class="flex-column gap10 w100 p15 br15 back-card-graphic shadow-card-graphic">
                 <div class="flex-row center-between">
-                  <h4 class="bold600 x20 flex-row top-start gap5 textb">
+                  <h4 class="bold600 x20 flex-row top-start gap5 texto">
                     <?= svg("chart", "x20") ?> Distribución Porcentual
                   </h4>
-                  <span class="p2 pl8 pr8 br50 back-primary textw bold600">100% Stacked</span>
+                  <span class="p2 pl8 pr8 br50 back-primary textc bold600">100% Stacked</span>
                 </div>
                 <p class="text-muted">
                   Porcentaje de tráfico aportado desde <?= e($sNet['name']) ?> por día de la semana (columnas al 100%), desglosado en franjas horarias con etiquetas directas.
