@@ -18,6 +18,8 @@ namespace Base\Module;
  * 
  * // Truncar texto
  * $excerpt = TextModule::truncate($text, 20); // primeras 20 palabras
+ * $excerpt = TextModule::truncate($text, 20, "..."); // primeras 20 palabras con '...' si excede
+ * $excerpt = TextModule::truncate($text, 20, " leer más"); // con ' leer más' si excede
  * 
  * // Limpiar HTML
  * $clean = TextModule::clean($htmlContent);
@@ -110,6 +112,7 @@ class TextModule
    *   - strip_tags: bool - Eliminar etiquetas HTML (default: false)
    *   - decode_html: bool - Decodificar entidades HTML (default: true)
    *   - nl2br: bool - Convertir saltos de línea (default: true)
+   *   - suffix: string - Sufijo a concatenar si excede el límite de palabras (default: '')
    * @return string Texto procesado.
    */
   public static function process(string $text, ?int $wordCount = null, array $options = []): string
@@ -117,7 +120,8 @@ class TextModule
     $options = array_merge([
       'strip_tags' => false,
       'decode_html' => true,
-      'nl2br' => true
+      'nl2br' => true,
+      'suffix' => ''
     ], $options);
 
     if ($options['strip_tags']) {
@@ -128,9 +132,14 @@ class TextModule
       $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
-    if ($wordCount !== null) {
+    if ($wordCount !== null && $wordCount >= 0) {
       $words = explode(' ', $text);
-      $text = implode(' ', array_slice($words, 0, min($wordCount, count($words))));
+      if (count($words) > $wordCount) {
+        $text = implode(' ', array_slice($words, 0, $wordCount));
+        if ($options['suffix'] !== '') {
+          $text .= $options['suffix'];
+        }
+      }
     }
 
     if ($options['nl2br']) {
@@ -145,13 +154,15 @@ class TextModule
    * 
    * @param string $text Texto a truncar.
    * @param int|null $wordCount Cantidad de palabras.
+   * @param string $suffix Texto o sufijo a concatenar solo si el texto excede la cantidad de palabras (ej: '...', ' leer más').
    * @return string Texto truncado.
    */
-  public static function truncate(string $text, ?int $wordCount = null): string
+  public static function truncate(string $text, ?int $wordCount = null, string $suffix = ''): string
   {
     return self::process($text, $wordCount, [
       'decode_html' => true,
-      'nl2br' => true
+      'nl2br'       => true,
+      'suffix'      => $suffix
     ]);
   }
 
@@ -160,14 +171,16 @@ class TextModule
    * 
    * @param string $text Texto a truncar.
    * @param int|null $wordCount Cantidad de palabras.
+   * @param string $suffix Texto o sufijo a concatenar solo si el texto excede la cantidad de palabras (ej: '...', ' leer más').
    * @return string Texto truncado sin formato.
    */
-  public static function truncateRaw(string $text, ?int $wordCount = null): string
+  public static function truncateRaw(string $text, ?int $wordCount = null, string $suffix = ''): string
   {
     return self::process($text, $wordCount, [
-      'strip_tags' => true,
+      'strip_tags'  => true,
       'decode_html' => false,
-      'nl2br' => true
+      'nl2br'       => true,
+      'suffix'      => $suffix
     ]);
   }
 

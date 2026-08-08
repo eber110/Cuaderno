@@ -448,17 +448,17 @@ class Control
   /**
    * @deprecated Usar TextModule::truncate() directamente.
    */
-  public function text_token($text, $cant = null)
+  public function text_token($text, $cant = null, string $suffix = '')
   {
-    return TextModule::truncate($text, $cant);
+    return TextModule::truncate($text, $cant, $suffix);
   }
 
   /**
    * @deprecated Usar TextModule::truncateRaw() directamente.
    */
-  public function text_token_unformatted($text, $cant = null)
+  public function text_token_unformatted($text, $cant = null, string $suffix = '')
   {
-    return TextModule::truncateRaw($text, $cant);
+    return TextModule::truncateRaw($text, $cant, $suffix);
   }
 
   /**
@@ -472,9 +472,9 @@ class Control
   /**
    * @deprecated Usar TextModule::truncate() directamente.
    */
-  public function text_string($text, $cant = null)
+  public function text_string($text, $cant = null, string $suffix = '')
   {
-    return TextModule::truncate($text, $cant);
+    return TextModule::truncate($text, $cant, $suffix);
   }
 
   // ============================================

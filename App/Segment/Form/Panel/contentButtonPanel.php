@@ -48,7 +48,7 @@
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
               <p class="bold500 item-title-label">
-                <?= ($itemType === 'product') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3) : 'Enlace - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3) ?>
+                <?= ($itemType === 'product') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") : 'Enlace - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") ?>
               </p>
             </div>
             <div class="flex-row center-center gap20 tooltip left animated" data-tooltip="Ocultar enlace">
