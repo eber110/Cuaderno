@@ -10,9 +10,7 @@
   <div class="flex-row top-start">
 
     <!-- Menu lateral -->
-    <div class="no-phone">
-      <?php _part("Dashboard.sideMenu")?>
-    </div>
+    <?php _part("Dashboard.sideMenu")?>
 
     <!-- contenedor de items del panel y el contenido remoto -->
     <div class="h-dvh panel-container overflow-y-scroll">

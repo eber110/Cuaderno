@@ -21,5 +21,13 @@ elseif (file_exists($basePath . '/vendor/eber/framework/.env')) {
     $dotenv->load();
 }
 
+// Configuración de timeouts de geolocalización para evitar bloqueos si la API externa no responde
+if (!defined('GEO_CONNECT_TIMEOUT')) {
+    define('GEO_CONNECT_TIMEOUT', 1);
+}
+if (!defined('GEO_REQUEST_TIMEOUT')) {
+    define('GEO_REQUEST_TIMEOUT', 1);
+}
+
 // Cargar configuración del framework
 require_once $basePath . '/vendor/eber/framework/config.php';

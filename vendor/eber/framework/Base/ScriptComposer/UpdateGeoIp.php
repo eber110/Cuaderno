@@ -1,7 +1,13 @@
 <?php
 namespace Base\ScriptComposer;
 
-require 'vendor/autoload.php';
+// Asegurar autoloading correcto sin importar si se corre desde la raíz o dentro de vendor
+$baseDir = getcwd();
+if (file_exists($baseDir . '/vendor/autoload.php')) {
+    require_once $baseDir . '/vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+    require_once __DIR__ . '/../../vendor/autoload.php';
+}
 
 use Dotenv\Dotenv;
 use PharData;
@@ -11,13 +17,16 @@ class UpdateGeoIp
 {
     public static function run()
     {
-        ini_set('memory_limit', '512M'); // Increase memory limit for PharData extraction
-        echo "Iniciando actualizacion de la base de datos GeoIP...\n";
+        ini_set('memory_limit', '512M'); // Aumentar límite de memoria para extracción con PharData
+        echo "Iniciando actualización de la base de datos GeoIP...\n";
 
-        // Cargar variables de entorno si existe .env
-        $baseDir = realpath(__DIR__ . '/../../');
+        // Obtener la raíz del proyecto actual
+        $baseDir = getcwd();
         if (file_exists($baseDir . '/.env')) {
             $dotenv = Dotenv::createImmutable($baseDir);
+            $dotenv->load();
+        } elseif (file_exists(__DIR__ . '/../../.env')) {
+            $dotenv = Dotenv::createImmutable(realpath(__DIR__ . '/../../'));
             $dotenv->load();
         }
 
@@ -29,15 +38,25 @@ class UpdateGeoIp
             exit(1);
         }
 
-        $url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key={$licenseKey}&suffix=tar.gz";
-        $tmpTarGz = $baseDir . '/Resources/dbLocation/GeoLite2-City.tar.gz';
-        $tmpTar = $baseDir . '/Resources/dbLocation/GeoLite2-City.tar';
-        $dbLocation = $baseDir . '/Resources/dbLocation/';
-        $finalMmdbPath = $dbLocation . 'GeoLite2-City.mmdb';
-
-        if (!is_dir($dbLocation)) {
-            mkdir($dbLocation, 0755, true);
+        // Directorio Database en la raíz del proyecto
+        $databaseDir = $baseDir . '/Database';
+        if (!is_dir($databaseDir)) {
+            if (!@mkdir($databaseDir, 0755, true)) {
+                echo "ERROR: No se pudo crear el directorio: {$databaseDir}\n";
+                exit(1);
+            }
         }
+
+        // Asegurar que exista .gitkeep en Database
+        $gitkeep = $databaseDir . '/.gitkeep';
+        if (!file_exists($gitkeep)) {
+            @file_put_contents($gitkeep, "");
+        }
+
+        $url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key={$licenseKey}&suffix=tar.gz";
+        $tmpTarGz = $databaseDir . '/GeoLite2-City.tar.gz';
+        $tmpTar = $databaseDir . '/GeoLite2-City.tar';
+        $finalMmdbPath = $databaseDir . '/GeoLite2-City.mmdb';
 
         echo "Descargando la base de datos (esto puede tardar unos segundos)...\n";
         
@@ -67,8 +86,8 @@ class UpdateGeoIp
 
             $tar = new PharData($tmpTar);
             
-            // Extraer a un directorio temporal
-            $extractPath = $dbLocation . 'temp_extract';
+            // Extraer a un directorio temporal dentro de Database
+            $extractPath = $databaseDir . '/temp_extract';
             if (!is_dir($extractPath)) {
                 mkdir($extractPath, 0755, true);
             }
@@ -91,7 +110,7 @@ class UpdateGeoIp
             @unlink($tmpTar);
 
             if ($mmdbFound) {
-                echo "✅ Base de datos GeoLite2-City.mmdb instalada y actualizada correctamente.\n";
+                echo "✅ Base de datos GeoLite2-City.mmdb instalada y actualizada correctamente en: {$finalMmdbPath}\n";
             } else {
                 echo "❌ Se descargó y extrajo el archivo pero no se encontró un archivo .mmdb dentro.\n";
                 exit(1);
@@ -102,6 +121,7 @@ class UpdateGeoIp
             // Limpieza de emergencia
             if (file_exists($tmpTarGz)) @unlink($tmpTarGz);
             if (file_exists($tmpTar)) @unlink($tmpTar);
+            if (isset($extractPath) && is_dir($extractPath)) self::deleteDir($extractPath);
             exit(1);
         }
     }

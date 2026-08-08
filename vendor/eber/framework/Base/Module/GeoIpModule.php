@@ -5,23 +5,51 @@ use GeoIp2\Database\Reader;
 
 /**
  * Módulo para extraer información geográfica de una dirección IP usando la base de datos MaxMind GeoIP2.
- * Requiere que el archivo GeoLite2-City.mmdb se encuentre en el directorio /Resources/dbLocation/ del framework.
+ * Requiere que el archivo GeoLite2-City.mmdb se encuentre en el directorio /Database/ del proyecto.
  */
 class GeoIpModule {
     private static $reader = null;
+
+    /**
+     * Resuelve la ruta del archivo de base de datos GeoLite2-City.mmdb.
+     * 
+     * @return string|null Ruta absoluta si el archivo existe, o null si no se encuentra.
+     */
+    public static function getDatabasePath(): ?string {
+        $paths = [];
+
+        if (defined('ROUTE_DATABASE')) {
+            $paths[] = rtrim(ROUTE_DATABASE, '/\\') . '/GeoLite2-City.mmdb';
+        }
+        if (defined('ROOT_PATH')) {
+            $paths[] = rtrim(ROOT_PATH, '/\\') . '/Database/GeoLite2-City.mmdb';
+        }
+        $paths[] = getcwd() . '/Database/GeoLite2-City.mmdb';
+        // Fallbacks de compatibilidad para repositorios locales y ubicaciones previas
+        $paths[] = __DIR__ . '/../../Database/GeoLite2-City.mmdb';
+        $paths[] = __DIR__ . '/../../Resources/dbLocation/GeoLite2-City.mmdb';
+
+        foreach ($paths as $path) {
+            if (!empty($path) && file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Inicializa el lector de la base de datos MMDB.
      */
     private static function init() {
         if (self::$reader === null) {
-            // Asume que la base de datos está ubicada en el directorio del framework (Resources/dbLocation)
-            $dbPath = __DIR__ . '/../../Resources/dbLocation/GeoLite2-City.mmdb';
+            $dbPath = self::getDatabasePath();
             
-            if (file_exists($dbPath)) {
+            if ($dbPath !== null) {
                 self::$reader = new Reader($dbPath);
             } else {
-                throw new \Exception("La base de datos GeoIP no se encuentra en la ruta: {$dbPath}. Por favor, añade el archivo GeoLite2-City.mmdb en la carpeta /Resources/dbLocation/.");
+                $target = defined('ROUTE_DATABASE') ? ROUTE_DATABASE . 'GeoLite2-City.mmdb' : 'Database/GeoLite2-City.mmdb';
+                throw new \Exception("La base de datos GeoIP no se encuentra en: {$target}. Por favor, ejecuta 'composer update-geoip' para descargarla en la carpeta /Database/ del proyecto.");
             }
         }
     }

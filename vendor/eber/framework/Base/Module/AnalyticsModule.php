@@ -21,7 +21,7 @@ class AnalyticsModule
     public static function getPdo(): PDO
     {
         if (self::$pdo === null) {
-            $baseDir = defined('ROOT_PATH') ? ROOT_PATH . '/Database' : getcwd() . '/Database';
+            $baseDir = defined('ROUTE_DATABASE') ? rtrim(ROUTE_DATABASE, '/\\') : (defined('ROOT_PATH') ? ROOT_PATH . '/Database' : getcwd() . '/Database');
             if (!is_dir($baseDir)) {
                 @mkdir($baseDir, 0755, true);
             }

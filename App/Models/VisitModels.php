@@ -7,16 +7,58 @@ use Base\Module\AnalyticsModule;
 use Base\Module\MovilDetectorModule;
 use Base\Module\VisitModule;
 use Exception;
+use GeoIp2\Database\Reader;
 
 /**
  * Clase VisitModels
  * 
  * Modelo encargado del procesamiento de reglas de negocio relativas a visitas de usuarios,
- * control de frecuencia en sesión, extracción de geolocalización y guardado en SQLite.
+ * control de frecuencia en sesión, extracción de geolocalización mediante MaxMind MMDB local y guardado en SQLite.
  */
 class VisitModels extends Builder {
 
   protected $table = "profile_views";
+
+  /**
+   * Obtiene la información de ubicación utilizando la base de datos local MMDB de MaxMind.
+   * Prioriza /Database/GeoLite2-City.mmdb del proyecto.
+   *
+   * @param string $ip Dirección IP a consultar.
+   * @return array Datos con country_code, country_name, city_name.
+   */
+  private static function getGeoData(string $ip): array {
+    if (VisitModule::isLocalIp($ip)) {
+      return [
+        "country_code" => "DEV",
+        "country_name" => "Local Development",
+        "city_name"    => "Localhost"
+      ];
+    }
+
+    $projectDb   = ROOT_PATH . "/Database/GeoLite2-City.mmdb";
+    $frameworkDb = ROOT_PATH . "/vendor/eber/framework/Resources/dbLocation/GeoLite2-City.mmdb";
+    $dbPath      = file_exists($projectDb) ? $projectDb : $frameworkDb;
+
+    if (file_exists($dbPath) && class_exists("\GeoIp2\Database\Reader")) {
+      try {
+        $reader = new Reader($dbPath);
+        $record = $reader->city($ip);
+        return [
+          "country_code" => $record->country->isoCode ?? "N/A",
+          "country_name" => $record->country->name ?? "Desconocido",
+          "city_name"    => $record->city->name ?? "Desconocido"
+        ];
+      } catch (Exception $e) {
+        // En caso de que la IP no se encuentre en la BD local
+      }
+    }
+
+    return [
+      "country_code" => "N/A",
+      "country_name" => "Desconocido",
+      "city_name"    => "Desconocido"
+    ];
+  }
 
   /**
    * Procesa y registra la visita a un perfil de usuario respetando la frecuencia de sesión.
@@ -46,25 +88,32 @@ class VisitModels extends Builder {
     try {
       $_SESSION[$sessionKey] = time();
 
-      // Inicializar geolocalización
-      VisitModule::initSession("Visit_registration");
-      $location = VisitModule::getLocation() ?? [];
+      $ip         = VisitModule::getClientIp() ?? $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+      $geo        = self::getGeoData($ip);
+      $deviceType = MovilDetectorModule::getDeviceType();
+      $os         = MovilDetectorModule::getOS();
+      $browser    = MovilDetectorModule::getBrowser();
+      $referrer   = $_SERVER["HTTP_REFERER"] ?? "";
 
-      $ip          = $location["ip"] ?? VisitModule::getClientIp() ?? $_SESSION["location"]["ip"] ?? "";
-      $countryCode = !empty($location["codigo"]) ? $location["codigo"] : ($_SESSION["location"]["codigo"] ?? "N/A");
-      $countryName = !empty($location["pais"]) ? $location["pais"] : ($_SESSION["location"]["pais"] ?? "Desconocido");
-      $cityName    = !empty($location["ciudad"]) ? $location["ciudad"] : ($_SESSION["location"]["ciudad"] ?? "Desconocido");
-      $deviceType  = MovilDetectorModule::getDeviceType();
-      $os          = MovilDetectorModule::getOS();
-      $browser     = MovilDetectorModule::getBrowser();
-      $referrer    = $_SERVER["HTTP_REFERER"] ?? "";
+      // Guardar también en sesión para lecturas inmediatas
+      $_SESSION["location"] = array_merge([
+        "ip"     => $ip,
+        "pais"   => $geo["country_name"],
+        "codigo" => $geo["country_code"],
+        "ciudad" => $geo["city_name"]
+      ], $_SESSION["location"] ?? []);
+
+      // Liberar el bloqueo de archivo de sesión inmediatamente
+      if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+      }
 
       // Registrar la visita directamente en la base de datos SQLite (profile_views)
       return AnalyticsModule::logProfileView($visitedUserClean, [
         "ip_address"   => $ip,
-        "country_code" => $countryCode,
-        "country_name" => $countryName,
-        "city_name"    => $cityName,
+        "country_code" => $geo["country_code"],
+        "country_name" => $geo["country_name"],
+        "city_name"    => $geo["city_name"],
         "device_type"  => $deviceType,
         "os"           => $os,
         "browser"      => $browser,
@@ -114,14 +163,17 @@ class VisitModels extends Builder {
     try {
       $_SESSION[$sessionKey] = time();
 
-      VisitModule::initSession("Visit_registration");
-      $location = VisitModule::getLocation() ?? [];
+      $ip         = VisitModule::getClientIp() ?? $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+      $geo        = self::getGeoData($ip);
+      $deviceType = MovilDetectorModule::getDeviceType();
 
-      $countryCode = !empty($location["codigo"]) ? $location["codigo"] : ($_SESSION["location"]["codigo"] ?? "N/A");
-      $deviceType  = MovilDetectorModule::getDeviceType();
+      // Liberar el bloqueo de archivo de sesión inmediatamente
+      if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+      }
 
       return AnalyticsModule::logLinkClick($visitedUserClean, $linkIdClean, [
-        "country_code" => $countryCode,
+        "country_code" => $geo["country_code"],
         "device_type"  => $deviceType
       ]);
     } catch (Exception $e) {

@@ -90,6 +90,85 @@ export function verticalMenu() {
     content.classList.add('hidden');
   }
 
+  /**
+   * Sincroniza el estado activo de un enlace remoto por data-remote en TODOS los vertical-menu de la página.
+   * @param {string} remoteId - ID del contenido remoto (ej: "header-remote")
+   */
+  function syncActiveRemoteAcrossMenus(remoteId) {
+    if (!remoteId) return;
+
+    document.querySelectorAll('.vertical-menu').forEach(menu => {
+      const activePrincipalClass = menu.getAttribute('active-principal') || 'active';
+      const activeItemClass = menu.getAttribute('active-item') || 'active';
+
+      const targetLink = menu.querySelector(`.vertical-menu-link[data-remote="${remoteId}"]`);
+      if (!targetLink) return;
+
+      const parentItem = targetLink.closest('.vertical-menu-item');
+      const useAnimation = hasGsap && menu.classList.contains('animated') && menu.hasAttribute('data-menu-ready');
+
+      // 1. Limpiar enlace activo previo en este menú
+      menu.querySelectorAll('.vertical-menu-link').forEach(l => {
+        l.classList.remove(activeItemClass);
+        l.classList.remove('active');
+      });
+
+      // 2. Activar el enlace correspondiente
+      targetLink.classList.add(activeItemClass);
+
+      // 3. Cerrar otros acordeones que no contengan el enlace activo
+      if (!menu.classList.contains('multi')) {
+        menu.querySelectorAll('.vertical-menu-item.open').forEach(openItem => {
+          if (openItem !== parentItem) {
+            const openContent = openItem.querySelector('.vertical-menu-content');
+            if (openContent) {
+              if (useAnimation) {
+                animateClose(openContent, openItem);
+              } else {
+                closeWithoutAnimation(openContent, openItem);
+              }
+            }
+          }
+        });
+      }
+
+      // 4. Limpiar cabeceras activas en este menú
+      menu.querySelectorAll('.vertical-menu-header').forEach(el => {
+        el.classList.remove(activePrincipalClass);
+        el.classList.remove('active');
+        if (el.firstElementChild) {
+          el.firstElementChild.classList.remove(activePrincipalClass);
+          el.firstElementChild.classList.remove('active');
+        }
+      });
+
+      // 5. Si el enlace está dentro de un sub-menú, activar la cabecera y desplegarlo
+      if (parentItem) {
+        const parentHeader = parentItem.querySelector('.vertical-menu-header');
+        if (parentHeader) {
+          parentHeader.classList.add(activePrincipalClass);
+          if (parentHeader.firstElementChild) {
+            parentHeader.firstElementChild.classList.add(activePrincipalClass);
+          }
+        }
+
+        const content = parentItem.querySelector('.vertical-menu-content');
+        if (content) {
+          if (!parentItem.classList.contains('open')) {
+            if (useAnimation) {
+              animateOpen(content, parentItem);
+            } else {
+              openWithoutAnimation(content, parentItem);
+            }
+          } else {
+            content.classList.remove('hidden');
+            content.style.height = 'auto';
+          }
+        }
+      }
+    });
+  }
+
   // Delegación de click
   document.addEventListener('click', (e) => {
     // 1. Click en cabecera del sub-menú (.vertical-menu-header)
@@ -105,7 +184,7 @@ export function verticalMenu() {
       const isOpen = item.classList.contains('open');
       const useAnimation = hasGsap && menu.classList.contains('animated');
 
-      // Cerrar otros grupos si no está en modo 'multi' (por defecto colapsa los demás)
+      // Cerrar otros grupos si no está en modo 'multi'
       if (!menu.classList.contains('multi')) {
         menu.querySelectorAll('.vertical-menu-item.open').forEach(openItem => {
           if (openItem !== item) {
@@ -155,173 +234,100 @@ export function verticalMenu() {
       const menu = link.closest('.vertical-menu');
       if (!menu) return;
 
-      const useAnimation = hasGsap && menu.classList.contains('animated');
-      const parentItem = link.closest('.vertical-menu-item');
+      const remoteId = link.dataset.remote;
 
-      // Cerrar otros sub-menús si se hace click fuera de ellos o en un elemento raíz
-      if (!menu.classList.contains('multi')) {
-        menu.querySelectorAll('.vertical-menu-item.open').forEach(openItem => {
-          if (openItem !== parentItem) {
-            const openContent = openItem.querySelector('.vertical-menu-content');
-            if (openContent) {
-              if (useAnimation) {
-                animateClose(openContent, openItem);
-              } else {
-                closeWithoutAnimation(openContent, openItem);
-              }
+      if (remoteId) {
+        // Sincronizar el estado activo en TODOS los menús verticales de la página
+        syncActiveRemoteAcrossMenus(remoteId);
+
+        // Guardar el estado en localStorage con clave única por URL de página
+        const storageKey = `vertical_menu_active_${window.location.pathname}`;
+        localStorage.setItem(storageKey, JSON.stringify({
+          remote: remoteId
+        }));
+      } else {
+        // Comportamiento local para enlaces sin data-remote
+        const activeItemClass = menu.getAttribute('active-item') || 'active';
+        const activePrincipalClass = menu.getAttribute('active-principal') || 'active';
+        const parentItem = link.closest('.vertical-menu-item');
+
+        menu.querySelectorAll('.vertical-menu-link').forEach(l => {
+          l.classList.remove(activeItemClass);
+          l.classList.remove('active');
+        });
+        link.classList.add(activeItemClass);
+
+        if (parentItem) {
+          const parentHeader = parentItem.querySelector('.vertical-menu-header');
+          if (parentHeader) {
+            parentHeader.classList.add(activePrincipalClass);
+            if (parentHeader.firstElementChild) {
+              parentHeader.firstElementChild.classList.add(activePrincipalClass);
             }
+          }
+        }
+      }
+    }
+  });
+
+  // Inicialización: auto-expandir y marcar activos en base al contenido guardado
+  const storageKey = `vertical_menu_active_${window.location.pathname}`;
+  const savedStateStr = localStorage.getItem(storageKey);
+  let targetRemoteId = null;
+
+  if (savedStateStr) {
+    try {
+      const savedState = JSON.parse(savedStateStr);
+      if (savedState && savedState.remote && document.getElementById(savedState.remote)) {
+        targetRemoteId = savedState.remote;
+      }
+    } catch (e) {
+      console.error('Error al restaurar estado del menú vertical:', e);
+    }
+  }
+
+  // Fallback si no hay estado en localStorage: buscar link con .active o primer link con data-remote
+  if (!targetRemoteId) {
+    const activeLink = document.querySelector('.vertical-menu-link.active[data-remote]');
+    if (activeLink && activeLink.dataset.remote) {
+      targetRemoteId = activeLink.dataset.remote;
+    } else {
+      const firstRemoteLink = document.querySelector('.vertical-menu-link[data-remote]');
+      if (firstRemoteLink && firstRemoteLink.dataset.remote) {
+        targetRemoteId = firstRemoteLink.dataset.remote;
+      }
+    }
+  }
+
+  if (targetRemoteId) {
+    // 1. Sincronizar todos los menús al remote objetivo
+    syncActiveRemoteAcrossMenus(targetRemoteId);
+
+    // 2. Mostrar el panel correspondiente en .remote-container
+    const targetPanel = document.getElementById(targetRemoteId);
+    if (targetPanel) {
+      const container = targetPanel.closest('.remote-container');
+      if (container) {
+        container.querySelectorAll('.remote-content').forEach(content => {
+          if (content === targetPanel) {
+            content.classList.remove('hidden');
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+            content.classList.add('hidden');
           }
         });
       }
-
-      // Obtener clases personalizadas de active (fallback a 'active')
-      const activePrincipalClass = menu.getAttribute('active-principal') || 'active';
-      const activeItemClass = menu.getAttribute('active-item') || 'active';
-
-      // Desactivar todos los enlaces del menú (limpiar todas las posibles clases active configuradas)
-      menu.querySelectorAll('.vertical-menu-link').forEach(l => {
-        l.classList.remove(activeItemClass);
-        if (activeItemClass !== 'active') {
-          l.classList.remove('active');
-        }
-      });
-
-      // Activar el enlace presionado
-      link.classList.add(activeItemClass);
-
-      // Desactivar cabeceras activas y sus hijos internos directos
-      menu.querySelectorAll('.vertical-menu-header').forEach(el => {
-        el.classList.remove(activePrincipalClass);
-        if (activePrincipalClass !== 'active') {
-          el.classList.remove('active');
-        }
-        if (el.firstElementChild) {
-          el.firstElementChild.classList.remove(activePrincipalClass);
-          if (activePrincipalClass !== 'active') {
-            el.firstElementChild.classList.remove('active');
-          }
-        }
-      });
-
-      // Si el enlace está dentro de un sub-menú, activar la cabecera correspondiente
-      if (parentItem) {
-        const parentHeader = parentItem.querySelector('.vertical-menu-header');
-        if (parentHeader) {
-          parentHeader.classList.add(activePrincipalClass);
-          // Si la cabecera tiene un contenedor de diseño interno (como un div estilizado), activarlo también
-          if (parentHeader.firstElementChild) {
-            parentHeader.firstElementChild.classList.add(activePrincipalClass);
-          }
-        }
-      }
-
-      // Guardar el estado en localStorage (filtrado por url de página y ID de menú para evitar colisiones)
-      const menuId = menu.id || 'default';
-      const storageKey = `vertical_menu_active_${window.location.pathname}_${menuId}`;
-      const linkIndex = Array.from(menu.querySelectorAll('.vertical-menu-link')).indexOf(link);
-      localStorage.setItem(storageKey, JSON.stringify({
-        remote: link.dataset.remote || '',
-        index: linkIndex
-      }));
     }
-  });
+  }
 
-  // Inicialización: auto-expandir y marcar activos en base al contenido
+  // Marcar los menús y el contenedor como listos
   document.querySelectorAll('.vertical-menu').forEach(menu => {
-    const activePrincipalClass = menu.getAttribute('active-principal') || 'active';
-    const activeItemClass = menu.getAttribute('active-item') || 'active';
-
-    // Intentar restaurar el estado guardado desde localStorage
-    const menuId = menu.id || 'default';
-    const storageKey = `vertical_menu_active_${window.location.pathname}_${menuId}`;
-    const savedStateStr = localStorage.getItem(storageKey);
-    let activeLink = null;
-
-    if (savedStateStr) {
-      try {
-        const savedState = JSON.parse(savedStateStr);
-        const links = menu.querySelectorAll('.vertical-menu-link');
-        
-        if (savedState.remote) {
-          activeLink = menu.querySelector(`.vertical-menu-link[data-remote="${savedState.remote}"]`);
-        }
-        
-        if (!activeLink && savedState.index >= 0 && savedState.index < links.length) {
-          activeLink = links[savedState.index];
-        }
-      } catch (e) {
-        console.error('Error al restaurar estado del menú vertical:', e);
-      }
-    }
-
-    // Si hay un link guardado en la caché del navegador, forzar que sea el activo
-    if (activeLink) {
-      menu.querySelectorAll('.vertical-menu-link').forEach(l => {
-        l.classList.remove(activeItemClass);
-        l.classList.remove('active');
-      });
-      activeLink.classList.add(activeItemClass);
-    }
-
-    // 1. Mapear cualquier enlace que tenga la clase por defecto 'active' en el HTML a la clase personalizada
-    if (activeItemClass !== 'active') {
-      menu.querySelectorAll('.vertical-menu-link.active').forEach(link => {
-        link.classList.add(activeItemClass);
-        link.classList.remove('active');
-      });
-    }
-
-    // 2. Mapear cualquier cabecera con clase 'active' a la clase personalizada principal
-    if (activePrincipalClass !== 'active') {
-      menu.querySelectorAll('.vertical-menu-header.active').forEach(el => {
-        el.classList.add(activePrincipalClass);
-        el.classList.remove('active');
-        if (el.firstElementChild) {
-          el.firstElementChild.classList.add(activePrincipalClass);
-          el.firstElementChild.classList.remove('active');
-        }
-      });
-    }
-
-    // 3. Auto-expandir grupos que contengan enlaces activos
-    menu.querySelectorAll('.vertical-menu-item').forEach(item => {
-      const content = item.querySelector('.vertical-menu-content');
-      if (!content) return;
-
-      // Buscar si el sub-menú contiene un enlace activo
-      const hasActiveLink = content.querySelector(`.vertical-menu-link.${activeItemClass}`) !== null;
-      const shouldOpen = item.classList.contains('open') || hasActiveLink;
-
-      if (shouldOpen) {
-        item.classList.add('open');
-        content.classList.remove('hidden');
-        content.style.height = 'auto';
-
-        if (hasActiveLink) {
-          const header = item.querySelector('.vertical-menu-header');
-          if (header) {
-            header.classList.add(activePrincipalClass);
-            if (header.firstElementChild) {
-              header.firstElementChild.classList.add(activePrincipalClass);
-            }
-          }
-        }
-      } else {
-        content.classList.add('hidden');
-        item.classList.remove('open');
-      }
-    });
-
-    // 4. Si se restauró un link activo que contiene data-remote, simular el click de manera síncrona para evitar FOUC
-    if (activeLink && activeLink.dataset.remote) {
-      activeLink.click();
-    }
-
-    // 5. Marcar el menú y el contenedor remoto como listos para evitar FOUC
     menu.setAttribute('data-menu-ready', 'true');
-    const container = document.querySelector('.remote-container');
-    if (container) {
-      container.setAttribute('data-container-ready', 'true');
-    }
   });
+
+  const container = document.querySelector('.remote-container');
+  if (container) {
+    container.setAttribute('data-container-ready', 'true');
+  }
 }

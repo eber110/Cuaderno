@@ -53,6 +53,7 @@ tu-proyecto/
 │   └── Rsc/                   # Fonts/, Helper/, Ico/, Library/ (recursos del proyecto y framework)
 │
 ├── Bootstrap/App.php          # Ciclo de vida de providers (no tocar)
+├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
 ├── Cache/                     # Caché (gitignored)
 ├── Logs/                      # Logs de ejecución (gitignored)
 ├── Uploads/                   # Subidas (gitignored)

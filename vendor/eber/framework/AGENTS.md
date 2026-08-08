@@ -74,9 +74,9 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Ico/                   # Iconos SVG Master (se copian a App/Rsc/Ico en cada proyecto)
 │   ├── Fonts/                 # Fuentes (se copian a App/Rsc/Fonts)
 │   ├── Library/Gsap/           # GSAP base (se copia a App/Rsc/Library)
-│   ├── Img/                   # Imágenes por defecto
-│   └── dbLocation/             # GeoLite2 mmdb (gitignored, descargable)
+│   └── Img/                    # Imágenes por defecto
 │
+├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
 ├── Cache/Views/               # Caché de vistas
 ├── Logs/                      # Logs en tiempo de ejecución (gitignored)
 ├── Docs/                      # Documentación por módulo (Route, Builder, SEO, Security…)

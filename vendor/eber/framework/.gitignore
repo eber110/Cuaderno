@@ -16,10 +16,15 @@
 /Cache/
 /Uploads/
 /App/Public/Uploads/
+/Database/*
+!/Database/.gitkeep
 *.log
 
-# ===== Bases de datos de geolocalización (descargables) =====
+# ===== Bases de datos y geolocalización (descargables / locales) =====
 *.mmdb
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 
 # ===== Herramientas / descriptores IDE =====
 .scratch/

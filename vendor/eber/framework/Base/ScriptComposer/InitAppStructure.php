@@ -48,8 +48,9 @@ class InitAppStructure
     'App/Rsc/Library',
     // Vistas de error (independientes de App/Views)
     'App/errorViews',
-    // Directorios de sistema (Caché, Logs y Uploads en la raíz)
+    // Directorios de sistema (Caché, Database, Logs y Uploads en la raíz)
     'Cache',
+    'Database',
     'Logs',
     'Logs/VisitLog',
     'Uploads',
@@ -836,6 +837,12 @@ PHP;
   {
     $gitignorePath = $this->basePath . '/.gitignore';
 
+    // Asegurar que Database/.gitkeep exista para control de versiones del directorio
+    $databaseGitkeep = $this->basePath . '/Database/.gitkeep';
+    if (is_dir($this->basePath . '/Database') && !file_exists($databaseGitkeep)) {
+      @file_put_contents($databaseGitkeep, "");
+    }
+
     if (file_exists($gitignorePath)) {
       echo "⏭️  Saltado: .gitignore (ya existe)\n";
       return;
@@ -845,9 +852,15 @@ PHP;
 /vendor/
 .env
 /App/Public/Min/
-/cache/
-/logs/
+/Cache/
+/Logs/
 /Uploads/
+/Database/*
+!/Database/.gitkeep
+*.mmdb
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 GITIGNORE;
 
     if (file_put_contents($gitignorePath, $content)) {

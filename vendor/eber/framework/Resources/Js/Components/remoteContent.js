@@ -73,9 +73,6 @@ export function remoteContent() {
     const targetId = btn.dataset.remote;
     if (!targetId) return;
 
-    // Si ya está activo este botón, no hacer nada
-    if (btn.classList.contains('active')) return;
-
     const targetContent = document.getElementById(targetId);
     if (!targetContent) return;
 
@@ -83,10 +80,11 @@ export function remoteContent() {
     if (!container) return;
 
     const currentActiveContent = container.querySelector('.remote-content.active');
-    const useAnimation = hasGsap && container.classList.contains('animated') && container.hasAttribute('data-container-ready');
+    
+    // Si el contenido ya está activo actualmente en el contenedor, no repetir transición
+    if (currentActiveContent === targetContent) return;
 
     // 1. Gestionar el estado de los botones (desacoplados)
-    // Obtener los IDs de todos los contenidos del mismo contenedor
     const contentIds = Array.from(container.querySelectorAll('.remote-content')).map(el => el.id);
 
     // Remover la clase active de todos los botones que apunten a este contenedor
@@ -96,10 +94,14 @@ export function remoteContent() {
       }
     });
 
-    // Agregar la clase active al botón clickeado
-    btn.classList.add('active');
+    // Agregar la clase active a todos los botones que apunten al mismo targetId
+    document.querySelectorAll(`.remote-btn[data-remote="${targetId}"]`).forEach(b => {
+      b.classList.add('active');
+    });
 
     // 2. Transición del contenido
+    const useAnimation = hasGsap && container.classList.contains('animated') && container.hasAttribute('data-container-ready');
+
     if (useAnimation && currentActiveContent && currentActiveContent !== targetContent) {
       animateTransition(currentActiveContent, targetContent);
     } else {

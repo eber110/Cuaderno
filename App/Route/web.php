@@ -35,6 +35,10 @@ Route::get("/llms.txt", function(){ SeoModule::llms([
 Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(function(){
 
   Route::get("/", [DashboardControllers::class, "panel"]);
+  Route::get("/diseno", function(string $user) {
+    $userClean = mb_strtolower($user, "UTF-8");
+    return \Base\Module\ResponseModule::redirect("/panel/{$userClean}");
+  });
   Route::post("/diseno", [DesignControllers::class, "configDesign"]);
   Route::get("/guardar", [DesignControllers::class, "saveDesign"]);
   Route::post("/guardar", [DesignControllers::class, "saveDesign"]);
