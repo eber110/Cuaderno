@@ -5,22 +5,22 @@
    */
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover textb w100 flex-row center-start gap5 pointer";
 ?>
-<div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar no-phone">
+<div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar">
   <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
     <?php if (!empty($card["active"])) :?>
       <?php if ($card["active"] == true && $card["hide"] == true):?>
-        <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
+        <p class="no-phone p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
           data-tooltip="Puedes ocultar o mostrar tu perfil desde el menú «Visibilidad»."
           style-tooltip="back5 textw shadow x18">
             <?= svg("triangle-exclamation-fill","x16 mr5");?> Perfil oculto
             <span class="flex-row center-center pointer"><?= svg("question");?></span>
         </p>
       <?php else:?>
-        <a href="/<?= $session["username"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
+        <a href="/<?= $session["username"]?>" class="no-phone <?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
       <?php endif?>
     <?php else:?>
-      <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
+      <p class="no-phone p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textw tooltip animated bottom" 
       data-tooltip="Completa los datos requeridos en tu perfil para activarlo."
       style-tooltip="back5 textw shadow x18">
         <?= svg("triangle-exclamation-fill","x16 mr5");?> Activa tu perfil

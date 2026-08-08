@@ -51,7 +51,7 @@
                 <?= ($itemType === 'product') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") : 'Enlace - ' . \Base\Module\TextModule::truncateRaw($itemTitle, 3 ,"...") ?>
               </p>
             </div>
-            <div class="flex-row center-end gap20 tooltip left animated wpx-sml-270" data-tooltip="Ocultar enlace">
+            <div class="flex-row center-end gap20 tooltip left animated wpx300 wpx-sml-270" data-tooltip="Ocultar enlace">
               <!-- Switch para activar / desactivar enlace -->
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
@@ -108,7 +108,7 @@
                 <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover">
               </figure>
 
-              <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pr10">
+              <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
                 <?php if ($imgDefault) : ?>
                   <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textw" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
                     <?= svg("trash", "x20") ?>

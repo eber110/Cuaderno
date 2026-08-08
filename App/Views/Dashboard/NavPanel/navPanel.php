@@ -13,16 +13,23 @@
 ?>
 <nav class="flex-row center-between gap10 p20 sticky top z-index-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
     <!-- Badge de Usuarios en Línea (Sección izquierda) -->
-    <div class="wpx116 hpx32">
-      <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="flex-row center-center gap8 p5 pr12 pl12 br20 hidden" style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25);">
+    <div class="wpx116 hpx32 no-phone">
+      <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="flex-row center-center gap8 p5 pr12 pl12 br20 no-phone hidden" style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25);">
         <span class="live-dot-pulse"></span>
         <span id="active-viewers-text" class="x18 bold500" style="color: #22c55e;">1 en línea</span>
       </div>
     </div>
 
+    <button class="no-desk no-tablet hamburger-toggle hpx45 wpx45" aria-label="Menú"  style="z-index: 9999999999900000000;">
+       <?= svg("bars");?>
+     </button>
+     <nav class="hamburger-menu from-left with-overlay animated hidden">
+       <?php _part("Dashboard.sideMenu")?>
+     </nav>
+
     <!-- Botones de Acción (Sección derecha) -->
-    <div class="flex-row center-end gap10">
-      <div id="save-btn-container" class="save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
+    <div class="flex-row center-end gap10 w100">
+      <div id="save-btn-container" class="before-menu save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
         <a id="save-btn" href="<?= $saveUrl ?>" class="<?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
       </div>
 

@@ -138,6 +138,7 @@
 .hpx30 { height: 30px; }
 .hpx32 { height: 32px; }
 .hpx40 { height: 40px; }
+.hpx45 { height: 45px; }
 .hpx50 { height: 50px; }
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
@@ -218,8 +219,10 @@
 .wpx25 { width: 25px; }
 .wpx250 { width: 250px; }
 .wpx30 { width: 30px; }
+.wpx300 { width: 300px; }
 .wpx320 { width: 320px; }
 .wpx40 { width: 40px; }
+.wpx45 { width: 45px; }
 .wpx460 { width: 460px; }
 .wpx50 { width: 50px; }
 .wpx520 { width: 520px; }
@@ -420,7 +423,13 @@
   .pl-sml-10 { padding-left: 10px !important; }
 }
 @media screen and (max-width: 576px) {
+  .pl-sml-5 { padding-left: 5px !important; }
+}
+@media screen and (max-width: 576px) {
   .pr-sml-10 { padding-right: 10px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pr-sml-5 { padding-right: 5px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .pt-mid-150 { padding-top: 150px !important; }
