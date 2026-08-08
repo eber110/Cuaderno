@@ -104,6 +104,7 @@
 .sticky-top { position: sticky !important; top: 0%; }
 .top { top: 0%; }
 .top2 { top: 2%; }
+.top3 { top: 3%; }
 .top9 { top: 9%; }
 .br0 { border-radius: 0px !important; overflow: clip; }
 .br10 { border-radius: 10px !important; overflow: clip; }
@@ -138,7 +139,6 @@
 .hpx30 { height: 30px; }
 .hpx32 { height: 32px; }
 .hpx40 { height: 40px; }
-.hpx45 { height: 45px; }
 .hpx50 { height: 50px; }
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
@@ -223,7 +223,6 @@
 .wpx300 { width: 300px; }
 .wpx320 { width: 320px; }
 .wpx40 { width: 40px; }
-.wpx45 { width: 45px; }
 .wpx460 { width: 460px; }
 .wpx50 { width: 50px; }
 .wpx520 { width: 520px; }
@@ -440,6 +439,9 @@
 }
 @media screen and (max-width: 576px) {
   .pt-sml-20 { padding-top: 20px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pt-sml-35 { padding-top: 35px !important; }
 }
 @media screen and (min-width: 993px) {
   .w-desk-100 { width: 100%; }

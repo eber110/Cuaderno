@@ -84,7 +84,7 @@
             "source": {
                 "type": "git",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "0fec26fff2258d16e465adf30a29477dede4e27f"
+                "reference": "4289a6d5801e05d5a5b4b23a3e9b0b0206dc8c19"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -143,7 +143,7 @@
                 }
             ],
             "description": "Mi increíble framework",
-            "time": "2026-08-08T00:22:41+00:00"
+            "time": "2026-08-08T04:00:22+00:00"
         },
         {
             "name": "geoip2/geoip2",

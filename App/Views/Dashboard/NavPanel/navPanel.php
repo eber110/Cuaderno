@@ -20,17 +20,19 @@
       </div>
     </div>
 
-    <button class="no-desk no-tablet hamburger-toggle hpx45 wpx45 pointer border-none back-menu-sidebar flex-row center-center" aria-label="Menú">
-       <?= svg("bars", "x24");?>
-    </button>
+    <div class="no-desk no-tablet hamburger-toggle pointer border-none |back-menu-sidebar flex-row center-center" aria-label="Menú">
+       <?= svg("bars", "x30");?>
+    </div>
     <nav class="hamburger-menu from-left with-overlay animated hidden back-menu-sidebar shadow-card">
-      <div class="hamburger-content flex-column wpx280 h-dvh p10 overflow-y-auto">
-        <div class="flex-row center-end w100 p5">
-          <button class="closed-hamburger pointer p5 br50 flex-row center-center back-transparent border-none" aria-label="Cerrar menú">
+      <div class="hamburger-content flex-column wpx280 h-dvh p0 overflow-y-auto">
+        <div class="flex-row center-end w100 p5 top3">
+          <div class="closed-hamburger closed-modal-preview flex-row center-center back-transparent border-none" aria-label="Cerrar menú">
             <?= svg("xmark", "x20") ?>
-          </button>
+          </div>
         </div>
-        <?php _part("Dashboard.sideMenu")?>
+        <div class="">
+          <?php _part("Dashboard.sideMenu")?>
+        </div>
       </div>
     </nav>
 
