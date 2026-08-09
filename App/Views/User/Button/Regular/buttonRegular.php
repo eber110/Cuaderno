@@ -18,18 +18,20 @@
   $imgShow = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
   $hasImg = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
 ?>
-<div class="flex-row center-between hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
+<div class="flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100 track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 130px);">
-    <?php if ($imgShow && $hasImg) :?>
-      <figure class="ar-square p7 hpx65">
-        <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?> hpx53 wpx53">
-      </figure>
-    <?php else :?>
-      <div class="ar-square p7 hpx65"></div>
-    <?php endif?>
+  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start hpx65 wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
+    <div class="wpx65 flex-row center-center">
+      <?php if ($imgShow && $hasImg) :?>
+        <figure class="ar-square p7">
+          <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">
+        </figure>
+      <?php else :?>
+        <div class=""></div>
+      <?php endif?>
+    </div>
 
-    <p class="flex-column bold500 text-c pl10 pr10 w100 cut-phrase" cant-col="2" style="flex-grow: 1;">
+    <p class="flex-column center-center wrap bold500 w80 text-c cut-phrase" cant-col="2" style="flex-grow: 1;">
       <?= $content;?>
     </p>
   </a>
