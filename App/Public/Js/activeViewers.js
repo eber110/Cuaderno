@@ -2,12 +2,15 @@
  * Componente Active Viewers (Usuarios en línea).
  * 
  * Envía periódicamente señales de presencia (heartbeat) al backend
- * y actualiza dinámicamente el badge de usuarios en línea en el perfil.
+ * y actualiza dinámicamente todos los badges de usuarios en línea presentes en la página.
+ * 
+ * @function activeViewers
+ * @description Maneja la señal de presencia y la actualización múltiple de badges en línea.
  */
 export function activeViewers() {
-  const badgeEl = document.getElementById('active-viewers-badge');
+  const badgeEls = document.querySelectorAll('.active-viewers-badge, #active-viewers-badge');
   const container = document.querySelector('[data-profile-user], .track-link-click[data-user], .back-card-container');
-  if (!badgeEl && !container) return;
+  if (badgeEls.length === 0 && !container) return;
 
   const pathSegments = window.location.pathname.split('/').filter(Boolean);
   let urlUser = '';
@@ -17,15 +20,21 @@ export function activeViewers() {
     urlUser = pathSegments[0];
   }
 
-  const targetUser = badgeEl?.dataset.profileUser || 
-                     container?.dataset.profileUser || 
-                     container?.dataset.user || 
-                     urlUser || '';
+  let targetUser = '';
+  for (const badge of badgeEls) {
+    if (badge.dataset.profileUser || badge.dataset.user) {
+      targetUser = badge.dataset.profileUser || badge.dataset.user;
+      break;
+    }
+  }
+
+  if (!targetUser) {
+    targetUser = container?.dataset.profileUser || 
+                 container?.dataset.user || 
+                 urlUser || '';
+  }
 
   if (!targetUser) return;
-
-  const countEl = document.getElementById('active-viewers-count');
-  const textEl  = document.getElementById('active-viewers-text');
 
   let activeToken = localStorage.getItem('viewer_session_token');
   if (!activeToken) {
@@ -59,25 +68,26 @@ export function activeViewers() {
   }
 
   function updateBadgeUI(count) {
-    if (!badgeEl) return;
+    const badges = document.querySelectorAll('.active-viewers-badge, #active-viewers-badge');
+    const countEls = document.querySelectorAll('.active-viewers-count, #active-viewers-count');
+    const textEls = document.querySelectorAll('.active-viewers-text, #active-viewers-text');
 
-    if (count <= 0) {
-      badgeEl.classList.add('hidden');
-      return;
-    }
-
-    badgeEl.classList.remove('hidden');
-
-    if (countEl) {
-      countEl.textContent = count;
-    }
-
-    if (textEl) {
-      if (count === 1) {
-        textEl.textContent = '1 en línea';
+    badges.forEach(badge => {
+      if (count <= 0) {
+        badge.classList.add('hidden');
       } else {
-        textEl.textContent = `${count} en línea`;
+        badge.classList.remove('hidden');
       }
+    });
+
+    if (count > 0) {
+      countEls.forEach(el => {
+        el.textContent = count;
+      });
+
+      textEls.forEach(el => {
+        el.textContent = count === 1 ? '1 en línea' : `${count} en línea`;
+      });
     }
   }
 
