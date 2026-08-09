@@ -473,9 +473,6 @@
 @media screen and (max-width: 576px) {
   .col-sml-2 { grid-template-columns: repeat(2, 1fr); }
 }
-@media screen and (max-width: 576px) {
-  .col-sml-3 { grid-template-columns: repeat(3, 1fr); }
-}
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .span-mid-1 { grid-column: span 1; }
 }
