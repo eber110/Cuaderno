@@ -61,13 +61,13 @@
 
         <!-- 2. MODAL CON FORMATO IDÉNTICO A GENERALSUMMARYCARD -->
         <div class="hidden">
-          <div class="flex-column center-center w100 p20 h-dvh">
+          <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
             <div class="wpx600 w-sml-100">
               <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
                 <?= svg("xmark", "x20") ?>
               </div>
             </div>
-            <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+            <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
               
               <!-- Encabezado del Modal -->
               <div class="flex-column gap5">
@@ -80,7 +80,7 @@
               </div>
 
               <!-- Indicadores Resumen (Día Pico vs Hora Pico vs Total) -->
-              <div class="grid col-desk-3 col-sml-3 gap10 w100">
+              <div class="grid col-desk-3 col-sml-1 gap10 w100">
                 <div class="flex-column p12 br12 back-card-graphic shadow-card-graphic gap3">
                   <span class="text-muted bold500">Total Visitas</span>
                   <span class="x20 bold700 text-primary"><?= number_format($sNet['total']) ?></span>

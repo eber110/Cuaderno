@@ -90,13 +90,13 @@
 
         <!-- MODAL DE OPTIMIZACIÓN Y ESTRATEGIA DE CTR -->
         <div class="hidden">
-          <div class="flex-column center-center w100 p20 h-dvh">
+          <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
             <div class="wpx600 w-sml-100">
               <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
                 <?= svg("xmark") ?>
               </div>
             </div>
-            <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+            <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
               
               <!-- Encabezado del Modal -->
               <div class="flex-column gap5">
@@ -134,7 +134,6 @@
                   <h4 class="bold600 x20 flex-row center-start gap8 texto">
                     <?= svg("lightbulb", "x16") ?> Recomendación de Estrategia Pico
                   </h4>
-                  <span class="p2 pl8 pr8 br50 back-primary textc bold600">Recomendación</span>
                 </div>
                 <?php 
                   $hasPicoRec = !empty($topSocial) && !empty($recommendation['bestDay']) && !empty($recommendation['bestHour']) && (($recommendation['bestDayTotal'] ?? 0) > 0 || ($recommendation['bestHourTotal'] ?? 0) > 0);
@@ -216,13 +215,13 @@
     <?php if ($has50Uniques) : ?>
       <!-- MODAL DE DESGLOSE DE TOTAL VISITAS -->
       <div class="hidden">
-        <div class="flex-column center-center w100 p20 h-dvh">
+        <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
           <div class="wpx600 w-sml-100">
             <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
               <?= svg("xmark", "x20") ?>
             </div>
           </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+          <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
               <h3 class="bold700 x20 flex-row center-start gap10 texto">
@@ -301,13 +300,13 @@
     <?php if ($has50Uniques) : ?>
       <!-- MODAL DE DESGLOSE DE VISITAS ÚNICAS -->
       <div class="hidden">
-        <div class="flex-column center-center w100 p20 h-dvh">
+        <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
           <div class="wpx600 w-sml-100">
             <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
               <?= svg("xmark", "x20") ?>
             </div>
           </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+          <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
               <h3 class="bold700 x20 flex-row center-start gap10 texto">
@@ -385,13 +384,13 @@
     <?php if ($has50Uniques) : ?>
       <!-- MODAL DE DESGLOSE DE CLICS EN ENLACES DEL WIDGET -->
       <div class="hidden">
-        <div class="flex-column center-center w100 p20 h-dvh">
+        <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
           <div class="wpx600 w-sml-100">
             <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
               <?= svg("xmark", "x20") ?>
             </div>
           </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+          <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
               <h3 class="bold700 x20 flex-row center-start gap10 texto">
@@ -469,13 +468,13 @@
     <?php if ($has50Uniques) : ?>
       <!-- MODAL DE DESGLOSE DE CLICS A REDES SOCIALES -->
       <div class="hidden">
-        <div class="flex-column center-center w100 p20 h-dvh">
+        <div class="flex-column center-center w100 p20 p-sml-0 h-dvh">
           <div class="wpx600 w-sml-100">
             <div id="close-modal-btn" class="modal-close-button absolute top right closed-modal-preview">
               <?= svg("xmark", "x20") ?>
             </div>
           </div>
-          <div class="wpx600 w-sml-100 overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p25 text-menu-modal relative shadow-1 flex-column gap20">
+          <div class="wpx600 w-sml-100 h-dvh overflow-y-scroll back-container-graphic br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal relative shadow-1 flex-column gap20">
             
             <div class="flex-column gap5">
               <h3 class="bold700 x20 flex-row center-start gap10 texto">
