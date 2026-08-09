@@ -86,83 +86,37 @@
     color: <?= $titleColor?>;
   }
 
-  /* Estilos rápidos, que después pasaran a su propio archivo css*/
-  .back-container-graphic{
-    background-color: #f0f0f0;
+  :root{
+    --live-view: #02b629;
   }
-
-  .back-card-graphic{
+  
+  .back-live-view{
     background-color: #ffffff;
-    filter: drop-shadow(0px 0px 1px #bdbdbd);
+    border: solid 0.5px #f0f0f0;
   }
 
-  .shadow-card-graphic{
-    filter: drop-shadow(0px 1px 2px #b6b6b6);
-  }
-
-  .btn-card-graphic{
-    background-color: #e2e2e2;
-    padding: 10px 15px;
-    border-radius: 100px;
-    filter: drop-shadow(0px 1px 2px #d8d7d7);
-  }
-
-  .btn-card-graphic-red{
-    background-color: #e94646;
-    padding: 10px 15px;
-    border-radius: 100px;
-    filter: drop-shadow(0px 1px 2px #d8d7d7);
-  }
-
-  .advice{
-    border-left: #b6b6b6 5px solid;
-    padding-left: 10px !important;
-    padding: 5px;
-    filter: drop-shadow(-1px 1px 1px #b6b6b6);
-  }
-
-  .text-advice{
-    filter: drop-shadow(-1px 1px 1px #b6b6b6);
-  }
-
-  .closed-modal-preview{
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    margin: 10px;
-    z-index: 20;
-    object-fit: contain;
-    width: 28px;
-    height: 28px;
-    border-radius: 50px;
-    background-color: #000000;
-    color: #ffffff;
-    &:hover{
-      background-color: #464646;
-    }
+  .color-live-view{
+    color: var(--live-view);
   }
 
   .live-dot-pulse {
     width: 8px;
     height: 8px;
-    background-color: #22c55e;
+    background-color: var(--live-view);
     border-radius: 50%;
     display: inline-block;
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    box-shadow: 0 0 0 0 oklch(from var(--live-view) calc(l * 0.70) c h / 100%);
     animation: livePulse 1.8s infinite;
   }
 
   @keyframes livePulse {
     0% {
       transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      box-shadow: 0 0 0 0 oklch(from var(--live-view) calc(l * 0.98) c h / 90%);
     }
     70% {
       transform: scale(1);
-      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+      box-shadow: 0 0 0 6px oklch(from var(--live-view) calc(l * 0.40) c h / 0%);
     }
     100% {
       transform: scale(0.95);
