@@ -329,11 +329,24 @@ export function hamburgerMenu() {
     const isInitialHidden = menu.classList.contains('hidden');
     toggle.setAttribute('aria-expanded', isInitialHidden ? 'false' : 'true');
 
-    // Click en el activador
-    toggle.addEventListener('click', (e) => {
+    // Manejador unificado para click y touchstart
+    const toggleHandler = (e) => {
       e.stopPropagation();
+      
+      // Evitar que el click se dispare después del touchstart
+      if (e.type === 'touchstart') {
+        toggle._touchHandled = true;
+      } else if (e.type === 'click' && toggle._touchHandled) {
+        toggle._touchHandled = false;
+        return;
+      }
+      
       toggleMenu(toggle, menu);
-    });
+    };
+
+    // Registrar ambos eventos
+    toggle.addEventListener('click', toggleHandler);
+    toggle.addEventListener('touchstart', toggleHandler, { passive: true });
 
     // Accesibilidad por teclado (Enter / Espacio) para cualquier tipo de elemento
     toggle.addEventListener('keydown', (e) => {
@@ -377,10 +390,20 @@ export function hamburgerMenu() {
 
       if (!closeEl._hasHamburgerListener) {
         closeEl._hasHamburgerListener = true;
-        closeEl.addEventListener('click', (e) => {
+        
+        const closeHandler = (e) => {
           e.stopPropagation();
+          if (e.type === 'touchstart') {
+            closeEl._touchHandled = true;
+          } else if (e.type === 'click' && closeEl._touchHandled) {
+            closeEl._touchHandled = false;
+            return;
+          }
           animateMenuClose(menu, toggle);
-        });
+        };
+
+        closeEl.addEventListener('click', closeHandler);
+        closeEl.addEventListener('touchstart', closeHandler, { passive: true });
 
         closeEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
