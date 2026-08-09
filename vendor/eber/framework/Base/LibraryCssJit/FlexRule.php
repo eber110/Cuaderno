@@ -5,8 +5,12 @@ namespace Base\LibraryCssJit;
 class FlexRule extends JitRuleBase
 {
     private $verticalAlignments = [
-        'top' => 'start',
-        'bottom' => 'end',
+        'top' => 'flex-start',
+        'bottom' => 'flex-end',
+        'start' => 'flex-start',
+        'end' => 'flex-end',
+        'left' => 'flex-start',
+        'right' => 'flex-end',
         'center' => 'center',
         'between' => 'space-between',
         'around' => 'space-around',
@@ -16,8 +20,12 @@ class FlexRule extends JitRuleBase
     ];
 
     private $horizontalAlignments = [
-        'start' => 'start',
-        'end' => 'end',
+        'top' => 'flex-start',
+        'bottom' => 'flex-end',
+        'start' => 'flex-start',
+        'end' => 'flex-end',
+        'left' => 'flex-start',
+        'right' => 'flex-end',
         'center' => 'center',
         'between' => 'space-between',
         'around' => 'space-around',
@@ -64,10 +72,25 @@ class FlexRule extends JitRuleBase
 
                 $important = $media ? ' !important' : '';
                 
-                $css = ".flex-column.{$word}, .flex-column-desk.{$word}, .flex-column-mid.{$word}, .flex-column-sml.{$word} { justify-content: {$yCol}{$important}; align-items: {$xCol}{$important}; }\n";
-                $css .= "  .flex-row.{$word}, .flex-row-desk.{$word}, .flex-row-mid.{$word}, .flex-row-sml.{$word} { align-items: {$yRow}{$important}; justify-content: {$xRow}{$important}; }";
+                $colRule = "justify-content: {$yCol}{$important}; align-items: {$xCol}{$important};";
+                $rowRule = "align-items: {$yRow}{$important}; justify-content: {$xRow}{$important};";
 
-                return $this->wrapMediaQuery($media, $css);
+                if ($media) {
+                    // Si la regla de alineación tiene un media query (ej: end-center-sml)
+                    $css = ".flex-column.{$word} { {$colRule} }\n";
+                    $css .= ".flex-row.{$word} { {$rowRule} }\n";
+                    $css .= ".flex-column-{$media}.{$word} { {$colRule} }\n";
+                    $css .= ".flex-row-{$media}.{$word} { {$rowRule} }";
+                    return $this->wrapMediaQuery($media, $css);
+                } else {
+                    // Si es una regla base (ej: center-between), envolver los modificadores de dirección en sus respectivos media queries
+                    $css = ".flex-column.{$word} { {$colRule} }\n";
+                    $css .= ".flex-row.{$word} { {$rowRule} }\n";
+                    $css .= $this->wrapMediaQuery('desk', ".flex-column-desk.{$word} { {$colRule} }\n  .flex-row-desk.{$word} { {$rowRule} }");
+                    $css .= $this->wrapMediaQuery('mid', ".flex-column-mid.{$word} { {$colRule} }\n  .flex-row-mid.{$word} { {$rowRule} }");
+                    $css .= $this->wrapMediaQuery('sml', ".flex-column-sml.{$word} { {$colRule} }\n  .flex-row-sml.{$word} { {$rowRule} }");
+                    return $css;
+                }
             }
         }
 

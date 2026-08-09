@@ -50,7 +50,7 @@
     </div>
 
     <!-- Imagen de perfil -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Imagen de perfil</p>
 
       <div class="br15 p15 back-card-graphic shadow-card-graphic hover-scale-soft">
@@ -66,7 +66,7 @@
     </div>
 
     <!-- Titulo del perfil -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Titulo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
@@ -84,7 +84,7 @@
     </div>
 
     <!-- Descripción del perfil -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Bio</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
@@ -103,7 +103,7 @@
     </div>
 
     <!-- Estilo de color del texto de los botones -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Color de titulo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">

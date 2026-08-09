@@ -40,7 +40,7 @@
     </div>
 
     <!-- Color de fondo de la aplicación -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Color de texto global -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -68,7 +68,7 @@
     <!-- Dirección del degradado -->
     <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") :?>
 
-      <div class="flex-row center-between">
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
 
         <p class="texto">Dirección del degradado</p>
   

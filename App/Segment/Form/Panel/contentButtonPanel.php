@@ -58,7 +58,7 @@
               <!-- Opción para eliminar enlace -->
               <div class="modal-btn tooltip left" data-tooltip="Borrar enlace">
                 <p class="pointer flex-row center-center texto">
-                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
+                  <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
                 </p>
               </div>
 
@@ -123,7 +123,7 @@
               <input type="file" 
                 name="content_img_<?= $i ?>" 
                 class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
-                placeholder="Elige una imagen" 
+                placeholder="Subir imagen" 
                 cropping-size="500x500"
                 box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
                 box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">

@@ -10,7 +10,7 @@
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
 
-  <div class="flex-column top-between gap20">
+  <div class="flex-column top-between gap20 w100">
     
     <!-- Estilo general de los botones -->
     <div class="flex-column top-start gap10 w100">
@@ -30,7 +30,7 @@
     </div>
 
     <!-- Curvatura de las esquinas -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Redondeo de esquinas</p>
 
       <div class="flex-row center-end gap20">
@@ -76,7 +76,7 @@
     </div>
 
     <!-- Estilos de sombreado de los botones -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Estilo de sombra</p>
 
       <div class="flex-row center-end gap20">
@@ -122,7 +122,7 @@
     </div>
 
     <!-- Estilo de color de los botones -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -135,7 +135,7 @@
     </div>
 
     <!-- Estilo de color del texto de los botones -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -149,7 +149,7 @@
 
     <?php if ($shadowVal == "shadow-3"):?>
       <!-- Estilo de color de la sombra shadow-3 -->
-      <div class="flex-row center-between">
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
         <p class="texto">Color de sombra</p>
   
         <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -163,7 +163,7 @@
     <?php endif;?>
 
     <!-- Habilita la animación hover en los botones -->
-    <div class="flex-row center-between">
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Activar hover</p>
 
       <input type="checkbox" name="hover" id="" value="true" data-option="true,false" active="<?= (!empty($card["hover"])) ? '1' : '2' ?>" class="checkbox-switch">
