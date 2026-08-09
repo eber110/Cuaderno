@@ -18,23 +18,23 @@
   $imgShow = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
   $hasImg = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
 ?>
-<div class="flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
+<div class="flex-row center-between hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>">
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100 track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 65px);">
+  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100 track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 130px);">
     <?php if ($imgShow && $hasImg) :?>
-      <figure class="ar-square p7 wpx65">
-        <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">
+      <figure class="ar-square p6 hpx65">
+        <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?> hpx53 wpx53">
       </figure>
     <?php else :?>
-      <div class="ar-square p7 wpx65"></div>
+      <div class="ar-square p6 hpx65"></div>
     <?php endif?>
 
-    <p class="flex-row center-center bold500 text-c cut-phrase" cant-col="2" style="flex-grow: 1;">
+    <p class="flex-column bold500 text-c pl10 pr10 w100 cut-phrase" cant-col="2" style="flex-grow: 1;">
       <?= $content;?>
     </p>
   </a>
 
-  <div class="flex-column center-end pr15 wpx65 wrap">
+  <div class="flex-column center-end pr15 wrap">
 
     <div class="theme-button-menu p3 br100 flex-column center-center z-index-10 modal-btn animated darken">
       <?= svg("ellipsis-vertical", "x14");?>
