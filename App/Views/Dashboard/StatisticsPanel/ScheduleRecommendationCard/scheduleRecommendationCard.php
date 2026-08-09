@@ -10,7 +10,7 @@
 
   $hasRecommendation = !empty($recommendation['bestDay']) && !empty($recommendation['bestHour']) && (($recommendation['bestDayTotal'] ?? 0) > 0 || ($recommendation['bestHourTotal'] ?? 0) > 0);
 ?>
-<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft w100">
+<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft w100 text-protected">
   <div class="flex-row center-between wrap gap10">
     <div class="flex-row center-start gap10">
       <div class="br100 p10 back-modal-item flex-row center-center text-primary" style="flex-shrink: 0;">

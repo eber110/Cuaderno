@@ -4,7 +4,7 @@
    * @var array $referrers 
    */
 ?>
-<div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100">
+<div class="grid col-desk-2 col-mid-1 col-sml-1 gap15 w100 text-protected">
   
   <!-- Países -->
   <div class="flex-column gap15 p20 br15 back-card-graphic shadow-card-graphic hover-scale-soft">

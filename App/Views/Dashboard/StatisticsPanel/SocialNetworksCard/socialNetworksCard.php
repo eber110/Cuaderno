@@ -8,7 +8,7 @@
     return;
   }
 ?>
-<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic |hover-scale-soft w100">
+<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic |hover-scale-soft w100 text-protected">
   <div class="flex-row center-between wrap gap10">
     <div>
       <h4 class="bold700 x20 flex-row center-start gap10 texto">
@@ -106,7 +106,6 @@
                   <h4 class="bold600 x20 flex-row top-start gap5 texto">
                     <?= svg("chart", "x20") ?> Distribución Porcentual
                   </h4>
-                  <span class="p2 pl8 pr8 br50 back-primary textc bold600">100% Stacked</span>
                 </div>
                 <p class="text-muted">
                   Porcentaje de tráfico aportado desde <?= e($sNet['name']) ?> por día de la semana (columnas al 100%), desglosado en franjas horarias con etiquetas directas.

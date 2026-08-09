@@ -59,7 +59,7 @@
 <link rel="stylesheet" href="/App/Rsc/Library/ApexCharts/apexcharts.css">
 <script src="/App/Rsc/Library/ApexCharts/apexcharts.min.js" defer></script>
 
-<div class="flex-column gap15 w100">
+<div class="flex-column gap15 w100 text-protected">
 
   <!-- TARJETA DESTACADA GRANDE DE CTR GLOBAL (COLUMNA IZQ: GAUGE | COLUMNA DER: TEXTO, BOTÓN Y MODAL) -->
   <div class="flex-row-desk flex-row-mid flex-column-sml gap20 p20 br20 back-card-graphic hover-scale-soft w100 center-center">
@@ -253,7 +253,6 @@
                 <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Gráfico Mixto (Visitas vs Clics)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Compara la cantidad total de visitas por día (barras) con la cantidad de clics en los enlaces de tu widget (línea) para evaluar la conversión diaria.
@@ -339,7 +338,6 @@
                 <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Visitas Únicas por Día (Mes Actual)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Mide la cantidad de dispositivos únicos distintos que ingresaron a tu perfil cada día, descartando accesos múltiples del mismo usuario.
@@ -424,7 +422,6 @@
                 <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Clics por Día (Mes Actual)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Muestra la cantidad total de clics registrados exclusivamente en los enlaces de tu widget día a día durante el mes activo.
@@ -509,7 +506,6 @@
                 <h4 class="bold600 x20 flex-row center-start gap5 texto">
                   <?= svg("chart", "x16") ?> Clics por Red Social (Ranking)
                 </h4>
-                <span class="p2 pl8 pr8 br50 back-primary textc bold600">ApexCharts</span>
               </div>
               <p class="text-muted">
                 Gráfico de barras que compara la cantidad de clics que recibió cada una de tus redes sociales (GitHub, LinkedIn, Instagram, X/Twitter, etc.).

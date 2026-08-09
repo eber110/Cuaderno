@@ -19,7 +19,7 @@
   }
 ?>
 
-<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft w100">
+<div class="flex-column gap15 p20 br20 back-card-graphic shadow-card-graphic hover-scale-soft w100 text-protected">
   
   <!-- Encabezado de la Card -->
   <div class="flex-row center-between wrap gap10">

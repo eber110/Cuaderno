@@ -4,7 +4,7 @@
    * @var string $userProfile 
    */
 ?>
-<div class="flex-row center-between wrap gap10 p20 br15 border-item-panel back-body">
+<div class="flex-row center-between wrap gap10 p20 br15 border-item-panel back-body text-protected">
   <div>
     <h3 class="bold700 x20 flex-row center-start gap10 texto">
       <?= svg("chart", "x20") ?> Estadísticas y Analíticas

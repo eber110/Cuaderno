@@ -32,12 +32,41 @@ export function generalSummaryChart() {
     };
   }
 
-  // Paleta vibrante distribuida para los gráficos horizontales (Dynamic Loaded Chart)
+  /**
+   * Paleta vibrante distribuida para los gráficos horizontales (Dynamic Loaded Chart)
+   */
   const distributedColors = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
     '#8b5cf6', '#06b6d4', '#ec4899', '#f97316',
     '#14b8a6', '#6366f1'
   ];
+
+  /**
+   * Obtiene la configuración de layout unificada para gráficos de barras horizontales:
+   * - 100% de ancho total sin padding a la derecha.
+   * - Eje Y alineado a la izquierda (pegado al margen izquierdo del gráfico).
+   * - Espaciado adecuado (15px) entre etiquetas y barras.
+   * - Barras ocupando el resto del contenedor hasta el 100%.
+   * 
+   * @param {Object} themeColors Colores del tema actual
+   * @returns {Object} { yaxis, grid }
+   */
+  function getHorizontalBarLayout(themeColors) {
+    return {
+      yaxis: {
+        labels: {
+          align: 'left',
+          offsetX: 0,
+          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
+        }
+      },
+      grid: {
+        borderColor: themeColors.gridBorder,
+        strokeDashArray: 4,
+        padding: { top: 0, right: 0, bottom: 0, left: 15 }
+      }
+    };
+  }
 
   /**
    * 1. Renderiza el gráfico Mixto Combo (Visitas vs Clics)
@@ -125,11 +154,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(180, weeks.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Visitas', data: views }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -156,20 +187,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 90,
-          maxWidth: 130,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -251,11 +270,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(180, weeks.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Usuarios Únicos', data: uniques }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -282,20 +303,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 90,
-          maxWidth: 130,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -377,11 +386,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(200, links.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Clics', data: clicks }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -408,20 +419,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 100,
-          maxWidth: 140,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -797,11 +796,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(200, links.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Clics RRSS', data: clicks }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -828,20 +829,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 100,
-          maxWidth: 140,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -931,6 +920,7 @@ export function generalSummaryChart() {
   function renderBrowsersBarChart() {
     const container = document.querySelector('.chart-browsers-bar');
     if (!container || container.dataset.rendered === 'true') return;
+    if (container.offsetWidth === 0 && container.clientWidth === 0) return;
 
     let labels = [];
     let totals = [];
@@ -948,11 +938,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(220, labels.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Visitas', data: totals }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -979,20 +971,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 90,
-          maxWidth: 120,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -1009,6 +989,7 @@ export function generalSummaryChart() {
   function renderCountriesRankingChart() {
     const container = document.querySelector('.chart-countries-ranking');
     if (!container || container.dataset.rendered === 'true') return;
+    if (container.offsetWidth === 0 && container.clientWidth === 0) return;
 
     let labels = [];
     let totals = [];
@@ -1026,11 +1007,13 @@ export function generalSummaryChart() {
 
     const themeColors = getChartColors();
     const dynamicHeight = Math.max(260, labels.length * 45);
+    const layout = getHorizontalBarLayout(themeColors);
 
     const options = {
       series: [{ name: 'Visitas', data: totals }],
       chart: {
         type: 'bar',
+        width: '100%',
         height: dynamicHeight,
         toolbar: { show: false },
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
@@ -1057,20 +1040,8 @@ export function generalSummaryChart() {
         axisBorder: { show: false },
         axisTicks: { show: false }
       },
-      yaxis: {
-        labels: {
-          align: 'left',
-          offsetX: 0,
-          minWidth: 110,
-          maxWidth: 150,
-          style: { colors: themeColors.axisText, fontSize: '12px', fontWeight: 600 }
-        }
-      },
-      grid: {
-        borderColor: themeColors.gridBorder,
-        strokeDashArray: 4,
-        padding: { top: 0, right: 15, bottom: 0, left: 10 }
-      },
+      yaxis: layout.yaxis,
+      grid: layout.grid,
       legend: { show: false },
       tooltip: {
         theme: themeColors.tooltipTheme,
@@ -1128,8 +1099,28 @@ export function generalSummaryChart() {
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('.modal-btn')) {
+      const horizontalContainers = document.querySelectorAll(
+        '.chart-summary-weeks, .chart-summary-uniques-weeks, .chart-summary-top-links, .chart-summary-rrss-links'
+      );
+      horizontalContainers.forEach((el) => {
+        el.dataset.rendered = 'false';
+      });
       setTimeout(renderAllCharts, 150);
     }
+  });
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const horizontalContainers = document.querySelectorAll(
+        '.chart-summary-weeks, .chart-summary-uniques-weeks, .chart-summary-top-links, .chart-summary-rrss-links, .chart-browsers-bar, .chart-countries-ranking'
+      );
+      horizontalContainers.forEach((el) => {
+        el.dataset.rendered = 'false';
+      });
+      renderAllCharts();
+    }, 150);
   });
 
   renderAllCharts();
