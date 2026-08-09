@@ -22,11 +22,11 @@
 
   <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start h100 track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(100% - 130px);">
     <?php if ($imgShow && $hasImg) :?>
-      <figure class="ar-square p6 hpx65">
+      <figure class="ar-square p7 hpx65">
         <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?> hpx53 wpx53">
       </figure>
     <?php else :?>
-      <div class="ar-square p6 hpx65"></div>
+      <div class="ar-square p7 hpx65"></div>
     <?php endif?>
 
     <p class="flex-column bold500 text-c pl10 pr10 w100 cut-phrase" cant-col="2" style="flex-grow: 1;">
