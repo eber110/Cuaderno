@@ -1,0 +1,335 @@
+{
+    "generated_at": "2026-08-10 02:06:24",
+    "total_routes": 29,
+    "static_routes": [
+        {
+            "method": "GET",
+            "uri": "/robots.txt",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/sitemap.xml",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/llms.txt",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\HomeControllers@home",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/ingresar",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@login",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/ingresar",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@processLogin",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/registrar",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@register",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/registrar",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@processRegister",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/registrar/check-username",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@checkUsername",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/registrar/check-email",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@checkEmail",
+            "middlewares": [
+                "App\\Middleware\\AuthMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/salir",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LoginControllers@exitApp",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/proxy",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/op/image",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/op/check",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/op/track-click",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/op/active-viewers",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/op/active-viewers",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/test/2",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/test/1",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/test/3",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/proxy",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        }
+    ],
+    "dynamic_routes": [
+        {
+            "method": "GET",
+            "uri": "/panel/:user",
+            "pattern": "#^/panel/(?P<user>[^/]+)$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\Dashboard\\DashboardControllers@panel",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/panel/:user/diseno",
+            "pattern": "#^/panel/(?P<user>[^/]+)/diseno$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "Closure",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/panel/:user/diseno",
+            "pattern": "#^/panel/(?P<user>[^/]+)/diseno$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\DesignControllers@configDesign",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/panel/:user/guardar",
+            "pattern": "#^/panel/(?P<user>[^/]+)/guardar$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\DesignControllers@saveDesign",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/panel/:user/guardar",
+            "pattern": "#^/panel/(?P<user>[^/]+)/guardar$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\DesignControllers@saveDesign",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/panel/:user/simular-datos",
+            "pattern": "#^/panel/(?P<user>[^/]+)/simular-datos$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\StatisticsControllers@generateTestData",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "POST",
+            "uri": "/panel/:user/simular-datos",
+            "pattern": "#^/panel/(?P<user>[^/]+)/simular-datos$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\StatisticsControllers@generateTestData",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/:user",
+            "pattern": "#^/(?P<user>[^/]+)$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "App\\Controllers\\UserControllers@userPage",
+            "middlewares": [
+                "App\\Middleware\\VisitMiddleware"
+            ]
+        }
+    ],
+    "summary_by_method": {
+        "GET": 19,
+        "POST": 10
+    }
+}

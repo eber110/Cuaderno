@@ -163,6 +163,8 @@ define('ROUTE_ICON', ROOT_PATH . '/App/Rsc/Ico/');
 define('ROUTE_IMG', ROOT_PATH . '/App/Public/Img/');
 define('ROUTE_IMG_PUBLIC', ROOT_PATH . '/App/Public/Img/');
 define('ROUTE_DATABASE', ROOT_PATH . '/Database/');
+define('ROUTE_DATABASE_COMPONENT', ROOT_PATH . '/App/DatabaseComponent/');
+define('ROUTE_SAFETY', ROOT_PATH . '/App/Safety/');
 
 // ==================== URL PATHS (for HTML) ====================
 define('URL_RESOURCE', '/App/Rsc/');

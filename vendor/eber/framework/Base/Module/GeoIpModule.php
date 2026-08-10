@@ -18,15 +18,20 @@ class GeoIpModule {
     public static function getDatabasePath(): ?string {
         $paths = [];
 
+        if (defined('ROUTE_DATABASE_COMPONENT')) {
+            $paths[] = rtrim(ROUTE_DATABASE_COMPONENT, '/\\') . '/GeoLite2-City.mmdb';
+        }
+        if (defined('ROOT_PATH')) {
+            $paths[] = rtrim(ROOT_PATH, '/\\') . '/App/DatabaseComponent/GeoLite2-City.mmdb';
+        }
+        $paths[] = getcwd() . '/App/DatabaseComponent/GeoLite2-City.mmdb';
+
+        // Fallbacks de compatibilidad
         if (defined('ROUTE_DATABASE')) {
             $paths[] = rtrim(ROUTE_DATABASE, '/\\') . '/GeoLite2-City.mmdb';
         }
-        if (defined('ROOT_PATH')) {
-            $paths[] = rtrim(ROOT_PATH, '/\\') . '/Database/GeoLite2-City.mmdb';
-        }
         $paths[] = getcwd() . '/Database/GeoLite2-City.mmdb';
-        // Fallbacks de compatibilidad para repositorios locales y ubicaciones previas
-        $paths[] = __DIR__ . '/../../Database/GeoLite2-City.mmdb';
+        $paths[] = __DIR__ . '/../../App/DatabaseComponent/GeoLite2-City.mmdb';
         $paths[] = __DIR__ . '/../../Resources/dbLocation/GeoLite2-City.mmdb';
 
         foreach ($paths as $path) {

@@ -41,6 +41,7 @@
         "create-table-pgsql": "php Base/ScriptComposer/ConfigInitBdPostgreSql.php",
         "install-font": "php Base/ScriptComposer/InstallFont.php",
         "reset-font": "php Base/ScriptComposer/ResetFont.php",
-        "update-geoip": "php Base/ScriptComposer/UpdateGeoIp.php"
+        "update-geoip": "php Base/ScriptComposer/UpdateGeoIp.php",
+        "scan-routes": "php Base/ScriptComposer/ScanRoutes.php"
     }
 }

@@ -1,0 +1,19 @@
+{
+    "generated_at": "2026-08-10 02:00:45",
+    "total_routes": 1,
+    "static_routes": [
+        {
+            "method": "GET",
+            "uri": "/",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        }
+    ],
+    "dynamic_routes": [],
+    "summary_by_method": {
+        "GET": 1
+    }
+}

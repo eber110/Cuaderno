@@ -2,7 +2,7 @@
   "name": "eber/cuaderno",
   "repositories": [
     {
-      "type": "vcs",
+      "type": "path",
       "url": "C:/Users/eber/Proyectos/frame"
     }
   ],
@@ -23,6 +23,7 @@
     "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
     "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
     "reset-font": "@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php",
-    "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php"
+    "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
+    "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php"
   }
 }

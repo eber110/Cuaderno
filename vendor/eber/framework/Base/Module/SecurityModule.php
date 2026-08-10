@@ -2,31 +2,35 @@
 
 namespace Base\Module;
 
+use Base\Module\Security\AccessBlocker;
+use Base\Module\Security\AntiScraper;
+use Base\Module\Security\IntrusionLogger;
+use Base\Module\Security\RouteScanner;
+
 /**
- * Módulo de seguridad centralizado.
+ * Módulo de Seguridad Centralizado y Fachada (Facade).
  * 
- * Proporciona funciones para:
- * - Sanitización de entrada (XSS)
- * - Protección CSRF
- * - Validación de identificadores SQL
+ * Actúa como punto de acceso unificado para todas las herramientas de seguridad del framework,
+ * delegando la ejecución específica a sus clases especializadas en Base\Module\Security (SRP):
+ * - RouteScanner: Escaneo de rutas y generación de mapa de seguridad.
+ * - IntrusionLogger: Monitoreo y registro de eventos/amenazas de seguridad.
+ * - AccessBlocker: Control de IP Banning, rate limiting e IPs bloqueadas.
+ * - AntiScraper: Detección de scrapers/bots, cabeceras web y stream wrappers PHP.
  * 
  * @example
- * // Sanitizar input
+ * // Sanitización
  * $safe = SecurityModule::sanitize($_POST['name']);
  * 
- * // Generar token CSRF
- * $token = SecurityModule::generateCsrfToken();
+ * // Escaneo de rutas
+ * SecurityModule::scanRoutes();
  * 
- * // Validar token CSRF
- * if (!SecurityModule::validateCsrfToken($_POST['_token'])) {
- *     die('CSRF token inválido');
- * }
+ * // Bloqueo de IP
+ * SecurityModule::blockAccess('192.168.1.100', 'Actividad sospechosa');
  */
 class SecurityModule
 {
   /**
    * Whitelist de tablas SQL permitidas.
-   * Se carga desde la constante ALLOWED_TABLES o usa un array por defecto.
    */
   private static ?array $allowedTables = null;
 
@@ -41,7 +45,7 @@ class SecurityModule
   private const CSRF_TOKEN_TTL = 3600;
 
     // =========================================================================
-    // SANITIZACIÓN DE ENTRADA
+    // SANITIZACIÓN DE ENTRADA & SEGURIDAD XSS
     // =========================================================================
 
   /**
@@ -94,11 +98,6 @@ class SecurityModule
 
   /**
    * Obtiene un valor sanitizado de $_POST.
-   * 
-   * @param string $key Clave del valor.
-   * @param mixed $default Valor por defecto si no existe.
-   * @param bool $stripTags Si es true, elimina etiquetas HTML.
-   * @return mixed Valor sanitizado.
    */
   public static function post(string $key, mixed $default = null, bool $stripTags = false): mixed
   {
@@ -117,11 +116,6 @@ class SecurityModule
 
   /**
    * Obtiene un valor sanitizado de $_GET.
-   * 
-   * @param string $key Clave del valor.
-   * @param mixed $default Valor por defecto si no existe.
-   * @param bool $stripTags Si es true, elimina etiquetas HTML.
-   * @return mixed Valor sanitizado.
    */
   public static function get(string $key, mixed $default = null, bool $stripTags = false): mixed
   {
@@ -140,11 +134,6 @@ class SecurityModule
 
   /**
    * Obtiene un valor sanitizado de $_REQUEST.
-   * 
-   * @param string $key Clave del valor.
-   * @param mixed $default Valor por defecto si no existe.
-   * @param bool $stripTags Si es true, elimina etiquetas HTML.
-   * @return mixed Valor sanitizado.
    */
   public static function request(string $key, mixed $default = null, bool $stripTags = false): mixed
   {
@@ -163,9 +152,6 @@ class SecurityModule
 
   /**
    * Escapa una cadena para uso seguro en JavaScript.
-   * 
-   * @param string $input Cadena a escapar.
-   * @return string Cadena escapada para JS.
    */
   public static function escapeJs(string $input): string
   {
@@ -174,9 +160,6 @@ class SecurityModule
 
   /**
    * Escapa una cadena para uso seguro en atributos HTML.
-   * 
-   * @param string $input Cadena a escapar.
-   * @return string Cadena escapada.
    */
   public static function escapeAttr(string $input): string
   {
@@ -189,8 +172,6 @@ class SecurityModule
 
   /**
    * Genera un token CSRF y lo almacena en la sesión.
-   * 
-   * @return string Token CSRF generado.
    */
   public static function generateCsrfToken(): string
   {
@@ -209,8 +190,6 @@ class SecurityModule
 
   /**
    * Obtiene el token CSRF actual o genera uno nuevo.
-   * 
-   * @return string Token CSRF.
    */
   public static function getCsrfToken(): string
   {
@@ -229,9 +208,6 @@ class SecurityModule
 
   /**
    * Valida un token CSRF.
-   * 
-   * @param string|null $token Token a validar.
-   * @return bool True si el token es válido.
    */
   public static function validateCsrfToken(?string $token): bool
   {
@@ -250,20 +226,16 @@ class SecurityModule
 
     $stored = $_SESSION[self::CSRF_SESSION_KEY];
 
-    // Verificar expiración
     if ($stored['expiry'] <= time()) {
       unset($_SESSION[self::CSRF_SESSION_KEY]);
       return false;
     }
 
-    // Comparación segura contra timing attacks
     return hash_equals($stored['token'], $token);
   }
 
   /**
    * Genera un campo hidden HTML con el token CSRF.
-   * 
-   * @return string HTML del campo hidden.
    */
   public static function csrfField(): string
   {
@@ -273,8 +245,6 @@ class SecurityModule
 
   /**
    * Genera una meta tag con el token CSRF para uso con AJAX.
-   * 
-   * @return string HTML de la meta tag.
    */
   public static function csrfMeta(): string
   {
@@ -283,21 +253,14 @@ class SecurityModule
   }
 
   /**
-   * Verifica el token CSRF automáticamente para requests POST.
-   * Debe llamarse al inicio del procesamiento de formularios.
-   * 
-   * @param bool $throwException Si es true, lanza excepción en vez de retornar false.
-   * @return bool True si el token es válido o el request no es POST.
-   * @throws \RuntimeException Si el token es inválido y $throwException es true.
+   * Verifica el token CSRF para peticiones POST.
    */
   public static function verifyCsrf(bool $throwException = false): bool
   {
-    // Solo verificar en requests POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
       return true;
     }
 
-    // Buscar token en POST o headers (para AJAX)
     $token = $_POST['_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
 
     if (!self::validateCsrfToken($token)) {
@@ -311,21 +274,15 @@ class SecurityModule
   }
 
     // =========================================================================
-    // VALIDACIÓN SQL
+    // VALIDACIÓN DE TABLAS SQL
     // =========================================================================
 
-  /**
-   * Obtiene la lista de tablas permitidas.
-   * 
-   * @return array Lista de nombres de tabla en minúsculas.
-   */
   private static function getAllowedTables(): array
   {
     if (self::$allowedTables === null) {
       if (defined('ALLOWED_TABLES') && is_array(ALLOWED_TABLES)) {
         self::$allowedTables = array_map('strtolower', ALLOWED_TABLES);
       } else {
-        // Tablas por defecto basadas en el esquema del proyecto
         self::$allowedTables = [
           'sitesettings',
           'users',
@@ -365,42 +322,21 @@ class SecurityModule
     return self::$allowedTables;
   }
 
-  /**
-   * Valida que un nombre de tabla esté en la whitelist.
-   * 
-   * @param string $tableName Nombre de la tabla a validar.
-   * @return bool True si la tabla está permitida.
-   */
   public static function isAllowedTable(string $tableName): bool
   {
     $normalized = strtolower(trim($tableName));
     return in_array($normalized, self::getAllowedTables(), true);
   }
 
-  /**
-   * Valida un nombre de tabla y lanza excepción si no está permitido.
-   * 
-   * @param string $tableName Nombre de la tabla.
-   * @return string Nombre de tabla validado.
-   * @throws \InvalidArgumentException Si la tabla no está en la whitelist.
-   */
   public static function validateTableName(string $tableName): string
   {
     if (!self::isAllowedTable($tableName)) {
-      throw new \InvalidArgumentException(
-        "Tabla '$tableName' no está en la lista de tablas permitidas"
-      );
+      throw new \InvalidArgumentException("Tabla '$tableName' no está en la lista de tablas permitidas");
     }
 
     return strtolower(trim($tableName));
   }
 
-  /**
-   * Agrega una tabla a la whitelist en runtime.
-   * Útil para migraciones o tablas temporales.
-   * 
-   * @param string $tableName Nombre de la tabla a agregar.
-   */
   public static function addAllowedTable(string $tableName): void
   {
     $tables = self::getAllowedTables();
@@ -412,16 +348,146 @@ class SecurityModule
   }
 
     // =========================================================================
-    // UTILIDADES
+    // ESCANEO Y ANÁLISIS DE RUTAS (Delega en RouteScanner)
     // =========================================================================
 
   /**
-   * Asegura que la sesión esté iniciada.
+   * Escanea las rutas registradas y guarda el mapa en App/Config/routes_security.json.
    */
+  public static function scanRoutes(?string $outputPath = null): array
+  {
+    return RouteScanner::scanAndSaveRoutes($outputPath);
+  }
+
+  /**
+   * Obtiene la configuración de rutas válidas guardadas.
+   */
+  public static function getValidRoutes(): array
+  {
+    return RouteScanner::getSecurityRoutesConfig();
+  }
+
+  /**
+   * Comprueba si una URI y método son válidos.
+   */
+  public static function isRouteValid(string $uri, string $method = 'GET'): bool
+  {
+    return RouteScanner::isPathValid($uri, $method);
+  }
+
+  /**
+   * Evalúa si una URI contiene patrones sospechosos de escaneo/intrusión.
+   */
+  public static function isSuspiciousPath(string $uri): bool
+  {
+    $uriLower = strtolower($uri);
+
+    $suspiciousPatterns = [
+      '.env',
+      '.git',
+      '.aws',
+      '.ssh',
+      'wp-admin',
+      'wp-login',
+      'wp-config',
+      'xmlrpc.php',
+      'phpmyadmin',
+      'eval-stdin',
+      '/shell',
+      '/cmd',
+      '..',
+      '%00',
+      '<script',
+      'select%',
+      'union select',
+      'base64_decode'
+    ];
+
+    foreach ($suspiciousPatterns as $pattern) {
+      if (str_contains($uriLower, $pattern)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+    // =========================================================================
+    // INTRUSIONES & LOGS (Delega en IntrusionLogger)
+    // =========================================================================
+
+  /**
+   * Registra un intento de intrusión o amenaza en Logs/intrusions.log.
+   */
+  public static function logIntrusion(string $reason, array $context = []): void
+  {
+    IntrusionLogger::log($reason, $context);
+  }
+
+    // =========================================================================
+    // BLOQUEO DE ACCESOS (Delega en AccessBlocker)
+    // =========================================================================
+
+  /**
+   * Bloquea el acceso a una dirección IP.
+   */
+  public static function blockAccess(string $ip, string $reason = 'Manual Block', int $duration = 86400): bool
+  {
+    return AccessBlocker::blockIp($ip, $reason, $duration);
+  }
+
+  /**
+   * Desbloquea una dirección IP.
+   */
+  public static function unblockAccess(string $ip): bool
+  {
+    return AccessBlocker::unblockIp($ip);
+  }
+
+  /**
+   * Verifica si una IP está actualmente bloqueada.
+   */
+  public static function isAccessBlocked(string $ip): bool
+  {
+    return AccessBlocker::isIpBlocked($ip);
+  }
+
+    // =========================================================================
+    // PROTECCIÓN ANTI-SCRAPING & WRAPPERS (Delega en AntiScraper)
+    // =========================================================================
+
+  /**
+   * Determina si la petición proviene de un script o bot de scraping.
+   */
+  public static function isScraper(?string $userAgent = null): bool
+  {
+    return AntiScraper::isScraperUserAgent($userAgent);
+  }
+
+  /**
+   * Evalúa si una cadena contiene stream wrappers PHP no permitidos.
+   */
+  public static function containsMaliciousWrapper(string $input): bool
+  {
+    return AntiScraper::isMaliciousWrapper($input);
+  }
+
+  /**
+   * Ejecuta la protección anti-scraping y de wrappers completa.
+   */
+  public static function protectAgainstScraping(bool $enableRateLimiter = true, int $maxRequestsPerMin = 60): void
+  {
+    AntiScraper::protectRequest($enableRateLimiter, $maxRequestsPerMin);
+  }
+
+    // =========================================================================
+    // UTILIDADES GENERALES
+    // =========================================================================
+
   private static function ensureSession(): void
   {
     if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
-      if (class_exists('\\Base\\module\\Session')) {
+      if (class_exists('\\Base\\Module\\Session')) {
         \Base\Module\Session::start();
       } else {
         session_start();
@@ -429,30 +495,16 @@ class SecurityModule
     }
   }
 
-  /**
-   * Verifica si estamos en entorno de producción.
-   * 
-   * @return bool True si es producción.
-   */
   public static function isProduction(): bool
   {
     return defined('ENVIRONMENT') && ENVIRONMENT === 'production';
   }
 
-  /**
-   * Verifica si estamos en entorno de desarrollo.
-   * 
-   * @return bool True si es desarrollo.
-   */
   public static function isDevelopment(): bool
   {
     return !defined('ENVIRONMENT') || ENVIRONMENT === 'development';
   }
 
-  /**
-   * Configura el manejo de errores según el entorno.
-   * Debe llamarse temprano en el bootstrap de la aplicación.
-   */
   public static function configureErrorHandling(): void
   {
     if (self::isProduction()) {
@@ -466,12 +518,6 @@ class SecurityModule
     }
   }
 
-  /**
-   * Genera un hash seguro para contraseñas.
-   * 
-   * @param string $password Contraseña en texto plano.
-   * @return string Hash de la contraseña.
-   */
   public static function hashPassword(string $password): string
   {
     return password_hash($password, PASSWORD_ARGON2ID, [
@@ -481,24 +527,11 @@ class SecurityModule
     ]);
   }
 
-  /**
-   * Verifica una contraseña contra su hash.
-   * 
-   * @param string $password Contraseña en texto plano.
-   * @param string $hash Hash almacenado.
-   * @return bool True si coinciden.
-   */
   public static function verifyPassword(string $password, string $hash): bool
   {
     return password_verify($password, $hash);
   }
 
-  /**
-   * Genera un token aleatorio seguro.
-   * 
-   * @param int $length Longitud del token en bytes (resultado será el doble en hex).
-   * @return string Token hexadecimal.
-   */
   public static function generateToken(int $length = 32): string
   {
     return bin2hex(random_bytes($length));

@@ -38,8 +38,8 @@ class UpdateGeoIp
             exit(1);
         }
 
-        // Directorio Database en la raíz del proyecto
-        $databaseDir = $baseDir . '/Database';
+        // Directorio App/DatabaseComponent en el proyecto
+        $databaseDir = $baseDir . '/App/DatabaseComponent';
         if (!is_dir($databaseDir)) {
             if (!@mkdir($databaseDir, 0755, true)) {
                 echo "ERROR: No se pudo crear el directorio: {$databaseDir}\n";

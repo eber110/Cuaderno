@@ -1,0 +1,13 @@
+[
+    {
+        "timestamp": "2026-08-10 02:00:45",
+        "reason": "Test SOLID Intrusion Log",
+        "ip": "unknown",
+        "method": "unknown",
+        "uri": "unknown",
+        "user_agent": "unknown",
+        "context": {
+            "test": true
+        }
+    }
+]

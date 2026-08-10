@@ -193,8 +193,6 @@ export function hamburgerMenu() {
     const overlay = createOverlay(menu);
 
     menu.classList.remove('hidden');
-    // Bloquear pointer-events durante la apertura para evitar clics accidentales o "ghost clicks" en móviles
-    menu.style.setProperty('pointer-events', 'none', 'important');
 
     // Sincronizar estado visual y accesibilidad en los activadores
     const relatedToggles = toggle ? [toggle] : getTogglesForMenu(menu);
@@ -208,9 +206,6 @@ export function hamburgerMenu() {
     if (!hasGsap || !menu.classList.contains('animated')) {
       menu.style.transform = 'translateX(0)';
       if (overlay) overlay.style.opacity = '1';
-      setTimeout(() => {
-        menu.style.removeProperty('pointer-events');
-      }, 100);
       return;
     }
 
@@ -225,11 +220,7 @@ export function hamburgerMenu() {
     gsap.to(menu, {
       x: 0,
       duration: animConfig.duration,
-      ease: animConfig.ease,
-      onComplete: () => {
-        // Habilitar la interacción con los enlaces únicamente cuando el menú se haya abierto por completo
-        menu.style.removeProperty('pointer-events');
-      }
+      ease: animConfig.ease
     });
 
     if (overlay) {
@@ -249,9 +240,6 @@ export function hamburgerMenu() {
     const isFromLeft = menu.classList.contains('from-left');
     const overlay = menu.querySelector('.hamburger-overlay');
 
-    // Bloquear pointer-events inmediatamente al cerrar
-    menu.style.setProperty('pointer-events', 'none', 'important');
-
     // Sincronizar estado visual y accesibilidad en los activadores
     const relatedToggles = toggle ? [toggle] : getTogglesForMenu(menu);
     relatedToggles.forEach(t => {
@@ -263,7 +251,6 @@ export function hamburgerMenu() {
       menu.classList.add('hidden');
       menu.style.transform = '';
       if (overlay) overlay.style.opacity = '0';
-      menu.style.removeProperty('pointer-events');
       toggleBodyScroll(false);
       return;
     }
@@ -284,7 +271,6 @@ export function hamburgerMenu() {
       onComplete: () => {
         menu.classList.add('hidden');
         gsap.set(menu, { clearProps: 'x,visibility' });
-        menu.style.removeProperty('pointer-events');
         toggleBodyScroll(false);
       }
     });

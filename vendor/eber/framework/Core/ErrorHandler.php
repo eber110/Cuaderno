@@ -33,13 +33,17 @@ class ErrorHandler
      */
     private static function log(int $code, string $message, array $context = []): void
     {
+        $uri = $_SERVER['REQUEST_URI'] ?? 'unknown';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
+
         $logData = [
             'time' => date('Y-m-d H:i:s'),
             'code' => $code,
             'msg' => $message,
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'url' => $_SERVER['REQUEST_URI'] ?? 'unknown',
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+            'ip' => $ip,
+            'url' => $uri,
+            'method' => $method,
         ];
 
         if (!empty($context)) {
@@ -47,7 +51,19 @@ class ErrorHandler
         }
 
         error_log('[ErrorHandler] ' . json_encode($logData, JSON_UNESCAPED_SLASHES));
+
+        // Registrar intrusión si el error es de seguridad (403, 405) o si la ruta es sospechosa
+        if (class_exists('\\Base\\Module\\SecurityModule')) {
+            $isSuspicious = \Base\Module\SecurityModule::isSuspiciousPath($uri);
+            if ($code === 403 || $code === 405 || $isSuspicious) {
+                \Base\Module\SecurityModule::logIntrusion(
+                    "HTTP Error {$code} ({$message})" . ($isSuspicious ? " [Ruta Sospechosa]" : ""),
+                    $logData
+                );
+            }
+        }
     }
+
 
     /**
      * Renderiza la página de error con los estilos del proyecto.

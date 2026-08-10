@@ -19,11 +19,13 @@ class InitAppStructure
     'App/Components',
     'App/Config',
     'App/Controllers',
+    'App/DatabaseComponent',
     'App/Middleware',
     'App/Models',
     'App/Providers',
     'App/Public',
     'App/Route',
+    'App/Safety',
     'App/Segment',
     'App/Views',
     // Subdirectorios importantes
@@ -129,6 +131,8 @@ class InitAppStructure
     $this->createGitignore();
     $this->copyErrorView();
     $this->createThemeConfig();
+    $this->createDefaultRouteFile();
+    $this->createRoutesSecurityConfig();
     $this->copyAgentsFile();
 
     echo "\n📊 Resumen:\n";
@@ -979,6 +983,56 @@ CSS;
       echo "✅ Creado: App/Public/Css/_configTheme.css\n";
     } else {
       echo "❌ Error: No se pudo crear App/Public/Css/_configTheme.css\n";
+    }
+  }
+
+  /**
+   * Crea un archivo de rutas inicial en App/Route/web.php si no existe.
+   */
+  private function createDefaultRouteFile()
+  {
+    $routeFilePath = $this->basePath . '/App/Route/web.php';
+
+    if (file_exists($routeFilePath)) {
+      echo "⏭️  Saltado: App/Route/web.php (ya existe)\n";
+      return;
+    }
+
+    $content = <<<'PHP'
+<?php
+
+use Core\Route;
+
+/**
+ * Definición de rutas del proyecto.
+ */
+
+Route::get('/', function () {
+    return 'Bienvenido a mi aplicación';
+});
+PHP;
+
+    if (file_put_contents($routeFilePath, $content)) {
+      echo "✅ Creado: App/Route/web.php\n";
+    } else {
+      echo "❌ Error: No se pudo crear App/Route/web.php\n";
+    }
+  }
+
+  /**
+   * Genera el mapa inicial de seguridad de rutas en App/Config/routes_security.json para el proyecto.
+   */
+  private function createRoutesSecurityConfig()
+  {
+    $configPath = $this->basePath . '/App/Safety/routes_security.json';
+
+    if (class_exists('\\Base\\Module\\Security\\RouteScanner')) {
+      $routeDir = $this->basePath . '/App/Route';
+      if (is_dir($routeDir) && class_exists('\\Core\\ConfigLoader\\RouteLoader')) {
+        \Core\ConfigLoader\RouteLoader::load($routeDir);
+      }
+      \Base\Module\Security\RouteScanner::scanAndSaveRoutes($configPath);
+      echo "✅ Creado: App/Safety/routes_security.json (mapa de rutas del proyecto)\n";
     }
   }
 
