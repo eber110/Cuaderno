@@ -1,6 +1,14 @@
 <?php
 
-require 'vendor/autoload.php';
+if (file_exists(getcwd() . '/vendor/autoload.php')) {
+  require_once getcwd() . '/vendor/autoload.php';
+} else {
+  require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
+}
+
+if (!defined('ROOT_PATH')) {
+  define('ROOT_PATH', str_replace('\\', '/', getcwd()));
+}
 
 use Base\Module\MinifyModule;
 use Base\Module\JitCssModule;

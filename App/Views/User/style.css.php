@@ -14,13 +14,13 @@
   .theme-button{
     background-color: <?= $back?>;
     color: <?= $color?>;
-    <?php if ($hover === true || $hover === 'true' || $hover === 1 || $hover === '1') echo "&:hover{background-color:  oklch(from ".$back." calc(l * 0.92) c h);}"?>
   }
+  <?php if ($hover === true || $hover === 'true' || $hover === 1 || $hover === '1') echo ".theme-button:hover{background-color:  oklch(from ".$back." calc(l * 0.92) c h);}"?>
 
   .theme-button-menu{
     background-color: <?= $back?>00;
-    &:hover{background-color: oklch(from <?= $back?> calc(l * 1.04) c h);}
   }
+  .theme-button-menu:hover{background-color: oklch(from <?= $back?> calc(l * 1.04) c h);}
 
   .w-theme-center{
     width: calc(100% - 115px);

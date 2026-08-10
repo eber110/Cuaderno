@@ -51,7 +51,8 @@
   border-radius: 50px;
   background-color: #000000;
   color: #ffffff;
-  &:hover{
-    background-color: #464646;
-  }
+}
+
+.closed-modal-preview:hover{
+  background-color: #464646;
 }

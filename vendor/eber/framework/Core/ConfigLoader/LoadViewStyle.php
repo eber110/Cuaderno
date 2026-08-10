@@ -88,7 +88,9 @@ class LoadViewStyle
     $files = $this->getDirectoryFiles($ruteCss);
     $urlPath = $this->fsPathToUrl($ruteCss);
     foreach ($files as $file) {
-      $href = DOMAIN . ltrim($urlPath, '/') . $file;
+      $fullFilePath = rtrim($ruteCss, '/\\') . '/' . $file;
+      $v = file_exists($fullFilePath) ? '?v=' . filemtime($fullFilePath) : '';
+      $href = DOMAIN . ltrim($urlPath, '/') . $file . $v;
       print '<link rel="stylesheet" href="' . $href . '"' . ($param ? ' ' . $param : '') . '>';
     }
   }
@@ -98,7 +100,9 @@ class LoadViewStyle
     $files = $this->getDirectoryFiles($ruteJs);
     $urlPath = $this->fsPathToUrl($ruteJs);
     foreach ($files as $file) {
-      print '<script src="' . DOMAIN . ltrim($urlPath, '/') . $file . '"' . ($param ? ' ' . $param : '') . '></script>';
+      $fullFilePath = rtrim($ruteJs, '/\\') . '/' . $file;
+      $v = file_exists($fullFilePath) ? '?v=' . filemtime($fullFilePath) : '';
+      print '<script src="' . DOMAIN . ltrim($urlPath, '/') . $file . $v . '"' . ($param ? ' ' . $param : '') . '></script>';
     }
   }
 

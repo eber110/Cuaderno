@@ -47,7 +47,11 @@
 .btn-share-profile{
   color: var(--color-card-share-profile);
   border: solid 2px var(--color-card-share-profile);
-  &:hover{border: solid 2px #444564;color: #444564;}
+}
+
+.btn-share-profile:hover{
+  border: solid 2px #444564;
+  color: #444564;
 }
 
 .btn-share-register{
@@ -71,9 +75,10 @@
 
 .back-menu-card{
   background-color: #ffffff00;
-  &:hover{
-    background-color: var(--back-color3);
-  }
+}
+
+.back-menu-card:hover{
+  background-color: var(--back-color3);
 }
 
 .shadow-card{
@@ -94,9 +99,10 @@
 
 .back-item-sidebar-hover{
   background-color: #ffffff00;
-  &:hover{
-    background-color: #cecece;
-  }
+}
+
+.back-item-sidebar-hover:hover{
+  background-color: #cecece;
 }
 
 .back-item-active{
