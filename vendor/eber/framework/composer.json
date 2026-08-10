@@ -21,9 +21,6 @@
             "Base\\": "Base/"
         },
         "files": [
-            "Core/Load/LoadEnv.php",
-            "config.php",
-            "Core/Load/LoadRoutes.php",
             "Base/Helpers/SvgModule.php",
             "Base/Helpers/Part.php",
             "Base/Cookie/CookieConfiguration.php"

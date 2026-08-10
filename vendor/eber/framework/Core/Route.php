@@ -227,6 +227,14 @@ class Route
    */
   public static function run()
   {
+    // Cargar rutas del proyecto si no se han registrado previamente
+    if (empty(self::$routes) && defined('ROOT_PATH')) {
+      $routeDir = ROOT_PATH . '/App/Route';
+      if (is_dir($routeDir) && class_exists('\\Core\\ConfigLoader\\RouteLoader')) {
+        \Core\ConfigLoader\RouteLoader::load($routeDir);
+      }
+    }
+
     // Ejecutar CORS al inicio de la solicitud
     if (class_exists('\Base\Module\CorsModule')) {
       \Base\Module\CorsModule::handle();

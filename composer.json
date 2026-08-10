@@ -3,7 +3,10 @@
   "repositories": [
     {
       "type": "path",
-      "url": "C:/Users/eber/Proyectos/frame"
+      "url": "C:/Users/eber/Proyectos/frame",
+      "options": {
+        "symlink": false
+      }
     }
   ],
   "require": {

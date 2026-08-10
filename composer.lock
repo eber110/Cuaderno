@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fcc611cbff3107285a6ed1b590a76c17",
+    "content-hash": "08217b347b49ef98feed079e2a3c3d63",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -101,9 +101,6 @@
                     "Base\\": "Base/"
                 },
                 "files": [
-                    "Core/Load/LoadEnv.php",
-                    "config.php",
-                    "Core/Load/LoadRoutes.php",
                     "Base/Helpers/SvgModule.php",
                     "Base/Helpers/Part.php",
                     "Base/Cookie/CookieConfiguration.php"
@@ -146,6 +143,7 @@
             ],
             "description": "Mi increíble framework",
             "transport-options": {
+                "symlink": false,
                 "relative": false
             }
         },
