@@ -84,7 +84,7 @@ class UserControllers extends Control {
 
     // Configuración de metadatos SEO
     SeoModule::setMetaDescription($data["card"]["desc"] ?? "");
-    SeoModule::setTitle("Mi Cuaderno: " . ($data["card"]["title"] ?? ""));
+    SeoModule::setTitle("Clikhub - " . ($data["card"]["title"] ?? ""));
     SeoModule::setOpenGraph([
       "title"        => ($data["card"]["title"] ?? "") . ", revisa mi cuaderno.",
       "site_name"    => "Cuaderno",
