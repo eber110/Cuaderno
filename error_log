@@ -1,0 +1,2 @@
+[09-Aug-2026 20:46:48 America/Santiago] [ErrorHandler] {"time":"2026-08-09 20:46:48","code":404,"msg":"P\u00e1gina no encontrada","ip":"104.23.221.159","url":"/wp-admin/install.php?step=1","method":"GET","context":{"code":404,"redirect":""}}
+[09-Aug-2026 21:01:43 America/Santiago] [ErrorHandler] {"time":"2026-08-09 21:01:43","code":404,"msg":"P\u00e1gina no encontrada","ip":"172.69.151.240","url":"/wp-admin/install.php?step=1","method":"GET","context":{"code":404,"redirect":""}}
