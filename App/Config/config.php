@@ -29,5 +29,19 @@ if (!defined('GEO_REQUEST_TIMEOUT')) {
     define('GEO_REQUEST_TIMEOUT', 1);
 }
 
+// Configuración de Lemon Squeezy
+if (!defined('LEMON_SQUEEZY_API_KEY')) {
+    define('LEMON_SQUEEZY_API_KEY', $_ENV['LEMON_SQUEEZY_API_KEY'] ?? getenv('LEMON_SQUEEZY_API_KEY') ?: '');
+}
+if (!defined('LEMON_SQUEEZY_STORE_ID')) {
+    define('LEMON_SQUEEZY_STORE_ID', $_ENV['LEMON_SQUEEZY_STORE_ID'] ?? getenv('LEMON_SQUEEZY_STORE_ID') ?: '');
+}
+if (!defined('LEMON_SQUEEZY_WEBHOOK_SECRET')) {
+    define('LEMON_SQUEEZY_WEBHOOK_SECRET', $_ENV['LEMON_SQUEEZY_WEBHOOK_SECRET'] ?? getenv('LEMON_SQUEEZY_WEBHOOK_SECRET') ?: '');
+}
+if (!defined('LEMON_SQUEEZY_MODE')) {
+    define('LEMON_SQUEEZY_MODE', $_ENV['LEMON_SQUEEZY_MODE'] ?? getenv('LEMON_SQUEEZY_MODE') ?: 'test');
+}
+
 // Cargar configuración del framework
-require_once $basePath . '/vendor/eber/framework/config.php';
+require_once $basePath . '/vendor/eber/framework/config.php';

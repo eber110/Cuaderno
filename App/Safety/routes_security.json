@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-08-10 02:06:24",
-    "total_routes": 29,
+    "generated_at": "2026-08-10 23:49:43",
+    "total_routes": 38,
     "static_routes": [
         {
             "method": "GET",
@@ -171,6 +171,87 @@
         },
         {
             "method": "GET",
+            "uri": "/suscripcion",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/planes",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/test",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@testApi",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/checkout",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/lemon-squeezy/checkout",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/lemon-squeezy/webhook",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@webhook",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/success",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@success",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/cancel",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@cancel",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/init-db",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
             "uri": "/test/2",
             "has_variables": false,
             "variables": [],
@@ -329,7 +410,7 @@
         }
     ],
     "summary_by_method": {
-        "GET": 19,
-        "POST": 10
+        "GET": 26,
+        "POST": 12
     }
 }

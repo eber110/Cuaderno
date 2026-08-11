@@ -31,6 +31,27 @@ Route::get("/llms.txt", function(){ SeoModule::llms([
   ])
 ;});
 
+// ==================== LEMON SQUEEZY PAYMENT GATEWAY ====================
+use App\Controllers\LemonSqueezyControllers;
+
+Route::get("/suscripcion", [LemonSqueezyControllers::class, "salesPage"]);
+Route::get("/planes", [LemonSqueezyControllers::class, "salesPage"]);
+
+Route::prefix("/lemon-squeezy")->group(function(){
+  Route::get("/test", [LemonSqueezyControllers::class, "testApi"]);
+  Route::get("/checkout", [LemonSqueezyControllers::class, "checkout"]);
+  Route::post("/checkout", [LemonSqueezyControllers::class, "checkout"]);
+  Route::post("/webhook", [LemonSqueezyControllers::class, "webhook"]);
+  Route::get("/success", [LemonSqueezyControllers::class, "success"]);
+  Route::get("/cancel", [LemonSqueezyControllers::class, "cancel"]);
+  Route::get("/init-db", function(){
+    $res = \App\DatabaseComponent\LemonSqueezyTable::setupTables();
+    header("Content-Type: application/json");
+    echo json_encode($res, JSON_PRETTY_PRINT);
+    exit;
+  });
+});
+
 #este grupo de paginas son solo para el usuario logueado
 Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(function(){
 
