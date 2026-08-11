@@ -49,11 +49,15 @@ class LemonSqueezyModels extends Builder
       "updated_at_record" => date("Y-m-d H:i:s")
     ];
 
-    if (!empty($existing)) {
-      return (new self("lemon_squeezy_orders"))->where("lemon_order_id", $lemonOrderId)->update($payload);
+    if (!empty($existing) && is_array($existing)) {
+      $updateModel = new self("lemon_squeezy_orders");
+      $updateModel->update("lemon_order_id", $lemonOrderId, $payload);
+      return true;
     } else {
       $payload["created_at_record"] = date("Y-m-d H:i:s");
-      return (new self("lemon_squeezy_orders"))->insert($payload);
+      $createModel = new self("lemon_squeezy_orders");
+      $createModel->create($payload);
+      return true;
     }
   }
 
@@ -91,11 +95,15 @@ class LemonSqueezyModels extends Builder
       "updated_at_sub"        => date("Y-m-d H:i:s")
     ];
 
-    if (!empty($existing)) {
-      return (new self("lemon_squeezy_subscriptions"))->where("lemon_subscription_id", $lemonSubId)->update($payload);
+    if (!empty($existing) && is_array($existing)) {
+      $updateModel = new self("lemon_squeezy_subscriptions");
+      $updateModel->update("lemon_subscription_id", $lemonSubId, $payload);
+      return true;
     } else {
       $payload["created_at_sub"] = date("Y-m-d H:i:s");
-      return (new self("lemon_squeezy_subscriptions"))->insert($payload);
+      $createModel = new self("lemon_squeezy_subscriptions");
+      $createModel->create($payload);
+      return true;
     }
   }
 
@@ -111,7 +119,7 @@ class LemonSqueezyModels extends Builder
       ->where("lemon_order_id", $lemonOrderId)
       ->first();
 
-    return !empty($result) ? $result : null;
+    return (!empty($result) && is_array($result)) ? $result : null;
   }
 
   /**
@@ -122,10 +130,12 @@ class LemonSqueezyModels extends Builder
    */
   public static function getOrdersByUser(string $userId): array
   {
-    return (new self("lemon_squeezy_orders"))
+    $result = (new self("lemon_squeezy_orders"))
       ->where("user_id", $userId)
       ->orderBy("created_at_record", "DESC")
       ->get();
+
+    return is_array($result) ? $result : [];
   }
 
   /**
@@ -142,6 +152,6 @@ class LemonSqueezyModels extends Builder
       ->orderBy("created_at_sub", "DESC")
       ->first();
 
-    return !empty($result) ? $result : null;
+    return (!empty($result) && is_array($result)) ? $result : null;
   }
 }
