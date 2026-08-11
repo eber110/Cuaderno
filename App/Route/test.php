@@ -35,7 +35,14 @@ Route::get("/test/2", function(){
   //var_dump($share);
   var_dump($_SESSION ?? []);
 
-  var_dump(Session::session_data("premium"));
+  if (Session::session_active()) {
+    # code...
+    $esPremium = LemonSqueezyModels::isUserSubscribed(Session::session_data("user_id"));
+  }else{
+    $esPremium = "visit";
+  }
+  var_dump($esPremium);
+
 });
 
 Route::post("/test/1/", function($param){

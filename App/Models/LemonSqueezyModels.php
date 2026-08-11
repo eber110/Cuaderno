@@ -9,6 +9,7 @@ use Base\Builder\Builder;
  * 
  * Suministro y gestión de datos de transacciones, órdenes y suscripciones
  * provenientes de la pasarela Lemon Squeezy.
+ * Utiliza estrictamente get_one() y get_all() de Base\Builder\Builder.
  */
 class LemonSqueezyModels extends Builder
 {
@@ -30,13 +31,19 @@ class LemonSqueezyModels extends Builder
     }
 
     $model = new self("lemon_squeezy_orders");
-    $existing = $model->where("lemon_order_id", $lemonOrderId)->first();
+    try {
+      if (!$model->table_exist("lemon_squeezy_orders")) {
+        \App\DatabaseComponent\LemonSqueezyTable::setupTables();
+      }
+    } catch (\Throwable $e) {}
+
+    $existing = $model->where("lemon_order_id", $lemonOrderId)->get_one();
 
     $payload = [
       "lemon_order_id"    => $lemonOrderId,
       "store_id"          => $data["store_id"] ?? "",
       "customer_id"       => $data["customer_id"] ?? "",
-      "user_id"           => $data["user_id"] ?? null,
+      "user_id"           => !empty($data["user_id"]) ? (string)$data["user_id"] : null,
       "customer_name"     => $data["customer_name"] ?? "",
       "customer_email"    => $data["customer_email"] ?? "",
       "order_number"      => $data["order_number"] ?? "",
@@ -76,7 +83,13 @@ class LemonSqueezyModels extends Builder
     }
 
     $model = new self("lemon_squeezy_subscriptions");
-    $existing = $model->where("lemon_subscription_id", $lemonSubId)->first();
+    try {
+      if (!$model->table_exist("lemon_squeezy_subscriptions")) {
+        \App\DatabaseComponent\LemonSqueezyTable::setupTables();
+      }
+    } catch (\Throwable $e) {}
+
+    $existing = $model->where("lemon_subscription_id", $lemonSubId)->get_one();
 
     $formatDate = function ($dateVal) {
       if (empty($dateVal)) return null;
@@ -91,7 +104,7 @@ class LemonSqueezyModels extends Builder
       "order_id"              => $data["order_id"] ?? "",
       "product_id"            => $data["product_id"] ?? "",
       "variant_id"            => $data["variant_id"] ?? "",
-      "user_id"               => !empty($data["user_id"]) ? $data["user_id"] : null,
+      "user_id"               => !empty($data["user_id"]) ? (string)$data["user_id"] : null,
       "user_email"            => $data["user_email"] ?? "",
       "status"                => $data["status"] ?? "active",
       "trial_ends_at"         => $formatDate($data["trial_ends_at"] ?? null),
@@ -100,7 +113,6 @@ class LemonSqueezyModels extends Builder
       "raw_payload"           => is_array($data["raw_payload"] ?? null) ? json_encode($data["raw_payload"]) : ($data["raw_payload"] ?? null),
       "updated_at_sub"        => date("Y-m-d H:i:s")
     ];
-
 
     if (!empty($existing) && is_array($existing)) {
       $updateModel = new self("lemon_squeezy_subscriptions");
@@ -124,52 +136,58 @@ class LemonSqueezyModels extends Builder
   {
     $result = (new self("lemon_squeezy_orders"))
       ->where("lemon_order_id", $lemonOrderId)
-      ->first();
+      ->get_one();
 
-    return (!empty($result) && is_array($result)) ? $result : null;
+    if (!empty($result) && is_array($result)) {
+      return isset($result[0]) && is_array($result[0]) ? $result[0] : $result;
+    }
+    return null;
   }
 
   /**
    * Obtiene las órdenes asociadas a un usuario específico.
    * 
-   * @param string $userId ID o username del usuario.
+   * @param string|int $userId ID o username del usuario.
    * @return array Lista de órdenes.
    */
-  public static function getOrdersByUser(string $userId): array
+  public static function getOrdersByUser(string|int $userId): array
   {
     $result = (new self("lemon_squeezy_orders"))
-      ->where("user_id", $userId)
+      ->where("user_id", (string)$userId)
       ->order("created_at_record", "DESC")
-      ->get();
+      ->get_all();
 
-    return is_array($result) ? $result : [];
+    return (is_array($result) && $result !== false) ? $result : [];
   }
 
   /**
    * Obtiene la suscripción activa de un usuario.
    * 
-   * @param string $userId ID o username del usuario.
+   * @param string|int $userId ID o username del usuario.
    * @return array|null Registro de la suscripción o null.
    */
-  public static function getSubscriptionByUser(string $userId): ?array
+  public static function getSubscriptionByUser(string|int $userId): ?array
   {
     $subModel = new self("lemon_squeezy_subscriptions");
-    $result = $subModel->where("user_id", $userId)
+    $result = $subModel->where("user_id", (string)$userId)
       ->where("status", "active")
       ->order("created_at_sub", "DESC")
-      ->first();
+      ->get_one();
 
-    return (!empty($result) && is_array($result)) ? $result : null;
+    if (!empty($result) && is_array($result)) {
+      return isset($result[0]) && is_array($result[0]) ? $result[0] : $result;
+    }
+    return null;
   }
 
 
   /**
    * Verifica si un usuario tiene una suscripción activa o en periodo de prueba.
    * 
-   * @param string $userId ID o username del usuario.
+   * @param string|int $userId ID o username del usuario.
    * @return bool True si está activo o en prueba, False de lo contrario.
    */
-  public static function isUserSubscribed(string $userId): bool
+  public static function isUserSubscribed(string|int $userId): bool
   {
     $sub = self::getSubscriptionByUser($userId);
     return !empty($sub) && in_array($sub["status"], ["active", "on_trial"], true);
@@ -178,10 +196,10 @@ class LemonSqueezyModels extends Builder
   /**
    * Obtiene la suscripción activa de un usuario junto con la orden de pago asociada.
    * 
-   * @param string $userId ID o username del usuario.
+   * @param string|int $userId ID o username del usuario.
    * @return array|null Datos consolidados de suscripción u orden o null.
    */
-  public static function getSubscriptionWithOrder(string $userId): ?array
+  public static function getSubscriptionWithOrder(string|int $userId): ?array
   {
     $subscription = self::getSubscriptionByUser($userId);
     if (empty($subscription)) {
@@ -199,5 +217,3 @@ class LemonSqueezyModels extends Builder
     ];
   }
 }
-
-

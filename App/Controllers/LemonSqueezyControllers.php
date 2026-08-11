@@ -322,6 +322,13 @@ class LemonSqueezyControllers extends Control
     SeoModule::setTitle("¡Pago Exitoso! - Suscripción Activada");
     SeoModule::setMetaDescription("Tu pago ha sido procesado con éxito. Bienvenido al plan Pro.");
 
+    if (Session::session_active()) {
+      $premium = LemonSqueezyModels::isUserSubscribed(Session::session_data("user_id"));
+      $_SESSION["user"]["premium"] = $premium;
+    }else{
+      $_SESSION["user"]["premium"] = false;
+    }
+
     $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
     $wantsJson  = str_contains($httpAccept, "application/json");
     $jsonFlag   = SecurityModule::get("json");

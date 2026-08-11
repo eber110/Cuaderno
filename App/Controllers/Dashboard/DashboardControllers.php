@@ -3,9 +3,11 @@
 namespace App\Controllers\Dashboard;
 
 use App\Models\DesignModels;
+use App\Models\LemonSqueezyModels;
 use App\Models\StatisticsModels;
 use App\Models\UserModels;
 use Base\Control\Control;
+use Base\Module\Session;
 
 /**
  * Clase DashboardControllers
@@ -53,7 +55,8 @@ class DashboardControllers extends Control {
         "saveDesign"   => "/panel/{$userClean}/guardar",
         "simularDatos" => "/panel/{$userClean}/simular-datos"
       ],
-      "session"   => $_SESSION["user"] ?? false
+      "session" => $_SESSION["user"] ?? false,
+      "premium" => LemonSqueezyModels::isUserSubscribed(Session::session_data("user_id"))
     ];
 
     return $this->view("Dashboard.Panel.panel", $data);

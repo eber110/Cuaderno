@@ -2,6 +2,7 @@
   /** 
    * @var mixed $card 
    * @var mixed $session
+   * @var mixed $premium
    */
   $item = "p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-start gap5 pointer";
 ?>
@@ -72,7 +73,7 @@
   </div>
 
   <div class="flex-column top-start gap10 p20 w100">
-    <!-- <div class="flex-row center-between w100" data-savable="false">Ocultar perfil <?php _form("Panel.hideProfile")?></div> -->
+    <p><?= ($premium) ? "Es vip": "No suscrito"?></p>
     <p class="modal-btn animated darken <?= $item?>"><?= svg("out")?>Cerrar sesión</p>
 
     <div class="hidden">
