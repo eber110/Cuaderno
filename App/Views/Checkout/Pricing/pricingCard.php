@@ -173,8 +173,8 @@
       <input type="hidden" name="locale" value="<?= e($locale ?? 'es'); ?>">
       <input type="hidden" name="country" id="country_input" value="<?= e($countryCode ?? 'CL'); ?>">
 
-      <?php if (!empty($username)): ?>
-        <input type="hidden" name="user_id" id="user_id_input" value="<?= e($username); ?>">
+      <?php if (!empty($userId)): ?>
+        <input type="hidden" name="user_id" id="user_id_input" value="<?= e($userId); ?>">
       <?php endif; ?>
 
       <div class="flex-column gap5">
@@ -193,7 +193,9 @@
 
       <a 
         id="lemon-overlay-button"
-        href="https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de?embed=1&checkout[locale]=<?= urlencode($locale ?? 'es') ?>&checkout[country]=<?= urlencode($countryCode ?? 'CL') ?>&checkout[billing_address][country]=<?= urlencode($countryCode ?? 'CL') ?><?= !empty($userEmail) ? '&checkout[email]=' . urlencode($userEmail) : '' ?><?= !empty($username) ? '&checkout[custom][user_id]=' . urlencode($username) : '' ?>"
+        href="https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de?embed=1&checkout[locale]=<?= urlencode($locale ?? 'es') ?>&checkout[country]=<?= urlencode($countryCode ?? 'CL') ?>&checkout[billing_address][country]=<?= urlencode($countryCode ?? 'CL') ?><?= !empty($userEmail) ? '&checkout[email]=' . urlencode($userEmail) : '' ?><?= !empty($userId) ? '&checkout[custom][user_id]=' . urlencode($userId) : '' ?>"
+
+
         class="lemonsqueezy-button btn-checkout mt10 text-center flex-row center-center"
         style="text-decoration: none; display: flex; justify-content: center; align-items: center;"
       >

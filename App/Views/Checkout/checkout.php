@@ -19,9 +19,11 @@
       "variantId"   => $variantId ?? "",
       "userEmail"   => $userEmail ?? "",
       "username"    => $username ?? "",
+      "userId"      => $userId ?? "",
       "countryCode" => $countryCode ?? "CL",
       "locale"      => $locale ?? "es"
     ]);
+
   ?>
 
 

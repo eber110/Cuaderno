@@ -42,7 +42,9 @@ class LemonSqueezyControllers extends Control
 
     $userEmail = Session::session_data("email") ?? "";
     $username  = Session::session_data("username") ?? "";
+    $userId    = Session::session_data("user_id") ?? "";
     $variantId = SecurityModule::get("variant_id", "2004539", true);
+
 
     $clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     if (str_contains($clientIp, ',')) {
@@ -64,6 +66,7 @@ class LemonSqueezyControllers extends Control
     return $this->view("Checkout.checkout", [
       "userEmail"   => $userEmail,
       "username"    => $username,
+      "userId"      => $userId,
       "variantId"   => $variantId,
       "countryCode" => $countryCode,
       "locale"      => "es"
@@ -111,7 +114,8 @@ class LemonSqueezyControllers extends Control
     $redirectUrl = trim((string)($input["redirect_url"] ?? ""));
     $userEmail   = trim((string)($input["email"] ?? Session::session_data("email") ?? ""));
     $userName    = trim((string)($input["name"] ?? Session::session_data("username") ?? ""));
-    $userId      = trim((string)($input["user_id"] ?? Session::session_data("username") ?? ""));
+    $userId      = trim((string)($input["user_id"] ?? Session::session_data("user_id") ?? ""));
+
 
     if (empty($variantId)) {
       $reqMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";

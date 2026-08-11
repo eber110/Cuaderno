@@ -177,8 +177,26 @@ class LemonSqueezyModels extends Builder
     if (!empty($result) && is_array($result)) {
       return isset($result[0]) && is_array($result[0]) ? $result[0] : $result;
     }
+
+    // Fallback defensivo: buscar por username de la sesión si la búsqueda por ID numérico no encuentra resultados
+    if (class_exists('\Base\Module\Session')) {
+      $sessionUser = \Base\Module\Session::session_data("username");
+      if (!empty($sessionUser) && (string)$sessionUser !== (string)$userId) {
+        $fallbackModel = new self("lemon_squeezy_subscriptions");
+        $resFallback = $fallbackModel->where("user_id", (string)$sessionUser)
+          ->where("status", "active")
+          ->order("created_at_sub", "DESC")
+          ->get_one();
+
+        if (!empty($resFallback) && is_array($resFallback)) {
+          return isset($resFallback[0]) && is_array($resFallback[0]) ? $resFallback[0] : $resFallback;
+        }
+      }
+    }
+
     return null;
   }
+
 
 
   /**
