@@ -168,13 +168,14 @@
       </li>
     </ul>
 
-    <form action="/lemon-squeezy/checkout" method="POST" class="flex-column gap15 w100">
+    <form id="lemon-checkout-form" action="/lemon-squeezy/checkout" method="POST" class="flex-column gap15 w100">
       <input type="hidden" name="variant_id" value="<?= e(!empty($variantId) ? $variantId : '2004539'); ?>">
+      <input type="hidden" name="locale" value="<?= e($locale ?? 'es'); ?>">
+      <input type="hidden" name="country" id="country_input" value="<?= e($countryCode ?? 'CL'); ?>">
 
       <?php if (!empty($username)): ?>
-        <input type="hidden" name="user_id" value="<?= e($username); ?>">
+        <input type="hidden" name="user_id" id="user_id_input" value="<?= e($username); ?>">
       <?php endif; ?>
-
 
       <div class="flex-column gap5">
         <label for="email_checkout" class="font13 bold600 color-secondary">Tu correo electrónico:</label>
@@ -190,9 +191,14 @@
         >
       </div>
 
-      <button type="submit" class="btn-checkout mt10">
+      <a 
+        id="lemon-overlay-button"
+        href="https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de?embed=1&checkout[locale]=<?= urlencode($locale ?? 'es') ?>&checkout[country]=<?= urlencode($countryCode ?? 'CL') ?>&checkout[billing_address][country]=<?= urlencode($countryCode ?? 'CL') ?><?= !empty($userEmail) ? '&checkout[email]=' . urlencode($userEmail) : '' ?><?= !empty($username) ? '&checkout[custom][user_id]=' . urlencode($username) : '' ?>"
+        class="lemonsqueezy-button btn-checkout mt10 text-center flex-row center-center"
+        style="text-decoration: none; display: flex; justify-content: center; align-items: center;"
+      >
         Suscribirme con Lemon Squeezy
-      </button>
+      </a>
     </form>
 
     <div class="security-note">
@@ -206,3 +212,66 @@
 <!-- Carga oficial de Lemon.js para permitir la experiencia de checkout modal u overlay -->
 <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar LemonSqueezy Overlay con manejador de eventos
+    if (typeof window.createLemonSqueezy === 'function') {
+      window.createLemonSqueezy();
+    }
+
+    if (window.LemonSqueezy && typeof window.LemonSqueezy.Setup === 'function') {
+      window.LemonSqueezy.Setup({
+        eventHandler: (event) => {
+          if (event.event === 'Checkout.Success') {
+            window.location.href = '/lemon-squeezy/success';
+          }
+          if (event.event === 'Checkout.Closed') {
+            console.log('Lemon Squeezy modal cerrado por el usuario.');
+          }
+        }
+      });
+    }
+
+    const emailInput = document.getElementById('email_checkout');
+    const overlayBtn = document.getElementById('lemon-overlay-button');
+    const userIdInput = document.getElementById('user_id_input');
+    const countryInput = document.getElementById('country_input');
+    
+    const userLocale = "<?= e($locale ?? 'es'); ?>";
+    const userCountry = "<?= e($countryCode ?? 'CL'); ?>";
+    
+    const baseUrl = "https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de?embed=1&checkout[locale]=" + encodeURIComponent(userLocale) + "&checkout[country]=" + encodeURIComponent(userCountry) + "&checkout[billing_address][country]=" + encodeURIComponent(userCountry);
+
+
+    function updateOverlayUrl() {
+      if (!overlayBtn) return;
+      let url = baseUrl;
+      const emailVal = emailInput ? emailInput.value.trim() : "";
+      const userIdVal = userIdInput ? userIdInput.value.trim() : "";
+
+      if (emailVal) {
+        url += "&checkout[email]=" + encodeURIComponent(emailVal);
+      }
+      if (userIdVal) {
+        url += "&checkout[custom][user_id]=" + encodeURIComponent(userIdVal);
+      }
+      overlayBtn.setAttribute('href', url);
+    }
+
+
+    if (emailInput) {
+      emailInput.addEventListener('input', updateOverlayUrl);
+      emailInput.addEventListener('change', updateOverlayUrl);
+    }
+
+    if (overlayBtn) {
+      overlayBtn.addEventListener('click', function(e) {
+        updateOverlayUrl();
+        if (window.LemonSqueezy && window.LemonSqueezy.Url && typeof window.LemonSqueezy.Url.Open === 'function') {
+          e.preventDefault();
+          window.LemonSqueezy.Url.Open(overlayBtn.getAttribute('href'));
+        }
+      });
+    }
+  });
+</script>

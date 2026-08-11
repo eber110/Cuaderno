@@ -44,12 +44,32 @@ class LemonSqueezyControllers extends Control
     $username  = Session::session_data("username") ?? "";
     $variantId = SecurityModule::get("variant_id", "2004539", true);
 
+    $clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    if (str_contains($clientIp, ',')) {
+      $clientIp = trim(explode(',', $clientIp)[0]);
+    }
+
+    $countryCode = "CL";
+    try {
+      if (class_exists('Base\Module\GeoIpModule')) {
+        $detected = \Base\Module\GeoIpModule::getCountryCode($clientIp);
+        if (!empty($detected)) {
+          $countryCode = strtoupper($detected);
+        }
+      }
+    } catch (\Throwable $e) {
+      $countryCode = "CL";
+    }
+
     return $this->view("Checkout.checkout", [
-      "userEmail" => $userEmail,
-      "username"  => $username,
-      "variantId" => $variantId
+      "userEmail"   => $userEmail,
+      "username"    => $username,
+      "variantId"   => $variantId,
+      "countryCode" => $countryCode,
+      "locale"      => "es"
     ]);
   }
+
 
   /**
    * Endpoint de prueba para verificar la validez de las credenciales de la API.
@@ -136,8 +156,6 @@ class LemonSqueezyControllers extends Control
       $options["custom_price_cents"] = (int)$input["custom_price_cents"];
     }
 
-    $result = $this->provider->createCheckout($variantId, $customData, $options);
-
     $buyBase = defined("LEMON_SQUEEZY_BUY_URL") ? LEMON_SQUEEZY_BUY_URL : "https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de";
     $queryParams = [];
     if (!empty($userEmail)) {
@@ -146,26 +164,58 @@ class LemonSqueezyControllers extends Control
     if (!empty($userId)) {
       $queryParams["checkout[custom][user_id]"] = $userId;
     }
-    $fallbackUrl = $buyBase . (!empty($queryParams) ? (str_contains($buyBase, "?") ? "&" : "?") . http_build_query($queryParams) : "");
+    if (!empty($input["discount_code"])) {
+      $queryParams["checkout[discount_code]"] = trim((string)$input["discount_code"]);
+    }
+    if (!empty($redirectUrl) && str_starts_with(strtolower($redirectUrl), "https://")) {
+      $queryParams["checkout[redirect_url]"] = $redirectUrl;
+    }
+
+    // Idioma predeterminado (es = Español)
+    $locale = !empty($input["locale"]) ? trim((string)$input["locale"]) : "es";
+    $queryParams["checkout[locale]"] = $locale;
+
+    // Ubicación / País por defecto (detectado automáticamente o 'CL' por defecto)
+    $country = !empty($input["country"]) ? strtoupper(trim((string)$input["country"])) : null;
+    if (empty($country)) {
+      $clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+      if (str_contains($clientIp, ',')) {
+        $clientIp = trim(explode(',', $clientIp)[0]);
+      }
+      try {
+        if (class_exists('Base\Module\GeoIpModule')) {
+          $detected = \Base\Module\GeoIpModule::getCountryCode($clientIp);
+          if (!empty($detected)) {
+            $country = strtoupper($detected);
+          }
+        }
+      } catch (\Throwable $e) {}
+    }
+    if (empty($country)) {
+      $country = "CL";
+    }
+    $queryParams["checkout[country]"] = $country;
+    $queryParams["checkout[billing_address][country]"] = $country;
+
+    $checkoutUrl = $buyBase . (!empty($queryParams) ? (str_contains($buyBase, "?") ? "&" : "?") . http_build_query($queryParams) : "");
+
+
+
 
     $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
     $wantsJson  = str_contains($httpAccept, "application/json");
     if ($wantsJson || !empty($input["json"])) {
-      if (!$result["success"]) {
-        $result["fallback_url"] = $fallbackUrl;
-      }
       header("Content-Type: application/json");
-      echo json_encode($result);
+      echo json_encode([
+        "success"      => true,
+        "checkout_url" => $checkoutUrl
+      ]);
       exit;
     }
 
-    if ($result["success"] && !empty($result["checkout_url"])) {
-      return ResponseModule::redirect($result["checkout_url"]);
-    }
-
-    // Redirección de respaldo a la URL directa publicada
-    return ResponseModule::redirect($fallbackUrl);
+    return ResponseModule::redirect($checkoutUrl);
   }
+
 
   /**
    * Endpoint receptor de Webhooks de Lemon Squeezy.
@@ -240,9 +290,9 @@ class LemonSqueezyControllers extends Control
           "user_id"               => SecurityModule::sanitize((string)($customData["user_id"] ?? "")),
           "user_email"            => SecurityModule::sanitize((string)($attributes["user_email"] ?? "")),
           "status"                => SecurityModule::sanitize((string)($attributes["status"] ?? "active")),
-          "trial_ends_at"         => SecurityModule::sanitize((string)($attributes["trial_ends_at"] ?? "")),
-          "renews_at"             => SecurityModule::sanitize((string)($attributes["renews_at"] ?? "")),
-          "ends_at"               => SecurityModule::sanitize((string)($attributes["ends_at"] ?? "")),
+          "trial_ends_at"         => self::parseSqlDate($attributes["trial_ends_at"] ?? null),
+          "renews_at"             => self::parseSqlDate($attributes["renews_at"] ?? null),
+          "ends_at"               => self::parseSqlDate($attributes["ends_at"] ?? null),
           "raw_payload"           => $data
         ];
         $processed = LemonSqueezyModels::saveSubscription($subData);
@@ -252,6 +302,7 @@ class LemonSqueezyControllers extends Control
         $processed = true;
         break;
     }
+
 
     header("Content-Type: application/json");
     echo json_encode([
@@ -315,4 +366,20 @@ class LemonSqueezyControllers extends Control
       "message" => "El proceso de suscripción no se completó o fue cancelado. No se realizó ningún cobro."
     ]);
   }
+
+  /**
+   * Convierte una fecha ISO 8601 a formato compatible con MySQL/PostgreSQL (YYYY-MM-DD HH:MM:SS) o NULL.
+   * 
+   * @param string|null $dateStr Fecha en formato ISO o nula.
+   * @return string|null Fecha formateada o null.
+   */
+  public static function parseSqlDate(?string $dateStr): ?string
+  {
+    if (empty($dateStr)) {
+      return null;
+    }
+    $timestamp = strtotime($dateStr);
+    return $timestamp !== false ? date("Y-m-d H:i:s", $timestamp) : null;
+  }
 }
+

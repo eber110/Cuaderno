@@ -16,10 +16,13 @@
 
   <?php
     _part("Checkout.Pricing.pricingCard", [
-      "variantId" => $variantId ?? "",
-      "userEmail" => $userEmail ?? "",
-      "username"  => $username ?? ""
+      "variantId"   => $variantId ?? "",
+      "userEmail"   => $userEmail ?? "",
+      "username"    => $username ?? "",
+      "countryCode" => $countryCode ?? "CL",
+      "locale"      => $locale ?? "es"
     ]);
   ?>
+
 
 </div>

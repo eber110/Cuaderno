@@ -46,6 +46,13 @@ if (!defined('LEMON_SQUEEZY_BUY_URL')) {
     define('LEMON_SQUEEZY_BUY_URL', $_ENV['LEMON_SQUEEZY_BUY_URL'] ?? getenv('LEMON_SQUEEZY_BUY_URL') ?: 'https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de');
 }
 
+// Registrar tablas en la whitelist de SecurityModule
+if (class_exists('\Base\Module\SecurityModule')) {
+    \Base\Module\SecurityModule::addAllowedTable('lemon_squeezy_orders');
+    \Base\Module\SecurityModule::addAllowedTable('lemon_squeezy_subscriptions');
+}
+
+
 
 // Cargar configuración del framework
 require_once $basePath . '/vendor/eber/framework/config.php';

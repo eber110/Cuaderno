@@ -78,6 +78,12 @@ class LemonSqueezyModels extends Builder
     $model = new self("lemon_squeezy_subscriptions");
     $existing = $model->where("lemon_subscription_id", $lemonSubId)->first();
 
+    $formatDate = function ($dateVal) {
+      if (empty($dateVal)) return null;
+      $ts = strtotime($dateVal);
+      return $ts !== false ? date("Y-m-d H:i:s", $ts) : null;
+    };
+
     $payload = [
       "lemon_subscription_id" => $lemonSubId,
       "store_id"              => $data["store_id"] ?? "",
@@ -85,15 +91,16 @@ class LemonSqueezyModels extends Builder
       "order_id"              => $data["order_id"] ?? "",
       "product_id"            => $data["product_id"] ?? "",
       "variant_id"            => $data["variant_id"] ?? "",
-      "user_id"               => $data["user_id"] ?? null,
+      "user_id"               => !empty($data["user_id"]) ? $data["user_id"] : null,
       "user_email"            => $data["user_email"] ?? "",
       "status"                => $data["status"] ?? "active",
-      "trial_ends_at"         => $data["trial_ends_at"] ?? null,
-      "renews_at"             => $data["renews_at"] ?? null,
-      "ends_at"               => $data["ends_at"] ?? null,
+      "trial_ends_at"         => $formatDate($data["trial_ends_at"] ?? null),
+      "renews_at"             => $formatDate($data["renews_at"] ?? null),
+      "ends_at"               => $formatDate($data["ends_at"] ?? null),
       "raw_payload"           => is_array($data["raw_payload"] ?? null) ? json_encode($data["raw_payload"]) : ($data["raw_payload"] ?? null),
       "updated_at_sub"        => date("Y-m-d H:i:s")
     ];
+
 
     if (!empty($existing) && is_array($existing)) {
       $updateModel = new self("lemon_squeezy_subscriptions");
