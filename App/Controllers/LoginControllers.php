@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\DesignModels;
+use App\Models\LemonSqueezyModels;
 use App\Models\LoginModels;
 use Base\Control\Control;
 use Base\Module\DateTimeModule;
@@ -59,10 +60,15 @@ class LoginControllers extends Control {
     }
 
     if (!$userTrue[0]) {
-      if (($userTrue[1] ?? null) === 1) return ResponseModule::redirect("/ingresar", "El usuario no es valido");
-      if (($userTrue[1] ?? null) === 0) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
-    } else {
-      if (!($userTrue["encrypted"] ?? true)) return ResponseModule::redirect("/", "Tú contraseña no esta encriptada", 1);
+      if (($userTrue[1] ?? null) === 0) return ResponseModule::redirect("/ingresar", "El usuario no es valido");
+      if (($userTrue[1] ?? null) === 1) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
+    }
+
+    if (Session::session_active()) {
+      $premium = LemonSqueezyModels::isUserSubscribed(Session::session_data("user_id"));
+      $_SESSION["user"]["premium"] = $premium;
+    }else{
+      $_SESSION["user"]["premium"] = false;
     }
 
     return ResponseModule::redirect("/panel/" . $username);

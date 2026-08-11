@@ -1,0 +1,62 @@
+[
+    {
+        "timestamp": "2026-08-11 17:38:25",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/test/1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0",
+        "context": {
+            "time": "2026-08-11 17:38:25",
+            "code": 405,
+            "msg": "Método no permitido",
+            "ip": "::1",
+            "url": "/test/1",
+            "method": "GET",
+            "context": {
+                "code": 405,
+                "redirect": ""
+            }
+        }
+    },
+    {
+        "timestamp": "2026-08-11 18:03:53",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/test/1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0",
+        "context": {
+            "time": "2026-08-11 18:03:53",
+            "code": 405,
+            "msg": "Método no permitido",
+            "ip": "::1",
+            "url": "/test/1",
+            "method": "GET",
+            "context": {
+                "code": 405,
+                "redirect": ""
+            }
+        }
+    },
+    {
+        "timestamp": "2026-08-11 18:19:47",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/test/1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0",
+        "context": {
+            "time": "2026-08-11 18:19:47",
+            "code": 405,
+            "msg": "Método no permitido",
+            "ip": "::1",
+            "url": "/test/1",
+            "method": "GET",
+            "context": {
+                "code": 405,
+                "redirect": ""
+            }
+        }
+    }
+]

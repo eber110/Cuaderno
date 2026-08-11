@@ -38,6 +38,7 @@ class DashboardMiddleware implements MiddlewareInterface {
     $sessionUserClean = mb_strtolower($sessionUser, "UTF-8");
 
     // 3. Extraer de forma robusta el parámetro :user de la URL /panel/:user
+    $matches = [];
     $uri = parse_url($_SERVER["REQUEST_URI"] ?? "", PHP_URL_PATH);
     $urlUserClean = null;
     if (preg_match('#/panel/([^/]+)#i', $uri, $matches)) {
@@ -46,7 +47,7 @@ class DashboardMiddleware implements MiddlewareInterface {
 
     // 4. Validar permisos mediante UserModels::canAccessDashboard
     if (!empty($urlUserClean) && !UserModels::canAccessDashboard($sessionUserClean, $urlUserClean)) {
-      return ResponseModule::redirect("/panel/" . $sessionUserClean, "No tienes permisos para acceder al panel de otro usuario.", 1);
+      return ResponseModule::redirect("/panel/" . $sessionUserClean);
     }
 
     // 5. Garantizar que exista la tarjeta inicial si no existía

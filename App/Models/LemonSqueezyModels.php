@@ -139,7 +139,7 @@ class LemonSqueezyModels extends Builder
   {
     $result = (new self("lemon_squeezy_orders"))
       ->where("user_id", $userId)
-      ->orderBy("created_at_record", "DESC")
+      ->order("created_at_record", "DESC")
       ->get();
 
     return is_array($result) ? $result : [];
@@ -156,9 +156,48 @@ class LemonSqueezyModels extends Builder
     $subModel = new self("lemon_squeezy_subscriptions");
     $result = $subModel->where("user_id", $userId)
       ->where("status", "active")
-      ->orderBy("created_at_sub", "DESC")
+      ->order("created_at_sub", "DESC")
       ->first();
 
     return (!empty($result) && is_array($result)) ? $result : null;
   }
+
+
+  /**
+   * Verifica si un usuario tiene una suscripción activa o en periodo de prueba.
+   * 
+   * @param string $userId ID o username del usuario.
+   * @return bool True si está activo o en prueba, False de lo contrario.
+   */
+  public static function isUserSubscribed(string $userId): bool
+  {
+    $sub = self::getSubscriptionByUser($userId);
+    return !empty($sub) && in_array($sub["status"], ["active", "on_trial"], true);
+  }
+
+  /**
+   * Obtiene la suscripción activa de un usuario junto con la orden de pago asociada.
+   * 
+   * @param string $userId ID o username del usuario.
+   * @return array|null Datos consolidados de suscripción u orden o null.
+   */
+  public static function getSubscriptionWithOrder(string $userId): ?array
+  {
+    $subscription = self::getSubscriptionByUser($userId);
+    if (empty($subscription)) {
+      return null;
+    }
+
+    $order = null;
+    if (!empty($subscription["order_id"])) {
+      $order = self::getOrderByLemonId($subscription["order_id"]);
+    }
+
+    return [
+      "subscription" => $subscription,
+      "order"        => $order
+    ];
+  }
 }
+
+

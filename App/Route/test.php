@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\LemonSqueezyModels;
 use Base\Module\GeoIpModule;
 use Base\Module\ImgProcessModule;
 use Base\Module\LogModule;
@@ -27,13 +28,14 @@ Route::get("/test/2", function(){
   //$meta = RequestMetaModule::requestMeta("https://www.ebersanchez.cl");
 
   //var_dump($meta);
-  var_dump($data[0]["card"]);
+  //var_dump($data[0]["card"]);
 
   //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
-
+  
   //var_dump($share);
   var_dump($_SESSION ?? []);
 
+  var_dump(Session::session_data("premium"));
 });
 
 Route::post("/test/1/", function($param){

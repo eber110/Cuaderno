@@ -36,7 +36,7 @@ class LemonSqueezyTable
       `total_cents` INT UNSIGNED DEFAULT 0,
       `variant_id` VARCHAR(100) NULL,
       `product_name` VARCHAR(255) NULL,
-      `raw_payload` JSON NULL,
+      `raw_payload` LONGTEXT NULL,
       `created_at_record` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       `updated_at_record` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
@@ -60,7 +60,7 @@ class LemonSqueezyTable
       `trial_ends_at` TIMESTAMP NULL DEFAULT NULL,
       `renews_at` TIMESTAMP NULL DEFAULT NULL,
       `ends_at` TIMESTAMP NULL DEFAULT NULL,
-      `raw_payload` JSON NULL,
+      `raw_payload` LONGTEXT NULL,
       `created_at_sub` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       `updated_at_sub` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`),
@@ -75,6 +75,17 @@ class LemonSqueezyTable
 
       $builder->query_foreign($sqlSubscriptions);
       $log[] = "Tabla 'lemon_squeezy_subscriptions' verificada/creada exitosamente.";
+
+      // Asegurar tipo LONGTEXT en tablas existentes para evitar conflictos de htmlentities() del Builder con JSON estricto
+      @$builder->query_foreign("ALTER TABLE `lemon_squeezy_orders` MODIFY `raw_payload` LONGTEXT NULL;");
+      @$builder->query_foreign("ALTER TABLE `lemon_squeezy_subscriptions` MODIFY `raw_payload` LONGTEXT NULL;");
+
+      return [
+        "success" => true,
+        "log"     => $log
+      ];
+    } catch (\Exception $e) {
+
 
       return [
         "success" => true,
