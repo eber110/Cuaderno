@@ -5,8 +5,8 @@ namespace App\Controllers;
 use App\Models\LemonSqueezyModels;
 use App\Providers\LemonSqueezyProvider;
 use Base\Control\Control;
-use Base\Module\HttpPostModule;
 use Base\Module\ResponseModule;
+use Base\Module\SecurityModule;
 use Base\Module\SeoModule;
 use Base\Module\Session;
 
@@ -18,6 +18,8 @@ use Base\Module\Session;
  * - Generación de links de checkout.
  * - Recepción y verificación de Webhooks.
  * - Test de conexión Sandbox.
+ * 
+ * Utiliza SecurityModule para el acceso seguro a variables de entrada HTTP sin superglobales directas.
  */
 class LemonSqueezyControllers extends Control
 {
@@ -40,7 +42,7 @@ class LemonSqueezyControllers extends Control
 
     $userEmail = Session::session_data("email") ?? "";
     $username  = Session::session_data("username") ?? "";
-    $variantId = trim((string)($_GET["variant_id"] ?? "2004539"));
+    $variantId = SecurityModule::get("variant_id", "2004539", true);
 
     return $this->view("Checkout.checkout", [
       "userEmail" => $userEmail,
@@ -71,23 +73,29 @@ class LemonSqueezyControllers extends Control
   /**
    * Genera un checkout en Lemon Squeezy y redirige o devuelve la URL en JSON.
    * POST /lemon-squeezy/checkout
+   * 
+   * @param array $requestData Datos enviados por el enrutador
    */
-  public function checkout()
+  public function checkout(array $requestData = [])
   {
     $rawInput = file_get_contents("php://input");
     $decoded  = json_decode($rawInput, true);
-    $input    = is_array($decoded) ? $decoded : HttpPostModule::get_post();
 
-    $variantId   = trim((string)($input["variant_id"] ?? $_GET["variant_id"] ?? "2004539"));
+    $getVars  = SecurityModule::sanitizeArray($_GET ?? []);
+    $postVars = SecurityModule::sanitizeArray($_POST ?? []);
+    $reqVars  = SecurityModule::sanitizeArray(is_array($requestData) ? $requestData : []);
 
-    $redirectUrl = trim((string)($input["redirect_url"] ?? $_GET["redirect_url"] ?? ""));
-    $userEmail   = trim((string)($input["email"] ?? $_GET["email"] ?? Session::session_data("email") ?? ""));
-    $userName    = trim((string)($input["name"] ?? $_GET["name"] ?? Session::session_data("username") ?? ""));
-    $userId      = trim((string)($input["user_id"] ?? $_GET["user_id"] ?? Session::session_data("username") ?? ""));
+    $input = is_array($decoded) ? SecurityModule::sanitizeArray($decoded) : array_merge($getVars, $postVars, $reqVars);
+
+    $variantId   = trim((string)($input["variant_id"] ?? "2004539"));
+    $redirectUrl = trim((string)($input["redirect_url"] ?? ""));
+    $userEmail   = trim((string)($input["email"] ?? Session::session_data("email") ?? ""));
+    $userName    = trim((string)($input["name"] ?? Session::session_data("username") ?? ""));
+    $userId      = trim((string)($input["user_id"] ?? Session::session_data("username") ?? ""));
 
     if (empty($variantId)) {
-      // Si no se especifica variante, redirigir a la página de venta
-      if ($_SERVER["REQUEST_METHOD"] === "GET") {
+      $reqMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
+      if ($reqMethod === "GET") {
         return ResponseModule::redirect("/suscripcion");
       }
 
@@ -112,13 +120,16 @@ class LemonSqueezyControllers extends Control
     }
 
     $options = [
-      "redirect_url" => $redirectUrl,
-      "email"        => $userEmail,
-      "name"         => $userName
+      "email" => $userEmail,
+      "name"  => $userName
     ];
 
+    if (!empty($redirectUrl) && str_starts_with(strtolower($redirectUrl), "https://")) {
+      $options["redirect_url"] = $redirectUrl;
+    }
+
     if (!empty($input["discount_code"])) {
-      $options["discount_code"] = trim($input["discount_code"]);
+      $options["discount_code"] = trim((string)$input["discount_code"]);
     }
 
     if (!empty($input["custom_price_cents"])) {
@@ -127,8 +138,22 @@ class LemonSqueezyControllers extends Control
 
     $result = $this->provider->createCheckout($variantId, $customData, $options);
 
-    $wantsJson = isset($_SERVER["HTTP_ACCEPT"]) && str_contains($_SERVER["HTTP_ACCEPT"], "application/json");
+    $buyBase = defined("LEMON_SQUEEZY_BUY_URL") ? LEMON_SQUEEZY_BUY_URL : "https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de";
+    $queryParams = [];
+    if (!empty($userEmail)) {
+      $queryParams["checkout[email]"] = $userEmail;
+    }
+    if (!empty($userId)) {
+      $queryParams["checkout[custom][user_id]"] = $userId;
+    }
+    $fallbackUrl = $buyBase . (!empty($queryParams) ? (str_contains($buyBase, "?") ? "&" : "?") . http_build_query($queryParams) : "");
+
+    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $wantsJson  = str_contains($httpAccept, "application/json");
     if ($wantsJson || !empty($input["json"])) {
+      if (!$result["success"]) {
+        $result["fallback_url"] = $fallbackUrl;
+      }
       header("Content-Type: application/json");
       echo json_encode($result);
       exit;
@@ -138,12 +163,8 @@ class LemonSqueezyControllers extends Control
       return ResponseModule::redirect($result["checkout_url"]);
     }
 
-    header("Content-Type: application/json", true, 400);
-    echo json_encode([
-      "success" => false,
-      "error"   => $result["error"] ?? "No se pudo generar el enlace de checkout."
-    ]);
-    exit;
+    // Redirección de respaldo a la URL directa publicada
+    return ResponseModule::redirect($fallbackUrl);
   }
 
   /**
@@ -153,7 +174,8 @@ class LemonSqueezyControllers extends Control
   public function webhook()
   {
     $payload   = file_get_contents("php://input");
-    $signature = $_SERVER["HTTP_X_SIGNATURE"] ?? $_SERVER["HTTP_X_LEMON_SQUEEZY_SIGNATURE"] ?? "";
+    $rawSig    = $_SERVER["HTTP_X_SIGNATURE"] ?? $_SERVER["HTTP_X_LEMON_SQUEEZY_SIGNATURE"] ?? "";
+    $signature = SecurityModule::sanitize($rawSig);
 
     if (empty($payload)) {
       header("Content-Type: application/json", true, 400);
@@ -175,10 +197,10 @@ class LemonSqueezyControllers extends Control
       exit;
     }
 
-    $eventName  = $data["meta"]["event_name"] ?? "";
-    $customData = $data["meta"]["custom_data"] ?? [];
+    $eventName  = SecurityModule::sanitize($data["meta"]["event_name"] ?? "");
+    $customData = SecurityModule::sanitizeArray($data["meta"]["custom_data"] ?? []);
     $attributes = $data["data"]["attributes"] ?? [];
-    $resourceId = $data["data"]["id"] ?? "";
+    $resourceId = SecurityModule::sanitize((string)($data["data"]["id"] ?? ""));
 
     $processed = false;
 
@@ -186,18 +208,18 @@ class LemonSqueezyControllers extends Control
       case "order_created":
       case "order_refunded":
         $orderData = [
-          "lemon_order_id" => (string)$resourceId,
-          "store_id"       => (string)($attributes["store_id"] ?? ""),
-          "customer_id"    => (string)($attributes["customer_id"] ?? ""),
-          "user_id"        => $customData["user_id"] ?? null,
-          "customer_name"  => $attributes["user_name"] ?? "",
-          "customer_email" => $attributes["user_email"] ?? "",
-          "order_number"   => (string)($attributes["order_number"] ?? ""),
-          "status"         => $attributes["status"] ?? "paid",
-          "currency"       => $attributes["currency"] ?? "USD",
+          "lemon_order_id" => $resourceId,
+          "store_id"       => SecurityModule::sanitize((string)($attributes["store_id"] ?? "")),
+          "customer_id"    => SecurityModule::sanitize((string)($attributes["customer_id"] ?? "")),
+          "user_id"        => SecurityModule::sanitize((string)($customData["user_id"] ?? "")),
+          "customer_name"  => SecurityModule::sanitize((string)($attributes["user_name"] ?? "")),
+          "customer_email" => SecurityModule::sanitize((string)($attributes["user_email"] ?? "")),
+          "order_number"   => SecurityModule::sanitize((string)($attributes["order_number"] ?? "")),
+          "status"         => SecurityModule::sanitize((string)($attributes["status"] ?? "paid")),
+          "currency"       => SecurityModule::sanitize((string)($attributes["currency"] ?? "USD")),
           "total_cents"    => (int)($attributes["total"] ?? 0),
-          "variant_id"     => (string)($attributes["first_order_item"]["variant_id"] ?? ""),
-          "product_name"   => $attributes["first_order_item"]["product_name"] ?? "",
+          "variant_id"     => SecurityModule::sanitize((string)($attributes["first_order_item"]["variant_id"] ?? "")),
+          "product_name"   => SecurityModule::sanitize((string)($attributes["first_order_item"]["product_name"] ?? "")),
           "raw_payload"    => $data
         ];
         $processed = LemonSqueezyModels::saveOrder($orderData);
@@ -209,18 +231,18 @@ class LemonSqueezyControllers extends Control
       case "subscription_expired":
       case "subscription_resumed":
         $subData = [
-          "lemon_subscription_id" => (string)$resourceId,
-          "store_id"              => (string)($attributes["store_id"] ?? ""),
-          "customer_id"           => (string)($attributes["customer_id"] ?? ""),
-          "order_id"              => (string)($attributes["order_id"] ?? ""),
-          "product_id"            => (string)($attributes["product_id"] ?? ""),
-          "variant_id"            => (string)($attributes["variant_id"] ?? ""),
-          "user_id"               => $customData["user_id"] ?? null,
-          "user_email"            => $attributes["user_email"] ?? "",
-          "status"                => $attributes["status"] ?? "active",
-          "trial_ends_at"         => $attributes["trial_ends_at"] ?? null,
-          "renews_at"             => $attributes["renews_at"] ?? null,
-          "ends_at"               => $attributes["ends_at"] ?? null,
+          "lemon_subscription_id" => $resourceId,
+          "store_id"              => SecurityModule::sanitize((string)($attributes["store_id"] ?? "")),
+          "customer_id"           => SecurityModule::sanitize((string)($attributes["customer_id"] ?? "")),
+          "order_id"              => SecurityModule::sanitize((string)($attributes["order_id"] ?? "")),
+          "product_id"            => SecurityModule::sanitize((string)($attributes["product_id"] ?? "")),
+          "variant_id"            => SecurityModule::sanitize((string)($attributes["variant_id"] ?? "")),
+          "user_id"               => SecurityModule::sanitize((string)($customData["user_id"] ?? "")),
+          "user_email"            => SecurityModule::sanitize((string)($attributes["user_email"] ?? "")),
+          "status"                => SecurityModule::sanitize((string)($attributes["status"] ?? "active")),
+          "trial_ends_at"         => SecurityModule::sanitize((string)($attributes["trial_ends_at"] ?? "")),
+          "renews_at"             => SecurityModule::sanitize((string)($attributes["renews_at"] ?? "")),
+          "ends_at"               => SecurityModule::sanitize((string)($attributes["ends_at"] ?? "")),
           "raw_payload"           => $data
         ];
         $processed = LemonSqueezyModels::saveSubscription($subData);
@@ -249,8 +271,11 @@ class LemonSqueezyControllers extends Control
     SeoModule::setTitle("¡Pago Exitoso! - Suscripción Activada");
     SeoModule::setMetaDescription("Tu pago ha sido procesado con éxito. Bienvenido al plan Pro.");
 
-    $wantsJson = isset($_SERVER["HTTP_ACCEPT"]) && str_contains($_SERVER["HTTP_ACCEPT"], "application/json");
-    if ($wantsJson || !empty($_GET["json"])) {
+    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $wantsJson  = str_contains($httpAccept, "application/json");
+    $jsonFlag   = SecurityModule::get("json");
+
+    if ($wantsJson || !empty($jsonFlag)) {
       header("Content-Type: application/json");
       echo json_encode([
         "success" => true,
@@ -273,8 +298,11 @@ class LemonSqueezyControllers extends Control
     SeoModule::setTitle("Proceso Cancelado - Suscripción Pendiente");
     SeoModule::setMetaDescription("El proceso de compra fue cancelado o no completado.");
 
-    $wantsJson = isset($_SERVER["HTTP_ACCEPT"]) && str_contains($_SERVER["HTTP_ACCEPT"], "application/json");
-    if ($wantsJson || !empty($_GET["json"])) {
+    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $wantsJson  = str_contains($httpAccept, "application/json");
+    $jsonFlag   = SecurityModule::get("json");
+
+    if ($wantsJson || !empty($jsonFlag)) {
       header("Content-Type: application/json");
       echo json_encode([
         "success" => false,

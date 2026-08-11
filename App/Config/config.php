@@ -42,6 +42,10 @@ if (!defined('LEMON_SQUEEZY_WEBHOOK_SECRET')) {
 if (!defined('LEMON_SQUEEZY_MODE')) {
     define('LEMON_SQUEEZY_MODE', $_ENV['LEMON_SQUEEZY_MODE'] ?? getenv('LEMON_SQUEEZY_MODE') ?: 'test');
 }
+if (!defined('LEMON_SQUEEZY_BUY_URL')) {
+    define('LEMON_SQUEEZY_BUY_URL', $_ENV['LEMON_SQUEEZY_BUY_URL'] ?? getenv('LEMON_SQUEEZY_BUY_URL') ?: 'https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de');
+}
+
 
 // Cargar configuración del framework
 require_once $basePath . '/vendor/eber/framework/config.php';

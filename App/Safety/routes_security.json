@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-08-10 23:49:43",
+    "generated_at": "2026-08-11 00:36:55",
     "total_routes": 38,
     "static_routes": [
         {
@@ -23,6 +23,87 @@
         {
             "method": "GET",
             "uri": "/llms.txt",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/suscripcion",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/planes",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/test",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@testApi",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/checkout",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/lemon-squeezy/checkout",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/lemon-squeezy/webhook",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@webhook",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/success",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@success",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/cancel",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\LemonSqueezyControllers@cancel",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/lemon-squeezy/init-db",
             "has_variables": false,
             "variables": [],
             "protect_at_controller": false,
@@ -163,87 +244,6 @@
         {
             "method": "GET",
             "uri": "/op/active-viewers",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "Closure",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/suscripcion",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/planes",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@salesPage",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/lemon-squeezy/test",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@testApi",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/lemon-squeezy/checkout",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
-            "middlewares": []
-        },
-        {
-            "method": "POST",
-            "uri": "/lemon-squeezy/checkout",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@checkout",
-            "middlewares": []
-        },
-        {
-            "method": "POST",
-            "uri": "/lemon-squeezy/webhook",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@webhook",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/lemon-squeezy/success",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@success",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/lemon-squeezy/cancel",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\LemonSqueezyControllers@cancel",
-            "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/lemon-squeezy/init-db",
             "has_variables": false,
             "variables": [],
             "protect_at_controller": false,

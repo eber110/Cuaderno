@@ -202,3 +202,7 @@
   </div>
 
 </div>
+
+<!-- Carga oficial de Lemon.js para permitir la experiencia de checkout modal u overlay -->
+<script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+
