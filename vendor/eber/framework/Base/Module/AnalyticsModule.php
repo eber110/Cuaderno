@@ -15,7 +15,7 @@ class AnalyticsModule
     private static ?PDO $pdo = null;
 
     /**
-     * Obtiene la conexión a la base de datos SQLite (Database/analytics.sqlite).
+     * Obtiene la conexión a la base de datos SQLite (Database/clikhub.sqlite).
      * Configurada con WAL (Write-Ahead Logging) para evitar bloqueos por concurrencia.
      */
     public static function getPdo(): PDO
@@ -26,7 +26,7 @@ class AnalyticsModule
                 @mkdir($baseDir, 0755, true);
             }
 
-            $dbFile = $baseDir . '/analytics.sqlite';
+            $dbFile = $baseDir . '/clikhub.sqlite';
 
             try {
                 self::$pdo = new PDO("sqlite:" . $dbFile, null, null, [

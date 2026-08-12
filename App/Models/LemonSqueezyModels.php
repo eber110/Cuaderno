@@ -11,7 +11,7 @@ use Exception;
  * 
  * Suministro y gestión de datos de transacciones, órdenes y suscripciones
  * provenientes de la pasarela Lemon Squeezy.
- * Utiliza una base de datos SQLite aislada (Database/subscriptions.sqlite) para
+ * Utiliza una base de datos SQLite aislada (Database/clikhub.sqlite) para
  * verificar vencimientos y estado Premium sin impactar el límite de conexiones a MySQL.
  */
 class LemonSqueezyModels extends Builder
@@ -23,7 +23,7 @@ class LemonSqueezyModels extends Builder
   private static ?PDO $sqlitePdo = null;
 
   /**
-   * Obtiene o inicializa la conexión PDO a la BD local SQLite (Database/subscriptions.sqlite).
+   * Obtiene o inicializa la conexión PDO a la BD local SQLite (Database/clikhub.sqlite).
    * Configurada en modo WAL (Write-Ahead Logging) y sin afectar el consumo de inodos.
    * 
    * @return PDO|null Instancia PDO de SQLite o null en caso de error.
@@ -36,7 +36,7 @@ class LemonSqueezyModels extends Builder
         @mkdir($baseDir, 0755, true);
       }
 
-      $dbFile = $baseDir . '/cuaderno.sqlite';
+      $dbFile = $baseDir . '/clikhub.sqlite';
 
       try {
         self::$sqlitePdo = new PDO("sqlite:" . $dbFile, null, null, [
@@ -287,7 +287,7 @@ class LemonSqueezyModels extends Builder
   }
 
   /**
-   * Actualiza el estado y fecha de vencimiento Premium en la BD local SQLite (Database/subscriptions.sqlite)
+   * Actualiza el estado y fecha de vencimiento Premium en la BD local SQLite (Database/clikhub.sqlite)
    * y en la sesión activa, evitando el consumo de inodos y liberando conexiones MySQL.
    * 
    * @param string|int $userId ID del usuario.
@@ -359,7 +359,7 @@ class LemonSqueezyModels extends Builder
 
   /**
    * Consulta el estado de suscripción de forma ultra-rápida (0 consultas MySQL)
-   * verificando primero en la Sesión o en la BD local SQLite (Database/subscriptions.sqlite).
+   * verificando primero en la Sesión o en la BD local SQLite (Database/clikhub.sqlite).
    * Si la fecha de expiración ya pasó o no existe en SQLite, realiza el fallback a MySQL y guarda en SQLite.
    * 
    * @param string|int $userId ID o username del usuario.
@@ -386,7 +386,7 @@ class LemonSqueezyModels extends Builder
       }
     }
 
-    // 2. Verificación en la BD local SQLite (Database/subscriptions.sqlite) — 0 conexiones MySQL
+    // 2. Verificación en la BD local SQLite (Database/clikhub.sqlite) — 0 conexiones MySQL
     $pdo = self::getSqlitePdo();
     if ($pdo !== null) {
       try {
