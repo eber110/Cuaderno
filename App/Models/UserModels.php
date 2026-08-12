@@ -2,56 +2,40 @@
 
 namespace App\Models;
 
-use Base\Builder\Builder;
-use Base\Module\LogModule;
+use Base\Builder\BuilderSqlite;
 
 /**
  * Clase UserModels
  * 
- * Modelo encargado de la consulta de datos de usuarios, comprobaciones de existencia,
+ * Modelo encargado de la consulta de datos de usuarios, comprobaciones de existencia en SQLite (tabla users),
  * formateo de recursos multimedia (avatars e imágenes de botones) y validaciones de autorización.
  */
-class UserModels extends Builder {
+class UserModels extends BuilderSqlite {
 
   protected $table = "users";
 
   /**
-   * Verifica si un usuario existe en el índice del sistema (userlist.json) o en la base de datos.
+   * Verifica si un usuario existe en la base de datos SQLite (tabla users).
    *
    * @param string $user Nombre de usuario.
    * @return bool True si el usuario existe, false en caso contrario.
    */
   public static function userExists(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    $userList  = LogModule::readLogLines(ROOT_PATH . "/Cache/Users/userlist.json");
-    if (in_array($userClean, $userList, true)) {
-      return true;
-    }
-
-    // Consultar en la base de datos si no se encuentra en el archivo JSON
     $dbUser = (new self())->where("username", $userClean)->get_one();
-    if ($dbUser) {
-      LogModule::simpleLog([
-        "dir"     => ROOT_PATH . "/Cache/Users",
-        "name"    => "userList",
-        "content" => $userClean
-      ]);
-      return true;
-    }
 
-    return false;
+    return !empty($dbUser[0]);
   }
 
   /**
-   * Obtiene los datos del archivo oficial del usuario.
+   * Obtiene los datos del perfil oficial del usuario desde SQLite (tabla user_designs).
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Array con los datos del usuario o false si no existe.
    */
   public function dataUser(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
-    $data      = LogModule::readLogLines(ROOT_PATH . "/Cache/UserData/{$userClean}.json");
-    return (!$data || empty($data)) ? false : $data[0];
+    return DesignModels::dataUser($userClean);
   }
 
   /**

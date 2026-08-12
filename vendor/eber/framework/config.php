@@ -70,7 +70,11 @@ if (!defined('ALLOWED_TABLES')) {
 		'visitorlog',
 		'emailregister',
 		'interactions',
-		'visitor_log'
+		'visitor_log',
+		'user_designs',
+		'lemon_squeezy_orders',
+		'lemon_squeezy_subscriptions',
+		'ratelimits'
 	]);
 }
 

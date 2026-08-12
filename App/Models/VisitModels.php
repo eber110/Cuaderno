@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Base\Builder\Builder;
 use Base\Module\AnalyticsModule;
+use Base\Module\GeoIpModule;
 use Base\Module\MovilDetectorModule;
 use Base\Module\VisitModule;
 use Exception;
@@ -21,7 +22,7 @@ class VisitModels extends Builder {
 
   /**
    * Obtiene la información de ubicación utilizando la base de datos local MMDB de MaxMind.
-   * Prioriza /Database/GeoLite2-City.mmdb del proyecto.
+   * Prioriza /App/DatabaseComponent/GeoLite2-City.mmdb del proyecto.
    *
    * @param string $ip Dirección IP a consultar.
    * @return array Datos con country_code, country_name, city_name.
@@ -35,9 +36,21 @@ class VisitModels extends Builder {
       ];
     }
 
-    $projectDb   = ROOT_PATH . "/Database/GeoLite2-City.mmdb";
-    $frameworkDb = ROOT_PATH . "/vendor/eber/framework/Resources/dbLocation/GeoLite2-City.mmdb";
-    $dbPath      = file_exists($projectDb) ? $projectDb : $frameworkDb;
+    $dbPath = class_exists(GeoIpModule::class) ? GeoIpModule::getDatabasePath() : null;
+
+    if (!$dbPath || !file_exists($dbPath)) {
+      $possiblePaths = [
+        defined("ROUTE_DATABASE_COMPONENT") ? rtrim(ROUTE_DATABASE_COMPONENT, "/\\") . "/GeoLite2-City.mmdb" : null,
+        defined("ROOT_PATH") ? ROOT_PATH . "/App/DatabaseComponent/GeoLite2-City.mmdb" : null
+      ];
+
+      foreach ($possiblePaths as $path) {
+        if ($path && file_exists($path)) {
+          $dbPath = $path;
+          break;
+        }
+      }
+    }
 
     if (file_exists($dbPath) && class_exists("\GeoIp2\Database\Reader")) {
       try {

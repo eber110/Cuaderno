@@ -36,7 +36,7 @@ class LemonSqueezyModels extends Builder
         @mkdir($baseDir, 0755, true);
       }
 
-      $dbFile = $baseDir . '/subscriptions.sqlite';
+      $dbFile = $baseDir . '/cuaderno.sqlite';
 
       try {
         self::$sqlitePdo = new PDO("sqlite:" . $dbFile, null, null, [

@@ -4,88 +4,188 @@ namespace App\Models;
 
 use Base\Builder\Builder;
 use Base\Module\ImgProcessModule;
-use Base\Module\LogModule;
 use Base\Module\RequestMetaModule;
 
 /**
  * Clase DesignModels
  * 
- * Modelo encargado de la lógica de construcción, lectura, actualización de borradores (UserCustom)
- * y publicación oficial de los diseños de las tarjetas de usuario en formato JSON.
+ * Modelo encargado de la construcción, lectura, actualización de borradores (is_draft = 1)
+ * y publicación oficial (is_draft = 0) de las tarjetas de diseño de usuario en la base de datos SQLite (user_designs).
  */
 class DesignModels extends Builder {
 
-  protected $table = "";
+  protected $table = "user_designs";
 
   /**
-   * Obtiene los datos del diseño del usuario (revisa primero UserCustom, luego UserData oficial).
+   * Transforma una fila de la tabla user_designs en la estructura asociativa de tarjeta ($data['card']).
+   *
+   * @param array $row Fila obtenida de SQLite.
+   * @return array Estructura de tarjeta de usuario.
+   */
+  private static function formatRowToData(array $row): array {
+    $borders = is_string($row["borders"] ?? null) ? json_decode($row["borders"], true) : ($row["borders"] ?? ["br0", "br0"]);
+    $rrss    = is_string($row["rrss"] ?? null) ? json_decode($row["rrss"], true) : ($row["rrss"] ?? []);
+    $content = is_string($row["content"] ?? null) ? json_decode($row["content"], true) : ($row["content"] ?? []);
+
+    return [
+      "card" => [
+        "active"       => (bool)($row["active"] ?? 0),
+        "hide"         => (bool)($row["hide"] ?? 1),
+        "profile"      => $row["profile"] ?? $row["username"] ?? "",
+        "avatar"       => $row["avatar"] ?? "no-user.webp",
+        "title"        => $row["title"] ?? "Titulo",
+        "titleColor"   => $row["title_color"] ?? "#383838",
+        "desc"         => $row["desc"] ?? "",
+        "header"       => $row["header"] ?? "regularHero",
+        "backCard"     => [
+          "back_perfil" => $row["back_perfil"] ?? "#a0a0a0",
+          "style_back"  => $row["style_back"] ?? "solid"
+        ],
+        "colorText"    => $row["color_text"] ?? "#383838",
+        "style"        => $row["style"] ?? "buttonRegular",
+        "borders"      => is_array($borders) ? $borders : ["br0", "br0"],
+        "shadow"       => $row["shadow"] ?? "shadow-1",
+        "back"         => $row["back"] ?? "#d6d6d6",
+        "hover"        => (bool)($row["hover"] ?? 0),
+        "color"        => $row["color"] ?? "#494949",
+        "colorShadow3" => $row["color_shadow3"] ?? "#000000",
+        "rrss"         => is_array($rrss) ? $rrss : [],
+        "content"      => is_array($content) ? $content : []
+      ]
+    ];
+  }
+
+  /**
+   * Persiste la configuración de la tarjeta en la tabla user_designs en SQLite.
+   *
+   * @param string $username Nombre de usuario.
+   * @param int $isDraft 1 para borrador custom, 0 para oficial publicado.
+   * @param array $card Estructura de la tarjeta.
+   * @return bool True tras guardar con éxito.
+   */
+  private static function saveDesignToDb(string $username, int $isDraft, array $card): bool {
+    $userClean = mb_strtolower($username, "UTF-8");
+    $builder   = new Builder("user_designs");
+
+    $payload = [
+      "username"      => $userClean,
+      "is_draft"      => $isDraft,
+      "active"        => !empty($card["active"]) ? 1 : 0,
+      "hide"          => !empty($card["hide"]) ? 1 : 0,
+      "profile"       => $card["profile"] ?? $userClean,
+      "avatar"        => $card["avatar"] ?? "no-user.webp",
+      "title"         => $card["title"] ?? "Titulo",
+      "title_color"   => $card["titleColor"] ?? "#383838",
+      "desc"          => $card["desc"] ?? "",
+      "header"        => $card["header"] ?? "regularHero",
+      "back_perfil"   => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
+      "style_back"    => $card["backCard"]["style_back"] ?? "solid",
+      "color_text"    => $card["colorText"] ?? "#383838",
+      "style"         => $card["style"] ?? "buttonRegular",
+      "borders"       => json_encode($card["borders"] ?? ["br0", "br0"]),
+      "shadow"        => $card["shadow"] ?? "shadow-1",
+      "back"          => $card["back"] ?? "#d6d6d6",
+      "hover"         => !empty($card["hover"]) ? 1 : 0,
+      "color"         => $card["color"] ?? "#494949",
+      "color_shadow3" => $card["colorShadow3"] ?? "#000000",
+      "rrss"          => json_encode($card["rrss"] ?? []),
+      "content"       => json_encode($card["content"] ?? []),
+      "updated_at"    => date("Y-m-d H:i:s")
+    ];
+
+    $existing = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", $isDraft)
+      ->get_one();
+
+    if ($existing && !empty($existing[0])) {
+      $id = $existing[0]["id"];
+      (new Builder("user_designs"))->update("id", $id, $payload);
+    } else {
+      $payload["created_at"] = date("Y-m-d H:i:s");
+      (new Builder("user_designs"))->create($payload);
+    }
+
+    return true;
+  }
+
+  /**
+   * Obtiene los datos del diseño del usuario (revisa primero borrador custom, luego oficial publicado).
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos del diseño o false si no existe.
    */
   public static function dataUser(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
-    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
-    if (!is_dir($customDir)) {
-      @mkdir($customDir, 0777, true);
+
+    // 1. Revisar si existe borrador custom (is_draft = 1)
+    $custom = self::getCustomDesign($userClean);
+    if ($custom !== false) {
+      return $custom;
     }
 
-    $customFile  = $customDir . "/{$userClean}.json";
-    $officialFile = ROOT_PATH . "/Cache/UserData/{$userClean}.json";
-
-    if (file_exists($customFile)) {
-      $data = LogModule::readLogLines($customFile);
-      return (!$data || empty($data)) ? false : $data[0];
-    }
-
-    if (file_exists($officialFile)) {
-      $data = LogModule::readLogLines($officialFile);
-      return (!$data || empty($data)) ? false : $data[0];
+    // 2. Revisar si existe diseño oficial publicado (is_draft = 0)
+    $official = self::getOfficialDesign($userClean);
+    if ($official !== false) {
+      return $official;
     }
 
     return false;
   }
 
   /**
-   * Verifica si existe un diseño borrador (custom) para el usuario.
+   * Verifica si existe un diseño borrador (custom) para el usuario en SQLite.
    *
    * @param string $user Nombre de usuario.
-   * @return bool True si existe el archivo borrador.
+   * @return bool True si existe el registro de borrador.
    */
   public static function hasCustomDesign(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    return file_exists(ROOT_PATH . "/Cache/UserData/UserCustom/{$userClean}.json");
+    $row = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", 1)
+      ->get_one();
+
+    return !empty($row[0]);
   }
 
   /**
-   * Lee el diseño borrador (custom) del usuario si existe.
+   * Lee el diseño borrador (custom) del usuario si existe en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos del borrador o false.
    */
   public static function getCustomDesign(string $user): bool|array {
-    $userClean  = mb_strtolower($user, "UTF-8");
-    $customFile = ROOT_PATH . "/Cache/UserData/UserCustom/{$userClean}.json";
-    if (file_exists($customFile)) {
-      $data = LogModule::readLogLines($customFile);
-      return (!$data || empty($data)) ? false : $data[0];
+    $userClean = mb_strtolower($user, "UTF-8");
+    $row = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", 1)
+      ->get_one();
+
+    if ($row && !empty($row[0])) {
+      return self::formatRowToData($row[0]);
     }
+
     return false;
   }
 
   /**
-   * Lee el diseño oficial (publicado) del usuario si existe.
+   * Lee el diseño oficial (publicado) del usuario si existe en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos oficiales o false.
    */
   public static function getOfficialDesign(string $user): bool|array {
-    $userClean    = mb_strtolower($user, "UTF-8");
-    $officialFile = ROOT_PATH . "/Cache/UserData/{$userClean}.json";
-    if (file_exists($officialFile)) {
-      $data = LogModule::readLogLines($officialFile);
-      return (!$data || empty($data)) ? false : $data[0];
+    $userClean = mb_strtolower($user, "UTF-8");
+    $row = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", 0)
+      ->get_one();
+
+    if ($row && !empty($row[0])) {
+      return self::formatRowToData($row[0]);
     }
+
     return false;
   }
 
@@ -124,7 +224,7 @@ class DesignModels extends Builder {
   }
 
   /**
-   * Inicializa la tarjeta de diseño por defecto para un nuevo usuario registrado.
+   * Inicializa la tarjeta de diseño por defecto en SQLite para un nuevo usuario registrado.
    *
    * @param string $user Nombre de usuario.
    * @return bool True si fue creada o ya existía.
@@ -135,45 +235,29 @@ class DesignModels extends Builder {
     $validUser = UserModels::userExists($userClean);
 
     if ($validUser === true && $dataUser === false) {
-      $data = [
-        "card" => self::getDefaultCard($userClean)
-      ];
-      
-      LogModule::simpleLog([
-        "dir"     => ROOT_PATH . "/Cache/UserData/",
-        "name"    => "{$userClean}",
-        "content" => $data
-      ]);
-      return true;
+      $defaultCard = self::getDefaultCard($userClean);
+      return self::saveDesignToDb($userClean, 0, $defaultCard);
     }
     return false;
   }
 
   /**
    * Procesa la actualización de configuración del diseño, subida de imágenes,
-   * metadatos de enlaces y guarda el JSON borrador en UserCustom.
+   * metadatos de enlaces y guarda el registro borrador (is_draft = 1) en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @param array|string $param Parámetros POST recibidos del formulario.
-   * @return bool True tras guardar el borrador.
+   * @return bool True tras guardar el borrador en SQLite.
    */
   public static function updateCustomDesign(string $user, array|string $param): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
-    if (!is_dir($customDir)) {
-      @mkdir($customDir, 0777, true);
+
+    $currentData = self::getCustomDesign($userClean);
+    if ($currentData === false) {
+      $currentData = self::getOfficialDesign($userClean);
     }
 
-    $customPath   = $customDir . "/{$userClean}.json";
-    $officialPath = ROOT_PATH . "/Cache/UserData/{$userClean}.json";
-
-    if (file_exists($customPath)) {
-      $dataRequest = LogModule::readLogLines($customPath);
-    } else {
-      $dataRequest = LogModule::readLogLines($officialPath);
-    }
-
-    $dataRequest = $dataRequest[0]["card"] ?? [];
+    $dataRequest = $currentData["card"] ?? self::getDefaultCard($userClean);
 
     if (is_array($param)) {
       extract($param);
@@ -217,7 +301,7 @@ class DesignModels extends Builder {
     }
 
     $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
-    $imgProcessor = new ImgProcessModule("", $contentImgDir);
+    $imgProcessor  = new ImgProcessModule("", $contentImgDir);
 
     // 2. Procesar ítems de contenido
     if (isset($param["content"]) && is_array($param["content"])) {
@@ -390,90 +474,73 @@ class DesignModels extends Builder {
       $rrss[] = [$newRrssName, ""];
     }
 
-    $data = [
-      "card" => [
-        "active"       => $dataRequest["active"] ?? false,
-        "hide"         => isset($param["hide_form_submitted"])
-          ? (isset($param["hide"]) && ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1"))
-          : (isset($param["hide"]) ? ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1") : ($dataRequest["hide"] ?? false)),
-        "profile"      => $param["profile"] ?? $dataRequest["profile"] ?? $userClean,
-        "avatar"       => $avatar ?? $dataRequest["avatar"] ?? "no-user.webp",
-        "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
-        "titleColor"   => $titleColor ?? $dataRequest["titleColor"] ?? "#383838",
-        "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
-        "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
-        "backCard"     => [
-          "back_perfil" => $param["back_perfil"] ?? $dataRequest["backCard"]["back_perfil"] ?? "#a0a0a0",
-          "style_back"  => $param["style_back"] ?? $dataRequest["backCard"]["style_back"] ?? "solid"
-        ],
-        "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
-        "style"        => $param["style"] ?? $dataRequest["style"] ?? "buttonRegular",
-        "borders"      => $dataRequest["borders"] ?? ["br0", "br0"],
-        "shadow"       => $param["shadow"] ?? $dataRequest["shadow"] ?? "shadow-1",
-        "back"         => $param["back"] ?? $dataRequest["back"] ?? "#d6d6d6",
-        "hover"        => isset($param["hover"]) ? ($param["hover"] === "true" || $param["hover"] === true || $param["hover"] === 1 || $param["hover"] === "1") : ($dataRequest["hover"] ?? false),
-        "color"        => $param["color"] ?? $dataRequest["color"] ?? "#494949",
-        "colorShadow3" => $param["colorShadow3"] ?? $dataRequest["colorShadow3"] ?? "#000000",
-        "rrss"         => $rrss ?? $dataRequest["rrss"] ?? [],
-        "content"      => $content ?? $dataRequest["content"] ?? []
-      ]
+    $cardPayload = [
+      "active"       => $dataRequest["active"] ?? false,
+      "hide"         => isset($param["hide_form_submitted"])
+        ? (isset($param["hide"]) && ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1"))
+        : (isset($param["hide"]) ? ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1") : ($dataRequest["hide"] ?? false)),
+      "profile"      => $param["profile"] ?? $dataRequest["profile"] ?? $userClean,
+      "avatar"       => $avatar ?? $dataRequest["avatar"] ?? "no-user.webp",
+      "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
+      "titleColor"   => $titleColor ?? $dataRequest["titleColor"] ?? "#383838",
+      "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
+      "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
+      "backCard"     => [
+        "back_perfil" => $param["back_perfil"] ?? $dataRequest["backCard"]["back_perfil"] ?? "#a0a0a0",
+        "style_back"  => $param["style_back"] ?? $dataRequest["backCard"]["style_back"] ?? "solid"
+      ],
+      "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
+      "style"        => $param["style"] ?? $dataRequest["style"] ?? "buttonRegular",
+      "borders"      => $dataRequest["borders"] ?? ["br0", "br0"],
+      "shadow"       => $param["shadow"] ?? $dataRequest["shadow"] ?? "shadow-1",
+      "back"         => $param["back"] ?? $dataRequest["back"] ?? "#d6d6d6",
+      "hover"        => isset($param["hover"]) ? ($param["hover"] === "true" || $param["hover"] === true || $param["hover"] === 1 || $param["hover"] === "1") : ($dataRequest["hover"] ?? false),
+      "color"        => $param["color"] ?? $dataRequest["color"] ?? "#494949",
+      "colorShadow3" => $param["colorShadow3"] ?? $dataRequest["colorShadow3"] ?? "#000000",
+      "rrss"         => $rrss ?? $dataRequest["rrss"] ?? [],
+      "content"      => $content ?? $dataRequest["content"] ?? []
     ];
 
-    LogModule::deleteLog(ROOT_PATH . "/Cache/UserData/UserCustom/{$userClean}.json");
-
-    LogModule::simpleLog([
-      "dir"     => ROOT_PATH . "/Cache/UserData/UserCustom/",
-      "name"    => "{$userClean}",
-      "content" => $data
-    ]);
-
-    return true;
+    // Guardar en la tabla user_designs con is_draft = 1
+    return self::saveDesignToDb($userClean, 1, $cardPayload);
   }
 
   /**
-   * Publica oficialmente el diseño borrador (UserCustom) hacia el diseño público (UserData)
-   * activando el perfil del usuario.
+   * Publica oficialmente el diseño borrador (is_draft = 1) hacia el diseño público (is_draft = 0)
+   * activando el perfil del usuario (active = true) en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool True tras realizar la publicación oficial.
    */
   public static function publishDesign(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    $customDir = ROOT_PATH . "/Cache/UserData/UserCustom";
-    if (!is_dir($customDir)) {
-      @mkdir($customDir, 0777, true);
-    }
-
-    $customPath   = $customDir . "/{$userClean}.json";
-    $officialPath = ROOT_PATH . "/Cache/UserData/{$userClean}.json";
-
     $customData = self::getCustomDesign($userClean);
 
     if ($customData !== false && isset($customData["card"])) {
-      $data = $customData;
-      $data["card"]["active"] = true;
+      $card = $customData["card"];
+      $card["active"] = true;
 
-      LogModule::deleteLog($officialPath);
-      LogModule::simpleLog([
-        "dir"     => ROOT_PATH . "/Cache/UserData/",
-        "name"    => "{$userClean}",
-        "content" => $data
-      ]);
+      // 1. Guardar como versión oficial publicada (is_draft = 0)
+      self::saveDesignToDb($userClean, 0, $card);
 
-      LogModule::deleteLog($customPath);
+      // 2. Eliminar el registro borrador (is_draft = 1)
+      $draftRow = (new Builder("user_designs"))
+        ->where("username", $userClean)
+        ->where("is_draft", 1)
+        ->get_one();
+
+      if (!empty($draftRow[0]["id"])) {
+        (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
+      }
+
       return true;
     } else {
       $officialData = self::getOfficialDesign($userClean);
       if ($officialData !== false && isset($officialData["card"])) {
-        $data = $officialData;
-        if (!($data["card"]["active"] ?? false)) {
-          $data["card"]["active"] = true;
-          LogModule::deleteLog($officialPath);
-          LogModule::simpleLog([
-            "dir"     => ROOT_PATH . "/Cache/UserData/",
-            "name"    => "{$userClean}",
-            "content" => $data
-          ]);
+        $card = $officialData["card"];
+        if (!($card["active"] ?? false)) {
+          $card["active"] = true;
+          self::saveDesignToDb($userClean, 0, $card);
         }
         return true;
       }

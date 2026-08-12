@@ -357,6 +357,9 @@ class Builder extends Conexion
     if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
 
       $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?";
+    } elseif (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
+
+      $sql = "SELECT name FROM sqlite_master WHERE type='table' AND name = ?";
     } else {
 
       // MySQL: SHOW TABLES no soporta placeholders, usamos información schema
@@ -658,6 +661,10 @@ class Builder extends Conexion
 
       // PostgreSQL usa STRING_AGG
       $fragment = " ,STRING_AGG({$col}::text, {$sep}) AS {$alias} ";
+    } elseif (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
+
+      // SQLite usa GROUP_CONCAT(col, sep)
+      $fragment = " ,GROUP_CONCAT({$col}, {$sep}) AS {$alias} ";
     } else {
 
       // MySQL usa GROUP_CONCAT
@@ -902,7 +909,7 @@ class Builder extends Conexion
     // Límite por defecto si no se proporciona nada
     if (!isset($ini)) {
 
-      if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
+      if (defined('DB_DRIVER') && (DB_DRIVER === 'pgsql' || DB_DRIVER === 'sqlite')) {
 
         $this->limit = " 100 OFFSET 0 ";
       } else {
@@ -916,7 +923,7 @@ class Builder extends Conexion
     if ($cant !== null) {
 
       // $ini es el desplazamiento (offset), $cant es el conteo de límite
-      if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
+      if (defined('DB_DRIVER') && (DB_DRIVER === 'pgsql' || DB_DRIVER === 'sqlite')) {
 
         $this->limit = " {$cant} OFFSET {$ini} ";
       } else {
@@ -927,7 +934,7 @@ class Builder extends Conexion
 
       // Solo se proporcionó $ini.
       // En el código existente: $ini se trata como 'conteo', pero se almacena como "0, $ini" (Offset 0, Límite $ini)
-      if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
+      if (defined('DB_DRIVER') && (DB_DRIVER === 'pgsql' || DB_DRIVER === 'sqlite')) {
 
         $this->limit = " {$ini} OFFSET 0 ";
       } else {
@@ -1111,13 +1118,8 @@ class Builder extends Conexion
     $this->query($sql, $data);
 
     // Si generamos un ID único manualmente, retornarlo. Si no, usar lastInsertId.
-    if ($encoder != null) {
-
-      $id_rescue = $data_out[$encoder];
-    } else {
-
-      $id_rescue = $this->last_id;
-    }
+    $id_rescue = ($encoder != null) ? $data_out[$encoder] : $this->last_id;
+    $this->reset();
 
     return $id_rescue;
   }
@@ -1178,6 +1180,7 @@ class Builder extends Conexion
     $sql = "UPDATE {$this->table} SET {$fields} WHERE {$col} = ?";
     $bindings[] = $camp;
     $this->query($sql, $bindings);
+    $this->reset();
   }
 
   /**
@@ -1198,11 +1201,13 @@ class Builder extends Conexion
         $this->query($sql, [$value]);
       }
 
+      $this->reset();
       return;
     } else {
 
       $sql = "DELETE FROM {$this->table} WHERE {$col} = ?";
       $this->query($sql, [$camp]);
+      $this->reset();
       return;
     }
   }
@@ -1261,13 +1266,8 @@ class Builder extends Conexion
     $this->query($sql, $data);
 
     // Si generamos un ID único manualmente, retornarlo. Si no, usar lastInsertId.
-    if ($encoder !== null && isset($data_out[$encoder])) {
-
-      $id_rescue = $data_out[$encoder];
-    } else {
-
-      $id_rescue = $this->last_id;
-    }
+    $id_rescue = ($encoder !== null && isset($data_out[$encoder])) ? $data_out[$encoder] : $this->last_id;
+    $this->reset();
 
     return $id_rescue;
   }
@@ -1330,6 +1330,7 @@ class Builder extends Conexion
     $sql = "UPDATE {$this->table} SET {$fields} WHERE {$col} = ?";
     $bindings[] = $camp;
     $this->query($sql, $bindings);
+    $this->reset();
   }
 
   /**
@@ -2075,15 +2076,22 @@ class Builder extends Conexion
   public function truncate()
   {
 
-    if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
+    if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
+
+      $sql = "DELETE FROM {$this->table}";
+      $this->query($sql);
+      if ($this->table_exist('sqlite_sequence')) {
+        $this->query("DELETE FROM sqlite_sequence WHERE name = ?", [$this->table]);
+      }
+    } elseif (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
 
       $sql = "TRUNCATE TABLE {$this->table} RESTART IDENTITY";
+      $this->query($sql);
     } else {
 
       $sql = "TRUNCATE TABLE {$this->table}";
+      $this->query($sql);
     }
-
-    $this->query($sql);
   }
 
   // ============================================================================

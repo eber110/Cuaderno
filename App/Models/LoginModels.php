@@ -2,9 +2,9 @@
   
 namespace App\Models;
 
-use Base\Builder\Builder;
+use Base\Builder\BuilderSqlite;
 
-class LoginModels extends Builder{
+class LoginModels extends BuilderSqlite{
 
   protected $table = "users";
 

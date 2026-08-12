@@ -86,7 +86,9 @@ class Conexion
 
   private function connect()
   {
-    if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
+    if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
+      $dsn = "sqlite:{$this->db}";
+    } elseif (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
       $dsn = "pgsql:host={$this->host};dbname={$this->db};options='--client_encoding={$this->charset}'";
     } else {
       $dsn = "mysql:host={$this->host};dbname={$this->db};charset={$this->charset}";
