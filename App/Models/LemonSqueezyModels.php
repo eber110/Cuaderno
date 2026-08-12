@@ -47,6 +47,10 @@ class LemonSqueezyModels extends Builder
 
         self::$sqlitePdo->exec("PRAGMA journal_mode = WAL;");
         self::$sqlitePdo->exec("PRAGMA synchronous = NORMAL;");
+        self::$sqlitePdo->exec("PRAGMA busy_timeout = 5000;");
+        self::$sqlitePdo->exec("PRAGMA cache_size = -64000;");
+        self::$sqlitePdo->exec("PRAGMA mmap_size = 268435456;");
+        self::$sqlitePdo->exec("PRAGMA temp_store = MEMORY;");
 
         $sql = "CREATE TABLE IF NOT EXISTS user_subscriptions_cache (
           user_id TEXT PRIMARY KEY,

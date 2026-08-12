@@ -42,9 +42,13 @@ class AnalyticsModule
                     PDO::ATTR_TIMEOUT            => 5
                 ]);
 
-                // Activar Write-Ahead Logging (WAL) y sincronización NORMAL para máximo rendimiento en SQLite
+                // Activar Write-Ahead Logging (WAL), caché en RAM y mmap para máximo rendimiento en SQLite
                 self::$pdo->exec("PRAGMA journal_mode = WAL;");
                 self::$pdo->exec("PRAGMA synchronous = NORMAL;");
+                self::$pdo->exec("PRAGMA busy_timeout = 5000;");
+                self::$pdo->exec("PRAGMA cache_size = -64000;");
+                self::$pdo->exec("PRAGMA mmap_size = 268435456;");
+                self::$pdo->exec("PRAGMA temp_store = MEMORY;");
 
                 self::initSchema();
             } catch (Exception $e) {
