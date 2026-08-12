@@ -104,6 +104,13 @@ class Conexion
 
     try {
       $this->pdo = new PDO($dsn, $this->user, $this->password, $options);
+
+      if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
+        $this->pdo->exec("PRAGMA journal_mode = WAL;");
+        $this->pdo->exec("PRAGMA synchronous = NORMAL;");
+        $this->pdo->exec("PRAGMA busy_timeout = 5000;");
+      }
+
       $this->state = [true, "Conexión exitosa"];
       return $this->state;
     } catch (PDOException $e) {
