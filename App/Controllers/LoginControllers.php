@@ -65,11 +65,16 @@ class LoginControllers extends Control {
     }
 
     if (Session::session_active()) {
-      $premium = LemonSqueezyModels::isUserSubscribed(Session::session_data("user_id"));
-      $_SESSION["user"]["premium"] = $premium;
-    }else{
-      $_SESSION["user"]["premium"] = false;
+      $userId    = Session::session_data("user_id");
+      $userClean = Session::session_data("username");
+      $sub       = LemonSqueezyModels::getSubscriptionByUser($userId);
+      if (!empty($sub)) {
+        LemonSqueezyModels::updateUserPremiumCache($userClean, $sub);
+      } else {
+        LemonSqueezyModels::updateUserPremiumCache($userClean, ["status" => "inactive"]);
+      }
     }
+
 
     return ResponseModule::redirect("/panel/" . $username);
   }

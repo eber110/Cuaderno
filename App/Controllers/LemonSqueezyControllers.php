@@ -256,6 +256,21 @@ class LemonSqueezyControllers extends Control
     $attributes = $data["data"]["attributes"] ?? [];
     $resourceId = SecurityModule::sanitize((string)($data["data"]["id"] ?? ""));
 
+    $userEmail  = SecurityModule::sanitize((string)($attributes["user_email"] ?? ""));
+    $userId     = SecurityModule::sanitize((string)($customData["user_id"] ?? ""));
+
+    // Si customData.user_id no viene en el webhook, buscar el user_id en la tabla Users por su email
+    if (empty($userId) && !empty($userEmail)) {
+      try {
+        $userModel = new \Base\Builder\Builder("Users");
+        $foundUser = $userModel->where("email", $userEmail)->get_one();
+        if (!empty($foundUser) && is_array($foundUser)) {
+          $userRow = isset($foundUser[0]) && is_array($foundUser[0]) ? $foundUser[0] : $foundUser;
+          $userId  = (string)($userRow["user_id"] ?? "");
+        }
+      } catch (\Throwable $e) {}
+    }
+
     $processed = false;
 
     switch ($eventName) {
@@ -265,9 +280,9 @@ class LemonSqueezyControllers extends Control
           "lemon_order_id" => $resourceId,
           "store_id"       => SecurityModule::sanitize((string)($attributes["store_id"] ?? "")),
           "customer_id"    => SecurityModule::sanitize((string)($attributes["customer_id"] ?? "")),
-          "user_id"        => SecurityModule::sanitize((string)($customData["user_id"] ?? "")),
+          "user_id"        => $userId,
           "customer_name"  => SecurityModule::sanitize((string)($attributes["user_name"] ?? "")),
-          "customer_email" => SecurityModule::sanitize((string)($attributes["user_email"] ?? "")),
+          "customer_email" => $userEmail,
           "order_number"   => SecurityModule::sanitize((string)($attributes["order_number"] ?? "")),
           "status"         => SecurityModule::sanitize((string)($attributes["status"] ?? "paid")),
           "currency"       => SecurityModule::sanitize((string)($attributes["currency"] ?? "USD")),
@@ -291,8 +306,8 @@ class LemonSqueezyControllers extends Control
           "order_id"              => SecurityModule::sanitize((string)($attributes["order_id"] ?? "")),
           "product_id"            => SecurityModule::sanitize((string)($attributes["product_id"] ?? "")),
           "variant_id"            => SecurityModule::sanitize((string)($attributes["variant_id"] ?? "")),
-          "user_id"               => SecurityModule::sanitize((string)($customData["user_id"] ?? "")),
-          "user_email"            => SecurityModule::sanitize((string)($attributes["user_email"] ?? "")),
+          "user_id"               => $userId,
+          "user_email"            => $userEmail,
           "status"                => SecurityModule::sanitize((string)($attributes["status"] ?? "active")),
           "trial_ends_at"         => self::parseSqlDate($attributes["trial_ends_at"] ?? null),
           "renews_at"             => self::parseSqlDate($attributes["renews_at"] ?? null),
@@ -300,7 +315,12 @@ class LemonSqueezyControllers extends Control
           "raw_payload"           => $data
         ];
         $processed = LemonSqueezyModels::saveSubscription($subData);
+        if (!empty($userId)) {
+          LemonSqueezyModels::updateUserPremiumCache($userId, $subData);
+        }
         break;
+
+
 
       default:
         $processed = true;
