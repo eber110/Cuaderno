@@ -292,11 +292,10 @@ export function formComponents() {
   styleColorPickers();
   initCheckboxSwitches();
 
-  const observer = new MutationObserver(() => {
+  document.addEventListener('previewUpdated', () => {
     styleColorPickers();
     initCheckboxSwitches();
   });
-  observer.observe(document.body, { childList: true, subtree: true });
 
   // 3. Funciones Helper para conversión HSL y HEX
   function hslToHex(h, s, l) {

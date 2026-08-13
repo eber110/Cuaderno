@@ -3,7 +3,6 @@
    * @var mixed $card 
    * @var mixed $uri
    */
-  $selected = "border-selected-item";
   $styleBack  = $card["backCard"]["style_back"] ?? $card["backCard"][1] ?? 'solid';
   $backPerfil = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
   $shadowVal   = $card["shadow"] ?? 'shadow-0';

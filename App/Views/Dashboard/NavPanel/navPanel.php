@@ -8,7 +8,7 @@
   $profile = $card["profile"] ?? "";
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
   $saveClass = $hasCustom 
-    ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 border-item-panel-red pulse-once" 
+    ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 |border-item-panel-red pulse-once" 
     : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
 ?>
 <div class="sticky top z-index-20">

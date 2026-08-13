@@ -1,6 +1,6 @@
 <?php
   /** @var mixed $card */
-  _part("User.style.css");
+  _part("User.style.css", ["card" => $card]);
 ?>
 <div class="container-xl container-xl-sml flex-column center-center text-protected back-card-container overflow-y-scroll">
   <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0">
@@ -9,8 +9,8 @@
       <header class="w100">
         <?php
           
-          _part("User.".$card["header"]);
-          _part("User.widget");
+          _part("User." . ($card["header"] ?? "regularHero"), ["card" => $card]);
+          _part("User.widget", ["card" => $card]);
           
         ?>
       </header>

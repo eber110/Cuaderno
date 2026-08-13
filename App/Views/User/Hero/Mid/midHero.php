@@ -21,6 +21,6 @@
   </div>
 
   <?php
-    _part("User.rrss");
+    _part("User.rrss", ["card" => $card]);
   ?>
 </main>

@@ -185,7 +185,8 @@
 }
 
 /*estilo para los elementos de formularios en el content de panel*/
-.border-selected-item{
+.hidden-radio:checked + label.back-card-graphic,
+.hidden-radio:checked + label > .back-card-graphic {
   border: dashed 3px #1b1b1b !important;
 }
 

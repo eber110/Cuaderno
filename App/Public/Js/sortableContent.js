@@ -6,12 +6,19 @@
  * automáticamente los atributos `name` de los campos e impulsa el auto-submit del formulario.
  */
 export function sortableContent() {
-  const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
-  if (!containers.length) return;
+  function initAllContainers() {
+    const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
+    if (!containers.length) return;
 
-  containers.forEach((container) => {
-    initSortable(container);
-  });
+    containers.forEach((container) => {
+      if (container.dataset.sortableBound) return;
+      container.dataset.sortableBound = "true";
+      initSortable(container);
+    });
+  }
+
+  initAllContainers();
+  document.addEventListener("previewUpdated", initAllContainers);
 
   function initSortable(container) {
     let draggedItem = null;

@@ -3,7 +3,6 @@
    * @var mixed $card 
    * @var mixed $uri
    */
-  $selected = "border-selected-item";
   $styleBack  = $card["backCard"]["style_back"] ?? $card["backCard"][1] ?? 'solid';
   $backPerfil = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
 ?>
@@ -19,7 +18,7 @@
         
         <input type="radio" id="style_gradient" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo "checked";?>>
         <label for="style_gradient">
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo $selected;?>">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
             <div class="hpx80 wpx80 br15" style="background: linear-gradient(180deg,
               oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
               oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
@@ -30,7 +29,7 @@
     
         <input type="radio" id="style_solid" name="style_back" class="hidden-radio" value="solid" <?php if ($styleBack == "solid") echo "checked";?>>
         <label for="style_solid">
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 <?php if ($styleBack == "solid") echo $selected;?>">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
             <div class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
             <p class="x16 texto">Solido</p>
           </div>
@@ -75,14 +74,14 @@
         <div class="flex-row center-end gap10">
           <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
           <label for="direction_up">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto <?php if ($styleBack == "gradientUp") echo $selected;?>">
+            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
               <?= svg("arrow-up");?> Arriba
             </div>
           </label>
           
           <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
           <label for="direction_down">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto <?php if ($styleBack == "gradientDown") echo $selected;?>">
+            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
               <?= svg("arrow-down");?> Abajo
             </div>
           </label>

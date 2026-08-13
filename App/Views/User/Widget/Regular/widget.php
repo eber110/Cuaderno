@@ -10,7 +10,7 @@
       $itemActive = $content[$i]["active"] ?? false;
       if ($itemType === "link" || $itemType === "product") {
         if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
-          _part("User." . $cardStyle, ["dataContent" => $i]);
+          _part("User." . $cardStyle, ["dataContent" => $i, "card" => $card]);
         }
       }
     }

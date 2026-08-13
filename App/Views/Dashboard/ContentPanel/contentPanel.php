@@ -12,7 +12,7 @@
   <div id="header-remote" class="remote-content flex-row top-center active">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php 
-        _form("Panel.headerPanel");
+        _form("Panel.headerPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>
@@ -20,7 +20,7 @@
   <div id="background-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
-        _form("Panel.backgroundPanel");
+        _form("Panel.backgroundPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>
@@ -28,7 +28,7 @@
   <div id="button-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
-        _form("Panel.buttonPanel");
+        _form("Panel.buttonPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>
@@ -36,7 +36,7 @@
   <div id="color-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
-        _form("Panel.colorPanel");
+        _form("Panel.colorPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>
@@ -48,7 +48,7 @@
       </div>
       <div class="flex-row center-between">
         <div class="texto">Ocultar perfil</div>
-        <?php _form("Panel.hideProfile");?>
+        <?php _form("Panel.hideProfile", ["card" => $card, "uri" => $uri]);?>
       </div>
     </div>
   </div>
@@ -56,7 +56,7 @@
   <div id="Content-button" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
-        _form("Panel.contentButtonPanel");
+        _form("Panel.contentButtonPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>
@@ -64,7 +64,7 @@
   <div id="Content-rrss" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
-        _form("Panel.contentRRSSPanel");
+        _form("Panel.contentRRSSPanel", ["card" => $card, "uri" => $uri]);
       ?>
     </div>
   </div>

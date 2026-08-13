@@ -109,4 +109,57 @@ export function saveButtonController() {
       triggerPulseAnimation();
     }
   }
+
+  // Interceptar clic en el botón Guardar para publicar con fetch sin recargar la página
+  saveBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    if (saveBtn.classList.contains("disabled-save-btn") || saveBtn.getAttribute("aria-disabled") === "true") {
+      return;
+    }
+
+    const targetUrl = saveBtn.getAttribute("href") || saveBtn.dataset.href;
+    if (!targetUrl) return;
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      if (data && data.success) {
+        // Deshabilitar el botón Guardar tras publicar los cambios
+        saveBtn.classList.add("disabled-save-btn", "texto");
+        saveBtn.classList.remove("pointer", "back-save-panel", "textw", "bold500", "pulse-once");
+        saveBtn.setAttribute("tabindex", "-1");
+        saveBtn.setAttribute("aria-disabled", "true");
+        saveContainer.dataset.hasCustom = "false";
+
+        // Actualizar la vista previa con los datos oficiales publicados
+        if (data.html) {
+          const previewContainers = document.querySelectorAll(".user-profile-preview");
+          previewContainers.forEach((container) => {
+            const temp = document.createElement("div");
+            temp.innerHTML = data.html.trim();
+            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+            if (targetPreview && container.parentNode) {
+              container.parentNode.replaceChild(targetPreview, container);
+            } else {
+              container.innerHTML = data.html;
+            }
+          });
+
+          document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+        }
+      }
+    } catch (err) {
+      console.error("Error al publicar el diseño con fetch:", err);
+    }
+  });
 }

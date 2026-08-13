@@ -10,9 +10,6 @@
  * @returns {void}
  */
 export function cutPhrase() {
-  const elements = document.querySelectorAll(".cut-phrase");
-  if (elements.length === 0) return;
-
   /**
    * Obtiene la altura de línea (line-height) del elemento en píxeles.
    * @param {HTMLElement} el 
@@ -94,6 +91,7 @@ export function cutPhrase() {
   }
 
   const adjustAll = () => {
+    const elements = document.querySelectorAll(".cut-phrase");
     elements.forEach(el => {
       updateClamp(el);
     });
@@ -101,6 +99,10 @@ export function cutPhrase() {
 
   // Ajuste inicial
   adjustAll();
+
+  // Escuchar eventos de actualización de vista previa o contenido dinámico
+  document.addEventListener('previewUpdated', adjustAll);
+  document.addEventListener('contentUpdated', adjustAll);
 
   // Re-ajustar cuando las fuentes web terminen de cargarse
   if ('fonts' in document) {

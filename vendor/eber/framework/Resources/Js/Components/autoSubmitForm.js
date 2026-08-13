@@ -54,4 +54,125 @@ export function autoSubmitForm() {
       }
     }
   });
+
+  // Debounce para auto-submit al escribir en campos de texto y textareas
+  let inputDebounceTimer = null;
+  document.addEventListener('input', (e) => {
+    const target = e.target;
+    if (!target) return;
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
+    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio') return;
+
+    const form = target.closest('form.auto-submit');
+    if (!form) return;
+
+    if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) return;
+
+    clearTimeout(inputDebounceTimer);
+    inputDebounceTimer = setTimeout(() => {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(submitEvent);
+      }
+    }, 600);
+  });
+
+  // Interceptar envíos de formularios .auto-submit o data-fetch-preview para enviar por Fetch y recargar el preview en vivo sin recargar la página
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form || !form.matches('form.auto-submit, form[data-fetch-preview]')) return;
+
+    // Evitar la recarga normal de la página
+    e.preventDefault();
+
+    // Cerrar cualquier modal abierto al procesar el envío
+    document.querySelectorAll('.modal-overlay').forEach(modal => modal.remove());
+
+    try {
+      const submitter = e.submitter;
+      const formData = submitter ? new FormData(form, submitter) : new FormData(form);
+
+      if (submitter && submitter.name && !formData.has(submitter.name)) {
+        formData.append(submitter.name, submitter.value || 'true');
+      }
+
+      const action = form.action || window.location.href;
+
+      const response = await fetch(action, {
+        method: form.method || 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Error en envío AJAX:', response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data && data.success) {
+        if (data.html) {
+          // Actualizar los contenedores de vista previa (UserPreview) sin parpadear ni recargar
+          const previewContainers = document.querySelectorAll('.user-profile-preview');
+          previewContainers.forEach((container) => {
+            const temp = document.createElement('div');
+            temp.innerHTML = data.html.trim();
+            const targetPreview = temp.querySelector('.user-profile-preview') || temp.firstElementChild;
+            if (targetPreview && container.parentNode) {
+              container.parentNode.replaceChild(targetPreview, container);
+            } else {
+              container.innerHTML = data.html;
+            }
+          });
+        }
+
+        // Si la respuesta incluye formHtml, re-renderizar la sección activa del formulario
+        if (data.formHtml) {
+          const activeRemoteContent = form.closest('.remote-content') || document.querySelector('.remote-content.active');
+          if (activeRemoteContent && activeRemoteContent.id) {
+            const tempForm = document.createElement('div');
+            tempForm.innerHTML = data.formHtml.trim();
+            const matchingNewContent = tempForm.querySelector('#' + CSS.escape(activeRemoteContent.id));
+            if (matchingNewContent) {
+              const activeEl = document.activeElement;
+              const activeInputName = activeEl ? activeEl.getAttribute('name') : null;
+              const selectionStart = (activeEl && 'selectionStart' in activeEl) ? activeEl.selectionStart : null;
+              const selectionEnd = (activeEl && 'selectionEnd' in activeEl) ? activeEl.selectionEnd : null;
+
+              activeRemoteContent.innerHTML = matchingNewContent.innerHTML;
+
+              if (activeInputName) {
+                const allInputs = activeRemoteContent.querySelectorAll('input, textarea, select');
+                let restoredInput = null;
+                for (let inp of allInputs) {
+                  if (inp.getAttribute('name') === activeInputName) {
+                    restoredInput = inp;
+                    break;
+                  }
+                }
+                if (restoredInput) {
+                  restoredInput.focus();
+                  if (selectionStart !== null && selectionEnd !== null && typeof restoredInput.setSelectionRange === 'function') {
+                    try {
+                      restoredInput.setSelectionRange(selectionStart, selectionEnd);
+                    } catch (e) {}
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Disparar evento personalizado para otros componentes
+        document.dispatchEvent(new CustomEvent('previewUpdated', { detail: data }));
+      }
+    } catch (error) {
+      console.error('Error al procesar el formulario con fetch:', error);
+    }
+  });
 }

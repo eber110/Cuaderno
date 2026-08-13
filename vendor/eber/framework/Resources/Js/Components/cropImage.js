@@ -25,8 +25,9 @@
  * @returns {void}
  */
 export function cropImage() {
-  const cropInputs = document.querySelectorAll(".selectAndCropImage");
-  if (cropInputs.length === 0) return;
+  function initCropElements() {
+    const cropInputs = document.querySelectorAll(".selectAndCropImage:not([data-crop-initialized])");
+    if (cropInputs.length === 0) return;
 
   // Inyectar estilos CSS para el modal si no están ya presentes
   if (!document.getElementById('crop-image-styles')) {
@@ -630,4 +631,8 @@ export function cropImage() {
       reader.readAsDataURL(file);
     });
   });
+}
+
+  initCropElements();
+  document.addEventListener('previewUpdated', initCropElements);
 }

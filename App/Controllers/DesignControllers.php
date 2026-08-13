@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\DesignModels;
+use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\ResponseModule;
 
@@ -29,7 +30,7 @@ class DesignControllers extends Control {
    *
    * @param string $user Nombre de usuario.
    * @param array|string $param Parámetros POST recibidos.
-   * @return void Redirige al panel del usuario.
+   * @return void Redirige al panel del usuario o responde en JSON si es AJAX.
    */
   public function configDesign(string $user, array|string $param): void {
     $userClean = mb_strtolower($user, "UTF-8");
@@ -37,7 +38,41 @@ class DesignControllers extends Control {
     // Delegar el procesamiento completo de actualización al modelo DesignModels
     DesignModels::updateCustomDesign($userClean, $param);
 
-    // Redirigir de vuelta al panel del usuario
+    // Detectar solicitudes AJAX / Fetch
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+      || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
+
+    if ($isAjax) {
+      $dataUser = DesignModels::dataUser($userClean);
+      $cardData = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
+        ? UserModels::formatCardImages($dataUser["card"]) 
+        : [];
+
+      if (empty($cardData["profile"])) {
+        $cardData["profile"] = $userClean;
+      }
+
+      $uri = [
+        "formDesign"   => "/panel/{$userClean}/diseno",
+        "saveDesign"   => "/panel/{$userClean}/guardar",
+        "simularDatos" => "/panel/{$userClean}/simular-datos"
+      ];
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $formHtml    = _partToString("Dashboard.contentPanel", [
+        "card" => $cardData,
+        "uri"  => $uri
+      ]);
+
+      ResponseModule::json([
+        "success"  => true,
+        "html"     => $previewHtml,
+        "formHtml" => $formHtml,
+        "card"     => $cardData
+      ]);
+    }
+
+    // Redirigir de vuelta al panel del usuario para envíos navegados sincrónicos
     ResponseModule::redirect("/panel/{$userClean}");
   }
 
@@ -52,6 +87,29 @@ class DesignControllers extends Control {
 
     // Delegar la publicación oficial del diseño al modelo DesignModels
     DesignModels::publishDesign($userClean);
+
+    // Detectar solicitudes AJAX / Fetch
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+      || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
+
+    if ($isAjax) {
+      $dataUser = DesignModels::dataUser($userClean);
+      $cardData = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
+        ? UserModels::formatCardImages($dataUser["card"]) 
+        : [];
+
+      if (empty($cardData["profile"])) {
+        $cardData["profile"] = $userClean;
+      }
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+
+      ResponseModule::json([
+        "success" => true,
+        "html"    => $previewHtml,
+        "card"    => $cardData
+      ]);
+    }
 
     // Redirigir de vuelta al panel del usuario
     ResponseModule::redirect("/panel/{$userClean}");
