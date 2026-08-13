@@ -192,6 +192,10 @@ export function hamburgerMenu() {
     const isFromLeft = menu.classList.contains('from-left');
     const overlay = createOverlay(menu);
 
+    // Marcar menú como en proceso de apertura y deshabilitar pointer-events temporalmente
+    menu.dataset.menuOpening = 'true';
+    menu.style.pointerEvents = 'none';
+
     menu.classList.remove('hidden');
 
     // Sincronizar estado visual y accesibilidad en los activadores
@@ -203,9 +207,15 @@ export function hamburgerMenu() {
 
     toggleBodyScroll(true);
 
+    const enablePointerEvents = () => {
+      menu.dataset.menuOpening = 'false';
+      menu.style.pointerEvents = 'auto';
+    };
+
     if (!hasGsap || !menu.classList.contains('animated')) {
       menu.style.transform = 'translateX(0)';
       if (overlay) overlay.style.opacity = '1';
+      setTimeout(enablePointerEvents, 350);
       return;
     }
 
@@ -220,7 +230,8 @@ export function hamburgerMenu() {
     gsap.to(menu, {
       x: 0,
       duration: animConfig.duration,
-      ease: animConfig.ease
+      ease: animConfig.ease,
+      onComplete: enablePointerEvents
     });
 
     if (overlay) {
@@ -239,6 +250,10 @@ export function hamburgerMenu() {
   function animateMenuClose(menu, toggle = null) {
     const isFromLeft = menu.classList.contains('from-left');
     const overlay = menu.querySelector('.hamburger-overlay');
+
+    // Marcar menú como no disponible inmediatamente al cerrar
+    menu.dataset.menuOpening = 'true';
+    menu.style.pointerEvents = 'none';
 
     // Sincronizar estado visual y accesibilidad en los activadores
     const relatedToggles = toggle ? [toggle] : getTogglesForMenu(menu);
@@ -325,16 +340,22 @@ export function hamburgerMenu() {
       }
     }
 
-    // Atributo aria-expanded inicial
+    // Atributo aria-expanded inicial y desactivación de pointerEvents si está oculto
     const isInitialHidden = menu.classList.contains('hidden');
     toggle.setAttribute('aria-expanded', isInitialHidden ? 'false' : 'true');
+    if (isInitialHidden) {
+      menu.style.pointerEvents = 'none';
+    }
 
     // Manejador unificado para click y touchstart
     const toggleHandler = (e) => {
       e.stopPropagation();
       
-      // Evitar que el click se dispare después del touchstart
+      // Evitar que el clic sintético se dispare después del touchstart cancelando el evento táctil
       if (e.type === 'touchstart') {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
         toggle._touchHandled = true;
       } else if (e.type === 'click' && toggle._touchHandled) {
         toggle._touchHandled = false;
@@ -346,7 +367,7 @@ export function hamburgerMenu() {
 
     // Registrar ambos eventos
     toggle.addEventListener('click', toggleHandler);
-    toggle.addEventListener('touchstart', toggleHandler, { passive: true });
+    toggle.addEventListener('touchstart', toggleHandler, { passive: false });
 
     // Accesibilidad por teclado (Enter / Espacio) para cualquier tipo de elemento
     toggle.addEventListener('keydown', (e) => {
@@ -370,7 +391,13 @@ export function hamburgerMenu() {
     menu.querySelectorAll('a').forEach(link => {
       if (!link._hasHamburgerListener) {
         link._hasHamburgerListener = true;
-        link.addEventListener('click', () => {
+        link.addEventListener('click', (e) => {
+          // Si el menú se está abriendo o pointer-events está desactivado, ignorar y prevenir navegación accidental
+          if (menu.dataset.menuOpening === 'true' || menu.style.pointerEvents === 'none') {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           animateMenuClose(menu, toggle);
         });
       }
