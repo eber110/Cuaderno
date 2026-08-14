@@ -5,9 +5,11 @@
   $hover        = $card["hover"] ?? false;
   $backPerfil   = $card["backCard"]["back_perfil"] ?? "#a0a0a0";
   $styleBack    = $card["backCard"]["style_back"] ?? "solid";
-  $colorShadow3 = $card["colorShadow3"] ?? "#000000";
-  $colorText    = $card["colorText"] ?? "#383838";
-  $titleColor   = $card["titleColor"] ?? "#383838";
+  $colorShadow3     = $card["colorShadow3"] ?? "#000000";
+  $colorText        = $card["colorText"] ?? "#383838";
+  $titleColor       = $card["titleColor"] ?? "#383838";
+  $backVideo        = $card["backCard"]["back_video"] ?? "";
+  $backVideoOverlay = $card["backCard"]["back_video_overlay"] ?? "#000000";
 ?>
 
 <style>
@@ -23,10 +25,16 @@
   .theme-button-menu:hover{background-color: oklch(from <?= $back?> calc(l * 1.04) c h);}
 
   .w-theme-center{
-    width: calc(100% - 115px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
   }
 
-  
+  .theme-icon{
+    color: <?= $color?>;
+  }
+
   <?php if ($styleBack == "solid") :?>
     .back-card{
       background-color: <?= $backPerfil?>;
@@ -60,7 +68,53 @@
         oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
       );
     }
+  <?php elseif ($styleBack == "video" && !empty($backVideo)) :?>
+    .back-card{
+      background-color: <?= $backPerfil?>22;
+      position: relative;
+    }
+    .back-card-container{
+      background-color: oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+    }
+  <?php else :?>
+    .back-card{
+      background-color: <?= $backPerfil?>;
+    }
+    .back-card-container{
+      background-color: oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+    }
   <?php endif?>
+
+  .back-video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .back-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: oklch(from <?= $backVideoOverlay?> l c h / 45%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .z-index-1 {
+    position: relative;
+    z-index: 1;
+  }
+  .position-relative {
+    position: relative;
+  }
+  .overflow-hidden {
+    overflow: hidden;
+  }
 
   .shadow-3{
     box-sizing: content-box;

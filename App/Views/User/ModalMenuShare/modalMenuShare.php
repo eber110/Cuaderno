@@ -5,6 +5,14 @@
    */
   $card = $card ?? [];
   $data = $data ?? [];
+  $metaImg = $data["metaImg"] ?? "";
+  if (empty($metaImg) || (str_starts_with($metaImg, "/") && !file_exists(ROOT_PATH . $metaImg))) {
+    if (!empty($data["img"]) && file_exists(ROOT_PATH . "/Uploads/" . $data["img"])) {
+      $metaImg = "/Uploads/" . $data["img"];
+    } else {
+      $metaImg = "/App/Public/Img/Custom/img-og.png";
+    }
+  }
 ?>
 <div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
   <p class="absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
@@ -13,7 +21,7 @@
 
   <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"] ?? '#d6d6d6' ?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"] ?? '#383838' ?> !important;">
     <figure class="ar-square wpx200 wpx-sml-160 br15">
-      <img src="<?= $data["metaImg"] ?? '' ?>" alt="" class="cover">
+      <img src="<?= $metaImg ?>" alt="" class="cover">
     </figure>
 
     <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= e($data["metaDesc"] ?? '') ?>...</p>

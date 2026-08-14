@@ -66,11 +66,13 @@ class DesignControllers extends Control {
       ]);
 
       ResponseModule::json([
-        "success"   => true,
-        "hasCustom" => true,
-        "html"      => $previewHtml,
-        "formHtml"  => $formHtml,
-        "card"      => $cardData
+        "success"      => true,
+        "hasCustom"    => true,
+        "html"         => $previewHtml,
+        "formHtml"     => $formHtml,
+        "card"         => $cardData,
+        "videoError"   => DesignModels::$videoUploadError,
+        "videoSuccess" => DesignModels::$videoUploadSuccess
       ]);
     }
 
@@ -188,6 +190,46 @@ class DesignControllers extends Control {
     $acceptedLinks = [1,2,3,6,8,21,4,5,11,12,13,14,15,16,17,18,20,10];
     return $acceptedLinks;
   
+  }
+
+  /**
+   * Genera los parámetros de subida firmados para Cloudinary para subida en 2do plano sin bloquear PHP,
+   * incluyendo recorte de inicio/fin y encuadre en aspecto de teléfono (9:16).
+   *
+   * @param string $user Nombre de usuario.
+   * @return void
+   */
+  public function getCloudinarySignature(string $user): void
+  {
+    $userClean = mb_strtolower($user, "UTF-8");
+    $folder    = "cuaderno/backgrounds/{$userClean}";
+
+    $start    = max(0, floatval($_GET["start"] ?? $_POST["start"] ?? 0));
+    $duration = floatval($_GET["duration"] ?? $_POST["duration"] ?? 20);
+    if ($duration <= 0 || $duration > 20) {
+      $duration = 20;
+    }
+
+    $startFormatted = round($start, 1);
+    $durFormatted   = round($duration, 1);
+
+    // Transformación: recorte de tiempo + encuadre vertical teléfono 9:16 + compresión nítida 720p
+    $transParts = [
+      "so_{$startFormatted}",
+      "du_{$durFormatted}",
+      "ar_9:16",
+      "c_fill",
+      "g_center",
+      "w_720",
+      "q_auto",
+      "vc_auto",
+      "ac_none",
+      "f_auto"
+    ];
+    $transformation = implode(",", $transParts);
+
+    $params = \App\Services\CloudinaryService::createSignedUploadParams($folder, $transformation);
+    ResponseModule::json($params);
   }
 
 }

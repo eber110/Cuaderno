@@ -61,6 +61,8 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
     return \Base\Module\ResponseModule::redirect("/panel/{$userClean}");
   });
   Route::post("/diseno", [DesignControllers::class, "configDesign"]);
+  Route::get("/cloudinary-sign", [DesignControllers::class, "getCloudinarySignature"]);
+  Route::post("/cloudinary-sign", [DesignControllers::class, "getCloudinarySignature"]);
   Route::get("/guardar", [DesignControllers::class, "saveDesign"]);
   Route::post("/guardar", [DesignControllers::class, "saveDesign"]);
   Route::get("/descartar", [DesignControllers::class, "discardDesign"]);

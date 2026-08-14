@@ -46,6 +46,17 @@ if (!defined('LEMON_SQUEEZY_BUY_URL')) {
     define('LEMON_SQUEEZY_BUY_URL', $_ENV['LEMON_SQUEEZY_BUY_URL'] ?? getenv('LEMON_SQUEEZY_BUY_URL') ?: 'https://clikhub.lemonsqueezy.com/checkout/buy/e2ba4ce6-2307-4d5e-b965-47b519aca9de');
 }
 
+// Configuración de Cloudinary
+if (!defined('CLOUDINARY_CLOUD_NAME')) {
+    define('CLOUDINARY_CLOUD_NAME', $_ENV['CLOUDINARY_CLOUD_NAME'] ?? getenv('CLOUDINARY_CLOUD_NAME') ?: '');
+}
+if (!defined('CLOUDINARY_API_KEY')) {
+    define('CLOUDINARY_API_KEY', $_ENV['CLOUDINARY_API_KEY'] ?? getenv('CLOUDINARY_API_KEY') ?: '');
+}
+if (!defined('CLOUDINARY_API_SECRET')) {
+    define('CLOUDINARY_API_SECRET', $_ENV['CLOUDINARY_API_SECRET'] ?? getenv('CLOUDINARY_API_SECRET') ?: '');
+}
+
 // Registrar tablas en la whitelist de SecurityModule
 if (class_exists('\Base\Module\SecurityModule')) {
     \Base\Module\SecurityModule::addAllowedTable('lemon_squeezy_orders');

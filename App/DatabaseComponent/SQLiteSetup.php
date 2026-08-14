@@ -77,6 +77,9 @@ class SQLiteSetup
       header VARCHAR(100) DEFAULT 'regularHero',
       back_perfil VARCHAR(50) DEFAULT '#a0a0a0',
       style_back VARCHAR(50) DEFAULT 'solid',
+      back_video TEXT NULL,
+      back_video_public_id VARCHAR(150) NULL,
+      back_video_overlay VARCHAR(50) DEFAULT '#000000',
       color_text VARCHAR(50) DEFAULT '#383838',
       style VARCHAR(100) DEFAULT 'buttonRegular',
       borders TEXT DEFAULT '[\"br0\", \"br0\"]',
@@ -161,6 +164,28 @@ class SQLiteSetup
         $log[] = "Error al crear la tabla '{$tableName}': " . $e->getMessage();
       }
     }
+
+    // Migraciones automáticas para columnas nuevas en user_designs
+    try {
+      $cols = (new Builder())->query_foreign("PRAGMA table_info(user_designs);")->get();
+      $existingCols = [];
+      if (is_array($cols)) {
+        foreach ($cols as $col) {
+          if (!empty($col["name"])) {
+            $existingCols[] = $col["name"];
+          }
+        }
+      }
+      if (!in_array("back_video", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video TEXT NULL;");
+      }
+      if (!in_array("back_video_public_id", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video_public_id VARCHAR(150) NULL;");
+      }
+      if (!in_array("back_video_overlay", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video_overlay VARCHAR(50) DEFAULT '#000000';");
+      }
+    } catch (\Throwable $e) {}
 
     // Insertar roles base si no existen
     try {

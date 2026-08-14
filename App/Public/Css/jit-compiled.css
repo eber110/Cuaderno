@@ -113,6 +113,7 @@
 .hem5 { min-height: 5em; }
 .hpx100 { height: 100px; }
 .hpx120 { height: 120px; }
+.hpx140 { height: 140px; }
 .hpx22 { height: 22px; }
 .hpx25 { height: 25px; }
 .hpx250 { height: 250px; }
@@ -217,7 +218,9 @@
 .x02 { font-size: 02px; }
 .x03 { font-size: 03px; }
 .x1 { font-size: 1px; }
+.x11 { font-size: 11px; }
 .x12 { font-size: 12px; }
+.x13 { font-size: 13px; }
 .x14 { font-size: 14px; }
 .x16 { font-size: 16px; }
 .x17 { font-size: 17px; }

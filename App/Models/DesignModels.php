@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CloudinaryService;
 use Base\Builder\Builder;
 use Base\Module\ImgProcessModule;
 use Base\Module\RequestMetaModule;
@@ -15,6 +16,9 @@ use Base\Module\RequestMetaModule;
 class DesignModels extends Builder {
 
   protected $table = "user_designs";
+
+  public static ?string $videoUploadError = null;
+  public static ?string $videoUploadSuccess = null;
 
   /**
    * Transforma una fila de la tabla user_designs en la estructura asociativa de tarjeta ($data['card']).
@@ -38,8 +42,11 @@ class DesignModels extends Builder {
         "desc"         => $row["desc"] ?? "",
         "header"       => $row["header"] ?? "regularHero",
         "backCard"     => [
-          "back_perfil" => $row["back_perfil"] ?? "#a0a0a0",
-          "style_back"  => $row["style_back"] ?? "solid"
+          "back_perfil"          => $row["back_perfil"] ?? "#a0a0a0",
+          "style_back"           => $row["style_back"] ?? "solid",
+          "back_video"           => $row["back_video"] ?? "",
+          "back_video_public_id" => $row["back_video_public_id"] ?? "",
+          "back_video_overlay"   => $row["back_video_overlay"] ?? "#000000"
         ],
         "colorText"    => $row["color_text"] ?? "#383838",
         "style"        => $row["style"] ?? "buttonRegular",
@@ -68,29 +75,32 @@ class DesignModels extends Builder {
     $builder   = new Builder("user_designs");
 
     $payload = [
-      "username"      => $userClean,
-      "is_draft"      => $isDraft,
-      "active"        => !empty($card["active"]) ? 1 : 0,
-      "hide"          => !empty($card["hide"]) ? 1 : 0,
-      "profile"       => $card["profile"] ?? $userClean,
-      "avatar"        => $card["avatar"] ?? "no-user.webp",
-      "title"         => $card["title"] ?? "Titulo",
-      "title_color"   => $card["titleColor"] ?? "#383838",
-      "desc"          => $card["desc"] ?? "",
-      "header"        => $card["header"] ?? "regularHero",
-      "back_perfil"   => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
-      "style_back"    => $card["backCard"]["style_back"] ?? "solid",
-      "color_text"    => $card["colorText"] ?? "#383838",
-      "style"         => $card["style"] ?? "buttonRegular",
-      "borders"       => json_encode($card["borders"] ?? ["br0", "br0"]),
-      "shadow"        => $card["shadow"] ?? "shadow-1",
-      "back"          => $card["back"] ?? "#d6d6d6",
-      "hover"         => !empty($card["hover"]) ? 1 : 0,
-      "color"         => $card["color"] ?? "#494949",
-      "color_shadow3" => $card["colorShadow3"] ?? "#000000",
-      "rrss"          => json_encode($card["rrss"] ?? []),
-      "content"       => json_encode($card["content"] ?? []),
-      "updated_at"    => date("Y-m-d H:i:s")
+      "username"             => $userClean,
+      "is_draft"             => $isDraft,
+      "active"               => !empty($card["active"]) ? 1 : 0,
+      "hide"                 => !empty($card["hide"]) ? 1 : 0,
+      "profile"              => $card["profile"] ?? $userClean,
+      "avatar"               => $card["avatar"] ?? "no-user.webp",
+      "title"                => $card["title"] ?? "Titulo",
+      "title_color"          => $card["titleColor"] ?? "#383838",
+      "desc"                 => $card["desc"] ?? "",
+      "header"               => $card["header"] ?? "regularHero",
+      "back_perfil"          => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
+      "style_back"           => $card["backCard"]["style_back"] ?? "solid",
+      "back_video"           => $card["backCard"]["back_video"] ?? null,
+      "back_video_public_id" => $card["backCard"]["back_video_public_id"] ?? null,
+      "back_video_overlay"   => $card["backCard"]["back_video_overlay"] ?? "#000000",
+      "color_text"           => $card["colorText"] ?? "#383838",
+      "style"                => $card["style"] ?? "buttonRegular",
+      "borders"              => json_encode($card["borders"] ?? ["br0", "br0"]),
+      "shadow"               => $card["shadow"] ?? "shadow-1",
+      "back"                 => $card["back"] ?? "#d6d6d6",
+      "hover"                => !empty($card["hover"]) ? 1 : 0,
+      "color"                => $card["color"] ?? "#494949",
+      "color_shadow3"        => $card["colorShadow3"] ?? "#000000",
+      "rrss"                 => json_encode($card["rrss"] ?? []),
+      "content"              => json_encode($card["content"] ?? []),
+      "updated_at"           => date("Y-m-d H:i:s")
     ];
 
     $existing = (new Builder("user_designs"))
@@ -207,8 +217,11 @@ class DesignModels extends Builder {
       "desc"         => "Descripción del usuario",
       "header"       => "regularHero",
       "backCard"     => [
-        "back_perfil" => "#a0a0a0",
-        "style_back"  => "solid"
+        "back_perfil"          => "#a0a0a0",
+        "style_back"           => "solid",
+        "back_video"           => "",
+        "back_video_public_id" => "",
+        "back_video_overlay"   => "#000000"
       ],
       "colorText"    => "#383838",
       "style"        => "buttonRegular",
@@ -289,6 +302,57 @@ class DesignModels extends Builder {
             $uploadedContentImgs[$itemIdx] = $savedImgs[0];
           }
         }
+      }
+    }
+
+    // 1.1 Procesar video de fondo (subida directa en 2do plano o subida clásica)
+    $backVideo = $dataRequest["backCard"]["back_video"] ?? "";
+    $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
+
+    self::$videoUploadError = null;
+    self::$videoUploadSuccess = null;
+
+    if (!empty($param["back_video_url_direct"])) {
+      $newUrl = $param["back_video_url_direct"];
+      $newPublicId = $param["back_video_public_id_direct"] ?? "";
+
+      if (!empty($backVideoPublicId) && $backVideoPublicId !== $newPublicId) {
+        CloudinaryService::deleteVideo($backVideoPublicId);
+      }
+      $backVideo = $newUrl;
+      $backVideoPublicId = $newPublicId;
+      $styleBack = "video";
+      self::$videoUploadSuccess = "Video de fondo subido con éxito a Cloudinary.";
+    } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_OK) {
+      $tmpFile = $_FILES["back_video"]["tmp_name"];
+      $uploadResult = CloudinaryService::uploadVideo($tmpFile, [
+        "folder"         => "cuaderno/backgrounds/{$userClean}",
+        "transformation" => "du_20,w_720,c_limit,q_auto,vc_auto,ac_none,f_auto"
+      ]);
+
+      if ($uploadResult !== null && !empty($uploadResult["url"])) {
+        if (!empty($backVideoPublicId) && $backVideoPublicId !== $uploadResult["public_id"]) {
+          CloudinaryService::deleteVideo($backVideoPublicId);
+        }
+        $backVideo = $uploadResult["url"];
+        $backVideoPublicId = $uploadResult["public_id"];
+        $styleBack = "video";
+        self::$videoUploadSuccess = "Video de fondo subido con éxito a Cloudinary.";
+      } else {
+        self::$videoUploadError = CloudinaryService::getLastErrorMessage() ?? "Error al subir video a Cloudinary.";
+      }
+    } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_INI_SIZE) {
+      self::$videoUploadError = "El video excede el límite máximo de tamaño de archivo permitido en el servidor.";
+    }
+
+    if (isset($param["delete_video"]) && ($param["delete_video"] === "true" || $param["delete_video"] === true || $param["delete_video"] === "1")) {
+      if (!empty($backVideoPublicId)) {
+        CloudinaryService::deleteVideo($backVideoPublicId);
+      }
+      $backVideo = "";
+      $backVideoPublicId = "";
+      if (($param["style_back"] ?? "") === "video" || ($dataRequest["backCard"]["style_back"] ?? "") === "video") {
+        $styleBack = "solid";
       }
     }
 
@@ -486,8 +550,11 @@ class DesignModels extends Builder {
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
       "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
       "backCard"     => [
-        "back_perfil" => $param["back_perfil"] ?? $dataRequest["backCard"]["back_perfil"] ?? "#a0a0a0",
-        "style_back"  => $param["style_back"] ?? $dataRequest["backCard"]["style_back"] ?? "solid"
+        "back_perfil"          => $param["back_perfil"] ?? $dataRequest["backCard"]["back_perfil"] ?? "#a0a0a0",
+        "style_back"           => $styleBack ?? $param["style_back"] ?? $dataRequest["backCard"]["style_back"] ?? "solid",
+        "back_video"           => $backVideo ?? $dataRequest["backCard"]["back_video"] ?? "",
+        "back_video_public_id" => $backVideoPublicId ?? $dataRequest["backCard"]["back_video_public_id"] ?? "",
+        "back_video_overlay"   => $param["back_video_overlay"] ?? $dataRequest["backCard"]["back_video_overlay"] ?? "#000000"
       ],
       "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
       "style"        => $param["style"] ?? $dataRequest["style"] ?? "buttonRegular",

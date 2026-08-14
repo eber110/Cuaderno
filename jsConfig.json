@@ -36,7 +36,8 @@
       "generalSummaryChart": [],
       "trackClick": [],
       "activeViewers": [],
-      "hamburgerMenu": []
+      "hamburgerMenu": [],
+      "videoBackgroundController": []
     },
     "async": {}
   }
