@@ -46,7 +46,8 @@
       <div class="flex-column center-center w100 wrap">
         <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
           <?php _part("User.modalMenuShare", 
-          ["data" => 
+          [
+            "data" => 
             [
               "img" => $img,
               "imgSrc" => $imgSrc,
@@ -57,7 +58,8 @@
               "metaTitle" => $metaTitle,
               "metaDesc" => $metaDesc,
               "metaImg" => $metaImg,
-            ]
+            ],
+            "card" => $card
           ])?>
         </div>
       </div>

@@ -39,6 +39,12 @@
 Options -MultiViews
 RewriteEngine On
 
+# --- PROTECCIÓN CONTRA ESCANEOS Y BOTS (HTTP 418 I'm a teapot 🫖) ---
+ErrorDocument 418 "418 I'm a teapot. This server is a teapot, not WordPress 🫖"
+RewriteCond %{REQUEST_URI} (wp-admin|wp-login|wp-content|wp-includes|xmlrpc\.php|install\.php|phpmyadmin|adminer|\.env|\.git|\.aws) [NC,OR]
+RewriteCond %{QUERY_STRING} (wp-admin|wp-login|eval\(|base64_decode) [NC]
+RewriteRule ^ - [R=418,L]
+
 # --- PROTECCIÓN CONTRA HOTLINKING ---
 # Evita que otros sitios web roben ancho de banda incrustando tus imágenes.
 # Descomenta las siguientes líneas si deseas habilitarlo:
