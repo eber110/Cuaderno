@@ -61,7 +61,7 @@ export function autoSubmitForm() {
     const target = e.target;
     if (!target) return;
     if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
-    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio') return;
+    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio' || target.type === 'color' || target.type === 'range' || target.classList.contains('color-picker') || target.closest('.custom-color-picker-popover')) return;
 
     const form = target.closest('form.auto-submit');
     if (!form) return;

@@ -28,7 +28,7 @@ class UserModels extends BuilderSqlite {
   }
 
   /**
-   * Obtiene los datos del perfil oficial del usuario desde SQLite (tabla user_designs).
+   * Obtiene los datos del perfil del usuario (borrador o publicado) desde SQLite (tabla user_designs).
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Array con los datos del usuario o false si no existe.
@@ -36,6 +36,17 @@ class UserModels extends BuilderSqlite {
   public function dataUser(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
     return DesignModels::dataUser($userClean);
+  }
+
+  /**
+   * Obtiene los datos del perfil oficial publicado (is_draft = 0) del usuario desde SQLite.
+   *
+   * @param string $user Nombre de usuario.
+   * @return bool|array Array con los datos oficiales o false si no existe.
+   */
+  public function dataOfficialUser(string $user): bool|array {
+    $userClean = mb_strtolower($user, "UTF-8");
+    return DesignModels::getOfficialDesign($userClean);
   }
 
   /**

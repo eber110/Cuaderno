@@ -31,7 +31,7 @@ class UserControllers extends Control {
     DesignModels::createInitialDesign($userClean);
 
     $userModels = new UserModels();
-    $userData   = $userModels->dataUser($userClean);
+    $userData   = $userModels->dataOfficialUser($userClean);
     $userExists = UserModels::userExists($userClean);
 
     if (!$userExists) {

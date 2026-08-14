@@ -63,6 +63,8 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
   Route::post("/diseno", [DesignControllers::class, "configDesign"]);
   Route::get("/guardar", [DesignControllers::class, "saveDesign"]);
   Route::post("/guardar", [DesignControllers::class, "saveDesign"]);
+  Route::get("/descartar", [DesignControllers::class, "discardDesign"]);
+  Route::post("/descartar", [DesignControllers::class, "discardDesign"]);
   Route::get("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);
   Route::post("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);
 

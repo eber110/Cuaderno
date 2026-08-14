@@ -51,9 +51,10 @@ class DashboardControllers extends Control {
       "stats"     => $stats,
       "hasCustom" => $hasCustom,
       "uri"       => [
-        "formDesign"   => "/panel/{$userClean}/diseno",
-        "saveDesign"   => "/panel/{$userClean}/guardar",
-        "simularDatos" => "/panel/{$userClean}/simular-datos"
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
       ],
       "session" => $_SESSION["user"] ?? false,
       "premium" => LemonSqueezyModels::isUserSubscribedFast(Session::session_data("user_id"))

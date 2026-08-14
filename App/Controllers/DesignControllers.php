@@ -53,9 +53,10 @@ class DesignControllers extends Control {
       }
 
       $uri = [
-        "formDesign"   => "/panel/{$userClean}/diseno",
-        "saveDesign"   => "/panel/{$userClean}/guardar",
-        "simularDatos" => "/panel/{$userClean}/simular-datos"
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
       ];
 
       $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
@@ -65,10 +66,11 @@ class DesignControllers extends Control {
       ]);
 
       ResponseModule::json([
-        "success"  => true,
-        "html"     => $previewHtml,
-        "formHtml" => $formHtml,
-        "card"     => $cardData
+        "success"   => true,
+        "hasCustom" => true,
+        "html"      => $previewHtml,
+        "formHtml"  => $formHtml,
+        "card"      => $cardData
       ]);
     }
 
@@ -77,7 +79,7 @@ class DesignControllers extends Control {
   }
 
   /**
-   * Publica oficialmente el diseño guardado en UserCustom a UserData.
+   * Publica oficialmente el diseño guardado en borrador a la versión oficial en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return void Redirige al panel del usuario.
@@ -102,12 +104,77 @@ class DesignControllers extends Control {
         $cardData["profile"] = $userClean;
       }
 
+      $uri = [
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
+      ];
+
       $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $formHtml    = _partToString("Dashboard.contentPanel", [
+        "card" => $cardData,
+        "uri"  => $uri
+      ]);
 
       ResponseModule::json([
-        "success" => true,
-        "html"    => $previewHtml,
-        "card"    => $cardData
+        "success"   => true,
+        "hasCustom" => false,
+        "html"      => $previewHtml,
+        "formHtml"  => $formHtml,
+        "card"      => $cardData
+      ]);
+    }
+
+    // Redirigir de vuelta al panel del usuario
+    ResponseModule::redirect("/panel/{$userClean}");
+  }
+
+  /**
+   * Descarta los cambios del borrador y revierte a la versión oficial en SQLite.
+   *
+   * @param string $user Nombre de usuario.
+   * @return void Redirige al panel del usuario o responde en JSON si es AJAX.
+   */
+  public function discardDesign(string $user): void {
+    $userClean = mb_strtolower($user, "UTF-8");
+
+    // Delegar la eliminación del borrador al modelo
+    DesignModels::discardDesign($userClean);
+
+    // Detectar solicitudes AJAX / Fetch
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+      || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
+
+    if ($isAjax) {
+      $dataUser = DesignModels::dataUser($userClean);
+      $cardData = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
+        ? UserModels::formatCardImages($dataUser["card"]) 
+        : [];
+
+      if (empty($cardData["profile"])) {
+        $cardData["profile"] = $userClean;
+      }
+
+      $uri = [
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
+      ];
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $formHtml    = _partToString("Dashboard.contentPanel", [
+        "card" => $cardData,
+        "uri"  => $uri
+      ]);
+
+      ResponseModule::json([
+        "success"   => true,
+        "hasCustom" => false,
+        "html"      => $previewHtml,
+        "formHtml"  => $formHtml,
+        "card"      => $cardData
       ]);
     }
 

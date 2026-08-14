@@ -549,4 +549,26 @@ class DesignModels extends Builder {
     return false;
   }
 
+  /**
+   * Descarta y elimina el diseño borrador (is_draft = 1) del usuario en SQLite,
+   * revirtiendo cualquier cambio no guardado a la versión oficial publicada (is_draft = 0).
+   *
+   * @param string $user Nombre de usuario.
+   * @return bool True tras descartar con éxito.
+   */
+  public static function discardDesign(string $user): bool {
+    $userClean = mb_strtolower($user, "UTF-8");
+    $draftRow = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", 1)
+      ->get_one();
+
+    if (!empty($draftRow[0]["id"])) {
+      (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
+      return true;
+    }
+
+    return true;
+  }
+
 }

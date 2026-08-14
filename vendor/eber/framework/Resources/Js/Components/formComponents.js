@@ -330,6 +330,40 @@ export function formComponents() {
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
   }
 
+  // Actualizar la vista previa en vivo en el cliente
+  function updateLivePreviewColor(name, hex) {
+    if (!name || !hex) return;
+    const preview = document.querySelector('.user-profile-preview');
+    if (!preview) return;
+
+    if (name === 'back_perfil') {
+      preview.querySelectorAll('.back-card').forEach(el => {
+        el.style.backgroundColor = hex;
+      });
+      preview.querySelectorAll('.back-card-container').forEach(el => {
+        el.style.backgroundColor = hex;
+      });
+    } else if (name === 'colorText') {
+      preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini, p, .color-text').forEach(el => {
+        if (!el.closest('.theme-button')) {
+          el.style.color = hex;
+        }
+      });
+    } else if (name === 'titleColor') {
+      preview.querySelectorAll('.title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach(el => {
+        el.style.color = hex;
+      });
+    } else if (name === 'back') {
+      preview.querySelectorAll('.theme-button').forEach(el => {
+        el.style.backgroundColor = hex;
+      });
+    } else if (name === 'color') {
+      preview.querySelectorAll('.theme-button').forEach(el => {
+        el.style.color = hex;
+      });
+    }
+  }
+
   // Paleta de colores predefinida premium (pasteles, primarios y neutros)
   const presetColors = [
     '#FF4B4B', '#FF8E53', '#FFD369', '#4E9F3D', '#17B978',
@@ -344,20 +378,36 @@ export function formComponents() {
   function closeActivePopover(confirm = false) {
     if (!activePopover) return;
     
-    if (confirm && activeInput) {
-      // Disparar evento de cambio definitivo (indispensable para auto-submit)
-      const changeEvent = new Event('change', { bubbles: true });
-      activeInput.dispatchEvent(changeEvent);
-    }
+    const inputRef = activeInput;
+    const popoverRef = activePopover;
 
-    activePopover.remove();
     activePopover = null;
     activeInput = null;
+
+    if (popoverRef && popoverRef.parentNode) {
+      popoverRef.parentNode.removeChild(popoverRef);
+    }
+
+    if (confirm && inputRef) {
+      const currentInput = inputRef.id ? (document.getElementById(inputRef.id) || inputRef) : inputRef;
+      const labelText = currentInput.closest('label')?.querySelector('p, span');
+      if (labelText && currentInput.value) {
+        labelText.textContent = currentInput.value;
+      }
+      // Disparar evento de cambio definitivo (indispensable para auto-submit)
+      const changeEvent = new Event('change', { bubbles: true });
+      currentInput.dispatchEvent(changeEvent);
+    }
   }
 
   // Abrir selector de color personalizado
   function openCustomColorPicker(input, trigger) {
-    closeActivePopover();
+    if (activePopover && activeInput === input) {
+      closeActivePopover(true);
+      return;
+    }
+
+    closeActivePopover(true);
 
     activeInput = input;
 
@@ -382,7 +432,10 @@ export function formComponents() {
     const grid = document.createElement('div');
     grid.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 5px;';
     
-    const currentValue = input.value.toUpperCase();
+    let currentValue = (input.value || '#000000').toUpperCase();
+    if (!currentValue.startsWith('#') || currentValue.length !== 7) {
+      currentValue = '#000000';
+    }
 
     presetColors.forEach(color => {
       const swatch = document.createElement('div');
@@ -401,6 +454,11 @@ export function formComponents() {
         hexInput.value = color;
         preview.style.backgroundColor = color;
 
+        const labelText = input.closest('label')?.querySelector('p, span');
+        if (labelText) {
+          labelText.textContent = color;
+        }
+
         const hsl = hexToHsl(color);
         hueSlider.value = hsl.h;
         satSlider.value = hsl.s;
@@ -408,12 +466,11 @@ export function formComponents() {
         satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
         lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
 
+        updateLivePreviewColor(input.name, color);
+
         // Disparar evento input para cambios en tiempo real
         const inputEvent = new Event('input', { bubbles: true });
         input.dispatchEvent(inputEvent);
-
-        // Al elegir un color de paleta, cerramos y enviamos
-        closeActivePopover(true);
       });
 
       grid.appendChild(swatch);
@@ -499,10 +556,17 @@ export function formComponents() {
       hexInput.value = hex;
       preview.style.backgroundColor = hex;
 
+      const labelText = input.closest('label')?.querySelector('p, span');
+      if (labelText) {
+        labelText.textContent = hex;
+      }
+
       // Quitar marcador activo de la paleta
       popover.querySelectorAll('.custom-picker-swatch').forEach(s => s.classList.remove('active'));
 
-      // Evento de cambio en tiempo real (para ver preview de degradados)
+      updateLivePreviewColor(input.name, hex);
+
+      // Disparar evento input para cambios en tiempo real
       const inputEvent = new Event('input', { bubbles: true });
       input.dispatchEvent(inputEvent);
     }
@@ -519,12 +583,19 @@ export function formComponents() {
         input.value = hex;
         preview.style.backgroundColor = hex;
 
+        const labelText = input.closest('label')?.querySelector('p, span');
+        if (labelText) {
+          labelText.textContent = hex;
+        }
+
         const hsl = hexToHsl(hex);
         hueSlider.value = hsl.h;
         satSlider.value = hsl.s;
         lightSlider.value = hsl.l;
         satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
         lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
+
+        updateLivePreviewColor(input.name, hex);
 
         const inputEvent = new Event('input', { bubbles: true });
         input.dispatchEvent(inputEvent);
@@ -569,12 +640,19 @@ export function formComponents() {
 
   // 4. Interceptar clics globales en disparadores y labels
   document.addEventListener('click', (e) => {
+    // Si hace clic dentro del popover activo, ignorar
+    if (e.target.closest('.custom-color-picker-popover')) {
+      return;
+    }
+
     // Si hace clic en un label o disparador de color picker
     const trigger = e.target.closest('label, [data-trigger-color], input[type="color"].color-picker');
     
     // Si no hizo clic en el picker o en su disparador, y hay un popover abierto, cerrarlo
     if (!trigger) {
-      closeActivePopover(true);
+      if (activePopover) {
+        closeActivePopover(true);
+      }
       return;
     }
 
@@ -595,6 +673,10 @@ export function formComponents() {
     if (colorInput && colorInput.classList.contains('color-picker')) {
       e.preventDefault(); // Cancelar el selector nativo del navegador
       openCustomColorPicker(colorInput, targetElement);
+    } else {
+      if (activePopover) {
+        closeActivePopover(true);
+      }
     }
   });
 }

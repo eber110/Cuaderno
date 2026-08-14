@@ -7,9 +7,13 @@
   $hasCustom = $hasCustom ?? false;
   $profile = $card["profile"] ?? "";
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
+  $discardUrl = $uri["discardDesign"] ?? ("/panel/" . $profile . "/descartar");
   $saveClass = $hasCustom 
-    ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 |border-item-panel-red pulse-once" 
+    ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 textw pulse-once" 
     : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
+  $discardClass = $hasCustom
+    ? "p5 pl15 pr15 br15 pointer border-item-panel texto bold500 texto hover-opacity"
+    : "p5 pl15 pr15 br15 border-item-panel texto hidden pointer";
 ?>
 <div class="sticky top z-index-20">
   <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
@@ -44,7 +48,8 @@
   
       <!-- Botones de Acción (Sección derecha) -->
       <div class="flex-row center-end gap10 w100">
-        <div id="save-btn-container" class="save-btn-wrapper hidden" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
+        <div id="save-btn-container" class="save-btn-wrapper hidden flex-row gap10 center-center" data-has-custom="<?= $hasCustom ? 'true' : 'false' ?>">
+          <a id="discard-btn" href="<?= $discardUrl ?>" class="z-index-20 <?= $discardClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Descartar</a>
           <a id="save-btn" href="<?= $saveUrl ?>" class="z-index-20 <?= $saveClass ?>" <?= $hasCustom ? "" : 'tabindex="-1" aria-disabled="true"' ?>>Guardar</a>
         </div>
   
