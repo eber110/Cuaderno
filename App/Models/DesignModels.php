@@ -41,12 +41,17 @@ class DesignModels extends Builder {
         "titleColor"   => $row["title_color"] ?? "#383838",
         "desc"         => $row["desc"] ?? "",
         "header"       => $row["header"] ?? "regularHero",
+        "voidHero"     => [
+          "space" => isset($row["void_space"]) ? intval($row["void_space"]) : 450
+        ],
+        "void_space"   => isset($row["void_space"]) ? intval($row["void_space"]) : 450,
         "backCard"     => [
           "back_perfil"          => $row["back_perfil"] ?? "#a0a0a0",
           "style_back"           => $row["style_back"] ?? "solid",
           "back_video"           => $row["back_video"] ?? "",
           "back_video_public_id" => $row["back_video_public_id"] ?? "",
-          "back_video_overlay"   => $row["back_video_overlay"] ?? "#000000"
+          "back_video_overlay"   => $row["back_video_overlay"] ?? "#000000",
+          "back_video_opacity"   => isset($row["back_video_opacity"]) ? max(0, min(95, intval($row["back_video_opacity"]))) : 45
         ],
         "colorText"    => $row["color_text"] ?? "#383838",
         "style"        => $row["style"] ?? "buttonRegular",
@@ -85,11 +90,13 @@ class DesignModels extends Builder {
       "title_color"          => $card["titleColor"] ?? "#383838",
       "desc"                 => $card["desc"] ?? "",
       "header"               => $card["header"] ?? "regularHero",
+      "void_space"           => isset($card["voidHero"]["space"]) ? intval($card["voidHero"]["space"]) : (isset($card["void_space"]) ? intval($card["void_space"]) : 450),
       "back_perfil"          => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
       "style_back"           => $card["backCard"]["style_back"] ?? "solid",
       "back_video"           => $card["backCard"]["back_video"] ?? null,
       "back_video_public_id" => $card["backCard"]["back_video_public_id"] ?? null,
       "back_video_overlay"   => $card["backCard"]["back_video_overlay"] ?? "#000000",
+      "back_video_opacity"   => isset($card["backCard"]["back_video_opacity"]) ? max(0, min(95, intval($card["backCard"]["back_video_opacity"]))) : 45,
       "color_text"           => $card["colorText"] ?? "#383838",
       "style"                => $card["style"] ?? "buttonRegular",
       "borders"              => json_encode($card["borders"] ?? ["br0", "br0"]),
@@ -216,12 +223,17 @@ class DesignModels extends Builder {
       "titleColor"   => "#383838",
       "desc"         => "Descripción del usuario",
       "header"       => "regularHero",
+      "voidHero"     => [
+        "space" => 70
+      ],
+      "void_space"   => 70,
       "backCard"     => [
         "back_perfil"          => "#a0a0a0",
         "style_back"           => "solid",
         "back_video"           => "",
         "back_video_public_id" => "",
-        "back_video_overlay"   => "#000000"
+        "back_video_overlay"   => "#000000",
+        "back_video_opacity"   => 45
       ],
       "colorText"    => "#383838",
       "style"        => "buttonRegular",
@@ -358,10 +370,6 @@ class DesignModels extends Builder {
 
     if (isset($param["borders"]) && is_string($param["borders"])) {
       $dataRequest["borders"] = explode(",", $param["borders"]);
-    }
-
-    if (isset($param["colorText"])) {
-      $titleColor = $param["colorText"];
     }
 
     $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
@@ -546,15 +554,20 @@ class DesignModels extends Builder {
       "profile"      => $param["profile"] ?? $dataRequest["profile"] ?? $userClean,
       "avatar"       => $avatar ?? $dataRequest["avatar"] ?? "no-user.webp",
       "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
-      "titleColor"   => $titleColor ?? $dataRequest["titleColor"] ?? "#383838",
+      "titleColor"   => $param["titleColor"] ?? ($param["colorText"] ?? ($dataRequest["titleColor"] ?? "#383838")),
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
       "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
+      "voidHero"     => [
+        "space" => isset($param["void_space"]) ? intval($param["void_space"]) : ($dataRequest["voidHero"]["space"] ?? $dataRequest["void_space"] ?? 450)
+      ],
+      "void_space"   => isset($param["void_space"]) ? intval($param["void_space"]) : ($dataRequest["void_space"] ?? $dataRequest["voidHero"]["space"] ?? 450),
       "backCard"     => [
         "back_perfil"          => $param["back_perfil"] ?? $dataRequest["backCard"]["back_perfil"] ?? "#a0a0a0",
         "style_back"           => $styleBack ?? $param["style_back"] ?? $dataRequest["backCard"]["style_back"] ?? "solid",
         "back_video"           => $backVideo ?? $dataRequest["backCard"]["back_video"] ?? "",
         "back_video_public_id" => $backVideoPublicId ?? $dataRequest["backCard"]["back_video_public_id"] ?? "",
-        "back_video_overlay"   => $param["back_video_overlay"] ?? $dataRequest["backCard"]["back_video_overlay"] ?? "#000000"
+        "back_video_overlay"   => $param["back_video_overlay"] ?? $dataRequest["backCard"]["back_video_overlay"] ?? "#000000",
+        "back_video_opacity"   => isset($param["back_video_opacity"]) ? max(0, min(95, intval($param["back_video_opacity"]))) : ($dataRequest["backCard"]["back_video_opacity"] ?? 45)
       ],
       "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
       "style"        => $param["style"] ?? $dataRequest["style"] ?? "buttonRegular",

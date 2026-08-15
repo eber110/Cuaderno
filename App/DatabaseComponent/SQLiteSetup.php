@@ -75,11 +75,13 @@ class SQLiteSetup
       title_color VARCHAR(50) DEFAULT '#383838',
       desc TEXT DEFAULT 'Descripción del usuario',
       header VARCHAR(100) DEFAULT 'regularHero',
+      void_space INTEGER DEFAULT 70,
       back_perfil VARCHAR(50) DEFAULT '#a0a0a0',
       style_back VARCHAR(50) DEFAULT 'solid',
       back_video TEXT NULL,
       back_video_public_id VARCHAR(150) NULL,
       back_video_overlay VARCHAR(50) DEFAULT '#000000',
+      back_video_opacity INTEGER DEFAULT 45,
       color_text VARCHAR(50) DEFAULT '#383838',
       style VARCHAR(100) DEFAULT 'buttonRegular',
       borders TEXT DEFAULT '[\"br0\", \"br0\"]',
@@ -184,6 +186,9 @@ class SQLiteSetup
       }
       if (!in_array("back_video_overlay", $existingCols, true)) {
         $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video_overlay VARCHAR(50) DEFAULT '#000000';");
+      }
+      if (!in_array("back_video_opacity", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video_opacity INTEGER DEFAULT 45;");
       }
     } catch (\Throwable $e) {}
 

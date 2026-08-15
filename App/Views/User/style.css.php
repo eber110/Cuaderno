@@ -10,6 +10,11 @@
   $titleColor       = $card["titleColor"] ?? "#383838";
   $backVideo        = $card["backCard"]["back_video"] ?? "";
   $backVideoOverlay = $card["backCard"]["back_video_overlay"] ?? "#000000";
+  $backVideoOpacity = max(0, min(95, intval($card["backCard"]["back_video_opacity"] ?? 45)));
+  $voidSpace = $card["voidHero"]["space"] ?? ($card["void_space"] ?? 70);
+  if ($voidSpace == 130) $voidSpace = 20;
+  elseif ($voidSpace == 250) $voidSpace = 45;
+  elseif ($voidSpace == 450) $voidSpace = 70;
 ?>
 
 <style>
@@ -70,7 +75,7 @@
     }
   <?php elseif ($styleBack == "video" && !empty($backVideo)) :?>
     .back-card{
-      background-color: <?= $backPerfil?>22;
+      background-color: <?= $backPerfil?>;
       position: relative;
     }
     .back-card-container{
@@ -95,16 +100,18 @@
     z-index: 0;
     pointer-events: none;
   }
+  
   .back-video-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: oklch(from <?= $backVideoOverlay?> l c h / 45%);
+    background-color: <?= "oklch(from {$backVideoOverlay} l c h / {$backVideoOpacity}%)" ?>;
     z-index: 0;
     pointer-events: none;
   }
+
   .z-index-1 {
     position: relative;
     z-index: 1;
@@ -123,12 +130,16 @@
     & img {border: solid 2px <?= $colorShadow3?>;}
   }
 
+  .color-menu-user, .color-menu-user * {
+    color: #ffffff !important;
+  }
+
   .color-text-card{
     color: <?= (!$colorText || $colorText === "") ? $color : $colorText?>;
   }
 
   .back-item-menu{
-    background-color: oklch(from <?= $backPerfil?> calc(l * 0.80) calc(c - 0.09) h / 90%);
+    background-color: <?= "oklch(from {$backPerfil} calc(l * 0.80) calc(c - 0.09) h / 90%)" ?>;
     padding: 8px 8px;
     border-radius: 15px;
     border-style: solid;
@@ -161,6 +172,10 @@
     display: inline-block;
     box-shadow: 0 0 0 0 oklch(from var(--live-view) calc(l * 0.70) c h / 100%);
     animation: livePulse 1.8s infinite;
+  }
+
+  .void-space{
+    padding-top: <?= $voidSpace."%" ?> !important;
   }
 
   @keyframes livePulse {

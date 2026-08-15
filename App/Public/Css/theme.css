@@ -286,3 +286,68 @@
 .textc, .textc a, .textc input, .textc textarea, .textc select, .textc button, input.textc, textarea.textc, select.textc, button.textc {
   color: var(--text-secondary) !important;
 }
+
+/* Deslizador de rango estilizado con recorrido perfecto de extremo a extremo */
+.custom-range-slider {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 140px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #2563eb 0%, #2563eb var(--range-progress, 47%), rgba(180, 180, 180, 0.3) var(--range-progress, 47%), rgba(180, 180, 180, 0.3) 100%);
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  border: none;
+  vertical-align: middle;
+}
+
+.custom-range-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+}
+
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border: 2px solid #ffffff;
+  margin-top: -5px;
+  transition: transform 0.1s ease;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.custom-range-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(180, 180, 180, 0.3);
+  border: none;
+}
+
+.custom-range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border: 2px solid #ffffff;
+}
+
+.custom-range-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #2563eb;
+}
