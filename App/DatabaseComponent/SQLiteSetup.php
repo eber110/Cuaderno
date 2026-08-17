@@ -148,6 +148,49 @@ class SQLiteSetup
       UNIQUE(ip, action_key)
     );";
 
+    // 8. Tabla user_subscriptions_cache
+    $sqlUserSubscriptionsCache = "CREATE TABLE IF NOT EXISTS user_subscriptions_cache (
+      user_id TEXT PRIMARY KEY,
+      username TEXT,
+      is_premium INTEGER DEFAULT 0,
+      status TEXT,
+      renews_at TEXT,
+      ends_at TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );";
+
+    // 9. Tabla profile_views
+    $sqlProfileViews = "CREATE TABLE IF NOT EXISTS profile_views (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      profile_id TEXT NOT NULL,
+      ip_address TEXT,
+      country_code TEXT,
+      country_name TEXT,
+      city_name TEXT,
+      device_type TEXT,
+      os TEXT,
+      browser TEXT,
+      referrer TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );";
+
+    // 10. Tabla link_clicks
+    $sqlLinkClicks = "CREATE TABLE IF NOT EXISTS link_clicks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      link_id TEXT,
+      profile_id TEXT NOT NULL,
+      country_code TEXT,
+      device_type TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );";
+
+    // 11. Tabla active_sessions
+    $sqlActiveSessions = "CREATE TABLE IF NOT EXISTS active_sessions (
+      session_token TEXT PRIMARY KEY,
+      profile_id TEXT NOT NULL,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );";
+
     $tables = [
       "users"                       => $sqlUsers,
       "roles"                       => $sqlRoles,
@@ -155,7 +198,11 @@ class SQLiteSetup
       "user_designs"                => $sqlUserDesigns,
       "lemon_squeezy_orders"        => $sqlLemonOrders,
       "lemon_squeezy_subscriptions" => $sqlLemonSubscriptions,
-      "ratelimits"                  => $sqlRateLimits
+      "ratelimits"                  => $sqlRateLimits,
+      "user_subscriptions_cache"    => $sqlUserSubscriptionsCache,
+      "profile_views"               => $sqlProfileViews,
+      "link_clicks"                 => $sqlLinkClicks,
+      "active_sessions"             => $sqlActiveSessions
     ];
 
     foreach ($tables as $tableName => $sql) {
