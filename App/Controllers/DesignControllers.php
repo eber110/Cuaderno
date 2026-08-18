@@ -3,9 +3,12 @@
 namespace App\Controllers;
 
 use App\Models\DesignModels;
+use App\Models\LemonSqueezyModels;
+use App\Models\StatisticsModels;
 use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\ResponseModule;
+use Base\Module\Session;
 
 /**
  * Clase DesignControllers
@@ -59,20 +62,31 @@ class DesignControllers extends Control {
         "simularDatos"  => "/panel/{$userClean}/simular-datos"
       ];
 
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $formHtml    = _partToString("Dashboard.contentPanel", [
-        "card" => $cardData,
-        "uri"  => $uri
+      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $statsData         = StatisticsModels::getStatsData($userClean);
+      $sessionData       = $_SESSION["user"] ?? [];
+      $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
+        "card"    => $cardData,
+        "session" => $sessionData
+      ]);
+
+      $formHtml = _partToString("Dashboard.contentPanel", [
+        "card"    => $cardData,
+        "uri"     => $uri,
+        "user"    => $userClean,
+        "stats"   => $statsData,
+        "session" => $sessionData
       ]);
 
       ResponseModule::json([
-        "success"      => true,
-        "hasCustom"    => true,
-        "html"         => $previewHtml,
-        "formHtml"     => $formHtml,
-        "card"         => $cardData,
-        "videoError"   => DesignModels::$videoUploadError,
-        "videoSuccess" => DesignModels::$videoUploadSuccess
+        "success"           => true,
+        "hasCustom"         => true,
+        "html"              => $previewHtml,
+        "formHtml"          => $formHtml,
+        "sidebarStatusHtml" => $sidebarStatusHtml,
+        "card"              => $cardData,
+        "videoError"        => DesignModels::$videoUploadError,
+        "videoSuccess"      => DesignModels::$videoUploadSuccess
       ]);
     }
 
@@ -113,18 +127,29 @@ class DesignControllers extends Control {
         "simularDatos"  => "/panel/{$userClean}/simular-datos"
       ];
 
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $formHtml    = _partToString("Dashboard.contentPanel", [
-        "card" => $cardData,
-        "uri"  => $uri
+      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $statsData         = StatisticsModels::getStatsData($userClean);
+      $sessionData       = $_SESSION["user"] ?? [];
+      $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
+        "card"    => $cardData,
+        "session" => $sessionData
+      ]);
+
+      $formHtml = _partToString("Dashboard.contentPanel", [
+        "card"    => $cardData,
+        "uri"     => $uri,
+        "user"    => $userClean,
+        "stats"   => $statsData,
+        "session" => $sessionData
       ]);
 
       ResponseModule::json([
-        "success"   => true,
-        "hasCustom" => false,
-        "html"      => $previewHtml,
-        "formHtml"  => $formHtml,
-        "card"      => $cardData
+        "success"           => true,
+        "hasCustom"         => false,
+        "html"              => $previewHtml,
+        "formHtml"          => $formHtml,
+        "sidebarStatusHtml" => $sidebarStatusHtml,
+        "card"              => $cardData
       ]);
     }
 
@@ -165,18 +190,29 @@ class DesignControllers extends Control {
         "simularDatos"  => "/panel/{$userClean}/simular-datos"
       ];
 
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $formHtml    = _partToString("Dashboard.contentPanel", [
-        "card" => $cardData,
-        "uri"  => $uri
+      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $statsData         = StatisticsModels::getStatsData($userClean);
+      $sessionData       = $_SESSION["user"] ?? [];
+      $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
+        "card"    => $cardData,
+        "session" => $sessionData
+      ]);
+
+      $formHtml = _partToString("Dashboard.contentPanel", [
+        "card"    => $cardData,
+        "uri"     => $uri,
+        "user"    => $userClean,
+        "stats"   => $statsData,
+        "session" => $sessionData
       ]);
 
       ResponseModule::json([
-        "success"   => true,
-        "hasCustom" => false,
-        "html"      => $previewHtml,
-        "formHtml"  => $formHtml,
-        "card"      => $cardData
+        "success"           => true,
+        "hasCustom"         => false,
+        "html"              => $previewHtml,
+        "formHtml"          => $formHtml,
+        "sidebarStatusHtml" => $sidebarStatusHtml,
+        "card"              => $cardData
       ]);
     }
 

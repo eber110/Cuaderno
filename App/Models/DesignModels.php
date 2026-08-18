@@ -277,9 +277,12 @@ class DesignModels extends Builder {
   public static function updateCustomDesign(string $user, array|string $param): bool {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    $currentData = self::getCustomDesign($userClean);
+    $currentData  = self::getCustomDesign($userClean);
+    $officialData = self::getOfficialDesign($userClean);
+    $officialCard = ($officialData !== false && isset($officialData["card"])) ? $officialData["card"] : [];
+
     if ($currentData === false) {
-      $currentData = self::getOfficialDesign($userClean);
+      $currentData = $officialData;
     }
 
     $dataRequest = $currentData["card"] ?? self::getDefaultCard($userClean);
@@ -292,19 +295,20 @@ class DesignModels extends Builder {
     $uploadedContentImgs = [];
     if (ImgProcessModule::imgUploaded()) {
       if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
-        $avatarDir = ROOT_PATH . DIR_UPLOAD_MEDIA . "/Avatar/";
+        $avatarDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/Avatar/";
         $imgProcessor = new ImgProcessModule("avatar", $avatarDir);
         $nombres = $imgProcessor->save_img_disk(null);
 
         if ($nombres !== false && !empty($nombres[0])) {
-          if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== "no-user.webp" && strpos($dataRequest["avatar"], "Origin/") === false) {
-            $imgProcessor->delete_img_disk($avatarDir, $dataRequest["avatar"]);
+          $officialAvatar = $officialCard["avatar"] ?? "";
+          if (!empty($dataRequest["avatar"]) && $dataRequest["avatar"] !== $officialAvatar && $dataRequest["avatar"] !== "no-user.webp" && strpos($dataRequest["avatar"], "Origin/") === false) {
+            self::deleteAvatarFromDisk($dataRequest["avatar"]);
           }
           $avatar = $nombres[0];
         }
       }
 
-      $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
+      $contentImgDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/";
       foreach ($_FILES as $fileKey => $fileVal) {
         if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
           $itemIdx = (int)str_replace("content_img_", "", $fileKey);
@@ -320,6 +324,7 @@ class DesignModels extends Builder {
     // 1.1 Procesar video de fondo (subida directa en 2do plano o subida clásica)
     $backVideo = $dataRequest["backCard"]["back_video"] ?? "";
     $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
+    $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
 
     self::$videoUploadError = null;
     self::$videoUploadSuccess = null;
@@ -328,7 +333,7 @@ class DesignModels extends Builder {
       $newUrl = $param["back_video_url_direct"];
       $newPublicId = $param["back_video_public_id_direct"] ?? "";
 
-      if (!empty($backVideoPublicId) && $backVideoPublicId !== $newPublicId) {
+      if (!empty($backVideoPublicId) && $backVideoPublicId !== $newPublicId && $backVideoPublicId !== $officialVideoPublicId) {
         CloudinaryService::deleteVideo($backVideoPublicId);
       }
       $backVideo = $newUrl;
@@ -343,7 +348,7 @@ class DesignModels extends Builder {
       ]);
 
       if ($uploadResult !== null && !empty($uploadResult["url"])) {
-        if (!empty($backVideoPublicId) && $backVideoPublicId !== $uploadResult["public_id"]) {
+        if (!empty($backVideoPublicId) && $backVideoPublicId !== $uploadResult["public_id"] && $backVideoPublicId !== $officialVideoPublicId) {
           CloudinaryService::deleteVideo($backVideoPublicId);
         }
         $backVideo = $uploadResult["url"];
@@ -358,7 +363,7 @@ class DesignModels extends Builder {
     }
 
     if (isset($param["delete_video"]) && ($param["delete_video"] === "true" || $param["delete_video"] === true || $param["delete_video"] === "1")) {
-      if (!empty($backVideoPublicId)) {
+      if (!empty($backVideoPublicId) && $backVideoPublicId !== $officialVideoPublicId) {
         CloudinaryService::deleteVideo($backVideoPublicId);
       }
       $backVideo = "";
@@ -372,20 +377,24 @@ class DesignModels extends Builder {
       $dataRequest["borders"] = explode(",", $param["borders"]);
     }
 
-    $contentImgDir = ROOT_PATH . DIR_UPLOAD_MEDIA;
-    $imgProcessor  = new ImgProcessModule("", $contentImgDir);
-
     // 2. Procesar ítems de contenido
     if (isset($param["content"]) && is_array($param["content"])) {
       $content = [];
       $existingContentList = $dataRequest["content"] ?? [];
+      $officialContent     = $officialCard["content"] ?? [];
+      $officialImages      = [];
+      foreach ($officialContent as $offItem) {
+        if (!empty($offItem["img"])) {
+          $officialImages[] = $offItem["img"];
+        }
+      }
 
       foreach ($param["content"] as $index => $item) {
         $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
 
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
-          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
-            $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+          if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+            self::deleteContentImageFromDisk($oldImg);
           }
           continue;
         }
@@ -398,15 +407,15 @@ class DesignModels extends Builder {
         }
 
         if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
-          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
-            $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+          if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+            self::deleteContentImageFromDisk($oldImg);
           }
           $item["img"] = "no-image.webp";
         }
 
         if (isset($uploadedContentImgs[$index])) {
-          if (!empty($oldImg) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
-            $imgProcessor->delete_img_disk($contentImgDir, $oldImg);
+          if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+            self::deleteContentImageFromDisk($oldImg);
           }
           $img = $uploadedContentImgs[$index];
           $imgDefault = true;
@@ -586,24 +595,92 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Elimina un archivo de avatar del disco de manera segura.
+   *
+   * @param string $avatarFilename Nombre del archivo de avatar.
+   * @return void
+   */
+  public static function deleteAvatarFromDisk(string $avatarFilename): void {
+    if (empty($avatarFilename) || $avatarFilename === "no-user.webp" || str_contains($avatarFilename, "Custom/") || str_contains($avatarFilename, "Origin/")) {
+      return;
+    }
+    $avatarDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/Avatar/";
+    $filePath  = $avatarDir . $avatarFilename;
+    if (file_exists($filePath) && is_file($filePath)) {
+      @unlink($filePath);
+    }
+  }
+
+  /**
+   * Elimina un archivo de imagen de contenido del disco de manera segura.
+   *
+   * @param string $imageFilename Nombre del archivo de imagen.
+   * @return void
+   */
+  public static function deleteContentImageFromDisk(string $imageFilename): void {
+    if (empty($imageFilename) || $imageFilename === "no-image.webp" || $imageFilename === "no-user.webp" || str_contains($imageFilename, "Custom/") || str_contains($imageFilename, "Origin/")) {
+      return;
+    }
+    $contentImgDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/";
+    $filePath      = $contentImgDir . $imageFilename;
+    if (file_exists($filePath) && is_file($filePath)) {
+      @unlink($filePath);
+    }
+  }
+
+  /**
    * Publica oficialmente el diseño borrador (is_draft = 1) hacia el diseño público (is_draft = 0)
-   * activando el perfil del usuario (active = true) en SQLite.
+   * activando el perfil del usuario (active = true) en SQLite y eliminando archivos obsoletos.
    *
    * @param string $user Nombre de usuario.
    * @return bool True tras realizar la publicación oficial.
    */
   public static function publishDesign(string $user): bool {
-    $userClean = mb_strtolower($user, "UTF-8");
-    $customData = self::getCustomDesign($userClean);
+    $userClean    = mb_strtolower($user, "UTF-8");
+    $customData   = self::getCustomDesign($userClean);
+    $officialData = self::getOfficialDesign($userClean);
 
     if ($customData !== false && isset($customData["card"])) {
-      $card = $customData["card"];
+      $card         = $customData["card"];
+      $officialCard = ($officialData !== false && isset($officialData["card"])) ? $officialData["card"] : [];
+
+      // 1. Si el avatar oficial fue reemplazado, eliminar el avatar anterior del disco
+      $oldOfficialAvatar = $officialCard["avatar"] ?? "";
+      $newAvatar         = $card["avatar"] ?? "";
+      if (!empty($oldOfficialAvatar) && $oldOfficialAvatar !== $newAvatar) {
+        self::deleteAvatarFromDisk($oldOfficialAvatar);
+      }
+
+      // 2. Si el video oficial de Cloudinary fue reemplazado, eliminar el video anterior de Cloudinary
+      $oldVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
+      $newVideoPublicId = $card["backCard"]["back_video_public_id"] ?? "";
+      if (!empty($oldVideoPublicId) && $oldVideoPublicId !== $newVideoPublicId) {
+        CloudinaryService::deleteVideo($oldVideoPublicId);
+      }
+
+      // 3. Si imágenes de contenido oficiales fueron reemplazadas o eliminadas, eliminarlas del disco
+      $oldOfficialContent = $officialCard["content"] ?? [];
+      $newContent         = $card["content"] ?? [];
+      $newImages          = [];
+      foreach ($newContent as $nItem) {
+        if (!empty($nItem["img"])) {
+          $newImages[] = $nItem["img"];
+        }
+      }
+
+      foreach ($oldOfficialContent as $oldItem) {
+        $oldImg = $oldItem["img"] ?? "";
+        if (!empty($oldImg) && !in_array($oldImg, $newImages, true)) {
+          self::deleteContentImageFromDisk($oldImg);
+        }
+      }
+
       $card["active"] = true;
 
-      // 1. Guardar como versión oficial publicada (is_draft = 0)
+      // 4. Guardar como versión oficial publicada (is_draft = 0)
       self::saveDesignToDb($userClean, 0, $card);
 
-      // 2. Eliminar el registro borrador (is_draft = 1)
+      // 5. Eliminar el registro borrador (is_draft = 1)
       $draftRow = (new Builder("user_designs"))
         ->where("username", $userClean)
         ->where("is_draft", 1)
@@ -615,7 +692,6 @@ class DesignModels extends Builder {
 
       return true;
     } else {
-      $officialData = self::getOfficialDesign($userClean);
       if ($officialData !== false && isset($officialData["card"])) {
         $card = $officialData["card"];
         if (!($card["active"] ?? false)) {
@@ -631,6 +707,7 @@ class DesignModels extends Builder {
 
   /**
    * Descarta y elimina el diseño borrador (is_draft = 1) del usuario en SQLite,
+   * eliminando del disco cualquier imagen subida en el borrador y de Cloudinary cualquier video subido,
    * revirtiendo cualquier cambio no guardado a la versión oficial publicada (is_draft = 0).
    *
    * @param string $user Nombre de usuario.
@@ -638,13 +715,55 @@ class DesignModels extends Builder {
    */
   public static function discardDesign(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
-    $draftRow = (new Builder("user_designs"))
-      ->where("username", $userClean)
-      ->where("is_draft", 1)
-      ->get_one();
 
-    if (!empty($draftRow[0]["id"])) {
-      (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
+    $draftData    = self::getCustomDesign($userClean);
+    $officialData = self::getOfficialDesign($userClean);
+
+    if ($draftData !== false && isset($draftData["card"])) {
+      $draftCard    = $draftData["card"];
+      $officialCard = ($officialData !== false && isset($officialData["card"])) ? $officialData["card"] : [];
+
+      // 1. Eliminar avatar del borrador si es diferente al oficial
+      $draftAvatar    = $draftCard["avatar"] ?? "";
+      $officialAvatar = $officialCard["avatar"] ?? "";
+      if (!empty($draftAvatar) && $draftAvatar !== $officialAvatar) {
+        self::deleteAvatarFromDisk($draftAvatar);
+      }
+
+      // 2. Eliminar video de Cloudinary del borrador si es diferente al oficial
+      $draftVideoPublicId    = $draftCard["backCard"]["back_video_public_id"] ?? "";
+      $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
+      if (!empty($draftVideoPublicId) && $draftVideoPublicId !== $officialVideoPublicId) {
+        CloudinaryService::deleteVideo($draftVideoPublicId);
+      }
+
+      // 3. Eliminar imágenes de ítems de contenido del borrador que no pertenezcan a la versión oficial
+      $draftContent    = $draftCard["content"] ?? [];
+      $officialContent = $officialCard["content"] ?? [];
+      $officialImages  = [];
+      foreach ($officialContent as $offItem) {
+        if (!empty($offItem["img"])) {
+          $officialImages[] = $offItem["img"];
+        }
+      }
+
+      foreach ($draftContent as $draftItem) {
+        $draftImg = $draftItem["img"] ?? "";
+        if (!empty($draftImg) && !in_array($draftImg, $officialImages, true)) {
+          self::deleteContentImageFromDisk($draftImg);
+        }
+      }
+
+      // 4. Eliminar el registro borrador de SQLite
+      $draftRow = (new Builder("user_designs"))
+        ->where("username", $userClean)
+        ->where("is_draft", 1)
+        ->get_one();
+
+      if (!empty($draftRow[0]["id"])) {
+        (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
+      }
+
       return true;
     }
 

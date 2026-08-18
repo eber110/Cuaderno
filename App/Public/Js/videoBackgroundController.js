@@ -608,6 +608,11 @@ export function videoBackgroundController() {
     }
   }, true);
 
+  // Sincronización al actualizarse el preview
+  document.addEventListener("previewUpdated", () => {
+    syncThumbnailPlayback();
+  });
+
   // Sincronización inicial
   syncThumbnailPlayback();
 }

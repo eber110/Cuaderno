@@ -185,6 +185,12 @@ export function saveButtonController() {
         disableSaveButton();
       }
     }
+
+    if (e.detail && e.detail.sidebarStatusHtml) {
+      document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
+        el.innerHTML = e.detail.sidebarStatusHtml;
+      });
+    }
   });
 
   // Sincronización síncrona inmediata al arrancar el controlador
@@ -226,8 +232,18 @@ export function saveButtonController() {
       if (data && data.success) {
         disableSaveButton();
 
+        if (data.sidebarStatusHtml) {
+          document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
+            el.innerHTML = data.sidebarStatusHtml;
+          });
+        }
+
         if (data.html) {
           updatePreviewHtml(data.html);
+        }
+
+        if (data.formHtml) {
+          restoreFormHtml(data.formHtml);
         }
 
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
@@ -263,6 +279,12 @@ export function saveButtonController() {
 
         if (data && data.success) {
           disableSaveButton();
+
+          if (data.sidebarStatusHtml) {
+            document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
+              el.innerHTML = data.sidebarStatusHtml;
+            });
+          }
 
           if (data.html) {
             updatePreviewHtml(data.html);

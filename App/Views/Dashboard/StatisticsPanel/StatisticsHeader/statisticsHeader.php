@@ -18,7 +18,7 @@
   </div>
 
   <!-- Botón para simular visita/clic de prueba -->
-  <form action="/panel/<?= e($userProfile) ?>/simular-datos" method="post">
+  <form action="/panel/<?= e($userProfile) ?>/simular-datos" method="post" class="auto-submit">
     <button type="submit" class="p10 pl15 pr15 br20 texto pointer flex-row center-center gap5 bold500 border-none shadow-1">
       <?= svg("add") ?> Simular Visita / Clic
     </button>

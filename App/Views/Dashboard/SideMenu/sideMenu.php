@@ -9,25 +9,9 @@
 <div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar pt-sml-35 no-phone">
   <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
-    <?php if (!empty($card["active"])) :?>
-      <?php if ($card["active"] == true && $card["hide"] == true):?>
-        <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
-          data-tooltip="Puedes ocultar o mostrar tu perfil desde el menú «Visibilidad»."
-          style-tooltip="back5 textc shadow x18">
-            <?= svg("triangle-exclamation-fill","x16 mr5");?> Perfil oculto
-            <span class="flex-row center-center pointer"><?= svg("question");?></span>
-        </p>
-      <?php else:?>
-        <a href="/<?= $session["username"]?>" class="<?= $item?>"><?= svg("arrow-l-l")?> Ver mi perfil</a>
-      <?php endif?>
-    <?php else:?>
-      <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
-      data-tooltip="Completa los datos requeridos en tu perfil para activarlo."
-      style-tooltip="back5 textc shadow x18">
-        <?= svg("triangle-exclamation-fill","x16 mr5");?> Activa tu perfil
-        <span class="flex-row center-center pointer"><?= svg("question");?></span>
-      </p>
-    <?php endif?>
+    <div class="sidebar-profile-status w100">
+      <?php _part("Dashboard.SideMenu.statusBanner", ["card" => $card, "session" => $session]); ?>
+    </div>
     
     <div class="vertical-menu animated w100" active-item="back-item-active" active-principal="back-item-active">
       <div class="flex-column top-start gap10 w100">

@@ -150,31 +150,27 @@
     </div>
   
     <!-- Dirección del degradado -->
-    <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") :?>
+    <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="display: <?= ($styleBack === 'gradientUp' || $styleBack === 'gradientDown') ? 'flex' : 'none' ?>;">
 
-      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+      <p class="texto">Dirección del degradado</p>
 
-        <p class="texto">Dirección del degradado</p>
-  
-        <div class="flex-row center-end gap10">
-          <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
-          <label for="direction_up">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
-              <?= svg("arrow-up");?> Arriba
-            </div>
-          </label>
-          
-          <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
-          <label for="direction_down">
-            <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
-              <?= svg("arrow-down");?> Abajo
-            </div>
-          </label>
-        </div>
-  
+      <div class="flex-row center-end gap10">
+        <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
+        <label for="direction_up">
+          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
+            <?= svg("arrow-up");?> Arriba
+          </div>
+        </label>
+        
+        <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
+        <label for="direction_down">
+          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
+            <?= svg("arrow-down");?> Abajo
+          </div>
+        </label>
       </div>
 
-    <?php endif?>
+    </div>
 
   </div>
 

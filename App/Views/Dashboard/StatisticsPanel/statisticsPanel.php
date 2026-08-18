@@ -170,6 +170,6 @@
   <?php _part("Dashboard.countryRankingCard", $data); ?>
 
   <!-- 8. Fuentes de Tráfico (Referrers) y Ubicaciones -->
-  <?php _part("Dashboard.locationsSourcesCard", $data); ?>
+  <?php _part("Dashboard.locationReferrersCard", $data); ?>
 
 </div>

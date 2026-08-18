@@ -18,9 +18,57 @@
  * @returns {void}
  */
 export function autoSubmitForm() {
+  /**
+   * Sincroniza dinámicamente la visibilidad de elementos condicionales en el cliente
+   * de forma inmediata al cambiar valores de radios/selects.
+   *
+   * @param {HTMLElement} target Elemento interactuado
+   */
+  function syncConditionalUI(target) {
+    if (!target) return;
+
+    // 1. Alternancia de estilo de fondo (Sólido, Degradado, Video)
+    if (target.name === 'style_back') {
+      const gradientWrapper = document.getElementById('gradient-direction-wrapper');
+      const videoWrapper = document.getElementById('video-controls-wrapper');
+
+      if (target.value === 'gradientUp' || target.value === 'gradientDown') {
+        if (gradientWrapper) gradientWrapper.style.display = 'flex';
+        if (videoWrapper) videoWrapper.style.display = 'none';
+      } else if (target.value === 'solid') {
+        if (gradientWrapper) gradientWrapper.style.display = 'none';
+        if (videoWrapper) videoWrapper.style.display = 'none';
+      } else if (target.value === 'video') {
+        if (gradientWrapper) gradientWrapper.style.display = 'none';
+        if (videoWrapper) videoWrapper.style.display = 'flex';
+      }
+    }
+
+    // 2. Alternancia del selector de color de sombra 3
+    if (target.name === 'shadow') {
+      const shadow3Row = document.getElementById('shadow3-color-row');
+      const colorShadow3Row = document.getElementById('color-shadow3-color-row');
+      const isShadow3 = target.value === 'shadow-3';
+
+      if (shadow3Row) shadow3Row.style.display = isShadow3 ? 'flex' : 'none';
+      if (colorShadow3Row) colorShadow3Row.style.display = isShadow3 ? 'flex' : 'none';
+    }
+
+    // 3. Alternancia de separación superior en cabecera voidHero
+    if (target.name === 'header') {
+      const voidSpaceContainer = document.getElementById('void-space-container');
+      if (voidSpaceContainer) {
+        voidSpaceContainer.style.display = target.value === 'voidHero' ? 'flex' : 'none';
+      }
+    }
+  }
+
   document.addEventListener('change', (e) => {
     const target = e.target;
     if (!target) return;
+
+    // Sincronizar UI condicional de inmediato
+    syncConditionalUI(target);
 
     // Verificar si el elemento pertenece a un formulario con la clase .auto-submit
     const form = target.closest('form.auto-submit');
@@ -31,22 +79,20 @@ export function autoSubmitForm() {
       return;
     }
 
-    // Excepción para procesamiento diferido (ej. recortar imagen antes de enviar con la clase proccess-auto-submit o process-auto-submit)
+    // Excepción para procesamiento diferido (ej. recortar imagen antes de enviar)
     const isDeferred = target.classList.contains('proccess-auto-submit') || target.classList.contains('process-auto-submit');
     if (isDeferred) {
-      // Si es un selector de archivos y tiene un archivo seleccionado, pero aún no ha sido recortado/procesado, pausar envío
       if (target.type === 'file' && target.files && target.files.length > 0) {
         if (target.dataset.isCropped !== 'true') {
-          return; // No enviar todavía, esperar a que el usuario confirme el recorte
+          return;
         }
       }
     }
 
-    // Usar requestSubmit() para simular un submit estándar (con validaciones de HTML5 y eventos de submit)
+    // Usar requestSubmit() para simular un submit estándar
     if (typeof form.requestSubmit === 'function') {
       form.requestSubmit();
     } else {
-      // Fallback para navegadores antiguos
       const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
       form.dispatchEvent(submitEvent);
       if (!submitEvent.defaultPrevented) {
@@ -79,7 +125,7 @@ export function autoSubmitForm() {
     }, 600);
   });
 
-  // Interceptar envíos de formularios .auto-submit o data-fetch-preview para enviar por Fetch y recargar el preview en vivo sin recargar la página
+  // Interceptar envíos de formularios .auto-submit o data-fetch-preview para enviar por Fetch y recargar en vivo
   document.addEventListener('submit', async (e) => {
     const form = e.target;
     if (!form || !form.matches('form.auto-submit, form[data-fetch-preview]')) return;
@@ -116,8 +162,23 @@ export function autoSubmitForm() {
       const data = await response.json();
 
       if (data && data.success) {
+        // 1. Actualizar el banner de estado del perfil en el sidebar (escritorio y móvil)
+        if (data.sidebarStatusHtml) {
+          document.querySelectorAll('.sidebar-profile-status').forEach((el) => {
+            el.innerHTML = data.sidebarStatusHtml;
+          });
+        }
+
+        // 2. Actualizar el panel de estadísticas si la respuesta contiene statsHtml
+        if (data.statsHtml) {
+          const statsRemote = document.getElementById('statistics-remote');
+          if (statsRemote) {
+            statsRemote.innerHTML = data.statsHtml;
+          }
+        }
+
+        // 3. Actualizar la vista previa (.user-profile-preview) sin recargar
         if (data.html) {
-          // Actualizar los contenedores de vista previa (UserPreview) sin parpadear ni recargar
           const previewContainers = document.querySelectorAll('.user-profile-preview');
           previewContainers.forEach((container) => {
             const temp = document.createElement('div');
@@ -131,8 +192,7 @@ export function autoSubmitForm() {
           });
         }
 
-        // Si la respuesta incluye formHtml, re-renderizar la sección activa del formulario
-        // pero NO si el usuario está actualmente escribiendo en un input/textarea dentro del formulario
+        // 4. Si la respuesta incluye formHtml, re-renderizar la sección activa del formulario
         if (data.formHtml) {
           const activeEl = document.activeElement;
           const isTypingInForm = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') && form.contains(activeEl);
@@ -150,7 +210,7 @@ export function autoSubmitForm() {
           }
         }
 
-        // Disparar evento personalizado para otros componentes
+        // 5. Disparar evento personalizado para sincronizar otros componentes
         document.dispatchEvent(new CustomEvent('previewUpdated', { detail: data }));
       }
     } catch (error) {
