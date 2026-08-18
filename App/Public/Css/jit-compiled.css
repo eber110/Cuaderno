@@ -124,6 +124,7 @@
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
 .hpx80 { height: 80px; }
+.hpx800 { height: 800px; }
 .m-1 { margin: 1px; }
 .m0 { margin: 0px; }
 .m12 { margin: 12px; }
@@ -182,7 +183,6 @@
 .pt30 { padding-top: 30px !important; }
 .pt40 { padding-top: 40px !important; }
 .pt8 { padding-top: 8px !important; }
-.pt80 { padding-top: 80px !important; }
 .w100 { width: 100%; }
 .w3 { width: 3%; }
 .w40 { width: 40%; }
@@ -202,6 +202,7 @@
 .wpx300 { width: 300px; }
 .wpx320 { width: 320px; }
 .wpx40 { width: 40px; }
+.wpx400 { width: 400px; }
 .wpx460 { width: 460px; }
 .wpx50 { width: 50px; }
 .wpx520 { width: 520px; }
@@ -267,6 +268,9 @@
 }
 @media screen and (max-width: 576px) {
   .gap-sml-10 { gap: 10px; }
+}
+@media screen and (max-width: 576px) {
+  .gap-sml-30 { gap: 30px; }
 }
 @media screen and (max-width: 576px) {
   .gap-sml-5 { gap: 5px; }
@@ -525,8 +529,14 @@
 @media screen and (max-width: 576px) {
   .h-dvh-sml { height: 100dvh; }
 }
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .hpx-mid-800 { height: 800px; }
+}
 @media screen and (max-width: 576px) {
   .hpx-sml-40 { height: 40px; }
+}
+@media screen and (max-width: 576px) {
+  .hpx-sml-580 { height: 580px; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .m-mid-15 { margin: 15px; }
@@ -541,13 +551,13 @@
   .p-sml-20 { padding: 20px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .pb-mid-200 { padding-bottom: 200px !important; }
+  .pb-mid-100 { padding-bottom: 100px !important; }
 }
 @media screen and (max-width: 576px) {
   .pb-sml-10 { padding-bottom: 10px !important; }
 }
 @media screen and (max-width: 576px) {
-  .pb-sml-100 { padding-bottom: 100px !important; }
+  .pb-sml-50 { padding-bottom: 50px !important; }
 }
 @media screen and (max-width: 576px) {
   .pl-sml-10 { padding-left: 10px !important; }
@@ -562,16 +572,16 @@
   .pr-sml-5 { padding-right: 5px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .pt-mid-150 { padding-top: 150px !important; }
-}
-@media screen and (max-width: 576px) {
-  .pt-sml-10 { padding-top: 10px !important; }
+  .pt-mid-100 { padding-top: 100px !important; }
 }
 @media screen and (max-width: 576px) {
   .pt-sml-20 { padding-top: 20px !important; }
 }
 @media screen and (max-width: 576px) {
   .pt-sml-35 { padding-top: 35px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pt-sml-50 { padding-top: 50px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-0 { width: 0%; }
@@ -592,10 +602,16 @@
   .w-sml-100 { width: 100%; }
 }
 @media screen and (max-width: 576px) {
+  .w-sml-70 { width: 70%; }
+}
+@media screen and (max-width: 576px) {
   .w-sml-90 { width: 90%; }
 }
 @media screen and (max-width: 576px) {
   .w-sml-95 { width: 95%; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .wpx-mid-350 { width: 350px; }
 }
 @media screen and (max-width: 576px) {
   .wpx-sml-160 { width: 160px; }

@@ -1,4 +1,4 @@
-<div class="text-protected">
+<div class="text-protected overflow">
 
   <?php
     _component("Menu.menuHome");

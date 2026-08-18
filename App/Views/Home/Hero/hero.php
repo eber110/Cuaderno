@@ -1,4 +1,4 @@
-<header class="container container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml h-dvh-desk pt80 pb100 pt-mid-150 pb-mid-200 pt-sml-10 pb-sml-100">
+<header class="container container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 h-dvh-desk pb100 pt-mid-100 pb-mid-100 pt-sml-50 pb-sml-50">
   <div class="hem20 w100 p15 p-sml-0 flex-column around-start">
     <div>
       <h1 class="bold900 color5">Titulo</h1>
@@ -10,7 +10,11 @@
     </a>
   </div>
 
-  <div class="w100 back2 br15 flex-column center-center m-mid-15">
-    <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero.webp"?>" alt="" class="cover ar-square">
+  <div class="w100 flex-column center-center m-mid-15">
+    <div class="wpx400 wpx-mid-350 w-sml-70 hpx800 hpx-mid-800 hpx-sml-580">
+      <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero.webp"?>" alt="" class="animate-img-hero1 absolute hover-lift-ns">
+      <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero2.webp"?>" alt="" class="animate-img-hero2 absolute hover-lift-ns">
+      <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero3.webp"?>" alt="" class="animate-img-hero3 absolute hover-lift-ns">
+    </div>
   </div>
 </header>

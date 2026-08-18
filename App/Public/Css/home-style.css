@@ -1,0 +1,14 @@
+.animate-img-hero1{
+  filter: drop-shadow(5px 1px 10px #00000080);
+  transform: rotate(-5deg) translate(-50px, 0px);
+}
+
+.animate-img-hero2{
+  filter: drop-shadow(5px 1px 10px #00000080);
+  transform: rotate(0deg) translate(0px, 0px);
+}
+
+.animate-img-hero3{
+  filter: drop-shadow(5px 1px 10px #00000080);
+  transform: rotate(4deg) translate(60px, 20px);
+}
