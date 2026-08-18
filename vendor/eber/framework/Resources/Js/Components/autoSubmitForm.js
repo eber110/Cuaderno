@@ -132,37 +132,19 @@ export function autoSubmitForm() {
         }
 
         // Si la respuesta incluye formHtml, re-renderizar la sección activa del formulario
+        // pero NO si el usuario está actualmente escribiendo en un input/textarea dentro del formulario
         if (data.formHtml) {
-          const activeRemoteContent = form.closest('.remote-content') || document.querySelector('.remote-content.active');
-          if (activeRemoteContent && activeRemoteContent.id) {
-            const tempForm = document.createElement('div');
-            tempForm.innerHTML = data.formHtml.trim();
-            const matchingNewContent = tempForm.querySelector('#' + CSS.escape(activeRemoteContent.id));
-            if (matchingNewContent) {
-              const activeEl = document.activeElement;
-              const activeInputName = activeEl ? activeEl.getAttribute('name') : null;
-              const selectionStart = (activeEl && 'selectionStart' in activeEl) ? activeEl.selectionStart : null;
-              const selectionEnd = (activeEl && 'selectionEnd' in activeEl) ? activeEl.selectionEnd : null;
+          const activeEl = document.activeElement;
+          const isTypingInForm = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') && form.contains(activeEl);
 
-              activeRemoteContent.innerHTML = matchingNewContent.innerHTML;
-
-              if (activeInputName) {
-                const allInputs = activeRemoteContent.querySelectorAll('input, textarea, select');
-                let restoredInput = null;
-                for (let inp of allInputs) {
-                  if (inp.getAttribute('name') === activeInputName) {
-                    restoredInput = inp;
-                    break;
-                  }
-                }
-                if (restoredInput) {
-                  restoredInput.focus();
-                  if (selectionStart !== null && selectionEnd !== null && typeof restoredInput.setSelectionRange === 'function') {
-                    try {
-                      restoredInput.setSelectionRange(selectionStart, selectionEnd);
-                    } catch (e) {}
-                  }
-                }
+          if (!isTypingInForm) {
+            const activeRemoteContent = form.closest('.remote-content') || document.querySelector('.remote-content.active');
+            if (activeRemoteContent && activeRemoteContent.id) {
+              const tempForm = document.createElement('div');
+              tempForm.innerHTML = data.formHtml.trim();
+              const matchingNewContent = tempForm.querySelector('#' + CSS.escape(activeRemoteContent.id));
+              if (matchingNewContent) {
+                activeRemoteContent.innerHTML = matchingNewContent.innerHTML;
               }
             }
           }

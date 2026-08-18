@@ -131,10 +131,9 @@
       <p class="texto">Titulo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
-        <input type="text" name="title" id="" value="<?= e($card["title"] ?? "")?>" class="process-auto-submit wpx320 text-limiter texto"
+        <input type="text" name="title" id="" value="<?= e($card["title"] ?? "")?>" maxlength="150" class="process-auto-submit wpx320 text-limiter texto"
           data-limit-type="chars" 
           data-limit="150" 
-          data-prevent-double-space="true"
           data-counter-el="#my-counter-title">
           <div id="my-counter-title" class="x14 flex-row center-end gap2 pr20 texto">
             <span class="tl-current bold500">0</span>
@@ -149,12 +148,10 @@
       <p class="texto">Bio</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
-        <textarea name="desc" id="" class="process-auto-submit wpx320 hpx100 text-limiter texto"
+        <textarea name="desc" id="" maxlength="280" class="process-auto-submit wpx320 hpx100 text-limiter texto"
           data-limit-type="chars" 
           data-limit="280" 
-          data-prevent-double-space="true"
-          data-counter-el="#my-counter"><?= e($card["desc"] ?? "")?>
-        </textarea>
+          data-counter-el="#my-counter"><?= e($card["desc"] ?? "") ?></textarea>
         <div id="my-counter" class="x14 flex-row center-end gap2 pr20 texto">
           <span class="tl-current bold500">0</span>
           <p>/</p>

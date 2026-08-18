@@ -25,6 +25,12 @@ export function sortableContent() {
 
     // Iniciar arrastre
     container.addEventListener("dragstart", (e) => {
+      // Ignorar si el arrastre se inició dentro de un campo interactivo
+      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu")) {
+        e.preventDefault();
+        return;
+      }
+
       const item = e.target.closest(".sortable-item");
       if (!item) return;
 
