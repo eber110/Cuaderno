@@ -227,11 +227,41 @@ if (!defined('IMG_ADMITTED')) {
 	]);
 }
 
-if (!defined('DIR_UPLOAD_MEDIA')) define('DIR_UPLOAD_MEDIA', $_ENV['DIR_UPLOAD_MEDIA'] ?? (ROOT_PATH . '/Uploads/'));
-if (!defined('DIR_UPLOAD_GIF')) define('DIR_UPLOAD_GIF', $_ENV['DIR_UPLOAD_GIF'] ?? (ROOT_PATH . '/Uploads/'));
-if (!defined('DIR_SHOW_MEDIA')) define('DIR_SHOW_MEDIA', $_ENV['DIR_SHOW_MEDIA'] ?? (ROOT . URL_IMG_PUBLIC));
-if (!defined('DIR_IMG_SHOW_STATIC')) define('DIR_IMG_SHOW_STATIC', $_ENV['DIR_IMG_SHOW_STATIC'] ?? (ROOT . '/App/Public/Img/'));
-if (!defined('DIR_UPLOAD_MEDIA_STATIC')) define('DIR_UPLOAD_MEDIA_STATIC', $_ENV['DIR_UPLOAD_MEDIA_STATIC'] ?? (ROOT . '/App/Public/Img/'));
+if (!defined('DIR_UPLOAD_MEDIA')) {
+	$envUpload = $_ENV['DIR_UPLOAD_MEDIA'] ?? '';
+	if (empty($envUpload) || $envUpload === '/Uploads/' || $envUpload === 'Uploads/' || $envUpload === '/Uploads' || $envUpload === 'Uploads') {
+		define('DIR_UPLOAD_MEDIA', ROOT_PATH . '/Uploads/');
+	} elseif (!str_contains($envUpload, ':') && str_starts_with($envUpload, '/')) {
+		define('DIR_UPLOAD_MEDIA', ROOT_PATH . $envUpload);
+	} else {
+		define('DIR_UPLOAD_MEDIA', rtrim($envUpload, '/\\') . '/');
+	}
+}
+
+if (!defined('DIR_UPLOAD_GIF')) {
+	$envGif = $_ENV['DIR_UPLOAD_GIF'] ?? '';
+	if (empty($envGif) || $envGif === '/Uploads/' || $envGif === 'Uploads/' || $envGif === '/Uploads' || $envGif === 'Uploads') {
+		define('DIR_UPLOAD_GIF', ROOT_PATH . '/Uploads/');
+	} elseif (!str_contains($envGif, ':') && str_starts_with($envGif, '/')) {
+		define('DIR_UPLOAD_GIF', ROOT_PATH . $envGif);
+	} else {
+		define('DIR_UPLOAD_GIF', rtrim($envGif, '/\\') . '/');
+	}
+}
+
+if (!defined('DIR_SHOW_MEDIA')) {
+	$envShow = $_ENV['DIR_SHOW_MEDIA'] ?? '';
+	if (empty($envShow) || $envShow === '/Uploads/' || $envShow === 'Uploads/' || $envShow === '/Uploads' || $envShow === 'Uploads') {
+		define('DIR_SHOW_MEDIA', ROOT . '/Uploads/');
+	} elseif (str_starts_with($envShow, 'http')) {
+		define('DIR_SHOW_MEDIA', rtrim($envShow, '/') . '/');
+	} else {
+		define('DIR_SHOW_MEDIA', ROOT . '/' . ltrim($envShow, '/'));
+	}
+}
+
+if (!defined('DIR_IMG_SHOW_STATIC')) define('DIR_IMG_SHOW_STATIC', ROOT . '/App/Public/Img/');
+if (!defined('DIR_UPLOAD_MEDIA_STATIC')) define('DIR_UPLOAD_MEDIA_STATIC', ROOT . '/App/Public/Img/');
 
 if (!defined('COMPRESS_IMAGE')) define('COMPRESS_IMAGE', filter_var($_ENV['COMPRESS_IMAGE'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('MAX_IMAGE_KB')) define('MAX_IMAGE_KB', (int)($_ENV['MAX_IMAGE_KB'] ?? 0));

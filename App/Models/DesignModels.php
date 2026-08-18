@@ -295,7 +295,8 @@ class DesignModels extends Builder {
     $uploadedContentImgs = [];
     if (ImgProcessModule::imgUploaded()) {
       if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
-        $avatarDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/Avatar/";
+        $avatarDir = ROOT_PATH . "/Uploads/Avatar/";
+        if (!is_dir($avatarDir)) @mkdir($avatarDir, 0777, true);
         $imgProcessor = new ImgProcessModule("avatar", $avatarDir);
         $nombres = $imgProcessor->save_img_disk(null);
 
@@ -308,7 +309,8 @@ class DesignModels extends Builder {
         }
       }
 
-      $contentImgDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/";
+      $contentImgDir = ROOT_PATH . "/Uploads/";
+      if (!is_dir($contentImgDir)) @mkdir($contentImgDir, 0777, true);
       foreach ($_FILES as $fileKey => $fileVal) {
         if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
           $itemIdx = (int)str_replace("content_img_", "", $fileKey);
@@ -604,7 +606,7 @@ class DesignModels extends Builder {
     if (empty($avatarFilename) || $avatarFilename === "no-user.webp" || str_contains($avatarFilename, "Custom/") || str_contains($avatarFilename, "Origin/")) {
       return;
     }
-    $avatarDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/Avatar/";
+    $avatarDir = ROOT_PATH . "/Uploads/Avatar/";
     $filePath  = $avatarDir . $avatarFilename;
     if (file_exists($filePath) && is_file($filePath)) {
       @unlink($filePath);
@@ -621,7 +623,7 @@ class DesignModels extends Builder {
     if (empty($imageFilename) || $imageFilename === "no-image.webp" || $imageFilename === "no-user.webp" || str_contains($imageFilename, "Custom/") || str_contains($imageFilename, "Origin/")) {
       return;
     }
-    $contentImgDir = rtrim(DIR_UPLOAD_MEDIA, "/\\") . "/";
+    $contentImgDir = ROOT_PATH . "/Uploads/";
     $filePath      = $contentImgDir . $imageFilename;
     if (file_exists($filePath) && is_file($filePath)) {
       @unlink($filePath);
