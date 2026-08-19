@@ -22,6 +22,21 @@
   animation-timing-function: var(--animate-ease);
 }
 
+/* ==========================================================================
+   🔭 INTERSECTION OBSERVER SYSTEM
+   ========================================================================== */
+
+.observer {
+  position: relative;
+}
+
+/* Ocultar elementos observados antes de que la animación se dispare para evitar FOUC */
+.observer [class*="ob-"]:not(.animated),
+[class*="ob-"]:not(.animated) {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
 /* Variaciones de velocidad */
 .animate-fast {
   --animate-duration: 250ms;
@@ -503,28 +518,6 @@
   100% {
     transform: scale3d(1, 1, 1);
   }
-}
-
-@keyframes sonarRipple {
-  0% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.85);
-    transform: scale(0.96);
-  }
-  100% {
-    box-shadow: 0 0 0 26px rgba(220, 38, 38, 0);
-    transform: scale(1);
-  }
-}
-
-.pulse-once {
-  animation: sonarRipple 0.75s ease-out 1 forwards !important;
-}
-
-.disabled-save-btn {
-  opacity: 0.4;
-  pointer-events: none !important;
-  cursor: not-allowed !important;
-  filter: grayscale(0.5);
 }
 
 @keyframes sonarRipple {

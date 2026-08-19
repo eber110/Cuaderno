@@ -8,9 +8,16 @@
  *              Además inicializa el bindeo automático al hacer scroll.
  */
 
-// Verificar disponibilidad de GSAP
-const hasGsap = typeof gsap !== 'undefined';
-const hasScrollTrigger = typeof ScrollTrigger !== 'undefined';
+/**
+ * Funciones de verificación dinámica para GSAP y plugins
+ */
+function hasGsap() {
+  return typeof window !== 'undefined' && typeof window.gsap !== 'undefined';
+}
+
+function hasScrollTrigger() {
+  return typeof window !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
+}
 
 /**
  * Mapeo de nombres en camelCase (GSAP) a kebab-case (CSS)
@@ -33,14 +40,40 @@ const effectToClassMap = {
   bounceIn: 'bounce-in',
   bounceOut: 'bounce-out',
   spin: 'spin',
-  pulse: 'pulse'
+  pulse: 'pulse',
+  pulseOnce: 'pulse-once'
+};
+
+/**
+ * Mapeo inverso de clases CSS (kebab-case) a nombres de efecto (camelCase)
+ */
+const classToEffectMap = {
+  'fade-in': 'fadeIn',
+  'fade-out': 'fadeOut',
+  'slide-in-left': 'slideInLeft',
+  'slide-in-right': 'slideInRight',
+  'slide-in-top': 'slideInTop',
+  'slide-in-bottom': 'slideInBottom',
+  'slide-out-left': 'slideOutLeft',
+  'slide-out-right': 'slideOutRight',
+  'slide-out-top': 'slideOutTop',
+  'slide-out-bottom': 'slideOutBottom',
+  'zoom-in': 'zoomIn',
+  'zoom-out': 'zoomOut',
+  'scale-in': 'scaleIn',
+  'scale-out': 'scaleOut',
+  'bounce-in': 'bounceIn',
+  'bounce-out': 'bounceOut',
+  'spin': 'spin',
+  'pulse': 'pulse',
+  'pulse-once': 'pulseOnce'
 };
 
 /**
  * Registra efectos personalizados en GSAP para máxima compatibilidad
  */
 function registerGsapEffects() {
-  if (!hasGsap) return;
+  if (!hasGsap()) return;
 
   const defaultDuration = 0.4;
   const defaultEase = 'power2.out';
@@ -177,6 +210,19 @@ function registerGsapEffects() {
       ...config
     })
   });
+
+  // 8. Pulse Once
+  gsap.registerEffect({
+    name: 'pulseOnce',
+    effect: (targets, config) => gsap.to(targets, {
+      scale: 1.05,
+      duration: 0.35,
+      yoyo: true,
+      repeat: 1,
+      ease: 'power1.inOut',
+      ...config
+    })
+  });
 }
 
 /**
@@ -195,7 +241,7 @@ export function animate(element, effectName, options = {}) {
   }
 
   // 1. ANIMACIÓN MEDIANTE GSAP (Si está disponible)
-  if (hasGsap && gsap.effects[effectName]) {
+  if (hasGsap() && typeof gsap !== 'undefined' && gsap.effects && gsap.effects[effectName]) {
     // Si se especifica cleanup, lo hacemos al completar
     const originalComplete = options.onComplete;
     options.onComplete = () => {
@@ -205,6 +251,7 @@ export function animate(element, effectName, options = {}) {
       if (originalComplete) originalComplete();
     };
 
+    el.classList.add('animated');
     gsap.effects[effectName](el, options);
     return;
   }
@@ -265,7 +312,7 @@ window.animate = animate;
  * si está disponible, permitiendo una personalización transparente con variables CSS.
  */
 export function initGsapHoverAnimations() {
-  if (!hasGsap) return;
+  if (!hasGsap()) return;
 
   const hoverSelectors = [
     '.hover-scale',
@@ -440,8 +487,240 @@ export function initGsapHoverAnimations() {
 }
 
 /**
+ * Extrae el umbral numérico (0.0 a 1.0) desde las clases ob-N o atributos del elemento.
+ * 
+ * @param {HTMLElement} el
+ * @returns {number}
+ */
+function extractThreshold(el) {
+  const match = el.className.match(/(?:^|\s)ob-(\d+)(?:\s|$)/);
+  if (match) {
+    const pct = parseInt(match[1], 10);
+    return Math.min(1, Math.max(0, pct / 100));
+  }
+  if (el.dataset.obThreshold) {
+    return parseFloat(el.dataset.obThreshold);
+  }
+  return 0.15;
+}
+
+/**
+ * Extrae el retardo en segundos desde las clases dl-N (ej: dl-200 -> 0.2s).
+ * 
+ * @param {HTMLElement} el
+ * @returns {number|null}
+ */
+function extractDelay(el) {
+  const match = el.className.match(/(?:^|\s)dl-(\d+)(ms|s)?(?:\s|$)/);
+  if (match) {
+    const num = parseFloat(match[1]);
+    const unit = match[2] || 'ms';
+    return unit === 's' ? num : num / 1000;
+  }
+  if (el.dataset.animateDelay) {
+    return parseFloat(el.dataset.animateDelay);
+  }
+  return null;
+}
+
+/**
+ * Extrae la duración en segundos desde las clases dur-N (ej: dur-400 -> 0.4s).
+ * 
+ * @param {HTMLElement} el
+ * @returns {number|null}
+ */
+function extractDuration(el) {
+  const match = el.className.match(/(?:^|\s)(?:dur|duration)-(\d+)(ms|s)?(?:\s|$)/);
+  if (match) {
+    const num = parseFloat(match[1]);
+    const unit = match[2] || 'ms';
+    return unit === 's' ? num : num / 1000;
+  }
+  if (el.dataset.animateDuration) {
+    return parseFloat(el.dataset.animateDuration);
+  }
+  return null;
+}
+
+/**
+ * Detecta el nombre del efecto de animación configurado en las clases o atributos del elemento.
+ * 
+ * @param {HTMLElement} el
+ * @returns {string}
+ */
+function extractEffect(el) {
+  if (el.dataset.animate) {
+    return el.dataset.animate;
+  }
+  const classList = Array.from(el.classList);
+  for (const cls of classList) {
+    if (classToEffectMap[cls]) {
+      return classToEffectMap[cls];
+    }
+  }
+  return 'fadeIn';
+}
+
+/**
+ * Ejecuta la animación en el elemento objetivo.
+ * 
+ * @param {HTMLElement} el
+ * @param {string} effect
+ * @param {Object} options
+ */
+function triggerElementAnimation(el, effect, options = {}) {
+  if (el.dataset.obAnimated === 'true' && !options.infinite) return;
+  el.dataset.obAnimated = 'true';
+
+  animate(el, effect, options);
+}
+
+/**
+ * Inicializa el sistema reactivo de animaciones con IntersectionObserver y clases CSS.
+ * Soporta contenedores .observer y selectores de umbral ob-10..ob-100 con retardos dl-N.
+ * 
+ * @function initObserverAnimations
+ * @description Escanea el DOM en busca de contenedores '.observer' y elementos 'ob-*',
+ *              vinculando la activación de animaciones al porcentaje de scroll exacto.
+ * @example
+ * <div class="container observer" style="height: 100dvh;">
+ *   <h1 class="slide-in-bottom ob-30 dl-200">Texto animado</h1>
+ *   <h2 class="slide-in-bottom ob-30 dl-300">Segundo texto</h2>
+ * </div>
+ */
+export function initObserverAnimations() {
+  if (!('IntersectionObserver' in window)) {
+    // Fallback si el navegador no soporta IntersectionObserver: activar todas inmediatamente
+    document.querySelectorAll('.observer [class*="ob-"], [class*="ob-"]').forEach(el => {
+      el.classList.add('animated');
+    });
+    return;
+  }
+
+  // Generar lista de umbrales finos (0.00 a 1.00 de 2% en 2%)
+  const thresholds = [];
+  for (let i = 0; i <= 100; i += 2) {
+    thresholds.push(i / 100);
+  }
+
+  // 1. Manejo de Contenedores .observer
+  const observerContainers = document.querySelectorAll('.observer');
+
+  observerContainers.forEach(container => {
+    if (container.dataset.obContainerBound === 'true') return;
+    container.dataset.obContainerBound = 'true';
+
+    // Buscar elementos hijos a animar
+    const childSelector = '[class*="ob-"], .slide-in-bottom, .slide-in-top, .slide-in-left, .slide-in-right, .slide-out-bottom, .slide-out-top, .slide-out-left, .slide-out-right, .fade-in, .fade-out, .zoom-in, .zoom-out, .scale-in, .scale-out, .bounce-in, .bounce-out, .spin, .pulse, .pulse-once, [data-animate]';
+    const animChildren = Array.from(container.querySelectorAll(childSelector));
+
+    if (animChildren.length === 0) return;
+
+    // Extraer configuración de cada hijo
+    const items = animChildren.map(el => {
+      return {
+        element: el,
+        threshold: extractThreshold(el),
+        delay: extractDelay(el),
+        duration: extractDuration(el),
+        effect: extractEffect(el),
+        infinite: el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true',
+        animated: false
+      };
+    });
+
+    const containerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
+
+        const rect = entry.boundingClientRect;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+
+        // Proporción de visibilidad relativa del contenedor en el viewport
+        const intersectionRatio = entry.intersectionRatio || 0;
+        const enteredDistance = vh - rect.top;
+        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
+        const currentRatio = Math.min(1, Math.max(intersectionRatio, scrollRatio));
+
+        let allDone = true;
+
+        items.forEach(item => {
+          if (item.animated && !item.infinite) return;
+
+          if (currentRatio >= item.threshold) {
+            item.animated = true;
+            triggerElementAnimation(item.element, item.effect, {
+              delay: item.delay,
+              duration: item.duration,
+              infinite: item.infinite
+            });
+          } else {
+            allDone = false;
+          }
+        });
+
+        // Si todos los hijos ya se animaron y ninguno es infinito, desuscribir contenedor
+        if (allDone && !items.some(it => it.infinite)) {
+          containerObserver.unobserve(container);
+        }
+      });
+    }, {
+      root: null,
+      threshold: thresholds,
+      rootMargin: '0px 0px 0px 0px'
+    });
+
+    containerObserver.observe(container);
+  });
+
+  // 2. Manejo de Elementos Autónomos (con ob-N o .observer individual fuera de contenedores .observer)
+  const standaloneElements = document.querySelectorAll('[class*="ob-"]:not(.observer *)');
+  standaloneElements.forEach(el => {
+    if (el.classList.contains('observer') && el.querySelectorAll('[class*="ob-"]').length > 0) {
+      return; // Ya procesado como contenedor arriba
+    }
+    if (el.dataset.obElementBound === 'true') return;
+    el.dataset.obElementBound = 'true';
+
+    const threshold = extractThreshold(el);
+    const delay = extractDelay(el);
+    const duration = extractDuration(el);
+    const effect = extractEffect(el);
+    const infinite = el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true';
+
+    const singleObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
+
+        const rect = entry.boundingClientRect;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const enteredDistance = vh - rect.top;
+        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
+        const currentRatio = Math.min(1, Math.max(entry.intersectionRatio || 0, scrollRatio));
+
+        if (currentRatio >= threshold) {
+          triggerElementAnimation(el, effect, {
+            delay,
+            duration,
+            infinite
+          });
+          if (!infinite) {
+            singleObserver.unobserve(el);
+          }
+        }
+      });
+    }, {
+      root: null,
+      threshold: thresholds
+    });
+
+    singleObserver.observe(el);
+  });
+}
+
+/**
  * Inicializador automático del sistema de animaciones.
- * Escucha elementos con atributos 'data-animate' y los vincula.
+ * Escucha elementos con atributos 'data-animate' y contenedores '.observer'.
  */
 export function animations() {
   initAnimations();
@@ -452,15 +731,23 @@ export function initAnimations() {
   registerGsapEffects();
 
   // Activar compatibilidad GSAP para interacciones de mouse si GSAP está presente
-  if (hasGsap) {
+  if (hasGsap()) {
     document.documentElement.classList.add('gsap-loaded');
     initGsapHoverAnimations();
   }
 
-  // Bindeo de elementos con scroll trigger
+  // Activar observador reactivo de clases CSS (.observer, ob-N, dl-N)
+  initObserverAnimations();
+
+  // Bindeo de elementos con scroll trigger tradicional data-animate
   const animScrollElements = document.querySelectorAll('[data-animate]');
 
   animScrollElements.forEach(el => {
+    // Si ya está dentro de un contenedor .observer o tiene ob-N, ya lo procesó initObserverAnimations
+    if (el.closest('.observer') || el.className.match(/(?:^|\s)ob-\d+/)) {
+      return;
+    }
+
     const effect = el.dataset.animate || 'fadeIn';
     const triggerMode = el.dataset.animateTrigger || 'scroll'; // 'scroll', 'load'
     const duration = parseFloat(el.dataset.animateDuration) || null;
@@ -524,3 +811,4 @@ if (document.readyState === 'loading') {
 } else {
   initAnimations();
 }
+

@@ -1,4 +1,23 @@
 /* Generado automáticamente por JitCssModule (Modular) */
+.animated { -webkit-animation-fill-mode: both; animation-fill-mode: both; }
+.dl-1s { -webkit-animation-delay: 1s !important; animation-delay: 1s !important; --animate-delay: 1s; }
+.dl-200 { -webkit-animation-delay: 200ms !important; animation-delay: 200ms !important; --animate-delay: 200ms; }
+.dl-300 { -webkit-animation-delay: 300ms !important; animation-delay: 300ms !important; --animate-delay: 300ms; }
+.dl-400 { -webkit-animation-delay: 400ms !important; animation-delay: 400ms !important; --animate-delay: 400ms; }
+.dl-500 { -webkit-animation-delay: 500ms !important; animation-delay: 500ms !important; --animate-delay: 500ms; }
+.dur-400 { -webkit-animation-duration: 400ms !important; animation-duration: 400ms !important; --animate-duration: 400ms; }
+.dur-800 { -webkit-animation-duration: 800ms !important; animation-duration: 800ms !important; --animate-duration: 800ms; }
+.duration-500 { -webkit-animation-duration: 500ms !important; animation-duration: 500ms !important; --animate-duration: 500ms; }
+.ob-10 { --ob-threshold: 0.1; }
+.ob-10:not(.animated) { opacity: 0; will-change: transform, opacity; }
+.ob-100 { --ob-threshold: 1; }
+.ob-100:not(.animated) { opacity: 0; will-change: transform, opacity; }
+.ob-20 { --ob-threshold: 0.2; }
+.ob-20:not(.animated) { opacity: 0; will-change: transform, opacity; }
+.ob-30 { --ob-threshold: 0.3; }
+.ob-30:not(.animated) { opacity: 0; will-change: transform, opacity; }
+.observer { position: relative; }
+.observer [class*="ob-"]:not(.animated) { opacity: 0; will-change: transform, opacity; }
 .container { max-width: 90%; width: var(--width-window); margin: 0 auto; }
 
 .container-xl { width: 100%; margin: 0px; max-width: none; }
@@ -247,6 +266,9 @@
 .textareaResize { field-sizing: content; }
 
 /* --- Media Queries --- */
+@media screen and (min-width: 993px) {
+  .dl-desk-200 { -webkit-animation-delay: 200ms !important; animation-delay: 200ms !important; --animate-delay: 200ms; }
+}
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .container-mid { max-width: 90%; width: var(--width-window); margin: 0 auto; }
 
