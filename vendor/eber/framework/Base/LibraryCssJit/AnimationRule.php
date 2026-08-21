@@ -12,7 +12,7 @@ class AnimationRule extends JitRuleBase
   {
     // Clases estáticas base para el observador
     $statics = [
-      'observer' => ".observer { position: relative; }\n.observer [class*=\"ob-\"]:not(.animated) { opacity: 0; will-change: transform, opacity; }\n",
+      'observer' => ".observer { position: relative; }\n.observer [class*=\"ob-\"]:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }\n",
       'animated' => ".animated { -webkit-animation-fill-mode: both; animation-fill-mode: both; }\n",
     ];
 
@@ -20,13 +20,13 @@ class AnimationRule extends JitRuleBase
       return $statics[$word];
     }
 
-    // 1. Umbral de Observador: ob-10, ob-20, ob-30... ob-100 (con soporte responsive)
+    // 1. Umbral de Observador: ob-0, ob-10, ob-20, ob-30... ob-100 (con soporte responsive)
     if (preg_match('/^ob(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
       $media = $m[1] ?? '';
       $pct = (int)$m[2];
       $threshold = round($pct / 100, 2);
 
-      $rule = ".{$word} { --ob-threshold: {$threshold}; }\n.{$word}:not(.animated) { opacity: 0; will-change: transform, opacity; }";
+      $rule = ".{$word} { --ob-threshold: {$threshold}; }\n.{$word}:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }";
       return $this->wrapMediaQuery($media, $rule);
     }
 

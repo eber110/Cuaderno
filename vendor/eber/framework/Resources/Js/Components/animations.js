@@ -576,6 +576,24 @@ function triggerElementAnimation(el, effect, options = {}) {
 }
 
 /**
+ * Calcula el progreso de entrada y scroll (0.0 a 1.0) de un contenedor dentro de la vista.
+ * 
+ * @param {HTMLElement} container
+ * @returns {number}
+ */
+function getContainerScrollProgress(container) {
+  const rect = container.getBoundingClientRect();
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  const containerHeight = rect.height || 1;
+
+  // Distancia del contenedor que ha ingresado a la ventana desde el borde inferior
+  const enteredDistance = vh - rect.top;
+  const progress = enteredDistance / containerHeight;
+
+  return Math.min(1, Math.max(0, progress));
+}
+
+/**
  * Inicializa el sistema reactivo de animaciones con IntersectionObserver y clases CSS.
  * Soporta contenedores .observer y selectores de umbral ob-10..ob-100 con retardos dl-N.
  * 
@@ -603,6 +621,78 @@ export function initObserverAnimations() {
     thresholds.push(i / 100);
   }
 
+  const activeContainers = new Set();
+  const activeStandalone = new Set();
+
+  function updateContainer(containerData) {
+    const { container, items, observer } = containerData;
+    const currentRatio = getContainerScrollProgress(container);
+
+    let allDone = true;
+
+    items.forEach(item => {
+      if (item.animated && !item.infinite) return;
+
+      if (currentRatio >= item.threshold) {
+        item.animated = true;
+        triggerElementAnimation(item.element, item.effect, {
+          delay: item.delay,
+          duration: item.duration,
+          infinite: item.infinite
+        });
+      } else {
+        allDone = false;
+      }
+    });
+
+    if (allDone && !items.some(it => it.infinite)) {
+      if (observer) observer.unobserve(container);
+      activeContainers.delete(containerData);
+    }
+  }
+
+  function updateStandalone(standaloneData) {
+    const { el, item, observer } = standaloneData;
+    if (item.animated && !item.infinite) return;
+
+    const currentRatio = getContainerScrollProgress(el);
+
+    if (currentRatio >= item.threshold) {
+      item.animated = true;
+      triggerElementAnimation(el, item.effect, {
+        delay: item.delay,
+        duration: item.duration,
+        infinite: item.infinite
+      });
+      if (!item.infinite) {
+        if (observer) observer.unobserve(el);
+        activeStandalone.delete(standaloneData);
+      }
+    }
+  }
+
+  let scrollTicking = false;
+  function onScrollOrResize() {
+    if (!scrollTicking && (activeContainers.size > 0 || activeStandalone.size > 0)) {
+      scrollTicking = true;
+      requestAnimationFrame(() => {
+        activeContainers.forEach(containerData => {
+          updateContainer(containerData);
+        });
+        activeStandalone.forEach(standaloneData => {
+          updateStandalone(standaloneData);
+        });
+        scrollTicking = false;
+      });
+    }
+  }
+
+  if (!window._obScrollListenerAttached) {
+    window._obScrollListenerAttached = true;
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+  }
+
   // 1. Manejo de Contenedores .observer
   const observerContainers = document.querySelectorAll('.observer');
 
@@ -615,6 +705,10 @@ export function initObserverAnimations() {
     const animChildren = Array.from(container.querySelectorAll(childSelector));
 
     if (animChildren.length === 0) return;
+
+    const rect = container.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+    const isInitialFold = (rect.top + scrollY) < (window.innerHeight || document.documentElement.clientHeight);
 
     // Extraer configuración de cada hijo
     const items = animChildren.map(el => {
@@ -629,39 +723,17 @@ export function initObserverAnimations() {
       };
     });
 
+    const containerData = { container, items, observer: null };
+
     const containerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
-
-        const rect = entry.boundingClientRect;
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-
-        // Proporción de visibilidad relativa del contenedor en el viewport
-        const intersectionRatio = entry.intersectionRatio || 0;
-        const enteredDistance = vh - rect.top;
-        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
-        const currentRatio = Math.min(1, Math.max(intersectionRatio, scrollRatio));
-
-        let allDone = true;
-
-        items.forEach(item => {
-          if (item.animated && !item.infinite) return;
-
-          if (currentRatio >= item.threshold) {
-            item.animated = true;
-            triggerElementAnimation(item.element, item.effect, {
-              delay: item.delay,
-              duration: item.duration,
-              infinite: item.infinite
-            });
-          } else {
-            allDone = false;
+        if (entry.isIntersecting) {
+          activeContainers.add(containerData);
+          updateContainer(containerData);
+        } else {
+          if (entry.intersectionRatio <= 0) {
+            activeContainers.delete(containerData);
           }
-        });
-
-        // Si todos los hijos ya se animaron y ninguno es infinito, desuscribir contenedor
-        if (allDone && !items.some(it => it.infinite)) {
-          containerObserver.unobserve(container);
         }
       });
     }, {
@@ -670,7 +742,11 @@ export function initObserverAnimations() {
       rootMargin: '0px 0px 0px 0px'
     });
 
+    containerData.observer = containerObserver;
     containerObserver.observe(container);
+
+    // Evaluación inicial al cargar
+    updateContainer(containerData);
   });
 
   // 2. Manejo de Elementos Autónomos (con ob-N o .observer individual fuera de contenedores .observer)
@@ -682,30 +758,30 @@ export function initObserverAnimations() {
     if (el.dataset.obElementBound === 'true') return;
     el.dataset.obElementBound = 'true';
 
-    const threshold = extractThreshold(el);
-    const delay = extractDelay(el);
-    const duration = extractDuration(el);
-    const effect = extractEffect(el);
-    const infinite = el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true';
+    const rect = el.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+    const isInitialFold = (rect.top + scrollY) < (window.innerHeight || document.documentElement.clientHeight);
+
+    const item = {
+      element: el,
+      threshold: extractThreshold(el),
+      delay: extractDelay(el),
+      duration: extractDuration(el),
+      effect: extractEffect(el),
+      infinite: el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true',
+      animated: false
+    };
+
+    const standaloneData = { el, item, observer: null };
 
     const singleObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
-
-        const rect = entry.boundingClientRect;
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const enteredDistance = vh - rect.top;
-        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
-        const currentRatio = Math.min(1, Math.max(entry.intersectionRatio || 0, scrollRatio));
-
-        if (currentRatio >= threshold) {
-          triggerElementAnimation(el, effect, {
-            delay,
-            duration,
-            infinite
-          });
-          if (!infinite) {
-            singleObserver.unobserve(el);
+        if (entry.isIntersecting) {
+          activeStandalone.add(standaloneData);
+          updateStandalone(standaloneData);
+        } else {
+          if (entry.intersectionRatio <= 0) {
+            activeStandalone.delete(standaloneData);
           }
         }
       });
@@ -714,7 +790,11 @@ export function initObserverAnimations() {
       threshold: thresholds
     });
 
+    standaloneData.observer = singleObserver;
     singleObserver.observe(el);
+
+    // Evaluación inicial
+    updateStandalone(standaloneData);
   });
 }
 

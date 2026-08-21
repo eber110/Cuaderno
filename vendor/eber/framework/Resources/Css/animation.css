@@ -30,10 +30,12 @@
   position: relative;
 }
 
-/* Ocultar elementos observados antes de que la animación se dispare para evitar FOUC */
+/* Ocultar elementos observados y evitar que inicien keyframes antes de que la animación se dispare */
 .observer [class*="ob-"]:not(.animated),
 [class*="ob-"]:not(.animated) {
   opacity: 0;
+  -webkit-animation-name: none !important;
+  animation-name: none !important;
   will-change: transform, opacity;
 }
 
