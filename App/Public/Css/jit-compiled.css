@@ -257,6 +257,7 @@
 .x40 { font-size: 40px; }
 .x50 { font-size: 50px; }
 .x64 { font-size: 64px; }
+.x80 { font-size: 80px; }
 .block { display: block !important; }
 .grid-row-center { justify-items: center; }
 .hidden { display: none !important; }

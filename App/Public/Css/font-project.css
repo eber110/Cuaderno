@@ -91,3 +91,41 @@
   font-family: 'GoogleSansFlex_120pt' !important;
   font-weight: 200 !important;
 }
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: oswald (Peso: 600)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'oswald';
+  src: url('/App/Rsc/Fonts/oswald/Oswald-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+.oswald {
+  font-family: 'oswald' !important;
+}
+
+.oswald600 {
+  font-family: 'oswald' !important;
+  font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: oswald (Peso: 700)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'oswald';
+  src: url('/App/Rsc/Fonts/oswald/Oswald-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.oswald700 {
+  font-family: 'oswald' !important;
+  font-weight: 700 !important;
+}

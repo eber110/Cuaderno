@@ -1,8 +1,8 @@
 <header class="container observer container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 h-dvh-desk pb100 pt-mid-100 pb-mid-100 pt-sml-50 pb-sml-50">
   <div class="hem20 w100 p15 p-sml-0 flex-column around-start">
     <div>
-      <h1 class="bold900 color5 slide-in-bottom ob-10 dl-200">Titulo</h1>
-      <h3 class="bold700 x28 color5 slide-in-bottom ob-10 dl-300">Este es el subtitulo</h3>
+      <h1 class="oswald bold700 upper x80 color5 slide-in-bottom ob-10 dl-200">Titulo</h1>
+      <h3 class="oswald bold600 x28 color5 slide-in-bottom ob-10 dl-300">Este es el subtitulo</h3>
       <p class="slide-in-bottom ob-10 dl-400">Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut placeat qui nam sequi. Doloremque iusto est amet. Dolorum reprehenderit eos velit reiciendis, qui minima iste distinctio magni accusantium pariatur tempora?</p>
     </div>
     <a href="/registrar" class="slide-in-bottom ob-10 dl-500 p10 pr30 pl30 br50 w-auto back5-hover textc bold500 pointer">
