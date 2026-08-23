@@ -11,7 +11,7 @@
   </div>
 
   <div class="w100 flex-column center-center |m-mid-15">
-    <div class="br30 p20 p-sml-10 back8 wpx400 wpx-mid-350 w-sml-80 |hpx800 |hpx-mid-800 |hpx-sml-420 slide-in-right ob-0 dl-300 animate-slow image-gallery gallery-slide gallery-slide-continuous z-index-20 shadow" data-autoplay="3000">
+    <div class="br30 p15 p-sml-10 back8 wpx400 wpx-mid-350 w-sml-80 |hpx800 |hpx-mid-800 |hpx-sml-420 slide-in-right ob-0 dl-300 animate-slow image-gallery gallery-slide gallery-slide-continuous z-index-20 shadow" data-autoplay="3000">
       <div class="color7 text-c pb10"><?= svg("circle-solid")?></div>
       <div class="gallery-main pb1 br30">
         <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero.webp"?>" alt="" class="gallery-item active |animate-img-hero1 |absolute |hover-lift-ns">
