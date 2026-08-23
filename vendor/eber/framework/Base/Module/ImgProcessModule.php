@@ -57,13 +57,17 @@ class ImgProcessModule extends Builder
     'heif' => 'heif'
   ];
 
-  public function __construct($table, $uploadImg = DIR_UPLOAD_MEDIA)
+  public function __construct($table = '', $uploadImg = null)
   {
 
     $this->table = $table;
-    $this->uploadImg = $uploadImg;
-    $this->ensureDirectoryPermissions();
-    parent::__construct();
+    $this->uploadImg = $uploadImg ?? (defined('DIR_UPLOAD_MEDIA') ? DIR_UPLOAD_MEDIA : '');
+    if (!empty($this->uploadImg)) {
+      $this->ensureDirectoryPermissions();
+    }
+    if (!empty($table)) {
+      parent::__construct();
+    }
   }
 
   /**
@@ -928,6 +932,252 @@ class ImgProcessModule extends Builder
     ];
 
     return $formats;
+  }
+
+  /**
+   * Obtiene la lista de formatos de salida disponibles en el entorno actual.
+   * 
+   * @return array Lista asociativa con clave de formato y descripción [ 'webp' => 'WebP...', ... ]
+   */
+  public static function getAvailableOutputFormats(): array
+  {
+    $available = [];
+
+    // WebP
+    if (function_exists('imagewebp') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('WEBP')))) {
+      $available['webp'] = 'WebP (Recomendado para web, animado y con transparencia)';
+    }
+
+    // AVIF
+    if (function_exists('imageavif') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('AVIF')))) {
+      $available['avif'] = 'AVIF (Nueva generación, máxima compresión)';
+    }
+
+    // PNG
+    if (function_exists('imagepng') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('PNG')))) {
+      $available['png'] = 'PNG (Sin pérdida, soporte de canal alfa)';
+    }
+
+    // JPG / JPEG
+    if (function_exists('imagejpeg') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('JPEG')))) {
+      $available['jpg'] = 'JPG / JPEG (Fotografía estándar)';
+    }
+
+    // GIF
+    if (function_exists('imagegif') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('GIF')))) {
+      $available['gif'] = 'GIF (Animaciones e imágenes indexadas)';
+    }
+
+    // BMP
+    if (function_exists('imagebmp') || (class_exists('Imagick') && !empty(\Imagick::queryFormats('BMP')))) {
+      $available['bmp'] = 'BMP (Mapa de bits)';
+    }
+
+    return $available;
+  }
+
+  /**
+   * Determina si un archivo GIF contiene múltiples fotogramas (animación).
+   * 
+   * @param string $filePath Ruta del archivo GIF.
+   * @return bool True si es animado, false si es estático o no es un GIF válido.
+   */
+  public static function isAnimatedGif(string $filePath): bool
+  {
+    if (!file_exists($filePath) || !is_file($filePath)) {
+      return false;
+    }
+
+    $fh = @fopen($filePath, 'rb');
+    if (!$fh) {
+      return false;
+    }
+
+    $count = 0;
+    while (!feof($fh) && $count < 2) {
+      $chunk = fread($fh, 1024 * 100);
+      $count += substr_count($chunk, "\x21\xF9\x04");
+    }
+    fclose($fh);
+
+    return $count > 1;
+  }
+
+  /**
+   * Convierte un archivo de imagen individual a otro formato.
+   * Soporta conversión de GIFs animados a WebP animado (con Imagick o motor nativo GD) y conversiones entre formatos estándar.
+   * 
+   * @param string $sourcePath Ruta de la imagen origen.
+   * @param string $destPath Ruta del archivo de destino.
+   * @param string $outputFormat Formato de salida deseado (webp, avif, png, jpg, gif, bmp).
+   * @param int|null $quality Calidad de compresión (0-100), null para valor óptimo según formato.
+   * @param int|null $maxWidth Ancho máximo opcional.
+   * @param int|null $maxHeight Alto máximo opcional.
+   * @return bool True si la conversión fue exitosa, false en caso de error.
+   */
+  public static function convertImage(
+    string $sourcePath,
+    string $destPath,
+    string $outputFormat = 'webp',
+    ?int $quality = null,
+    ?int $maxWidth = null,
+    ?int $maxHeight = null,
+    int $frameStep = 1
+  ): bool {
+    if (!file_exists($sourcePath) || !is_file($sourcePath)) {
+      error_log("ImgProcessModule::convertImage: El archivo origen no existe: {$sourcePath}");
+      return false;
+    }
+
+    $outputFormat = strtolower(trim($outputFormat));
+    if ($outputFormat === 'jpeg') {
+      $outputFormat = 'jpg';
+    }
+
+    // Asegurar que el directorio de destino exista
+    $destDir = dirname($destPath);
+    if (!is_dir($destDir)) {
+      $oldUmask = umask(0);
+      @mkdir($destDir, 0777, true);
+      umask($oldUmask);
+    }
+
+    $srcExt = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
+
+    // 1. Si es GIF y el formato solicitado es WebP, utilizar el conversor especializado de animación (Imagick + motor GD nativo)
+    if ($srcExt === 'gif' && $outputFormat === 'webp') {
+      require_once __DIR__ . '/../Exec/AnimatedGifToWebp.php';
+      $converted = \Base\Exec\AnimatedGifToWebp::convert(
+        $sourcePath,
+        $destPath,
+        $quality ?? 80,
+        $maxWidth,
+        $maxHeight,
+        $frameStep
+      );
+
+      if ($converted && file_exists($destPath) && filesize($destPath) > 0) {
+        return true;
+      }
+    }
+
+    // 2. Si es GIF a otro formato y se cuenta con Imagick, usar Imagick para preservar todos los fotogramas
+    if ($srcExt === 'gif' && class_exists('Imagick')) {
+      try {
+        $gif = new \Imagick($sourcePath);
+        $gif = $gif->coalesceImages();
+
+        $maxW = $maxWidth ?? (defined('MAX_IMAGE_WIDTH') ? MAX_IMAGE_WIDTH : 0);
+        $maxH = $maxHeight ?? (defined('MAX_IMAGE_HEIGHT') ? MAX_IMAGE_HEIGHT : 0);
+
+        foreach ($gif as $frame) {
+          $frame->setImageDepth(8);
+
+          $width = $frame->getImageWidth();
+          $height = $frame->getImageHeight();
+
+          if (($maxW > 0 && $width > $maxW) || ($maxH > 0 && $height > $maxH)) {
+            $scale = 1.0;
+            if ($maxW > 0 && $width > $maxW) {
+              $scale = min($scale, $maxW / $width);
+            }
+            if ($maxH > 0 && $height > $maxH) {
+              $scale = min($scale, $maxH / $height);
+            }
+            $newW = (int) ceil($width * $scale);
+            $newH = (int) ceil($height * $scale);
+            $frame->thumbnailImage($newW, $newH);
+          }
+
+          if ($outputFormat !== 'gif') {
+            $frame->setImageFormat($outputFormat);
+          }
+        }
+
+        $gif = $gif->deconstructImages();
+
+        if ($outputFormat !== 'gif') {
+          $gif->setFormat($outputFormat);
+        }
+
+        if ($quality !== null && $quality > 0) {
+          $gif->setImageCompressionQuality($quality);
+        }
+
+        $gif->stripImage();
+        $written = $gif->writeImages($destPath, true);
+
+        if ($written && file_exists($destPath) && filesize($destPath) > 0) {
+          return true;
+        }
+      } catch (\Exception $e) {
+        error_log("ImgProcessModule::convertImage: Error Imagick al convertir GIF: " . $e->getMessage());
+        // Continuar con fallback GD si es posible
+      }
+    }
+
+    // 2. Procesamiento con GD o método estándar
+    $processor = new self('');
+    $info = @getimagesize($sourcePath);
+    $format = $info ? (explode('/', $info['mime'])[1] ?? $srcExt) : $srcExt;
+
+    $sourceImage = $processor->createImageFromAny($sourcePath, $format);
+    if (!$sourceImage) {
+      error_log("ImgProcessModule::convertImage: No se pudo cargar la imagen origen: {$sourcePath}");
+      return false;
+    }
+
+    $origWidth = imagesx($sourceImage);
+    $origHeight = imagesy($sourceImage);
+
+    // Calcular dimensiones si hay límites
+    $targetWidth = $origWidth;
+    $targetHeight = $origHeight;
+
+    $maxW = $maxWidth ?? (defined('MAX_IMAGE_WIDTH') ? MAX_IMAGE_WIDTH : 0);
+    $maxH = $maxHeight ?? (defined('MAX_IMAGE_HEIGHT') ? MAX_IMAGE_HEIGHT : 0);
+
+    if (($maxW > 0 && $origWidth > $maxW) || ($maxH > 0 && $origHeight > $maxH)) {
+      $scale = 1.0;
+      if ($maxW > 0 && $origWidth > $maxW) {
+        $scale = min($scale, $maxW / $origWidth);
+      }
+      if ($maxH > 0 && $origHeight > $maxH) {
+        $scale = min($scale, $maxH / $origHeight);
+      }
+      $targetWidth = (int) ceil($origWidth * $scale);
+      $targetHeight = (int) ceil($origHeight * $scale);
+    }
+
+    $finalImage = imagecreatetruecolor($targetWidth, $targetHeight);
+
+    // Preservar transparencia para formatos que lo admitan
+    if (in_array($format, ['png', 'webp', 'avif', 'gif']) || in_array($outputFormat, ['png', 'webp', 'avif', 'gif'])) {
+      imagealphablending($finalImage, false);
+      imagesavealpha($finalImage, true);
+      $transparent = imagecolorallocatealpha($finalImage, 0, 0, 0, 127);
+      imagefill($finalImage, 0, 0, $transparent);
+    }
+
+    imagecopyresampled(
+      $finalImage,
+      $sourceImage,
+      0, 0, 0, 0,
+      $targetWidth, $targetHeight,
+      $origWidth, $origHeight
+    );
+
+    if ($quality === null) {
+      $orientation = ($targetWidth > $targetHeight) ? 'landscape' : (($targetWidth === $targetHeight) ? 'square' : 'portrait');
+      $quality = $processor->calculateOptimalQuality($targetWidth, $orientation);
+    }
+
+    $saved = $processor->saveImageAs($finalImage, $destPath, $quality, $outputFormat);
+
+    imagedestroy($finalImage);
+    imagedestroy($sourceImage);
+
+    return $saved && file_exists($destPath) && filesize($destPath) > 0;
   }
 
   /**

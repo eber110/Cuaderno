@@ -27,6 +27,7 @@
     "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
     "reset-font": "@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php",
     "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
-    "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php"
+    "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php",
+    "convert-image": "@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php"
   }
 }

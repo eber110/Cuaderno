@@ -135,6 +135,7 @@ composer reset-font          # Gestor/reset de fuentes instaladas
 composer create-table-mysql   # Inicializa tablas BD MySQL
 composer create-table-pgsql   # Inicializa tablas BD PostgreSQL
 composer update-geoip        # Descarga GeoLite2 actualizado
+composer convert-image       # Conversor interactivo de imágenes (GIF animado a WebP animado, etc.)
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`. `InitAppStructure` (estructura /App) se ejecuta con `composer install/update`.

@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "852b8a379d9afd144c85dce17d103537468fff92"
+                "reference": "d1ef364344a342c515c543b59b299fedebbc9850"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -133,6 +133,9 @@
                 ],
                 "scan-routes": [
                     "php Base/ScriptComposer/ScanRoutes.php"
+                ],
+                "convert-image": [
+                    "php Base/ScriptComposer/ConvertImage.php"
                 ]
             },
             "authors": [
