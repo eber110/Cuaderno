@@ -1,11 +1,11 @@
 /**
- * Carrusel/slider de imÃ¡genes con efectos de transiciÃ³n.
+ * Carrusel/slider de imágenes con efectos de transiciÃ³n.
  * 
  * @function carousel
  * @description Slider con navegaciÃ³n, autoplay y efectos de transiciÃ³n opcionales.
  * 
  * @example
- * // HTML - BÃ¡sico (sin animaciÃ³n)
+ * // HTML - Básico (sin animaciÃ³n)
  * <div class="carousel" data-autoplay="5000">
  *   <div class="carousel-inner">
  *     <div class="carousel-item active">Slide 1</div>

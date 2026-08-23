@@ -28,6 +28,14 @@ class ProvisionsRule extends JitRuleBase
         }
 
         // Width
+        if (preg_match('/^wpx-?(min|max)(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
+            $type = $m[1] === 'min' ? 'min-width' : 'max-width';
+            return $this->wrapMediaQuery($m[2] ?? '', ".{$word} { {$type}: {$m[3]}px; }");
+        }
+        if (preg_match('/^w-?(min|max)(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
+            $type = $m[1] === 'min' ? 'min-width' : 'max-width';
+            return $this->wrapMediaQuery($m[2] ?? '', ".{$word} { {$type}: {$m[3]}%; }");
+        }
         if (preg_match('/^w(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
             return $this->wrapMediaQuery($m[1] ?? '', ".{$word} { width: {$m[2]}%; }");
         }
@@ -39,6 +47,14 @@ class ProvisionsRule extends JitRuleBase
         }
 
         // Height
+        if (preg_match('/^hpx-?(min|max)(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
+            $type = $m[1] === 'min' ? 'min-height' : 'max-height';
+            return $this->wrapMediaQuery($m[2] ?? '', ".{$word} { {$type}: {$m[3]}px; }");
+        }
+        if (preg_match('/^h-?(min|max)(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
+            $type = $m[1] === 'min' ? 'min-height' : 'max-height';
+            return $this->wrapMediaQuery($m[2] ?? '', ".{$word} { {$type}: {$m[3]}%; }");
+        }
         if (preg_match('/^h(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
             return $this->wrapMediaQuery($m[1] ?? '', ".{$word} { height: {$m[2]}%; }");
         }

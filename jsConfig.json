@@ -37,7 +37,8 @@
       "trackClick": [],
       "activeViewers": [],
       "hamburgerMenu": [],
-      "videoBackgroundController": []
+      "videoBackgroundController": [],
+      "imageGallery": []
     },
     "async": {}
   }
