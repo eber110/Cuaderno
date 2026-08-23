@@ -64,6 +64,7 @@
 .color5-hover:hover, .color5-hover:hover a { color: var(--back-color5-hover); }
 .color6, .color6 a { color: var(--back-color6) !important; }
 .color7, .color7 a { color: var(--back-color7) !important; }
+.color8, .color8 a { color: var(--back-color8) !important; }
 .color8-hover, .color8-hover a { color: var(--back-color8); transition: var(--transition); }
 .color8-hover:hover, .color8-hover:hover a { color: var(--back-color8-hover); }
 .display-1 { font-weight: 700; font-size: 64px; }
@@ -188,6 +189,7 @@
 .pb1 { padding-bottom: 1px !important; }
 .pb10 { padding-bottom: 10px !important; }
 .pb100 { padding-bottom: 100px !important; }
+.pb20 { padding-bottom: 20px !important; }
 .pb25 { padding-bottom: 25px !important; }
 .pb30 { padding-bottom: 30px !important; }
 .pb40 { padding-bottom: 40px !important; }

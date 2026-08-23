@@ -45,7 +45,7 @@ Route::get("/test/2", function(){
 
 });
 
-Route::post("/test/1/", function($param){
+Route::get("/test/1/", function($param){
   
   
 
