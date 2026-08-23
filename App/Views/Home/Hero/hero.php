@@ -1,12 +1,12 @@
 <header class="container observer container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 h-dvh-desk hpxmin-mid-1000 pb100 pt-mid-100 pb-mid-100 pt-sml-50 pb-sml-50">
   <div class="hem20 w100 p15 p-sml-0 flex-column center-start">
     <div class="flex-column gap5">
-      <p class="oswald bold600 x28 color5 slide-in-bottom ob-0 dl-100 animate-slow">Rendimiento sin fricción</p>
-      <h1 class="oswald bold700 capitalize-p line-h10 x80 x-mid-50 x-sml-40 color5 slide-in-bottom ob-0 dl-200 animate-slow m0 p0">Tu contenido centralizado. Cargando al instante.</h1>
-      <p class="bold500 x20 x-sml-18 slide-in-bottom ob-0 dl-400 animate-slow pt20 pb25 pt-mid-10 pb-mid-20 pt-sml-5">Reúne tus productos, eventos, enlaces y campañas en un hub ultraligero. Configúralo en segundos y ofrece a tu audiencia una experiencia libre de esperas.</p>
+      <p class="oswald bold600 x28 color5 slide-in-bottom ob-0 dl-100 animate-slow">BIO LINK ULTRALIGERO</p>
+      <h1 class="oswald bold700 capitalize-p line-h10 x80 x-mid-50 x-sml-40 color8 slide-in-bottom ob-0 dl-200 animate-slow m0 p0">Todo lo que haces. En un solo link instantáneo.</h1>
+      <p class="bold500 x20 x-sml-18 slide-in-bottom ob-0 dl-400 animate-slow pt20 pb25 pt-mid-10 pb-mid-20 pt-sml-5">Conecta tus productos, redes, eventos y campañas en una página limpia que carga en milisegundos.</p>
     </div>
     <a href="/registrar" class="slide-in-bottom ob-0 dl-600 p10 pr30 pl30 br50 w-auto back5-hover textc x20 x-sml-18 bold500 pointer">
-      <p>Crear mi Clikhub gratis</p>
+      <p>Crea tu Clikhub gratis</p>
     </a>
   </div>
 
