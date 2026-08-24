@@ -19,8 +19,8 @@
 .ob-20:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .ob-30 { --ob-threshold: 0.3; }
 .ob-30:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
-.ob-50 { --ob-threshold: 0.5; }
-.ob-50:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
+.ob-40 { --ob-threshold: 0.4; }
+.ob-40:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .observer { position: relative; }
 .observer [class*="ob-"]:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .container { max-width: 90%; width: var(--width-window); margin: 0 auto; }
@@ -674,7 +674,7 @@
   .wpx-sml-40 { width: 40px; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .x-mid-50 { font-size: 50px; }
+  .x-mid-60 { font-size: 60px; }
 }
 @media screen and (max-width: 576px) {
   .x-sml-18 { font-size: 18px; }
