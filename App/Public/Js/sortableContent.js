@@ -2,8 +2,11 @@
  * Componente sortableContent.
  * 
  * Permite reordenar tarjetas (.sortable-item) mediante arrastrar y soltar (Drag and Drop)
- * dentro del contenedor #sortable-content-list o #sortable-rrss-list. Al soltar la tarjeta, re-indexa
- * automáticamente los atributos `name` de los campos e impulsa el auto-submit del formulario.
+ * dentro de los contenedores #sortable-content-list, #sortable-rrss-list o .sortable-container.
+ * Al soltar la tarjeta en una nueva posición, re-indexa automáticamente los atributos
+ * `name`, `id` y `for` de los campos e impulsa el auto-submit del formulario.
+ * 
+ * Optimizado para evitar Layout Thrashing y congelamiento del navegador en producción.
  */
 export function sortableContent() {
   function initAllContainers() {
@@ -18,15 +21,22 @@ export function sortableContent() {
   }
 
   initAllContainers();
-  document.addEventListener("previewUpdated", initAllContainers);
+
+  if (!window.__sortableContentInitialized) {
+    window.__sortableContentInitialized = true;
+    document.addEventListener("previewUpdated", () => {
+      initAllContainers();
+    });
+  }
 
   function initSortable(container) {
     let draggedItem = null;
+    let initialIndex = null;
 
     // Iniciar arrastre
     container.addEventListener("dragstart", (e) => {
-      // Ignorar si el arrastre se inició dentro de un campo interactivo
-      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu")) {
+      // Ignorar si el arrastre se inició dentro de un campo interactivo o botón
+      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a")) {
         e.preventDefault();
         return;
       }
@@ -35,6 +45,9 @@ export function sortableContent() {
       if (!item) return;
 
       draggedItem = item;
+      const allItems = [...container.querySelectorAll(".sortable-item")];
+      initialIndex = allItems.indexOf(item);
+
       item.classList.add("dragging");
       item.style.opacity = "0.4";
       if (e.dataTransfer) {
@@ -45,18 +58,27 @@ export function sortableContent() {
 
     // Finalizar arrastre
     container.addEventListener("dragend", (e) => {
-      const item = e.target.closest(".sortable-item");
+      const item = e.target.closest(".sortable-item") || draggedItem;
       if (item) {
         item.classList.remove("dragging");
         item.style.opacity = "1";
       }
-      draggedItem = null;
 
-      // Actualizar los índices de los campos y enviar formulario mediante auto-submit
-      updateIndicesAndSubmit(container);
+      if (draggedItem) {
+        const allItems = [...container.querySelectorAll(".sortable-item")];
+        const newIndex = allItems.indexOf(draggedItem);
+
+        // Solo re-indexar y enviar si la posición realmente cambió
+        if (initialIndex !== null && newIndex !== -1 && initialIndex !== newIndex) {
+          updateIndicesAndSubmit(container);
+        }
+      }
+
+      draggedItem = null;
+      initialIndex = null;
     });
 
-    // Movimiento al arrastrar por encima de otros elementos
+    // Movimiento al arrastrar por encima de otros elementos (con protección anti layout thrashing)
     container.addEventListener("dragover", (e) => {
       e.preventDefault();
       if (e.dataTransfer) {
@@ -66,10 +88,16 @@ export function sortableContent() {
       if (!draggedItem) return;
 
       const afterElement = getDragAfterElement(container, e.clientY);
+
+      // Mutar el DOM SOLO si la posición de destino es distinta a la actual
       if (afterElement == null) {
-        container.appendChild(draggedItem);
+        if (container.lastElementChild !== draggedItem) {
+          container.appendChild(draggedItem);
+        }
       } else {
-        container.insertBefore(draggedItem, afterElement);
+        if (draggedItem.nextElementSibling !== afterElement && draggedItem !== afterElement) {
+          container.insertBefore(draggedItem, afterElement);
+        }
       }
     });
   }
@@ -80,18 +108,18 @@ export function sortableContent() {
       ...container.querySelectorAll(".sortable-item:not(.dragging)")
     ];
 
-    return draggableElements.reduce(
-      (closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      },
-      { offset: Number.NEGATIVE_INFINITY }
-    ).element;
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+    for (let i = 0; i < draggableElements.length; i++) {
+      const child = draggableElements[i];
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        closest = { offset: offset, element: child };
+      }
+    }
+
+    return closest.element;
   }
 
   // Re-indexa los nombres de los inputs (`content[index][...]` o `rrss[index][...]`) según el nuevo orden del DOM
@@ -99,11 +127,24 @@ export function sortableContent() {
     const items = container.querySelectorAll(".sortable-item");
 
     items.forEach((item, index) => {
-      // Actualizar la etiqueta visible si es Enlace / Producto
+      // Actualizar ID del contenedor de la tarjeta
+      if (item.id && item.id.startsWith("content-item-")) {
+        item.id = `content-item-${index}`;
+      }
+      if (item.id && item.id.startsWith("rrss-item-")) {
+        item.id = `rrss-item-${index}`;
+      }
+
+      // Actualizar la etiqueta visible preservando el título del usuario
       const label = item.querySelector(".item-title-label");
-      if (label && (label.textContent.includes("Producto") || label.textContent.includes("Enlace"))) {
-        const isProduct = label.textContent.includes("Producto");
-        label.textContent = isProduct ? `Producto #${index + 1}` : `Enlace #${index + 1}`;
+      if (label) {
+        const titleInput = item.querySelector('input[name*="[title]"]');
+        if (titleInput) {
+          const isProduct = item.querySelector('input[name*="[type]"]')?.value === "product";
+          const currentTitle = titleInput.value.trim();
+          const prefix = isProduct ? "Producto" : "Enlace";
+          label.textContent = currentTitle ? `${prefix} - ${currentTitle}` : `${prefix} #${index + 1}`;
+        }
       }
 
       // Re-indexar los campos input dentro de la tarjeta
@@ -152,3 +193,4 @@ export function sortableContent() {
     }
   }
 }
+
