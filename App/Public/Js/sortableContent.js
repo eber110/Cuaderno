@@ -24,8 +24,23 @@ export function sortableContent() {
 
   if (!window.__sortableContentInitialized) {
     window.__sortableContentInitialized = true;
+    
+    // Auto-recuperación cuando se actualiza la vista previa por Fetch
     document.addEventListener("previewUpdated", () => {
       initAllContainers();
+    });
+
+    // Auto-recuperación si la página se restaura desde la caché de navegación (BFCache)
+    window.addEventListener("pageshow", () => {
+      initAllContainers();
+    });
+
+    // Limpieza global de seguridad si el arrastre se interrumpe de forma externa
+    window.addEventListener("dragend", () => {
+      document.querySelectorAll(".sortable-item.dragging").forEach((el) => {
+        el.classList.remove("dragging");
+        el.style.opacity = "1";
+      });
     });
   }
 
@@ -44,6 +59,11 @@ export function sortableContent() {
       const item = e.target.closest(".sortable-item");
       if (!item) return;
 
+      // Limpiar selecciones de texto activas en el navegador para evitar bloqueos del cursor
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
+
       draggedItem = item;
       const allItems = [...container.querySelectorAll(".sortable-item")];
       initialIndex = allItems.indexOf(item);
@@ -54,6 +74,11 @@ export function sortableContent() {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", ""); // Compatibilidad Firefox
       }
+    });
+
+    // Prevenir comportamiento por defecto en drop para evitar navegación accidental
+    container.addEventListener("drop", (e) => {
+      e.preventDefault();
     });
 
     // Finalizar arrastre

@@ -56,3 +56,19 @@
 .closed-modal-preview:hover{
   background-color: #464646;
 }
+
+/* Optimización de arrastre e interacción para Sortable Items */
+.sortable-item {
+  touch-action: pan-y;
+}
+
+.drag-handle, .drag-icon {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
+
+.sortable-item.dragging {
+  cursor: grabbing !important;
+}
