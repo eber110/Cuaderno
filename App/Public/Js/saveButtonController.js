@@ -114,7 +114,20 @@ export function saveButtonController() {
       const temp = document.createElement("div");
       temp.innerHTML = html.trim();
       const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
-      if (targetPreview && container.parentNode) {
+      if (!targetPreview) return;
+
+      const currentVideo = container.querySelector("video.back-video-bg");
+      const newVideo = targetPreview.querySelector("video.back-video-bg");
+
+      const currentSrc = currentVideo?.querySelector("source")?.getAttribute("src") || currentVideo?.getAttribute("src");
+      const newSrc = newVideo?.querySelector("source")?.getAttribute("src") || newVideo?.getAttribute("src");
+
+      // Si el video de fondo es idéntico, conservar el elemento <video> existente para evitar re-descargar los megabytes
+      if (currentVideo && newVideo && currentSrc && newSrc && currentSrc === newSrc) {
+        newVideo.replaceWith(currentVideo);
+      }
+
+      if (container.parentNode) {
         container.parentNode.replaceChild(targetPreview, container);
       } else {
         container.innerHTML = html;

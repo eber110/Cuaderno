@@ -436,14 +436,23 @@ class DesignModels extends Builder {
         $cardDesc   = $param["desc"] ?? $dataRequest["desc"] ?? "";
         $cardAvatar = $avatar ?? $dataRequest["avatar"] ?? "no-user.webp";
 
-        $existingItem = $existingContentList[$index] ?? [];
-        $existingUrl  = $existingItem["url"] ?? "";
+        $existingItem = null;
+        if (isset($existingContentList[$index]) && ($existingContentList[$index]["url"] ?? "") === $url) {
+          $existingItem = $existingContentList[$index];
+        } else {
+          foreach ($existingContentList as $prevItem) {
+            if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
+              $existingItem = $prevItem;
+              break;
+            }
+          }
+        }
 
         $metaTitle = $item["metaTitle"] ?? "";
         $metaDesc  = $item["metaDesc"] ?? "";
         $metaImg   = $item["metaImg"] ?? "";
 
-        if ($existingUrl === $url && !empty($existingItem["metaTitle"])) {
+        if ($existingItem !== null && !empty($existingItem["metaTitle"])) {
           $metaTitle = $existingItem["metaTitle"];
           $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : "";
           $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : "";

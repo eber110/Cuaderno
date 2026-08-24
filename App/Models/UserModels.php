@@ -69,9 +69,14 @@ class UserModels extends BuilderSqlite {
     $avatarVal = $card["avatar"] ?? "no-user.webp";
     $isDefaultAvatar = (empty($avatarVal) || $avatarVal === "no-user.webp" || strpos($avatarVal, "Origin/") !== false || strpos($avatarVal, "Custom/") !== false);
     
-    $card["avatarSrc"] = $isDefaultAvatar
-      ? DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp"
-      : DIR_SHOW_MEDIA . "Avatar/" . $avatarVal;
+    if ($isDefaultAvatar) {
+      $card["avatarSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp";
+    } else {
+      $avatarDisk = ROOT_PATH . "/Uploads/Avatar/" . $avatarVal;
+      $card["avatarSrc"] = file_exists($avatarDisk)
+        ? DIR_SHOW_MEDIA . "Avatar/" . $avatarVal
+        : DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp";
+    }
 
     if (isset($card["content"]) && is_array($card["content"])) {
       foreach ($card["content"] as &$item) {
@@ -80,7 +85,14 @@ class UserModels extends BuilderSqlite {
         $isDefaultImg = (empty($imgVal) || $imgVal === "no-image.webp" || strpos($imgVal, "Origin/") !== false || strpos($imgVal, "Custom/") !== false);
         
         if (!$isDefaultImg) {
-          $item["imgSrc"] = DIR_SHOW_MEDIA . $imgVal;
+          $diskPath = ROOT_PATH . "/Uploads/" . $imgVal;
+          if (file_exists($diskPath)) {
+            $item["imgSrc"] = DIR_SHOW_MEDIA . $imgVal;
+          } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (strpos($metaImgVal, "http://") === 0 || strpos($metaImgVal, "https://") === 0)) {
+            $item["imgSrc"] = $metaImgVal;
+          } else {
+            $item["imgSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+          }
         } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (strpos($metaImgVal, "http://") === 0 || strpos($metaImgVal, "https://") === 0)) {
           $item["imgSrc"] = $metaImgVal;
         } else {
