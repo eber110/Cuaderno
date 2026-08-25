@@ -51,6 +51,7 @@
             [
               "img" => $img,
               "imgSrc" => $imgSrc,
+              "title" => $content,
               "content" => $content,
               "profile" => $profile,
               "url" => $url,

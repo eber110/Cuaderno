@@ -82,21 +82,34 @@ class UserModels extends BuilderSqlite {
       foreach ($card["content"] as &$item) {
         $imgVal     = $item["img"] ?? "no-image.webp";
         $metaImgVal = $item["metaImg"] ?? "";
-        $isDefaultImg = (empty($imgVal) || $imgVal === "no-image.webp" || strpos($imgVal, "Origin/") !== false || strpos($imgVal, "Custom/") !== false);
+        $hasCustomImg = (!empty($imgVal) && $imgVal !== "no-image.webp" && strpos($imgVal, "Origin/") === false && strpos($imgVal, "Custom/") === false);
         
-        if (!$isDefaultImg) {
+        $resolvedImg = "";
+        if ($hasCustomImg) {
           $diskPath = ROOT_PATH . "/Uploads/" . $imgVal;
           if (file_exists($diskPath)) {
-            $item["imgSrc"] = DIR_SHOW_MEDIA . $imgVal;
-          } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (strpos($metaImgVal, "http://") === 0 || strpos($metaImgVal, "https://") === 0)) {
-            $item["imgSrc"] = $metaImgVal;
-          } else {
-            $item["imgSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+            $resolvedImg = DIR_SHOW_MEDIA . $imgVal;
           }
-        } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (strpos($metaImgVal, "http://") === 0 || strpos($metaImgVal, "https://") === 0)) {
+        }
+
+        if (!empty($resolvedImg)) {
+          // Prioridad 1: Imagen personalizada asignada por el usuario (si existe en disco)
+          $item["imgSrc"] = $resolvedImg;
+          if (empty($metaImgVal) || $metaImgVal === $imgVal || str_starts_with($metaImgVal, "/Uploads/")) {
+            $item["metaImg"] = $resolvedImg;
+          }
+        } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (str_starts_with($metaImgVal, "http://") || str_starts_with($metaImgVal, "https://"))) {
+          // Prioridad 2: Imagen rescatada de OpenGraph (metaImg)
           $item["imgSrc"] = $metaImgVal;
+          $item["metaImg"] = $metaImgVal;
+        } elseif (!empty($metaImgVal) && str_starts_with($metaImgVal, "/") && file_exists(ROOT_PATH . $metaImgVal)) {
+          // Imagen local válida en metaImg
+          $item["imgSrc"] = $metaImgVal;
+          $item["metaImg"] = $metaImgVal;
         } else {
+          // Si no hay ninguna imagen válida disponible
           $item["imgSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+          $item["metaImg"] = "";
         }
 
         $rawImgShow = $item["imgShow"] ?? true;

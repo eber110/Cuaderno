@@ -473,7 +473,7 @@ class DesignModels extends Builder {
                 ? $metaData["og"]["description"]
                 : (!empty($metaData["twitter"]["description"])
                   ? $metaData["twitter"]["description"]
-                  : $cardDesc));
+                  : ""));
 
             $metaImg = !empty($metaData["og"]["image"])
               ? $metaData["og"]["image"]
@@ -489,16 +489,17 @@ class DesignModels extends Builder {
           $metaTitle = $titleBtn;
         }
         if (empty($metaDesc)) {
-          $metaDesc = $cardDesc;
+          $metaDesc = "";
         }
         if (empty($metaImg)) {
           if (!empty($img) && $img !== "no-image.webp" && $img !== "no-user.webp" && strpos($img, "Custom/") === false) {
-            $metaImg = $img;
-          } elseif (!empty($cardAvatar) && $cardAvatar !== "no-user.webp" && strpos($cardAvatar, "Custom/") === false) {
-            $metaImg = DIR_SHOW_MEDIA . "Avatar/" . $cardAvatar;
+            $metaImg = "/Uploads/" . $img;
           } else {
-            $metaImg = "no-image.webp";
+            $metaImg = "";
           }
+        } elseif (!str_starts_with($metaImg, "http://") && !str_starts_with($metaImg, "https://") && !str_starts_with($metaImg, "/")) {
+          // Reconstruir con /Uploads/ si contenía solo el nombre del archivo
+          $metaImg = "/Uploads/" . $metaImg;
         }
 
         $rawImgShow = $item["imgShow"] ?? true;

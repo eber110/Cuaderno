@@ -55,6 +55,11 @@ RewriteEngine On
 # RewriteCond %{HTTP_REFERER} !yahoo\. [NC]
 # RewriteRule \.(jpg|jpeg|png|gif|webp|svg|avif|ico)$ - [F,NC]
 
+# Evitar que archivos estáticos o multimedia faltantes pasen a index.php descargando HTML
+RewriteCond %{REQUEST_URI} \.(webp|jpg|jpeg|png|gif|svg|avif|ico|mp4|webm|woff2|woff|ttf|css|js|map)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ - [R=404,L]
+
 RewriteCond %{REQUEST_FILENAME} !-s
 RewriteCond %{REQUEST_FILENAME} !-l
 RewriteCond %{REQUEST_FILENAME} !-f

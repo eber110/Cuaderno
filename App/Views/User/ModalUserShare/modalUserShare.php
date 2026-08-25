@@ -5,13 +5,42 @@
    */
   $card = $card ?? [];
   $data = $data ?? [];
-  $metaImg = $data["metaImg"] ?? "";
-  if (empty($metaImg) || (str_starts_with($metaImg, "/") && !file_exists(ROOT_PATH . $metaImg))) {
-    if (!empty($data["img"]) && file_exists(ROOT_PATH . "/Uploads/" . $data["img"])) {
-      $metaImg = "/Uploads/" . $data["img"];
-    } else {
-      $metaImg = "/App/Public/Img/Custom/img-og.png";
+
+  // Prioridad 1: Imagen personalizada asignada por el usuario (img / imgSrc)
+  $imgFile = $data["img"] ?? "";
+  $hasCustomImg = (!empty($imgFile) && $imgFile !== "no-image.webp" && $imgFile !== "no-user.webp" && strpos($imgFile, "Custom/") === false);
+
+  $modalImg = "";
+  if ($hasCustomImg && file_exists(ROOT_PATH . "/Uploads/" . $imgFile)) {
+    $modalImg = DIR_SHOW_MEDIA . $imgFile;
+  }
+
+  // Prioridad 2: Si no existe imagen personalizada en disco, verificar si existe metaImg rescatada
+  if (empty($modalImg) && !empty($data["metaImg"]) && $data["metaImg"] !== "no-image.webp") {
+    $meta = $data["metaImg"];
+    if (str_starts_with($meta, "http://") || str_starts_with($meta, "https://")) {
+      $modalImg = $meta;
+    } elseif (str_starts_with($meta, "/") && file_exists(ROOT_PATH . $meta)) {
+      $modalImg = $meta;
+    } elseif (file_exists(ROOT_PATH . "/Uploads/" . $meta)) {
+      $modalImg = DIR_SHOW_MEDIA . $meta;
     }
+  }
+
+  // Resolución de la descripción / título para compartir
+  $metaDescRaw = trim($data["metaDesc"] ?? "");
+  $titleRaw    = trim($data["title"] ?? $data["content"] ?? $data["metaTitle"] ?? "");
+
+  // Si metaDesc contiene la descripción genérica o el fallback, ignorarlo
+  if ($metaDescRaw === "Descripción del usuario" || $metaDescRaw === "Descripción del usuario " || $metaDescRaw === ($card["desc"] ?? "Descripción del usuario")) {
+    $metaDescRaw = "";
+  }
+
+  $displayDesc = "";
+  if (!empty($metaDescRaw)) {
+    $displayDesc = $metaDescRaw;
+  } elseif (!empty($titleRaw)) {
+    $displayDesc = $titleRaw;
   }
 ?>
 <div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
@@ -19,13 +48,17 @@
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= $data["url"]?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b' ?> calc(l * 0.4) c h /60%); color: <?= $card["colorText"] ?? '#ffffff' ?> !important;">
-    <figure class="ar-square wpx200 wpx-sml-160 br15">
-      <img src="<?= $metaImg ?>" alt="" class="cover">
-    </figure>
+  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b' ?> calc(l * 0.4) c h /60%); color: <?= $card["colorText"] ?? '#ffffff' ?> !important;">
+    <?php if (!empty($modalImg)) : ?>
+      <figure class="ar-square wpx200 wpx-sml-160 br15">
+        <img src="<?= e($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
+      </figure>
+    <?php endif; ?>
 
-    <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= e($data["metaDesc"] ?? '') ?></p>
-    <p class="x16" style="color: <?= $card["colorText"] ?? '#ffffff' ?>;"><?= \Base\Module\TextModule::truncate(urldecode($data["url"]), 1)?></p>
+    <?php if (!empty($displayDesc)) : ?>
+      <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= e($displayDesc) ?></p>
+    <?php endif; ?>
+    <p class="x16" style="color: <?= $card["colorText"] ?? '#ffffff' ?>;"><?= \Base\Module\TextModule::truncate(urldecode($data["url"] ?? ''), 1)?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>

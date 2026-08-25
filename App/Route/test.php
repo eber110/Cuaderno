@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\LemonSqueezyModels;
+use App\Models\UserModels;
 use Base\Module\GeoIpModule;
 use Base\Module\ImgProcessModule;
 use Base\Module\LogModule;
@@ -12,11 +13,13 @@ use Core\Route;
 
 Route::get("/test/2", function(){
 
-  
-  $data = LogModule::readLogLines("/Cache/UserData/".Session::session_data("username").".json");
+  $dataUser = (new UserModels)->dataOfficialUser("eber");
+  var_dump($dataUser["card"]);
+
+  /*$data = LogModule::readLogLines("/Cache/UserData/".Session::session_data("username").".json");
   if (!$data) {
     $data = false;
-  }
+  }*/
 
   /*$rrss = $data[0]["card"]["content"];
 
@@ -33,7 +36,7 @@ Route::get("/test/2", function(){
   //$share = ShareButtonModule::share("www.eber.cl", "Eber sanchez", []);
   
   //var_dump($share);
-  var_dump($_SESSION ?? []);
+  /*var_dump($_SESSION ?? []);
 
   if (Session::session_active()) {
     # code...
@@ -41,7 +44,7 @@ Route::get("/test/2", function(){
   }else{
     $esPremium = "visit";
   }
-  var_dump($esPremium);
+  var_dump($esPremium);*/
 
 });
 

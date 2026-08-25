@@ -44,7 +44,7 @@
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div class="hpx80 wpx80 br15 flex-column center-center pointer" style="background-color: #1e1e1e; overflow: hidden; position: relative;">
               <?php if (!empty($backVideo)) : ?>
-                <video id="thumb-video-preview" src="<?= $backVideo ?>" class="w100 h100" style="object-fit: cover; pointer-events: none;" muted <?php if ($styleBack === "video") echo "autoplay"; ?> loop playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';"></video>
+                <video id="thumb-video-preview" src="<?= $backVideo ?>" class="w100 h100" style="object-fit: cover; pointer-events: none;" muted preload="none" loop playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';"></video>
                 <span class="x22 textw" style="<?php if (!empty($backVideo)) echo 'display:none;'; ?>">▶</span>
               <?php else : ?>
                 <span class="x22 textw">▶</span>
@@ -70,7 +70,7 @@
         <?php if (!empty($backVideo)) : ?>
           <div class="w100 flex-column gap10">
             <div class="w100 hpx140 br15 overflow-hidden" style="background: #000; position: relative;">
-              <video src="<?= $backVideo ?>" class="w100 h100" style="object-fit: cover; pointer-events: none;" muted autoplay loop playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none';"></video>
+              <video src="<?= $backVideo ?>" class="w100 h100" style="object-fit: cover; pointer-events: none;" muted preload="none" loop playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none';"></video>
             </div>
             <div class="flex-row center-between w100 gap10">
               <label for="upload-video-input" class="pointer p10 br15 back-button-panel text-button-panel hover-scale-soft x14 bold500 flex-row center-center gap5 flex-1">
