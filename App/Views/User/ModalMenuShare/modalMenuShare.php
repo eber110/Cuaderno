@@ -51,20 +51,21 @@
     }
   }
 ?>
-<div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
-  <p class="absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
+<div class="flex-column center-center gap15 back-modal-item">
+  <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>
+  <p class="no-phone absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= $card["back"] ?? '#d6d6d6' ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= $card["colorText"] ?? '#383838' ?> !important;">
+  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= $card["back"] ?? '#d6d6d6' ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= $card["colorText"] ?? '#383838' ?> !important;">
     <?php if (!empty($modalImg)) : ?>
-      <figure class="ar-square wpx200 wpx-sml-160 br15">
+      <figure class="ar-square wpx200 |wpx-sml-160 br15">
         <img src="<?= e($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
       </figure>
     <?php endif; ?>
 
     <?php if (!empty($displayDesc)) : ?>
-      <p class="bold500 text-c bold700 x22 x-sml-20 cut-phrase textw" cant-col="1"><?= e($displayDesc) ?></p>
+      <p class="bold500 text-c bold400 x20 x-sml-20 textw"><?= e($displayDesc) ?></p>
     <?php endif; ?>
     <?php if ($type === "product" && !empty($metaDescRaw)) : ?>
       <p class="bold600 text-c x18 textw">$<?= e($metaDescRaw) ?></p>

@@ -48,8 +48,8 @@
     </div>
 
     <div class="hidden">
-      <div class="flex-column center-center w100 wrap">
-        <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
+      <div class="flex-column center-center w100">
+        <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml overflow-y-scroll">
           <?php _part("User.modalMenuShare", 
           [
             "data" => 
