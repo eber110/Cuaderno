@@ -28,19 +28,27 @@
   }
 
   // Resolución de la descripción / título para compartir
-  $metaDescRaw = trim($data["metaDesc"] ?? "");
-  $titleRaw    = trim($data["title"] ?? $data["content"] ?? $data["metaTitle"] ?? "");
+  $type = $data["type"] ?? ($type ?? "");
 
-  // Si metaDesc contiene la descripción genérica o el fallback, ignorarlo
-  if ($metaDescRaw === "Descripción del usuario" || $metaDescRaw === "Descripción del usuario " || $metaDescRaw === ($card["desc"] ?? "Descripción del usuario")) {
-    $metaDescRaw = "";
-  }
-
-  $displayDesc = "";
-  if (!empty($metaDescRaw)) {
-    $displayDesc = $metaDescRaw;
-  } elseif (!empty($titleRaw)) {
+  if ($type === "product") {
+    $titleRaw    = trim($data["title"] ?? $data["content"] ?? "");
+    $metaDescRaw = trim((string)($data["price"] ?? ""));
     $displayDesc = $titleRaw;
+  } else {
+    $metaDescRaw = trim($data["metaDesc"] ?? "");
+    $titleRaw    = trim($data["title"] ?? $data["content"] ?? $data["metaTitle"] ?? "");
+
+    // Si metaDesc contiene la descripción genérica o el fallback, ignorarlo
+    if ($metaDescRaw === "Descripción del usuario" || $metaDescRaw === "Descripción del usuario " || $metaDescRaw === ($card["desc"] ?? "Descripción del usuario")) {
+      $metaDescRaw = "";
+    }
+
+    $displayDesc = "";
+    if (!empty($metaDescRaw)) {
+      $displayDesc = $metaDescRaw;
+    } elseif (!empty($titleRaw)) {
+      $displayDesc = $titleRaw;
+    }
   }
 ?>
 <div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
@@ -48,7 +56,7 @@
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= $card["back"] ?? '#d6d6d6' ?> calc(l * 0.20) calc(c + 0.07) h /60%); color: <?= $card["colorText"] ?? '#383838' ?> !important;">
+  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= $card["back"] ?? '#d6d6d6' ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= $card["colorText"] ?? '#383838' ?> !important;">
     <?php if (!empty($modalImg)) : ?>
       <figure class="ar-square wpx200 wpx-sml-160 br15">
         <img src="<?= e($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
@@ -56,9 +64,12 @@
     <?php endif; ?>
 
     <?php if (!empty($displayDesc)) : ?>
-      <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase" cant-col="1"><?= e($displayDesc) ?></p>
+      <p class="bold500 text-c bold700 x22 x-sml-20 cut-phrase textw" cant-col="1"><?= e($displayDesc) ?></p>
     <?php endif; ?>
-    <p class="x16 text-c cut-phrase" cant-col="1" style="color: <?= $card["colorText"] ?? '#383838' ?>;"><?= e(urldecode($data["url"] ?? '')) ?></p>
+    <?php if ($type === "product" && !empty($metaDescRaw)) : ?>
+      <p class="bold600 text-c x18 textw">$<?= e($metaDescRaw) ?></p>
+    <?php endif; ?>
+    <p class="x16 text-c cut-phrase textw" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>

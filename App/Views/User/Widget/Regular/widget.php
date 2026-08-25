@@ -8,9 +8,14 @@
     for ($i = 0; $i < count($content); $i++) {
       $itemType   = $content[$i]["type"] ?? '';
       $itemActive = $content[$i]["active"] ?? false;
-      if ($itemType === "link" || $itemType === "product") {
+      if ($itemType === "link") {
         if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
           _part("User." . $cardStyle, ["dataContent" => $i, "card" => $card]);
+        }
+      }
+      if ($itemType === "product") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User." . "productRegular", ["dataContent" => $i, "card" => $card]);
         }
       }
     }

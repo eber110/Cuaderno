@@ -139,7 +139,7 @@
   }
 
   .back-item-menu{
-    background-color: <?= "oklch(from {$backPerfil} calc(l * 0.80) calc(c - 0.09) h / 90%)" ?>;
+    background-color: <?= "oklch(from {$backPerfil} calc(l * 0.40) calc(c - 0.09) h / 90%)" ?>;
     padding: 8px 8px;
     border-radius: 15px;
     border-style: solid;
