@@ -39,6 +39,12 @@
         $rawImgShow = $card["content"][$i]["imgShow"] ?? true;
         $imgShow    = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
         
+        $itemPrice      = $card["content"][$i]["price"] ?? '';
+        $rawOffer       = $card["content"][$i]["offer"] ?? false;
+        $itemOffer      = ($rawOffer === true || $rawOffer === 'true' || $rawOffer === 1 || $rawOffer === '1');
+        $itemDiscount   = $card["content"][$i]["discount"] ?? '';
+        $itemPorcentage = $card["content"][$i]["porcentage"] ?? 0;
+
         // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
         $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
         $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
@@ -132,6 +138,32 @@
 
           <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
           <input type="text" name="content[<?= $i?>][url]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
+
+          <?php if ($itemType === 'product') : ?>
+            <!-- Campo Precio -->
+            <input type="number" step="any" min="0" name="content[<?= $i?>][price]" class="product-price-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemPrice) ?>" placeholder="Precio">
+
+            <!-- Switch de Rebaja -->
+            <div class="flex-row center-between w100 p10 br10 back-card-graphic shadow-card-graphic">
+              <div class="flex-column">
+                <p class="x14 bold500 texto">Rebaja</p>
+                <span class="x12 text-muted">Aplica un precio rebajado o porcentaje</span>
+              </div>
+              <input type="checkbox" id="offer-switch-<?= $i?>" name="content[<?= $i?>][offer]" value="true" data-option="true,false" class="checkbox-switch product-offer-switch" active="<?= $itemOffer ? '1' : '2' ?>" <?= $itemOffer ? 'checked' : '' ?>>
+            </div>
+
+            <!-- Campos de Oferta / Descuento (Valor rebajado o Porcentaje) -->
+            <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml" style="display: <?= $itemOffer ? 'flex' : 'none' ?>;">
+              <div class="flex-column gap5 w50 w-sml-100">
+                <p class="x12 bold500 texto">Precio rebajado</p>
+                <input type="number" step="any" min="0" name="content[<?= $i?>][discount]" class="product-discount-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemDiscount) ?>" placeholder="Precio rebajado">
+              </div>
+              <div class="flex-column gap5 w50 w-sml-100">
+                <p class="x12 bold500 texto">% Descuento</p>
+                <input type="number" step="1" min="0" max="100" name="content[<?= $i?>][porcentage]" class="product-porcentage-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= (int)$itemPorcentage ?>" placeholder="% Descuento">
+              </div>
+            </div>
+          <?php endif; ?>
         </div>
       <?php endfor?>
     </div>

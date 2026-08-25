@@ -509,7 +509,7 @@ class DesignModels extends Builder {
           $imgShow = !$imgShow;
         }
 
-        $content[] = [
+        $contentItem = [
           "type"       => $type,
           "img"        => $img,
           "title"      => $titleBtn,
@@ -521,6 +521,48 @@ class DesignModels extends Builder {
           "metaDesc"   => $metaDesc,
           "metaImg"    => $metaImg
         ];
+
+        if ($type === "product") {
+          $price = trim((string)($item["price"] ?? ""));
+          $rawOffer = $item["offer"] ?? false;
+          $offer = ($rawOffer === "true" || $rawOffer === true || $rawOffer === 1 || $rawOffer === "1");
+
+          $discount = "";
+          $porcentage = 0;
+
+          if ($offer) {
+            $priceNum = is_numeric($price) ? (float)$price : 0;
+            $rawDiscount = trim((string)($item["discount"] ?? ""));
+            $rawPorcentage = trim((string)($item["porcentage"] ?? ""));
+            $hasDiscount = $rawDiscount !== "" && is_numeric($rawDiscount);
+            $hasPorcentage = $rawPorcentage !== "" && is_numeric($rawPorcentage);
+
+            if ($priceNum > 0) {
+              if ($hasDiscount && !$hasPorcentage) {
+                $discountNum = (float)$rawDiscount;
+                $discountNum = max(0, min($priceNum, $discountNum));
+                $porcentage = (int)round((($priceNum - $discountNum) / $priceNum) * 100);
+                $discount = (round($discountNum) == $discountNum) ? (int)$discountNum : $discountNum;
+              } elseif ($hasPorcentage && !$hasDiscount) {
+                $porcentage = max(0, min(100, (int)round((float)$rawPorcentage)));
+                $discountNum = $priceNum * (1 - ($porcentage / 100));
+                $discount = (round($discountNum) == $discountNum) ? (int)round($discountNum) : round($discountNum, 2);
+              } elseif ($hasDiscount && $hasPorcentage) {
+                $discountNum = (float)$rawDiscount;
+                $discountNum = max(0, min($priceNum, $discountNum));
+                $porcentage = max(0, min(100, (int)round((float)$rawPorcentage)));
+                $discount = (round($discountNum) == $discountNum) ? (int)$discountNum : $discountNum;
+              }
+            }
+          }
+
+          $contentItem["price"]      = $price;
+          $contentItem["offer"]      = $offer;
+          $contentItem["discount"]   = $discount;
+          $contentItem["porcentage"] = (int)$porcentage;
+        }
+
+        $content[] = $contentItem;
       }
     }
 
@@ -528,7 +570,7 @@ class DesignModels extends Builder {
       $newType = $param["add_content_type"];
       $typeTemplates = [
         "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
-        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
+        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "price" => "", "offer" => false, "discount" => "", "porcentage" => 0, "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
       ];
 
       $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true];

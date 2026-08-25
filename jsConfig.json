@@ -38,7 +38,8 @@
       "activeViewers": [],
       "hamburgerMenu": [],
       "videoBackgroundController": [],
-      "imageGallery": []
+      "imageGallery": [],
+      "productPricingController": []
     },
     "async": {}
   }

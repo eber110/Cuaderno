@@ -114,6 +114,14 @@ class UserModels extends BuilderSqlite {
 
         $rawImgShow = $item["imgShow"] ?? true;
         $item["imgShow"] = ($rawImgShow === true || $rawImgShow === "true" || $rawImgShow === 1 || $rawImgShow === "1");
+
+        if (($item["type"] ?? "") === "product") {
+          $item["price"] = $item["price"] ?? "";
+          $rawOffer = $item["offer"] ?? false;
+          $item["offer"] = ($rawOffer === true || $rawOffer === "true" || $rawOffer === 1 || $rawOffer === "1");
+          $item["discount"] = $item["discount"] ?? "";
+          $item["porcentage"] = isset($item["porcentage"]) ? (int)$item["porcentage"] : 0;
+        }
       }
       unset($item);
     } else {

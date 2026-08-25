@@ -188,13 +188,16 @@ export function sortableContent() {
           element.setAttribute("name", `content_img_${index}`);
         }
 
-        // Re-indexar IDs y atributos for de eliminación para modales
+        // Re-indexar IDs y atributos for de eliminación y switches para modales
         const oldId = element.getAttribute("id");
         if (oldId && oldId.startsWith("delete-link-")) {
           element.setAttribute("id", `delete-link-${index}`);
         }
         if (oldId && oldId.startsWith("delete-rrss-")) {
           element.setAttribute("id", `delete-rrss-${index}`);
+        }
+        if (oldId && oldId.startsWith("offer-switch-")) {
+          element.setAttribute("id", `offer-switch-${index}`);
         }
 
         const oldFor = element.getAttribute("for");
@@ -203,6 +206,9 @@ export function sortableContent() {
         }
         if (oldFor && oldFor.startsWith("delete-rrss-")) {
           element.setAttribute("for", `delete-rrss-${index}`);
+        }
+        if (oldFor && oldFor.startsWith("offer-switch-")) {
+          element.setAttribute("for", `offer-switch-${index}`);
         }
       });
     });
