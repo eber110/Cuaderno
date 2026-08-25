@@ -1,5 +1,5 @@
 /**
- * Componente para encajar dinámicamente un texto dentro de un div con altura fija o máxima.
+ * Componente para encajar dinámicamente un texto dentro de un contenedor con altura fija o máxima.
  * Utiliza CSS -webkit-line-clamp en un contenedor de envoltura interno (.cut-phrase-wrapper)
  * calculando el número exacto de líneas que caben según la altura interna disponible
  * del elemento padre y su line-height.
@@ -7,6 +7,45 @@
  * Evita colisiones de maquetación cuando el contenedor padre es display: flex o grid.
  * 
  * @function cutPhrase
+ * @description Trunca automáticamente textos largos añadiendo puntos suspensivos según la altura
+ *              del contenedor o mediante un número fijo de líneas definido por atributo.
+ * 
+ * @example
+ * // HTML - Truncamiento automático por altura fija o máxima del contenedor
+ * <div class="cut-phrase" style="height: 60px;">
+ *   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+ * </div>
+ * 
+ * @example
+ * // HTML - Truncamiento con clases de utilidad de altura del framework
+ * <p class="cut-phrase h50 max-w300">
+ *   Texto extenso que se truncará dinámicamente según el espacio vertical disponible.
+ * </p>
+ * 
+ * @example
+ * // HTML - Forzar un número específico de líneas con el atributo 'cant-col'
+ * <div class="cut-phrase" cant-col="3">
+ *   Este texto siempre se limitará a un máximo de 3 líneas con puntos suspensivos,
+ *   independientemente de la altura fija del contenedor padre.
+ * </div>
+ * 
+ * @example
+ * // JS - Inicialización y eventos personalizados para actualizar contenido dinámico
+ * import { cutPhrase } from './Components/cutPhrase.js';
+ * 
+ * // Inicializar
+ * cutPhrase();
+ * 
+ * // Actualizar tras cambios dinámicos en el DOM o vistas previas
+ * document.dispatchEvent(new CustomEvent('contentUpdated'));
+ * // o también:
+ * document.dispatchEvent(new CustomEvent('previewUpdated'));
+ * 
+ * @css .cut-phrase - Clase requerida en el contenedor principal a truncar
+ * @css .cut-phrase-wrapper - Contenedor interno generado dinámicamente que aplica -webkit-line-clamp
+ * @attribute cant-col - (Opcional) Número entero de líneas máximas a forzar en lugar del cálculo por altura
+ * @attribute data-cut-phrase-ready - Atributo aplicado automáticamente cuando el cálculo está listo (controla opacidad/FOUC)
+ * 
  * @returns {void}
  */
 export function cutPhrase() {
@@ -42,7 +81,9 @@ export function cutPhrase() {
     // 1. Obtener o crear el contenedor interno (wrapper) para evitar romper layouts flex/grid del padre
     let wrapper = el.querySelector('.cut-phrase-wrapper');
     if (!wrapper) {
-      wrapper = document.createElement('div');
+      // Usar span para elementos de fraseo (p, span, a, label, h1-h6) para evitar que el parser HTML rompa el DOM si se clona con innerHTML
+      const isPhrasing = ['P', 'SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'LABEL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SMALL'].includes(el.tagName);
+      wrapper = document.createElement(isPhrasing ? 'span' : 'div');
       
       // Mover todo el contenido del elemento padre al wrapper
       while (el.firstChild) {
@@ -75,14 +116,18 @@ export function cutPhrase() {
     }
 
     if (maxLines === undefined) {
-      maxLines = Math.floor(innerHeight / lineHeight);
+      if (innerHeight > 0 && lineHeight > 0) {
+        maxLines = Math.floor(innerHeight / lineHeight);
+      }
     }
 
     // 5. Aplicar el line-clamp calculado o forzado al wrapper
-    if (maxLines > 0) {
-      wrapper.style.setProperty('-webkit-line-clamp', maxLines.toString(), 'important');
-    } else {
-      wrapper.style.removeProperty('-webkit-line-clamp');
+    if (maxLines !== undefined) {
+      if (maxLines > 0) {
+        wrapper.style.setProperty('-webkit-line-clamp', maxLines.toString(), 'important');
+      } else {
+        wrapper.style.removeProperty('-webkit-line-clamp');
+      }
     }
 
     // 6. Marcar elemento y wrapper como listos para eliminar FOUC

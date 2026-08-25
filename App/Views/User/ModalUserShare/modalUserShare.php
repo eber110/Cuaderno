@@ -56,9 +56,9 @@
     <?php endif; ?>
 
     <?php if (!empty($displayDesc)) : ?>
-      <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase"><?= e($displayDesc) ?></p>
+      <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase" cant-col="1"><?= e($displayDesc) ?></p>
     <?php endif; ?>
-    <p class="x16" style="color: <?= $card["colorText"] ?? '#ffffff' ?>;"><?= \Base\Module\TextModule::truncate(urldecode($data["url"] ?? ''), 1)?></p>
+    <p class="x16 text-c cut-phrase" cant-col="1" style="color: <?= $card["colorText"] ?? '#ffffff' ?>;"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>

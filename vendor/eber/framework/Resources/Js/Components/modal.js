@@ -150,6 +150,9 @@ export function modal() {
           initGsapHoverAnimations();
         }
 
+        // Notificar a componentes dinámicos (cutPhrase, galerías, etc.) que el contenido del modal está en el DOM
+        document.dispatchEvent(new CustomEvent('contentUpdated'));
+
         // Animar si corresponde
         if (useAnimation) {
           animateOpen(background, modalContentContainer);

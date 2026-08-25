@@ -79,6 +79,8 @@ input:focus + .input-note {
   width: 100%;
   box-sizing: border-box;
   color: inherit !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
 }
 
 /* Evitar FOUC (Flash of Unstyled Content) antes de calcular el truncamiento dinámico */
