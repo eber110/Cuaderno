@@ -355,6 +355,7 @@
 .pt30 { padding-top: 30px !important; }
 .pt40 { padding-top: 40px !important; }
 .pt8 { padding-top: 8px !important; }
+.w-max-100 { max-width: 100%; }
 .w100 { width: 100%; }
 .w3 { width: 3%; }
 .w40 { width: 40%; }

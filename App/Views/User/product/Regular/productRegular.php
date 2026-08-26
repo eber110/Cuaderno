@@ -4,7 +4,6 @@
    * @var mixed $dataContent
   */
   //var_dump($data);
-  $type = $card["content"][$dataContent]["type"] ?? '';
   $price = $card["content"][$dataContent]["price"] ?? '';
   $offer = $card["content"][$dataContent]["offer"] ?? '';
   $porcentage = $card["content"][$dataContent]["porcentage"] ?? '';
@@ -13,8 +12,6 @@
   $content = $card["content"][$dataContent]["title"] ?? '';
   $profile = $card["profile"];
   $url = $card["content"][$dataContent]["url"];
-  $metaTitle = $card["content"][$dataContent]["metaTitle"];
-  $metaDesc = $card["content"][$dataContent]["metaDesc"];
   $metaImg = $card["content"][$dataContent]["metaImg"];
   $share = $card["content"][$dataContent]["share"] ?? [];
 
@@ -54,19 +51,15 @@
           [
             "data" => 
             [
-              "type" => $type,
               "price" => $price,
               "offer" => $offer,
               "porcentage" => $porcentage,
               "img" => $img,
               "imgSrc" => $imgSrc,
               "title" => $content,
-              "content" => $content,
               "profile" => $profile,
               "url" => $url,
               "share" => $share,
-              "metaTitle" => $metaTitle,
-              "metaDesc" => $metaDesc,
               "metaImg" => $metaImg,
             ],
             "card" => $card

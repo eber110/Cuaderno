@@ -28,27 +28,19 @@
   }
 
   // Resolución de la descripción / título para compartir
-  $type = $data["type"] ?? ($type ?? "");
+  $metaDescRaw = trim($data["metaDesc"] ?? "");
+  $titleRaw    = trim($data["title"] ?? $data["content"] ?? $data["metaTitle"] ?? "");
 
-  if ($type === "product") {
-    $titleRaw    = trim($data["title"] ?? $data["content"] ?? "");
-    $metaDescRaw = trim((string)($data["price"] ?? ""));
+  // Si metaDesc contiene la descripción genérica o el fallback, ignorarlo
+  if ($metaDescRaw === "Descripción del usuario" || $metaDescRaw === "Descripción del usuario " || $metaDescRaw === ($card["desc"] ?? "Descripción del usuario")) {
+    $metaDescRaw = "";
+  }
+
+  $displayDesc = "";
+  if (!empty($metaDescRaw)) {
+    $displayDesc = $metaDescRaw;
+  } elseif (!empty($titleRaw)) {
     $displayDesc = $titleRaw;
-  } else {
-    $metaDescRaw = trim($data["metaDesc"] ?? "");
-    $titleRaw    = trim($data["title"] ?? $data["content"] ?? $data["metaTitle"] ?? "");
-
-    // Si metaDesc contiene la descripción genérica o el fallback, ignorarlo
-    if ($metaDescRaw === "Descripción del usuario" || $metaDescRaw === "Descripción del usuario " || $metaDescRaw === ($card["desc"] ?? "Descripción del usuario")) {
-      $metaDescRaw = "";
-    }
-
-    $displayDesc = "";
-    if (!empty($metaDescRaw)) {
-      $displayDesc = $metaDescRaw;
-    } elseif (!empty($titleRaw)) {
-      $displayDesc = $titleRaw;
-    }
   }
 ?>
 <div class="flex-column center-center gap15 back-modal-item">
@@ -66,9 +58,6 @@
 
     <?php if (!empty($displayDesc)) : ?>
       <p class="bold500 text-c bold400 x20 x-sml-20 textw"><?= e($displayDesc) ?></p>
-    <?php endif; ?>
-    <?php if ($type === "product" && !empty($metaDescRaw)) : ?>
-      <p class="bold600 text-c x18 textw">$<?= e($metaDescRaw) ?></p>
     <?php endif; ?>
     <p class="x16 text-c cut-phrase textw" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>

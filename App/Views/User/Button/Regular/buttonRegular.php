@@ -31,9 +31,7 @@
       <?php endif?>
     </div>
 
-    <p class="flex-column center-center wrap bold500 w80 text-c cut-phrase" cant-col="2" style="flex-grow: 1;">
-      <?= $content;?>
-    </p>
+    <p class="flex-column center-center wrap bold500 w90 text-c cut-phrase" cant-col="2" style="flex-grow: 1; width: calc(134px - 100%);"><?= $content;?></p>
   </a>
 
   <div class="flex-column center-end pr15 wrap">
@@ -52,7 +50,6 @@
               "img" => $img,
               "imgSrc" => $imgSrc,
               "title" => $content,
-              "content" => $content,
               "profile" => $profile,
               "url" => $url,
               "share" => $share,
