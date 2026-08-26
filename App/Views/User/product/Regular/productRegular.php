@@ -33,6 +33,7 @@
     </div>
 
     <div class="flex-column w50 p15">
+      <p>Tienda.</p>
       <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= $content;?></p>
       <p>$<?= $price?></p>
     </div>
