@@ -3,7 +3,7 @@
    * @var mixed $share
   */
 ?>
-<div class="">
+<nav class="menu-user-fixed p30 p-sml-20 pt30 pb30 pt-sml-20">
 
   <?php if ($connect ?? false == true) :?>
     <div class="flex-row center-between">
@@ -52,4 +52,4 @@
     <?php endif?>
   <?php endif?>
 
-</div>
+</nav>

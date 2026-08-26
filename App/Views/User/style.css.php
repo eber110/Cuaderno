@@ -138,6 +138,15 @@
     color: <?= (!$colorText || $colorText === "") ? $color : $colorText?>;
   }
 
+  .menu-user-fixed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+    pointer-events: none;
+  }
+
   .back-item-menu{
     background-color: <?= "oklch(from {$backPerfil} calc(l * 0.40) calc(c - 0.09) h / 90%)" ?>;
     padding: 8px 8px;
@@ -145,6 +154,7 @@
     border-style: solid;
     border-color: #ffffff98;
     border-width: 1px;
+    pointer-events: auto;
   }
 
   .title-color{

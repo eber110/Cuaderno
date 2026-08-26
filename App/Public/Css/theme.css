@@ -133,8 +133,8 @@
 }
 
 .faded-image{
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
 }
 
 .faded-radial-image{
@@ -159,15 +159,8 @@
 }
 
 .preview-profile {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  scrollbar-width: none; /* Oculta la barra en Firefox */
-  -ms-overflow-style: none;  /* Oculta la barra en Internet Explorer y Edge antiguo */
+  overflow: hidden !important;
   height: 950px !important;
-}
-/* Oculta la barra en navegadores basados en WebKit (Chrome, Safari, Opera, Edge Nuevo) */
-.preview-profile::-webkit-scrollbar {
-  display: none;
 }
 .user-profile-preview a,
 .user-profile-preview .modal-btn,

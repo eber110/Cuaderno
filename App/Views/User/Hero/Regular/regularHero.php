@@ -1,10 +1,7 @@
 <?php
   /** @var mixed $card */
 ?>
-<main class="color-text-card">
-  <div class="p30 p-sml-20 pt30 pb30 pt-sml-20 w100">
-    <?php _component("Menu.menuUser");?>
-  </div>
+<main class="color-text-card pt80 pt-sml-70">
   <div class="hem5 flex-column center-center gap10">
     
     <div class="flex-column center-center hpx120">

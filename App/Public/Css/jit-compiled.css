@@ -355,7 +355,7 @@
 .pt30 { padding-top: 30px !important; }
 .pt40 { padding-top: 40px !important; }
 .pt8 { padding-top: 8px !important; }
-.w-max-100 { max-width: 100%; }
+.pt80 { padding-top: 80px !important; }
 .w100 { width: 100%; }
 .w3 { width: 3%; }
 .w40 { width: 40%; }
@@ -774,6 +774,9 @@
 }
 @media screen and (max-width: 576px) {
   .pt-sml-50 { padding-top: 50px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pt-sml-70 { padding-top: 70px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-0 { width: 0%; }

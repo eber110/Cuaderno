@@ -2,10 +2,6 @@
   /** @var mixed $card */
 ?>
 <main class="color-text-card">
-  <div class="absolute top z-index-10 p30 p-sml-20 pt30 pb30 pt-sml-20 w100">
-    <?php _component("Menu.menuUser");?>
-  </div>
-
   <figure class="ar-square w100 faded-image">
     <img src="<?= $card["avatarSrc"] ?>" alt="Avatar de <?= $user ?? "Usuario"?>" class="cover image-protected" fetchpriority="high">
   </figure>
