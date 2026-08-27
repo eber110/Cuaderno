@@ -91,11 +91,25 @@ export function activeViewers() {
     }
   }
 
-  // Primer envío inmediato
-  sendHeartbeat();
+  // Iniciar timer recurrente solo después de ejecutar el primer heartbeat
+  const startInterval = () => {
+    if (!intervalId) {
+      intervalId = setInterval(sendHeartbeat, 15000);
+    }
+  };
 
-  // Iniciar intervalo cada 15 segundos
-  intervalId = setInterval(sendHeartbeat, 15000);
+  // Primer envío diferido para no bloquear la ruta crítica inicial ni competir con FCP/LCP
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      sendHeartbeat();
+      startInterval();
+    }, { timeout: 3000 });
+  } else {
+    setTimeout(() => {
+      sendHeartbeat();
+      startInterval();
+    }, 2000);
+  }
 
   // Pausar/Reanudar cuando la pestaña cambia de visibilidad para ahorrar recursos
   document.addEventListener('visibilitychange', () => {

@@ -146,16 +146,21 @@ class JitCssModule
                         }
                     }
 
+                    $isBoldWeight = ($fontWeight === '700' || strtolower($fontWeight) === 'bold');
+                    $isBoldInUse = isset($words['bold']) || isset($words['bold700']) || isset($words['b700']) || isset($lowerWords['bold']) || isset($lowerWords['bold700']);
+
                     // Decisión de precarga para optimización máxima de red:
                     // 1. Si es Fuente Variable: precargar el archivo único (contiene todos los pesos 100-900 en un solo archivo).
-                    // 2. Si son Fuentes Estáticas (por peso): precargar ÚNICAMENTE el peso base regular (400 / normal).
-                    //    Los demás pesos (100, 200, 300, 500, 600, 700, 800, 900) están declarados en @font-face (css.min.css)
-                    //    y el navegador los descargará de forma nativa bajo demanda (lazy loading) SOLO en las páginas
-                    //    cuyo DOM contenga elementos con esos pesos específicos.
+                    // 2. Si son Fuentes Estáticas (por peso): precargar el peso base regular (400 / normal) y bold (700) si se detecta su uso,
+                    //    o cualquier peso cuya clase específica esté en uso en las vistas (evitando saltos secuenciales en la ruta crítica).
                     $shouldPreload = false;
                     if ($isVariable && $isUsedFamily) {
                         $shouldPreload = true;
                     } elseif (!$isVariable && $isUsedFamily && $isBaseRegularWeight) {
+                        $shouldPreload = true;
+                    } elseif (!$isVariable && $isUsedFamily && $isBoldWeight && $isBoldInUse) {
+                        $shouldPreload = true;
+                    } elseif (!$isVariable && $isUsedClass) {
                         $shouldPreload = true;
                     }
 

@@ -26,7 +26,7 @@
     <div class="w50 h50 flex-row center-center">
       <?php if ($imgShow && $hasImg) :?>
         <figure class="ar-square p7">
-          <img src="<?= $imgSrc ?>" alt="" class="cover <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1]?>">
+          <img src="<?= $imgSrc ?>" alt="" class="cover <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1]?>" fetchpriority=high>
         </figure>
       <?php else :?>
         <div class=""></div>
