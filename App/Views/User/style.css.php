@@ -45,7 +45,7 @@
       background-color: <?= $backPerfil?>;
     }
     .back-card-container{
-      background-color: oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+      background-color: oklch(from <?= $backPerfil?> calc(l * 0.65) c h / 70%);
     }
   <?php elseif ($styleBack == "gradientUp") :?>
     .back-card{
@@ -56,7 +56,7 @@
     }
     .back-card-container{
       background: linear-gradient(0deg,
-        oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+        oklch(from <?= $backPerfil?> calc(l * 0.60) c h / 75%),
         oklch(from <?= $backPerfil?> calc(l * 1.35) calc(c - 0.03) calc(h - 30) / 90%)
       );
     }
@@ -69,7 +69,7 @@
     }
     .back-card-container{
       background: linear-gradient(180deg,
-        oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
+        oklch(from <?= $backPerfil?> calc(l * 0.60) c h / 75%),
         oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
       );
     }
