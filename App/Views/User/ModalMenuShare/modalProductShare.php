@@ -30,6 +30,8 @@
   // Resolución de datos del producto
   $title = trim($data["title"] ?? $data["content"] ?? "");
   $price = trim((string)($data["price"] ?? ""));
+  $offer = $data["offer"] ?? "";
+  $discount = trim((string)($data["discount"] ?? ""));
 ?>
 <div class="flex-column center-center gap15 back-modal-item">
   <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>
@@ -47,8 +49,13 @@
     <?php if (!empty($title)) : ?>
       <p class="bold500 text-c bold400 x20 x-sml-20 textw"><?= e($title) ?></p>
     <?php endif; ?>
-    <?php if (!empty($price)) : ?>
+    <?php if ($offer == false) : ?>
       <p class="bold600 text-c x18 textw">$<?= e($price) ?></p>
+    <?php else:?>
+      <div class="flex-column gap0 p5 br10" style="border: white 1px solid;">
+        <p class="bold600 text-c x18 textw">$<?= e($discount) ?></p>
+        <span class="bold500 text-c x16 textw">precio oferta!!!</span>
+      </div>
     <?php endif; ?>
     <p class="x16 text-c cut-phrase textw" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>

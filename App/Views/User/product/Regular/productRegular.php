@@ -6,6 +6,7 @@
   //var_dump($data);
   $price = $card["content"][$dataContent]["price"] ?? '';
   $offer = $card["content"][$dataContent]["offer"] ?? '';
+  $discount = $card["content"][$dataContent]["discount"] ?? '';
   $porcentage = $card["content"][$dataContent]["porcentage"] ?? '';
   $img = $card["content"][$dataContent]["img"] ?? '';
   $imgSrc = $card["content"][$dataContent]["imgSrc"] ?? '';
@@ -34,8 +35,16 @@
 
     <div class="flex-column w50 p15">
       <p>Tienda.</p>
-      <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= $content;?></p>
-      <p>$<?= $price?></p>
+      <p class="bold500 w100 text-l mb5 capitalize-p cut-phrase" cant-col="3"><?= $content;?></p>
+      <?php if ($offer === false):?>
+        <p>$<?= $price?></p>
+      <?php else :?>
+        <div class="flex-column center-start gap0">
+          <p class="inactive" style="text-decoration:line-through;">$<?= $price?></p>
+          <p class="x16">Precio oferta</p>
+          <p class="bold500">$<?= $discount;?></p>
+        </div>
+      <?php endif;?>
     </div>
   </a>
 
@@ -54,6 +63,7 @@
             [
               "price" => $price,
               "offer" => $offer,
+              "discount" => $discount,
               "porcentage" => $porcentage,
               "img" => $img,
               "imgSrc" => $imgSrc,
