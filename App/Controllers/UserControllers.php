@@ -86,7 +86,7 @@ class UserControllers extends Control {
     SeoModule::setMetaDescription($data["card"]["desc"] ?? "");
     SeoModule::setTitle("Clikhub - " . ($data["card"]["title"] ?? ""));
     SeoModule::setOpenGraph([
-      "title"        => ($data["card"]["title"] ?? "") . ", revisa mi cuaderno.",
+      "title"        => ($data["card"]["title"] ?? "") . ", revisa mi bio.",
       "site_name"    => "Cuaderno",
       "content"      => $data["card"]["desc"] ?? "",
       "image"        => $data["card"]["avatarSrc"] ?? "",
