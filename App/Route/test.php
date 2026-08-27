@@ -1,5 +1,6 @@
 <?php
 
+use App\Middleware\TestMiddleware;
 use App\Models\LemonSqueezyModels;
 use App\Models\UserModels;
 use Base\Module\GeoIpModule;
@@ -46,13 +47,13 @@ Route::get("/test/2", function(){
   }
   var_dump($esPremium);*/
 
-});
+}, [TestMiddleware::class]);
 
 Route::get("/test/1/", function($param){
   
   
 
-});
+}, [TestMiddleware::class]);
 
 Route::get("/test/3", function(){
 
@@ -73,7 +74,7 @@ Route::get("/test/3", function(){
       echo "<h3>Imagen a través de Proxy:</h3>";
       echo "<img src='{$proxyUrl}' alt='Perfil' style='max-width: 200px;'/>";
   }
-});
+}, [TestMiddleware::class]);
 
 Route::get("/proxy", function(){
     $url = $_GET['url'] ?? '';
@@ -81,4 +82,4 @@ Route::get("/proxy", function(){
         // Usamos el ProxyModule que creamos en el framework
         \Base\Module\ProxyModule::proxyImage($url, ['licdn.com', 'linkedin.com']);
     }
-});
+}, [TestMiddleware::class]);
