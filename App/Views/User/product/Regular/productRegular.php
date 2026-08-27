@@ -33,11 +33,10 @@
       <?php endif?>
     </div>
 
-    <div class="flex-column w50 p15">
-      <p>Tienda.</p>
-      <p class="bold500 w100 text-l mb5 capitalize-p cut-phrase" cant-col="3"><?= $content;?></p>
+    <div class="flex-column gap5 w50 p15">
+      <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= svg("basket-shopping", "x20") ?> <?= $content;?></p>
       <?php if ($offer === false):?>
-        <p>$<?= $price?></p>
+        <p class="bold500">$<?= $price?></p>
       <?php else :?>
         <div class="flex-column center-start gap0">
           <p class="inactive" style="text-decoration:line-through;">$<?= $price?></p>

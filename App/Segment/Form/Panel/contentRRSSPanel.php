@@ -6,10 +6,13 @@
   $cant = count($card["rrss"] ?? []);
 
   $rrssList = [
-    'x', 'facebook', 'linkedin', 'reddit', 'tumblr', 'whatsapp', 'github',
-    'pinterest', 'telegram', 'skype', 'email', 'threads', 'bluesky',
-    'mastodon', 'vk', 'line', 'viber', 'pocket', 'flipboard',
-    'hackernews', 'mix', 'snapchat'
+    'facebook', 'whatsapp', 'instagram', 'youtube', 'tiktok', 'wechat',
+    'telegram', 'snapchat', 'reddit', 'douyin', 'kuaishou', 'x',
+    'weibo', 'pinterest', 'threads', 'quora', 'linkedin', 'discord',
+    'twitch', 'viber', 'xiaohongshu', 'line', 'tumblr', 'medium',
+    'vk', 'github', 'spotify', 'skype', 'patreon', 'substack',
+    'bluesky', 'mastodon', 'soundcloud', 'flipboard', 'pocket', 'hackernews',
+    'mix'
   ];
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
