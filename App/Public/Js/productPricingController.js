@@ -11,14 +11,14 @@
  */
 export function productPricingController() {
   /**
-   * Sincroniza la visibilidad de la sección de descuento de un ítem de producto.
+   * Sincroniza la visibilidad de la sección de descuento de un contenedor de producto o sub-producto.
    *
-   * @param {HTMLElement} item Contenedor del ítem (.sortable-item)
+   * @param {HTMLElement} container Contenedor (.sub-product-item o .sortable-item)
    */
-  function syncDiscountVisibility(item) {
-    if (!item) return;
-    const switchInput = item.querySelector('.product-offer-switch');
-    const discountWrapper = item.querySelector('.product-discount-wrapper');
+  function syncDiscountVisibility(container) {
+    if (!container) return;
+    const switchInput = container.querySelector('.product-offer-switch');
+    const discountWrapper = container.querySelector('.product-discount-wrapper');
     if (!switchInput || !discountWrapper) return;
 
     const isChecked = switchInput.checked || switchInput.getAttribute('active') === '1';
@@ -26,15 +26,11 @@ export function productPricingController() {
   }
 
   /**
-   * Inicializa los listeners en todos los ítems de producto.
+   * Inicializa la visibilidad de descuentos en todos los productos y sub-productos.
    */
   function initProductPricing() {
-    const productItems = document.querySelectorAll('.sortable-item');
-    productItems.forEach((item) => {
-      const typeInput = item.querySelector('input[name*="[type]"]');
-      if (!typeInput || typeInput.value !== 'product') return;
-
-      syncDiscountVisibility(item);
+    document.querySelectorAll('.sub-product-item, .sortable-item').forEach((container) => {
+      syncDiscountVisibility(container);
     });
   }
 
@@ -55,9 +51,9 @@ export function productPricingController() {
       if (!target) return;
 
       if (target.classList.contains('product-offer-switch') || target.closest('.product-offer-switch')) {
-        const item = target.closest('.sortable-item');
-        if (item) {
-          syncDiscountVisibility(item);
+        const container = target.closest('.sub-product-item') || target.closest('.sortable-item');
+        if (container) {
+          syncDiscountVisibility(container);
         }
       }
     });
@@ -67,15 +63,12 @@ export function productPricingController() {
       const target = e.target;
       if (!target) return;
 
-      const item = target.closest('.sortable-item');
-      if (!item) return;
+      const container = target.closest('.sub-product-item') || target.closest('.sortable-item');
+      if (!container) return;
 
-      const typeInput = item.querySelector('input[name*="[type]"]');
-      if (!typeInput || typeInput.value !== 'product') return;
-
-      const priceInput = item.querySelector('.product-price-input');
-      const discountInput = item.querySelector('.product-discount-input');
-      const percentageInput = item.querySelector('.product-porcentage-input');
+      const priceInput = container.querySelector('.product-price-input');
+      const discountInput = container.querySelector('.product-discount-input');
+      const percentageInput = container.querySelector('.product-porcentage-input');
 
       if (!priceInput || !discountInput || !percentageInput) return;
 

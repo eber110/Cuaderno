@@ -35,6 +35,7 @@
 .gap20 { gap: 20px; }
 .gap3 { gap: 3px; }
 .gap30 { gap: 30px; }
+.gap4 { gap: 4px; }
 .gap5 { gap: 5px; }
 .gap6 { gap: 6px; }
 .gap8 { gap: 8px; }
@@ -284,6 +285,7 @@
 .hpx30 { height: 30px; }
 .hpx32 { height: 32px; }
 .hpx40 { height: 40px; }
+.hpx45 { height: 45px; }
 .hpx50 { height: 50px; }
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
@@ -309,6 +311,7 @@
 .mt10 { margin-top: 10px; }
 .mt15 { margin-top: 15px; }
 .mt16 { margin-top: 16px; }
+.mt2 { margin-top: 2px; }
 .mt20 { margin-top: 20px; }
 .mt3 { margin-top: 3px; }
 .mt5 { margin-top: 5px; }
@@ -325,6 +328,7 @@
 .p40 { padding: 40px !important; }
 .p5 { padding: 5px !important; }
 .p7 { padding: 7px !important; }
+.p8 { padding: 8px !important; }
 .pb0 { padding-bottom: 0px !important; }
 .pb1 { padding-bottom: 1px !important; }
 .pb10 { padding-bottom: 10px !important; }
@@ -341,12 +345,14 @@
 .pl20 { padding-left: 20px !important; }
 .pl25 { padding-left: 25px !important; }
 .pl30 { padding-left: 30px !important; }
+.pl8 { padding-left: 8px !important; }
 .pr10 { padding-right: 10px !important; }
 .pr12 { padding-right: 12px !important; }
 .pr15 { padding-right: 15px !important; }
 .pr20 { padding-right: 20px !important; }
 .pr30 { padding-right: 30px !important; }
 .pr45 { padding-right: 45px !important; }
+.pr8 { padding-right: 8px !important; }
 .pt0 { padding-top: 0px !important; }
 .pt10 { padding-top: 10px !important; }
 .pt100 { padding-top: 100px !important; }
@@ -376,6 +382,7 @@
 .wpx320 { width: 320px; }
 .wpx40 { width: 40px; }
 .wpx400 { width: 400px; }
+.wpx45 { width: 45px; }
 .wpx460 { width: 460px; }
 .wpx50 { width: 50px; }
 .wpx520 { width: 520px; }
@@ -499,6 +506,20 @@
 @media screen and (max-width: 576px) {
   .flex-column-sml.between-start { justify-content: space-between; align-items: flex-start; }
   .flex-row-sml.between-start { align-items: space-between; justify-content: flex-start; }
+}
+.flex-column.between-stretch { justify-content: space-between; align-items: stretch; }
+.flex-row.between-stretch { align-items: space-between; justify-content: stretch; }
+@media screen and (min-width: 993px) {
+  .flex-column-desk.between-stretch { justify-content: space-between; align-items: stretch; }
+  .flex-row-desk.between-stretch { align-items: space-between; justify-content: stretch; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .flex-column-mid.between-stretch { justify-content: space-between; align-items: stretch; }
+  .flex-row-mid.between-stretch { align-items: space-between; justify-content: stretch; }
+}
+@media screen and (max-width: 576px) {
+  .flex-column-sml.between-stretch { justify-content: space-between; align-items: stretch; }
+  .flex-row-sml.between-stretch { align-items: space-between; justify-content: stretch; }
 }
 .flex-column.center-between { justify-content: center; align-items: space-between; }
 .flex-row.center-between { align-items: center; justify-content: space-between; }

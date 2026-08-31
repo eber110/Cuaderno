@@ -122,6 +122,56 @@ class UserModels extends BuilderSqlite {
           $item["discount"] = $item["discount"] ?? "";
           $item["porcentage"] = isset($item["porcentage"]) ? (int)$item["porcentage"] : 0;
         }
+
+        if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
+          $prodCount = count($item["products"]);
+          $layout = $item["layout"] ?? "grid";
+          // Si la cantidad de productos es impar, solo puede ser slide
+          if ($prodCount % 2 !== 0) {
+            $layout = "slide";
+          }
+          $item["layout"] = $layout;
+
+          foreach ($item["products"] as &$subProd) {
+            $subImgVal = $subProd["img"] ?? "no-image.webp";
+            $subMetaImgVal = $subProd["metaImg"] ?? "";
+            $subHasCustom = (!empty($subImgVal) && $subImgVal !== "no-image.webp" && strpos($subImgVal, "Origin/") === false && strpos($subImgVal, "Custom/") === false);
+
+            $subResolvedImg = "";
+            if ($subHasCustom) {
+              $subDiskPath = ROOT_PATH . "/Uploads/" . $subImgVal;
+              if (file_exists($subDiskPath)) {
+                $subResolvedImg = DIR_SHOW_MEDIA . $subImgVal;
+              }
+            }
+
+            if (!empty($subResolvedImg)) {
+              $subProd["imgSrc"] = $subResolvedImg;
+              if (empty($subMetaImgVal) || $subMetaImgVal === $subImgVal || str_starts_with($subMetaImgVal, "/Uploads/")) {
+                $subProd["metaImg"] = $subResolvedImg;
+              }
+            } elseif (!empty($subMetaImgVal) && $subMetaImgVal !== "no-image.webp" && (str_starts_with($subMetaImgVal, "http://") || str_starts_with($subMetaImgVal, "https://"))) {
+              $subProd["imgSrc"] = $subMetaImgVal;
+              $subProd["metaImg"] = $subMetaImgVal;
+            } elseif (!empty($subMetaImgVal) && str_starts_with($subMetaImgVal, "/") && file_exists(ROOT_PATH . $subMetaImgVal)) {
+              $subProd["imgSrc"] = $subMetaImgVal;
+              $subProd["metaImg"] = $subMetaImgVal;
+            } else {
+              $subProd["imgSrc"] = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+              $subProd["metaImg"] = "";
+            }
+
+            $rawSubImgShow = $subProd["imgShow"] ?? true;
+            $subProd["imgShow"] = ($rawSubImgShow === true || $rawSubImgShow === "true" || $rawSubImgShow === 1 || $rawSubImgShow === "1");
+
+            $subProd["price"] = $subProd["price"] ?? "";
+            $rawSubOffer = $subProd["offer"] ?? false;
+            $subProd["offer"] = ($rawSubOffer === true || $rawSubOffer === "true" || $rawSubOffer === 1 || $rawSubOffer === "1");
+            $subProd["discount"] = $subProd["discount"] ?? "";
+            $subProd["porcentage"] = isset($subProd["porcentage"]) ? (int)$subProd["porcentage"] : 0;
+          }
+          unset($subProd);
+        }
       }
       unset($item);
     } else {

@@ -3,44 +3,268 @@
  * 
  * Permite reordenar tarjetas (.sortable-item) mediante arrastrar y soltar (Drag and Drop)
  * dentro de los contenedores #sortable-content-list, #sortable-rrss-list o .sortable-container.
- * Al soltar la tarjeta en una nueva posición, re-indexa automáticamente los atributos
- * `name`, `id` y `for` de los campos e impulsa el auto-submit del formulario.
  * 
- * Optimizado para evitar Layout Thrashing y congelamiento del navegador en producción.
+ * Gestiona además el colapso, expansión y foco automático de bloques en #sortable-content-list,
+ * optimizando la vista para listas extensas de enlaces y productos.
+ * 
+ * @function sortableContent
+ * @returns {void}
  */
 export function sortableContent() {
+  let isDragging = false;
+  const hasGsap = typeof gsap !== "undefined";
+
+  const animConfig = {
+    duration: 0.3,
+    ease: "power2.out",
+    easeClose: "power2.in"
+  };
+
+  /**
+   * Expande un bloque de contenido específico con animación y colapsa los demás.
+   *
+   * @param {HTMLElement} item Elemento .sortable-item a expandir
+   * @param {boolean} focusTitle Si es true, enfoca el campo de título
+   * @param {boolean} animate Si es true, ejecuta animación fluida
+   */
+  function expandContentBlock(item, focusTitle = false, animate = true) {
+    if (!item) return;
+
+    // Colapsar todos los demás bloques abiertos
+    const container = item.closest("#sortable-content-list");
+    if (container) {
+      container.querySelectorAll(".sortable-item.content-block.is-open").forEach((openItem) => {
+        if (openItem !== item) {
+          collapseContentBlock(openItem, animate);
+        }
+      });
+    }
+
+    item.classList.remove("is-collapsed");
+    item.classList.add("is-open");
+
+    const body = item.querySelector(".content-item-body");
+    if (body) {
+      body.style.display = "flex";
+
+      if (hasGsap && animate) {
+        gsap.killTweensOf(body);
+        const height = body.scrollHeight;
+        body.style.overflow = "hidden";
+        gsap.fromTo(body,
+          { height: 0, opacity: 0 },
+          {
+            height: height,
+            opacity: 1,
+            duration: animConfig.duration,
+            ease: animConfig.ease,
+            onComplete: () => {
+              body.style.height = "auto";
+              body.style.overflow = "visible";
+            }
+          }
+        );
+      } else {
+        body.style.height = "auto";
+        body.style.opacity = "1";
+        body.style.overflow = "visible";
+      }
+    }
+
+    if (focusTitle) {
+      const titleInput = item.querySelector('input[name*="[title]"]');
+      if (titleInput) {
+        setTimeout(() => {
+          titleInput.focus();
+        }, 120);
+      }
+    }
+  }
+
+  /**
+   * Colapsa un bloque de contenido específico con animación.
+   *
+   * @param {HTMLElement} item Elemento .sortable-item a colapsar
+   * @param {boolean} animate Si es true, ejecuta animación fluida
+   */
+  function collapseContentBlock(item, animate = true) {
+    if (!item) return;
+
+    const body = item.querySelector(".content-item-body");
+    if (!body) {
+      item.classList.remove("is-open");
+      item.classList.add("is-collapsed");
+      return;
+    }
+
+    if (hasGsap && animate && item.classList.contains("is-open")) {
+      gsap.killTweensOf(body);
+      body.style.overflow = "hidden";
+      gsap.to(body, {
+        height: 0,
+        opacity: 0,
+        duration: animConfig.duration * 0.75,
+        ease: animConfig.easeClose,
+        onComplete: () => {
+          item.classList.remove("is-open");
+          item.classList.add("is-collapsed");
+          body.style.display = "none";
+          gsap.set(body, { clearProps: "height,opacity,overflow" });
+        }
+      });
+    } else {
+      item.classList.remove("is-open");
+      item.classList.add("is-collapsed");
+      body.style.display = "none";
+      body.style.height = "auto";
+    }
+  }
+
+  /**
+   * Actualiza el texto de la cabecera en tiempo real según el input de título.
+   *
+   * @param {HTMLElement} item Elemento .sortable-item
+   */
+  function syncHeaderTitle(item) {
+    if (!item) return;
+
+    const label = item.querySelector(".item-title-label");
+    if (!label) return;
+
+    const type = item.getAttribute("data-type") || item.querySelector('input[name*="[type]"]')?.value || "link";
+    if (type === "product_group") {
+      const subCount = item.querySelectorAll(".sub-product-item").length;
+      label.textContent = `Grupo de productos - ${subCount} productos`;
+      return;
+    }
+
+    const titleInput = item.querySelector('input[name*="[title]"]');
+    if (!titleInput) return;
+
+    const prefix = type === "product" ? "Producto" : "Enlace";
+    const rawVal = titleInput.value.trim();
+
+    label.textContent = rawVal ? `${prefix} - ${rawVal}` : `${prefix} - (Sin título)`;
+  }
+
+  /**
+   * Inicializa todos los contenedores drag & drop y sus bloques colapsables.
+   */
   function initAllContainers() {
     const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
     if (!containers.length) return;
 
     containers.forEach((container) => {
-      if (container.dataset.sortableBound) return;
-      container.dataset.sortableBound = "true";
-      initSortable(container);
+      if (!container.dataset.sortableBound) {
+        container.dataset.sortableBound = "true";
+        initSortable(container);
+      }
     });
+
+    // En #sortable-content-list, enfocar el bloque recién creado si existe
+    const contentList = document.getElementById("sortable-content-list");
+    if (contentList) {
+      const openBlocks = contentList.querySelectorAll(".sortable-item.content-block.is-open");
+      if (openBlocks.length > 0) {
+        const lastOpen = openBlocks[openBlocks.length - 1];
+        const titleInput = lastOpen.querySelector('input[name*="[title]"]');
+        if (titleInput && titleInput.value.trim() === "") {
+          setTimeout(() => {
+            titleInput.focus();
+          }, 60);
+        }
+      }
+    }
   }
 
   initAllContainers();
 
   if (!window.__sortableContentInitialized) {
     window.__sortableContentInitialized = true;
-    
-    // Auto-recuperación cuando se actualiza la vista previa por Fetch
+
+    // Auto-recuperación cuando se actualiza la vista previa o formulario por Fetch
     document.addEventListener("previewUpdated", () => {
+      const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
+      containers.forEach((c) => {
+        c.dataset.sortableBound = "";
+        delete c.dataset.sortableBound;
+      });
       initAllContainers();
     });
 
-    // Auto-recuperación si la página se restaura desde la caché de navegación (BFCache)
+    // Auto-recuperación si la página se restaura desde BFCache
     window.addEventListener("pageshow", () => {
       initAllContainers();
     });
 
-    // Limpieza global de seguridad si el arrastre se interrumpe de forma externa
+    // Sincronización en vivo del título mientras el usuario escribe
+    document.addEventListener("input", (e) => {
+      const target = e.target;
+      if (!target || !target.matches('input[name*="[title]"]')) return;
+
+      const item = target.closest(".sortable-item.content-block");
+      if (item) {
+        syncHeaderTitle(item);
+      }
+    });
+
+    // Gestión de apertura/cierre al hacer clic en bloques
+    document.addEventListener("click", (e) => {
+      if (isDragging) return;
+
+      const target = e.target;
+      if (!target) return;
+
+      // 1. Clic dentro de un bloque de contenido
+      const contentItem = target.closest("#sortable-content-list .sortable-item.content-block");
+
+      if (contentItem) {
+        // Si el clic es en un control interactivo propio (switch, botón eliminar, modal, input, file), no interferir
+        if (target.closest(".checkbox-switch, .modal-btn, .modal-overlay, .modal-close-button, input, select, textarea, button, label")) {
+          return;
+        }
+
+        // Si se hizo clic en la cabecera
+        const header = target.closest(".content-item-header");
+        if (header) {
+          if (contentItem.classList.contains("is-open")) {
+            collapseContentBlock(contentItem);
+          } else {
+            expandContentBlock(contentItem, true);
+          }
+          return;
+        }
+
+        // Si el bloque estaba colapsado y se hace clic en cualquier parte del cuerpo
+        if (contentItem.classList.contains("is-collapsed")) {
+          expandContentBlock(contentItem, true);
+        }
+        return;
+      }
+
+      // 2. Clic fuera de cualquier bloque de contenido: Colapsar todos los bloques abiertos
+      // Ignorar si el clic ocurrió dentro de popovers, modales o cropper
+      if (target.closest(".modal-overlay, .content-modal-menu, .crop-container, .custom-color-picker-popover, #sidebar, .vertical-menu")) {
+        return;
+      }
+
+      const contentList = document.getElementById("sortable-content-list");
+      if (contentList) {
+        contentList.querySelectorAll(".sortable-item.content-block.is-open").forEach((openItem) => {
+          collapseContentBlock(openItem);
+        });
+      }
+    });
+
+    // Limpieza global de seguridad si el arrastre se interrumpe
     window.addEventListener("dragend", () => {
       document.querySelectorAll(".sortable-item.dragging").forEach((el) => {
         el.classList.remove("dragging");
         el.style.opacity = "1";
       });
+      setTimeout(() => {
+        isDragging = false;
+      }, 50);
     });
   }
 
@@ -59,7 +283,9 @@ export function sortableContent() {
       const item = e.target.closest(".sortable-item");
       if (!item) return;
 
-      // Limpiar selecciones de texto activas en el navegador para evitar bloqueos del cursor
+      isDragging = true;
+
+      // Limpiar selecciones de texto activas en el navegador
       if (window.getSelection) {
         window.getSelection().removeAllRanges();
       }
@@ -76,7 +302,7 @@ export function sortableContent() {
       }
     });
 
-    // Prevenir comportamiento por defecto en drop para evitar navegación accidental
+    // Prevenir comportamiento por defecto en drop
     container.addEventListener("drop", (e) => {
       e.preventDefault();
     });
@@ -101,9 +327,13 @@ export function sortableContent() {
 
       draggedItem = null;
       initialIndex = null;
+
+      setTimeout(() => {
+        isDragging = false;
+      }, 50);
     });
 
-    // Movimiento al arrastrar por encima de otros elementos (con protección anti layout thrashing)
+    // Movimiento al arrastrar por encima de otros elementos
     container.addEventListener("dragover", (e) => {
       e.preventDefault();
       if (e.dataTransfer) {
@@ -114,7 +344,6 @@ export function sortableContent() {
 
       const afterElement = getDragAfterElement(container, e.clientY);
 
-      // Mutar el DOM SOLO si la posición de destino es distinta a la actual
       if (afterElement == null) {
         if (container.lastElementChild !== draggedItem) {
           container.appendChild(draggedItem);
@@ -160,17 +389,8 @@ export function sortableContent() {
         item.id = `rrss-item-${index}`;
       }
 
-      // Actualizar la etiqueta visible preservando el título del usuario
-      const label = item.querySelector(".item-title-label");
-      if (label) {
-        const titleInput = item.querySelector('input[name*="[title]"]');
-        if (titleInput) {
-          const isProduct = item.querySelector('input[name*="[type]"]')?.value === "product";
-          const currentTitle = titleInput.value.trim();
-          const prefix = isProduct ? "Producto" : "Enlace";
-          label.textContent = currentTitle ? `${prefix} - ${currentTitle}` : `${prefix} #${index + 1}`;
-        }
-      }
+      // Actualizar la etiqueta visible
+      syncHeaderTitle(item);
 
       // Re-indexar los campos input dentro de la tarjeta
       const inputs = item.querySelectorAll("input, select, textarea, label");
@@ -224,4 +444,5 @@ export function sortableContent() {
     }
   }
 }
+
 

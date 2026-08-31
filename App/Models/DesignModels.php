@@ -313,11 +313,14 @@ class DesignModels extends Builder {
       if (!is_dir($contentImgDir)) @mkdir($contentImgDir, 0777, true);
       foreach ($_FILES as $fileKey => $fileVal) {
         if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
-          $itemIdx = (int)str_replace("content_img_", "", $fileKey);
+          $rawKey = str_replace("content_img_", "", $fileKey);
           $imgProc = new ImgProcessModule($fileKey, $contentImgDir);
           $savedImgs = $imgProc->save_img_disk(null);
           if ($savedImgs !== false && !empty($savedImgs[0])) {
-            $uploadedContentImgs[$itemIdx] = $savedImgs[0];
+            $uploadedContentImgs[$rawKey] = $savedImgs[0];
+            if (is_numeric($rawKey)) {
+              $uploadedContentImgs[(int)$rawKey] = $savedImgs[0];
+            }
           }
         }
       }
@@ -395,13 +398,223 @@ class DesignModels extends Builder {
         $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
 
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
-          if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+          if (($item["type"] ?? "") === "product_group" && isset($existingContentList[$index]["products"]) && is_array($existingContentList[$index]["products"])) {
+            foreach ($existingContentList[$index]["products"] as $subP) {
+              $subOldImg = $subP["img"] ?? "no-image.webp";
+              if (!empty($subOldImg) && !in_array($subOldImg, $officialImages, true) && strpos($subOldImg, "Custom/") === false && strpos($subOldImg, "Origin/") === false && $subOldImg !== "no-image.webp") {
+                self::deleteContentImageFromDisk($subOldImg);
+              }
+            }
+          } elseif (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
             self::deleteContentImageFromDisk($oldImg);
           }
           continue;
         }
 
-        $type     = $item["type"] ?? "link";
+        $type = $item["type"] ?? "link";
+
+        // Procesamiento específico para Grupo de Productos (product_group)
+        if ($type === "product_group") {
+          $groupTitle = trim($item["title"] ?? "");
+          $rawActive  = $item["active"] ?? false;
+          $groupActive = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          $layout = ($item["layout"] ?? "grid") === "slide" ? "slide" : "grid";
+
+          $subProductsInput = $item["products"] ?? [];
+          $existingSubList = $existingContentList[$index]["products"] ?? [];
+
+          // Acción: Añadir nuevo sub-producto al grupo (máximo 8)
+          if (isset($item["add_sub_product"]) && count($subProductsInput) < 8) {
+            $subProductsInput[] = [
+              "img"        => "no-image.webp",
+              "title"      => "",
+              "url"        => "",
+              "price"      => "",
+              "offer"      => false,
+              "discount"   => "",
+              "porcentage" => 0,
+              "imgDefault" => false,
+              "imgShow"    => true,
+              "metaTitle"  => "",
+              "metaDesc"   => "",
+              "metaImg"    => ""
+            ];
+          }
+
+          $deleteSubIdx = isset($item["delete_sub_product"]) ? (int)$item["delete_sub_product"] : null;
+          $processedProducts = [];
+          $validProductsCount = 0;
+
+          foreach ($subProductsInput as $pIndex => $prod) {
+            // Eliminar sub-producto si se solicitó (respetando mínimo 2)
+            if ($deleteSubIdx !== null && $deleteSubIdx === (int)$pIndex && count($subProductsInput) > 2) {
+              $oldSubImg = $existingSubList[$pIndex]["img"] ?? "no-image.webp";
+              if (!empty($oldSubImg) && !in_array($oldSubImg, $officialImages, true) && strpos($oldSubImg, "Custom/") === false && strpos($oldSubImg, "Origin/") === false && $oldSubImg !== "no-image.webp") {
+                self::deleteContentImageFromDisk($oldSubImg);
+              }
+              continue;
+            }
+
+            if (isset($prod["delete"]) && ($prod["delete"] === "true" || $prod["delete"] === true) && count($subProductsInput) > 2) {
+              $oldSubImg = $existingSubList[$pIndex]["img"] ?? "no-image.webp";
+              if (!empty($oldSubImg) && !in_array($oldSubImg, $officialImages, true) && strpos($oldSubImg, "Custom/") === false && strpos($oldSubImg, "Origin/") === false && $oldSubImg !== "no-image.webp") {
+                self::deleteContentImageFromDisk($oldSubImg);
+              }
+              continue;
+            }
+
+            $oldSubImg = $existingSubList[$pIndex]["img"] ?? "no-image.webp";
+            $subTitle = trim($prod["title"] ?? "");
+            $subUrl = trim($prod["url"] ?? "");
+            if ($subUrl !== "" && !preg_match('#^https?://#i', $subUrl) && strpos($subUrl, "mailto:") !== 0 && strpos($subUrl, "tel:") !== 0) {
+              $subUrl = "https://" . $subUrl;
+            }
+
+            if (isset($prod["delete_img"]) && ($prod["delete_img"] === "true" || $prod["delete_img"] === true)) {
+              if (!empty($oldSubImg) && !in_array($oldSubImg, $officialImages, true) && strpos($oldSubImg, "Custom/") === false && strpos($oldSubImg, "Origin/") === false && $oldSubImg !== "no-image.webp") {
+                self::deleteContentImageFromDisk($oldSubImg);
+              }
+              $prod["img"] = "no-image.webp";
+            }
+
+            $subFileKey = "{$index}_{$pIndex}";
+            if (isset($uploadedContentImgs[$subFileKey])) {
+              if (!empty($oldSubImg) && !in_array($oldSubImg, $officialImages, true) && strpos($oldSubImg, "Custom/") === false && strpos($oldSubImg, "Origin/") === false && $oldSubImg !== "no-image.webp") {
+                self::deleteContentImageFromDisk($oldSubImg);
+              }
+              $subImg = $uploadedContentImgs[$subFileKey];
+              $subImgDefault = true;
+            } else {
+              $subImg = $prod["img"] ?? "no-image.webp";
+              $isDefaultSubImg = (empty($subImg) || strpos($subImg, "Custom/") !== false || strpos($subImg, "Origin/") !== false || $subImg === "no-image.webp" || $subImg === "no-user.webp");
+              $subImgDefault = !$isDefaultSubImg;
+            }
+
+            $rawSubImgShow = $prod["imgShow"] ?? true;
+            $subImgShow = ($rawSubImgShow === "true" || $rawSubImgShow === true || $rawSubImgShow === 1 || $rawSubImgShow === "1");
+            if (isset($prod["toggle_img_show"]) && ($prod["toggle_img_show"] === "true" || $prod["toggle_img_show"] === true)) {
+              $subImgShow = !$subImgShow;
+            }
+
+            $subMetaTitle = $prod["metaTitle"] ?? "";
+            $subMetaDesc  = $prod["metaDesc"] ?? "";
+            $subMetaImg   = $prod["metaImg"] ?? "";
+
+            if (!empty($subUrl) && empty($subMetaTitle) && strpos($subUrl, "http") === 0) {
+              $metaData = RequestMetaModule::requestMeta($subUrl);
+              if ($metaData !== false && is_array($metaData)) {
+                $subMetaTitle = !empty($metaData["title"]) ? $metaData["title"] : (!empty($metaData["og"]["title"]) ? $metaData["og"]["title"] : $subTitle);
+                $subMetaDesc = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : "");
+                $subMetaImg = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
+              }
+            }
+
+            if (empty($subMetaTitle)) $subMetaTitle = $subTitle;
+            if (empty($subMetaImg)) {
+              if (!empty($subImg) && $subImg !== "no-image.webp" && $subImg !== "no-user.webp" && strpos($subImg, "Custom/") === false) {
+                $subMetaImg = "/Uploads/" . $subImg;
+              } else {
+                $subMetaImg = "";
+              }
+            } elseif (!str_starts_with($subMetaImg, "http://") && !str_starts_with($subMetaImg, "https://") && !str_starts_with($subMetaImg, "/")) {
+              $subMetaImg = "/Uploads/" . $subMetaImg;
+            }
+
+            // Precios y descuentos del sub-producto
+            $subPrice = trim((string)($prod["price"] ?? ""));
+            $rawSubOffer = $prod["offer"] ?? false;
+            $subOffer = ($rawSubOffer === "true" || $rawSubOffer === true || $rawSubOffer === 1 || $rawSubOffer === "1");
+            $subDiscount = "";
+            $subPorcentage = 0;
+
+            if ($subOffer) {
+              $priceNum = is_numeric($subPrice) ? (float)$subPrice : 0;
+              $rawDiscount = trim((string)($prod["discount"] ?? ""));
+              $rawPorcentage = trim((string)($prod["porcentage"] ?? ""));
+              $hasDiscount = $rawDiscount !== "" && is_numeric($rawDiscount);
+              $hasPorcentage = $rawPorcentage !== "" && is_numeric($rawPorcentage);
+
+              if ($priceNum > 0) {
+                if ($hasDiscount && !$hasPorcentage) {
+                  $discountNum = (float)$rawDiscount;
+                  $discountNum = max(0, min($priceNum, $discountNum));
+                  $subPorcentage = (int)round((($priceNum - $discountNum) / $priceNum) * 100);
+                  $subDiscount = (round($discountNum) == $discountNum) ? (int)$discountNum : $discountNum;
+                } elseif ($hasPorcentage && !$hasDiscount) {
+                  $subPorcentage = max(0, min(100, (int)round((float)$rawPorcentage)));
+                  $discountNum = $priceNum * (1 - ($subPorcentage / 100));
+                  $subDiscount = (round($discountNum) == $discountNum) ? (int)round($discountNum) : round($discountNum, 2);
+                } elseif ($hasDiscount && $hasPorcentage) {
+                  $discountNum = (float)$rawDiscount;
+                  $discountNum = max(0, min($priceNum, $discountNum));
+                  $subPorcentage = max(0, min(100, (int)round((float)$rawPorcentage)));
+                  $subDiscount = (round($discountNum) == $discountNum) ? (int)$discountNum : $discountNum;
+                }
+              }
+            }
+
+            if ($subTitle !== "" && $subUrl !== "") {
+              $validProductsCount++;
+            }
+
+            $processedProducts[] = [
+              "img"        => $subImg,
+              "title"      => $subTitle,
+              "url"        => $subUrl,
+              "price"      => $subPrice,
+              "offer"      => $subOffer,
+              "discount"   => $subDiscount,
+              "porcentage" => (int)$subPorcentage,
+              "imgDefault" => $subImgDefault,
+              "imgShow"    => $subImgShow,
+              "metaTitle"  => $subMetaTitle,
+              "metaDesc"   => $subMetaDesc,
+              "metaImg"    => $subMetaImg
+            ];
+          }
+
+          // Garantizar mínimo 2 y máximo 8 productos
+          while (count($processedProducts) < 2) {
+            $processedProducts[] = [
+              "img"        => "no-image.webp",
+              "title"      => "",
+              "url"        => "",
+              "price"      => "",
+              "offer"      => false,
+              "discount"   => "",
+              "porcentage" => 0,
+              "imgDefault" => false,
+              "imgShow"    => true,
+              "metaTitle"  => "",
+              "metaDesc"   => "",
+              "metaImg"    => ""
+            ];
+          }
+          if (count($processedProducts) > 8) {
+            $processedProducts = array_slice($processedProducts, 0, 8);
+          }
+
+          // Regla: Grid solo para cantidades pares; si es impar, forzar slide
+          $countTotal = count($processedProducts);
+          if ($countTotal % 2 !== 0) {
+            $layout = "slide";
+          }
+
+          // El grupo solo puede activarse si al menos 2 productos tienen datos válidos
+          if ($validProductsCount < 2) {
+            $groupActive = false;
+          }
+
+          $content[] = [
+            "type"     => "product_group",
+            "layout"   => $layout,
+            "title"    => $groupTitle,
+            "active"   => $groupActive,
+            "products" => $processedProducts
+          ];
+          continue;
+        }
+
         $titleBtn = trim($item["title"] ?? "");
         $url      = trim($item["url"] ?? "");
         if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, "mailto:") !== 0 && strpos($url, "tel:") !== 0) {
@@ -569,8 +782,44 @@ class DesignModels extends Builder {
     if (isset($param["add_content_type"])) {
       $newType = $param["add_content_type"];
       $typeTemplates = [
-        "link"    => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
-        "product" => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "price" => "", "offer" => false, "discount" => "", "porcentage" => 0, "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""]
+        "link"          => ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
+        "product"       => ["type" => "product", "img" => "no-image.webp", "title" => "", "url" => "", "price" => "", "offer" => false, "discount" => "", "porcentage" => 0, "active" => false, "imgDefault" => false, "imgShow" => true, "metaTitle" => "", "metaDesc" => "", "metaImg" => ""],
+        "product_group" => [
+          "type"     => "product_group",
+          "layout"   => "grid",
+          "title"    => "",
+          "active"   => false,
+          "products" => [
+            [
+              "img"        => "no-image.webp",
+              "title"      => "",
+              "url"        => "",
+              "price"      => "",
+              "offer"      => false,
+              "discount"   => "",
+              "porcentage" => 0,
+              "imgDefault" => false,
+              "imgShow"    => true,
+              "metaTitle"  => "",
+              "metaDesc"   => "",
+              "metaImg"    => ""
+            ],
+            [
+              "img"        => "no-image.webp",
+              "title"      => "",
+              "url"        => "",
+              "price"      => "",
+              "offer"      => false,
+              "discount"   => "",
+              "porcentage" => 0,
+              "imgDefault" => false,
+              "imgShow"    => true,
+              "metaTitle"  => "",
+              "metaDesc"   => "",
+              "metaImg"    => ""
+            ]
+          ]
+        ]
       ];
 
       $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true];

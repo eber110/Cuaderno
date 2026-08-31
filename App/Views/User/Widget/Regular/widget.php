@@ -20,6 +20,12 @@
           _part("User." . "productRegular", ["dataContent" => $i, "card" => $card]);
         }
       }
+      //si es grupo de productos se muestra la plantilla productGroup (grid o slide)
+      if ($itemType === "product_group") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User." . "productGroup", ["dataContent" => $i, "card" => $card]);
+        }
+      }
     }
   ?>
 
