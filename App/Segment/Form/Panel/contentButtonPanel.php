@@ -131,6 +131,9 @@
             <input type="hidden" name="content[<?= $i?>][img]" value="<?= e($itemImg) ?>">
             <input type="hidden" name="content[<?= $i?>][imgDefault]" value="<?= $imgDefault ? 'true' : 'false' ?>">
             <input type="hidden" name="content[<?= $i?>][imgShow]" value="<?= $imgShow ? 'true' : 'false' ?>">
+            <input type="hidden" name="content[<?= $i?>][metaTitle]" value="<?= e($card["content"][$i]["metaTitle"] ?? '') ?>">
+            <input type="hidden" name="content[<?= $i?>][metaDesc]" value="<?= e($card["content"][$i]["metaDesc"] ?? '') ?>">
+            <input type="hidden" name="content[<?= $i?>][metaImg]" value="<?= e($card["content"][$i]["metaImg"] ?? '') ?>">
           <?php endif; ?>
 
           <!-- Cuerpo colapsable del formulario -->
@@ -211,6 +214,9 @@
                     <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][img]" value="<?= e($pImg) ?>">
                     <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][imgDefault]" value="<?= $pImgDefault ? 'true' : 'false' ?>">
                     <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][imgShow]" value="<?= $pImgShow ? 'true' : 'false' ?>">
+                    <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][metaTitle]" value="<?= e($prod["metaTitle"] ?? '') ?>">
+                    <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][metaDesc]" value="<?= e($prod["metaDesc"] ?? '') ?>">
+                    <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][metaImg]" value="<?= e($prod["metaImg"] ?? '') ?>">
 
                     <!-- Imagen del sub-producto -->
                     <div class="flex-row center-between gap10">

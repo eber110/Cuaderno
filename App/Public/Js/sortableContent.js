@@ -30,12 +30,16 @@ export function sortableContent() {
   function expandContentBlock(item, focusTitle = false, animate = true) {
     if (!item) return;
 
+    if (item.id) {
+      sessionStorage.setItem("active_content_block_id", item.id);
+    }
+
     // Colapsar todos los demás bloques abiertos
     const container = item.closest("#sortable-content-list");
     if (container) {
       container.querySelectorAll(".sortable-item.content-block.is-open").forEach((openItem) => {
         if (openItem !== item) {
-          collapseContentBlock(openItem, animate);
+          collapseContentBlock(openItem, animate, false);
         }
       });
     }
@@ -86,9 +90,14 @@ export function sortableContent() {
    *
    * @param {HTMLElement} item Elemento .sortable-item a colapsar
    * @param {boolean} animate Si es true, ejecuta animación fluida
+   * @param {boolean} clearActive Si es true, borra la referencia del bloque activo
    */
-  function collapseContentBlock(item, animate = true) {
+  function collapseContentBlock(item, animate = true, clearActive = true) {
     if (!item) return;
+
+    if (clearActive && item.id && sessionStorage.getItem("active_content_block_id") === item.id) {
+      sessionStorage.removeItem("active_content_block_id");
+    }
 
     const body = item.querySelector(".content-item-body");
     if (!body) {
@@ -148,7 +157,7 @@ export function sortableContent() {
   }
 
   /**
-   * Inicializa todos los contenedores drag & drop y sus bloques colapsables.
+   * Inicializa todos los contenedores drag & drop y restaura el estado del bloque activo.
    */
   function initAllContainers() {
     const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
@@ -161,17 +170,32 @@ export function sortableContent() {
       }
     });
 
-    // En #sortable-content-list, enfocar el bloque recién creado si existe
     const contentList = document.getElementById("sortable-content-list");
     if (contentList) {
-      const openBlocks = contentList.querySelectorAll(".sortable-item.content-block.is-open");
-      if (openBlocks.length > 0) {
-        const lastOpen = openBlocks[openBlocks.length - 1];
-        const titleInput = lastOpen.querySelector('input[name*="[title]"]');
-        if (titleInput && titleInput.value.trim() === "") {
-          setTimeout(() => {
-            titleInput.focus();
-          }, 60);
+      const allItems = contentList.querySelectorAll(".sortable-item.content-block");
+      const openNew = sessionStorage.getItem("open_new_block_on_load");
+      const savedActiveId = sessionStorage.getItem("active_content_block_id");
+
+      if (openNew === "true" && allItems.length > 0) {
+        sessionStorage.removeItem("open_new_block_on_load");
+        const lastItem = allItems[allItems.length - 1];
+        allItems.forEach((it) => {
+          if (it === lastItem) {
+            expandContentBlock(it, true, false);
+          } else {
+            collapseContentBlock(it, false, false);
+          }
+        });
+      } else if (savedActiveId) {
+        const targetItem = document.getElementById(savedActiveId);
+        if (targetItem) {
+          allItems.forEach((it) => {
+            if (it === targetItem) {
+              expandContentBlock(it, false, false);
+            } else {
+              collapseContentBlock(it, false, false);
+            }
+          });
         }
       }
     }
@@ -208,51 +232,45 @@ export function sortableContent() {
       }
     });
 
-    // Gestión de apertura/cierre al hacer clic en bloques
+    // Gestión de apertura/cierre exclusivamente manual al hacer clic en bloques
     document.addEventListener("click", (e) => {
+      // 1. Detectar clic en botones de añadir nuevo elemento
+      const addBtn = e.target.closest('button[name="add_content_type"]');
+      if (addBtn) {
+        sessionStorage.setItem("open_new_block_on_load", "true");
+        return;
+      }
+
       if (isDragging) return;
 
       const target = e.target;
       if (!target) return;
 
-      // 1. Clic dentro de un bloque de contenido
+      // 2. Clic dentro de un bloque de contenido
       const contentItem = target.closest("#sortable-content-list .sortable-item.content-block");
 
       if (contentItem) {
-        // Si el clic es en un control interactivo propio (switch, botón eliminar, modal, input, file), no interferir
+        // Si el clic es en un control interactivo interno (switch, botón eliminar, modal, input, select, etc.), no colapsar/expandir
         if (target.closest(".checkbox-switch, .modal-btn, .modal-overlay, .modal-close-button, input, select, textarea, button, label")) {
           return;
         }
 
-        // Si se hizo clic en la cabecera
+        // Si se hizo clic en la cabecera / nombre del bloque
         const header = target.closest(".content-item-header");
         if (header) {
           if (contentItem.classList.contains("is-open")) {
-            collapseContentBlock(contentItem);
+            collapseContentBlock(contentItem, true, true);
           } else {
-            expandContentBlock(contentItem, true);
+            expandContentBlock(contentItem, false, true);
           }
           return;
         }
 
-        // Si el bloque estaba colapsado y se hace clic en cualquier parte del cuerpo
+        // Si el bloque estaba colapsado y se hace clic en su cuerpo
         if (contentItem.classList.contains("is-collapsed")) {
-          expandContentBlock(contentItem, true);
+          expandContentBlock(contentItem, false, true);
         }
         return;
-      }
-
-      // 2. Clic fuera de cualquier bloque de contenido: Colapsar todos los bloques abiertos
-      // Ignorar si el clic ocurrió dentro de popovers, modales o cropper
-      if (target.closest(".modal-overlay, .content-modal-menu, .crop-container, .custom-color-picker-popover, #sidebar, .vertical-menu")) {
-        return;
-      }
-
-      const contentList = document.getElementById("sortable-content-list");
-      if (contentList) {
-        contentList.querySelectorAll(".sortable-item.content-block.is-open").forEach((openItem) => {
-          collapseContentBlock(openItem);
-        });
       }
     });
 
@@ -384,6 +402,9 @@ export function sortableContent() {
       // Actualizar ID del contenedor de la tarjeta
       if (item.id && item.id.startsWith("content-item-")) {
         item.id = `content-item-${index}`;
+        if (item.classList.contains("is-open")) {
+          sessionStorage.setItem("active_content_block_id", item.id);
+        }
       }
       if (item.id && item.id.startsWith("rrss-item-")) {
         item.id = `rrss-item-${index}`;

@@ -496,16 +496,23 @@ class DesignModels extends Builder {
               $subImgShow = !$subImgShow;
             }
 
-            $subMetaTitle = $prod["metaTitle"] ?? "";
-            $subMetaDesc  = $prod["metaDesc"] ?? "";
-            $subMetaImg   = $prod["metaImg"] ?? "";
+            $subMetaTitle = trim((string)($prod["metaTitle"] ?? ""));
+            $subMetaDesc  = trim((string)($prod["metaDesc"] ?? ""));
+            $subMetaImg   = trim((string)($prod["metaImg"] ?? ""));
 
-            if (!empty($subUrl) && empty($subMetaTitle) && strpos($subUrl, "http") === 0) {
+            $existingSubItem = $existingSubList[$pIndex] ?? null;
+            if ($existingSubItem !== null && ($existingSubItem["url"] ?? "") === $subUrl && !empty($existingSubItem["metaTitle"])) {
+              $subMetaTitle = $existingSubItem["metaTitle"];
+              $subMetaDesc  = !empty($existingSubItem["metaDesc"]) ? $existingSubItem["metaDesc"] : $subMetaDesc;
+              $subMetaImg   = !empty($existingSubItem["metaImg"]) ? $existingSubItem["metaImg"] : $subMetaImg;
+            } elseif (!empty($subUrl) && empty($subMetaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
               $metaData = RequestMetaModule::requestMeta($subUrl);
               if ($metaData !== false && is_array($metaData)) {
                 $subMetaTitle = !empty($metaData["title"]) ? $metaData["title"] : (!empty($metaData["og"]["title"]) ? $metaData["og"]["title"] : $subTitle);
                 $subMetaDesc = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : "");
                 $subMetaImg = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
+              } else {
+                $subMetaTitle = $subTitle ?: $subUrl;
               }
             }
 
@@ -661,15 +668,15 @@ class DesignModels extends Builder {
           }
         }
 
-        $metaTitle = $item["metaTitle"] ?? "";
-        $metaDesc  = $item["metaDesc"] ?? "";
-        $metaImg   = $item["metaImg"] ?? "";
+        $metaTitle = trim((string)($item["metaTitle"] ?? ""));
+        $metaDesc  = trim((string)($item["metaDesc"] ?? ""));
+        $metaImg   = trim((string)($item["metaImg"] ?? ""));
 
         if ($existingItem !== null && !empty($existingItem["metaTitle"])) {
           $metaTitle = $existingItem["metaTitle"];
-          $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : "";
-          $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : "";
-        } elseif (!empty($url) && strpos($url, "http") === 0) {
+          $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
+          $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
+        } elseif (!empty($url) && empty($metaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
           $metaData = RequestMetaModule::requestMeta($url);
           if ($metaData !== false && is_array($metaData)) {
             $metaTitle = !empty($metaData["title"])
@@ -695,6 +702,8 @@ class DesignModels extends Builder {
                 : (!empty($metaData["og"]["logo"])
                   ? $metaData["og"]["logo"]
                   : ""));
+          } else {
+            $metaTitle = $titleBtn ?: $url;
           }
         }
 
@@ -969,12 +978,27 @@ class DesignModels extends Builder {
         if (!empty($nItem["img"])) {
           $newImages[] = $nItem["img"];
         }
+        if (($nItem["type"] ?? "") === "product_group" && isset($nItem["products"]) && is_array($nItem["products"])) {
+          foreach ($nItem["products"] as $subP) {
+            if (!empty($subP["img"])) {
+              $newImages[] = $subP["img"];
+            }
+          }
+        }
       }
 
       foreach ($oldOfficialContent as $oldItem) {
         $oldImg = $oldItem["img"] ?? "";
         if (!empty($oldImg) && !in_array($oldImg, $newImages, true)) {
           self::deleteContentImageFromDisk($oldImg);
+        }
+        if (($oldItem["type"] ?? "") === "product_group" && isset($oldItem["products"]) && is_array($oldItem["products"])) {
+          foreach ($oldItem["products"] as $subP) {
+            $subImg = $subP["img"] ?? "";
+            if (!empty($subImg) && !in_array($subImg, $newImages, true)) {
+              self::deleteContentImageFromDisk($subImg);
+            }
+          }
         }
       }
 
@@ -1017,7 +1041,7 @@ class DesignModels extends Builder {
    * @return bool True tras descartar con éxito.
    */
   public static function discardDesign(string $user): bool {
-    $userClean = mb_strtolower($user, "UTF-8");
+    $userClean    = mb_strtolower($user, "UTF-8");
 
     $draftData    = self::getCustomDesign($userClean);
     $officialData = self::getOfficialDesign($userClean);
@@ -1048,12 +1072,27 @@ class DesignModels extends Builder {
         if (!empty($offItem["img"])) {
           $officialImages[] = $offItem["img"];
         }
+        if (($offItem["type"] ?? "") === "product_group" && isset($offItem["products"]) && is_array($offItem["products"])) {
+          foreach ($offItem["products"] as $subP) {
+            if (!empty($subP["img"])) {
+              $officialImages[] = $subP["img"];
+            }
+          }
+        }
       }
 
       foreach ($draftContent as $draftItem) {
         $draftImg = $draftItem["img"] ?? "";
         if (!empty($draftImg) && !in_array($draftImg, $officialImages, true)) {
           self::deleteContentImageFromDisk($draftImg);
+        }
+        if (($draftItem["type"] ?? "") === "product_group" && isset($draftItem["products"]) && is_array($draftItem["products"])) {
+          foreach ($draftItem["products"] as $subP) {
+            $subImg = $subP["img"] ?? "";
+            if (!empty($subImg) && !in_array($subImg, $officialImages, true)) {
+              self::deleteContentImageFromDisk($subImg);
+            }
+          }
         }
       }
 
