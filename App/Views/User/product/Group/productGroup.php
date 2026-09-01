@@ -37,10 +37,10 @@
 
         if (trim($pTitle) === '' && trim($pUrl) === '#') continue;
       ?>
-        <div class="product-grid-card theme-button pointer flex-column between-stretch p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative" style="overflow: hidden;">
+        <div class="product-grid-card theme-button pointer flex-column between-stretch p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative">
           <a href="<?= e($pUrl) ?>" target="_blank" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
             <?php if ($pImgShow && $hasImg) : ?>
-              <figure class="w100 ar-square overflow-hidden" style="background: rgba(0,0,0,0.03);">
+              <figure class="w100 ar-square overflow-hidden">
                 <img src="<?= e($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
               </figure>
             <?php endif; ?>
@@ -130,10 +130,10 @@
 
           if (trim($pTitle) === '' && trim($pUrl) === '#') continue;
         ?>
-          <div class="product-slide-card theme-button pointer flex-column p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative" style="overflow: hidden;">
+          <div class="product-slide-card theme-button pointer flex-column p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative">
             <a href="<?= e($pUrl) ?>" target="_blank" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
               <?php if ($pImgShow && $hasImg) : ?>
-                <figure class="w100 ar-square overflow-hidden" style="background: rgba(0,0,0,0.03);">
+                <figure class="w100 ar-square overflow-hidden">
                   <img src="<?= e($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
                 </figure>
               <?php endif; ?>
