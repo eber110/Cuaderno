@@ -350,6 +350,7 @@
 .pr12 { padding-right: 12px !important; }
 .pr15 { padding-right: 15px !important; }
 .pr20 { padding-right: 20px !important; }
+.pr25 { padding-right: 25px !important; }
 .pr30 { padding-right: 30px !important; }
 .pr45 { padding-right: 45px !important; }
 .pr8 { padding-right: 8px !important; }
@@ -369,7 +370,6 @@
 .w80 { width: 80%; }
 .w85 { width: 85%; }
 .w90 { width: 90%; }
-.w98 { width: 98%; }
 .wpx100 { width: 100px; }
 .wpx1000 { width: 1000px; }
 .wpx140 { width: 140px; }
@@ -406,6 +406,7 @@
 .x12 { font-size: 12px; }
 .x13 { font-size: 13px; }
 .x14 { font-size: 14px; }
+.x15 { font-size: 15px; }
 .x16 { font-size: 16px; }
 .x17 { font-size: 17px; }
 .x18 { font-size: 18px; }

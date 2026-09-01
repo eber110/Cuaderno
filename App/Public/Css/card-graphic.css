@@ -127,16 +127,6 @@
   border-radius: 4px;
 }
 
-.product-slide-card,
-.product-grid-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.product-slide-card:hover,
-.product-grid-card:hover {
-  transform: translateY(-2px);
-}
-
 .sub-product-item {
   transition: border-color 0.2s ease, background 0.2s ease;
 }

@@ -1,4 +1,4 @@
-<div class="flex-column center-center gap15 p30 p-sml-20">
+<div class="flex-column center-center gap15 p30 p-sml-20 w100" style="box-sizing: border-box;">
 
   <?php 
     /** @var mixed $card */

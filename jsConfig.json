@@ -39,7 +39,8 @@
       "hamburgerMenu": [],
       "videoBackgroundController": [],
       "imageGallery": [],
-      "productPricingController": []
+      "productPricingController": [],
+      "productSlider": []
     },
     "async": {}
   }

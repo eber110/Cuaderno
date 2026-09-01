@@ -161,7 +161,10 @@
                     <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <?= $prodCount ?>.
                   </span>
                 <?php endif; ?>
-              <!-- </div> -->
+
+                <!-- Título del grupo (opcional) -->
+                <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título del grupo (opcional, ej: Mi Colección)">
+
 
               <!-- Lista de Sub-productos (Mínimo 2, Máximo 8) -->
               <div class="flex-column gap15 w100 mt5">

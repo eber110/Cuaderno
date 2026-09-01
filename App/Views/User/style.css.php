@@ -203,4 +203,111 @@
     }
   }
 
+  /* Carrusel de Productos (Modo Slide) */
+  .product-group-slide-container {
+    position: relative;
+    width: calc(100% + 60px);
+    margin-left: -30px;
+    margin-right: -30px;
+    box-sizing: border-box;
+  }
+
+  @media screen and (max-width: 576px) {
+    .product-group-slide-container {
+      width: calc(100% + 40px);
+      margin-left: -20px;
+      margin-right: -20px;
+    }
+  }
+
+  .product-group-slide-track {
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 30px;
+    scroll-padding-right: 30px;
+    scroll-behavior: smooth;
+    padding: 6px 30px 14px 30px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    user-select: none;
+    box-sizing: border-box;
+  }
+
+  @media screen and (max-width: 576px) {
+    .product-group-slide-track {
+      scroll-padding-left: 20px;
+      scroll-padding-right: 20px;
+      padding-left: 20px;
+      padding-right: 20px;
+      gap: 12px;
+    }
+  }
+
+  .product-group-slide-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-slide-card {
+    flex: 0 0 205px;
+    width: 205px;
+    max-width: 205px;
+    scroll-snap-align: start;
+    box-sizing: border-box;
+  }
+
+  @media screen and (max-width: 576px) {
+    .product-slide-card {
+      flex: 0 0 175px;
+      width: 175px;
+      max-width: 175px;
+    }
+  }
+
+  .product-slide-btn {
+    position: absolute;
+    top: 45%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #222222;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    cursor: pointer;
+    transition: opacity 0.25s ease, transform 0.15s ease, background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .product-slide-btn:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  .product-slide-btn:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  .product-slide-prev {
+    left: 10px;
+  }
+
+  .product-slide-next {
+    right: 10px;
+  }
+
+  .product-slide-btn.is-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+
 </style>
