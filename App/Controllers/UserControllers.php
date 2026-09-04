@@ -8,7 +8,6 @@ use Base\Control\Control;
 use Base\Module\ResponseModule;
 use Base\Module\SeoModule;
 use Base\Module\Session;
-use Base\Module\ShareButtonModule;
 
 /**
  * Clase UserControllers
@@ -71,16 +70,8 @@ class UserControllers extends Control {
     }
 
     $data = $userData;
-    // Formatear imágenes a través del modelo
+    // Formatear imágenes y enlaces de compartir a través del modelo
     $data["card"] = UserModels::formatCardImages($data["card"]);
-    $contentItems = $data["card"]["content"] ?? [];
-
-    //redes aceptadas con card og:
-    $acceptedLinks = DesignControllers::orderShare();
-
-    foreach ($contentItems as $key => $value) {
-      $data["card"]["content"][$key]["share"] = ShareButtonModule::share($value["url"] ?? "", $data["card"]["desc"] ?? "", $acceptedLinks);
-    }
 
     // Configuración de metadatos SEO
     SeoModule::setMetaDescription($data["card"]["desc"] ?? "");

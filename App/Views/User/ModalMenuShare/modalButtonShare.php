@@ -42,6 +42,12 @@
   } elseif (!empty($titleRaw)) {
     $displayDesc = $titleRaw;
   }
+
+  // Garantizar que existan enlaces de compartir si se cuenta con la URL del enlace
+  if (empty($data["share"]) && !empty($data["url"]) && $data["url"] !== "#") {
+    $acceptedLinks = \App\Controllers\DesignControllers::orderShare();
+    $data["share"] = \Base\Module\ShareButtonModule::share($data["url"], $card["desc"] ?? "", $acceptedLinks);
+  }
 ?>
 <div class="flex-column center-center gap15 back-modal-item">
   <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>

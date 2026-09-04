@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Controllers\DesignControllers;
 use Base\Builder\BuilderSqlite;
+use Base\Module\ShareButtonModule;
 
 /**
  * Clase UserModels
@@ -177,6 +179,48 @@ class UserModels extends BuilderSqlite {
     } else {
       $card["content"] = [];
     }
+
+    $card = self::formatCardShare($card);
+
+    return $card;
+  }
+
+  /**
+   * Genera los enlaces de compartir en redes sociales para todos los elementos de contenido de la tarjeta,
+   * incluyendo enlaces estándar, productos individuales y sub-productos dentro de grupos (product_group).
+   *
+   * @param array $card Estructura de la tarjeta del perfil.
+   * @return array Tarjeta con los enlaces de share asignados en cada ítem y sub-producto.
+   */
+  public static function formatCardShare(array $card): array {
+    if (!isset($card["content"]) || !is_array($card["content"])) {
+      return $card;
+    }
+
+    $desc = $card["desc"] ?? "";
+    $acceptedLinks = DesignControllers::orderShare();
+
+    foreach ($card["content"] as $key => &$item) {
+      $itemUrl = $item["url"] ?? "";
+      if (!empty($itemUrl) && $itemUrl !== "#") {
+        $item["share"] = ShareButtonModule::share($itemUrl, $desc, $acceptedLinks);
+      } else {
+        $item["share"] = [];
+      }
+
+      if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
+        foreach ($item["products"] as &$subProd) {
+          $prodUrl = $subProd["url"] ?? "";
+          if (!empty($prodUrl) && $prodUrl !== "#") {
+            $subProd["share"] = ShareButtonModule::share($prodUrl, $desc, $acceptedLinks);
+          } else {
+            $subProd["share"] = [];
+          }
+        }
+        unset($subProd);
+      }
+    }
+    unset($item);
 
     return $card;
   }
