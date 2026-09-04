@@ -58,6 +58,10 @@
         $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
         $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
         $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
+        $rawAskName        = $card["content"][$i]["ask_name"] ?? true;
+        $askName           = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
+        $rawAskWhatsapp    = $card["content"][$i]["ask_whatsapp"] ?? (!empty($itemWhatsapp));
+        $askWhatsapp       = ($rawAskWhatsapp === true || $rawAskWhatsapp === 'true' || $rawAskWhatsapp === 1 || $rawAskWhatsapp === '1');
         $rawCountdown      = $card["content"][$i]["has_countdown"] ?? false;
         $hasCountdown      = ($rawCountdown === true || $rawCountdown === 'true' || $rawCountdown === 1 || $rawCountdown === '1');
         $itemCountdownDate = $card["content"][$i]["countdown_date"] ?? '';
@@ -330,13 +334,13 @@
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="img-pos-bg-<?= $i?>" name="content[<?= $i?>][img_position]" value="background" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'background') ? 'checked' : '' ?>>
                   <label for="img-pos-bg-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen como fondo del bloque">
-                    <?= svg("image", "x16") ?>
+                    <?= svg("images", "x16") ?>
                     <span class="bold500 x13">Fondo</span>
                   </label>
 
                   <input type="radio" id="img-pos-hdr-<?= $i?>" name="content[<?= $i?>][img_position]" value="header" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'header') ? 'checked' : '' ?>>
                   <label for="img-pos-hdr-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen en la cabecera">
-                    <?= svg("square", "x16") ?>
+                    <?= svg("slide", "x16") ?>
                     <span class="bold500 x13">Cabecera</span>
                   </label>
                 </div>
@@ -407,12 +411,46 @@
               <!-- Textarea para la descripción -->
               <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
 
-              <!-- Datos de suscripción / contacto -->
-              <div class="flex-column gap10 w100 p12 br10 back-card-graphic shadow-card-graphic">
-                <p class="x13 bold600 texto">Datos de la suscripción</p>
-                <input type="text" name="content[<?= $i?>][name]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemName) ?>" placeholder="Nombre (opcional)">
-                <input type="email" name="content[<?= $i?>][email]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemEmail) ?>" placeholder="Correo electrónico">
-                <input type="tel" name="content[<?= $i?>][whatsapp]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemWhatsapp) ?>" placeholder="Número de WhatsApp (opcional, ej: +54911...)">
+              <!-- Datos de la suscripción -->
+              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Datos de la suscripción</p>
+                  <span class="x11 text-muted">Configura los campos a solicitar a tus suscriptores</span>
+                </div>
+
+                <!-- Correo electrónico (siempre obligatorio) -->
+                <div class="flex-column gap5 w100">
+                  <span class="x12 bold500 texto flex-row center-start gap5"><?= svg("email", "x14") ?> Correo electrónico (Obligatorio)</span>
+                  <input type="email" name="content[<?= $i?>][email]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemEmail) ?>" placeholder="Correo electrónico de destino / campaña">
+                </div>
+
+                <!-- Control para solicitar Nombre (opcional) -->
+                <div class="flex-column gap8 w100 p10 br10 back-card-graphic shadow-card-graphic">
+                  <div class="flex-row center-between w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto flex-row center-start gap5"><?= svg("user", "x14") ?> Solicitar nombre</p>
+                      <span class="x11 text-muted">Muestra el campo de nombre en el formulario</span>
+                    </div>
+                    <input type="checkbox" id="ask-name-switch-<?= $i?>" name="content[<?= $i?>][ask_name]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-name-field-<?= $i?>" active="<?= $askName ? '1' : '2' ?>" <?= $askName ? 'checked' : '' ?>>
+                  </div>
+                  <div id="campaign-name-field-<?= $i?>" class="flex-column gap5 w100" style="<?= $askName ? '' : 'display: none;' ?>">
+                    <input type="text" name="content[<?= $i?>][name]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemName) ?>" placeholder="Nombre o remitente de la campaña (opcional)">
+                  </div>
+                </div>
+
+                <!-- Control para solicitar WhatsApp (opcional) -->
+                <div class="flex-column gap8 w100 p10 br10 back-card-graphic shadow-card-graphic">
+                  <div class="flex-row center-between w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto flex-row center-start gap5"><?= svg("whatsapp", "x14") ?> Solicitar número de WhatsApp</p>
+                      <span class="x11 text-muted">Muestra el campo de WhatsApp en el formulario</span>
+                    </div>
+                    <input type="checkbox" id="ask-whatsapp-switch-<?= $i?>" name="content[<?= $i?>][ask_whatsapp]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-whatsapp-field-<?= $i?>" active="<?= $askWhatsapp ? '1' : '2' ?>" <?= $askWhatsapp ? 'checked' : '' ?>>
+                  </div>
+                  <div id="campaign-whatsapp-field-<?= $i?>" class="flex-column gap5 w100" style="<?= $askWhatsapp ? '' : 'display: none;' ?>">
+                    <input type="tel" name="content[<?= $i?>][whatsapp]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemWhatsapp) ?>" placeholder="Número de WhatsApp de contacto (opcional, ej: +54911...)">
+                  </div>
+                </div>
               </div>
 
               <!-- Contador opcional -->

@@ -15,6 +15,10 @@
   $bgColor         = $campaignData["bg_color"] ?? "#1e1e1e";
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
+  $rawAskName      = $campaignData["ask_name"] ?? true;
+  $askName         = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
+  $rawAskWhatsapp  = $campaignData["ask_whatsapp"] ?? (!empty($whatsapp));
+  $askWhatsapp     = ($rawAskWhatsapp === true || $rawAskWhatsapp === 'true' || $rawAskWhatsapp === 1 || $rawAskWhatsapp === '1');
   $profile         = $card["profile"] ?? "";
 
   $rawImgShow = $campaignData["imgShow"] ?? true;
@@ -83,9 +87,16 @@
 
     <!-- Formulario de Suscripción (Boceto para diseño) -->
     <form class="campaign-sub-form flex-column gap10 w100" onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte!');">
-      <input type="text" name="subscriber_name" class="p10 br10 x13 w100" placeholder="Tu nombre" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+      <?php if ($askName) : ?>
+        <input type="text" name="subscriber_name" class="p10 br10 x13 w100" placeholder="Tu nombre" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+      <?php endif; ?>
+
       <input type="email" name="subscriber_email" required class="p10 br10 x13 w100" placeholder="Tu correo electrónico" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
-      <input type="tel" name="subscriber_whatsapp" class="p10 br10 x13 w100" placeholder="Tu número de WhatsApp (opcional)" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+
+      <?php if ($askWhatsapp) : ?>
+        <input type="tel" name="subscriber_whatsapp" class="p10 br10 x13 w100" placeholder="Tu número de WhatsApp" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+      <?php endif; ?>
+
       <button type="submit" class="p12 br10 bold600 x14 pointer text-center hover-scale-soft w100" style="background: var(--button-bg, #0070f3); color: #ffffff; border: none; transition: transform 0.15s ease;">
         Suscribirme
       </button>

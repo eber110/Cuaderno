@@ -73,6 +73,17 @@ export function autoSubmitForm() {
         }
       }
     }
+
+    // 6. Alternancia de campos opcionales (nombre, whatsapp) en bloques de campaña
+    if (target.classList && target.classList.contains('campaign-toggle-field-switch')) {
+      const targetId = target.dataset.target;
+      if (targetId) {
+        const fieldWrap = document.getElementById(targetId);
+        if (fieldWrap) {
+          fieldWrap.style.display = target.checked ? 'flex' : 'none';
+        }
+      }
+    }
   }
 
   document.addEventListener('change', (e) => {

@@ -636,6 +636,11 @@ class DesignModels extends Builder {
             $bgColor = "#1e1e1e";
           }
 
+          $rawAskName     = $item["ask_name"] ?? false;
+          $askName        = ($rawAskName === "true" || $rawAskName === true || $rawAskName === 1 || $rawAskName === "1");
+          $rawAskWhatsapp = $item["ask_whatsapp"] ?? false;
+          $askWhatsapp    = ($rawAskWhatsapp === "true" || $rawAskWhatsapp === true || $rawAskWhatsapp === 1 || $rawAskWhatsapp === "1");
+
           $rawCountdown  = $item["has_countdown"] ?? false;
           $hasCountdown  = ($rawCountdown === "true" || $rawCountdown === true || $rawCountdown === 1 || $rawCountdown === "1");
           $countdownDate = trim((string)($item["countdown_date"] ?? ""));
@@ -678,6 +683,8 @@ class DesignModels extends Builder {
             "name"           => $campaignName,
             "email"          => $campaignEmail,
             "whatsapp"       => $campaignWhatsapp,
+            "ask_name"       => $askName,
+            "ask_whatsapp"   => $askWhatsapp,
             "img"            => $img,
             "img_position"   => $imgPosition,
             "bg_opacity"     => $bgOpacity,
@@ -908,6 +915,8 @@ class DesignModels extends Builder {
           "name"           => "",
           "email"          => "",
           "whatsapp"       => "",
+          "ask_name"       => true,
+          "ask_whatsapp"   => false,
           "has_countdown"  => false,
           "countdown_date" => "",
           "img"            => "no-image.webp",

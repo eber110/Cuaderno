@@ -131,7 +131,10 @@ class UserModels extends BuilderSqlite {
           $item["bg_color"]       = !empty($item["bg_color"]) ? $item["bg_color"] : "#1e1e1e";
           $rawCountdown           = $item["has_countdown"] ?? false;
           $item["has_countdown"]  = ($rawCountdown === true || $rawCountdown === "true" || $rawCountdown === 1 || $rawCountdown === "1");
-          $item["countdown_date"] = $item["countdown_date"] ?? "";
+          $rawAskName             = $item["ask_name"] ?? true;
+          $item["ask_name"]       = ($rawAskName === true || $rawAskName === "true" || $rawAskName === 1 || $rawAskName === "1");
+          $rawAskWhatsapp         = $item["ask_whatsapp"] ?? (!empty($item["whatsapp"]));
+          $item["ask_whatsapp"]   = ($rawAskWhatsapp === true || $rawAskWhatsapp === "true" || $rawAskWhatsapp === 1 || $rawAskWhatsapp === "1");
           $item["desc"]           = $item["desc"] ?? "";
           $item["name"]           = $item["name"] ?? "";
           $item["email"]          = $item["email"] ?? "";
