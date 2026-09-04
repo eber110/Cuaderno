@@ -26,6 +26,12 @@
           _part("User." . "productGroup", ["dataContent" => $i, "card" => $card]);
         }
       }
+      //si es campaña de suscripción se muestra la plantilla campaign
+      if ($itemType === "campaign") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User.campaign", ["dataContent" => $i, "card" => $card]);
+        }
+      }
     }
   ?>
 

@@ -150,7 +150,7 @@ export function sortableContent() {
     const titleInput = item.querySelector('input[name*="[title]"]');
     if (!titleInput) return;
 
-    const prefix = type === "product" ? "Producto" : "Enlace";
+    const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : "Enlace");
     const rawVal = titleInput.value.trim();
 
     label.textContent = rawVal ? `${prefix} - ${rawVal}` : `${prefix} - (Sin título)`;
@@ -221,10 +221,24 @@ export function sortableContent() {
       initAllContainers();
     });
 
-    // Sincronización en vivo del título mientras el usuario escribe
+    // Sincronización en vivo del título y controles mientras el usuario interactúa
     document.addEventListener("input", (e) => {
       const target = e.target;
-      if (!target || !target.matches('input[name*="[title]"]')) return;
+      if (!target) return;
+
+      // Slider de opacidad de campaña en vivo
+      if (target.matches('.campaign-opacity-slider')) {
+        const val = Math.max(0, Math.min(100, parseInt(target.value, 10) || 0));
+        target.style.setProperty("--range-progress", `${val}%`);
+        const targetId = target.dataset.valTarget;
+        if (targetId) {
+          const label = document.getElementById(targetId);
+          if (label) label.textContent = `${val}%`;
+        }
+        return;
+      }
+
+      if (!target.matches('input[name*="[title]"]')) return;
 
       const item = target.closest(".sortable-item.content-block");
       if (item) {

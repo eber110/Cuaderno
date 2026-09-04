@@ -19,7 +19,7 @@
   <!-- Formato Cuadricula (Grid 2 Columnas) -->
   <div class="product-group-grid-wrapper flex-column gap8 w100">
     <?php if (!empty($groupTitle)) : ?>
-      <p class="bold700 x15 text-c title-color w100"><?= e($groupTitle) ?></p>
+      <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>
 
     <div class="product-group-grid w100" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
@@ -104,7 +104,7 @@
   <!-- Formato Carrusel Deslizante (Slide Horizontal) -->
   <div class="product-group-slide-wrapper flex-column gap8 w100">
     <?php if (!empty($groupTitle)) : ?>
-      <p class="bold700 x15 text-c title-color w100"><?= e($groupTitle) ?></p>
+      <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>
 
     <div class="product-group-slide-container position-relative">

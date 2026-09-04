@@ -23,6 +23,9 @@
         <button type="submit" name="add_content_type" value="product_group" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Grupo de productos
         </button>
+        <button type="submit" name="add_content_type" value="campaign" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Campaña
+        </button>
       </div>
     </div>
 
@@ -48,6 +51,17 @@
         $itemDiscount   = $card["content"][$i]["discount"] ?? '';
         $itemPorcentage = $card["content"][$i]["porcentage"] ?? 0;
 
+        $itemDesc          = $card["content"][$i]["desc"] ?? '';
+        $itemName          = $card["content"][$i]["name"] ?? '';
+        $itemEmail         = $card["content"][$i]["email"] ?? '';
+        $itemWhatsapp      = $card["content"][$i]["whatsapp"] ?? '';
+        $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
+        $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
+        $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
+        $rawCountdown      = $card["content"][$i]["has_countdown"] ?? false;
+        $hasCountdown      = ($rawCountdown === true || $rawCountdown === 'true' || $rawCountdown === 1 || $rawCountdown === '1');
+        $itemCountdownDate = $card["content"][$i]["countdown_date"] ?? '';
+
         if ($itemType === 'product_group') {
           $groupProducts = $card["content"][$i]["products"] ?? [];
           $prodCount     = count($groupProducts);
@@ -64,6 +78,10 @@
           $isEmpty = ($validCount < 2);
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
           $isOpen = ($validCount === 0);
+        } elseif ($itemType === 'campaign') {
+          $isEmpty = (trim($itemTitle) === '');
+          $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = (trim($itemTitle) === '');
         } else {
           // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
           $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
@@ -84,6 +102,9 @@
                   } elseif ($itemType === 'product') {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Producto - (Sin título)';
+                  } elseif ($itemType === 'campaign') {
+                    $displayTitle = trim($itemTitle);
+                    echo ($displayTitle !== '') ? 'Campaña - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Campaña - (Sin título)';
                   } else {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Enlace - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Enlace - (Sin título)';
@@ -286,6 +307,126 @@
                 <?php else : ?>
                   <p class="x12 text-muted text-center p10">Límite máximo de 8 productos alcanzado.</p>
                 <?php endif; ?>
+              </div>
+
+            <?php elseif ($itemType === 'campaign') : ?>
+              <?php 
+                $displayImgSrc = $card["content"][$i]["imgSrc"] ?? '';
+                if (empty($displayImgSrc)) {
+                  $itemMetaImg = $card["content"][$i]["metaImg"] ?? '';
+                  if ($imgDefault && !empty($itemImg)) {
+                    $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                    $displayImgSrc = $itemMetaImg;
+                  } else {
+                    $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+                  }
+                }
+              ?>
+
+              <!-- Selector de Posición de Imagen (Fondo vs Cabecera) -->
+              <div class="flex-column gap8 w100">
+                <p class="x13 bold600 texto">Posición de la imagen</p>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="img-pos-bg-<?= $i?>" name="content[<?= $i?>][img_position]" value="background" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'background') ? 'checked' : '' ?>>
+                  <label for="img-pos-bg-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen como fondo del bloque">
+                    <?= svg("image", "x16") ?>
+                    <span class="bold500 x13">Fondo</span>
+                  </label>
+
+                  <input type="radio" id="img-pos-hdr-<?= $i?>" name="content[<?= $i?>][img_position]" value="header" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'header') ? 'checked' : '' ?>>
+                  <label for="img-pos-hdr-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen en la cabecera">
+                    <?= svg("square", "x16") ?>
+                    <span class="bold500 x13">Cabecera</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Imagen de la campaña -->
+              <div class="flex-row center-between gap10">
+                <div class="flex-row center-center gap10 relative">
+                  <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
+                    <img src="<?= e($displayImgSrc) ?>" alt="Imagen de la campaña" class="cover">
+                  </figure>
+
+                  <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
+                    <?php if ($imgDefault) : ?>
+                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
+                        <?= svg("trash", "x20") ?>
+                      </button>
+                    <?php endif; ?>
+                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                      <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                    </button>
+                  </div>
+                </div>
+                <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
+                  <input type="file" 
+                    name="content_img_<?= $i ?>" 
+                    class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
+                    placeholder="Subir imagen" 
+                    cropping-size="600x400"
+                    box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+                    box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+                </div>
+              </div>
+
+              <!-- Opciones de Fondo: Opacidad y Color (solo cuando está en modo Fondo) -->
+              <div id="campaign-bg-options-<?= $i?>" class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
+                <!-- Opacidad del fondo con slider -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Opacidad de la capa</p>
+                    <span class="x11 text-muted">Ajusta la intensidad del color sobre la imagen</span>
+                  </div>
+                  <div class="flex-row center-end gap10 w-sml-100">
+                    <span id="campaign-opacity-val-<?= $i?>" class="x14 bold600 texto wpx40 text-right"><?= $itemBgOpacity ?>%</span>
+                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="campaign-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
+                  </div>
+                </div>
+
+                <!-- Color de fondo que se mezcla con la opacidad -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color de fondo</p>
+                    <span class="x11 text-muted">Tonalidad sobre la que actúa la opacidad</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Título de la campaña -->
+              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título para la campaña (ej: Suscríbete a mi newsletter)">
+
+              <!-- Textarea para la descripción -->
+              <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
+
+              <!-- Datos de suscripción / contacto -->
+              <div class="flex-column gap10 w100 p12 br10 back-card-graphic shadow-card-graphic">
+                <p class="x13 bold600 texto">Datos de la suscripción</p>
+                <input type="text" name="content[<?= $i?>][name]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemName) ?>" placeholder="Nombre (opcional)">
+                <input type="email" name="content[<?= $i?>][email]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemEmail) ?>" placeholder="Correo electrónico">
+                <input type="tel" name="content[<?= $i?>][whatsapp]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemWhatsapp) ?>" placeholder="Número de WhatsApp (opcional, ej: +54911...)">
+              </div>
+
+              <!-- Contador opcional -->
+              <div class="flex-row center-between w100 p10 br10 back-card-graphic shadow-card-graphic">
+                <div class="flex-column">
+                  <p class="x13 bold500 texto">Contador regresivo</p>
+                  <span class="x11 text-muted">Muestra una cuenta regresiva para el lanzamiento o cierre</span>
+                </div>
+                <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
+              </div>
+
+              <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap5 w100 p10 br10 back-card-graphic shadow-card-graphic" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
+                <p class="x12 bold500 texto">Fecha y hora límite del contador</p>
+                <input type="datetime-local" name="content[<?= $i?>][countdown_date]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100 x13" value="<?= e($itemCountdownDate) ?>">
               </div>
 
             <?php else : ?>

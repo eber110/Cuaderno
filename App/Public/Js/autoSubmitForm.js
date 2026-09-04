@@ -53,6 +53,26 @@ export function autoSubmitForm() {
         voidSpaceContainer.style.display = target.value === 'voidHero' ? 'flex' : 'none';
       }
     }
+
+    // 4. Alternancia de opciones de fondo en bloques de campaña
+    if (target.classList && target.classList.contains('campaign-pos-radio')) {
+      const idx = target.dataset.index;
+      const bgOpts = document.getElementById(`campaign-bg-options-${idx}`);
+      if (bgOpts) {
+        bgOpts.style.display = target.value === 'background' ? 'flex' : 'none';
+      }
+    }
+
+    // 5. Alternancia de fecha límite de contador en bloques de campaña
+    if (target.classList && target.classList.contains('campaign-countdown-switch')) {
+      const targetId = target.dataset.target;
+      if (targetId) {
+        const dateWrap = document.getElementById(targetId);
+        if (dateWrap) {
+          dateWrap.style.display = target.checked ? 'flex' : 'none';
+        }
+      }
+    }
   }
 
   document.addEventListener('change', (e) => {

@@ -622,6 +622,78 @@ class DesignModels extends Builder {
           continue;
         }
 
+        // Procesamiento específico para Campaña de Suscripción (campaign)
+        if ($type === "campaign") {
+          $campaignTitle    = trim((string)($item["title"] ?? ""));
+          $campaignDesc     = trim((string)($item["desc"] ?? ""));
+          $campaignName     = trim((string)($item["name"] ?? ""));
+          $campaignEmail    = trim((string)($item["email"] ?? ""));
+          $campaignWhatsapp = trim((string)($item["whatsapp"] ?? ""));
+          $imgPosition      = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
+          $bgOpacity        = max(0, min(100, (int)($item["bg_opacity"] ?? 80)));
+          $bgColor          = trim((string)($item["bg_color"] ?? "#1e1e1e"));
+          if (!preg_match('/^#[a-f0-9]{3,8}$/i', $bgColor)) {
+            $bgColor = "#1e1e1e";
+          }
+
+          $rawCountdown  = $item["has_countdown"] ?? false;
+          $hasCountdown  = ($rawCountdown === "true" || $rawCountdown === true || $rawCountdown === 1 || $rawCountdown === "1");
+          $countdownDate = trim((string)($item["countdown_date"] ?? ""));
+
+          if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $item["img"] = "no-image.webp";
+          }
+
+          if (isset($uploadedContentImgs[$index])) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $img = $uploadedContentImgs[$index];
+            $imgDefault = true;
+          } else {
+            $img = $item["img"] ?? "no-image.webp";
+            $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
+            $imgDefault = !$isDefaultImg;
+          }
+
+          $rawImgShow = $item["imgShow"] ?? true;
+          $imgShow    = ($rawImgShow === "true" || $rawImgShow === true || $rawImgShow === 1 || $rawImgShow === "1");
+          if (isset($item["toggle_img_show"]) && ($item["toggle_img_show"] === "true" || $item["toggle_img_show"] === true)) {
+            $imgShow = !$imgShow;
+          }
+
+          $rawActive = $item["active"] ?? false;
+          $active    = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          if ($campaignTitle === "") {
+            $active = false;
+          }
+
+          $content[] = [
+            "type"           => "campaign",
+            "title"          => $campaignTitle,
+            "desc"           => $campaignDesc,
+            "name"           => $campaignName,
+            "email"          => $campaignEmail,
+            "whatsapp"       => $campaignWhatsapp,
+            "img"            => $img,
+            "img_position"   => $imgPosition,
+            "bg_opacity"     => $bgOpacity,
+            "bg_color"       => $bgColor,
+            "has_countdown"  => $hasCountdown,
+            "countdown_date" => $countdownDate,
+            "active"         => $active,
+            "imgDefault"     => $imgDefault,
+            "imgShow"        => $imgShow,
+            "metaTitle"      => $campaignTitle,
+            "metaDesc"       => $campaignDesc,
+            "metaImg"        => (!empty($img) && $img !== "no-image.webp" && strpos($img, "Custom/") === false) ? "/Uploads/" . $img : ""
+          ];
+          continue;
+        }
+
         $titleBtn = trim($item["title"] ?? "");
         $url      = trim($item["url"] ?? "");
         if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, "mailto:") !== 0 && strpos($url, "tel:") !== 0) {
@@ -828,6 +900,26 @@ class DesignModels extends Builder {
               "metaImg"    => ""
             ]
           ]
+        ],
+        "campaign"      => [
+          "type"           => "campaign",
+          "title"          => "",
+          "desc"           => "",
+          "name"           => "",
+          "email"          => "",
+          "whatsapp"       => "",
+          "has_countdown"  => false,
+          "countdown_date" => "",
+          "img"            => "no-image.webp",
+          "img_position"   => "background",
+          "bg_opacity"     => 80,
+          "bg_color"       => "#1e1e1e",
+          "active"         => false,
+          "imgDefault"     => false,
+          "imgShow"        => true,
+          "metaTitle"      => "",
+          "metaDesc"       => "",
+          "metaImg"        => ""
         ]
       ];
 

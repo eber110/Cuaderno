@@ -279,11 +279,13 @@
 .hpx100 { height: 100px; }
 .hpx120 { height: 120px; }
 .hpx140 { height: 140px; }
+.hpx150 { height: 150px; }
 .hpx22 { height: 22px; }
 .hpx25 { height: 25px; }
 .hpx250 { height: 250px; }
 .hpx30 { height: 30px; }
 .hpx32 { height: 32px; }
+.hpx35 { height: 35px; }
 .hpx40 { height: 40px; }
 .hpx45 { height: 45px; }
 .hpx50 { height: 50px; }
@@ -381,6 +383,7 @@
 .wpx30 { width: 30px; }
 .wpx300 { width: 300px; }
 .wpx320 { width: 320px; }
+.wpx35 { width: 35px; }
 .wpx40 { width: 40px; }
 .wpx400 { width: 400px; }
 .wpx45 { width: 45px; }
@@ -402,6 +405,7 @@
 .x03 { font-size: 03px; }
 .x04 { font-size: 04px; }
 .x1 { font-size: 1px; }
+.x10 { font-size: 10px; }
 .x11 { font-size: 11px; }
 .x12 { font-size: 12px; }
 .x13 { font-size: 13px; }

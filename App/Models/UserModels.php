@@ -125,6 +125,19 @@ class UserModels extends BuilderSqlite {
           $item["porcentage"] = isset($item["porcentage"]) ? (int)$item["porcentage"] : 0;
         }
 
+        if (($item["type"] ?? "") === "campaign") {
+          $item["img_position"]   = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
+          $item["bg_opacity"]     = max(0, min(100, (int)($item["bg_opacity"] ?? 80)));
+          $item["bg_color"]       = !empty($item["bg_color"]) ? $item["bg_color"] : "#1e1e1e";
+          $rawCountdown           = $item["has_countdown"] ?? false;
+          $item["has_countdown"]  = ($rawCountdown === true || $rawCountdown === "true" || $rawCountdown === 1 || $rawCountdown === "1");
+          $item["countdown_date"] = $item["countdown_date"] ?? "";
+          $item["desc"]           = $item["desc"] ?? "";
+          $item["name"]           = $item["name"] ?? "";
+          $item["email"]          = $item["email"] ?? "";
+          $item["whatsapp"]       = $item["whatsapp"] ?? "";
+        }
+
         if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
           $prodCount = count($item["products"]);
           $layout = $item["layout"] ?? "grid";
