@@ -17,7 +17,7 @@ textarea, select {
   /* border: 1px solid var(--back-color4); */
   border: none;
   transition: .3s ease all;
-  width: 100%;
+  /* width: 100%; */
 }
 
 form input:focus {

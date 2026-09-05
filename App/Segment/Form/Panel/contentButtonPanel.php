@@ -58,6 +58,8 @@
         $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
         $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
         $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
+        $itemTitleColor    = $card["content"][$i]["title_color"] ?? '#ffffff';
+        $itemDescColor     = $card["content"][$i]["desc_color"] ?? '#ffffff';
         $rawAskName        = $card["content"][$i]["ask_name"] ?? true;
         $askName           = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
         $rawAskWhatsapp    = $card["content"][$i]["ask_whatsapp"] ?? (!empty($itemWhatsapp));
@@ -410,6 +412,44 @@
 
               <!-- Textarea para la descripción -->
               <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
+
+              <!-- Opciones de colores de texto (Título y Descripción) -->
+              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Colores del texto</p>
+                  <span class="x11 text-muted">Personaliza el color del título y la descripción</span>
+                </div>
+
+                <!-- Color del título -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color del título</p>
+                    <span class="x11 text-muted">Afecta al encabezado principal</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-title-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-title-color-<?= $i?>" name="content[<?= $i?>][title_color]" value="<?= e($itemTitleColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemTitleColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Color de la descripción -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color de la descripción</p>
+                    <span class="x11 text-muted">Afecta al texto explicativo</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-desc-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-desc-color-<?= $i?>" name="content[<?= $i?>][desc_color]" value="<?= e($itemDescColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemDescColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+              </div>
 
               <!-- Datos de la suscripción -->
               <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">

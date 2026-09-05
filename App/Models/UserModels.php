@@ -129,6 +129,8 @@ class UserModels extends BuilderSqlite {
           $item["img_position"]   = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
           $item["bg_opacity"]     = max(0, min(100, (int)($item["bg_opacity"] ?? 80)));
           $item["bg_color"]       = !empty($item["bg_color"]) ? $item["bg_color"] : "#1e1e1e";
+          $item["title_color"]    = !empty($item["title_color"]) ? $item["title_color"] : "#ffffff";
+          $item["desc_color"]     = !empty($item["desc_color"]) ? $item["desc_color"] : "#ffffff";
           $rawCountdown           = $item["has_countdown"] ?? false;
           $item["has_countdown"]  = ($rawCountdown === true || $rawCountdown === "true" || $rawCountdown === 1 || $rawCountdown === "1");
           $rawAskName             = $item["ask_name"] ?? true;

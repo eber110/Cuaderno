@@ -1,5 +1,5 @@
 <?php
-  $style = "br10 mb5";
+  $style = "br10 mb5 w100";
 ?>
 <form id="form-step-password" action="/registrar" method="post" autocomplete="off">
   <input type="hidden" name="username" id="hidden-username">

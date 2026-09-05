@@ -635,6 +635,14 @@ class DesignModels extends Builder {
           if (!preg_match('/^#[a-f0-9]{3,8}$/i', $bgColor)) {
             $bgColor = "#1e1e1e";
           }
+          $titleColor       = trim((string)($item["title_color"] ?? "#ffffff"));
+          if (!preg_match('/^#[a-f0-9]{3,8}$/i', $titleColor)) {
+            $titleColor = "#ffffff";
+          }
+          $descColor        = trim((string)($item["desc_color"] ?? "#ffffff"));
+          if (!preg_match('/^#[a-f0-9]{3,8}$/i', $descColor)) {
+            $descColor = "#ffffff";
+          }
 
           $rawAskName     = $item["ask_name"] ?? false;
           $askName        = ($rawAskName === "true" || $rawAskName === true || $rawAskName === 1 || $rawAskName === "1");
@@ -680,6 +688,8 @@ class DesignModels extends Builder {
             "type"           => "campaign",
             "title"          => $campaignTitle,
             "desc"           => $campaignDesc,
+            "title_color"    => $titleColor,
+            "desc_color"     => $descColor,
             "name"           => $campaignName,
             "email"          => $campaignEmail,
             "whatsapp"       => $campaignWhatsapp,
@@ -912,6 +922,8 @@ class DesignModels extends Builder {
           "type"           => "campaign",
           "title"          => "",
           "desc"           => "",
+          "title_color"    => "#ffffff",
+          "desc_color"     => "#ffffff",
           "name"           => "",
           "email"          => "",
           "whatsapp"       => "",

@@ -1,5 +1,5 @@
 <?php
-  $style = "br10 mb5";
+  $style = "br10 mb5 w100";
 ?>
 <form id="form-step-username" action="/registrar" method="post" autocomplete="off">
   <div class="flex-column gap10">

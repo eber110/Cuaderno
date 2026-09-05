@@ -2,6 +2,7 @@
   /** 
    * @var mixed $card 
    * @var int $dataContent
+   * @var mixed $isBgMode
    */
   $campaignData    = $card["content"][$dataContent] ?? [];
   $title           = trim($campaignData["title"] ?? "");
@@ -15,6 +16,8 @@
   $bgColor         = $campaignData["bg_color"] ?? "#1e1e1e";
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
+  $titleColor      = !empty($campaignData["title_color"]) ? $campaignData["title_color"] : ($isBgMode ? "#ffffff" : ($card["titleColor"] ?? "#1e1e1e"));
+  $descColor       = !empty($campaignData["desc_color"]) ? $campaignData["desc_color"] : ($isBgMode ? "#ffffff" : ($card["colorText"] ?? "#4a4a4a"));
   $rawAskName      = $campaignData["ask_name"] ?? true;
   $askName         = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
   $rawAskWhatsapp  = $campaignData["ask_whatsapp"] ?? (!empty($whatsapp));
@@ -50,13 +53,13 @@
   <div class="campaign-content flex-column gap15 p20 w100 position-relative z-index-1" style="box-sizing: border-box;">
     
     <!-- Título y Descripción -->
-    <div class="flex-column gap8 text-center w100">
+    <div class="flex-column gap5 text-center w100">
       <?php if (!empty($title)) : ?>
-        <h3 class="bold700 x18 <?= $isBgMode ? 'textw' : 'title-color' ?>"><?= e($title) ?></h3>
+        <h3 class="bold700 x24" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
       <?php endif; ?>
 
       <?php if (!empty($desc)) : ?>
-        <p class="x14 opacity-90 <?= $isBgMode ? 'textw' : 'texto' ?>" style="line-height: 1.4;"><?= nl2br(e($desc)) ?></p>
+        <p class="bod600" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
       <?php endif; ?>
     </div>
 
@@ -88,16 +91,16 @@
     <!-- Formulario de Suscripción (Boceto para diseño) -->
     <form class="campaign-sub-form flex-column gap10 w100" onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte!');">
       <?php if ($askName) : ?>
-        <input type="text" name="subscriber_name" class="p10 br10 x13 w100" placeholder="Tu nombre" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+        <input type="text" name="subscriber_name" class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu nombre" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
       <?php endif; ?>
 
-      <input type="email" name="subscriber_email" required class="p10 br10 x13 w100" placeholder="Tu correo electrónico" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+      <input type="email" name="subscriber_email" required class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu correo electrónico" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
 
       <?php if ($askWhatsapp) : ?>
-        <input type="tel" name="subscriber_whatsapp" class="p10 br10 x13 w100" placeholder="Tu número de WhatsApp" style="border: 1px solid rgba(150,150,150,0.3); background: <?= $isBgMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,150,150,0.08)' ?>; color: inherit;">
+        <input type="tel" name="subscriber_whatsapp" class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu número de WhatsApp" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
       <?php endif; ?>
 
-      <button type="submit" class="p12 br10 bold600 x14 pointer text-center hover-scale-soft w100" style="background: var(--button-bg, #0070f3); color: #ffffff; border: none; transition: transform 0.15s ease;">
+      <button type="submit" class="p12 bold500 pointer text-center <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>; border: none;">
         Suscribirme
       </button>
     </form>

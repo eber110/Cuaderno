@@ -177,27 +177,14 @@ export function autoSubmitForm() {
           }
         }
 
-        // 3. Actualizar la vista previa (.user-profile-preview) preservando el video existente
+        // 3. Actualizar la vista previa (.user-profile-preview) sin recargar
         if (data.html) {
           const previewContainers = document.querySelectorAll('.user-profile-preview');
           previewContainers.forEach((container) => {
             const temp = document.createElement('div');
             temp.innerHTML = data.html.trim();
             const targetPreview = temp.querySelector('.user-profile-preview') || temp.firstElementChild;
-            if (!targetPreview) return;
-
-            const currentVideo = container.querySelector('video.back-video-bg');
-            const newVideo = targetPreview.querySelector('video.back-video-bg');
-
-            const currentSrc = currentVideo?.querySelector('source')?.getAttribute('src') || currentVideo?.getAttribute('src');
-            const newSrc = newVideo?.querySelector('source')?.getAttribute('src') || newVideo?.getAttribute('src');
-
-            // Reutilizar el nodo <video> en memoria para no re-descargar el archivo MP4 si es el mismo
-            if (currentVideo && newVideo && currentSrc && newSrc && currentSrc === newSrc) {
-              newVideo.replaceWith(currentVideo);
-            }
-
-            if (container.parentNode) {
+            if (targetPreview && container.parentNode) {
               container.parentNode.replaceChild(targetPreview, container);
             } else {
               container.innerHTML = data.html;
