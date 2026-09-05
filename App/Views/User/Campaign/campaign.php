@@ -34,7 +34,7 @@
   $campaignId = "campaign-block-" . $dataContent;
 ?>
 
-<div id="<?= $campaignId ?>" class="campaign-block-wrapper theme-button w100 flex-column overflow-hidden position-relative <?= $borderCard ?> <?= $shadowCard ?>" style="<?= $isBgMode ? 'color: #ffffff;' : '' ?>">
+<div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column overflow-hidden position-relative <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>; <?//= $isBgMode ? 'color: #ffffff;' : '' ?> ">
 
   <?php if ($isBgMode) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
@@ -88,22 +88,35 @@
       </div>
     <?php endif; ?>
 
-    <!-- Formulario de Suscripción (Boceto para diseño) -->
-    <form class="campaign-sub-form flex-column gap10 w100" onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte!');">
-      <?php if ($askName) : ?>
-        <input type="text" name="subscriber_name" class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu nombre" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
-      <?php endif; ?>
+    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>;">Suscribirme</p>
 
-      <input type="email" name="subscriber_email" required class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu correo electrónico" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
-
-      <?php if ($askWhatsapp) : ?>
-        <input type="tel" name="subscriber_whatsapp" class="p12 <?= $card["shadow"]?> <?= $card["borders"][0]?>" placeholder="Tu número de WhatsApp" style="background-color: <?= $card["back"]?>dd; color: <?= $card["color"]?>; border: solid 1px <?= $card["color"]?>40;">
-      <?php endif; ?>
-
-      <button type="submit" class="p12 bold500 pointer text-center <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>; border: none;">
-        Suscribirme
-      </button>
-    </form>
+    <div class="hidden">
+      <div class="flex-column center-center w100 wrap">
+        <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml overflow-y-scroll">
+          <p class="absolute top right mt10 mr10 pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
+          <br>
+          <div class="flex-column top-start gap10">
+            <p>Ingresa tus datos para mantener el contacto</p>
+            <!-- Formulario de Suscripción (Boceto para diseño) -->
+            <form class="campaign-sub-form flex-column gap10 w100" onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte!');">
+              <?php if ($askName) : ?>
+                <input type="text" name="subscriber_name" class="p15 br15" placeholder="Tu nombre" style="background-color: #ffffff; border: solid 1px #595a83;">
+              <?php endif; ?>
+        
+              <input type="email" name="subscriber_email" required class="p15 br15" placeholder="Tu correo electrónico" style="background-color: #ffffff; border: solid 1px #595a83;">
+        
+              <?php if ($askWhatsapp) : ?>
+                <input type="tel" name="subscriber_whatsapp" class="p15 br15" placeholder="Tu número de WhatsApp" style="background-color: #ffffff; border: solid 1px #595a83;">
+              <?php endif; ?>
+        
+              <button type="submit" class="p15 br50 bold500 pointer text-center" style="background-color: #595a83; color: #ffffff; border: none;">
+                Suscribirme
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
