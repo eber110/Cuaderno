@@ -135,9 +135,12 @@ export function productSlider() {
       }
     }, true);
 
-    // Prevenir arrastre nativo de imágenes
+    // Prevenir arrastre nativo de imágenes y recalcular botones tras cargar
     track.querySelectorAll('img').forEach((img) => {
       img.addEventListener('dragstart', (e) => e.preventDefault());
+      if (!img.complete) {
+        img.addEventListener('load', () => updateButtons(), { once: true });
+      }
     });
 
     // Actualización inicial
@@ -173,4 +176,9 @@ export function productSlider() {
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
+
+  // Escuchar cuando se actualiza la vista previa en vivo en el dashboard
+  document.addEventListener('previewUpdated', () => {
+    initAll();
+  });
 }

@@ -66,8 +66,16 @@
 .drag-handle, .drag-icon {
   user-select: none;
   -webkit-user-select: none;
-  -webkit-user-drag: none;
   touch-action: none;
+}
+
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active,
+.sortable-item.dragging .drag-handle {
+  cursor: grabbing !important;
 }
 
 .sortable-item.dragging {

@@ -290,6 +290,9 @@ export function sortableContent() {
 
     // Limpieza global de seguridad si el arrastre se interrumpe
     window.addEventListener("dragend", () => {
+      document.querySelectorAll(".sortable-item[draggable='true']").forEach((el) => {
+        el.setAttribute("draggable", "false");
+      });
       document.querySelectorAll(".sortable-item.dragging").forEach((el) => {
         el.classList.remove("dragging");
         el.style.opacity = "1";
@@ -298,22 +301,56 @@ export function sortableContent() {
         isDragging = false;
       }, 50);
     });
+
+    window.addEventListener("mouseup", () => {
+      document.querySelectorAll(".sortable-item[draggable='true']").forEach((el) => {
+        el.setAttribute("draggable", "false");
+      });
+    });
   }
 
   function initSortable(container) {
     let draggedItem = null;
     let initialIndex = null;
+    let activeDragHandle = null;
 
-    // Iniciar arrastre
+    // Solo habilitar draggable cuando mousedown ocurra sobre .drag-handle
+    container.addEventListener("mousedown", (e) => {
+      const handle = e.target.closest(".drag-handle");
+      if (handle && !e.target.closest("input, textarea, select, button, label, .modal-btn, .checkbox-switch, a")) {
+        const item = handle.closest(".sortable-item");
+        if (item) {
+          activeDragHandle = handle;
+          item.setAttribute("draggable", "true");
+          return;
+        }
+      }
+
+      // Si el clic es en cualquier otra parte (slider, inputs, cuerpo, etc.), desactivar draggable
+      activeDragHandle = null;
+      container.querySelectorAll('.sortable-item[draggable="true"]').forEach((el) => {
+        el.setAttribute("draggable", "false");
+      });
+    });
+
+    // Iniciar arrastre solo si se originó en la zona arrastrable (drag-handle)
     container.addEventListener("dragstart", (e) => {
-      // Ignorar si el arrastre se inició dentro de un campo interactivo o botón
-      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a")) {
+      if (!activeDragHandle) {
         e.preventDefault();
         return;
       }
 
       const item = e.target.closest(".sortable-item");
-      if (!item) return;
+      if (!item || !item.contains(activeDragHandle)) {
+        e.preventDefault();
+        return;
+      }
+
+      // Ignorar si el arrastre se inició dentro de un campo interactivo o botón
+      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a")) {
+        e.preventDefault();
+        return;
+      }
 
       isDragging = true;
 
@@ -341,6 +378,11 @@ export function sortableContent() {
 
     // Finalizar arrastre
     container.addEventListener("dragend", (e) => {
+      activeDragHandle = null;
+      container.querySelectorAll('.sortable-item[draggable="true"]').forEach((el) => {
+        el.setAttribute("draggable", "false");
+      });
+
       const item = e.target.closest(".sortable-item") || draggedItem;
       if (item) {
         item.classList.remove("dragging");

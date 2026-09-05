@@ -59,6 +59,8 @@
         $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
         $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
         $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
+        $itemSize          = $card["content"][$i]["size"] ?? 'horizontal';
+        $itemTextPosition  = $card["content"][$i]["text_position"] ?? 'center';
         $itemTitleColor    = $card["content"][$i]["title_color"] ?? '#ffffff';
         $itemDescColor     = $card["content"][$i]["desc_color"] ?? '#ffffff';
         $rawAskName        = $card["content"][$i]["ask_name"] ?? true;
@@ -96,7 +98,7 @@
           $isOpen = (trim($itemTitle) === '' && trim($itemUrl) === '');
         }
       ?>
-        <div id="content-item-<?= $i?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="true" data-type="<?= e($itemType) ?>">
+        <div id="content-item-<?= $i?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">
           
           <!-- Cabecera del bloque (Siempre visible) -->
           <div class="content-item-header flex-row center-between w100 pointer">
@@ -378,9 +380,62 @@
                 </div>
               </div>
 
-              <!-- Opciones de Fondo: Opacidad y Color (solo cuando está en modo Fondo) -->
-              <div id="campaign-bg-options-<?= $i?>" class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
-                <!-- Opacidad del fondo con slider -->
+              <!-- Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
+              <div class="flex-column gap8 w100">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Tamaño del bloque</p>
+                  <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
+                </div>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="campaign-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="horizontal" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'horizontal') ? 'checked' : '' ?>>
+                  <label for="campaign-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato horizontal compacto">
+                    <?= svg("bars", "x16") ?>
+                    <span class="bold500 x13">Horizontal</span>
+                  </label>
+
+                  <input type="radio" id="campaign-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="square" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'square') ? 'checked' : '' ?>>
+                  <label for="campaign-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato cuadrado (1:1)">
+                    <?= svg("grid", "x16") ?>
+                    <span class="bold500 x13">Cuadrado</span>
+                  </label>
+
+                  <input type="radio" id="campaign-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="vertical" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'vertical') ? 'checked' : '' ?>>
+                  <label for="campaign-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato vertical amplio">
+                    <?= svg("film", "x16") ?>
+                    <span class="bold500 x13">Vertical</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Selector de Alineación vertical del Texto (Arriba / Centro / Abajo) -->
+              <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100" style="<?= ($itemSize === 'horizontal') ? 'display: none;' : '' ?>">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Alineación del texto</p>
+                  <span class="x11 text-muted">Posición vertical del texto en el bloque</span>
+                </div>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="campaign-text-pos-top-<?= $i?>" name="content[<?= $i?>][text_position]" value="top" class="hidden-radio" <?= ($itemTextPosition === 'top') ? 'checked' : '' ?>>
+                  <label for="campaign-text-pos-top-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte superior">
+                    <?= svg("arrow-up", "x14") ?>
+                    <span class="bold500 x13">Arriba</span>
+                  </label>
+
+                  <input type="radio" id="campaign-text-pos-center-<?= $i?>" name="content[<?= $i?>][text_position]" value="center" class="hidden-radio" <?= ($itemTextPosition === 'center') ? 'checked' : '' ?>>
+                  <label for="campaign-text-pos-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto centrado">
+                    <?= svg("bars", "x14") ?>
+                    <span class="bold500 x13">Centro</span>
+                  </label>
+
+                  <input type="radio" id="campaign-text-pos-bottom-<?= $i?>" name="content[<?= $i?>][text_position]" value="bottom" class="hidden-radio" <?= ($itemTextPosition === 'bottom') ? 'checked' : '' ?>>
+                  <label for="campaign-text-pos-bottom-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte inferior">
+                    <?= svg("arrow-down", "x14") ?>
+                    <span class="bold500 x13">Abajo</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Opacidad de la capa (solo cuando está en modo Fondo) -->
+              <div id="campaign-opacity-option-<?= $i?>" class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
                     <p class="x13 bold500 texto">Opacidad de la capa</p>
@@ -391,20 +446,20 @@
                     <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="campaign-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
                   </div>
                 </div>
+              </div>
 
-                <!-- Color de fondo que se mezcla con la opacidad -->
-                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-                  <div class="flex-column">
-                    <p class="x13 bold500 texto">Color de fondo</p>
-                    <span class="x11 text-muted">Tonalidad sobre la que actúa la opacidad</span>
-                  </div>
-                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-                    <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
-                      <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
-                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
-                    </label>
-                  </div>
+              <!-- Color de fondo que se aplica al bloque (SIEMPRE visible, en modo Fondo y Cabecera) -->
+              <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100 p12 br10 back-card-graphic shadow-card-graphic">
+                <div class="flex-column">
+                  <p class="x13 bold500 texto">Color de fondo</p>
+                  <span class="x11 text-muted">Color de fondo del bloque de campaña</span>
+                </div>
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                  <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                    <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
+                      style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                    <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                  </label>
                 </div>
               </div>
 

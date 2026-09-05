@@ -630,6 +630,8 @@ class DesignModels extends Builder {
           $campaignEmail    = trim((string)($item["email"] ?? ""));
           $campaignWhatsapp = trim((string)($item["whatsapp"] ?? ""));
           $imgPosition      = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
+          $size             = in_array($item["size"] ?? "", ["horizontal", "square", "vertical"], true) ? $item["size"] : "horizontal";
+          $textPosition     = in_array($item["text_position"] ?? "", ["top", "center", "bottom"], true) ? $item["text_position"] : "center";
           $bgOpacity        = max(0, min(100, (int)($item["bg_opacity"] ?? 80)));
           $bgColor          = trim((string)($item["bg_color"] ?? "#1e1e1e"));
           if (!preg_match('/^#[a-f0-9]{3,8}$/i', $bgColor)) {
@@ -690,6 +692,8 @@ class DesignModels extends Builder {
             "desc"           => $campaignDesc,
             "title_color"    => $titleColor,
             "desc_color"     => $descColor,
+            "size"           => $size,
+            "text_position"  => $textPosition,
             "name"           => $campaignName,
             "email"          => $campaignEmail,
             "whatsapp"       => $campaignWhatsapp,
@@ -924,6 +928,8 @@ class DesignModels extends Builder {
           "desc"           => "",
           "title_color"    => "#ffffff",
           "desc_color"     => "#ffffff",
+          "size"           => "horizontal",
+          "text_position"  => "center",
           "name"           => "",
           "email"          => "",
           "whatsapp"       => "",

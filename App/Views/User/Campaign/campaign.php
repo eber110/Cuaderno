@@ -23,6 +23,18 @@
   $rawAskWhatsapp  = $campaignData["ask_whatsapp"] ?? (!empty($whatsapp));
   $askWhatsapp     = ($rawAskWhatsapp === true || $rawAskWhatsapp === 'true' || $rawAskWhatsapp === 1 || $rawAskWhatsapp === '1');
   $profile         = $card["profile"] ?? "";
+  $size            = $campaignData["size"] ?? "horizontal";
+  if (!in_array($size, ["horizontal", "square", "vertical"], true)) {
+    $size = "horizontal";
+  }
+  $textPosition    = $campaignData["text_position"] ?? "center";
+  if (!in_array($textPosition, ["top", "center", "bottom"], true)) {
+    $textPosition = "center";
+  }
+
+  $sizeClass      = "campaign-size-" . $size;
+  $textPosClass   = ($size !== "horizontal") ? ("campaign-text-pos-" . $textPosition) : "";
+  $btnAnchorClass = ($size !== "horizontal") ? "campaign-btn-anchor-bottom" : "";
 
   $rawImgShow = $campaignData["imgShow"] ?? true;
   $imgShow    = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
@@ -34,7 +46,7 @@
   $campaignId = "campaign-block-" . $dataContent;
 ?>
 
-<div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column overflow-hidden position-relative <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>; <?//= $isBgMode ? 'color: #ffffff;' : '' ?> ">
+<div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column overflow-hidden position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;">
 
   <?php if ($isBgMode) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
@@ -44,51 +56,54 @@
     </div>
   <?php elseif ($imgPosition === "header" && $imgShow && $hasImg) : ?>
     <!-- Imagen destacada de cabecera -->
-    <figure class="w100 hpx150 overflow-hidden" style="margin: 0;">
+    <figure class="w100 hpx150 overflow-hidden" style="margin: 0; flex-shrink: 0;">
       <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
     </figure>
   <?php endif; ?>
 
   <!-- Contenido de la campaña -->
-  <div class="campaign-content flex-column gap15 p20 w100 position-relative z-index-1" style="box-sizing: border-box;">
+  <div class="campaign-content flex-column gap15 p20 w100 position-relative z-index-1 <?= ($size !== 'horizontal') ? 'flex-1' : '' ?>" style="box-sizing: border-box;<?= ($size !== 'horizontal') ? ' flex: 1 1 auto; min-height: 0;' : '' ?>">
     
-    <!-- Título y Descripción -->
-    <div class="flex-column gap5 text-center w100">
-      <?php if (!empty($title)) : ?>
-        <h3 class="bold700 x24" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
-      <?php endif; ?>
+    <!-- Grupo de texto y contador -->
+    <div class="campaign-text-group flex-column gap15 text-center w100 <?= $textPosClass ?>">
+      <!-- Título y Descripción -->
+      <div class="flex-column gap5 text-center w100">
+        <?php if (!empty($title)) : ?>
+          <h3 class="bold700 x24" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
+        <?php endif; ?>
 
-      <?php if (!empty($desc)) : ?>
-        <p class="bod600" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
+        <?php if (!empty($desc)) : ?>
+          <p class="bod600" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
+        <?php endif; ?>
+      </div>
+
+      <!-- Contador Regresivo (si está configurado) -->
+      <?php if ($hasCountdown && !empty($countdownDate)) : ?>
+        <div class="campaign-countdown-box grid col-7 gap10 p10 br10 w100" data-countdown="<?= e($countdownDate) ?>" style="background: <?= $isBgMode ? 'rgba(0,0,0,0.35)' : 'rgba(150,150,150,0.1)' ?>; backdrop-filter: blur(4px);">
+          <div class="flex-column center-center flex-1">
+            <span class="countdown-days bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
+            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Días</span>
+          </div>
+          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <div class="flex-column center-center flex-1">
+            <span class="countdown-hours bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
+            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Horas</span>
+          </div>
+          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <div class="flex-column center-center flex-1">
+            <span class="countdown-minutes bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
+            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Min</span>
+          </div>
+          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <div class="flex-column center-center flex-1">
+            <span class="countdown-seconds bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
+            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Seg</span>
+          </div>
+        </div>
       <?php endif; ?>
     </div>
 
-    <!-- Contador Regresivo (si está configurado) -->
-    <?php if ($hasCountdown && !empty($countdownDate)) : ?>
-      <div class="campaign-countdown-box flex-row center-center gap10 p10 br10 w100" data-countdown="<?= e($countdownDate) ?>" style="background: <?= $isBgMode ? 'rgba(0,0,0,0.35)' : 'rgba(150,150,150,0.1)' ?>; backdrop-filter: blur(4px);">
-        <div class="flex-column center-center flex-1">
-          <span class="countdown-days bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-          <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Días</span>
-        </div>
-        <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
-        <div class="flex-column center-center flex-1">
-          <span class="countdown-hours bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-          <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Horas</span>
-        </div>
-        <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
-        <div class="flex-column center-center flex-1">
-          <span class="countdown-minutes bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-          <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Min</span>
-        </div>
-        <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
-        <div class="flex-column center-center flex-1">
-          <span class="countdown-seconds bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-          <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Seg</span>
-        </div>
-      </div>
-    <?php endif; ?>
-
-    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>;">Suscribirme</p>
+    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>;">Suscribirme</p>
 
     <div class="hidden">
       <div class="flex-column center-center w100 wrap">

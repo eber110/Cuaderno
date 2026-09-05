@@ -54,12 +54,21 @@ export function autoSubmitForm() {
       }
     }
 
-    // 4. Alternancia de opciones de fondo en bloques de campaña
+    // 4. Alternancia de opciones de fondo en bloques de campaña (solo opacidad de capa)
     if (target.classList && target.classList.contains('campaign-pos-radio')) {
       const idx = target.dataset.index;
-      const bgOpts = document.getElementById(`campaign-bg-options-${idx}`);
-      if (bgOpts) {
-        bgOpts.style.display = target.value === 'background' ? 'flex' : 'none';
+      const opacityOpt = document.getElementById(`campaign-opacity-option-${idx}`);
+      if (opacityOpt) {
+        opacityOpt.style.display = target.value === 'background' ? 'flex' : 'none';
+      }
+    }
+
+    // 4b. Alternancia de opciones de alineación de texto en bloques de campaña (solo visible en cuadrado o vertical)
+    if (target.classList && target.classList.contains('campaign-size-radio')) {
+      const idx = target.dataset.index;
+      const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
+      if (textPosWrap) {
+        textPosWrap.style.display = target.value === 'horizontal' ? 'none' : 'flex';
       }
     }
 
