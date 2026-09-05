@@ -2,6 +2,7 @@
   /** 
    * @var mixed $card 
    * @var mixed $uri
+   * @var mixed $prodCount
    */
   $selected = "";
   $cant = is_array($card["content"] ?? null) ? count($card["content"]) : 0;
