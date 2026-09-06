@@ -121,28 +121,28 @@
         <div id="content-item-<?= $i?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">
           
           <!-- Cabecera del bloque (Siempre visible) -->
-          <div class="content-item-header flex-row center-between w100 pointer">
-            <div class="flex-row center-start gap10 drag-handle flex-1" style="min-width: 0;">
-              <span class="flex-row top-center drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <p class="bold500 item-title-label texto" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+          <div class="content-item-header flex-row center-between gap10 w100 pointer">
+            <div class="flex-row center-start gap10 drag-handle flex-1" style="min-width: 0; overflow: hidden;">
+              <span class="flex-row top-center drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none; flex-shrink: 0;">&#x22EE;&#x22EE;</span>
+              <p class="bold500 item-title-label texto" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;">
                 <?php
                   if ($itemType === 'product_group') {
                     echo 'Grupo de productos - ' . $prodCount . ' productos';
                   } elseif ($itemType === 'product') {
                     $displayTitle = trim($itemTitle);
-                    echo ($displayTitle !== '') ? 'Producto - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Producto - (Sin título)';
+                    echo ($displayTitle !== '') ? 'Producto - ' . e($displayTitle) : 'Producto - (Sin título)';
                   } elseif ($itemType === 'campaign') {
                     $displayTitle = trim($itemTitle);
-                    echo ($displayTitle !== '') ? 'Campaña - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Campaña - (Sin título)';
+                    echo ($displayTitle !== '') ? 'Campaña - ' . e($displayTitle) : 'Campaña - (Sin título)';
                   } else {
                     $displayTitle = trim($itemTitle);
-                    echo ($displayTitle !== '') ? 'Enlace - ' . \Base\Module\TextModule::truncateRaw($displayTitle, 4, '...') : 'Enlace - (Sin título)';
+                    echo ($displayTitle !== '') ? 'Enlace - ' . e($displayTitle) : 'Enlace - (Sin título)';
                   }
                 ?>
               </p>
             </div>
             
-            <div class="flex-row center-end gap20 tooltip left animated wpx300 wpx-sml-270 no-drag-actions" data-tooltip="Ocultar elemento" style="flex-shrink: 0;">
+            <div class="flex-row center-end gap15 gap-sml-10 no-drag-actions" style="flex-shrink: 0;">
               <!-- Switch para activar / desactivar enlace o grupo -->
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               

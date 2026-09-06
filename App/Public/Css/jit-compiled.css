@@ -381,7 +381,6 @@
 .wpx250 { width: 250px; }
 .wpx280 { width: 280px; }
 .wpx30 { width: 30px; }
-.wpx300 { width: 300px; }
 .wpx320 { width: 320px; }
 .wpx35 { width: 35px; }
 .wpx40 { width: 40px; }
@@ -835,9 +834,6 @@
 }
 @media screen and (max-width: 576px) {
   .wpx-sml-160 { width: 160px; }
-}
-@media screen and (max-width: 576px) {
-  .wpx-sml-270 { width: 270px; }
 }
 @media screen and (max-width: 576px) {
   .wpx-sml-40 { width: 40px; }
