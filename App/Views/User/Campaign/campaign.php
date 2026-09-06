@@ -143,7 +143,10 @@
           <p class="absolute top right mt10 mr10 pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
           <br>
           <div class="flex-column top-start gap10">
-            <p>Ingresa tus datos para mantener el contacto</p>
+            <?php if (!empty($title)) : ?>
+              <h3 class="bold600 w100"><?= e($title) ?></h3>
+            <?php endif; ?>
+            <p>Ingresa tus datos para no perderte nada: avisos de interés, próximos eventos y contenidos especiales pensados para ti.</p>
             <!-- Formulario de Suscripción (Boceto para diseño) -->
             <form class="campaign-sub-form flex-column gap10 w100" onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte!');">
               <?php if ($askName) : ?>
@@ -156,10 +159,24 @@
                 <input type="tel" name="subscriber_whatsapp" class="p15 br15" placeholder="Tu número de WhatsApp" style="background-color: #ffffff; border: solid 1px #595a83;">
               <?php endif; ?>
         
-              <button type="submit" class="p15 br50 bold500 pointer text-center" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>; border: none;">
+              <button type="submit" class="p15 br50 bold500 pointer text-center" style="background-color: #595a83; color: #ffffff; border: none;">
                 <?= e($buttonText) ?>
               </button>
             </form>
+
+            <hr class="w90 mt30" style="border: #595a8340 0.5px solid;">
+
+            <div class="flex-column top-start gap20 gap-sml-10 w100">
+              <div class="">
+                <p class="bold700">Únete a <?= e($card["profile"] ?? ($data["profile"] ?? '')) ?> en Clikhub.</p>
+                <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
+              </div>
+
+              <div class="flex-row center-center gap15 w100">
+                <a href="/registrar" class="br50 w100 btn-share-register p15 p-sml-10 flex-row center-center text-c bold700">Regístrate gratis</a>
+                <a href="/" class="br50 w100 btn-share-see-more p15 p-sml-10 flex-row center-center text-c bold700">Descubre más</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

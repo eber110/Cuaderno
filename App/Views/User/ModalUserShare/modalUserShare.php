@@ -86,7 +86,7 @@
 
   <div class="flex-column top-start gap20 gap-sml-10 w100 mt20 mt5">
     <div class="">
-      <p class="bold700">Únete a <?= e($card["profile"] ?? $card["title"] ?? "") ?> en Cuaderno.</p>
+      <p class="bold700">Únete a <?= e($card["profile"] ?? $card["title"] ?? "") ?> en Clikhub.</p>
       <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
     </div>
 
