@@ -16,8 +16,39 @@
   $bgColor         = $campaignData["bg_color"] ?? "#1e1e1e";
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
+  if ($hasCountdown && !empty($countdownDate)) {
+    $targetTimestamp = strtotime($countdownDate);
+    if ($targetTimestamp !== false && $targetTimestamp <= time()) {
+      return;
+    }
+  }
+  $buttonText      = !empty(trim($campaignData["button_text"] ?? "")) ? trim($campaignData["button_text"]) : "Suscribirme";
   $titleColor      = !empty($campaignData["title_color"]) ? $campaignData["title_color"] : ($isBgMode ? "#ffffff" : ($card["titleColor"] ?? "#1e1e1e"));
   $descColor       = !empty($campaignData["desc_color"]) ? $campaignData["desc_color"] : ($isBgMode ? "#ffffff" : ($card["colorText"] ?? "#4a4a4a"));
+  $btnBgColor      = !empty($campaignData["btn_bg_color"]) ? $campaignData["btn_bg_color"] : ($card["back"] ?? "#595a83");
+  $btnTextColor    = !empty($campaignData["btn_text_color"]) ? $campaignData["btn_text_color"] : ($card["color"] ?? "#ffffff");
+  $countdownBgColor   = !empty($campaignData["countdown_bg_color"]) ? $campaignData["countdown_bg_color"] : ($isBgMode ? "rgba(0,0,0,0.35)" : "rgba(150,150,150,0.1)");
+  $countdownTextColor = !empty($campaignData["countdown_text_color"]) ? $campaignData["countdown_text_color"] : ($isBgMode ? "#ffffff" : "#1e1e1e");
+  $countdownTextSize  = $campaignData["countdown_text_size"] ?? "medium";
+  if (!in_array($countdownTextSize, ["small", "medium", "large"], true)) {
+    $countdownTextSize = "medium";
+  }
+  $countdownWidgetSize = $campaignData["countdown_widget_size"] ?? "medium";
+  if (!in_array($countdownWidgetSize, ["small", "medium", "large"], true)) {
+    $countdownWidgetSize = "medium";
+  }
+  $textAlign       = $campaignData["text_align"] ?? "center";
+  if (!in_array($textAlign, ["left", "center", "right"], true)) {
+    $textAlign = "center";
+  }
+  $titleSize       = $campaignData["title_size"] ?? "large";
+  if (!in_array($titleSize, ["small", "medium", "large"], true)) {
+    $titleSize = "large";
+  }
+  $descSize        = $campaignData["desc_size"] ?? "medium";
+  if (!in_array($descSize, ["small", "medium", "large"], true)) {
+    $descSize = "medium";
+  }
   $rawAskName      = $campaignData["ask_name"] ?? true;
   $askName         = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
   $rawAskWhatsapp  = $campaignData["ask_whatsapp"] ?? (!empty($whatsapp));
@@ -42,8 +73,9 @@
 
   $borderCard = ($card["borders"][0] == "br50") ? "br20" : ($card["borders"][0] ?? "br15");
   $shadowCard = $card["shadow"] ?? "shadow-card";
-  $isBgMode   = ($imgPosition === "background" && $imgShow && $hasImg);
-  $campaignId = "campaign-block-" . $dataContent;
+  $isBgMode     = ($imgPosition === "background" && $imgShow && $hasImg);
+  $hasHeaderImg = ($imgPosition === "header" && $imgShow && $hasImg);
+  $campaignId   = "campaign-block-" . $dataContent;
 ?>
 
 <div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column overflow-hidden position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;">
@@ -54,56 +86,56 @@
       <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
       <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= e($bgColor) ?> l c h / <?= $bgOpacity ?>%);"></div>
     </div>
-  <?php elseif ($imgPosition === "header" && $imgShow && $hasImg) : ?>
-    <!-- Imagen destacada de cabecera -->
-    <figure class="w100 hpx150 overflow-hidden" style="margin: 0; flex-shrink: 0;">
-      <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
+  <?php elseif ($hasHeaderImg) : ?>
+    <!-- Imagen destacada de cabecera cuadrada -->
+    <figure class="w100 ar-square faded-image">
+      <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
     </figure>
   <?php endif; ?>
 
   <!-- Contenido de la campaña -->
-  <div class="campaign-content flex-column gap15 p20 w100 position-relative z-index-1 <?= ($size !== 'horizontal') ? 'flex-1' : '' ?>" style="box-sizing: border-box;<?= ($size !== 'horizontal') ? ' flex: 1 1 auto; min-height: 0;' : '' ?>">
+  <div class="campaign-content flex-column gap15 p20 <?= ($hasHeaderImg) ? "pt0" : "pt20"?> w100 position-relative z-index-1 <?= ($size !== 'horizontal') ? 'flex-1' : '' ?>" style="box-sizing: border-box;<?= ($size !== 'horizontal') ? ' flex: 1 1 auto; min-height: max-content;' : '' ?>">
     
     <!-- Grupo de texto y contador -->
-    <div class="campaign-text-group flex-column gap15 text-center w100 <?= $textPosClass ?>">
+    <div class="campaign-text-group flex-column gap15 w100 campaign-align-<?= $textAlign ?> <?= $textPosClass ?>">
       <!-- Título y Descripción -->
-      <div class="flex-column gap5 text-center w100">
+      <div class="flex-column gap5 w100 campaign-align-<?= $textAlign ?>">
         <?php if (!empty($title)) : ?>
-          <h3 class="bold700 x24" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
+          <h3 class="bold700 campaign-title-<?= $titleSize ?> w100" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
         <?php endif; ?>
 
         <?php if (!empty($desc)) : ?>
-          <p class="bod600" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
+          <p class="campaign-desc-<?= $descSize ?> w100" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
         <?php endif; ?>
       </div>
 
       <!-- Contador Regresivo (si está configurado) -->
       <?php if ($hasCountdown && !empty($countdownDate)) : ?>
-        <div class="campaign-countdown-box grid col-7 gap10 p10 br10 w100" data-countdown="<?= e($countdownDate) ?>" style="background: <?= $isBgMode ? 'rgba(0,0,0,0.35)' : 'rgba(150,150,150,0.1)' ?>; backdrop-filter: blur(4px);">
+        <div class="campaign-countdown-box grid col-7 campaign-countdown-widget-<?= $countdownWidgetSize ?> countdown-text-<?= $countdownTextSize ?>" data-countdown="<?= e($countdownDate) ?>" style="background-color: <?= e($countdownBgColor) ?>; color: <?= e($countdownTextColor) ?>; backdrop-filter: blur(4px);">
           <div class="flex-column center-center flex-1">
-            <span class="countdown-days bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Días</span>
+            <span class="countdown-days countdown-num bold700">00</span>
+            <span class="countdown-unit text-uppercase opacity-70">Días</span>
           </div>
-          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <span class="countdown-sep bold700 opacity-50">:</span>
           <div class="flex-column center-center flex-1">
-            <span class="countdown-hours bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Horas</span>
+            <span class="countdown-hours countdown-num bold700">00</span>
+            <span class="countdown-unit text-uppercase opacity-70">Horas</span>
           </div>
-          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <span class="countdown-sep bold700 opacity-50">:</span>
           <div class="flex-column center-center flex-1">
-            <span class="countdown-minutes bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Min</span>
+            <span class="countdown-minutes countdown-num bold700">00</span>
+            <span class="countdown-unit text-uppercase opacity-70">Min</span>
           </div>
-          <span class="bold700 x16 opacity-50 <?= $isBgMode ? 'textw' : 'texto' ?>">:</span>
+          <span class="countdown-sep bold700 opacity-50">:</span>
           <div class="flex-column center-center flex-1">
-            <span class="countdown-seconds bold700 x18 <?= $isBgMode ? 'textw' : 'texto' ?>">00</span>
-            <span class="x10 text-uppercase opacity-70 <?= $isBgMode ? 'textw' : 'texto' ?>">Seg</span>
+            <span class="countdown-seconds countdown-num bold700">00</span>
+            <span class="countdown-unit text-uppercase opacity-70">Seg</span>
           </div>
         </div>
       <?php endif; ?>
     </div>
 
-    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= $card["back"]?>; color: <?= $card["color"]?>;">Suscribirme</p>
+    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
 
     <div class="hidden">
       <div class="flex-column center-center w100 wrap">
@@ -124,8 +156,8 @@
                 <input type="tel" name="subscriber_whatsapp" class="p15 br15" placeholder="Tu número de WhatsApp" style="background-color: #ffffff; border: solid 1px #595a83;">
               <?php endif; ?>
         
-              <button type="submit" class="p15 br50 bold500 pointer text-center" style="background-color: #595a83; color: #ffffff; border: none;">
-                Suscribirme
+              <button type="submit" class="p15 br50 bold500 pointer text-center" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>; border: none;">
+                <?= e($buttonText) ?>
               </button>
             </form>
           </div>
@@ -145,10 +177,16 @@
         const targetStr = box.getAttribute('data-countdown');
         if (!targetStr) return;
         const target = new Date(targetStr).getTime();
+        let timer = null;
 
         function updateCountdown() {
           const now = new Date().getTime();
-          const diff = Math.max(0, target - now);
+          const diff = target - now;
+          if (diff <= 0) {
+            if (timer) clearInterval(timer);
+            wrapper.style.display = 'none';
+            return;
+          }
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
           const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -166,7 +204,7 @@
         }
 
         updateCountdown();
-        setInterval(updateCountdown, 1000);
+        timer = setInterval(updateCountdown, 1000);
       })();
     </script>
   <?php endif; ?>

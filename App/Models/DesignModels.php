@@ -624,14 +624,21 @@ class DesignModels extends Builder {
 
         // Procesamiento específico para Campaña de Suscripción (campaign)
         if ($type === "campaign") {
-          $campaignTitle    = trim((string)($item["title"] ?? ""));
-          $campaignDesc     = trim((string)($item["desc"] ?? ""));
-          $campaignName     = trim((string)($item["name"] ?? ""));
-          $campaignEmail    = trim((string)($item["email"] ?? ""));
-          $campaignWhatsapp = trim((string)($item["whatsapp"] ?? ""));
+          $campaignTitle      = trim((string)($item["title"] ?? ""));
+          $campaignDesc       = trim((string)($item["desc"] ?? ""));
+          $campaignButtonText = trim((string)($item["button_text"] ?? ""));
+          if ($campaignButtonText === "") {
+            $campaignButtonText = "Suscribirme";
+          }
+          $campaignName       = trim((string)($item["name"] ?? ""));
+          $campaignEmail      = trim((string)($item["email"] ?? ""));
+          $campaignWhatsapp   = trim((string)($item["whatsapp"] ?? ""));
           $imgPosition      = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
           $size             = in_array($item["size"] ?? "", ["horizontal", "square", "vertical"], true) ? $item["size"] : "horizontal";
           $textPosition     = in_array($item["text_position"] ?? "", ["top", "center", "bottom"], true) ? $item["text_position"] : "center";
+          $textAlign        = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "center";
+          $titleSize        = in_array($item["title_size"] ?? "", ["small", "medium", "large"], true) ? $item["title_size"] : "large";
+          $descSize         = in_array($item["desc_size"] ?? "", ["small", "medium", "large"], true) ? $item["desc_size"] : "medium";
           $bgOpacity        = max(0, min(100, (int)($item["bg_opacity"] ?? 80)));
           $bgColor          = trim((string)($item["bg_color"] ?? "#1e1e1e"));
           if (!preg_match('/^#[a-f0-9]{3,8}$/i', $bgColor)) {
@@ -645,6 +652,14 @@ class DesignModels extends Builder {
           if (!preg_match('/^#[a-f0-9]{3,8}$/i', $descColor)) {
             $descColor = "#ffffff";
           }
+          $btnBgColor       = trim((string)($item["btn_bg_color"] ?? ""));
+          if ($btnBgColor !== "" && !preg_match('/^#[a-f0-9]{3,8}$/i', $btnBgColor)) {
+            $btnBgColor = "";
+          }
+          $btnTextColor     = trim((string)($item["btn_text_color"] ?? ""));
+          if ($btnTextColor !== "" && !preg_match('/^#[a-f0-9]{3,8}$/i', $btnTextColor)) {
+            $btnTextColor = "";
+          }
 
           $rawAskName     = $item["ask_name"] ?? false;
           $askName        = ($rawAskName === "true" || $rawAskName === true || $rawAskName === 1 || $rawAskName === "1");
@@ -654,6 +669,16 @@ class DesignModels extends Builder {
           $rawCountdown  = $item["has_countdown"] ?? false;
           $hasCountdown  = ($rawCountdown === "true" || $rawCountdown === true || $rawCountdown === 1 || $rawCountdown === "1");
           $countdownDate = trim((string)($item["countdown_date"] ?? ""));
+          $countdownBgColor   = trim((string)($item["countdown_bg_color"] ?? ""));
+          if ($countdownBgColor !== "" && !preg_match('/^#[a-f0-9]{3,8}$/i', $countdownBgColor)) {
+            $countdownBgColor = "#24252a";
+          }
+          $countdownTextColor = trim((string)($item["countdown_text_color"] ?? ""));
+          if ($countdownTextColor !== "" && !preg_match('/^#[a-f0-9]{3,8}$/i', $countdownTextColor)) {
+            $countdownTextColor = "#ffffff";
+          }
+          $countdownTextSize   = in_array($item["countdown_text_size"] ?? "", ["small", "medium", "large"], true) ? $item["countdown_text_size"] : "medium";
+          $countdownWidgetSize = in_array($item["countdown_widget_size"] ?? "", ["small", "medium", "large"], true) ? $item["countdown_widget_size"] : "medium";
 
           if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
             if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
@@ -687,30 +712,40 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
-            "type"           => "campaign",
-            "title"          => $campaignTitle,
-            "desc"           => $campaignDesc,
-            "title_color"    => $titleColor,
-            "desc_color"     => $descColor,
-            "size"           => $size,
-            "text_position"  => $textPosition,
-            "name"           => $campaignName,
-            "email"          => $campaignEmail,
-            "whatsapp"       => $campaignWhatsapp,
-            "ask_name"       => $askName,
-            "ask_whatsapp"   => $askWhatsapp,
-            "img"            => $img,
-            "img_position"   => $imgPosition,
-            "bg_opacity"     => $bgOpacity,
-            "bg_color"       => $bgColor,
-            "has_countdown"  => $hasCountdown,
-            "countdown_date" => $countdownDate,
-            "active"         => $active,
-            "imgDefault"     => $imgDefault,
-            "imgShow"        => $imgShow,
-            "metaTitle"      => $campaignTitle,
-            "metaDesc"       => $campaignDesc,
-            "metaImg"        => (!empty($img) && $img !== "no-image.webp" && strpos($img, "Custom/") === false) ? "/Uploads/" . $img : ""
+            "type"                  => "campaign",
+            "title"                 => $campaignTitle,
+            "desc"                  => $campaignDesc,
+            "button_text"           => $campaignButtonText,
+            "title_color"           => $titleColor,
+            "desc_color"            => $descColor,
+            "btn_bg_color"          => $btnBgColor,
+            "btn_text_color"        => $btnTextColor,
+            "size"                  => $size,
+            "text_position"         => $textPosition,
+            "text_align"            => $textAlign,
+            "title_size"            => $titleSize,
+            "desc_size"             => $descSize,
+            "name"                  => $campaignName,
+            "email"                 => $campaignEmail,
+            "whatsapp"              => $campaignWhatsapp,
+            "ask_name"              => $askName,
+            "ask_whatsapp"          => $askWhatsapp,
+            "img"                   => $img,
+            "img_position"          => $imgPosition,
+            "bg_opacity"            => $bgOpacity,
+            "bg_color"              => $bgColor,
+            "has_countdown"         => $hasCountdown,
+            "countdown_date"        => $countdownDate,
+            "countdown_bg_color"    => $countdownBgColor,
+            "countdown_text_color"  => $countdownTextColor,
+            "countdown_text_size"   => $countdownTextSize,
+            "countdown_widget_size" => $countdownWidgetSize,
+            "active"                => $active,
+            "imgDefault"            => $imgDefault,
+            "imgShow"               => $imgShow,
+            "metaTitle"             => $campaignTitle,
+            "metaDesc"              => $campaignDesc,
+            "metaImg"               => (!empty($img) && $img !== "no-image.webp" && strpos($img, "Custom/") === false) ? "/Uploads/" . $img : ""
           ];
           continue;
         }
@@ -926,17 +961,27 @@ class DesignModels extends Builder {
           "type"           => "campaign",
           "title"          => "",
           "desc"           => "",
+          "button_text"    => "Suscribirme",
           "title_color"    => "#ffffff",
           "desc_color"     => "#ffffff",
+          "btn_bg_color"   => "",
+          "btn_text_color" => "",
           "size"           => "horizontal",
           "text_position"  => "center",
+          "text_align"     => "center",
+          "title_size"     => "large",
+          "desc_size"      => "medium",
           "name"           => "",
           "email"          => "",
           "whatsapp"       => "",
           "ask_name"       => true,
           "ask_whatsapp"   => false,
-          "has_countdown"  => false,
-          "countdown_date" => "",
+          "has_countdown"         => false,
+          "countdown_date"        => "",
+          "countdown_bg_color"    => "#24252a",
+          "countdown_text_color"  => "#ffffff",
+          "countdown_text_size"   => "medium",
+          "countdown_widget_size" => "medium",
           "img"            => "no-image.webp",
           "img_position"   => "background",
           "bg_opacity"     => 80,

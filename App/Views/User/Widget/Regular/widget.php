@@ -29,6 +29,14 @@
       //si es campaña de suscripción se muestra la plantilla campaign
       if ($itemType === "campaign") {
         if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          $hasCountdown  = !empty($content[$i]["has_countdown"]);
+          $countdownDate = $content[$i]["countdown_date"] ?? "";
+          if ($hasCountdown && !empty($countdownDate)) {
+            $ts = strtotime($countdownDate);
+            if ($ts !== false && $ts <= time()) {
+              continue; // Expiró el tiempo límite, se oculta el bloque
+            }
+          }
           _part("User.campaign", ["dataContent" => $i, "card" => $card]);
         }
       }

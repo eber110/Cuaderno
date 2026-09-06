@@ -455,17 +455,22 @@
 
 /* Tamaños mínimos del bloque de campaña */
 .campaign-size-horizontal {
-  min-height: auto;
+  min-height: 140px;
+  height: auto;
 }
 
 .campaign-size-square {
   aspect-ratio: 1 / 1;
   min-height: 360px;
+  min-height: max(360px, max-content);
+  height: auto;
 }
 
 .campaign-size-vertical {
   aspect-ratio: 4 / 5;
   min-height: 480px;
+  min-height: max(480px, max-content);
+  height: auto;
 }
 
 /* Expansión del contenedor de contenido en formatos cuadrado y vertical */
@@ -478,7 +483,7 @@
 .campaign-size-square .campaign-content,
 .campaign-size-vertical .campaign-content {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: max-content;
   display: flex;
   flex-direction: column;
 }
@@ -511,5 +516,138 @@
   flex-shrink: 0;
   margin-top: 0 !important;
 }
+
+/* Alineación horizontal del texto en campaña */
+.campaign-align-left {
+  text-align: left !important;
+  align-items: flex-start !important;
+}
+
+.campaign-align-center {
+  text-align: center !important;
+  align-items: center !important;
+}
+
+.campaign-align-right {
+  text-align: right !important;
+  align-items: flex-end !important;
+}
+
+/* Tamaños de título en campaña */
+.campaign-title-small {
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+}
+
+.campaign-title-medium {
+  font-size: 22px !important;
+  line-height: 1.25 !important;
+}
+
+.campaign-title-large {
+  font-size: 28px !important;
+  line-height: 1.2 !important;
+}
+
+/* Tamaños de descripción en campaña */
+.campaign-desc-small {
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+}
+
+.campaign-desc-medium {
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+}
+
+.campaign-desc-large {
+  font-size: 22px !important;
+  line-height: 1.25 !important;
+}
+
+/* Widget y textos de cuenta regresiva en campaña */
+.campaign-countdown-box {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.campaign-align-left .campaign-countdown-box {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+
+.campaign-align-center .campaign-countdown-box {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.campaign-align-right .campaign-countdown-box {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* Tamaños del widget del contador */
+.campaign-countdown-widget-small {
+  max-width: 280px;
+  padding: 6px 8px !important;
+  gap: 6px !important;
+  border-radius: 8px !important;
+}
+
+.campaign-countdown-widget-medium {
+  max-width: 360px;
+  padding: 10px 12px !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+}
+
+.campaign-countdown-widget-large {
+  max-width: 440px;
+  padding: 14px 16px !important;
+  gap: 10px !important;
+  border-radius: 12px !important;
+}
+
+/* Tamaños de texto del contador */
+.countdown-text-small .countdown-num {
+  font-size: 14px !important;
+  line-height: 1.1 !important;
+}
+.countdown-text-small .countdown-unit {
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+.countdown-text-small .countdown-sep {
+  font-size: 14px !important;
+  line-height: 1.1 !important;
+}
+
+.countdown-text-medium .countdown-num {
+  font-size: 18px !important;
+  line-height: 1.1 !important;
+}
+.countdown-text-medium .countdown-unit {
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+.countdown-text-medium .countdown-sep {
+  font-size: 18px !important;
+  line-height: 1.1 !important;
+}
+
+.countdown-text-large .countdown-num {
+  font-size: 24px !important;
+  line-height: 1.1 !important;
+}
+.countdown-text-large .countdown-unit {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+.countdown-text-large .countdown-sep {
+  font-size: 24px !important;
+  line-height: 1.1 !important;
+}
+
+
 
 

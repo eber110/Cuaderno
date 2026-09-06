@@ -72,13 +72,20 @@ export function autoSubmitForm() {
       }
     }
 
-    // 5. Alternancia de fecha límite de contador en bloques de campaña
+    // 5. Alternancia de fecha límite y colores de contador en bloques de campaña
     if (target.classList && target.classList.contains('campaign-countdown-switch')) {
       const targetId = target.dataset.target;
       if (targetId) {
         const dateWrap = document.getElementById(targetId);
         if (dateWrap) {
           dateWrap.style.display = target.checked ? 'flex' : 'none';
+        }
+      }
+      const colorsTargetId = target.dataset.colorsTarget;
+      if (colorsTargetId) {
+        const colorsWrap = document.getElementById(colorsTargetId);
+        if (colorsWrap) {
+          colorsWrap.style.display = target.checked ? 'flex' : 'none';
         }
       }
     }

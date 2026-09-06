@@ -61,15 +61,35 @@
         $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
         $itemSize          = $card["content"][$i]["size"] ?? 'horizontal';
         $itemTextPosition  = $card["content"][$i]["text_position"] ?? 'center';
+        $itemTextAlign     = $card["content"][$i]["text_align"] ?? 'center';
+        $itemTitleSize     = $card["content"][$i]["title_size"] ?? 'large';
+        $itemDescSize      = $card["content"][$i]["desc_size"] ?? 'medium';
         $itemTitleColor    = $card["content"][$i]["title_color"] ?? '#ffffff';
         $itemDescColor     = $card["content"][$i]["desc_color"] ?? '#ffffff';
+        $itemBtnBgColor    = $card["content"][$i]["btn_bg_color"] ?? ($card["back"] ?? '#595a83');
+        $itemBtnTextColor  = $card["content"][$i]["btn_text_color"] ?? ($card["color"] ?? '#ffffff');
         $rawAskName        = $card["content"][$i]["ask_name"] ?? true;
         $askName           = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
         $rawAskWhatsapp    = $card["content"][$i]["ask_whatsapp"] ?? (!empty($itemWhatsapp));
         $askWhatsapp       = ($rawAskWhatsapp === true || $rawAskWhatsapp === 'true' || $rawAskWhatsapp === 1 || $rawAskWhatsapp === '1');
-        $rawCountdown      = $card["content"][$i]["has_countdown"] ?? false;
-        $hasCountdown      = ($rawCountdown === true || $rawCountdown === 'true' || $rawCountdown === 1 || $rawCountdown === '1');
-        $itemCountdownDate = $card["content"][$i]["countdown_date"] ?? '';
+        $rawCountdown           = $card["content"][$i]["has_countdown"] ?? false;
+        $hasCountdown           = ($rawCountdown === true || $rawCountdown === 'true' || $rawCountdown === 1 || $rawCountdown === '1');
+        $itemCountdownDate      = $card["content"][$i]["countdown_date"] ?? '';
+        $itemCountdownBgColor   = !empty($card["content"][$i]["countdown_bg_color"]) ? $card["content"][$i]["countdown_bg_color"] : '#24252a';
+        $itemCountdownTextColor = !empty($card["content"][$i]["countdown_text_color"]) ? $card["content"][$i]["countdown_text_color"] : '#ffffff';
+        $itemCountdownTextSize  = $card["content"][$i]["countdown_text_size"] ?? 'medium';
+        if (!in_array($itemCountdownTextSize, ['small', 'medium', 'large'], true)) {
+          $itemCountdownTextSize = 'medium';
+        }
+        $itemCountdownWidgetSize = $card["content"][$i]["countdown_widget_size"] ?? 'medium';
+        if (!in_array($itemCountdownWidgetSize, ['small', 'medium', 'large'], true)) {
+          $itemCountdownWidgetSize = 'medium';
+        }
+        $itemButtonText         = trim($card["content"][$i]["button_text"] ?? '');
+        if ($itemButtonText === '') {
+          $itemButtonText = 'Suscribirme';
+        }
+        $isCountdownExpired     = ($hasCountdown && !empty($itemCountdownDate) && strtotime($itemCountdownDate) !== false && strtotime($itemCountdownDate) <= time());
 
         if ($itemType === 'product_group') {
           $groupProducts = $card["content"][$i]["products"] ?? [];
@@ -333,6 +353,34 @@
                 }
               ?>
 
+              <!-- 1. Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
+              <div class="flex-column gap8 w100">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Tamaño del bloque</p>
+                  <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
+                </div>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="campaign-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="horizontal" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'horizontal') ? 'checked' : '' ?>>
+                  <label for="campaign-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato horizontal compacto">
+                    <?= svg("bars", "x16") ?>
+                    <span class="bold500 x13">Horizontal</span>
+                  </label>
+
+                  <input type="radio" id="campaign-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="square" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'square') ? 'checked' : '' ?>>
+                  <label for="campaign-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato cuadrado (1:1)">
+                    <?= svg("grid", "x16") ?>
+                    <span class="bold500 x13">Cuadrado</span>
+                  </label>
+
+                  <input type="radio" id="campaign-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="vertical" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'vertical') ? 'checked' : '' ?>>
+                  <label for="campaign-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato vertical amplio">
+                    <?= svg("film", "x16") ?>
+                    <span class="bold500 x13">Vertical</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 2. Imagen y posición de la imagen -->
               <!-- Selector de Posición de Imagen (Fondo vs Cabecera) -->
               <div class="flex-column gap8 w100">
                 <p class="x13 bold600 texto">Posición de la imagen</p>
@@ -374,69 +422,165 @@
                     name="content_img_<?= $i ?>" 
                     class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
                     placeholder="Subir imagen" 
-                    cropping-size="600x400"
+                    cropping-size="500x500"
                     box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
                     box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
                 </div>
               </div>
 
-              <!-- Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
-              <div class="flex-column gap8 w100">
+              <!-- 3. Título, Descripción y Botón -->
+              <!-- Título de la campaña -->
+              <div class="flex-column gap5 w100">
+                <p class="x12 bold500 texto">Título de la campaña</p>
+                <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título para la campaña (ej: Suscríbete a mi newsletter)">
+              </div>
+
+              <!-- Textarea para la descripción -->
+              <div class="flex-column gap5 w100">
+                <p class="x12 bold500 texto">Descripción</p>
+                <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
+              </div>
+
+              <!-- Texto del botón de suscripción -->
+              <div class="flex-column gap5 w100">
+                <p class="x12 bold500 texto">Texto del botón</p>
+                <input type="text" name="content[<?= $i?>][button_text]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemButtonText) ?>" placeholder="Texto del botón (ej: Suscribirme)">
+              </div>
+
+              <!-- 4. Card con toda la disposición del texto -->
+              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Tamaño del bloque</p>
-                  <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
+                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("edit", "x16") ?> Diseño del texto</p>
+                  <span class="x11 text-muted">Configura la alineación y los tamaños del título y la descripción</span>
                 </div>
-                <div class="flex-row center-between gap10 w100">
-                  <input type="radio" id="campaign-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="horizontal" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'horizontal') ? 'checked' : '' ?>>
-                  <label for="campaign-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato horizontal compacto">
-                    <?= svg("bars", "x16") ?>
-                    <span class="bold500 x13">Horizontal</span>
-                  </label>
 
-                  <input type="radio" id="campaign-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="square" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'square') ? 'checked' : '' ?>>
-                  <label for="campaign-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato cuadrado (1:1)">
-                    <?= svg("grid", "x16") ?>
-                    <span class="bold500 x13">Cuadrado</span>
-                  </label>
+                <!-- Alineación horizontal del texto (Izquierda / Centro / Derecha) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Alineación horizontal</p>
+                    <span class="x11 text-muted">Alineación del texto y título en el bloque</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-text-align-left-<?= $i?>" name="content[<?= $i?>][text_align]" value="left" class="hidden-radio" <?= ($itemTextAlign === 'left') ? 'checked' : '' ?>>
+                    <label for="campaign-text-align-left-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la izquierda">
+                      <?= svg("arrow-l-l", "x14") ?>
+                      <span class="bold500 x13">Izquierda</span>
+                    </label>
 
-                  <input type="radio" id="campaign-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="vertical" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'vertical') ? 'checked' : '' ?>>
-                  <label for="campaign-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato vertical amplio">
-                    <?= svg("film", "x16") ?>
-                    <span class="bold500 x13">Vertical</span>
-                  </label>
+                    <input type="radio" id="campaign-text-align-center-<?= $i?>" name="content[<?= $i?>][text_align]" value="center" class="hidden-radio" <?= ($itemTextAlign === 'center') ? 'checked' : '' ?>>
+                    <label for="campaign-text-align-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear al centro">
+                      <?= svg("bars", "x14") ?>
+                      <span class="bold500 x13">Centro</span>
+                    </label>
+
+                    <input type="radio" id="campaign-text-align-right-<?= $i?>" name="content[<?= $i?>][text_align]" value="right" class="hidden-radio" <?= ($itemTextAlign === 'right') ? 'checked' : '' ?>>
+                    <label for="campaign-text-align-right-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la derecha">
+                      <?= svg("arrow-r-l", "x14") ?>
+                      <span class="bold500 x13">Derecha</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Alineación vertical del texto (Arriba / Centro / Abajo - solo cuadrado y vertical) -->
+                <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100" style="<?= ($itemSize === 'horizontal') ? 'display: none;' : '' ?>">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Alineación vertical</p>
+                    <span class="x11 text-muted">Posición vertical del texto en el bloque</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-text-pos-top-<?= $i?>" name="content[<?= $i?>][text_position]" value="top" class="hidden-radio" <?= ($itemTextPosition === 'top') ? 'checked' : '' ?>>
+                    <label for="campaign-text-pos-top-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte superior">
+                      <?= svg("arrow-up", "x14") ?>
+                      <span class="bold500 x13">Arriba</span>
+                    </label>
+
+                    <input type="radio" id="campaign-text-pos-center-<?= $i?>" name="content[<?= $i?>][text_position]" value="center" class="hidden-radio" <?= ($itemTextPosition === 'center') ? 'checked' : '' ?>>
+                    <label for="campaign-text-pos-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto centrado">
+                      <?= svg("bars", "x14") ?>
+                      <span class="bold500 x13">Centro</span>
+                    </label>
+
+                    <input type="radio" id="campaign-text-pos-bottom-<?= $i?>" name="content[<?= $i?>][text_position]" value="bottom" class="hidden-radio" <?= ($itemTextPosition === 'bottom') ? 'checked' : '' ?>>
+                    <label for="campaign-text-pos-bottom-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte inferior">
+                      <?= svg("arrow-down", "x14") ?>
+                      <span class="bold500 x13">Abajo</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selector de Tamaño del Título (Pequeño / Mediano / Grande) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño del título</p>
+                    <span class="x11 text-muted">Escala de la fuente para el encabezado principal</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-title-size-sm-<?= $i?>" name="content[<?= $i?>][title_size]" value="small" class="hidden-radio" <?= ($itemTitleSize === 'small') ? 'checked' : '' ?>>
+                    <label for="campaign-title-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título pequeño">
+                      <span class="bold500 x12">Pequeño</span>
+                    </label>
+
+                    <input type="radio" id="campaign-title-size-md-<?= $i?>" name="content[<?= $i?>][title_size]" value="medium" class="hidden-radio" <?= ($itemTitleSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="campaign-title-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título mediano">
+                      <span class="bold500 x12">Mediano</span>
+                    </label>
+
+                    <input type="radio" id="campaign-title-size-lg-<?= $i?>" name="content[<?= $i?>][title_size]" value="large" class="hidden-radio" <?= ($itemTitleSize === 'large') ? 'checked' : '' ?>>
+                    <label for="campaign-title-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título grande">
+                      <span class="bold500 x12">Grande</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selector de Tamaño de la Descripción (Pequeño / Mediano / Grande) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño de la descripción</p>
+                    <span class="x11 text-muted">Escala de la fuente para el texto descriptivo</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-desc-size-sm-<?= $i?>" name="content[<?= $i?>][desc_size]" value="small" class="hidden-radio" <?= ($itemDescSize === 'small') ? 'checked' : '' ?>>
+                    <label for="campaign-desc-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción pequeña">
+                      <span class="bold500 x12">Pequeño</span>
+                    </label>
+
+                    <input type="radio" id="campaign-desc-size-md-<?= $i?>" name="content[<?= $i?>][desc_size]" value="medium" class="hidden-radio" <?= ($itemDescSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="campaign-desc-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción mediana">
+                      <span class="bold500 x12">Mediano</span>
+                    </label>
+
+                    <input type="radio" id="campaign-desc-size-lg-<?= $i?>" name="content[<?= $i?>][desc_size]" value="large" class="hidden-radio" <?= ($itemDescSize === 'large') ? 'checked' : '' ?>>
+                    <label for="campaign-desc-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción grande">
+                      <span class="bold500 x12">Grande</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              <!-- Selector de Alineación vertical del Texto (Arriba / Centro / Abajo) -->
-              <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100" style="<?= ($itemSize === 'horizontal') ? 'display: none;' : '' ?>">
+              <!-- 5. Opciones unificadas de colores de la campaña (Fondo, Opacidad de capa, Título, Descripción, Botón Fondo, Botón Texto) -->
+              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Alineación del texto</p>
-                  <span class="x11 text-muted">Posición vertical del texto en el bloque</span>
+                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores de la campaña</p>
+                  <span class="x11 text-muted">Personaliza los colores del bloque, textos, capa y botón</span>
                 </div>
-                <div class="flex-row center-between gap10 w100">
-                  <input type="radio" id="campaign-text-pos-top-<?= $i?>" name="content[<?= $i?>][text_position]" value="top" class="hidden-radio" <?= ($itemTextPosition === 'top') ? 'checked' : '' ?>>
-                  <label for="campaign-text-pos-top-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte superior">
-                    <?= svg("arrow-up", "x14") ?>
-                    <span class="bold500 x13">Arriba</span>
-                  </label>
 
-                  <input type="radio" id="campaign-text-pos-center-<?= $i?>" name="content[<?= $i?>][text_position]" value="center" class="hidden-radio" <?= ($itemTextPosition === 'center') ? 'checked' : '' ?>>
-                  <label for="campaign-text-pos-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto centrado">
-                    <?= svg("bars", "x14") ?>
-                    <span class="bold500 x13">Centro</span>
-                  </label>
-
-                  <input type="radio" id="campaign-text-pos-bottom-<?= $i?>" name="content[<?= $i?>][text_position]" value="bottom" class="hidden-radio" <?= ($itemTextPosition === 'bottom') ? 'checked' : '' ?>>
-                  <label for="campaign-text-pos-bottom-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte inferior">
-                    <?= svg("arrow-down", "x14") ?>
-                    <span class="bold500 x13">Abajo</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Opacidad de la capa (solo cuando está en modo Fondo) -->
-              <div id="campaign-opacity-option-<?= $i?>" class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
+                <!-- 1. Color de fondo del bloque -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color de fondo del bloque</p>
+                    <span class="x11 text-muted">Afecta al contenedor de la campaña</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 2. Opacidad de la capa (dentro de la card de colores, visible solo en modo Fondo) -->
+                <div id="campaign-opacity-option-<?= $i?>" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
                   <div class="flex-column">
                     <p class="x13 bold500 texto">Opacidad de la capa</p>
                     <span class="x11 text-muted">Ajusta la intensidad del color sobre la imagen</span>
@@ -446,37 +590,8 @@
                     <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="campaign-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
                   </div>
                 </div>
-              </div>
 
-              <!-- Color de fondo que se aplica al bloque (SIEMPRE visible, en modo Fondo y Cabecera) -->
-              <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100 p12 br10 back-card-graphic shadow-card-graphic">
-                <div class="flex-column">
-                  <p class="x13 bold500 texto">Color de fondo</p>
-                  <span class="x11 text-muted">Color de fondo del bloque de campaña</span>
-                </div>
-                <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-                  <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
-                    <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
-                      style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                    <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Título de la campaña -->
-              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título para la campaña (ej: Suscríbete a mi newsletter)">
-
-              <!-- Textarea para la descripción -->
-              <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
-
-              <!-- Opciones de colores de texto (Título y Descripción) -->
-              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
-                <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Colores del texto</p>
-                  <span class="x11 text-muted">Personaliza el color del título y la descripción</span>
-                </div>
-
-                <!-- Color del título -->
+                <!-- 3. Color del título -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
                     <p class="x13 bold500 texto">Color del título</p>
@@ -491,7 +606,7 @@
                   </div>
                 </div>
 
-                <!-- Color de la descripción -->
+                <!-- 4. Color de la descripción -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
                     <p class="x13 bold500 texto">Color de la descripción</p>
@@ -503,6 +618,69 @@
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
                       <p class="x14 bold500 texto"><?= e($itemDescColor) ?></p>
                     </label>
+                  </div>
+                </div>
+
+                <!-- 5. Color de fondo del botón -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color de fondo del botón</p>
+                    <span class="x11 text-muted">Fondo del botón de suscripción</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-btn-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-btn-bg-color-<?= $i?>" name="content[<?= $i?>][btn_bg_color]" value="<?= e($itemBtnBgColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemBtnBgColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 6. Color del texto del botón -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color del texto del botón</p>
+                    <span class="x11 text-muted">Texto del botón de suscripción</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="campaign-btn-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="campaign-btn-text-color-<?= $i?>" name="content[<?= $i?>][btn_text_color]" value="<?= e($itemBtnTextColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemBtnTextColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Colores del contador regresivo (visible solo si está activo el contador) -->
+                <div id="campaign-countdown-colors-<?= $i?>" class="flex-column gap12 w100" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
+                  <!-- 7. Color de fondo del contador -->
+                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto">Color de fondo del contador</p>
+                      <span class="x11 text-muted">Fondo del widget de cuenta regresiva</span>
+                    </div>
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                      <label data-trigger-color="campaign-countdown-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                        <input type="color" id="campaign-countdown-bg-color-<?= $i?>" name="content[<?= $i?>][countdown_bg_color]" value="<?= e($itemCountdownBgColor) ?>" class="color-picker box-color-picker"
+                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                        <p class="x14 bold500 texto"><?= e($itemCountdownBgColor) ?></p>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- 8. Color de texto del contador -->
+                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto">Color de texto del contador</p>
+                      <span class="x11 text-muted">Texto y números de la cuenta regresiva</span>
+                    </div>
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                      <label data-trigger-color="campaign-countdown-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                        <input type="color" id="campaign-countdown-text-color-<?= $i?>" name="content[<?= $i?>][countdown_text_color]" value="<?= e($itemCountdownTextColor) ?>" class="color-picker box-color-picker"
+                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                        <p class="x14 bold500 texto"><?= e($itemCountdownTextColor) ?></p>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -555,12 +733,65 @@
                   <p class="x13 bold500 texto">Contador regresivo</p>
                   <span class="x11 text-muted">Muestra una cuenta regresiva para el lanzamiento o cierre</span>
                 </div>
-                <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
+                <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" data-colors-target="campaign-countdown-colors-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
               </div>
 
-              <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap5 w100 p10 br10 back-card-graphic shadow-card-graphic" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
-                <p class="x12 bold500 texto">Fecha y hora límite del contador</p>
+              <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap12 w100 p10 br10 back-card-graphic shadow-card-graphic" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
+                <div class="flex-row center-between w100">
+                  <p class="x12 bold500 texto">Fecha y hora límite del contador</p>
+                  <?php if ($isCountdownExpired) : ?>
+                    <span class="x11 bold500 back-danger textc p2 px6 br10" title="El tiempo límite ha expirado. El bloque se encuentra oculto públicamente.">Tiempo límite alcanzado (Oculto)</span>
+                  <?php endif; ?>
+                </div>
                 <input type="datetime-local" name="content[<?= $i?>][countdown_date]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100 x13" value="<?= e($itemCountdownDate) ?>">
+
+                <!-- Selector de Tamaño del Texto del Contador (Pequeño / Mediano / Grande) -->
+                <div class="flex-column gap8 w100 mt5">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño del texto del contador</p>
+                    <span class="x11 text-muted">Escala de los números y etiquetas de la cuenta regresiva</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-countdown-text-size-sm-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="small" class="hidden-radio" <?= ($itemCountdownTextSize === 'small') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-text-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto pequeño">
+                      <span class="bold500 x12">Pequeño</span>
+                    </label>
+
+                    <input type="radio" id="campaign-countdown-text-size-md-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="medium" class="hidden-radio" <?= ($itemCountdownTextSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-text-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto mediano">
+                      <span class="bold500 x12">Mediano</span>
+                    </label>
+
+                    <input type="radio" id="campaign-countdown-text-size-lg-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="large" class="hidden-radio" <?= ($itemCountdownTextSize === 'large') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-text-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto grande">
+                      <span class="bold500 x12">Grande</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selector de Tamaño del Widget del Contador (Pequeño / Mediano / Grande) -->
+                <div class="flex-column gap8 w100 mt5">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño del widget del contador</p>
+                    <span class="x11 text-muted">Espaciado y dimensiones del bloque de la cuenta regresiva</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="campaign-countdown-widget-size-sm-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="small" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'small') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-widget-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget pequeño">
+                      <span class="bold500 x12">Pequeño</span>
+                    </label>
+
+                    <input type="radio" id="campaign-countdown-widget-size-md-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="medium" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-widget-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget mediano">
+                      <span class="bold500 x12">Mediano</span>
+                    </label>
+
+                    <input type="radio" id="campaign-countdown-widget-size-lg-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="large" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'large') ? 'checked' : '' ?>>
+                    <label for="campaign-countdown-widget-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget grande">
+                      <span class="bold500 x12">Grande</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
             <?php else : ?>
