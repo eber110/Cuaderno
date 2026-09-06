@@ -78,7 +78,7 @@
   $campaignId   = "campaign-block-" . $dataContent;
 ?>
 
-<div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column overflow-hidden position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;">
+<div id="<?= $campaignId ?>" class="campaign-block-wrapper |theme-button w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;">
 
   <?php if ($isBgMode) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->

@@ -650,39 +650,6 @@
                     </label>
                   </div>
                 </div>
-
-                <!-- Colores del contador regresivo (visible solo si está activo el contador) -->
-                <div id="campaign-countdown-colors-<?= $i?>" class="flex-column gap12 w100" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
-                  <!-- 7. Color de fondo del contador -->
-                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-                    <div class="flex-column">
-                      <p class="x13 bold500 texto">Color de fondo del contador</p>
-                      <span class="x11 text-muted">Fondo del widget de cuenta regresiva</span>
-                    </div>
-                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-                      <label data-trigger-color="campaign-countdown-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
-                        <input type="color" id="campaign-countdown-bg-color-<?= $i?>" name="content[<?= $i?>][countdown_bg_color]" value="<?= e($itemCountdownBgColor) ?>" class="color-picker box-color-picker"
-                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                        <p class="x14 bold500 texto"><?= e($itemCountdownBgColor) ?></p>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- 8. Color de texto del contador -->
-                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-                    <div class="flex-column">
-                      <p class="x13 bold500 texto">Color de texto del contador</p>
-                      <span class="x11 text-muted">Texto y números de la cuenta regresiva</span>
-                    </div>
-                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-                      <label data-trigger-color="campaign-countdown-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
-                        <input type="color" id="campaign-countdown-text-color-<?= $i?>" name="content[<?= $i?>][countdown_text_color]" value="<?= e($itemCountdownTextColor) ?>" class="color-picker box-color-picker"
-                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                        <p class="x14 bold500 texto"><?= e($itemCountdownTextColor) ?></p>
-                      </label>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <!-- Datos de la suscripción -->
@@ -733,7 +700,7 @@
                   <p class="x13 bold500 texto">Contador regresivo</p>
                   <span class="x11 text-muted">Muestra una cuenta regresiva para el lanzamiento o cierre</span>
                 </div>
-                <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" data-colors-target="campaign-countdown-colors-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
+                <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
               </div>
 
               <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap12 w100 p10 br10 back-card-graphic shadow-card-graphic" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
@@ -790,6 +757,44 @@
                     <label for="campaign-countdown-widget-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget grande">
                       <span class="bold500 x12">Grande</span>
                     </label>
+                  </div>
+                </div>
+
+                <!-- Colores del contador -->
+                <div class="flex-column gap8 w100 mt5">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Colores del contador</p>
+                    <span class="x11 text-muted">Personaliza el fondo y el texto de la cuenta regresiva</span>
+                  </div>
+
+                  <!-- Color de fondo del contador -->
+                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto">Color de fondo del contador</p>
+                      <span class="x11 text-muted">Fondo del widget de cuenta regresiva</span>
+                    </div>
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                      <label data-trigger-color="campaign-countdown-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                        <input type="color" id="campaign-countdown-bg-color-<?= $i?>" name="content[<?= $i?>][countdown_bg_color]" value="<?= e($itemCountdownBgColor) ?>" class="color-picker box-color-picker"
+                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                        <p class="x14 bold500 texto"><?= e($itemCountdownBgColor) ?></p>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Color de texto del contador -->
+                  <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                    <div class="flex-column">
+                      <p class="x13 bold500 texto">Color de texto del contador</p>
+                      <span class="x11 text-muted">Texto y números de la cuenta regresiva</span>
+                    </div>
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                      <label data-trigger-color="campaign-countdown-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                        <input type="color" id="campaign-countdown-text-color-<?= $i?>" name="content[<?= $i?>][countdown_text_color]" value="<?= e($itemCountdownTextColor) ?>" class="color-picker box-color-picker"
+                          style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                        <p class="x14 bold500 texto"><?= e($itemCountdownTextColor) ?></p>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

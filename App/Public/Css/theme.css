@@ -454,6 +454,10 @@
 }
 
 /* Tamaños mínimos del bloque de campaña */
+.campaign-block-wrapper {
+  overflow: clip !important;
+}
+
 .campaign-size-horizontal {
   min-height: 140px;
   height: auto;
@@ -461,16 +465,16 @@
 
 .campaign-size-square {
   aspect-ratio: 1 / 1;
-  min-height: 360px;
-  min-height: max(360px, max-content);
+  min-height: 0;
   height: auto;
+  overflow: clip !important;
 }
 
 .campaign-size-vertical {
   aspect-ratio: 4 / 5;
-  min-height: 480px;
-  min-height: max(480px, max-content);
+  min-height: 0;
   height: auto;
+  overflow: clip !important;
 }
 
 /* Expansión del contenedor de contenido en formatos cuadrado y vertical */
@@ -602,7 +606,7 @@
 }
 
 .campaign-countdown-widget-large {
-  max-width: 440px;
+  max-width: 100%;
   padding: 14px 16px !important;
   gap: 10px !important;
   border-radius: 12px !important;
