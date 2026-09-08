@@ -505,6 +505,9 @@ class DesignModels extends Builder {
               $subMetaTitle = $existingSubItem["metaTitle"];
               $subMetaDesc  = !empty($existingSubItem["metaDesc"]) ? $existingSubItem["metaDesc"] : $subMetaDesc;
               $subMetaImg   = !empty($existingSubItem["metaImg"]) ? $existingSubItem["metaImg"] : $subMetaImg;
+            } elseif (!empty($subTitle)) {
+              // Si el usuario ya asignó un título al producto, usarlo y no bloquear el guardado con peticiones HTTP externas
+              $subMetaTitle = $subTitle;
             } elseif (!empty($subUrl) && empty($subMetaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
               $metaData = RequestMetaModule::requestMeta($subUrl);
               if ($metaData !== false && is_array($metaData)) {
@@ -512,11 +515,11 @@ class DesignModels extends Builder {
                 $subMetaDesc = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : "");
                 $subMetaImg = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
               } else {
-                $subMetaTitle = $subTitle ?: $subUrl;
+                $subMetaTitle = $subTitle ?: (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl);
               }
             }
 
-            if (empty($subMetaTitle)) $subMetaTitle = $subTitle;
+            if (empty($subMetaTitle)) $subMetaTitle = $subTitle ?: ($subUrl ? (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl) : "");
             if (empty($subMetaImg)) {
               if (!empty($subImg) && $subImg !== "no-image.webp" && $subImg !== "no-user.webp" && strpos($subImg, "Custom/") === false) {
                 $subMetaImg = "/Uploads/" . $subImg;
@@ -807,6 +810,9 @@ class DesignModels extends Builder {
           $metaTitle = $existingItem["metaTitle"];
           $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
           $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
+        } elseif (!empty($titleBtn)) {
+          // Si el usuario ya asignó un título manualmente, usarlo y evitar peticiones externas HTTP bloqueantes
+          $metaTitle = $titleBtn;
         } elseif (!empty($url) && empty($metaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
           $metaData = RequestMetaModule::requestMeta($url);
           if ($metaData !== false && is_array($metaData)) {
@@ -834,7 +840,7 @@ class DesignModels extends Builder {
                   ? $metaData["og"]["logo"]
                   : ""));
           } else {
-            $metaTitle = $titleBtn ?: $url;
+            $metaTitle = $titleBtn ?: (parse_url($url, PHP_URL_HOST) ?: $url);
           }
         }
 

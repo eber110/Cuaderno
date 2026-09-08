@@ -63,7 +63,6 @@ class DesignControllers extends Control {
       ];
 
       $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $statsData         = StatisticsModels::getStatsData($userClean);
       $sessionData       = $_SESSION["user"] ?? [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
@@ -74,7 +73,7 @@ class DesignControllers extends Control {
         "card"    => $cardData,
         "uri"     => $uri,
         "user"    => $userClean,
-        "stats"   => $statsData,
+        "stats"   => [], // Optimización: no recalcular 20 queries de estadísticas al cambiar el diseño
         "session" => $sessionData
       ]);
 
@@ -120,34 +119,17 @@ class DesignControllers extends Control {
         $cardData["profile"] = $userClean;
       }
 
-      $uri = [
-        "formDesign"    => "/panel/{$userClean}/diseno",
-        "saveDesign"    => "/panel/{$userClean}/guardar",
-        "discardDesign" => "/panel/{$userClean}/descartar",
-        "simularDatos"  => "/panel/{$userClean}/simular-datos"
-      ];
-
-      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $statsData         = StatisticsModels::getStatsData($userClean);
       $sessionData       = $_SESSION["user"] ?? [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData
       ]);
 
-      $formHtml = _partToString("Dashboard.contentPanel", [
-        "card"    => $cardData,
-        "uri"     => $uri,
-        "user"    => $userClean,
-        "stats"   => $statsData,
-        "session" => $sessionData
-      ]);
-
+      // Optimización ultrarrápida: el diseño ya fue publicado en BD y el navegador ya tiene la preview y formularios actualizados.
+      // Solo respondemos éxito y el nuevo estado publicado ("En línea") sin re-renderizar 260KB de HTML ni recalcular estadísticas.
       ResponseModule::json([
         "success"           => true,
         "hasCustom"         => false,
-        "html"              => $previewHtml,
-        "formHtml"          => $formHtml,
         "sidebarStatusHtml" => $sidebarStatusHtml,
         "card"              => $cardData
       ]);
@@ -191,7 +173,6 @@ class DesignControllers extends Control {
       ];
 
       $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $statsData         = StatisticsModels::getStatsData($userClean);
       $sessionData       = $_SESSION["user"] ?? [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
@@ -202,7 +183,7 @@ class DesignControllers extends Control {
         "card"    => $cardData,
         "uri"     => $uri,
         "user"    => $userClean,
-        "stats"   => $statsData,
+        "stats"   => [], // Optimización: no recalcular 20 queries de estadísticas al descartar
         "session" => $sessionData
       ]);
 
