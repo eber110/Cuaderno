@@ -54,12 +54,26 @@ export function autoSubmitForm() {
       }
     }
 
-    // 4. Alternancia de opciones de fondo en bloques de campaña (solo opacidad de capa)
+    // 4. Alternancia de opciones de posición de imagen en bloques de campaña (tamaño del bloque y opacidad de capa)
     if (target.classList && target.classList.contains('campaign-pos-radio')) {
       const idx = target.dataset.index;
       const opacityOpt = document.getElementById(`campaign-opacity-option-${idx}`);
       if (opacityOpt) {
         opacityOpt.style.display = target.value === 'background' ? 'flex' : 'none';
+      }
+      const sizeWrap = document.getElementById(`campaign-size-wrap-${idx}`);
+      if (sizeWrap) {
+        sizeWrap.style.display = target.value === 'background' ? 'flex' : 'none';
+      }
+      if (target.value === 'header') {
+        const horizRadio = document.getElementById(`campaign-size-horiz-${idx}`);
+        if (horizRadio) {
+          horizRadio.checked = true;
+        }
+        const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
+        if (textPosWrap) {
+          textPosWrap.style.display = 'none';
+        }
       }
     }
 

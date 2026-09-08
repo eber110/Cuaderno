@@ -128,6 +128,9 @@ class UserModels extends BuilderSqlite {
         if (($item["type"] ?? "") === "campaign") {
           $item["img_position"]   = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
           $item["size"]           = in_array($item["size"] ?? "", ["horizontal", "square", "vertical"], true) ? $item["size"] : "horizontal";
+          if ($item["img_position"] === "header") {
+            $item["size"] = "horizontal";
+          }
           $item["text_position"]  = in_array($item["text_position"] ?? "", ["top", "center", "bottom"], true) ? $item["text_position"] : "center";
           $item["text_align"]     = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "center";
           $item["title_size"]     = in_array($item["title_size"] ?? "", ["small", "medium", "large"], true) ? $item["title_size"] : "large";

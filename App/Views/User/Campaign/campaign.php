@@ -58,6 +58,9 @@
   if (!in_array($size, ["horizontal", "square", "vertical"], true)) {
     $size = "horizontal";
   }
+  if ($imgPosition === "header") {
+    $size = "horizontal";
+  }
   $textPosition    = $campaignData["text_position"] ?? "center";
   if (!in_array($textPosition, ["top", "center", "bottom"], true)) {
     $textPosition = "center";

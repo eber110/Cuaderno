@@ -635,6 +635,9 @@ class DesignModels extends Builder {
           $campaignWhatsapp   = trim((string)($item["whatsapp"] ?? ""));
           $imgPosition      = in_array($item["img_position"] ?? "", ["header", "background"], true) ? $item["img_position"] : "background";
           $size             = in_array($item["size"] ?? "", ["horizontal", "square", "vertical"], true) ? $item["size"] : "horizontal";
+          if ($imgPosition === "header") {
+            $size = "horizontal";
+          }
           $textPosition     = in_array($item["text_position"] ?? "", ["top", "center", "bottom"], true) ? $item["text_position"] : "center";
           $textAlign        = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "center";
           $titleSize        = in_array($item["title_size"] ?? "", ["small", "medium", "large"], true) ? $item["title_size"] : "large";

@@ -59,7 +59,7 @@
         $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
         $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
         $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
-        $itemSize          = $card["content"][$i]["size"] ?? 'horizontal';
+        $itemSize          = ($itemImgPosition === 'header') ? 'horizontal' : ($card["content"][$i]["size"] ?? 'horizontal');
         $itemTextPosition  = $card["content"][$i]["text_position"] ?? 'center';
         $itemTextAlign     = $card["content"][$i]["text_align"] ?? 'center';
         $itemTitleSize     = $card["content"][$i]["title_size"] ?? 'large';
@@ -354,7 +354,7 @@
               ?>
 
               <!-- 1. Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
-              <div class="flex-column gap8 w100">
+              <div id="campaign-size-wrap-<?= $i ?>" class="flex-column gap8 w100" style="<?= ($itemImgPosition === 'header') ? 'display: none;' : '' ?>">
                 <div class="flex-column gap2">
                   <p class="x13 bold600 texto">Tamaño del bloque</p>
                   <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
