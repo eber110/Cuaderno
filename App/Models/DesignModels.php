@@ -276,6 +276,7 @@ class DesignModels extends Builder {
    */
   public static function updateCustomDesign(string $user, array|string $param): bool {
     $userClean = mb_strtolower($user, "UTF-8");
+    $hasPendingMetadata = false;
 
     $currentData  = self::getCustomDesign($userClean);
     $officialData = self::getOfficialDesign($userClean);
@@ -393,8 +394,6 @@ class DesignModels extends Builder {
           $officialImages[] = $offItem["img"];
         }
       }
-
-      $hasPendingMetadata = false;
 
       foreach ($param["content"] as $index => $item) {
         $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
@@ -1059,7 +1058,7 @@ class DesignModels extends Builder {
     $saved = self::saveDesignToDb($userClean, 1, $cardPayload);
 
     // Si existen URLs que requieren extracción de metadatos, delegar a segundo plano usando HttpPostModule
-    if ($hasPendingMetadata) {
+    if (!empty($hasPendingMetadata)) {
       self::triggerBackgroundMetadataExtraction($userClean);
     }
 

@@ -77,6 +77,10 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
+      if (ob_get_length()) {
+        ob_clean();
+      }
+
       ResponseModule::json([
         "success"           => true,
         "hasCustom"         => true,
@@ -127,6 +131,10 @@ class DesignControllers extends Control {
 
       // Optimización ultrarrápida: el diseño ya fue publicado en BD y el navegador ya tiene la preview y formularios actualizados.
       // Solo respondemos éxito y el nuevo estado publicado ("En línea") sin re-renderizar 260KB de HTML ni recalcular estadísticas.
+      if (ob_get_length()) {
+        ob_clean();
+      }
+
       ResponseModule::json([
         "success"           => true,
         "hasCustom"         => false,
@@ -186,6 +194,10 @@ class DesignControllers extends Control {
         "stats"   => [], // Optimización: no recalcular 20 queries de estadísticas al descartar
         "session" => $sessionData
       ]);
+
+      if (ob_get_length()) {
+        ob_clean();
+      }
 
       ResponseModule::json([
         "success"           => true,
