@@ -476,7 +476,14 @@ export function videoBackgroundController() {
                 saveBtn.removeAttribute("aria-disabled");
               }
               const discardBtn = document.getElementById("discard-btn");
-              if (discardBtn) discardBtn.classList.remove("hidden");
+              if (discardBtn) {
+                discardBtn.classList.remove("hidden", "disabled-save-btn");
+                discardBtn.classList.add("pointer", "bold500", "discard-btn-active");
+                discardBtn.removeAttribute("tabindex");
+                discardBtn.removeAttribute("aria-disabled");
+                discardBtn.textContent = "Descartar";
+              }
+              document.dispatchEvent(new CustomEvent("draftSaved", { detail: resData }));
             }
 
           } else {

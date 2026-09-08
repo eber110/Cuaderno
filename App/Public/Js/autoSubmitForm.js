@@ -146,6 +146,21 @@ export function autoSubmitForm() {
     }
 
     // Usar requestSubmit() para simular un submit estándar
+    document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
+    triggerSubmit(form);
+  });
+
+  // Variables y control de estado de guardado asíncrono para coordinar con el botón Guardar
+  let inputDebounceTimer = null;
+  let colorDebounceTimer = null;
+  let pendingAutoSubmitForm = null;
+  let activeDraftPromise = null;
+  let resolveDraftPromise = null;
+  let activeDraftAbortController = null;
+
+  function triggerSubmit(form) {
+    if (!form) return;
+    pendingAutoSubmitForm = null;
     if (typeof form.requestSubmit === 'function') {
       form.requestSubmit();
     } else {
@@ -155,11 +170,47 @@ export function autoSubmitForm() {
         form.submit();
       }
     }
-  });
+  }
 
-  // Debounce para auto-submit al escribir en campos de texto, textareas y selectores de color
-  let inputDebounceTimer = null;
-  let colorDebounceTimer = null;
+  // API global para coordinar sincronización con el botón de guardar
+  window.__flushAutoSubmit = async function() {
+    if (inputDebounceTimer || colorDebounceTimer) {
+      clearTimeout(inputDebounceTimer);
+      clearTimeout(colorDebounceTimer);
+      inputDebounceTimer = null;
+      colorDebounceTimer = null;
+
+      const form = pendingAutoSubmitForm || document.querySelector('.remote-content.active form.auto-submit') || document.querySelector('form.auto-submit');
+      if (form) {
+        triggerSubmit(form);
+      }
+    }
+
+    if (activeDraftPromise) {
+      await activeDraftPromise;
+    }
+  };
+
+  window.__cancelPendingAutoSubmit = function() {
+    if (inputDebounceTimer) {
+      clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = null;
+    }
+    if (colorDebounceTimer) {
+      clearTimeout(colorDebounceTimer);
+      colorDebounceTimer = null;
+    }
+    pendingAutoSubmitForm = null;
+
+    if (activeDraftAbortController) {
+      activeDraftAbortController.abort();
+      activeDraftAbortController = null;
+    }
+  };
+
+  window.__hasPendingDraft = function() {
+    return !!(inputDebounceTimer || colorDebounceTimer || pendingAutoSubmitForm || activeDraftPromise);
+  };
 
   document.addEventListener('input', (e) => {
     const target = e.target;
@@ -180,14 +231,13 @@ export function autoSubmitForm() {
 
       const form = isColorInput ? target.closest('form.auto-submit') : document.querySelector('.remote-content.active form.auto-submit');
       if (form) {
+        pendingAutoSubmitForm = form;
+        document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
+
         clearTimeout(colorDebounceTimer);
         colorDebounceTimer = setTimeout(() => {
-          if (typeof form.requestSubmit === 'function') {
-            form.requestSubmit();
-          } else {
-            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-            form.dispatchEvent(submitEvent);
-          }
+          colorDebounceTimer = null;
+          triggerSubmit(form);
         }, 400);
       }
       return;
@@ -201,14 +251,13 @@ export function autoSubmitForm() {
 
     if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) return;
 
+    pendingAutoSubmitForm = form;
+    document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
+
     clearTimeout(inputDebounceTimer);
     inputDebounceTimer = setTimeout(() => {
-      if (typeof form.requestSubmit === 'function') {
-        form.requestSubmit();
-      } else {
-        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-        form.dispatchEvent(submitEvent);
-      }
+      inputDebounceTimer = null;
+      triggerSubmit(form);
     }, 600);
   });
 
@@ -223,6 +272,18 @@ export function autoSubmitForm() {
     // Cerrar cualquier modal abierto al procesar el envío
     document.querySelectorAll('.modal-overlay').forEach(modal => modal.remove());
 
+    // Notificar que se está guardando el borrador y registrar promesa activa
+    document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
+
+    if (activeDraftAbortController) {
+      activeDraftAbortController.abort();
+    }
+    activeDraftAbortController = new AbortController();
+
+    activeDraftPromise = new Promise((resolve) => {
+      resolveDraftPromise = resolve;
+    });
+
     try {
       const submitter = e.submitter;
       const formData = submitter ? new FormData(form, submitter) : new FormData(form);
@@ -236,6 +297,7 @@ export function autoSubmitForm() {
       const response = await fetch(action, {
         method: form.method || 'POST',
         body: formData,
+        signal: activeDraftAbortController.signal,
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
@@ -346,11 +408,25 @@ export function autoSubmitForm() {
         // 5. Inicializar contadores regresivos en la nueva vista previa
         initCampaignCountdowns();
 
-        // 6. Disparar evento personalizado para sincronizar otros componentes
+        // 6. Disparar eventos personalizados para sincronizar otros componentes
+        document.dispatchEvent(new CustomEvent('draftSaved', { detail: data }));
         document.dispatchEvent(new CustomEvent('previewUpdated', { detail: data }));
+      } else {
+        document.dispatchEvent(new CustomEvent('draftError', { detail: data }));
       }
     } catch (error) {
+      if (error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error al procesar el formulario con fetch:', error);
+      document.dispatchEvent(new CustomEvent('draftError', { detail: error }));
+    } finally {
+      activeDraftAbortController = null;
+      activeDraftPromise = null;
+      if (resolveDraftPromise) {
+        resolveDraftPromise();
+        resolveDraftPromise = null;
+      }
     }
   });
 

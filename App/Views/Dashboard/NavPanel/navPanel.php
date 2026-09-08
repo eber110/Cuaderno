@@ -12,8 +12,8 @@
     ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 textw pulse-once" 
     : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
   $discardClass = $hasCustom
-    ? "p5 pl15 pr15 br15 pointer border-item-panel texto bold500 texto hover-opacity"
-    : "p5 pl15 pr15 br15 border-item-panel texto hidden pointer";
+    ? "p5 pl15 pr15 br15 pointer discard-btn-active bold500"
+    : "p5 pl15 pr15 br15 border-item-panel texto hidden";
 ?>
 <div class="sticky top z-index-20">
   <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
