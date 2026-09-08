@@ -7,8 +7,27 @@
   filter: drop-shadow(0px 0px 1px #bdbdbd);
 }
 
+.back-card-graphic-red{
+  background-color: var(--back-danger-panel, #b43b3b);
+  filter: drop-shadow(0px 0px 1px #8a2525);
+}
+
 .shadow-card-graphic{
   filter: drop-shadow(0px 1px 2px #b6b6b6);
+}
+
+[data-theme="dark"] .back-card-graphic{
+  background-color: #2e2e2e;
+  filter: drop-shadow(0px 0px 1px #1a1a1a);
+}
+
+[data-theme="dark"] .back-card-graphic-red{
+  background-color: var(--back-danger-panel, #b43b3b);
+  filter: drop-shadow(0px 0px 1px #1a1a1a);
+}
+
+[data-theme="dark"] .shadow-card-graphic{
+  filter: drop-shadow(0px 1px 2px #141414);
 }
 
 .btn-card-graphic{

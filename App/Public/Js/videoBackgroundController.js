@@ -469,20 +469,20 @@ export function videoBackgroundController() {
             if (saveBtnContainer) {
               saveBtnContainer.dataset.hasCustom = "true";
               const saveBtn = document.getElementById("save-btn");
-              if (saveBtn) {
-                saveBtn.classList.remove("disabled-save-btn", "texto");
-                saveBtn.classList.add("pointer", "back-save-panel", "textw", "bold500");
-                saveBtn.removeAttribute("tabindex");
-                saveBtn.removeAttribute("aria-disabled");
-              }
-              const discardBtn = document.getElementById("discard-btn");
-              if (discardBtn) {
-                discardBtn.classList.remove("hidden", "disabled-save-btn");
-                discardBtn.classList.add("pointer", "bold500", "discard-btn-active");
-                discardBtn.removeAttribute("tabindex");
-                discardBtn.removeAttribute("aria-disabled");
-                discardBtn.textContent = "Descartar";
-              }
+                if (saveBtn) {
+                  saveBtn.classList.remove("disabled-save-btn", "texto", "back-card-graphic");
+                  saveBtn.classList.add("pointer", "back-card-graphic-red", "shadow-card-graphic", "hover-scale-soft", "textw", "bold500", "border-none");
+                  saveBtn.removeAttribute("tabindex");
+                  saveBtn.removeAttribute("aria-disabled");
+                }
+                const discardBtn = document.getElementById("discard-btn");
+                if (discardBtn) {
+                  discardBtn.classList.remove("hidden", "disabled-save-btn");
+                  discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
+                  discardBtn.removeAttribute("tabindex");
+                  discardBtn.removeAttribute("aria-disabled");
+                  discardBtn.textContent = "Descartar";
+                }
               document.dispatchEvent(new CustomEvent("draftSaved", { detail: resData }));
             }
 

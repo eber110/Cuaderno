@@ -72,15 +72,15 @@ export function saveButtonController() {
       saveContainer.classList.remove("hidden");
     }
 
-    saveBtn.classList.remove("disabled-save-btn", "texto", "pulse-once");
-    saveBtn.classList.add("pointer", "back-save-panel", "textw", "bold500", "save-btn-saving");
+    saveBtn.classList.remove("disabled-save-btn", "texto", "pulse-once", "back-card-graphic");
+    saveBtn.classList.add("pointer", "back-card-graphic-red", "shadow-card-graphic", "hover-scale-soft", "textw", "bold500", "border-none", "save-btn-saving");
     saveBtn.removeAttribute("tabindex");
     saveBtn.removeAttribute("aria-disabled");
     saveBtn.innerHTML = '<span class="save-btn-spinner"></span><span class="save-btn-text">Guardando...</span>';
 
     if (discardBtn) {
       discardBtn.classList.remove("hidden", "disabled-save-btn");
-      discardBtn.classList.add("pointer", "bold500", "discard-btn-active");
+      discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
       discardBtn.removeAttribute("tabindex");
       discardBtn.removeAttribute("aria-disabled");
       discardBtn.textContent = "Descartar";
@@ -96,8 +96,8 @@ export function saveButtonController() {
     const wasSaving = saveBtn.classList.contains("save-btn-saving");
     const wasDisabled = saveBtn.classList.contains("disabled-save-btn");
 
-    saveBtn.classList.remove("disabled-save-btn", "texto", "save-btn-saving");
-    saveBtn.classList.add("pointer", "back-save-panel", "textw", "bold500");
+    saveBtn.classList.remove("disabled-save-btn", "texto", "save-btn-saving", "back-card-graphic");
+    saveBtn.classList.add("pointer", "back-card-graphic-red", "shadow-card-graphic", "hover-scale-soft", "textw", "bold500", "border-none");
     saveBtn.removeAttribute("tabindex");
     saveBtn.removeAttribute("aria-disabled");
     saveBtn.innerHTML = "Guardar";
@@ -108,7 +108,7 @@ export function saveButtonController() {
 
     if (discardBtn) {
       discardBtn.classList.remove("hidden", "disabled-save-btn");
-      discardBtn.classList.add("pointer", "bold500", "discard-btn-active");
+      discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
       discardBtn.removeAttribute("tabindex");
       discardBtn.removeAttribute("aria-disabled");
       discardBtn.textContent = "Descartar";
@@ -121,15 +121,15 @@ export function saveButtonController() {
   function disableSaveButton() {
     saveContainer.dataset.hasCustom = "false";
 
-    saveBtn.classList.add("disabled-save-btn", "texto");
-    saveBtn.classList.remove("pointer", "back-save-panel", "textw", "bold500", "pulse-once", "save-btn-saving");
+    saveBtn.classList.remove("pointer", "back-card-graphic-red", "textw", "bold500", "pulse-once", "save-btn-saving", "hover-scale-soft");
+    saveBtn.classList.add("back-card-graphic", "shadow-card-graphic", "disabled-save-btn", "texto", "border-none");
     saveBtn.setAttribute("tabindex", "-1");
     saveBtn.setAttribute("aria-disabled", "true");
     saveBtn.innerHTML = "Guardar";
 
     if (discardBtn) {
-      discardBtn.classList.add("hidden");
-      discardBtn.classList.remove("discard-btn-active", "disabled-save-btn", "pointer");
+      discardBtn.classList.remove("pointer", "bold500", "disabled-save-btn", "hover-scale-soft");
+      discardBtn.classList.add("hidden", "back-card-graphic", "shadow-card-graphic", "border-none", "texto");
       discardBtn.setAttribute("tabindex", "-1");
       discardBtn.setAttribute("aria-disabled", "true");
       discardBtn.textContent = "Descartar";
@@ -417,7 +417,7 @@ export function saveButtonController() {
           discardBtn.textContent = "Descartar";
           discardBtn.removeAttribute("aria-disabled");
           discardBtn.classList.remove("disabled-save-btn");
-          discardBtn.classList.add("pointer", "discard-btn-active");
+          discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
           return;
         }
 
@@ -445,14 +445,14 @@ export function saveButtonController() {
           discardBtn.textContent = "Descartar";
           discardBtn.removeAttribute("aria-disabled");
           discardBtn.classList.remove("disabled-save-btn");
-          discardBtn.classList.add("pointer", "discard-btn-active");
+          discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
         }
       } catch (err) {
         console.error("Error al descartar el diseño con fetch:", err);
         discardBtn.textContent = "Descartar";
         discardBtn.removeAttribute("aria-disabled");
         discardBtn.classList.remove("disabled-save-btn");
-        discardBtn.classList.add("pointer", "discard-btn-active");
+        discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
       } finally {
         isPublishing = false;
       }

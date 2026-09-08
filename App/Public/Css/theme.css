@@ -67,31 +67,6 @@
   border-top-color: #ffffff;
 }
 
-/* Botón Descartar activo en el panel de navegación superior */
-.discard-btn-active {
-  color: var(--text-primary, #1b1b1b) !important;
-  border: 1px solid var(--text-primary, #1b1b1b) !important;
-  background-color: transparent !important;
-  cursor: pointer !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-.discard-btn-active:hover {
-  background-color: rgba(0, 0, 0, 0.07) !important;
-}
-
-[data-theme="dark"] .discard-btn-active {
-  color: #f3f3f3 !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-}
-
-[data-theme="dark"] .discard-btn-active:hover {
-  background-color: rgba(255, 255, 255, 0.12) !important;
-}
-
 .tl-max-reached {
     color: red !important;
     font-weight: bold;

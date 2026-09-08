@@ -13,7 +13,7 @@
       <div class="back-video-overlay"></div>
     <?php endif; ?>
 
-    <?php _component("Menu.menuUser"); ?>
+    <?php// _component("Menu.menuUser"); ?>
 
     <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1">
       <header class="w100">

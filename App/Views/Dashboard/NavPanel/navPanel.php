@@ -9,11 +9,11 @@
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
   $discardUrl = $uri["discardDesign"] ?? ("/panel/" . $profile . "/descartar");
   $saveClass = $hasCustom 
-    ? "p5 pl15 pr15 br15 pointer back-save-panel textc bold500 textw pulse-once" 
-    : "p5 pl15 pr15 br15 border-item-panel disabled-save-btn texto";
+    ? "p5 pl15 pr15 br15 pointer back-card-graphic-red shadow-card-graphic hover-scale-soft bold500 textw border-none pulse-once" 
+    : "p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic border-none disabled-save-btn texto";
   $discardClass = $hasCustom
-    ? "p5 pl15 pr15 br15 pointer discard-btn-active bold500"
-    : "p5 pl15 pr15 br15 border-item-panel texto hidden";
+    ? "p5 pl15 pr15 br15 pointer back-card-graphic shadow-card-graphic hover-scale-soft bold500 texto border-none"
+    : "p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic border-none texto hidden";
 ?>
 <div class="sticky top z-index-20">
   <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
