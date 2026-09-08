@@ -152,6 +152,14 @@ export function saveButtonController() {
     const activeContent = remoteContainer.querySelector(".remote-content.active");
     const activeId = activeContent ? activeContent.id : null;
 
+    // Capturar bloques de contenido abiertos para no colapsarlos
+    const openBlockIds = new Set();
+    const storedActiveId = sessionStorage.getItem("active_content_block_id");
+    if (storedActiveId) openBlockIds.add(storedActiveId);
+    remoteContainer.querySelectorAll(".sortable-item.content-block.is-open").forEach((el) => {
+      if (el.id) openBlockIds.add(el.id);
+    });
+
     remoteContainer.innerHTML = newContainer.innerHTML;
 
     if (activeId) {
@@ -166,6 +174,22 @@ export function saveButtonController() {
         }
       });
     }
+
+    // Restaurar bloques de contenido que estaban expandidos
+    openBlockIds.forEach((id) => {
+      const item = remoteContainer.querySelector("#" + CSS.escape(id));
+      if (item) {
+        item.classList.remove("is-collapsed");
+        item.classList.add("is-open");
+        const body = item.querySelector(".content-item-body");
+        if (body) {
+          body.style.display = "flex";
+          body.style.height = "auto";
+          body.style.opacity = "1";
+          body.style.overflow = "visible";
+        }
+      }
+    });
   }
 
   // Escuchar clic en los botones remotos del sidebar
@@ -176,15 +200,15 @@ export function saveButtonController() {
     }
   });
 
-  // Habilitar botones cuando se modifica cualquier formulario editable del dashboard
+  // Habilitar botones cuando se modifica cualquier formulario editable del dashboard o selector de color
   document.addEventListener("input", (e) => {
-    if (e.target.closest("form.auto-submit, .remote-container")) {
+    if (e.target.closest("form.auto-submit, .remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
       enableSaveButton();
     }
   });
 
   document.addEventListener("change", (e) => {
-    if (e.target.closest("form.auto-submit, .remote-container")) {
+    if (e.target.closest("form.auto-submit, .remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
       enableSaveButton();
     }
   });

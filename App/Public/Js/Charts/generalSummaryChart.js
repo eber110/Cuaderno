@@ -69,11 +69,27 @@ export function generalSummaryChart() {
   }
 
   /**
+   * Comprueba si un elemento contenedor está actualmente visible en el DOM y tiene dimensiones reales.
+   * Evita que ApexCharts intente renderizar en pestañas ocultas (display: none) generando errores NaN.
+   * 
+   * @param {HTMLElement} el Elemento a evaluar
+   * @returns {boolean} True si es visible con ancho > 0
+   */
+  function isVisible(el) {
+    if (!el) return false;
+    if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') {
+      return false;
+    }
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0;
+  }
+
+  /**
    * 1. Renderiza el gráfico Mixto Combo (Visitas vs Clics)
    */
   function renderComboChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-combo');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let dates  = [];
     let views  = [];
@@ -136,7 +152,7 @@ export function generalSummaryChart() {
    */
   function renderWeekChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-weeks');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let weeks = [];
     let views = [];
@@ -204,7 +220,7 @@ export function generalSummaryChart() {
    */
   function renderUniquesComboChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-uniques-combo');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let dates   = [];
     let uniques = [];
@@ -252,7 +268,7 @@ export function generalSummaryChart() {
    */
   function renderUniquesWeekChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-uniques-weeks');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let weeks   = [];
     let uniques = [];
@@ -320,7 +336,7 @@ export function generalSummaryChart() {
    */
   function renderClicksDailyChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-clicks-daily');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let dates  = [];
     let clicks = [];
@@ -368,7 +384,7 @@ export function generalSummaryChart() {
    */
   function renderTopLinksChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-top-links');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let links  = [];
     let clicks = [];
@@ -439,7 +455,7 @@ export function generalSummaryChart() {
     if (!containers.length) return;
 
     containers.forEach((container) => {
-      if (container.dataset.rendered === 'true') return;
+      if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
       let categories = [];
       let series     = [];
@@ -523,7 +539,7 @@ export function generalSummaryChart() {
    */
   function renderPeakHoursLineChart() {
     const container = document.querySelector('.chart-peak-hours-line');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let hours  = [];
     let totals = [];
@@ -616,7 +632,7 @@ export function generalSummaryChart() {
    */
   function renderPeakDaysColumnChart() {
     const container = document.querySelector('.chart-peak-days-column');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let days   = [];
     let totals = [];
@@ -633,7 +649,6 @@ export function generalSummaryChart() {
     container.innerHTML = '';
 
     const themeColors = getChartColors();
-    const maxVal = Math.max(...totals, 0);
 
     const options = {
       series: [
@@ -650,19 +665,20 @@ export function generalSummaryChart() {
       },
       plotOptions: {
         bar: {
-          borderRadius: 6,
           columnWidth: '45%',
-          distributed: true
+          borderRadius: 6,
+          dataLabels: {
+            position: 'top'
+          }
         }
       },
-      colors: totals.map((val) => (val === maxVal && val > 0 ? '#2563eb' : '#3b82f6')),
+      colors: ['#10b981'],
       dataLabels: {
         enabled: true,
-        position: 'top',
         style: {
           fontSize: '11px',
           fontWeight: '700',
-          colors: [themeColors.gridBorder]
+          colors: [themeColors.axisText]
         },
         offsetY: -20,
         formatter: (val) => val
@@ -697,7 +713,7 @@ export function generalSummaryChart() {
    */
   function renderCtrGaugeChart() {
     const container = document.querySelector('.chart-ctr-gauge');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let ctrVal = 0;
     try {
@@ -778,7 +794,7 @@ export function generalSummaryChart() {
    */
   function renderRrssLinksChart() {
     const container = document.querySelector('.modal-overlay .chart-summary-rrss-links');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let links  = [];
     let clicks = [];
@@ -846,7 +862,7 @@ export function generalSummaryChart() {
    */
   function renderDevicesDonutChart() {
     const container = document.querySelector('.chart-devices-donut');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
 
     let labels = [];
     let series = [];
@@ -919,7 +935,7 @@ export function generalSummaryChart() {
    */
   function renderBrowsersBarChart() {
     const container = document.querySelector('.chart-browsers-bar');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
     if (container.offsetWidth === 0 && container.clientWidth === 0) return;
 
     let labels = [];
@@ -988,7 +1004,7 @@ export function generalSummaryChart() {
    */
   function renderCountriesRankingChart() {
     const container = document.querySelector('.chart-countries-ranking');
-    if (!container || container.dataset.rendered === 'true') return;
+    if (!container || !isVisible(container) || container.dataset.rendered === 'true') return;
     if (container.offsetWidth === 0 && container.clientWidth === 0) return;
 
     let labels = [];

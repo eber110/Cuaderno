@@ -22,6 +22,12 @@
       return;
     }
   }
+  $rawImgShow   = $campaignData["imgShow"] ?? true;
+  $imgShow      = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
+  $hasImg       = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
+  $isBgMode     = ($imgPosition === "background" && $imgShow && $hasImg);
+  $hasHeaderImg = ($imgPosition === "header" && $imgShow && $hasImg);
+
   $buttonText      = !empty(trim($campaignData["button_text"] ?? "")) ? trim($campaignData["button_text"]) : "Suscribirme";
   $titleColor      = !empty($campaignData["title_color"]) ? $campaignData["title_color"] : ($isBgMode ? "#ffffff" : ($card["titleColor"] ?? "#1e1e1e"));
   $descColor       = !empty($campaignData["desc_color"]) ? $campaignData["desc_color"] : ($isBgMode ? "#ffffff" : ($card["colorText"] ?? "#4a4a4a"));
@@ -70,14 +76,8 @@
   $textPosClass   = ($size !== "horizontal") ? ("campaign-text-pos-" . $textPosition) : "";
   $btnAnchorClass = ($size !== "horizontal") ? "campaign-btn-anchor-bottom" : "";
 
-  $rawImgShow = $campaignData["imgShow"] ?? true;
-  $imgShow    = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
-  $hasImg     = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
-
   $borderCard = ($card["borders"][0] == "br50") ? "br20" : ($card["borders"][0] ?? "br15");
   $shadowCard = $card["shadow"] ?? "shadow-card";
-  $isBgMode     = ($imgPosition === "background" && $imgShow && $hasImg);
-  $hasHeaderImg = ($imgPosition === "header" && $imgShow && $hasImg);
   $campaignId   = "campaign-block-" . $dataContent;
 ?>
 
@@ -91,7 +91,7 @@
     </div>
   <?php elseif ($hasHeaderImg) : ?>
     <!-- Imagen destacada de cabecera cuadrada -->
-    <figure class="w100 ar-square faded-image">
+    <figure class="w100 ar-square overflow-hidden faded-image">
       <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
     </figure>
   <?php endif; ?>
