@@ -71,4 +71,39 @@ class StatisticsControllers extends Control {
     ResponseModule::redirect("/panel/{$userClean}");
   }
 
+  /**
+   * Carga bajo demanda la vista de estadísticas vía AJAX / Fetch.
+   *
+   * @param string $user Nombre de usuario.
+   * @return void
+   */
+  public function loadStatsHtml(string $user): void {
+    $userClean = mb_strtolower($user, "UTF-8");
+    $stats     = StatisticsModels::getStatsData($userClean);
+    $dataUser  = \App\Models\DesignModels::dataUser($userClean);
+    $cardData  = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
+      ? \App\Models\UserModels::formatCardImages($dataUser["card"]) 
+      : [];
+
+    $uri = [
+      "formDesign"    => "/panel/{$userClean}/diseno",
+      "saveDesign"    => "/panel/{$userClean}/guardar",
+      "discardDesign" => "/panel/{$userClean}/descartar",
+      "simularDatos"  => "/panel/{$userClean}/simular-datos",
+      "estadisticas"  => "/panel/{$userClean}/estadisticas"
+    ];
+
+    $statsHtml = _partToString("Dashboard.statisticsPanel", [
+      "stats" => $stats,
+      "card"  => $cardData,
+      "user"  => $userClean,
+      "uri"   => $uri
+    ]);
+
+    ResponseModule::json([
+      "success"   => true,
+      "statsHtml" => $statsHtml
+    ]);
+  }
+
 }

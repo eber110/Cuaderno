@@ -69,6 +69,9 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
   Route::post("/descartar", [DesignControllers::class, "discardDesign"]);
   Route::get("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);
   Route::post("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);
+  Route::get("/estadisticas", [\App\Controllers\StatisticsControllers::class, "loadStatsHtml"]);
+  Route::post("/estadisticas", [\App\Controllers\StatisticsControllers::class, "loadStatsHtml"]);
+  Route::post("/extraer-metadatos", [DesignControllers::class, "extractMetadataBackground"]);
 
 });
 

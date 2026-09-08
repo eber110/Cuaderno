@@ -249,4 +249,42 @@ class DesignControllers extends Control {
     ResponseModule::json($params);
   }
 
+  /**
+   * Endpoint en segundo plano para procesar metadatos pendientes vía HttpPostModule.
+   * Responde de inmediato cerrando la conexión HTTP para no demorar al cliente.
+   *
+   * @param string $user Nombre de usuario.
+   * @return void
+   */
+  public function extractMetadataBackground(string $user): void {
+    $userClean = mb_strtolower($user, "UTF-8");
+
+    // 1. Cerrar sesión para liberar cualquier cerrojo remanente
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
+
+    // 2. Responder de inmediato al emisor (cURL / navegador) y desvincular la conexión
+    ignore_user_abort(true);
+    set_time_limit(120);
+
+    if (function_exists('fastcgi_finish_request')) {
+      header("Content-Type: application/json");
+      echo json_encode(["success" => true, "status" => "processing"]);
+      fastcgi_finish_request();
+    } else {
+      ob_start();
+      header("Content-Type: application/json");
+      header("Connection: close");
+      echo json_encode(["success" => true, "status" => "processing"]);
+      $size = ob_get_length();
+      header("Content-Length: " . $size);
+      ob_end_flush();
+      @flush();
+    }
+
+    // 3. Ejecutar la extracción de metadatos pesada en segundo plano
+    DesignModels::processPendingMetadata($userClean);
+  }
+
 }

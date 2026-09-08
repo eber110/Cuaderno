@@ -42,8 +42,8 @@ class DashboardControllers extends Control {
       $cardData["profile"] = $userClean;
     }
 
-    // Consultar métricas a través de StatisticsModels
-    $stats = StatisticsModels::getStatsData($userClean);
+    // Las estadísticas se cargan bajo demanda vía AJAX al ingresar a la pestaña para acelerar la carga inicial
+    $stats = [];
 
     $data = [
       "user"      => $userClean,
@@ -54,7 +54,8 @@ class DashboardControllers extends Control {
         "formDesign"    => "/panel/{$userClean}/diseno",
         "saveDesign"    => "/panel/{$userClean}/guardar",
         "discardDesign" => "/panel/{$userClean}/descartar",
-        "simularDatos"  => "/panel/{$userClean}/simular-datos"
+        "simularDatos"  => "/panel/{$userClean}/simular-datos",
+        "estadisticas"  => "/panel/{$userClean}/estadisticas"
       ],
       "session" => $_SESSION["user"] ?? false,
       "premium" => LemonSqueezyModels::isUserSubscribedFast(Session::session_data("user_id"))

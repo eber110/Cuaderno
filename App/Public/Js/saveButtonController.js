@@ -458,4 +458,49 @@ export function saveButtonController() {
       }
     });
   }
+
+  /**
+   * Carga bajo demanda el panel de estadísticas si aún no ha sido cargado
+   */
+  async function loadStatisticsIfNeeded() {
+    const statsRemote = document.getElementById("statistics-remote");
+    if (!statsRemote || statsRemote.dataset.loaded === "true" || statsRemote.dataset.loading === "true") return;
+
+    statsRemote.dataset.loading = "true";
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const user = pathParts[1] || "";
+
+    try {
+      const res = await fetch(`/panel/${user}/estadisticas`, {
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json"
+        }
+      });
+      const data = await res.json();
+      if (data.success && data.statsHtml) {
+        const wrapper = document.getElementById("statistics-remote-wrapper") || statsRemote;
+        wrapper.innerHTML = data.statsHtml;
+        statsRemote.dataset.loaded = "true";
+      }
+    } catch (err) {
+      console.error("Error al cargar estadísticas bajo demanda:", err);
+    } finally {
+      statsRemote.dataset.loading = "false";
+    }
+  }
+
+  // Detectar clic en el botón de estadísticas para carga bajo demanda
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest('.remote-btn[data-remote="statistics-remote"]');
+    if (btn) {
+      loadStatisticsIfNeeded();
+    }
+  });
+
+  // Si la pestaña activa al cargar es estadísticas, solicitar los datos
+  const currentActiveBtn = getActiveRemoteBtn();
+  if (currentActiveBtn && currentActiveBtn.dataset.remote === "statistics-remote") {
+    loadStatisticsIfNeeded();
+  }
 }

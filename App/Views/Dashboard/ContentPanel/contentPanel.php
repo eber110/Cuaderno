@@ -70,16 +70,22 @@
     </div>
   </div>
 
-  <div id="statistics-remote" class="remote-content flex-row top-center hidden">
-    <div class="wpx890 w-mid-100 w-sml-100">
-      <?php
-        _part("Dashboard.statisticsPanel", [
-          "stats" => $stats ?? [], 
-          "card"  => $card ?? [],
-          "user"  => $user ?? $card["profile"] ?? "",
-          "uri"   => $uri ?? []
-        ]);
-      ?>
+  <div id="statistics-remote" class="remote-content flex-row top-center hidden" data-loaded="<?= !empty($stats) ? 'true' : 'false'; ?>">
+    <div class="wpx890 w-mid-100 w-sml-100" id="statistics-remote-wrapper">
+      <?php if (!empty($stats)): ?>
+        <?php
+          _part("Dashboard.statisticsPanel", [
+            "stats" => $stats, 
+            "card"  => $card ?? [],
+            "user"  => $user ?? $card["profile"] ?? "",
+            "uri"   => $uri ?? []
+          ]);
+        ?>
+      <?php else: ?>
+        <div id="stats-loading-placeholder" class="flex-column center p40 gap15 text-center">
+          <div class="bold600 texto-sml color-secundary">Cargando estadísticas...</div>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 

@@ -21,6 +21,14 @@ elseif (file_exists($basePath . '/vendor/eber/framework/.env')) {
     $dotenv->load();
 }
 
+// Forzar consulta de IP exclusivamente mediante la base de datos local MaxMind (GeoLite2-City.mmdb)
+if (!defined('GEO_API_PRIMARY')) {
+    define('GEO_API_PRIMARY', '');
+}
+if (!defined('GEO_API_FALLBACK')) {
+    define('GEO_API_FALLBACK', '');
+}
+
 // Configuración de timeouts de geolocalización para evitar bloqueos si la API externa no responde
 if (!defined('GEO_CONNECT_TIMEOUT')) {
     define('GEO_CONNECT_TIMEOUT', 1);

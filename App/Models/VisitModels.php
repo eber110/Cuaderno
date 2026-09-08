@@ -36,33 +36,18 @@ class VisitModels extends Builder {
       ];
     }
 
-    $dbPath = class_exists(GeoIpModule::class) ? GeoIpModule::getDatabasePath() : null;
-
-    if (!$dbPath || !file_exists($dbPath)) {
-      $possiblePaths = [
-        defined("ROUTE_DATABASE_COMPONENT") ? rtrim(ROUTE_DATABASE_COMPONENT, "/\\") . "/GeoLite2-City.mmdb" : null,
-        defined("ROOT_PATH") ? ROOT_PATH . "/App/DatabaseComponent/GeoLite2-City.mmdb" : null
-      ];
-
-      foreach ($possiblePaths as $path) {
-        if ($path && file_exists($path)) {
-          $dbPath = $path;
-          break;
-        }
-      }
-    }
-
-    if (file_exists($dbPath) && class_exists("\GeoIp2\Database\Reader")) {
+    if (class_exists(GeoIpModule::class)) {
       try {
-        $reader = new Reader($dbPath);
-        $record = $reader->city($ip);
-        return [
-          "country_code" => $record->country->isoCode ?? "N/A",
-          "country_name" => $record->country->name ?? "Desconocido",
-          "city_name"    => $record->city->name ?? "Desconocido"
-        ];
+        $record = GeoIpModule::getCityRecord($ip);
+        if ($record) {
+          return [
+            "country_code" => $record->country->isoCode ?? "N/A",
+            "country_name" => $record->country->name ?? "Desconocido",
+            "city_name"    => $record->city->name ?? "Desconocido"
+          ];
+        }
       } catch (Exception $e) {
-        // En caso de que la IP no se encuentre en la BD local
+        // En caso de que la IP no se encuentre en la BD local de MaxMind
       }
     }
 

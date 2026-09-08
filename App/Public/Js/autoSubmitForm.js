@@ -322,7 +322,9 @@ export function autoSubmitForm() {
         if (data.statsHtml) {
           const statsRemote = document.getElementById('statistics-remote');
           if (statsRemote) {
-            statsRemote.innerHTML = data.statsHtml;
+            const wrapper = document.getElementById('statistics-remote-wrapper') || statsRemote;
+            wrapper.innerHTML = data.statsHtml;
+            statsRemote.dataset.loaded = 'true';
           }
         }
 

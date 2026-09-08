@@ -394,6 +394,8 @@ class DesignModels extends Builder {
         }
       }
 
+      $hasPendingMetadata = false;
+
       foreach ($param["content"] as $index => $item) {
         $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
 
@@ -496,27 +498,25 @@ class DesignModels extends Builder {
               $subImgShow = !$subImgShow;
             }
 
-            $subMetaTitle = trim((string)($prod["metaTitle"] ?? ""));
-            $subMetaDesc  = trim((string)($prod["metaDesc"] ?? ""));
-            $subMetaImg   = trim((string)($prod["metaImg"] ?? ""));
+            $subMetaTitle   = trim((string)($prod["metaTitle"] ?? ""));
+            $subMetaDesc    = trim((string)($prod["metaDesc"] ?? ""));
+            $subMetaImg     = trim((string)($prod["metaImg"] ?? ""));
+            $subMetaScraped = false;
 
             $existingSubItem = $existingSubList[$pIndex] ?? null;
             if ($existingSubItem !== null && ($existingSubItem["url"] ?? "") === $subUrl && !empty($existingSubItem["metaTitle"])) {
-              $subMetaTitle = $existingSubItem["metaTitle"];
-              $subMetaDesc  = !empty($existingSubItem["metaDesc"]) ? $existingSubItem["metaDesc"] : $subMetaDesc;
-              $subMetaImg   = !empty($existingSubItem["metaImg"]) ? $existingSubItem["metaImg"] : $subMetaImg;
+              $subMetaTitle   = $existingSubItem["metaTitle"];
+              $subMetaDesc    = !empty($existingSubItem["metaDesc"]) ? $existingSubItem["metaDesc"] : $subMetaDesc;
+              $subMetaImg     = !empty($existingSubItem["metaImg"]) ? $existingSubItem["metaImg"] : $subMetaImg;
+              $subMetaScraped = !empty($existingSubItem["metaScraped"]);
             } elseif (!empty($subTitle)) {
-              // Si el usuario ya asignó un título al producto, usarlo y no bloquear el guardado con peticiones HTTP externas
               $subMetaTitle = $subTitle;
-            } elseif (!empty($subUrl) && empty($subMetaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
-              $metaData = RequestMetaModule::requestMeta($subUrl);
-              if ($metaData !== false && is_array($metaData)) {
-                $subMetaTitle = !empty($metaData["title"]) ? $metaData["title"] : (!empty($metaData["og"]["title"]) ? $metaData["og"]["title"] : $subTitle);
-                $subMetaDesc = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : "");
-                $subMetaImg = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
-              } else {
-                $subMetaTitle = $subTitle ?: (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl);
-              }
+            } else {
+              $subMetaTitle = $subTitle ?: ($subUrl ? (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl) : "");
+            }
+
+            if (empty($subMetaScraped) && !empty($subUrl) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
+              $hasPendingMetadata = true;
             }
 
             if (empty($subMetaTitle)) $subMetaTitle = $subTitle ?: ($subUrl ? (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl) : "");
@@ -568,18 +568,19 @@ class DesignModels extends Builder {
             }
 
             $processedProducts[] = [
-              "img"        => $subImg,
-              "title"      => $subTitle,
-              "url"        => $subUrl,
-              "price"      => $subPrice,
-              "offer"      => $subOffer,
-              "discount"   => $subDiscount,
-              "porcentage" => (int)$subPorcentage,
-              "imgDefault" => $subImgDefault,
-              "imgShow"    => $subImgShow,
-              "metaTitle"  => $subMetaTitle,
-              "metaDesc"   => $subMetaDesc,
-              "metaImg"    => $subMetaImg
+              "img"         => $subImg,
+              "title"       => $subTitle,
+              "url"         => $subUrl,
+              "price"       => $subPrice,
+              "offer"       => $subOffer,
+              "discount"    => $subDiscount,
+              "porcentage"  => (int)$subPorcentage,
+              "imgDefault"  => $subImgDefault,
+              "imgShow"     => $subImgShow,
+              "metaTitle"   => $subMetaTitle,
+              "metaDesc"    => $subMetaDesc,
+              "metaImg"     => $subMetaImg,
+              "metaScraped" => $subMetaScraped
             ];
           }
 
@@ -802,50 +803,28 @@ class DesignModels extends Builder {
           }
         }
 
-        $metaTitle = trim((string)($item["metaTitle"] ?? ""));
-        $metaDesc  = trim((string)($item["metaDesc"] ?? ""));
-        $metaImg   = trim((string)($item["metaImg"] ?? ""));
+        $metaTitle   = trim((string)($item["metaTitle"] ?? ""));
+        $metaDesc    = trim((string)($item["metaDesc"] ?? ""));
+        $metaImg     = trim((string)($item["metaImg"] ?? ""));
+        $metaScraped = false;
 
-        if ($existingItem !== null && !empty($existingItem["metaTitle"])) {
-          $metaTitle = $existingItem["metaTitle"];
-          $metaDesc  = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
-          $metaImg   = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
+        if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
+          $metaTitle   = $existingItem["metaTitle"];
+          $metaDesc    = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
+          $metaImg     = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
+          $metaScraped = !empty($existingItem["metaScraped"]);
         } elseif (!empty($titleBtn)) {
-          // Si el usuario ya asignó un título manualmente, usarlo y evitar peticiones externas HTTP bloqueantes
           $metaTitle = $titleBtn;
-        } elseif (!empty($url) && empty($metaTitle) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
-          $metaData = RequestMetaModule::requestMeta($url);
-          if ($metaData !== false && is_array($metaData)) {
-            $metaTitle = !empty($metaData["title"])
-              ? $metaData["title"]
-              : (!empty($metaData["og"]["title"])
-                ? $metaData["og"]["title"]
-                : (!empty($metaData["twitter"]["title"])
-                  ? $metaData["twitter"]["title"]
-                  : $titleBtn));
-
-            $metaDesc = !empty($metaData["description"])
-              ? $metaData["description"]
-              : (!empty($metaData["og"]["description"])
-                ? $metaData["og"]["description"]
-                : (!empty($metaData["twitter"]["description"])
-                  ? $metaData["twitter"]["description"]
-                  : ""));
-
-            $metaImg = !empty($metaData["og"]["image"])
-              ? $metaData["og"]["image"]
-              : (!empty($metaData["twitter"]["image"])
-                ? $metaData["twitter"]["image"]
-                : (!empty($metaData["og"]["logo"])
-                  ? $metaData["og"]["logo"]
-                  : ""));
-          } else {
-            $metaTitle = $titleBtn ?: (parse_url($url, PHP_URL_HOST) ?: $url);
-          }
+        } else {
+          $metaTitle = $titleBtn ?: ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : "");
         }
 
         if (empty($metaTitle)) {
-          $metaTitle = $titleBtn;
+          $metaTitle = $titleBtn ?: ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : "");
+        }
+
+        if (empty($metaScraped) && !empty($url) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
+          $hasPendingMetadata = true;
         }
         if (empty($metaDesc)) {
           $metaDesc = "";
@@ -869,16 +848,17 @@ class DesignModels extends Builder {
         }
 
         $contentItem = [
-          "type"       => $type,
-          "img"        => $img,
-          "title"      => $titleBtn,
-          "url"        => $url,
-          "active"     => $active,
-          "imgDefault" => $imgDefault,
-          "imgShow"    => $imgShow,
-          "metaTitle"  => $metaTitle,
-          "metaDesc"   => $metaDesc,
-          "metaImg"    => $metaImg
+          "type"        => $type,
+          "img"         => $img,
+          "title"       => $titleBtn,
+          "url"         => $url,
+          "active"      => $active,
+          "imgDefault"  => $imgDefault,
+          "imgShow"     => $imgShow,
+          "metaTitle"   => $metaTitle,
+          "metaDesc"    => $metaDesc,
+          "metaImg"     => $metaImg,
+          "metaScraped" => $metaScraped
         ];
 
         if ($type === "product") {
@@ -1076,7 +1056,14 @@ class DesignModels extends Builder {
     ];
 
     // Guardar en la tabla user_designs con is_draft = 1
-    return self::saveDesignToDb($userClean, 1, $cardPayload);
+    $saved = self::saveDesignToDb($userClean, 1, $cardPayload);
+
+    // Si existen URLs que requieren extracción de metadatos, delegar a segundo plano usando HttpPostModule
+    if ($hasPendingMetadata) {
+      self::triggerBackgroundMetadataExtraction($userClean);
+    }
+
+    return $saved;
   }
 
   /**
@@ -1283,6 +1270,146 @@ class DesignModels extends Builder {
     }
 
     return true;
+  }
+
+  /**
+   * Dispara la extracción de metadatos en segundo plano utilizando HttpPostModule.
+   * Cierra la sesión activa para evitar bloqueos por cerrojos de archivo de sesión (session lock).
+   *
+   * @param string $user Nombre de usuario.
+   * @return void
+   */
+  public static function triggerBackgroundMetadataExtraction(string $user): void {
+    $userClean = mb_strtolower($user, "UTF-8");
+
+    // En entorno CLI o sin HTTP_HOST, procesar directamente
+    if (php_sapi_name() === "cli" || empty($_SERVER["HTTP_HOST"])) {
+      self::processPendingMetadata($userClean);
+      return;
+    }
+
+    // Liberar cerrojo de sesión para que la petición interna concurrente no quede en espera
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
+
+    $cookie = $_SERVER["HTTP_COOKIE"] ?? "";
+    $options = [
+      "timeout" => 2,
+      "headers" => !empty($cookie) ? ["Cookie: " . $cookie] : []
+    ];
+
+    try {
+      \Base\Module\HttpPostModule::postData([
+        "user"   => $userClean,
+        "action" => "extract_metadata"
+      ], "/panel/{$userClean}/extraer-metadatos", $options);
+    } catch (\Throwable $e) {
+      error_log("Error al disparar extracción de metadatos en segundo plano: " . $e->getMessage());
+    }
+  }
+
+  /**
+   * Procesa en segundo plano todos los enlaces o productos pendientes de extracción de metadatos
+   * utilizando RequestMetaModule y actualiza la tarjeta guardada en SQLite.
+   *
+   * @param string $user Nombre de usuario.
+   * @return bool True si hubo cambios y se actualizaron en BD, false de lo contrario.
+   */
+  public static function processPendingMetadata(string $user): bool {
+    $userClean = mb_strtolower($user, "UTF-8");
+
+    // Verificar si existe borrador custom o diseño oficial
+    $hasDraft = self::hasCustomDesign($userClean);
+    $isDraft = $hasDraft ? 1 : 0;
+
+    $designData = $hasDraft ? self::getCustomDesign($userClean) : self::getOfficialDesign($userClean);
+    if ($designData === false || empty($designData["card"]) || empty($designData["card"]["content"]) || !is_array($designData["card"]["content"])) {
+      return false;
+    }
+
+    $card = $designData["card"];
+    $updated = false;
+
+    foreach ($card["content"] as &$item) {
+      $itemType = $item["type"] ?? "";
+
+      if ($itemType === "product_group" && isset($item["products"]) && is_array($item["products"])) {
+        foreach ($item["products"] as &$sub) {
+          $subUrl = trim($sub["url"] ?? "");
+          $alreadyScraped = !empty($sub["metaScraped"]);
+
+          if (!empty($subUrl) && !$alreadyScraped && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
+            $metaData = RequestMetaModule::requestMeta($subUrl);
+            if ($metaData !== false && is_array($metaData)) {
+              if (empty($sub["title"]) || $sub["title"] === $subUrl || $sub["title"] === parse_url($subUrl, PHP_URL_HOST)) {
+                $sub["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : (!empty($metaData["og"]["title"]) ? $metaData["og"]["title"] : ($sub["metaTitle"] ?? ""));
+              } else {
+                $sub["metaTitle"] = $sub["title"];
+              }
+              $sub["metaDesc"] = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : ($sub["metaDesc"] ?? ""));
+              $subMetaImg      = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
+              if (!empty($subMetaImg)) {
+                $sub["metaImg"] = $subMetaImg;
+              }
+            }
+            $sub["metaScraped"] = true;
+            $updated = true;
+          }
+        }
+        unset($sub);
+      } else {
+        $url = trim($item["url"] ?? "");
+        $alreadyScraped = !empty($item["metaScraped"]);
+
+        if (!empty($url) && !$alreadyScraped && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
+          $metaData = RequestMetaModule::requestMeta($url);
+          if ($metaData !== false && is_array($metaData)) {
+            $titleBtn = trim($item["title"] ?? "");
+            if (empty($titleBtn) || $titleBtn === $url || $titleBtn === parse_url($url, PHP_URL_HOST)) {
+              $item["metaTitle"] = !empty($metaData["title"])
+                ? $metaData["title"]
+                : (!empty($metaData["og"]["title"])
+                  ? $metaData["og"]["title"]
+                  : (!empty($metaData["twitter"]["title"])
+                    ? $metaData["twitter"]["title"]
+                    : ($item["metaTitle"] ?? "")));
+            } else {
+              $item["metaTitle"] = $titleBtn;
+            }
+
+            $item["metaDesc"] = !empty($metaData["description"])
+              ? $metaData["description"]
+              : (!empty($metaData["og"]["description"])
+                ? $metaData["og"]["description"]
+                : (!empty($metaData["twitter"]["description"])
+                  ? $metaData["twitter"]["description"]
+                  : ($item["metaDesc"] ?? "")));
+
+            $itemMetaImg = !empty($metaData["og"]["image"])
+              ? $metaData["og"]["image"]
+              : (!empty($metaData["twitter"]["image"])
+                ? $metaData["twitter"]["image"]
+                : (!empty($metaData["og"]["logo"])
+                  ? $metaData["og"]["logo"]
+                  : ""));
+            if (!empty($itemMetaImg)) {
+              $item["metaImg"] = $itemMetaImg;
+            }
+          }
+          $item["metaScraped"] = true;
+          $updated = true;
+        }
+      }
+    }
+    unset($item);
+
+    if ($updated) {
+      self::saveDesignToDb($userClean, $isDraft, $card);
+      return true;
+    }
+
+    return false;
   }
 
 }
