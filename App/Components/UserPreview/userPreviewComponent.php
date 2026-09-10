@@ -23,7 +23,15 @@ class userPreviewComponent {
    */
   public static function data($view = "UserPreview.index", $viewType = "template", $params = []) {
     $card = $params["data"] ?? [];
-    $user = $card["profile"] ?? "";
+
+    // Si ya viene una tarjeta formateada y estructurada con su contenido o estilo, usarla directamente
+    if (is_array($card) && (isset($card["content"]) || isset($card["backCard"]))) {
+      return ["card" => $card];
+    }
+
+    $user = is_string($params["data"] ?? null)
+      ? $params["data"]
+      : ($card["profile"] ?? ($params["id"] ?? ($params["user"] ?? "")));
 
     if (!empty($user)) {
       $dataUser = DesignModels::dataUser($user);

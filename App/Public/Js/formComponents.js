@@ -333,87 +333,111 @@ export function formComponents() {
   // Actualizar la vista previa en vivo en el cliente con alta especificidad
   function updateLivePreviewColor(name, hex, inputElement = null) {
     if (!name || !hex) return;
-    const preview = document.querySelector('.user-profile-preview');
-    if (!preview) return;
+    const previews = document.querySelectorAll('.user-profile-preview');
+    if (!previews.length) return;
 
-    if (name === 'back_perfil') {
-      preview.querySelectorAll('.back-card').forEach(el => {
-        el.style.setProperty('background', hex, 'important');
-        el.style.setProperty('background-color', hex, 'important');
-      });
-      preview.querySelectorAll('.back-card-container').forEach(el => {
-        el.style.setProperty('background', hex, 'important');
-        el.style.setProperty('background-color', hex, 'important');
-      });
-    } else if (name === 'colorText') {
-      preview.querySelectorAll('.color-text-card').forEach(el => {
-        el.style.setProperty('color', hex, 'important');
-      });
-      preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini').forEach(el => {
-        el.style.setProperty('color', hex, 'important');
-      });
-      preview.querySelectorAll('.color-text-card p, .color-text-card span').forEach(el => {
-        if (!el.closest('.theme-button') && !el.closest('.title-color') && !el.closest('h1, h2, h3, h4')) {
+    previews.forEach((preview) => {
+      if (name === 'back_perfil') {
+        preview.querySelectorAll('.back-card').forEach(el => {
+          el.style.setProperty('background', hex, 'important');
+          el.style.setProperty('background-color', hex, 'important');
+        });
+        preview.querySelectorAll('.back-card-container').forEach(el => {
+          el.style.setProperty('background', hex, 'important');
+          el.style.setProperty('background-color', hex, 'important');
+        });
+      } else if (name === 'colorText') {
+        preview.querySelectorAll('.color-text-card').forEach(el => {
           el.style.setProperty('color', hex, 'important');
+        });
+        preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini').forEach(el => {
+          el.style.setProperty('color', hex, 'important');
+        });
+        preview.querySelectorAll('.color-text-card p, .color-text-card span').forEach(el => {
+          if (!el.closest('.theme-button') && !el.closest('.title-color') && !el.closest('h1, h2, h3, h4')) {
+            el.style.setProperty('color', hex, 'important');
+          }
+        });
+      } else if (name === 'titleColor') {
+        preview.querySelectorAll('.title-color, .title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach(el => {
+          el.style.setProperty('color', hex, 'important');
+        });
+      } else if (name === 'back') {
+        preview.querySelectorAll('.theme-button').forEach(el => {
+          el.style.setProperty('background-color', hex, 'important');
+        });
+      } else if (name === 'color') {
+        preview.querySelectorAll('.theme-button').forEach(el => {
+          el.style.setProperty('color', hex, 'important');
+        });
+        preview.querySelectorAll('.theme-button *, .theme-icon').forEach(el => {
+          el.style.setProperty('color', hex, 'important');
+        });
+      } else if (name === 'colorShadow3') {
+        preview.querySelectorAll('.shadow-3').forEach(el => {
+          el.style.setProperty('border-color', hex, 'important');
+          el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
+        });
+      } else if (name.includes('bg_color')) {
+        const itemBlock = inputElement?.closest('.sortable-item');
+        const itemType = itemBlock?.getAttribute('data-type');
+        if (itemType === 'banner') {
+          const bannerItems = Array.from(document.querySelectorAll('#sortable-content-list .sortable-item[data-type="banner"]'));
+          const bIdx = bannerItems.indexOf(itemBlock);
+          const bannerWrappers = preview.querySelectorAll('.banner-block-wrapper');
+          if (bIdx !== -1 && bannerWrappers[bIdx]) {
+            bannerWrappers[bIdx].style.setProperty('background-color', hex, 'important');
+          } else {
+            bannerWrappers.forEach(el => el.style.setProperty('background-color', hex, 'important'));
+          }
+        } else if (itemType === 'campaign') {
+          const campItems = Array.from(document.querySelectorAll('#sortable-content-list .sortable-item[data-type="campaign"]'));
+          const cIdx = campItems.indexOf(itemBlock);
+          const campWrappers = preview.querySelectorAll('.campaign-block-wrapper');
+          if (cIdx !== -1 && campWrappers[cIdx]) {
+            campWrappers[cIdx].style.setProperty('background-color', hex, 'important');
+          } else {
+            campWrappers.forEach(el => el.style.setProperty('background-color', hex, 'important'));
+          }
         }
-      });
-    } else if (name === 'titleColor') {
-      preview.querySelectorAll('.title-color, .title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach(el => {
-        el.style.setProperty('color', hex, 'important');
-      });
-    } else if (name === 'back') {
-      preview.querySelectorAll('.theme-button').forEach(el => {
-        el.style.setProperty('background-color', hex, 'important');
-      });
-    } else if (name === 'color') {
-      preview.querySelectorAll('.theme-button').forEach(el => {
-        el.style.setProperty('color', hex, 'important');
-      });
-      preview.querySelectorAll('.theme-button *, .theme-icon').forEach(el => {
-        el.style.setProperty('color', hex, 'important');
-      });
-    } else if (name === 'colorShadow3') {
-      preview.querySelectorAll('.shadow-3').forEach(el => {
-        el.style.setProperty('border-color', hex, 'important');
-        el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
-      });
-    } else if (name.includes('title_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-title[data-index="${idx}"]`)
-        : preview.querySelectorAll('.campaign-title');
-      targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-    } else if (name.includes('desc_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-desc[data-index="${idx}"]`)
-        : preview.querySelectorAll('.campaign-desc');
-      targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-    } else if (name.includes('btn_bg_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-        : preview.querySelectorAll('.campaign-button');
-      targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-    } else if (name.includes('btn_text_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-        : preview.querySelectorAll('.campaign-button');
-      targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-    } else if (name.includes('countdown_bg_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"], [data-countdown][data-index="${idx}"]`)
-        : preview.querySelectorAll('.campaign-countdown-wrapper, [data-countdown]');
-      targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-    } else if (name.includes('countdown_text_color')) {
-      const idx = inputElement?.dataset?.index;
-      const targets = idx !== undefined 
-        ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"] *, [data-countdown][data-index="${idx}"] *`)
-        : preview.querySelectorAll('.campaign-countdown-wrapper *, [data-countdown] *');
-      targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-    }
+      } else if (name.includes('title_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-title[data-index="${idx}"]`)
+          : preview.querySelectorAll('.campaign-title');
+        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
+      } else if (name.includes('desc_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-desc[data-index="${idx}"]`)
+          : preview.querySelectorAll('.campaign-desc');
+        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
+      } else if (name.includes('btn_bg_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
+          : preview.querySelectorAll('.campaign-button');
+        targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
+      } else if (name.includes('btn_text_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
+          : preview.querySelectorAll('.campaign-button');
+        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
+      } else if (name.includes('countdown_bg_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"], [data-countdown][data-index="${idx}"]`)
+          : preview.querySelectorAll('.campaign-countdown-wrapper, [data-countdown]');
+        targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
+      } else if (name.includes('countdown_text_color')) {
+        const idx = inputElement?.dataset?.index;
+        const targets = idx !== undefined 
+          ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"] *, [data-countdown][data-index="${idx}"] *`)
+          : preview.querySelectorAll('.campaign-countdown-wrapper *, [data-countdown] *');
+        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
+      }
+    });
   }
 
   // Paleta de colores predefinida premium (pasteles, primarios y neutros)

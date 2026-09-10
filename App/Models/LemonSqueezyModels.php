@@ -369,8 +369,11 @@ class LemonSqueezyModels extends Builder
    * @param string|int $userId ID o username del usuario.
    * @return bool True si la suscripción está activa y vigente, False de lo contrario.
    */
-  public static function isUserSubscribedFast(string|int $userId): bool
+  public static function isUserSubscribedFast(string|int|null $userId = null): bool
   {
+    if (empty($userId)) {
+      return false;
+    }
     $now = time();
     $userIdStr = (string)$userId;
 

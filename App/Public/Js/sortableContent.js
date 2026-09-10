@@ -147,13 +147,29 @@ export function sortableContent() {
       return;
     }
 
+    if (type === "banner") {
+      const urlInput = item.querySelector('input[name*="[url]"]');
+      const rawUrl = urlInput ? urlInput.value.trim() : "";
+      label.textContent = rawUrl ? `Banner - ${rawUrl}` : `Banner - (Sin enlace)`;
+      return;
+    }
+
+    if (type === "text") {
+      const textInput = item.querySelector('textarea[name*="[text]"], input[name*="[text]"]');
+      const rawVal = textInput ? textInput.value.trim() : "";
+      const displayVal = rawVal.length > 35 ? rawVal.substring(0, 35) + "..." : rawVal;
+      label.textContent = displayVal ? `Texto - ${displayVal}` : `Texto - (Sin texto)`;
+      return;
+    }
+
     const titleInput = item.querySelector('input[name*="[title]"]');
     if (!titleInput) return;
 
-    const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : "Enlace");
+    const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : (type === "title" ? "Título" : "Enlace"));
     const rawVal = titleInput.value.trim();
+    const emptyPlaceholder = type === "title" ? "(Sin texto)" : "(Sin título)";
 
-    label.textContent = rawVal ? `${prefix} - ${rawVal}` : `${prefix} - (Sin título)`;
+    label.textContent = rawVal ? `${prefix} - ${rawVal}` : `${prefix} - ${emptyPlaceholder}`;
   }
 
   /**
@@ -226,7 +242,7 @@ export function sortableContent() {
       const target = e.target;
       if (!target) return;
 
-      // Slider de opacidad de campaña en vivo
+      // Slider de opacidad en vivo (Campaña y Banner)
       if (target.matches('.campaign-opacity-slider')) {
         const val = Math.max(0, Math.min(100, parseInt(target.value, 10) || 0));
         target.style.setProperty("--range-progress", `${val}%`);
@@ -235,14 +251,100 @@ export function sortableContent() {
           const label = document.getElementById(targetId);
           if (label) label.textContent = `${val}%`;
         }
+
+        const bannerItem = target.closest('.sortable-item[data-type="banner"]');
+        const campItem = target.closest('.sortable-item[data-type="campaign"]');
+
+        // Si pertenece a un banner, actualizar la opacidad de la imagen en vivo en todas las vistas previas
+        if (bannerItem) {
+          const contentList = document.getElementById("sortable-content-list");
+          if (contentList) {
+            const bannerItems = Array.from(contentList.querySelectorAll('.sortable-item[data-type="banner"]'));
+            const idx = bannerItems.indexOf(bannerItem);
+            if (idx !== -1) {
+              document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+                const bannerWrappers = preview.querySelectorAll(".banner-block-wrapper");
+                if (bannerWrappers[idx]) {
+                  const img = bannerWrappers[idx].querySelector("img");
+                  if (img) {
+                    img.style.setProperty("opacity", (val / 100).toString(), "important");
+                  }
+                }
+              });
+            }
+          }
+        } else if (campItem) {
+          const contentList = document.getElementById("sortable-content-list");
+          if (contentList) {
+            const campItems = Array.from(contentList.querySelectorAll('.sortable-item[data-type="campaign"]'));
+            const idx = campItems.indexOf(campItem);
+            if (idx !== -1) {
+              document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+                const campWrappers = preview.querySelectorAll(".campaign-block-wrapper");
+                if (campWrappers[idx]) {
+                  const overlay = campWrappers[idx].querySelector(".campaign-bg-overlay");
+                  if (overlay) {
+                    overlay.style.setProperty("opacity", (val / 100).toString(), "important");
+                  }
+                }
+              });
+            }
+          }
+        }
         return;
       }
 
-      if (!target.matches('input[name*="[title]"]')) return;
+      if (target.matches('input[name*="[title]"], textarea[name*="[text]"], input[name*="[text]"]') || target.matches('.sortable-item[data-type="banner"] input[name*="[url]"]')) {
+        const item = target.closest(".sortable-item.content-block");
+        if (item) {
+          syncHeaderTitle(item);
+        }
+        return;
+      }
+    });
 
-      const item = target.closest(".sortable-item.content-block");
-      if (item) {
-        syncHeaderTitle(item);
+    // Ajustar cropping-size, habilitar subida de imagen y sincronizar aspect ratio en tiempo real al elegir tamaño del banner
+    document.addEventListener("change", (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      if (target.matches('.banner-size-radio')) {
+        const item = target.closest(".sortable-item.content-block");
+        if (item) {
+          const cropInput = item.querySelector('.banner-crop-input');
+          if (cropInput) {
+            cropInput.setAttribute('cropping-size', target.value);
+            cropInput.removeAttribute('disabled');
+          }
+          const cropWrap = item.querySelector('.banner-crop-btn-wrapper');
+          if (cropWrap) {
+            cropWrap.classList.remove('opacity-40', 'pointer-events-none');
+            cropWrap.removeAttribute('title');
+          }
+          const hint = item.querySelector('.banner-size-hint');
+          if (hint) {
+            hint.classList.add('hidden');
+          }
+
+          // Sincronizar de inmediato la proporción visual (aspect-ratio) en todas las vistas previas
+          const contentList = document.getElementById("sortable-content-list");
+          if (contentList) {
+            const bannerItems = Array.from(contentList.querySelectorAll('.sortable-item[data-type="banner"]'));
+            const idx = bannerItems.indexOf(item);
+            if (idx !== -1) {
+              let aspect = "720 / 1024";
+              if (target.value === "720x720") aspect = "720 / 720";
+              else if (target.value === "1024x720") aspect = "1024 / 720";
+
+              document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+                const bannerWrappers = preview.querySelectorAll(".banner-block-wrapper");
+                if (bannerWrappers[idx]) {
+                  bannerWrappers[idx].style.setProperty("aspect-ratio", aspect, "important");
+                }
+              });
+            }
+          }
+        }
       }
     });
 
@@ -496,6 +598,9 @@ export function sortableContent() {
         if (oldId && oldId.startsWith("offer-switch-")) {
           element.setAttribute("id", `offer-switch-${index}`);
         }
+        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-"))) {
+          element.setAttribute("id", oldId.replace(/-\d+$/, `-${index}`));
+        }
 
         const oldFor = element.getAttribute("for");
         if (oldFor && oldFor.startsWith("delete-link-")) {
@@ -506,6 +611,9 @@ export function sortableContent() {
         }
         if (oldFor && oldFor.startsWith("offer-switch-")) {
           element.setAttribute("for", `offer-switch-${index}`);
+        }
+        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-"))) {
+          element.setAttribute("for", oldFor.replace(/-\d+$/, `-${index}`));
         }
       });
     });

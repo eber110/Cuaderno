@@ -40,6 +40,24 @@
           _part("User.campaign", ["dataContent" => $i, "card" => $card]);
         }
       }
+      //si es banner se muestra la plantilla banner
+      if ($itemType === "banner") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User.banner", ["dataContent" => $i, "card" => $card]);
+        }
+      }
+      //si es titulo se muestra la plantilla title
+      if ($itemType === "title") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User.title", ["dataContent" => $i, "card" => $card]);
+        }
+      }
+      //si es texto se muestra la plantilla text
+      if ($itemType === "text") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User.text", ["dataContent" => $i, "card" => $card]);
+        }
+      }
     }
   ?>
 

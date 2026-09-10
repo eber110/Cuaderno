@@ -158,6 +158,23 @@ class UserModels extends BuilderSqlite {
           $item["whatsapp"]       = $item["whatsapp"] ?? "";
         }
 
+        if (($item["type"] ?? "") === "banner") {
+          $item["size"]       = in_array($item["size"] ?? "", ["720x1024", "720x720", "1024x720"], true) ? $item["size"] : "";
+          $item["bg_color"]   = !empty($item["bg_color"]) ? $item["bg_color"] : "#f2e5ff";
+          $item["bg_opacity"] = isset($item["bg_opacity"]) ? max(0, min(100, (int)$item["bg_opacity"])) : 100;
+          $item["url"]        = $item["url"] ?? "";
+        }
+
+        if (($item["type"] ?? "") === "title") {
+          $item["title_size"]   = in_array($item["title_size"] ?? "", ["small", "medium", "large"], true) ? $item["title_size"] : "small";
+          $item["title_weight"] = in_array($item["title_weight"] ?? "", ["500", "600", "700", "900"], true) ? $item["title_weight"] : "500";
+        }
+
+        if (($item["type"] ?? "") === "text") {
+          $item["text_weight"] = in_array($item["text_weight"] ?? "", ["400", "500"], true) ? $item["text_weight"] : "400";
+          $item["text_align"]  = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "left";
+        }
+
         if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
           $prodCount = count($item["products"]);
           $layout = $item["layout"] ?? "grid";

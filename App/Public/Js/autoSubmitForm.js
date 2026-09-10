@@ -126,6 +126,37 @@ export function autoSubmitForm() {
       }
     }
 
+    // Sincronizar visibilidad de elementos en la vista previa de forma instantánea al conmutar switches
+    if (target.matches('.checkbox-switch')) {
+      const itemBlock = target.closest('.sortable-item');
+      if (itemBlock) {
+        const itemType = itemBlock.getAttribute('data-type');
+        const contentList = document.getElementById('sortable-content-list');
+        if (contentList && itemType) {
+          const sameTypeItems = Array.from(contentList.querySelectorAll(`.sortable-item[data-type="${itemType}"]`));
+          const idx = sameTypeItems.indexOf(itemBlock);
+          if (idx !== -1) {
+            const selectorMap = {
+              'banner': '.banner-block-wrapper',
+              'campaign': '.campaign-block-wrapper',
+              'product_group': '.product-group-wrapper',
+              'product': '.product-item-wrapper, .product-regular-wrapper',
+              'link': '.link-item-wrapper, .theme-button-wrapper'
+            };
+            const selector = selectorMap[itemType];
+            if (selector) {
+              document.querySelectorAll('.user-profile-preview').forEach((preview) => {
+                const wrappers = preview.querySelectorAll(selector);
+                if (wrappers[idx]) {
+                  wrappers[idx].style.display = target.checked ? '' : 'none';
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+
     // Verificar si el elemento pertenece a un formulario con la clase .auto-submit
     const form = target.closest('form.auto-submit');
     if (!form) return;
@@ -153,6 +184,7 @@ export function autoSubmitForm() {
   // Variables y control de estado de guardado asíncrono para coordinar con el botón Guardar
   let inputDebounceTimer = null;
   let colorDebounceTimer = null;
+  let rangeDebounceTimer = null;
   let pendingAutoSubmitForm = null;
   let activeDraftPromise = null;
   let resolveDraftPromise = null;
@@ -174,11 +206,13 @@ export function autoSubmitForm() {
 
   // API global para coordinar sincronización con el botón de guardar
   window.__flushAutoSubmit = async function() {
-    if (inputDebounceTimer || colorDebounceTimer) {
+    if (inputDebounceTimer || colorDebounceTimer || rangeDebounceTimer) {
       clearTimeout(inputDebounceTimer);
       clearTimeout(colorDebounceTimer);
+      clearTimeout(rangeDebounceTimer);
       inputDebounceTimer = null;
       colorDebounceTimer = null;
+      rangeDebounceTimer = null;
 
       const form = pendingAutoSubmitForm || document.querySelector('.remote-content.active form.auto-submit') || document.querySelector('form.auto-submit');
       if (form) {
@@ -200,6 +234,10 @@ export function autoSubmitForm() {
       clearTimeout(colorDebounceTimer);
       colorDebounceTimer = null;
     }
+    if (rangeDebounceTimer) {
+      clearTimeout(rangeDebounceTimer);
+      rangeDebounceTimer = null;
+    }
     pendingAutoSubmitForm = null;
 
     if (activeDraftAbortController) {
@@ -209,7 +247,7 @@ export function autoSubmitForm() {
   };
 
   window.__hasPendingDraft = function() {
-    return !!(inputDebounceTimer || colorDebounceTimer || pendingAutoSubmitForm || activeDraftPromise);
+    return !!(inputDebounceTimer || colorDebounceTimer || rangeDebounceTimer || pendingAutoSubmitForm || activeDraftPromise);
   };
 
   document.addEventListener('input', (e) => {
@@ -238,13 +276,29 @@ export function autoSubmitForm() {
         colorDebounceTimer = setTimeout(() => {
           colorDebounceTimer = null;
           triggerSubmit(form);
-        }, 400);
+        }, 200);
+      }
+      return;
+    }
+
+    // Manejo de inputs range (sliders de opacidad, espacios) con debounce ágil
+    if (target.type === 'range') {
+      const form = target.closest('form.auto-submit');
+      if (form && !target.hasAttribute('no-auto-submit') && !target.classList.contains('no-auto-submit')) {
+        pendingAutoSubmitForm = form;
+        document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
+
+        clearTimeout(rangeDebounceTimer);
+        rangeDebounceTimer = setTimeout(() => {
+          rangeDebounceTimer = null;
+          triggerSubmit(form);
+        }, 250);
       }
       return;
     }
 
     if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
-    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio' || target.type === 'range') return;
+    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio') return;
 
     const form = target.closest('form.auto-submit');
     if (!form) return;
@@ -258,7 +312,7 @@ export function autoSubmitForm() {
     inputDebounceTimer = setTimeout(() => {
       inputDebounceTimer = null;
       triggerSubmit(form);
-    }, 600);
+    }, 250);
   });
 
   // Interceptar envíos de formularios .auto-submit o data-fetch-preview para enviar por Fetch y recargar en vivo
@@ -500,109 +554,136 @@ export function initCampaignCountdowns() {
  */
 export function applyPreviewColorLive(name, hex, inputElement = null) {
   if (!name || !hex) return;
-  const preview = document.querySelector('.user-profile-preview');
-  if (!preview) return;
+  const previews = document.querySelectorAll('.user-profile-preview');
+  if (!previews.length) return;
 
-  // 1. Color de fondo general del perfil
-  if (name === 'back_perfil') {
-    preview.querySelectorAll('.back-card').forEach((el) => {
-      el.style.setProperty('background', hex, 'important');
-      el.style.setProperty('background-color', hex, 'important');
-    });
-    preview.querySelectorAll('.back-card-container').forEach((el) => {
-      el.style.setProperty('background', hex, 'important');
-      el.style.setProperty('background-color', hex, 'important');
-    });
-  }
+  previews.forEach((preview) => {
+    // 1. Color de fondo general del perfil
+    if (name === 'back_perfil') {
+      preview.querySelectorAll('.back-card').forEach((el) => {
+        el.style.setProperty('background', hex, 'important');
+        el.style.setProperty('background-color', hex, 'important');
+      });
+      preview.querySelectorAll('.back-card-container').forEach((el) => {
+        el.style.setProperty('background', hex, 'important');
+        el.style.setProperty('background-color', hex, 'important');
+      });
+    }
 
-  // 2. Color de texto general
-  else if (name === 'colorText') {
-    preview.querySelectorAll('.color-text-card').forEach((el) => {
-      el.style.setProperty('color', hex, 'important');
-    });
-    preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini').forEach((el) => {
-      el.style.setProperty('color', hex, 'important');
-    });
-    preview.querySelectorAll('.color-text-card p, .color-text-card span').forEach((el) => {
-      if (!el.closest('.theme-button') && !el.closest('.title-color') && !el.closest('h1, h2, h3, h4')) {
+    // 2. Color de texto general
+    else if (name === 'colorText') {
+      preview.querySelectorAll('.color-text-card').forEach((el) => {
         el.style.setProperty('color', hex, 'important');
+      });
+      preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini').forEach((el) => {
+        el.style.setProperty('color', hex, 'important');
+      });
+      preview.querySelectorAll('.color-text-card p, .color-text-card span').forEach((el) => {
+        if (!el.closest('.theme-button') && !el.closest('.title-color') && !el.closest('h1, h2, h3, h4')) {
+          el.style.setProperty('color', hex, 'important');
+        }
+      });
+    }
+
+    // 3. Color del título principal
+    else if (name === 'titleColor') {
+      preview.querySelectorAll('.title-color, .title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach((el) => {
+        el.style.setProperty('color', hex, 'important');
+      });
+    }
+
+    // 4. Color de fondo de los botones generales
+    else if (name === 'back') {
+      preview.querySelectorAll('.theme-button').forEach((el) => {
+        el.style.setProperty('background-color', hex, 'important');
+      });
+    }
+
+    // 5. Color de texto de los botones generales
+    else if (name === 'color') {
+      preview.querySelectorAll('.theme-button').forEach((el) => {
+        el.style.setProperty('color', hex, 'important');
+      });
+      preview.querySelectorAll('.theme-button *, .theme-icon').forEach((el) => {
+        el.style.setProperty('color', hex, 'important');
+      });
+    }
+
+    // 6. Color de la sombra shadow-3
+    else if (name === 'colorShadow3') {
+      preview.querySelectorAll('.shadow-3').forEach((el) => {
+        el.style.setProperty('border-color', hex, 'important');
+        el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
+      });
+    }
+
+    // 7. Colores específicos de bloque de campaña
+    else if (name.includes('title_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-title[data-index="${idx}"]`)
+        : preview.querySelectorAll('.campaign-title');
+      targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
+    }
+    else if (name.includes('desc_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-desc[data-index="${idx}"]`)
+        : preview.querySelectorAll('.campaign-desc');
+      targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
+    }
+    else if (name.includes('btn_bg_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
+        : preview.querySelectorAll('.campaign-button');
+      targets.forEach((el) => el.style.setProperty('background-color', hex, 'important'));
+    }
+    else if (name.includes('btn_text_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
+        : preview.querySelectorAll('.campaign-button');
+      targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
+    }
+    else if (name.includes('countdown_bg_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"], [data-countdown][data-index="${idx}"]`)
+        : preview.querySelectorAll('.campaign-countdown-wrapper, [data-countdown]');
+      targets.forEach((el) => el.style.setProperty('background-color', hex, 'important'));
+    }
+    else if (name.includes('countdown_text_color')) {
+      const idx = inputElement?.dataset?.index;
+      const targets = idx !== undefined 
+        ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"] *, [data-countdown][data-index="${idx}"] *`)
+        : preview.querySelectorAll('.campaign-countdown-wrapper *, [data-countdown] *');
+      targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
+    }
+    else if (name.includes('bg_color')) {
+      const bannerItem = inputElement?.closest('.sortable-item[data-type="banner"]');
+      const campItem = inputElement?.closest('.sortable-item[data-type="campaign"]');
+      const contentList = document.getElementById("sortable-content-list");
+
+      if (bannerItem && contentList) {
+        const bannerItems = Array.from(contentList.querySelectorAll('.sortable-item[data-type="banner"]'));
+        const idx = bannerItems.indexOf(bannerItem);
+        if (idx !== -1) {
+          const bannerWrappers = preview.querySelectorAll(".banner-block-wrapper");
+          if (bannerWrappers[idx]) {
+            bannerWrappers[idx].style.setProperty("background-color", hex, "important");
+          }
+        }
+      } else if (campItem && contentList) {
+        const campItems = Array.from(contentList.querySelectorAll('.sortable-item[data-type="campaign"]'));
+        const idx = campItems.indexOf(campItem);
+        if (idx !== -1) {
+          const campWrappers = preview.querySelectorAll(".campaign-block-wrapper");
+          if (campWrappers[idx]) {
+            campWrappers[idx].style.setProperty("background-color", hex, "important");
+          }
+        }
       }
-    });
-  }
-
-  // 3. Color del título principal
-  else if (name === 'titleColor') {
-    preview.querySelectorAll('.title-color, .title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach((el) => {
-      el.style.setProperty('color', hex, 'important');
-    });
-  }
-
-  // 4. Color de fondo de los botones generales
-  else if (name === 'back') {
-    preview.querySelectorAll('.theme-button').forEach((el) => {
-      el.style.setProperty('background-color', hex, 'important');
-    });
-  }
-
-  // 5. Color de texto de los botones generales
-  else if (name === 'color') {
-    preview.querySelectorAll('.theme-button').forEach((el) => {
-      el.style.setProperty('color', hex, 'important');
-    });
-    preview.querySelectorAll('.theme-button *, .theme-icon').forEach((el) => {
-      el.style.setProperty('color', hex, 'important');
-    });
-  }
-
-  // 6. Color de la sombra shadow-3
-  else if (name === 'colorShadow3') {
-    preview.querySelectorAll('.shadow-3').forEach((el) => {
-      el.style.setProperty('border-color', hex, 'important');
-      el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
-    });
-  }
-
-  // 7. Colores específicos de bloque de campaña
-  else if (name.includes('title_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-title[data-index="${idx}"]`)
-      : preview.querySelectorAll('.campaign-title');
-    targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
-  }
-  else if (name.includes('desc_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-desc[data-index="${idx}"]`)
-      : preview.querySelectorAll('.campaign-desc');
-    targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
-  }
-  else if (name.includes('btn_bg_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-      : preview.querySelectorAll('.campaign-button');
-    targets.forEach((el) => el.style.setProperty('background-color', hex, 'important'));
-  }
-  else if (name.includes('btn_text_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-      : preview.querySelectorAll('.campaign-button');
-    targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
-  }
-  else if (name.includes('countdown_bg_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"], [data-countdown][data-index="${idx}"]`)
-      : preview.querySelectorAll('.campaign-countdown-wrapper, [data-countdown]');
-    targets.forEach((el) => el.style.setProperty('background-color', hex, 'important'));
-  }
-  else if (name.includes('countdown_text_color')) {
-    const idx = inputElement?.dataset?.index;
-    const targets = idx !== undefined 
-      ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"] *, [data-countdown][data-index="${idx}"] *`)
-      : preview.querySelectorAll('.campaign-countdown-wrapper *, [data-countdown] *');
-    targets.forEach((el) => el.style.setProperty('color', hex, 'important'));
-  }
+    }
+  });
 }

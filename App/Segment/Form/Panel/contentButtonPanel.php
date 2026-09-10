@@ -27,6 +27,15 @@
         <button type="submit" name="add_content_type" value="campaign" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Campaña
         </button>
+        <button type="submit" name="add_content_type" value="banner" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Banner
+        </button>
+        <button type="submit" name="add_content_type" value="title" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Título
+        </button>
+        <button type="submit" name="add_content_type" value="text" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Texto
+        </button>
       </div>
     </div>
 
@@ -57,12 +66,22 @@
         $itemEmail         = $card["content"][$i]["email"] ?? '';
         $itemWhatsapp      = $card["content"][$i]["whatsapp"] ?? '';
         $itemImgPosition   = $card["content"][$i]["img_position"] ?? 'background';
-        $itemBgColor       = $card["content"][$i]["bg_color"] ?? '#1e1e1e';
-        $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : 80;
-        $itemSize          = ($itemImgPosition === 'header') ? 'horizontal' : ($card["content"][$i]["size"] ?? 'horizontal');
+        $itemBgColor       = ($itemType === 'banner')
+          ? ($card["content"][$i]["bg_color"] ?? '#f2e5ff')
+          : ($card["content"][$i]["bg_color"] ?? '#1e1e1e');
+        $itemBgOpacity     = isset($card["content"][$i]["bg_opacity"]) ? (int)$card["content"][$i]["bg_opacity"] : (($itemType === 'banner') ? 100 : 80);
+        $itemSize          = ($itemType === 'banner')
+          ? (in_array($card["content"][$i]["size"] ?? '', ['720x1024', '720x720', '1024x720'], true) ? $card["content"][$i]["size"] : '')
+          : (($itemImgPosition === 'header') ? 'horizontal' : ($card["content"][$i]["size"] ?? 'horizontal'));
         $itemTextPosition  = $card["content"][$i]["text_position"] ?? 'center';
         $itemTextAlign     = $card["content"][$i]["text_align"] ?? 'center';
-        $itemTitleSize     = $card["content"][$i]["title_size"] ?? 'large';
+        $itemTitleSize     = ($itemType === 'campaign')
+          ? ($card["content"][$i]["title_size"] ?? 'large')
+          : ($card["content"][$i]["title_size"] ?? 'small');
+        $itemTitleWeight   = $card["content"][$i]["title_weight"] ?? '500';
+        $itemText          = $card["content"][$i]["text"] ?? ($card["content"][$i]["title"] ?? '');
+        $itemTextWeight    = $card["content"][$i]["text_weight"] ?? '400';
+        $itemTextAlignVal  = $card["content"][$i]["text_align"] ?? 'left';
         $itemDescSize      = $card["content"][$i]["desc_size"] ?? 'medium';
         $itemTitleColor    = $card["content"][$i]["title_color"] ?? '#ffffff';
         $itemDescColor     = $card["content"][$i]["desc_color"] ?? '#ffffff';
@@ -111,6 +130,18 @@
           $isEmpty = (trim($itemTitle) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
           $isOpen = (trim($itemTitle) === '');
+        } elseif ($itemType === 'banner') {
+          $isEmpty = (empty($itemSize) || trim($itemUrl) === '' || empty($itemImg) || $itemImg === 'no-image.webp');
+          $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = (empty($itemSize) || (trim($itemUrl) === '' && (empty($itemImg) || $itemImg === 'no-image.webp')));
+        } elseif ($itemType === 'title') {
+          $isEmpty = (trim($itemTitle) === '');
+          $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = (trim($itemTitle) === '');
+        } elseif ($itemType === 'text') {
+          $isEmpty = (trim($itemText) === '');
+          $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = (trim($itemText) === '');
         } else {
           // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
           $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
@@ -134,6 +165,18 @@
                   } elseif ($itemType === 'campaign') {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Campaña - ' . e($displayTitle) : 'Campaña - (Sin título)';
+                  } elseif ($itemType === 'banner') {
+                    $displayUrl = trim($itemUrl);
+                    echo ($displayUrl !== '') ? 'Banner - ' . e($displayUrl) : 'Banner - (Sin enlace)';
+                  } elseif ($itemType === 'title') {
+                    $displayTitle = trim($itemTitle);
+                    echo ($displayTitle !== '') ? 'Título - ' . e($displayTitle) : 'Título - (Sin texto)';
+                  } elseif ($itemType === 'text') {
+                    $displayText = trim($itemText);
+                    if (mb_strlen($displayText) > 35) {
+                      $displayText = mb_substr($displayText, 0, 35) . '...';
+                    }
+                    echo ($displayText !== '') ? 'Texto - ' . e($displayText) : 'Texto - (Sin texto)';
                   } else {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Enlace - ' . e($displayTitle) : 'Enlace - (Sin título)';
@@ -177,7 +220,7 @@
 
           <!-- Inputs ocultos que siempre viajan en el formulario -->
           <input type="hidden" name="content[<?= $i?>][type]" value="<?= e($itemType) ?>">
-          <?php if ($itemType !== 'product_group') : ?>
+          <?php if ($itemType !== 'product_group' && $itemType !== 'title' && $itemType !== 'text') : ?>
             <input type="hidden" name="content[<?= $i?>][img]" value="<?= e($itemImg) ?>">
             <input type="hidden" name="content[<?= $i?>][imgDefault]" value="<?= $imgDefault ? 'true' : 'false' ?>">
             <input type="hidden" name="content[<?= $i?>][imgShow]" value="<?= $imgShow ? 'true' : 'false' ?>">
@@ -795,6 +838,248 @@
                         <p class="x14 bold500 texto"><?= e($itemCountdownTextColor) ?></p>
                       </label>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+            <?php elseif ($itemType === 'banner') : ?>
+              <?php 
+                $displayImgSrc = $card["content"][$i]["imgSrc"] ?? '';
+                if (empty($displayImgSrc)) {
+                  $itemMetaImg = $card["content"][$i]["metaImg"] ?? '';
+                  if ($imgDefault && !empty($itemImg)) {
+                    $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                    $displayImgSrc = $itemMetaImg;
+                  } else {
+                    $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+                  }
+                }
+                $hasSize = !empty($itemSize) && in_array($itemSize, ['720x1024', '720x720', '1024x720'], true);
+              ?>
+
+              <!-- Selector de tamaño del Banner (3 tamaños: 720x1024, 720x720, 1024x720) -->
+              <div class="flex-column gap8 w100">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Tamaño del banner</p>
+                  <span class="x11 text-muted">Selecciona la proporción de la imagen antes de subirla</span>
+                </div>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="banner-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="720x1024" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '720x1024') ? 'checked' : '' ?>>
+                  <label for="banner-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Vertical (720px x 1024px)">
+                    <?= svg("film", "x16") ?>
+                    <span class="bold500 x13">720 x 1024</span>
+                  </label>
+
+                  <input type="radio" id="banner-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="720x720" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '720x720') ? 'checked' : '' ?>>
+                  <label for="banner-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Cuadrado (720px x 720px)">
+                    <?= svg("grid", "x16") ?>
+                    <span class="bold500 x13">720 x 720</span>
+                  </label>
+
+                  <input type="radio" id="banner-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="1024x720" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '1024x720') ? 'checked' : '' ?>>
+                  <label for="banner-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Horizontal (1024px x 720px)">
+                    <?= svg("bars", "x16") ?>
+                    <span class="bold500 x13">1024 x 720</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Imagen del banner -->
+              <div class="flex-column gap8 w100">
+                <div class="flex-row center-between w100">
+                  <p class="x13 bold600 texto">Imagen del banner</p>
+                  <span id="banner-size-hint-<?= $i ?>" class="x11 text-muted banner-size-hint flex-row center-start gap4 <?= $hasSize ? 'hidden' : '' ?>">
+                    <?= svg("info", "x13") ?> Elige primero un tamaño para habilitar el recorte y subida
+                  </span>
+                </div>
+                <div class="flex-row center-between gap10">
+                  <div class="flex-row center-center gap10 relative">
+                    <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
+                      <img src="<?= e($displayImgSrc) ?>" alt="Imagen del banner" class="cover">
+                    </figure>
+
+                    <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
+                      <?php if ($imgDefault) : ?>
+                        <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
+                          <?= svg("trash", "x20") ?>
+                        </button>
+                      <?php endif; ?>
+                      <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                        <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                      </button>
+                    </div>
+                  </div>
+                  <div id="banner-crop-btn-wrap-<?= $i ?>" class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft banner-crop-btn-wrapper <?= !$hasSize ? 'opacity-40 pointer-events-none' : '' ?>">
+                    <input type="file" 
+                      id="content_img_banner_<?= $i ?>"
+                      name="content_img_<?= $i ?>" 
+                      class="selectAndCropImage btn-style-classes no-preview process-auto-submit banner-crop-input"
+                      placeholder="Subir imagen" 
+                      cropping-size="<?= e($hasSize ? $itemSize : '720x1024') ?>"
+                      box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+                      box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer"
+                      <?= !$hasSize ? 'disabled' : '' ?>>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Opciones de color del Banner (Fondo y Opacidad de capa) -->
+              <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores del banner</p>
+                  <span class="x11 text-muted">Personaliza el color de fondo y la opacidad de la capa sobre la imagen</span>
+                </div>
+
+                <!-- 1. Color de fondo del bloque -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Color de fondo del bloque</p>
+                    <span class="x11 text-muted">Afecta al contenedor del banner</span>
+                  </div>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+                    <label data-trigger-color="banner-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
+                      <input type="color" id="banner-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
+                        style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 2. Opacidad de la imagen -->
+                <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+                  <div class="flex-column">
+                    <p class="x13 bold500 texto">Opacidad de la imagen</p>
+                    <span class="x11 text-muted">Ajusta la transparencia de la imagen sobre el color de fondo</span>
+                  </div>
+                  <div class="flex-row center-end gap10 w-sml-100">
+                    <span id="banner-opacity-val-<?= $i?>" class="x14 bold600 texto wpx40 text-right"><?= $itemBgOpacity ?>%</span>
+                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="banner-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Entrada de enlace -->
+              <div class="flex-column gap5 w100">
+                <p class="x13 bold600 texto">Enlace del banner</p>
+                <input type="text" name="content[<?= $i?>][url]" class="content-url-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="URL de destino (ej: https://...)">
+              </div>
+
+            <?php elseif ($itemType === 'title') : ?>
+              <!-- Bloque Título -->
+              <div class="flex-column gap15 w100">
+                <!-- Campo de texto del título -->
+                <div class="flex-column gap5 w100">
+                  <p class="x12 bold500 texto">Texto del título</p>
+                  <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Escribe el texto del título...">
+                </div>
+
+                <!-- Selector de Tamaño del Título (Pequeño 18px, Mediano 20px, Grande 24px) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño del título</p>
+                    <span class="x11 text-muted">Pequeño (18px), Mediano (20px) o Grande (24px)</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="title-size-sm-<?= $i?>" name="content[<?= $i?>][title_size]" value="small" class="hidden-radio" <?= ($itemTitleSize === 'small') ? 'checked' : '' ?>>
+                    <label for="title-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Pequeño (18px)">
+                      <span class="bold500 x12">Pequeño (18px)</span>
+                    </label>
+
+                    <input type="radio" id="title-size-md-<?= $i?>" name="content[<?= $i?>][title_size]" value="medium" class="hidden-radio" <?= ($itemTitleSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="title-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Mediano (20px)">
+                      <span class="bold500 x12">Mediano (20px)</span>
+                    </label>
+
+                    <input type="radio" id="title-size-lg-<?= $i?>" name="content[<?= $i?>][title_size]" value="large" class="hidden-radio" <?= ($itemTitleSize === 'large') ? 'checked' : '' ?>>
+                    <label for="title-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grande (24px)">
+                      <span class="bold500 x12">Grande (24px)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selector de Grosor / Bold (500 por defecto, 600, 700, 900) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Grosor de la fuente (Bold)</p>
+                    <span class="x11 text-muted">Por defecto font weight 500</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="title-weight-500-<?= $i?>" name="content[<?= $i?>][title_weight]" value="500" class="hidden-radio" <?= ($itemTitleWeight === '500') ? 'checked' : '' ?>>
+                    <label for="title-weight-500-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 500">
+                      <span class="bold500 x12">500</span>
+                    </label>
+
+                    <input type="radio" id="title-weight-600-<?= $i?>" name="content[<?= $i?>][title_weight]" value="600" class="hidden-radio" <?= ($itemTitleWeight === '600') ? 'checked' : '' ?>>
+                    <label for="title-weight-600-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 600">
+                      <span class="bold600 x12">600</span>
+                    </label>
+
+                    <input type="radio" id="title-weight-700-<?= $i?>" name="content[<?= $i?>][title_weight]" value="700" class="hidden-radio" <?= ($itemTitleWeight === '700') ? 'checked' : '' ?>>
+                    <label for="title-weight-700-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 700">
+                      <span class="bold700 x12">700</span>
+                    </label>
+
+                    <input type="radio" id="title-weight-900-<?= $i?>" name="content[<?= $i?>][title_weight]" value="900" class="hidden-radio" <?= ($itemTitleWeight === '900') ? 'checked' : '' ?>>
+                    <label for="title-weight-900-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 900">
+                      <span class="bold900 x12">900</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            <?php elseif ($itemType === 'text') : ?>
+              <!-- Bloque Texto -->
+              <div class="flex-column gap15 w100">
+                <!-- Textarea para el texto -->
+                <div class="flex-column gap5 w100">
+                  <p class="x12 bold500 texto">Contenido del texto</p>
+                  <textarea name="content[<?= $i?>][text]" rows="4" class="content-text-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Escribe tu texto aquí..." style="resize: vertical; font-family: inherit;"><?= e($itemText) ?></textarea>
+                </div>
+
+                <!-- Selector de Grosor / Bold (400 por defecto, 500) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Grosor de la fuente (Font weight)</p>
+                    <span class="x11 text-muted">Normal (400 por defecto) o Medio (500)</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="text-weight-400-<?= $i?>" name="content[<?= $i?>][text_weight]" value="400" class="hidden-radio" <?= ($itemTextWeight === '400') ? 'checked' : '' ?>>
+                    <label for="text-weight-400-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Normal (400)">
+                      <span class="bold400 x12">Normal (400)</span>
+                    </label>
+
+                    <input type="radio" id="text-weight-500-<?= $i?>" name="content[<?= $i?>][text_weight]" value="500" class="hidden-radio" <?= ($itemTextWeight === '500') ? 'checked' : '' ?>>
+                    <label for="text-weight-500-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Medio (500)">
+                      <span class="bold500 x12">Medio (500)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Selector de Posición / Alineación del Texto (Izquierda, Centro, Derecha) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Posición del texto</p>
+                    <span class="x11 text-muted">Alineación del texto (Izquierda, Centro o Derecha)</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="text-align-left-<?= $i?>" name="content[<?= $i?>][text_align]" value="left" class="hidden-radio" <?= ($itemTextAlignVal === 'left') ? 'checked' : '' ?>>
+                    <label for="text-align-left-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la izquierda">
+                      <?= svg("arrow-l-l", "x14") ?>
+                      <span class="bold500 x13">Izquierda</span>
+                    </label>
+
+                    <input type="radio" id="text-align-center-<?= $i?>" name="content[<?= $i?>][text_align]" value="center" class="hidden-radio" <?= ($itemTextAlignVal === 'center') ? 'checked' : '' ?>>
+                    <label for="text-align-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear al centro">
+                      <?= svg("bars", "x14") ?>
+                      <span class="bold500 x13">Centro</span>
+                    </label>
+
+                    <input type="radio" id="text-align-right-<?= $i?>" name="content[<?= $i?>][text_align]" value="right" class="hidden-radio" <?= ($itemTextAlignVal === 'right') ? 'checked' : '' ?>>
+                    <label for="text-align-right-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la derecha">
+                      <?= svg("arrow-r-l", "x14") ?>
+                      <span class="bold500 x13">Derecha</span>
+                    </label>
                   </div>
                 </div>
               </div>

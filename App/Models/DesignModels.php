@@ -756,6 +756,110 @@ class DesignModels extends Builder {
           continue;
         }
 
+        // Procesamiento específico para Banner (banner)
+        if ($type === "banner") {
+          $bannerUrl = trim((string)($item["url"] ?? ""));
+          if ($bannerUrl !== "" && !preg_match('#^https?://#i', $bannerUrl) && strpos($bannerUrl, "mailto:") !== 0 && strpos($bannerUrl, "tel:") !== 0) {
+            $bannerUrl = "https://" . $bannerUrl;
+          }
+          $size = in_array($item["size"] ?? "", ["720x1024", "720x720", "1024x720"], true) ? $item["size"] : "";
+
+          $bgColor = trim((string)($item["bg_color"] ?? "#f2e5ff"));
+          if (!preg_match('/^#[a-f0-9]{3,8}$/i', $bgColor)) {
+            $bgColor = "#f2e5ff";
+          }
+          $bgOpacity = isset($item["bg_opacity"]) ? max(0, min(100, (int)$item["bg_opacity"])) : 100;
+
+          if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $item["img"] = "no-image.webp";
+          }
+
+          if (isset($uploadedContentImgs[$index])) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $img = $uploadedContentImgs[$index];
+            $imgDefault = true;
+          } else {
+            $img = $item["img"] ?? "no-image.webp";
+            $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
+            $imgDefault = !$isDefaultImg;
+          }
+
+          $rawImgShow = $item["imgShow"] ?? true;
+          $imgShow    = ($rawImgShow === "true" || $rawImgShow === true || $rawImgShow === 1 || $rawImgShow === "1");
+          if (isset($item["toggle_img_show"]) && ($item["toggle_img_show"] === "true" || $item["toggle_img_show"] === true)) {
+            $imgShow = !$imgShow;
+          }
+
+          $rawActive = $item["active"] ?? false;
+          $active    = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          if ($size === "" || $bannerUrl === "" || empty($img) || $img === "no-image.webp") {
+            $active = false;
+          }
+
+          $content[] = [
+            "type"        => "banner",
+            "img"         => $img,
+            "url"         => $bannerUrl,
+            "size"        => $size,
+            "bg_color"    => $bgColor,
+            "bg_opacity"  => $bgOpacity,
+            "active"      => $active,
+            "imgDefault"  => $imgDefault,
+            "imgShow"     => $imgShow,
+            "metaTitle"   => "Banner",
+            "metaDesc"    => "",
+            "metaImg"     => (!empty($img) && $img !== "no-image.webp" && strpos($img, "Custom/") === false) ? "/Uploads/" . $img : ""
+          ];
+          continue;
+        }
+
+        // Procesamiento específico para Título (title)
+        if ($type === "title") {
+          $titleText   = trim((string)($item["title"] ?? ""));
+          $titleSize   = in_array($item["title_size"] ?? "", ["small", "medium", "large"], true) ? $item["title_size"] : "small";
+          $titleWeight = in_array($item["title_weight"] ?? "", ["500", "600", "700", "900"], true) ? $item["title_weight"] : "500";
+          $rawActive   = $item["active"] ?? false;
+          $active      = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          if ($titleText === "") {
+            $active = false;
+          }
+
+          $content[] = [
+            "type"         => "title",
+            "title"        => $titleText,
+            "title_size"   => $titleSize,
+            "title_weight" => $titleWeight,
+            "active"       => $active
+          ];
+          continue;
+        }
+
+        // Procesamiento específico para Texto (text)
+        if ($type === "text") {
+          $textContent = trim((string)($item["text"] ?? $item["title"] ?? ""));
+          $textWeight  = in_array($item["text_weight"] ?? "", ["400", "500"], true) ? $item["text_weight"] : "400";
+          $textAlign   = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "center";
+          $rawActive   = $item["active"] ?? false;
+          $active      = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          if ($textContent === "") {
+            $active = false;
+          }
+
+          $content[] = [
+            "type"        => "text",
+            "text"        => $textContent,
+            "text_weight" => $textWeight,
+            "text_align"  => $textAlign,
+            "active"      => $active
+          ];
+          continue;
+        }
+
         $titleBtn = trim($item["title"] ?? "");
         $url      = trim($item["url"] ?? "");
         if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, "mailto:") !== 0 && strpos($url, "tel:") !== 0) {
@@ -980,6 +1084,34 @@ class DesignModels extends Builder {
           "metaTitle"      => "",
           "metaDesc"       => "",
           "metaImg"        => ""
+        ],
+        "banner"        => [
+          "type"       => "banner",
+          "img"        => "no-image.webp",
+          "url"        => "",
+          "size"       => "",
+          "bg_color"   => "#f2e5ff",
+          "bg_opacity" => 100,
+          "active"     => false,
+          "imgDefault" => false,
+          "imgShow"    => true,
+          "metaTitle"  => "",
+          "metaDesc"   => "",
+          "metaImg"    => ""
+        ],
+        "title"         => [
+          "type"         => "title",
+          "title"        => "",
+          "title_size"   => "small",
+          "title_weight" => "500",
+          "active"       => false
+        ],
+        "text"          => [
+          "type"        => "text",
+          "text"        => "",
+          "text_weight" => "400",
+          "text_align"  => "left",
+          "active"      => false
         ]
       ];
 
