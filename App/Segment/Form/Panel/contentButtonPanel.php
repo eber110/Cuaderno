@@ -1127,7 +1127,7 @@
                     <?php foreach ($separatorIcons as $icoName) : ?>
                       <input type="radio" id="sep-ico-<?= e($icoName) ?>-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="<?= e($icoName) ?>" class="hidden-radio separator-icon-radio" <?= ($itemSepIcon === $icoName && $itemSepMode !== 'space' && $itemSepIcon !== 'none') ? 'checked' : '' ?>>
                       <label for="sep-ico-<?= e($icoName) ?>-<?= $i ?>" class="flex-row center-center p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="<?= e($icoName) ?>" style="aspect-ratio: 1; font-size: 18px; box-sizing: border-box;">
-                        <?= svg("Separator/" . $icoName, "x18") ?>
+                        <?= \App\Models\DesignModels::renderSeparatorSvg($icoName, "x18") ?>
                       </label>
                     <?php endforeach; ?>
                   </div>

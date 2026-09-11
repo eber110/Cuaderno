@@ -1603,4 +1603,96 @@ class DesignModels extends Builder {
     return $icons;
   }
 
+  /**
+   * Renderiza el contenido SVG de un icono separador de forma segura y compatible con Linux.
+   * Resuelve automáticamente diferencias de mayúsculas/minúsculas en subcarpetas ("Separator" vs "separator").
+   *
+   * @param string $iconName Nombre del icono (ej: 'bicycle-solid-full' o 'ban').
+   * @param string $class Clases CSS opcionales para el SVG.
+   * @return string Código SVG renderizado o '?!' si no se encuentra.
+   */
+  public static function renderSeparatorSvg(string $iconName, string $class = ''): string {
+    $cleanIcon = trim($iconName);
+    if ($cleanIcon === '' || $cleanIcon === 'none') {
+      return '';
+    }
+
+    if ($cleanIcon === 'ban') {
+      return function_exists('svg') ? svg('ban', $class) : '';
+    }
+
+    // 1. Intentar con el helper nativo svg() del framework si existe
+    if (function_exists('svg')) {
+      $native = svg('Separator/' . $cleanIcon, $class);
+      if ($native !== '?!' && !empty($native)) {
+        return $native;
+      }
+      $nativeLower = svg('separator/' . $cleanIcon, $class);
+      if ($nativeLower !== '?!' && !empty($nativeLower)) {
+        return $nativeLower;
+      }
+    }
+
+    // 2. Si svg() devolvió '?!' (por case-sensitivity en Linux con subdirectorios),
+    // buscar directamente el archivo en disco respetando mayúsculas y minúsculas:
+    $basePaths = [];
+    if (defined('ROUTE_ICON')) {
+      $basePaths[] = rtrim(ROUTE_ICON, '/\\');
+    }
+    if (defined('ROOT_PATH')) {
+      $basePaths[] = ROOT_PATH . '/App/Rsc/Ico';
+    }
+    $basePaths[] = __DIR__ . '/../Rsc/Ico';
+
+    $candidateFiles = [];
+    foreach ($basePaths as $bp) {
+      $candidateFiles[] = $bp . '/Separator/' . $cleanIcon . '.svg';
+      $candidateFiles[] = $bp . '/separator/' . $cleanIcon . '.svg';
+      $candidateFiles[] = $bp . '/' . $cleanIcon . '.svg';
+    }
+
+    $foundFile = null;
+    foreach ($candidateFiles as $file) {
+      if (file_exists($file)) {
+        $foundFile = $file;
+        break;
+      }
+    }
+
+    if (!$foundFile) {
+      return '?!';
+    }
+
+    libxml_use_internal_errors(true);
+    $dom = new \DOMDocument();
+    $dom->loadXML(file_get_contents($foundFile));
+    libxml_clear_errors();
+
+    $svgElement = $dom->getElementsByTagName('svg')->item(0);
+    if (!$svgElement) {
+      return '?!';
+    }
+
+    $viewBox = $svgElement->hasAttribute('viewBox') ? $svgElement->getAttribute('viewBox') : '0 0 24 24';
+    $pathsHtml = '';
+    $pathElements = $svgElement->getElementsByTagName('path');
+
+    foreach ($pathElements as $path) {
+      if (!$path->hasAttribute('d')) {
+        continue;
+      }
+      $d = $path->getAttribute('d');
+      $attrs = '';
+      $preserve = ['fill-rule', 'clip-rule', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity', 'fill'];
+      foreach ($preserve as $attr) {
+        if ($path->hasAttribute($attr)) {
+          $attrs .= ' ' . $attr . '="' . $path->getAttribute($attr) . '"';
+        }
+      }
+      $pathsHtml .= '<path d="' . $d . '"' . $attrs . ' />';
+    }
+
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' . $viewBox . '" fill="currentColor" class="' . $class . '" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">' . $pathsHtml . '</svg>';
+  }
+
 }

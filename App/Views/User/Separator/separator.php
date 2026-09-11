@@ -9,7 +9,7 @@
   $sepSize   = $sepData["separator_size"] ?? "large";
 
   $isSpace = ($sepMode === "space" || $sepIcon === "none" || $sepIcon === "ban");
-  $iconSvg = !$isSpace ? svg("Separator/" . $sepIcon, ($sepSize === "small" ? "x18" : "x16")) : "";
+  $iconSvg = !$isSpace ? \App\Models\DesignModels::renderSeparatorSvg($sepIcon, ($sepSize === "small" ? "x18" : "x16")) : "";
 ?>
 
 <?php if ($isSpace) : ?>
