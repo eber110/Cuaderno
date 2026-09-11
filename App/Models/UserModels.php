@@ -175,6 +175,19 @@ class UserModels extends BuilderSqlite {
           $item["text_align"]  = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "left";
         }
 
+        if (($item["type"] ?? "") === "separator") {
+          $sepIcon = trim((string)($item["separator_icon"] ?? "none"));
+          if ($sepIcon === "none" || $sepIcon === "ban" || ($item["separator_mode"] ?? "") === "space") {
+            $item["separator_mode"] = "space";
+            $item["separator_icon"] = "none";
+          } else {
+            $item["separator_mode"] = "line";
+            $item["separator_icon"] = $sepIcon;
+          }
+          $item["space_size"]     = in_array($item["space_size"] ?? "", ["20", "40", "60"], true) ? $item["space_size"] : "40";
+          $item["separator_size"] = in_array($item["separator_size"] ?? "", ["small", "medium", "large"], true) ? $item["separator_size"] : "large";
+        }
+
         if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
           $prodCount = count($item["products"]);
           $layout = $item["layout"] ?? "grid";

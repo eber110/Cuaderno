@@ -6,6 +6,7 @@
    */
   $selected = "";
   $cant = is_array($card["content"] ?? null) ? count($card["content"]) : 0;
+  $separatorIcons = \App\Models\DesignModels::getSeparatorIcons();
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
 
@@ -35,6 +36,9 @@
         </button>
         <button type="submit" name="add_content_type" value="text" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Texto
+        </button>
+        <button type="submit" name="add_content_type" value="separator" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Separador
         </button>
       </div>
     </div>
@@ -82,6 +86,10 @@
         $itemText          = $card["content"][$i]["text"] ?? ($card["content"][$i]["title"] ?? '');
         $itemTextWeight    = $card["content"][$i]["text_weight"] ?? '400';
         $itemTextAlignVal  = $card["content"][$i]["text_align"] ?? 'left';
+        $itemSepMode       = $card["content"][$i]["separator_mode"] ?? 'space';
+        $itemSepIcon       = $card["content"][$i]["separator_icon"] ?? 'none';
+        $itemSepSize       = $card["content"][$i]["separator_size"] ?? 'large';
+        $itemSpaceSize     = $card["content"][$i]["space_size"] ?? '40';
         $itemDescSize      = $card["content"][$i]["desc_size"] ?? 'medium';
         $itemTitleColor    = $card["content"][$i]["title_color"] ?? '#ffffff';
         $itemDescColor     = $card["content"][$i]["desc_color"] ?? '#ffffff';
@@ -142,6 +150,10 @@
           $isEmpty = (trim($itemText) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
           $isOpen = (trim($itemText) === '');
+        } elseif ($itemType === 'separator') {
+          $isEmpty = false;
+          $itemActive = ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = false;
         } else {
           // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
           $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
@@ -177,6 +189,18 @@
                       $displayText = mb_substr($displayText, 0, 35) . '...';
                     }
                     echo ($displayText !== '') ? 'Texto - ' . e($displayText) : 'Texto - (Sin texto)';
+                  } elseif ($itemType === 'separator') {
+                    if ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') {
+                      $sizeName = ($itemSpaceSize === '20') ? 'Pequeño (20px)' : (($itemSpaceSize === '60') ? 'Grande (60px)' : 'Medio (40px)');
+                      echo 'Separador - Espacio ' . $sizeName;
+                    } else {
+                      $sizeLabel = match ($itemSepSize) {
+                        'small'  => ' (1 figura)',
+                        'medium' => ' (60%)',
+                        default  => ' (Completo)',
+                      };
+                      echo 'Separador - Figuras' . $sizeLabel;
+                    }
                   } else {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Enlace - ' . e($displayTitle) : 'Enlace - (Sin título)';
@@ -220,7 +244,7 @@
 
           <!-- Inputs ocultos que siempre viajan en el formulario -->
           <input type="hidden" name="content[<?= $i?>][type]" value="<?= e($itemType) ?>">
-          <?php if ($itemType !== 'product_group' && $itemType !== 'title' && $itemType !== 'text') : ?>
+          <?php if ($itemType !== 'product_group' && $itemType !== 'title' && $itemType !== 'text' && $itemType !== 'separator') : ?>
             <input type="hidden" name="content[<?= $i?>][img]" value="<?= e($itemImg) ?>">
             <input type="hidden" name="content[<?= $i?>][imgDefault]" value="<?= $imgDefault ? 'true' : 'false' ?>">
             <input type="hidden" name="content[<?= $i?>][imgShow]" value="<?= $imgShow ? 'true' : 'false' ?>">
@@ -1079,6 +1103,80 @@
                     <label for="text-align-right-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la derecha">
                       <?= svg("arrow-r-l", "x14") ?>
                       <span class="bold500 x13">Derecha</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            <?php elseif ($itemType === 'separator') : ?>
+              <!-- Configuración del Separador -->
+              <div class="flex-column gap15 w100">
+                <!-- Cuadrícula de Figuras (con ban.svg como primer icono para solo espacio) -->
+                <div class="flex-column gap8 w100">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Figura del separador</p>
+                    <span class="x11 text-muted">Selecciona una figura para la línea o el primer ícono para un espacio en blanco</span>
+                  </div>
+                  <div class="separator-icons-grid w100" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px; box-sizing: border-box;">
+                    <!-- Primer ícono: ban (solo espacio) -->
+                    <input type="radio" id="sep-ico-none-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="none" class="hidden-radio separator-icon-radio" <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'checked' : '' ?>>
+                    <label for="sep-ico-none-<?= $i ?>" class="flex-row center-center p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Solo espacio (sin figura)" style="aspect-ratio: 1; font-size: 18px; box-sizing: border-box;">
+                      <?= svg("ban", "x18") ?>
+                    </label>
+
+                    <?php foreach ($separatorIcons as $icoName) : ?>
+                      <input type="radio" id="sep-ico-<?= e($icoName) ?>-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="<?= e($icoName) ?>" class="hidden-radio separator-icon-radio" <?= ($itemSepIcon === $icoName && $itemSepMode !== 'space' && $itemSepIcon !== 'none') ? 'checked' : '' ?>>
+                      <label for="sep-ico-<?= e($icoName) ?>-<?= $i ?>" class="flex-row center-center p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="<?= e($icoName) ?>" style="aspect-ratio: 1; font-size: 18px; box-sizing: border-box;">
+                        <?= svg("Separator/" . $icoName, "x18") ?>
+                      </label>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+
+                <!-- Opciones de Espacio (Altura del espacio en px, visible cuando se elige ban / solo espacio) -->
+                <div class="separator-space-options flex-column gap8 w100" style="<?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'display: flex;' : 'display: none;' ?>">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Tamaño del espacio</p>
+                    <span class="x11 text-muted">Altura del espacio vertical entre bloques</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="space-size-20-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="20" class="hidden-radio" <?= ($itemSpaceSize === '20') ? 'checked' : '' ?>>
+                    <label for="space-size-20-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Pequeño (20px)">
+                      <span class="bold500 x12">Pequeño (20px)</span>
+                    </label>
+
+                    <input type="radio" id="space-size-40-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="40" class="hidden-radio" <?= ($itemSpaceSize === '40') ? 'checked' : '' ?>>
+                    <label for="space-size-40-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Medio (40px)">
+                      <span class="bold500 x12">Medio (40px)</span>
+                    </label>
+
+                    <input type="radio" id="space-size-60-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="60" class="hidden-radio" <?= ($itemSpaceSize === '60') ? 'checked' : '' ?>>
+                    <label for="space-size-60-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grande (60px)">
+                      <span class="bold500 x12">Grande (60px)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Opciones de Tamaño del Separador de Figuras (Grande Completo, Mediano 60%, Pequeño 1 figura) -->
+                <div class="separator-size-options flex-column gap8 w100" style="<?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? 'display: flex;' : 'display: none;' ?>">
+                  <div class="flex-column gap2">
+                    <p class="x13 bold500 texto">Ancho del separador</p>
+                    <span class="x11 text-muted">Elige el ancho o cantidad de figuras del separador</span>
+                  </div>
+                  <div class="flex-row center-between gap10 w100">
+                    <input type="radio" id="sep-size-large-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="large" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'large') ? 'checked' : '' ?>>
+                    <label for="sep-size-large-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Abarca el ancho completo">
+                      <span class="bold500 x12">Grande (Completo)</span>
+                    </label>
+
+                    <input type="radio" id="sep-size-medium-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="medium" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'medium') ? 'checked' : '' ?>>
+                    <label for="sep-size-medium-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Abarca un 60% del ancho">
+                      <span class="bold500 x12">Mediano (60%)</span>
+                    </label>
+
+                    <input type="radio" id="sep-size-small-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="small" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'small') ? 'checked' : '' ?>>
+                    <label for="sep-size-small-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Solo una figura en el medio">
+                      <span class="bold500 x12">Pequeño (1 figura)</span>
                     </label>
                   </div>
                 </div>

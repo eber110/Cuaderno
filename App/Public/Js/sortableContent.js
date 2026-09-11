@@ -162,6 +162,23 @@ export function sortableContent() {
       return;
     }
 
+    if (type === "separator") {
+      const selectedIconRadio = item.querySelector('input[name*="[separator_icon]"]:checked');
+      const iconVal = selectedIconRadio ? selectedIconRadio.value : "none";
+      if (iconVal === "none" || iconVal === "ban") {
+        const sizeRadio = item.querySelector('input[name*="[space_size]"]:checked');
+        const size = sizeRadio ? sizeRadio.value : "40";
+        const sizeName = size === "20" ? "Pequeño (20px)" : (size === "60" ? "Grande (60px)" : "Medio (40px)");
+        label.textContent = `Separador - Espacio ${sizeName}`;
+      } else {
+        const sepSizeRadio = item.querySelector('input[name*="[separator_size]"]:checked');
+        const sepSize = sepSizeRadio ? sepSizeRadio.value : "large";
+        const sizeName = (sepSize === "small") ? " (1 figura)" : (sepSize === "medium" ? " (60%)" : " (Completo)");
+        label.textContent = `Separador - Figuras${sizeName}`;
+      }
+      return;
+    }
+
     const titleInput = item.querySelector('input[name*="[title]"]');
     if (!titleInput) return;
 
@@ -344,6 +361,24 @@ export function sortableContent() {
               });
             }
           }
+        }
+      }
+
+      if (target.matches('.separator-icon-radio') || target.matches('input[name*="[space_size]"]') || target.matches('.separator-size-radio')) {
+        const item = target.closest(".sortable-item.content-block");
+        if (item) {
+          if (target.matches('.separator-icon-radio')) {
+            const spaceOptions = item.querySelector('.separator-space-options');
+            const sizeOptions = item.querySelector('.separator-size-options');
+            const isBan = (target.value === 'none' || target.value === 'ban');
+            if (spaceOptions) {
+              spaceOptions.style.display = isBan ? 'flex' : 'none';
+            }
+            if (sizeOptions) {
+              sizeOptions.style.display = isBan ? 'none' : 'flex';
+            }
+          }
+          syncHeaderTitle(item);
         }
       }
     });
@@ -598,7 +633,7 @@ export function sortableContent() {
         if (oldId && oldId.startsWith("offer-switch-")) {
           element.setAttribute("id", `offer-switch-${index}`);
         }
-        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-"))) {
+        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-") || oldId.startsWith("sep-mode-") || oldId.startsWith("space-size-") || oldId.startsWith("sep-ico-") || oldId.startsWith("sep-size-"))) {
           element.setAttribute("id", oldId.replace(/-\d+$/, `-${index}`));
         }
 
@@ -612,7 +647,7 @@ export function sortableContent() {
         if (oldFor && oldFor.startsWith("offer-switch-")) {
           element.setAttribute("for", `offer-switch-${index}`);
         }
-        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-"))) {
+        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-") || oldFor.startsWith("sep-mode-") || oldFor.startsWith("space-size-") || oldFor.startsWith("sep-ico-") || oldFor.startsWith("sep-size-"))) {
           element.setAttribute("for", oldFor.replace(/-\d+$/, `-${index}`));
         }
       });

@@ -843,7 +843,7 @@ class DesignModels extends Builder {
         if ($type === "text") {
           $textContent = trim((string)($item["text"] ?? $item["title"] ?? ""));
           $textWeight  = in_array($item["text_weight"] ?? "", ["400", "500"], true) ? $item["text_weight"] : "400";
-          $textAlign   = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "center";
+          $textAlign   = in_array($item["text_align"] ?? "", ["left", "center", "right"], true) ? $item["text_align"] : "left";
           $rawActive   = $item["active"] ?? false;
           $active      = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
           if ($textContent === "") {
@@ -856,6 +856,32 @@ class DesignModels extends Builder {
             "text_weight" => $textWeight,
             "text_align"  => $textAlign,
             "active"      => $active
+          ];
+          continue;
+        }
+
+        // Procesamiento específico para Separador (separator)
+        if ($type === "separator") {
+          $sepIcon   = trim((string)($item["separator_icon"] ?? "none"));
+          $sepIcon   = preg_replace('/[^a-zA-Z0-9_\-]/', '', $sepIcon);
+          if ($sepIcon === "" || $sepIcon === "none" || $sepIcon === "ban") {
+            $sepIcon = "none";
+            $sepMode = "space";
+          } else {
+            $sepMode = "line";
+          }
+          $spaceSize = in_array($item["space_size"] ?? "", ["20", "40", "60"], true) ? $item["space_size"] : "40";
+          $sepSize   = in_array($item["separator_size"] ?? "", ["small", "medium", "large"], true) ? $item["separator_size"] : "large";
+          $rawActive = $item["active"] ?? true;
+          $active    = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+
+          $content[] = [
+            "type"           => "separator",
+            "separator_mode" => $sepMode,
+            "separator_icon" => $sepIcon,
+            "separator_size" => $sepSize,
+            "space_size"     => $spaceSize,
+            "active"         => $active
           ];
           continue;
         }
@@ -1112,6 +1138,14 @@ class DesignModels extends Builder {
           "text_weight" => "400",
           "text_align"  => "left",
           "active"      => false
+        ],
+        "separator"     => [
+          "type"           => "separator",
+          "separator_mode" => "space",
+          "separator_icon" => "none",
+          "separator_size" => "large",
+          "space_size"     => "40",
+          "active"         => true
         ]
       ];
 
@@ -1541,6 +1575,32 @@ class DesignModels extends Builder {
     }
 
     return false;
+  }
+
+  /**
+   * Obtiene la lista de nombres de iconos SVG disponibles para separadores,
+   * escaneando automáticamente la carpeta App/Rsc/Ico/Separator.
+   *
+   * @return array Lista de nombres de archivos sin extensión (ej: ['bicycle-solid-full', ...])
+   */
+  public static function getSeparatorIcons(): array {
+    $dir = defined("ROUTE_ICON") ? ROUTE_ICON . "Separator" : (defined("ROOT_PATH") ? ROOT_PATH . "/App/Rsc/Ico/Separator" : __DIR__ . "/../Rsc/Ico/Separator");
+    if (!is_dir($dir)) {
+      $dir = defined("ROUTE_ICON") ? ROUTE_ICON . "separator" : (defined("ROOT_PATH") ? ROOT_PATH . "/App/Rsc/Ico/separator" : __DIR__ . "/../Rsc/Ico/separator");
+    }
+    if (!is_dir($dir)) {
+      return [];
+    }
+    $files = glob($dir . "/*.svg");
+    if (!$files) {
+      return [];
+    }
+    $icons = [];
+    foreach ($files as $file) {
+      $icons[] = pathinfo($file, PATHINFO_FILENAME);
+    }
+    sort($icons);
+    return $icons;
   }
 
 }

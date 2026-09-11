@@ -58,6 +58,12 @@
           _part("User.text", ["dataContent" => $i, "card" => $card]);
         }
       }
+      //si es separador se muestra la plantilla separator
+      if ($itemType === "separator") {
+        if ($itemActive === true || $itemActive === "true" || $itemActive === 1 || $itemActive === "1") {
+          _part("User.separator", ["dataContent" => $i, "card" => $card]);
+        }
+      }
     }
   ?>
 

@@ -51,7 +51,9 @@ Route::get("/test/2", function(){
 
 Route::get("/test/1/", function($param){
   
-  
+  for ($i=0; $i < 15; $i++) { 
+    echo svg("heart-fill");
+  }
 
 }, [TestMiddleware::class]);
 
