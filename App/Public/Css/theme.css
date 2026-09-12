@@ -14,10 +14,24 @@
   --back-sidebar : #1b1b1b;
   --text-item-sidebar : #e6e6e6;
 }
+/* Anular scroll-behavior: smooth del framework para eliminar el recorrido/animación no deseada */
+*,
+*::before,
+*::after {
+  scroll-behavior: auto !important;
+}
+
+html,
+body,
+.overflow-y-scroll,
+[data-scroll-memory] {
+  scroll-behavior: auto !important;
+}
 
 .overflow-y-scroll{
   overflow-y: scroll;
   scrollbar-width: none;
+  scroll-behavior: auto !important;
 }
 
 .back-menu-img-form{
@@ -410,7 +424,7 @@
   scroll-snap-type: x mandatory;
   scroll-padding-left: 30px;
   scroll-padding-right: 30px;
-  scroll-behavior: smooth;
+  scroll-behavior: smooth !important;
   padding: 4px 30px 10px 30px;
   scrollbar-width: none;
   -ms-overflow-style: none;

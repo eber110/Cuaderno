@@ -13,9 +13,9 @@
 ?>
 
 <?php if ($isSpace) : ?>
-  <div class="w100" style="height: 10px;" aria-hidden="true"></div>
+  <div data-content-index="<?= $dataContent ?>" class="separator-block-wrapper w100" style="height: 10px;" aria-hidden="true"></div>
 <?php else : ?>
-  <div class="w100 flex-row center-center color-text-card p0" style="margin: 10px 0; box-sizing: border-box; user-select: none;" aria-hidden="true">
+  <div data-content-index="<?= $dataContent ?>" class="separator-block-wrapper w100 flex-row center-center color-text-card p0" style="margin: 10px 0; box-sizing: border-box; user-select: none;" aria-hidden="true">
     <?php if ($sepSize === "small") : ?>
       <span class="flex-row center-center" style="width: 18px; height: 18px; font-size: 18px; flex-shrink: 0; line-height: 1;">
         <?= $iconSvg ?>

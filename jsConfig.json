@@ -40,7 +40,8 @@
       "videoBackgroundController": [],
       "imageGallery": [],
       "productPricingController": [],
-      "productSlider": []
+      "productSlider": [],
+      "scrollMemory": []
     },
     "async": {}
   }

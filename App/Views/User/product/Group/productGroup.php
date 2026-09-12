@@ -17,7 +17,7 @@
 
 <?php if ($layout === "grid") : ?>
   <!-- Formato Cuadricula (Grid 2 Columnas) -->
-  <div class="product-group-grid-wrapper flex-column gap8 w100">
+  <div data-content-index="<?= $dataContent ?>" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100">
     <?php if (!empty($groupTitle)) : ?>
       <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>
@@ -102,7 +102,7 @@
 
 <?php else : ?>
   <!-- Formato Carrusel Deslizante (Slide Horizontal) -->
-  <div class="product-group-slide-wrapper flex-column gap8 w100">
+  <div data-content-index="<?= $dataContent ?>" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100">
     <?php if (!empty($groupTitle)) : ?>
       <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>

@@ -15,7 +15,7 @@
 
     <?php// _component("Menu.menuUser"); ?>
 
-    <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1">
+    <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1" data-scroll-memory="user-preview" style="scroll-behavior: auto !important;">
       <header class="w100">
         <?php
           
@@ -30,6 +30,23 @@
           _template("Footer.footerUser")
         ?>
       </footer>
+
+      <!-- Script Anti-FOUC síncrono: Restaura el scroll del preview de forma instantánea antes del primer renderizado visual -->
+      <script>
+        (function() {
+          try {
+            var k = 'cuaderno_scroll_user-preview_' + window.location.pathname;
+            var s = sessionStorage.getItem(k);
+            if (s) {
+              var p = document.currentScript ? document.currentScript.parentElement : null;
+              if (p) {
+                p.style.setProperty('scroll-behavior', 'auto', 'important');
+                p.scrollTop = parseInt(s, 10) || 0;
+              }
+            }
+          } catch(e) {}
+        })();
+      </script>
     </div>
 
   </div>

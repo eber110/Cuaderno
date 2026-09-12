@@ -382,7 +382,7 @@ export function autoSubmitForm() {
           }
         }
 
-        // 3. Actualizar la vista previa (.user-profile-preview) preservando el video existente
+        // 3. Actualizar la vista previa (.user-profile-preview) preservando el video existente y la posición de scroll
         if (data.html) {
           const previewContainers = document.querySelectorAll('.user-profile-preview');
           previewContainers.forEach((container) => {
@@ -390,6 +390,10 @@ export function autoSubmitForm() {
             temp.innerHTML = data.html.trim();
             const targetPreview = temp.querySelector('.user-profile-preview') || temp.firstElementChild;
             if (!targetPreview) return;
+
+            // Preservar la posición de scroll interna antes del reemplazo en el DOM
+            const currentScrollEl = container.querySelector('.overflow-y-scroll') || container;
+            const savedScrollTop = currentScrollEl ? currentScrollEl.scrollTop : 0;
 
             const currentVideo = container.querySelector('video.back-video-bg');
             const newVideo = targetPreview.querySelector('video.back-video-bg');
@@ -406,6 +410,16 @@ export function autoSubmitForm() {
               container.parentNode.replaceChild(targetPreview, container);
             } else {
               container.innerHTML = data.html;
+            }
+
+            // Restaurar inmediatamente el scroll de forma instantánea sin animación
+            const newScrollEl = targetPreview.querySelector('.overflow-y-scroll') || targetPreview;
+            if (newScrollEl && savedScrollTop > 0) {
+              newScrollEl.style.setProperty('scroll-behavior', 'auto', 'important');
+              newScrollEl.scrollTop = savedScrollTop;
+              try {
+                sessionStorage.setItem(`cuaderno_scroll_user-preview_${window.location.pathname}`, String(savedScrollTop));
+              } catch (e) {}
             }
           });
         }
@@ -455,6 +469,7 @@ export function autoSubmitForm() {
                     }
                   }
                 });
+                activeRemoteContent.style.setProperty('scroll-behavior', 'auto', 'important');
                 activeRemoteContent.scrollTop = savedScrollTop;
               }
             }

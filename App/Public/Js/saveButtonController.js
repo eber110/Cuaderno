@@ -148,6 +148,10 @@ export function saveButtonController() {
       const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
       if (!targetPreview) return;
 
+      // Preservar la posición de scroll interna antes del reemplazo en el DOM
+      const currentScrollEl = container.querySelector('.overflow-y-scroll') || container;
+      const savedScrollTop = currentScrollEl ? currentScrollEl.scrollTop : 0;
+
       const currentVideo = container.querySelector("video.back-video-bg");
       const newVideo = targetPreview.querySelector("video.back-video-bg");
 
@@ -163,6 +167,16 @@ export function saveButtonController() {
         container.parentNode.replaceChild(targetPreview, container);
       } else {
         container.innerHTML = html;
+      }
+
+      // Restaurar inmediatamente el scroll de forma instantánea sin animación
+      const newScrollEl = targetPreview.querySelector('.overflow-y-scroll') || targetPreview;
+      if (newScrollEl && savedScrollTop > 0) {
+        newScrollEl.style.setProperty('scroll-behavior', 'auto', 'important');
+        newScrollEl.scrollTop = savedScrollTop;
+        try {
+          sessionStorage.setItem(`cuaderno_scroll_user-preview_${window.location.pathname}`, String(savedScrollTop));
+        } catch (e) {}
       }
     });
   }
@@ -180,9 +194,10 @@ export function saveButtonController() {
     const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
     if (!newContainer) return;
 
-    // Preservar cuál sección remota estaba activa antes de reemplazar
+    // Preservar cuál sección remota estaba activa y su scroll antes de reemplazar
     const activeContent = remoteContainer.querySelector(".remote-content.active");
     const activeId = activeContent ? activeContent.id : null;
+    const savedFormScrollTop = activeContent ? activeContent.scrollTop : 0;
 
     // Capturar bloques de contenido abiertos para no colapsarlos
     const openBlockIds = new Set();
@@ -200,6 +215,10 @@ export function saveButtonController() {
         if (c.id === activeId) {
           c.classList.remove("hidden");
           c.classList.add("active");
+          if (savedFormScrollTop > 0) {
+            c.style.setProperty('scroll-behavior', 'auto', 'important');
+            c.scrollTop = savedFormScrollTop;
+          }
         } else {
           c.classList.remove("active");
           c.classList.add("hidden");

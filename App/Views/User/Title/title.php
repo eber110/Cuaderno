@@ -26,7 +26,7 @@
   };
 ?>
 
-<div class="w100 flex-row center-center text-center p0">
+<div data-content-index="<?= $dataContent ?>" class="title-block-wrapper w100 flex-row center-center text-center p0">
   <h2 class="<?= $sizeClass ?> <?= $weightClass ?> title-color" style="margin: 0;">
     <?= e($titleText) ?>
   </h2>
