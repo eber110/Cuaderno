@@ -331,7 +331,7 @@ export function formComponents() {
   }
 
   // Actualizar la vista previa en vivo en el cliente
-  function updateLivePreviewColor(name, hex) {
+  function updateLivePreviewColor(name, hex, inputElement = null) {
     if (!name || !hex) return;
     const preview = document.querySelector('.user-profile-preview');
     if (!preview) return;
@@ -410,6 +410,15 @@ export function formComponents() {
     closeActivePopover(true);
 
     activeInput = input;
+    const inputId = input.id;
+
+    function getLiveInput() {
+      if (inputId) {
+        const live = document.getElementById(inputId);
+        if (live) return live;
+      }
+      return activeInput || input;
+    }
 
     // Crear contenedor del popover
     const popover = document.createElement('div');
@@ -449,12 +458,14 @@ export function formComponents() {
         popover.querySelectorAll('.custom-picker-swatch').forEach(s => s.classList.remove('active'));
         swatch.classList.add('active');
         
+        const liveInput = getLiveInput();
+
         // Actualizar inputs y sliders
-        input.value = color;
+        liveInput.value = color;
         hexInput.value = color;
         preview.style.backgroundColor = color;
 
-        const labelText = input.closest('label')?.querySelector('p, span');
+        const labelText = liveInput.closest('label')?.querySelector('p, span');
         if (labelText) {
           labelText.textContent = color;
         }
@@ -466,11 +477,11 @@ export function formComponents() {
         satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
         lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
 
-        updateLivePreviewColor(input.name, color);
+        updateLivePreviewColor(liveInput.name, color, liveInput);
 
         // Disparar evento input para cambios en tiempo real
         const inputEvent = new Event('input', { bubbles: true });
-        input.dispatchEvent(inputEvent);
+        liveInput.dispatchEvent(inputEvent);
       });
 
       grid.appendChild(swatch);
@@ -525,7 +536,7 @@ export function formComponents() {
     lightSlider.min = '5';
     lightSlider.max = '95';
     lightSlider.value = hslStart.l;
-    lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hslStart.h, hslStart.s, 0)}, ${hslToHex(hslStart.h, hslStart.s, 50)}, ${hslToHex(hslStart.h, hslStart.s, 100)})`;
+    lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hslStart.h, hslStart.s, 0)}, ${hslToHex(hslStart.h, hslStart.s, 50)}, ${hslToHex(hslStart.h, hsl.s, 100)})`;
     slidersContainer.appendChild(lightSlider);
 
     // 3. Footer con Preview y Campo Hexadecimal
@@ -543,6 +554,7 @@ export function formComponents() {
     hexInput.value = currentValue;
 
     function updateColorFromSliders() {
+      const liveInput = getLiveInput();
       const h = parseInt(hueSlider.value);
       const s = parseInt(satSlider.value);
       const l = parseInt(lightSlider.value);
@@ -552,11 +564,11 @@ export function formComponents() {
       lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(h, s, 0)}, ${hslToHex(h, s, 50)}, ${hslToHex(h, s, 100)})`;
 
       const hex = hslToHex(h, s, l).toUpperCase();
-      input.value = hex;
+      liveInput.value = hex;
       hexInput.value = hex;
       preview.style.backgroundColor = hex;
 
-      const labelText = input.closest('label')?.querySelector('p, span');
+      const labelText = liveInput.closest('label')?.querySelector('p, span');
       if (labelText) {
         labelText.textContent = hex;
       }
@@ -564,11 +576,11 @@ export function formComponents() {
       // Quitar marcador activo de la paleta
       popover.querySelectorAll('.custom-picker-swatch').forEach(s => s.classList.remove('active'));
 
-      updateLivePreviewColor(input.name, hex);
+      updateLivePreviewColor(liveInput.name, hex, liveInput);
 
       // Disparar evento input para cambios en tiempo real
       const inputEvent = new Event('input', { bubbles: true });
-      input.dispatchEvent(inputEvent);
+      liveInput.dispatchEvent(inputEvent);
     }
 
     hueSlider.addEventListener('input', updateColorFromSliders);
@@ -580,10 +592,11 @@ export function formComponents() {
       let hex = hexInput.value;
       if (!hex.startsWith('#')) hex = '#' + hex;
       if (/^#[0-9A-F]{6}$/i.test(hex)) {
-        input.value = hex;
+        const liveInput = getLiveInput();
+        liveInput.value = hex;
         preview.style.backgroundColor = hex;
 
-        const labelText = input.closest('label')?.querySelector('p, span');
+        const labelText = liveInput.closest('label')?.querySelector('p, span');
         if (labelText) {
           labelText.textContent = hex;
         }
@@ -595,10 +608,10 @@ export function formComponents() {
         satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
         lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
 
-        updateLivePreviewColor(input.name, hex);
+        updateLivePreviewColor(liveInput.name, hex, liveInput);
 
         const inputEvent = new Event('input', { bubbles: true });
-        input.dispatchEvent(inputEvent);
+        liveInput.dispatchEvent(inputEvent);
       }
     });
 

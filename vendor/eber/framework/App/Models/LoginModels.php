@@ -121,7 +121,7 @@ class LoginModels extends BuilderSqlite
   {
     $this->clearRateLimit('register:check_username', $ip);
     $this->clearRateLimit('register:check_email', $ip);
-    $this->clearRegistrationRateLimits('register:submit', $ip);
+    $this->clearRateLimit('register:submit', $ip);
   }
 
 }
