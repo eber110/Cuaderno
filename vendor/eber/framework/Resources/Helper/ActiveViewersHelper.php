@@ -43,6 +43,9 @@ class ActiveViewersHelper
   {
     try {
       $pdo = AnalyticsModule::getPdo();
+      if (!$pdo) {
+        return 0;
+      }
       self::initTable($pdo);
 
       $profile = mb_strtolower($profileId, 'UTF-8');

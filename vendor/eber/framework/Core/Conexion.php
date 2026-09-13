@@ -15,7 +15,7 @@ use \Core\ErrorHandler;
 class Conexion
 {
   /**
-   * Instancia PDO compartida (Singleton).
+   * Instancia PDO compartida (Singleton por request).
    */
   private static ?PDO $sharedPdo = null;
 
@@ -23,6 +23,11 @@ class Conexion
    * Estado de la conexión compartida.
    */
   private static array $sharedState = [];
+
+  /**
+   * Último error registrado al conectar.
+   */
+  private static ?string $lastError = null;
 
   private $host;
   private $db;
@@ -33,72 +38,68 @@ class Conexion
   private $error;
   private $state = [];
 
-  public function __construct($host = NAMESERVER, $db = BD, $user = USER, $password = PASS, $charset = CHARSET)
+  public function __construct($host = null, $db = null, $user = null, $password = null, $charset = null)
   {
-    $this->host = $host;
-    $this->db = $db;
-    $this->user = $user;
-    $this->password = $password;
-    $this->charset = $charset;
+    $this->host = $host ?? (defined('NAMESERVER') ? NAMESERVER : '127.0.0.1');
+    $this->db = $db ?? (defined('BD') ? BD : '');
+    $this->user = $user ?? (defined('USER') ? USER : 'root');
+    $this->password = $password ?? (defined('PASS') ? PASS : '');
+    $this->charset = $charset ?? (defined('CHARSET') ? CHARSET : 'utf8mb4');
 
-    // Usar Singleton si DB_POOLING está activo y los parámetros son los mismos
-    if ($this->shouldUseSingleton($host, $db, $user)) {
-      $this->connectSingleton();
-    } else {
-      $this->connect();
-    }
-  }
-
-  /**
-   * Determina si se debe usar la conexión Singleton.
-   */
-  private function shouldUseSingleton($host, $db, $user): bool
-  {
-    // Solo usar Singleton si DB_POOLING está activo
-    if (!defined('DB_POOLING') || !DB_POOLING) {
-      return false;
-    }
-
-    // Solo para las credenciales por defecto
-    return $host === NAMESERVER && $db === BD && $user === USER;
-  }
-
-  /**
-   * Conecta usando el patrón Singleton (conexión compartida).
-   */
-  private function connectSingleton(): void
-  {
-    // Si ya existe una conexión válida, reutilizarla
-    if (self::$sharedPdo !== null) {
+    // Reutilizar conexión compartida si es la conexión por defecto y ya existe
+    if ($this->isDefaultConnection() && self::$sharedPdo !== null) {
       $this->pdo = self::$sharedPdo;
       $this->state = self::$sharedState;
       return;
     }
 
-    // Crear nueva conexión y almacenarla
+    // Conectar a la base de datos
     $this->connect();
 
-    if ($this->state[0] === true) {
+    // Si es la conexión por defecto y la conexión fue exitosa, almacenarla como compartida
+    if ($this->isDefaultConnection() && ($this->state[0] ?? false) === true) {
       self::$sharedPdo = $this->pdo;
       self::$sharedState = $this->state;
     }
   }
 
+  /**
+   * Determina si los parámetros corresponden a la conexión principal por defecto.
+   */
+  private function isDefaultConnection(): bool
+  {
+    $defaultHost = defined('NAMESERVER') ? NAMESERVER : '127.0.0.1';
+    $defaultDb = defined('BD') ? BD : '';
+    $defaultUser = defined('USER') ? USER : 'root';
+
+    return $this->host === $defaultHost && $this->db === $defaultDb && $this->user === $defaultUser;
+  }
+
   private function connect()
   {
+    $port = defined('DB_PORT') && !empty(DB_PORT) ? DB_PORT : ($_ENV['DB_PORT'] ?? '');
+    $portStr = !empty($port) ? ";port={$port}" : '';
+
     if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
-      $dsn = "sqlite:{$this->db}";
+      $sqlitePath = $this->db;
+      if ($sqlitePath !== ':memory:' && !empty($sqlitePath) && !file_exists($sqlitePath) && defined('ROOT_PATH')) {
+        $candidate = rtrim(ROOT_PATH, '/\\') . '/' . ltrim($sqlitePath, '/\\');
+        if (file_exists($candidate)) {
+          $sqlitePath = $candidate;
+        }
+      }
+      $dsn = "sqlite:{$sqlitePath}";
     } elseif (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
-      $dsn = "pgsql:host={$this->host};dbname={$this->db};options='--client_encoding={$this->charset}'";
+      $dsn = "pgsql:host={$this->host}{$portStr};dbname={$this->db};options='--client_encoding={$this->charset}'";
     } else {
-      $dsn = "mysql:host={$this->host};dbname={$this->db};charset={$this->charset}";
+      $dsn = "mysql:host={$this->host}{$portStr};dbname={$this->db};charset={$this->charset}";
     }
 
     $options = [
       PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
       PDO::ATTR_EMULATE_PREPARES   => false,
-      // Conexión persistente para mejor rendimiento
+      // Conexión persistente para mejor rendimiento si DB_POOLING está habilitado
       PDO::ATTR_PERSISTENT         => defined('DB_POOLING') && DB_POOLING,
     ];
 
@@ -115,9 +116,11 @@ class Conexion
       }
 
       $this->state = [true, "Conexión exitosa"];
+      self::$lastError = null;
       return $this->state;
     } catch (PDOException $e) {
       $this->error = $e->getMessage();
+      self::$lastError = $e->getMessage();
       $this->state = [false, $this->getSecureErrorMessage($e)];
 
       // Manejar errores específicos
@@ -133,7 +136,8 @@ class Conexion
   private function getSecureErrorMessage(PDOException $e): string
   {
     // En producción, no mostrar detalles del error
-    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    $isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
+    if ($isProd) {
       return 'Error de conexión a la base de datos';
     }
 
@@ -147,7 +151,8 @@ class Conexion
   private function handleConnectionError(PDOException $e): void
   {
     // Solo mostrar errores detallados en desarrollo
-    $showDetails = !defined('ENVIRONMENT') || ENVIRONMENT !== 'production';
+    $isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
+    $showDetails = !$isProd;
 
     if ($e->getCode() == 1049) {
       $message = $showDetails
@@ -175,23 +180,54 @@ class Conexion
   }
 
   /**
+   * Obtiene el último error de conexión registrado.
+   */
+  public static function getLastError(): ?string
+  {
+    return self::$lastError;
+  }
+
+  /**
    * Reinicia la conexión Singleton (útil para tests).
    */
   public static function resetConnection(): void
   {
     self::$sharedPdo = null;
     self::$sharedState = [];
+    self::$lastError = null;
+  }
+
+  /**
+   * Establece manualmente una instancia PDO (útil para inyección o tests).
+   */
+  public static function setConnection(?PDO $pdo): void
+  {
+    self::$sharedPdo = $pdo;
+    self::$sharedState = $pdo !== null ? [true, 'Conexión inyectada'] : [];
+    self::$lastError = null;
   }
 
   /**
    * Obtiene la instancia PDO compartida directamente.
-   * Útil cuando solo necesitas la conexión sin crear una instancia de Conexion.
+   * Si aún no existe, inicializa la conexión por defecto.
    */
   public static function getInstance(): ?PDO
   {
     if (self::$sharedPdo === null) {
       $conexion = new self();
+      if ($conexion->pdo !== null) {
+        self::$sharedPdo = $conexion->pdo;
+        self::$sharedState = $conexion->state;
+      }
     }
     return self::$sharedPdo;
+  }
+
+  /**
+   * Alias de conveniencia para getInstance() (Composición).
+   */
+  public static function getPdo(): ?PDO
+  {
+    return self::getInstance();
   }
 }

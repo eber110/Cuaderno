@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "3498d3fe1c46c7348a9d0449c82e98c131f914aa"
+                "reference": "b72beefdb6f2f23f0e99e15456dd0f0e7162b309"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -136,6 +136,18 @@
                 ],
                 "convert-image": [
                     "php Base/ScriptComposer/ConvertImage.php"
+                ],
+                "make:controller": [
+                    "php Base/ScriptComposer/MakeCli.php controller"
+                ],
+                "make:model": [
+                    "php Base/ScriptComposer/MakeCli.php model"
+                ],
+                "make:component": [
+                    "php Base/ScriptComposer/MakeCli.php component"
+                ],
+                "make:middleware": [
+                    "php Base/ScriptComposer/MakeCli.php middleware"
                 ]
             },
             "authors": [

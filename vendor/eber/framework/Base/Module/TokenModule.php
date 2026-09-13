@@ -259,6 +259,16 @@ class TokenModule
     }
 
     if ($localConfigPath && file_exists($localConfigPath)) {
+      if (!defined('TIME_MONTH_S')) {
+        if (defined('ROOT_PATH') && file_exists(ROOT_PATH . '/App/Config/config.php')) {
+          require_once ROOT_PATH . '/App/Config/config.php';
+        } elseif (file_exists(getcwd() . '/App/Config/config.php')) {
+          require_once getcwd() . '/App/Config/config.php';
+        } elseif (file_exists(__DIR__ . '/../../config.php')) {
+          require_once __DIR__ . '/../../config.php';
+        }
+      }
+
       $config = require $localConfigPath;
       if (is_array($config)) {
         return $config;

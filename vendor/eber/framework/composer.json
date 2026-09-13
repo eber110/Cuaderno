@@ -40,6 +40,10 @@
         "reset-font": "php Base/ScriptComposer/ResetFont.php",
         "update-geoip": "php Base/ScriptComposer/UpdateGeoIp.php",
         "scan-routes": "php Base/ScriptComposer/ScanRoutes.php",
-        "convert-image": "php Base/ScriptComposer/ConvertImage.php"
+        "convert-image": "php Base/ScriptComposer/ConvertImage.php",
+        "make:controller": "php Base/ScriptComposer/MakeCli.php controller",
+        "make:model": "php Base/ScriptComposer/MakeCli.php model",
+        "make:component": "php Base/ScriptComposer/MakeCli.php component",
+        "make:middleware": "php Base/ScriptComposer/MakeCli.php middleware"
     }
 }

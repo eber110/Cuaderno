@@ -859,4 +859,59 @@ class SeoModule
     echo trim($markdownContent);
     exit;
   }
+
+  /**
+   * Genera el bloque script JSON-LD a partir de un array de datos.
+   *
+   * @param array $schemaData Datos estructurados
+   * @return string Etiqueta <script type="application/ld+json">...</script>
+   */
+  public static function schemaJson(array $schemaData): string
+  {
+    if (empty($schemaData)) {
+      return '';
+    }
+    return "\n" . '<script type="application/ld+json">' . "\n" . json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n";
+  }
+
+  /**
+   * Genera el Schema JSON-LD de tipo Person de forma opcional y configurable.
+   *
+   * @param array $override Valores para sobreescribir name, url, jobTitle, knowsAbout
+   * @return string Bloque script JSON-LD o string vacío si no hay nombre configurado
+   */
+  public static function personSchema(array $override = []): string
+  {
+    $personName = $override['name'] ?? (defined('SEO_PERSON_NAME') && !empty(SEO_PERSON_NAME) ? SEO_PERSON_NAME : ($_ENV['SEO_PERSON_NAME'] ?? ''));
+    if (empty($personName)) {
+      return '';
+    }
+
+    $personUrl = $override['url'] ?? (defined('SEO_PERSON_URL') && !empty(SEO_PERSON_URL) ? SEO_PERSON_URL : ($_ENV['SEO_PERSON_URL'] ?? ''));
+    if (empty($personUrl)) {
+      $personUrl = defined('DOMAIN') ? DOMAIN : '/';
+    } else {
+      $personUrl = rtrim($personUrl, '/') . '/';
+    }
+
+    $personJob = $override['jobTitle'] ?? (defined('SEO_PERSON_JOB') && !empty(SEO_PERSON_JOB) ? SEO_PERSON_JOB : ($_ENV['SEO_PERSON_JOB'] ?? ''));
+    $personKnowsRaw = $override['knowsAbout'] ?? (defined('SEO_PERSON_KNOWS') && !empty(SEO_PERSON_KNOWS) ? SEO_PERSON_KNOWS : ($_ENV['SEO_PERSON_KNOWS'] ?? ''));
+    $personKnows = is_array($personKnowsRaw) ? $personKnowsRaw : (empty($personKnowsRaw) ? [] : array_map('trim', explode(',', (string)$personKnowsRaw)));
+
+    $schemaData = [
+      "@context" => "https://schema.org",
+      "@type" => "Person",
+      "name" => $personName,
+      "url" => $personUrl,
+    ];
+
+    if (!empty($personJob)) {
+      $schemaData["jobTitle"] = $personJob;
+    }
+    if (!empty($personKnows)) {
+      $schemaData["knowsAbout"] = $personKnows;
+    }
+
+    return self::schemaJson($schemaData);
+  }
 }

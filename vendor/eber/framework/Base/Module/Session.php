@@ -32,8 +32,13 @@ class Session
       return;
     }
 
+    $timeSession = defined('TIME_SESSION') ? TIME_SESSION : (defined('TIME_MONTH_S') ? TIME_MONTH_S : 2592000);
+    $pathSession = defined('PATH_SESSION') ? PATH_SESSION : '/';
+    $domainSession = defined('DOMAIN_SESSION') ? DOMAIN_SESSION : '';
+    $sslSession = defined('SSL_SESSION') ? SSL_SESSION : false;
+
     // Configurar tiempo de vida del garbage collector
-    ini_set('session.gc_maxlifetime', TIME_SESSION);
+    ini_set('session.gc_maxlifetime', (string)$timeSession);
 
     // Configuraciones de seguridad
     ini_set('session.use_strict_mode', '1');
@@ -44,20 +49,20 @@ class Session
     if (PHP_VERSION_ID >= 70300) {
       // PHP 7.3+ soporta SameSite en session_set_cookie_params
       session_set_cookie_params([
-        'lifetime' => TIME_SESSION,
-        'path' => PATH_SESSION,
-        'domain' => DOMAIN_SESSION,
-        'secure' => SSL_SESSION,
+        'lifetime' => $timeSession,
+        'path' => $pathSession,
+        'domain' => $domainSession,
+        'secure' => $sslSession,
         'httponly' => true,
         'samesite' => 'Lax'
       ]);
     } else {
       // Versiones anteriores
       session_set_cookie_params(
-        TIME_SESSION,
-        PATH_SESSION . '; SameSite=Lax',
-        DOMAIN_SESSION,
-        SSL_SESSION,
+        $timeSession,
+        $pathSession . '; SameSite=Lax',
+        $domainSession,
+        $sslSession,
         true // httponly siempre true
       );
     }
@@ -260,31 +265,65 @@ class Session
   }
 
   /**
+   * Resolver personalizado para roles de usuario.
+   */
+  private static $roleResolver = null;
+
+  /**
+   * Registra un callback personalizado para resolver roles de usuario.
+   * 
+   * @param callable $resolver Función que recibe ($userId, $sessionData) y retorna array ['role_id' => ..., 'role_name' => ...]
+   */
+  public static function setRoleResolver(?callable $resolver): void
+  {
+    self::$roleResolver = $resolver;
+  }
+
+  /**
    * Obtiene el rol del usuario actual.
    * 
+   * @param array|null $userContext Contexto o datos opcionales de usuario para resolver el rol.
    * @return array Datos del rol (role_id, role_name).
    */
-  public static function role(): array
+  public static function role(?array $userContext = null): array
   {
-    $user = (Session::session_active()) ? Session::session_data('user_id') : null;
-    $state = Session::my_session($user, 'user_id');
-
-    if ($state && $user) {
-      $userRole = new Builder("userroles");
-      $userRole = $userRole
-        ->select("role_id", "role_name")
-        ->join("roles", "id_role", "role_id")
-        ->where("user_id", $user)
-        ->get_one()[0] ?? null;
-
-      if ($userRole) {
-        return $userRole;
+    if (self::$roleResolver !== null) {
+      $user = $userContext ?? (Session::session_active() ? Session::session_data('user_id') : null);
+      $sessionData = $userContext ?? ($_SESSION['user'] ?? ($_SESSION ?? []));
+      $resolved = call_user_func(self::$roleResolver, $user, $sessionData);
+      if (is_array($resolved)) {
+        return $resolved;
       }
     }
 
+    // Si se pasa contexto con rol explícito
+    if ($userContext !== null && isset($userContext['role'])) {
+      if (is_array($userContext['role'])) {
+        return $userContext['role'];
+      }
+      return [
+        'role_id' => $userContext['role_id'] ?? 1,
+        'role_name' => (string)$userContext['role']
+      ];
+    }
+
+    // Si el rol está guardado directamente en los datos de sesión:
+    if (Session::session_active()) {
+      $roleData = Session::session_data('role');
+      if (is_array($roleData)) {
+        return $roleData;
+      } elseif (is_string($roleData) && !empty($roleData)) {
+        return [
+          'role_id' => Session::session_data('role_id') ?? 1,
+          'role_name' => $roleData
+        ];
+      }
+    }
+
+    // Fallback seguro: usuario invitado sin privilegios
     return [
-      "role_id" => 5,
-      "role_name" => "subscriber"
+      'role_id' => 0,
+      'role_name' => 'guest'
     ];
   }
 
@@ -295,7 +334,8 @@ class Session
    */
   public static function admin(): bool
   {
-    return Session::role()['role_name'] === 'administrator';
+    $roleName = Session::role()['role_name'] ?? '';
+    return in_array($roleName, ['administrator', 'admin'], true);
   }
 
   /**

@@ -12,6 +12,7 @@
  * 
  * 2. boot() - Se ejecuta DESPUÉS de que todos los providers se registraron
  *    Usa para: lógica que depende de otros servicios, cargar datos para vistas
+ */
 $providers = \Core\ConfigLoader\ProviderLoader::load();
 $instances = [];
 

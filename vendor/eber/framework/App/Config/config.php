@@ -22,4 +22,8 @@ elseif (file_exists($basePath . '/vendor/eber/framework/.env')) {
 }
 
 // Cargar configuración del framework
-require_once $basePath . '/vendor/eber/framework/config.php';
+if (file_exists($basePath . '/vendor/eber/framework/config.php')) {
+    require_once $basePath . '/vendor/eber/framework/config.php';
+} elseif (file_exists($basePath . '/config.php')) {
+    require_once $basePath . '/config.php';
+}

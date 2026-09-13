@@ -10,8 +10,8 @@ Guía de trabajo para agentes de IA y desarrolladores. **Léelo siempre antes de
 
 | Tecnología | Detalle |
 |---|---|
-| **PHP** | 8.0+ (el código usa tipos unión `array\|callable\|string`, `str_starts_with`…; entorno 8.3) |
-| **Base de datos** | MySQL / MariaDB / PostgreSQL (Driver vía `DB_CONNECTION` en `.env`) |
+| **PHP** | 8.0+ (el código usa tipos unión `array|callable|string`, `str_starts_with`…; entorno 8.3) |
+| **Base de datos** | MySQL / MariaDB / PostgreSQL / SQLite (Driver vía `DB_CONNECTION` en `.env`) |
 | **JS** | Vanilla, ES Modules (`export function`), sin frameworks |
 | **CSS** | CSS custom properties + utilidades atómicas propias + JIT/compilación |
 | **Composer** | Autoload PSR-4 + scripts CLI |
@@ -32,21 +32,20 @@ frame/                         # Repositorio del framework (también es un proye
 │
 ├── Core/                      # Núcleo (PSR-4: Core\)
 │   ├── Route.php              # Router. API estática: Route::get/post/put/patch/delete
-│   ├── Conexion.php           # Conexión BD
+│   ├── Conexion.php           # Conexión BD (PDO Singleton, getPdo, pdo_conexion)
 │   ├── ErrorHandler.php       # Renderiza vistas de error (ROUTE_ERROR_VIEW)
-│   ├── ConfigLoader/          # Load, LoadViewStyle, ProviderLoader, RouteLoader
-│   └── Load/                  # LoadEnv, LoadRoutes, LoadStyle
+│   └── ConfigLoader/          # LoadViewStyle, LoadStyle, ProviderLoader, RouteLoader
 │
 ├── Base/                      # Framework (PSR-4: Base\)
-│   ├── Control/Control.php    # Controlador base (view(), viewPart(), etc.)
-│   ├── Builder/Builder.php    # Query Builder MySQL/PostgreSQL (fluido, anti-inyección)
-│   ├── Module/                # 29 módulos reutilizables (ver tabla en §4)
+│   ├── Control/Control.php    # Controlador base (view(), viewClean(), json(), redirect(), etc.)
+│   ├── Builder/Builder.php    # Query Builder MySQL/PostgreSQL (composición sobre PDO, anti-inyección)
+│   ├── Module/                # 31 módulos reutilizables (AuthModule, GeoLocation, etc.)
 │   ├── LibraryCssJit/         # Reglas JIT CSS (JitRule interface + reglas)
 │   ├── Helpers/               # Part.php (vistas parciales), Svg.php (svg())
 │   ├── Cookie/                # CookieConfiguration
 │   ├── Error/HandlerError.php # Plantilla de error (se copia a App/errorViews/)
 │   ├── Providers/ServiceProvider.php  # Clase base de providers
-│   └── ScriptComposer/        # Scripts CLI → ver §5
+│   └── ScriptComposer/        # Scripts CLI (InitAppStructure, MakeCli, etc.) → ver §5
 │
 ├── App/                       # CAPA DE APLICACIÓN (lo que cambia por proyecto)
 │   ├── Controllers/           # Controladores del proyecto
@@ -73,7 +72,8 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Js/                    # JS del framework (12 + 27 componentes en Js/Components/)
 │   ├── Ico/                   # Iconos SVG Master (se copian a App/Rsc/Ico en cada proyecto)
 │   ├── Fonts/                 # Fuentes (se copian a App/Rsc/Fonts)
-│   ├── Library/Gsap/           # GSAP base (se copia a App/Rsc/Library)
+│   ├── Library/Gsap/          # GSAP base (se copia a App/Rsc/Library)
+│   ├── Segment/               # Scaffolds canónicos de componentes (Template, Form, Menu)
 │   └── Img/                    # Imágenes por defecto
 │
 ├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
@@ -87,15 +87,15 @@ frame/                         # Repositorio del framework (también es un proye
 
 ## 3. Reglas críticas (IMPORTANTE)
 
-1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` inicializa la estructura de `App/` y copia recursos base (`Resources/{Ico,Fonts,Library}` y `App/Rsc/Helper`) a `App/Rsc/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
+1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` inicializa la estructura de `App/` y copia recursos base (`Resources/{Ico,Fonts,Library,Segment}` y `App/Rsc/Helper`) a `App/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
 2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/Svg.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono: agréguelo a `Resources/Ico` y **luego** a `App/Rsc/Ico`. Uso: `svg('heart-fill', 'color2 x25')`.
 3. **No editar archivos generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `preloadFonts.json`. Se regeneran con `composer min-script`.
 4. **`.env` nunca se commitea** (está en `.gitignore`). Usa `.env.example` como plantilla.
 5. **Constantes de ruta:** usa las definidas en `config.php` (`ROUTE_VIEW`, `ROUTE_CONTROLLER`, `ROUTE_ICO`, `TIME_DAY`, `TIME_HOUR`…) — no rutas literales.
 6. **Escribir en español** (código, docblocks, commits y docs). El framework está en español.
-7. **Sesión y auth:** usar `Base\Module\Session` (`session_active()`, `session_data()`, `create_user_session()`, `role()`, `admin()`).
+7. **Sesión y autenticación:** usar `Base\Module\Session` para manejo de sesión y `Base\Module\AuthModule` para autenticación agnóstica de esquema (`AuthModule::attempt()`, `login()`, `check()`, `user()`, `logout()`, `hashPassword()`).
 8. **Seguridad:** no uses valores de `$_ENV`/`$_SERVER` sin sanitizarlos. El Builder ya escapa; NO concatenar SQL directamente.
-9. **Permisos de tablas:** `ALLOWED_TABLES` en `config.php`; cualquier tabla nueva debe registrarse ahí.
+9. **Permisos de tablas (Zero-Config):** Por defecto el framework no restringe tablas con listas fijas y valida nombres con sintaxis SQL segura contra inyecciones (`/^[a-zA-Z0-9_]+$/`). Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 10. **No comitear** archivos: `.env`, `Logs/`, `Cache/`, `*.mmdb`, `App/Public/Min/`.
 
 ---
@@ -136,6 +136,12 @@ composer create-table-mysql   # Inicializa tablas BD MySQL
 composer create-table-pgsql   # Inicializa tablas BD PostgreSQL
 composer update-geoip        # Descarga GeoLite2 actualizado
 composer convert-image       # Conversor interactivo de imágenes (GIF animado a WebP animado, etc.)
+
+# Generadores CLI rápidos:
+composer make:controller <Nombre>   # Crea controlador en App/Controllers/
+composer make:model <Nombre>        # Crea modelo en App/Models/
+composer make:component <Nombre>    # Crea componente en App/Components/
+composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`. `InitAppStructure` (estructura /App) se ejecuta con `composer install/update`.
@@ -145,12 +151,13 @@ composer convert-image       # Conversor interactivo de imágenes (GIF animado a
 ## 6. Flujo de trabajo habitual
 
 1. **Ruta:** se agrega una entrada en un archivo dentro de `App/Route/` (`Route::get('/x', [Controlador::class,'metodo'])`). Los archivos se cargan dinámicamente con `RouteLoader`.
-2. **Controlador:** clase en `App/Controllers/` que extiende `Base\Control\Control` → usa `$this->view('ruta.vista', $data)`.
+2. **Controlador:** clase en `App/Controllers/` que extiende `Base\Control\Control` → usa `$this->view('ruta.vista', $data, 'layout')`, `$this->viewClean('ruta.vista', $data)` (para HTMX/AJAX), `$this->json($data, $status)` o `$this->redirect($url)`.
 3. **Vista:** archivos en `App/Views/` (las `.` se convierten en `/`). Variables disponibles vía `extract`.
-4. **Datos:** modelos o consultas con `Base\Builder\Builder`.
-5. **SEO/Metas:** `Base\Module\SeoModule` (`setTitle`, `setMetaDescription`, `setOpenGraph`, `sitemap`, `robots`, `noindex`…).
-6. **Respuestas JSON/redirects:** `Base\Module\ResponseModule`.
-7. **Etc.** — módulos de `Base/Module` resolver el problema o crear `App/`-módulo dentro.
+4. **Datos:** modelos o consultas con `Base\Builder\Builder` (desacoplado de conexión vía composición).
+5. **SEO/Metas:** `Base\Module\SeoModule` (`setTitle`, `setMetaDescription`, `setOpenGraph`, `schemaJson`, `personSchema`, `sitemap`, `robots`, `noindex`…).
+6. **Autenticación y Geolocation:** `Base\Module\AuthModule` para credenciales seguras y `Base\Module\GeoLocation` para geolocalización híbrida (MaxMind local + fallback API).
+7. **Respuestas JSON/redirects:** `$this->json()`, `$this->redirect()` o `Base\Module\ResponseModule`.
+8. **Etc.** — módulos de `Base/Module` resolver el problema o crear `App/`-módulo dentro.
 
 ---
 
@@ -170,9 +177,9 @@ Usar prefijo + español (o inglés si el mensaje queda más claro), en pasado/im
 
 Ejemplos reales de la repo:
 ```
-feat(fonts): add wawoff2 modern WebAssembly compressor and auto-conversion
-fix(jit): scan css files for theme variables and utility classes
-perf(head): clean redundant preloads, ensure DOMAIN consistency
+feat(cli): add make commands for controller, model, component and middleware
+refactor(builder): decouple builder from conexion using composition
+feat(auth): add schema-agnostic AuthModule and hybrid GeoLocation
 ```
 
 ---

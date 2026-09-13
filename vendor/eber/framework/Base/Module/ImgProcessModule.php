@@ -17,7 +17,7 @@ use Imagick;
  * 
  * @see config.php para opciones de configuración
  */
-class ImgProcessModule extends Builder
+class ImgProcessModule
 {
 
   protected $table;
@@ -64,9 +64,6 @@ class ImgProcessModule extends Builder
     $this->uploadImg = $uploadImg ?? (defined('DIR_UPLOAD_MEDIA') ? DIR_UPLOAD_MEDIA : '');
     if (!empty($this->uploadImg)) {
       $this->ensureDirectoryPermissions();
-    }
-    if (!empty($table)) {
-      parent::__construct();
     }
   }
 
@@ -347,16 +344,17 @@ class ImgProcessModule extends Builder
     $placeholders = implode(', ', array_fill(0, count($all_keys), '?'));
 
     $inserted_ids = [];
+    $builder = new Builder($this->table);
 
     foreach ($img_data_to_insert as $row) {
       $sql = "INSERT INTO {$this->table} ( {$key_data_bd} ) VALUES ( {$placeholders} )";
-      $this->query_foreign($sql, array_values($row));
+      $builder->query_foreign($sql, array_values($row));
 
-      if ($this->query_error) {
+      if ($builder->getQueryError()) {
         return false;
       }
 
-      $last_id = $this->last_id();
+      $last_id = $builder->last_id();
       if ($last_id) {
         $inserted_ids[] = $last_id;
       }

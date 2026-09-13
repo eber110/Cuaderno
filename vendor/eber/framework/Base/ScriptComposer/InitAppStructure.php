@@ -115,6 +115,7 @@ class InitAppStructure
 
     // Copiar archivos de Resources del framework al proyecto
     $this->copyResources();
+    $this->copySegments();
 
     // Crear archivos necesarios
     $this->createBootstrapFiles();
@@ -193,6 +194,28 @@ class InitAppStructure
     }
 
     echo "\n📦 Recursos (Fonts, Helper, Ico y Library) copiados: {$copied} archivos, {$skipped} existentes\n";
+  }
+
+  /**
+   * Copia las plantillas scaffold de Resources/Segment/ al directorio App/Segment/ del proyecto.
+   */
+  private function copySegments()
+  {
+    $frameworkSegments = __DIR__ . '/../../Resources/Segment';
+    $projectSegments = $this->basePath . '/App/Segment';
+
+    if (!is_dir($frameworkSegments)) {
+      return;
+    }
+
+    $copied = 0;
+    $skipped = 0;
+
+    $this->copyDirectory($frameworkSegments, $projectSegments, $copied, $skipped);
+
+    if ($copied > 0 || $skipped > 0) {
+      echo "🧩 Plantillas Scaffolds (Segment/): {$copied} copiadas, {$skipped} existentes\n";
+    }
   }
 
   /**
@@ -366,7 +389,11 @@ elseif (file_exists($basePath . '/vendor/eber/framework/.env')) {
 }
 
 // Cargar configuración del framework
-require_once $basePath . '/vendor/eber/framework/config.php';
+if (file_exists($basePath . '/vendor/eber/framework/config.php')) {
+    require_once $basePath . '/vendor/eber/framework/config.php';
+} elseif (file_exists($basePath . '/config.php')) {
+    require_once $basePath . '/config.php';
+}
 PHP;
 
     if (file_put_contents($newConfigPath, $content)) {
@@ -820,7 +847,8 @@ $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
     || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
 
-if (defined('ENVIRONMENT') && ENVIRONMENT === 'production' && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
+$isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
+if ($isProd && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
     $currentHost = $_SERVER['HTTP_HOST'] ?? '';
     if ($currentHost !== FORCE_DOMAIN) {
         $protocol = $isHttps ? "https://" : "http://";

@@ -32,7 +32,7 @@ class AnalyticsModule
                     $dbFile = (defined('ROOT_PATH') ? rtrim(ROOT_PATH, '/\\') : getcwd()) . '/' . ltrim($dbFile, '/\\');
                 }
             } else {
-                $dbFile = $baseDir . '/clikhub.sqlite';
+                $dbFile = $baseDir . '/analytics.sqlite';
             }
 
             try {
@@ -66,6 +66,25 @@ class AnalyticsModule
     private static function initSchema(): void
     {
         $sql = "
+            CREATE TABLE IF NOT EXISTS analytics_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_type TEXT NOT NULL,
+                entity_id TEXT,
+                ip_address TEXT,
+                country_code TEXT,
+                country_name TEXT,
+                city_name TEXT,
+                device_type TEXT,
+                os TEXT,
+                browser TEXT,
+                referrer TEXT,
+                metadata TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_analytics_events_type ON analytics_events(event_type, entity_id);
+            CREATE INDEX IF NOT EXISTS idx_analytics_events_created ON analytics_events(created_at);
+
             CREATE TABLE IF NOT EXISTS profile_views (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 profile_id TEXT NOT NULL,
@@ -202,6 +221,81 @@ class AnalyticsModule
         } catch (Exception $e) {
             error_log("AnalyticsModule getProfileSummary Error: " . $e->getMessage());
             return ['total_views' => 0, 'unique_views' => 0, 'total_clicks' => 0, 'ctr' => 0];
+        }
+    }
+
+    /**
+     * Registra un evento genérico en la tabla analytics_events.
+     *
+     * @param string $eventType Tipo de evento (ej: 'page_view', 'download', 'button_click')
+     * @param string|null $entityId Identificador de la entidad o recurso (ej: post_id, username, etc.)
+     * @param array $data Datos adicionales contextuales (ip, device, referrer, metadata)
+     * @return bool True si se insertó exitosamente
+     */
+    public static function logEvent(string $eventType, ?string $entityId = null, array $data = []): bool
+    {
+        try {
+            $pdo = self::getPdo();
+            $stmt = $pdo->prepare("
+                INSERT INTO analytics_events 
+                (event_type, entity_id, ip_address, country_code, country_name, city_name, device_type, os, browser, referrer, metadata, created_at)
+                VALUES 
+                (:event_type, :entity_id, :ip_address, :country_code, :country_name, :city_name, :device_type, :os, :browser, :referrer, :metadata, :created_at)
+            ");
+
+            $nowUtc = gmdate('Y-m-d H:i:s');
+            $metadata = isset($data['metadata']) ? (is_string($data['metadata']) ? $data['metadata'] : json_encode($data['metadata'])) : null;
+
+            return $stmt->execute([
+                ':event_type'   => $eventType,
+                ':entity_id'    => $entityId,
+                ':ip_address'   => $data['ip_address'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''),
+                ':country_code' => $data['country_code'] ?? 'N/A',
+                ':country_name' => $data['country_name'] ?? 'Desconocido',
+                ':city_name'    => $data['city_name'] ?? 'Desconocido',
+                ':device_type'  => $data['device_type'] ?? 'desktop',
+                ':os'           => $data['os'] ?? 'Desconocido',
+                ':browser'      => $data['browser'] ?? 'Desconocido',
+                ':referrer'     => $data['referrer'] ?? ($_SERVER['HTTP_REFERER'] ?? ''),
+                ':metadata'     => $metadata,
+                ':created_at'   => $data['created_at'] ?? $nowUtc
+            ]);
+        } catch (Exception $e) {
+            error_log("AnalyticsModule logEvent Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Obtiene resumen de conteos de un evento genérico.
+     *
+     * @param string $eventType Tipo de evento a consultar
+     * @param string|null $entityId Entidad opcional
+     * @return array Array con total_events y unique_ips
+     */
+    public static function getEventSummary(string $eventType, ?string $entityId = null): array
+    {
+        try {
+            $pdo = self::getPdo();
+            $sql = "SELECT COUNT(*) as total_events, COUNT(DISTINCT ip_address) as unique_ips FROM analytics_events WHERE event_type = :event_type";
+            $params = [':event_type' => $eventType];
+
+            if ($entityId !== null) {
+                $sql .= " AND entity_id = :entity_id";
+                $params[':entity_id'] = $entityId;
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $row = $stmt->fetch() ?: [];
+
+            return [
+                'total_events' => (int)($row['total_events'] ?? 0),
+                'unique_ips'   => (int)($row['unique_ips'] ?? 0)
+            ];
+        } catch (Exception $e) {
+            error_log("AnalyticsModule getEventSummary Error: " . $e->getMessage());
+            return ['total_events' => 0, 'unique_ips' => 0];
         }
     }
 }

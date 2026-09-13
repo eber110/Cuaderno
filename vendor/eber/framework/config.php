@@ -1,94 +1,62 @@
 <?php
 
 /**
- * Configuración principal de la aplicación.
+ * Configuración principal de la aplicación - Eber Framework.
  * 
- * Las variables configurables están en .env
+ * Las variables configurables provienen de .env.
  * Este archivo define constantes derivadas y de estructura.
  */
 
 // ==================== ROOT PATH ====================
 if (!defined('ROOT_PATH')) {
-    $rootPath = str_replace('\\', '/', dirname(__DIR__, 3));
-    define('ROOT_PATH', $rootPath);
+    $rootPath = file_exists(dirname(__DIR__, 3) . '/vendor')
+        ? dirname(__DIR__, 3)
+        : __DIR__;
+    define('ROOT_PATH', str_replace('\\', '/', $rootPath));
 }
 
 // ==================== FRAMEWORK PATH ====================
-define('FRAMEWORK_PATH', rtrim(str_replace('\\', '/', __DIR__), '/') . '/');
+if (!defined('FRAMEWORK_PATH')) {
+    define('FRAMEWORK_PATH', rtrim(str_replace('\\', '/', __DIR__), '/') . '/');
+}
 
 // ==================== DATABASE ====================
-if (!defined('NAMESERVER')) define('NAMESERVER', $_ENV['DB_HOST'] ?? '');
-if (!defined('USER')) define('USER', $_ENV['DB_USERNAME'] ?? '');
+if (!defined('NAMESERVER')) define('NAMESERVER', $_ENV['DB_HOST'] ?? '127.0.0.1');
+if (!defined('DB_HOST')) define('DB_HOST', NAMESERVER);
+if (!defined('DB_PORT')) define('DB_PORT', $_ENV['DB_PORT'] ?? '');
+if (!defined('USER')) define('USER', $_ENV['DB_USERNAME'] ?? 'root');
+if (!defined('DB_USERNAME')) define('DB_USERNAME', USER);
 if (!defined('PASS')) define('PASS', $_ENV['DB_PASSWORD'] ?? '');
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', PASS);
 if (!defined('BD')) define('BD', $_ENV['DB_DATABASE'] ?? '');
+if (!defined('DB_DATABASE')) define('DB_DATABASE', BD);
 if (!defined('CHARSET')) define('CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', CHARSET);
 if (!defined('DB_DRIVER')) define('DB_DRIVER', $_ENV['DB_CONNECTION'] ?? 'mysql');
+if (!defined('DB_CONNECTION')) define('DB_CONNECTION', DB_DRIVER);
 
 // ==================== ENVIRONMENT & SECURITY ====================
-if (!defined('ENVIRONMENT')) define('ENVIRONMENT', $_ENV['APP_ENV'] ?? 'DEV');
+$rawEnv = strtolower($_ENV['APP_ENV'] ?? $_ENV['ENVIRONMENT'] ?? 'development');
+$normalizedEnv = in_array($rawEnv, ['prod', 'production'], true) ? 'production' : 'development';
+if (!defined('ENVIRONMENT')) define('ENVIRONMENT', $normalizedEnv);
+if (!defined('APP_ENV')) define('APP_ENV', $normalizedEnv);
+
 if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', filter_var($_ENV['CSRF_PROTECTION'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('DB_POOLING')) define('DB_POOLING', filter_var($_ENV['DB_POOLING'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('USE_CACHE')) define('USE_CACHE', filter_var($_ENV['USE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
 
 // Configuración de sesión segura (antes de session_start)
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_secure', '1');
-ini_set('session.use_strict_mode', '1');
-ini_set('session.use_only_cookies', '1');
-
-// Whitelist de tablas SQL permitidas
-if (!defined('ALLOWED_TABLES')) {
-	define('ALLOWED_TABLES', [
-		'sitesettings',
-		'users',
-		'roles',
-		'userroles',
-		'media',
-		'mediables',
-		'pages',
-		'blogposts',
-		'categories',
-		'tags',
-		'blogpostcategories',
-		'blogposttags',
-		'comments',
-		'survey',
-		'surveyanswers',
-		'products',
-		'productcategories',
-		'producttags',
-		'orders',
-		'orderitems',
-		'navigationmenus',
-		'menuitems',
-		'audittrail',
-		'productvariants',
-		'addresses',
-		'payments',
-		'notifications',
-		'userpreferences',
-		'visitorlog',
-		'emailregister',
-		'interactions',
-		'visitor_log',
-		'user_designs',
-		'lemon_squeezy_orders',
-		'lemon_squeezy_subscriptions',
-		'ratelimits'
-	]);
+if (session_status() !== PHP_SESSION_ACTIVE) {
+	@ini_set('session.cookie_httponly', '1');
+	@ini_set('session.cookie_secure', '1');
+	@ini_set('session.use_strict_mode', '1');
+	@ini_set('session.use_only_cookies', '1');
 }
 
-// ==================== OPTIMIZATION FLAGS ====================
-if (!defined('LAZY_LOADING')) define('LAZY_LOADING', filter_var($_ENV['LAZY_LOADING'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('CLEANUP_RESOURCES')) define('CLEANUP_RESOURCES', filter_var($_ENV['CLEANUP_RESOURCES'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('FILE_CACHE')) define('FILE_CACHE', filter_var($_ENV['FILE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('MEMORY_CACHE')) define('MEMORY_CACHE', filter_var($_ENV['MEMORY_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('DB_CACHE')) define('DB_CACHE', filter_var($_ENV['DB_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('MINIFY_ASSETS')) define('MINIFY_ASSETS', filter_var($_ENV['MINIFY_ASSETS'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('USE_CDN')) define('USE_CDN', filter_var($_ENV['USE_CDN'] ?? false, FILTER_VALIDATE_BOOLEAN));
-if (!defined('OPTIMIZE_FONTS')) define('OPTIMIZE_FONTS', filter_var($_ENV['OPTIMIZE_FONTS'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('LAZY_LOAD_IMAGES')) define('LAZY_LOAD_IMAGES', filter_var($_ENV['LAZY_LOAD_IMAGES'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('USE_INDEXES')) define('USE_INDEXES', filter_var($_ENV['USE_INDEXES'] ?? true, FILTER_VALIDATE_BOOLEAN));
+// Whitelist de tablas SQL (Zero-Config: array vacío permite cualquier tabla con identificador SQL seguro)
+if (!defined('ALLOWED_TABLES')) {
+	define('ALLOWED_TABLES', []);
+}
 
 // ==================== URL & SCHEME ====================
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
@@ -116,35 +84,26 @@ if (!defined('NO_INDEX_HOSTS')) define('NO_INDEX_HOSTS', array_filter(array_map(
 // Dominio forzado en producción
 if (!defined('FORCE_DOMAIN')) define('FORCE_DOMAIN', $_ENV['FORCE_DOMAIN'] ?? '');
 
-// URLs noIndex para SEO
+// URLs noIndex para SEO por defecto
 if (!defined('NO_INDEX')) {
 	define('NO_INDEX', [
 		'/test',
 		'/test1',
-		'/crear-publicacion',
 		'/sitemap.xml',
 		'/robots.txt',
-		'/crear-usuario',
 		'/terminar-sesion',
-		'/admin*',
-		'/ingresar'
+		'/admin*'
 	]);
 }
-
-// ==================== FEATURES ====================
-if (!defined('LOGIN_ACTIVE')) define('LOGIN_ACTIVE', filter_var($_ENV['LOGIN_ACTIVE'] ?? false, FILTER_VALIDATE_BOOLEAN));
-if (!defined('LOGUSER')) define('LOGUSER', filter_var($_ENV['LOG_USER'] ?? false, FILTER_VALIDATE_BOOLEAN));
-if (!defined('LOGVISITOR')) define('LOGVISITOR', filter_var($_ENV['LOG_VISITOR'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('COUNT_VISIT')) define('COUNT_VISIT', filter_var($_ENV['COUNT_VISIT'] ?? false, FILTER_VALIDATE_BOOLEAN));
 
 // ==================== TIME CONSTANTS ====================
 if (!defined('TIME_SEC')) define('TIME_SEC', 1);
 if (!defined('TIME_MIN')) define('TIME_MIN', 60);
 if (!defined('TIME_HOUR')) define('TIME_HOUR', 3600);
 if (!defined('TIME_DAY')) define('TIME_DAY', 86400);
-if (!defined('TIME_WEEK')) define('TIME_WEEK', 604800);      // 7 días
+if (!defined('TIME_WEEK')) define('TIME_WEEK', 604800);        // 7 días
 if (!defined('TIME_MONTH_S')) define('TIME_MONTH_S', 2592000); // 30 días estándar
-if (!defined('TIME_YEAR')) define('TIME_YEAR', 31536000);   // 365 días estándar
+if (!defined('TIME_YEAR')) define('TIME_YEAR', 31536000);     // 365 días estándar
 
 // ==================== SESSION ====================
 if (!defined('TIME_SESSION')) define('TIME_SESSION', TIME_MONTH_S);
@@ -170,13 +129,13 @@ if (!defined('ROUTE_DATABASE')) define('ROUTE_DATABASE', ROOT_PATH . '/Database/
 if (!defined('ROUTE_DATABASE_COMPONENT')) define('ROUTE_DATABASE_COMPONENT', ROOT_PATH . '/App/DatabaseComponent/');
 if (!defined('ROUTE_SAFETY')) define('ROUTE_SAFETY', ROOT_PATH . '/App/Safety/');
 
-// ==================== URL PATHS (for HTML) ====================
+// ==================== URL PATHS (para HTML) ====================
 if (!defined('URL_RESOURCE')) define('URL_RESOURCE', '/App/Rsc/');
 if (!defined('URL_IMG')) define('URL_IMG', '/App/Public/Img/Custom/');
 if (!defined('URL_IMG_PUBLIC')) define('URL_IMG_PUBLIC', '/App/Public/Img/');
 if (!defined('URL_ICON')) define('URL_ICON', '/App/Rsc/Ico/');
 
-// ==================== SITE INFO (from .env) ====================
+// ==================== SITE INFO (desde .env) ====================
 if (!defined('NAME_SITE')) define('NAME_SITE', $_ENV['APP_NAME'] ?? 'Mi Sitio');
 if (!defined('DESCRIPTION')) define('DESCRIPTION', $_ENV['APP_DESCRIPTION'] ?? '');
 if (!defined('LOGO')) define('LOGO', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo.png');
@@ -184,30 +143,18 @@ if (!defined('LOGOPAG')) define('LOGOPAG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_
 if (!defined('IMG_OG')) define('IMG_OG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'img-og.png');
 if (!defined('DIR_IMG_APP')) define('DIR_IMG_APP', URL_IMG);
 
-// ==================== SOCIAL MEDIA (from .env) ====================
-if (!defined('SOCIAL_GITHUB')) define('SOCIAL_GITHUB', $_ENV['SOCIAL_GITHUB'] ?? '');
-if (!defined('SOCIAL_TWITTER')) define('SOCIAL_TWITTER', $_ENV['SOCIAL_TWITTER'] ?? '');
-if (!defined('SOCIAL_INSTAGRAM')) define('SOCIAL_INSTAGRAM', $_ENV['SOCIAL_INSTAGRAM'] ?? '');
-if (!defined('SOCIAL_LINKEDIN')) define('SOCIAL_LINKEDIN', $_ENV['SOCIAL_LINKEDIN'] ?? '');
-
-// ==================== GEOLOCATION (from .env) ====================
+// ==================== GEOLOCATION (desde .env) ====================
 if (!defined('GEO_API_PRIMARY')) define('GEO_API_PRIMARY', $_ENV['GEO_API_PRIMARY'] ?? 'https://ip.guide/');
 if (!defined('GEO_API_FALLBACK')) define('GEO_API_FALLBACK', $_ENV['GEO_API_FALLBACK'] ?? 'https://api.ipquery.io/');
 if (!defined('GEO_CONNECT_TIMEOUT')) define('GEO_CONNECT_TIMEOUT', (int)($_ENV['GEO_CONNECT_TIMEOUT'] ?? 3));
 if (!defined('GEO_REQUEST_TIMEOUT')) define('GEO_REQUEST_TIMEOUT', (int)($_ENV['GEO_REQUEST_TIMEOUT'] ?? 5));
 
-// ==================== SEO LOCALE (from .env) ====================
+// ==================== SEO LOCALE (desde .env) ====================
 if (!defined('OG_LOCALE')) define('OG_LOCALE', $_ENV['OG_LOCALE'] ?? 'es');
 if (!defined('SEO_PERSON_NAME')) define('SEO_PERSON_NAME', $_ENV['SEO_PERSON_NAME'] ?? '');
 if (!defined('SEO_PERSON_URL')) define('SEO_PERSON_URL', $_ENV['SEO_PERSON_URL'] ?? '');
 if (!defined('SEO_PERSON_JOB')) define('SEO_PERSON_JOB', $_ENV['SEO_PERSON_JOB'] ?? '');
 if (!defined('SEO_PERSON_KNOWS')) define('SEO_PERSON_KNOWS', $_ENV['SEO_PERSON_KNOWS'] ?? '');
-
-// ==================== VISITS ====================
-if (!defined('TABLE_VISIT')) define('TABLE_VISIT', 'visitor_log');
-if (!defined('TABLE_USER')) define('TABLE_USER', 'users');
-if (!defined('MY_USER')) define('MY_USER', 'id_user');
-if (!defined('MY_IP')) define('MY_IP', $_ENV['DEV_IP'] ?? '127.0.0.1');
 
 // ==================== IMAGE PROCESSING ====================
 if (!defined('IMG_ADMITTED')) {
@@ -271,6 +218,7 @@ if (!defined('MAX_IMAGE_WIDTH')) define('MAX_IMAGE_WIDTH', (int)($_ENV['MAX_IMAG
 if (!defined('MAX_IMAGE_HEIGHT')) define('MAX_IMAGE_HEIGHT', (int)($_ENV['MAX_IMAGE_HEIGHT'] ?? 1080));
 if (!defined('MIN_QUALITY')) define('MIN_QUALITY', (int)($_ENV['MIN_QUALITY'] ?? 20));
 if (!defined('QUALITY_STEP')) define('QUALITY_STEP', (int)($_ENV['QUALITY_STEP'] ?? 5));
+if (!defined('LAZY_LOAD_IMAGES')) define('LAZY_LOAD_IMAGES', filter_var($_ENV['LAZY_LOAD_IMAGES'] ?? true, FILTER_VALIDATE_BOOLEAN));
 
 // Calidad de compresión - Landscape
 if (!defined('XL_QUALITY')) define('XL_QUALITY', 65);

@@ -261,6 +261,8 @@
 .br30 { border-radius: 30px !important; overflow: clip; }
 .br5 { border-radius: 5px !important; overflow: clip; }
 .br50 { border-radius: 50px !important; overflow: clip; }
+.br6 { border-radius: 6px !important; overflow: clip; }
+.br8 { border-radius: 8px !important; overflow: clip; }
 .brtl10 { border-top-left-radius: 10px !important; }
 .brtr10 { border-top-right-radius: 10px !important; }
 .h-1 { height: 1%; }
@@ -317,6 +319,7 @@
 .mt20 { margin-top: 20px; }
 .mt3 { margin-top: 3px; }
 .mt30 { margin-top: 30px; }
+.mt40 { margin-top: 40px; }
 .mt5 { margin-top: 5px; }
 .p0 { padding: 0px !important; }
 .p10 { padding: 10px !important; }

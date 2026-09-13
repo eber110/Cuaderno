@@ -20,7 +20,8 @@ $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
 
 // Enforce Domain Logic (Solo en Producción)
-if (defined('ENVIRONMENT') && ENVIRONMENT === 'production' && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
+$isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
+if ($isProd && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
   $currentHost = $_SERVER['HTTP_HOST'] ?? '';
   if ($currentHost !== FORCE_DOMAIN) {
     $protocol = $isHttps ? "https://" : "http://";

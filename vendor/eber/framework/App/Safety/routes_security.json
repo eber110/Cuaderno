@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-08-10 02:25:53",
-    "total_routes": 1,
+    "generated_at": "2026-09-13 21:05:32",
+    "total_routes": 6,
     "static_routes": [
         {
             "method": "GET",
@@ -10,10 +10,56 @@
             "protect_at_controller": false,
             "action": "Closure",
             "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/cuaderno",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\CuadernoController@index",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
+            "uri": "/cuaderno/guardar",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\CuadernoController@guardar",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/cuaderno/favorita/{id}",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\CuadernoController@toggleFavorite",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/cuaderno/fijar/{id}",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\CuadernoController@togglePin",
+            "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/cuaderno/eliminar/{id}",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\CuadernoController@eliminar",
+            "middlewares": []
         }
     ],
     "dynamic_routes": [],
     "summary_by_method": {
-        "GET": 1
+        "GET": 5,
+        "POST": 1
     }
 }

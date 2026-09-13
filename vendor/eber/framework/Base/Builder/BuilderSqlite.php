@@ -108,7 +108,13 @@ class BuilderSqlite extends Builder
   public function non_select(...$camp)
   {
     $sql = "SELECT * FROM {$this->table} {$this->join} LIMIT 1 OFFSET 0";
-    $consul = $this->pdo_conexion()->query($sql);
+    $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      $lastError = class_exists(\Core\Conexion::class) ? \Core\Conexion::getLastError() : null;
+      $detail = !empty($lastError) ? ": {$lastError}" : " (verifique la configuración de BD en .env)";
+      throw new \PDOException("No hay conexión activa a la base de datos{$detail}");
+    }
+    $consul = $pdo->query($sql);
     $data = $consul ? $consul->fetch(PDO::FETCH_ASSOC) : false;
 
     if ($data) {

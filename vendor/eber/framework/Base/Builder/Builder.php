@@ -9,9 +9,10 @@ use PDOException;
 use PDO;
 use Base\Module\Session;
 
-class Builder extends Conexion
+class Builder
 {
 
+  protected ?PDO $pdo = null;
   protected $table;
   protected $sql;
   protected $query;
@@ -40,12 +41,72 @@ class Builder extends Conexion
    * Constructor de la clase Builder.
    *
    * @param string|null $table El nombre de la tabla principal para la consulta.
+   * @param PDO|null $pdo Instancia PDO opcional para composición e inyección de dependencias.
    */
-  public function __construct($table = null)
+  public function __construct($table = null, ?PDO $pdo = null)
   {
-
-    parent::__construct();
+    $this->pdo = $pdo ?? Conexion::getPdo();
     (!is_null($table) ? $this->table = $table : null);
+  }
+
+  /**
+   * Establece el nombre de la tabla sobre la cual construir la consulta.
+   *
+   * @param string $table
+   * @return self
+   */
+  public function table(string $table): self
+  {
+    $this->table = $table;
+    return $this;
+  }
+
+  /**
+   * Alias de table().
+   *
+   * @param string $table
+   * @return self
+   */
+  public function from(string $table): self
+  {
+    $this->table = $table;
+    return $this;
+  }
+
+  /**
+   * Alias de get_all().
+   *
+   * @return array|false
+   */
+  public function get()
+  {
+    return $this->get_all();
+  }
+
+  /**
+   * Inserta un nuevo registro (alias de create).
+   *
+   * @param array $datos
+   * @param string|null $encoder
+   * @return int|string|false
+   */
+  public function insert(array $datos, $encoder = null)
+  {
+    return $this->create($datos, $encoder);
+  }
+
+
+  /**
+   * Obtiene la conexión PDO actual utilizada por el Builder.
+   *
+   * @return PDO|null
+   */
+  public function pdo_conexion(): ?PDO
+  {
+    if ($this->pdo === null) {
+      $this->pdo = Conexion::getPdo();
+    }
+    return $this->pdo;
   }
 
   /**
@@ -252,10 +313,16 @@ class Builder extends Conexion
   private function query($sql, $datas = [])
   {
 
-    try {
+    // Obtenemos la conexión una sola vez.
+    $pdo = $this->pdo_conexion();
 
-      // Obtenemos la conexión una sola vez.
-      $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      $lastError = class_exists(\Core\Conexion::class) ? \Core\Conexion::getLastError() : null;
+      $detail = !empty($lastError) ? ": {$lastError}" : " (verifique las credenciales y configuración de BD en .env)";
+      throw new \PDOException("No hay conexión activa a la base de datos{$detail}");
+    }
+
+    try {
 
       // 1. Unificamos la lógica: siempre usar prepare y execute.
       // Es más seguro y consistente.
@@ -302,7 +369,8 @@ class Builder extends Conexion
       ];
 
       // Solo mostrar detalles en desarrollo, no en producción
-      if (defined('ENVIRONMENT') && ENVIRONMENT === 'DEV') {
+      $isDev = !defined('ENVIRONMENT') || in_array(strtolower((string)ENVIRONMENT), ['dev', 'development', 'local'], true);
+      if ($isDev) {
 
         ErrorHandler::handle_code(500, 1052, "Error en builder() <br>" . $this->query_error['message'] . "<br> <div class='x16 color3'>" . $this->query_error['raw'] . "</div>" . "<br> <div class='x18 bold600 color2'>" . $sql . "</div>");
       } else {
@@ -340,6 +408,16 @@ class Builder extends Conexion
   {
 
     return $this->last_id;
+  }
+
+  /**
+   * Obtiene el último error de consulta registrado.
+   *
+   * @return array|null
+   */
+  public function getQueryError()
+  {
+    return $this->query_error;
   }
 
   /**
@@ -590,7 +668,14 @@ class Builder extends Conexion
       $sql = "SELECT * FROM {$this->table} {$this->join} LIMIT 1";
     }
 
-    $consul = $this->pdo_conexion()->query($sql);
+    $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      $lastError = class_exists(\Core\Conexion::class) ? \Core\Conexion::getLastError() : null;
+      $detail = !empty($lastError) ? ": {$lastError}" : " (verifique la configuración de BD en .env)";
+      throw new \PDOException("No hay conexión activa a la base de datos{$detail}");
+    }
+
+    $consul = $pdo->query($sql);
     $data = $consul->fetch(PDO::FETCH_ASSOC);
 
     if ($data) {
@@ -605,15 +690,37 @@ class Builder extends Conexion
   }
 
   /**
-   * Agrega una función de agregación COUNT() a la consulta.
+  /**
+   * Ejecuta un conteo directo y retorna el número total de filas.
    *
-   * @param string      $col      La columna a contar (ej. 'id' o '*').
+   * @param string $col Columna a contar (por defecto '*').
+   * @return int
+   */
+  public function countRows(string $col = '*'): int
+  {
+    $sql = "SELECT COUNT({$col}) as aggregate FROM {$this->table}";
+    if ($this->where) {
+      $sql .= " {$this->where}";
+    }
+    $this->query($sql, $this->values);
+    $res = $this->query ? $this->query->fetch(PDO::FETCH_ASSOC) : null;
+    $this->reset();
+    return (int)($res['aggregate'] ?? 0);
+  }
+
+  /**
+   * Agrega una función de agregación COUNT() a la consulta o retorna el conteo directo si se llama sin parámetros.
+   *
+   * @param string|null $col      La columna a contar (ej. 'id' o '*').
    * @param string|null $alias    Un alias opcional para el resultado del conteo (ej. 'total').
    * @param bool        $distinct Si es true, usa COUNT(DISTINCT column) para evitar duplicados.
-   * @return self
+   * @return self|int
    */
-  public function count($col, $alias = null, $distinct = false)
+  public function count($col = null, $alias = null, $distinct = false)
   {
+    if ($col === null) {
+      return $this->countRows('*');
+    }
 
     $countExpr = $distinct ? "COUNT(DISTINCT {$col})" : "COUNT({$col})";
 
@@ -2105,8 +2212,12 @@ class Builder extends Conexion
    */
   public function beginTransaction()
   {
+    $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      throw new \PDOException("No hay conexión activa a la base de datos para iniciar la transacción");
+    }
 
-    return Conexion::pdo_conexion()->beginTransaction();
+    return $pdo->beginTransaction();
   }
 
   /**
@@ -2116,8 +2227,12 @@ class Builder extends Conexion
    */
   public function commit()
   {
+    $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      throw new \PDOException("No hay conexión activa a la base de datos para confirmar la transacción");
+    }
 
-    return Conexion::pdo_conexion()->commit();
+    return $pdo->commit();
   }
 
   /**
@@ -2127,8 +2242,12 @@ class Builder extends Conexion
    */
   public function rollback()
   {
+    $pdo = $this->pdo_conexion();
+    if ($pdo === null) {
+      throw new \PDOException("No hay conexión activa a la base de datos para revertir la transacción");
+    }
 
-    return Conexion::pdo_conexion()->rollBack();
+    return $pdo->rollBack();
   }
 
   /**

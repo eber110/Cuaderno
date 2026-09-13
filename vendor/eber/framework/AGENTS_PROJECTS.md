@@ -71,7 +71,8 @@ Request → Route (App/Route/) → Middlewares → Controlador → Modelos → V
 ### 3.1 Controladores (`App/Controllers/`) — SOLO lógica de negocio
 
 - Extienden `Base\Control\Control`.
-- Reciben la petición, orquestan el flujo, **llaman a los modelos** para obtener/procesar datos y responden (vista, JSON o redirect).
+- Reciben la petición, orquestan el flujo, **llaman a los modelos** para obtener/procesar datos y responden (vista con `$this->view()`, vista limpia para AJAX/HTMX con `$this->viewClean()`, `$this->json()` o `$this->redirect()`).
+- Soporte para layouts globales en vistas: `$this->view('Home.home', $data, 'layouts.main')`.
 - **Prohibido**: SQL directo, consultas al Builder y HTML. Eso es de Modelos y Vistas.
 - Nomenclatura: `<Vista>Controllers.php` (plural) → `HomeControllers.php`, `LoginControllers.php`.
 - Métodos: una acción por método, `camelCase`.
@@ -279,8 +280,10 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 | Módulo | Uso |
 |---|---|
 | `Session` | `session_active()`, `session_data()`, `create_user_session()`, `role()`, `admin()` |
+| `AuthModule` | `attempt()`, `login()`, `check()`, `user()`, `logout()`, `hashPassword()`, `verifyPassword()` |
+| `GeoLocation` | `resolve()`, `getCountry()`, `getCity()` — híbrido MaxMind local + fallback API |
 | `ResponseModule` | `redirect()`, respuestas JSON, `sendContent()` |
-| `SeoModule` | `setTitle()`, `setMetaDescription()`, `setOpenGraph()`, `sitemap()`, `robots()` |
+| `SeoModule` | `setTitle()`, `setMetaDescription()`, `setOpenGraph()`, `schemaJson()`, `personSchema()`, `sitemap()`, `robots()` |
 | `HttpPostModule` | Entrada de `$_GET`/`$_POST` sanitizada (nunca superglobales directas) |
 | `Builder` | `Base\Builder\Builder` — query builder fluido anti-inyección |
 | `ImgProcessModule` | Procesamiento/compresión de imágenes |
@@ -299,6 +302,13 @@ composer reset-font          # Gestor/reset de fuentes instaladas
 composer create-table-mysql   # Inicializar tablas BD MySQL
 composer create-table-pgsql   # Inicializar tablas BD PostgreSQL
 composer update-geoip        # Descargar GeoLite2 actualizado
+composer convert-image       # Conversor de imágenes
+
+# Generadores CLI rápidos:
+composer make:controller <Nombre>   # Crea controlador en App/Controllers/
+composer make:model <Nombre>        # Crea modelo en App/Models/
+composer make:component <Nombre>    # Crea componente en App/Components/
+composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`.
@@ -314,7 +324,7 @@ composer update-geoip        # Descargar GeoLite2 actualizado
 5. **`.env` nunca se commitea** (gitignored). Usar `.env.example` como plantilla.
 6. **Constantes:** usar las de `config.php` del framework (`ROUTE_VIEW`, `ROUTE_ICO`, `TIME_DAY`, `URL_IMG`, `NAME_SITE`, `DOMAIN`…), nunca rutas literales.
 7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder ya escapa; NO concatenar SQL.
-8. **Tablas nuevas:** registrarlas en `ALLOWED_TABLES` (`config.php` del framework o `App/Config/config.php`).
+8. **Tablas nuevas (Zero-Config):** por defecto no requiere registrar tablas en listas fijas; valida sintaxis de identificador SQL seguro contra inyección. Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 9. **Escribir en español** (código, docblocks, commits y docs).
 
 ---

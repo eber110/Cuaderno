@@ -23,9 +23,13 @@ class ErrorHandler
     /**
      * Indica si estamos en desarrollo.
      */
-    private static function isDev(): bool
+    public static function isDev(): bool
     {
-        return defined('ENVIRONMENT') && ENVIRONMENT === 'development';
+        if (!defined('ENVIRONMENT')) {
+            return true;
+        }
+        $env = strtolower((string)ENVIRONMENT);
+        return in_array($env, ['dev', 'development', 'local'], true);
     }
 
     /**

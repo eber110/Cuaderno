@@ -35,6 +35,11 @@ class SecurityModule
   private static ?array $allowedTables = null;
 
   /**
+   * Indica si la whitelist estricta de tablas está activada explícitamente.
+   */
+  private static bool $whitelistEnabled = false;
+
+  /**
    * Nombre de la clave de sesión para el token CSRF.
    */
   private const CSRF_SESSION_KEY = 'csrf_token';
@@ -280,42 +285,12 @@ class SecurityModule
   private static function getAllowedTables(): array
   {
     if (self::$allowedTables === null) {
-      if (defined('ALLOWED_TABLES') && is_array(ALLOWED_TABLES)) {
+      if (defined('ALLOWED_TABLES') && is_array(ALLOWED_TABLES) && !empty(ALLOWED_TABLES)) {
         self::$allowedTables = array_map('strtolower', ALLOWED_TABLES);
+        self::$whitelistEnabled = true;
       } else {
-        self::$allowedTables = [
-          'sitesettings',
-          'users',
-          'roles',
-          'userroles',
-          'media',
-          'mediables',
-          'pages',
-          'blogposts',
-          'categories',
-          'tags',
-          'blogpostcategories',
-          'blogposttags',
-          'comments',
-          'survey',
-          'surveyanswers',
-          'products',
-          'productcategories',
-          'producttags',
-          'orders',
-          'orderitems',
-          'navigationmenus',
-          'menuitems',
-          'audittrail',
-          'productvariants',
-          'addresses',
-          'payments',
-          'notifications',
-          'userpreferences',
-          'visitorlog',
-          'emailregister',
-          'interactions'
-        ];
+        self::$allowedTables = [];
+        self::$whitelistEnabled = false;
       }
     }
 
@@ -325,16 +300,26 @@ class SecurityModule
   public static function isAllowedTable(string $tableName): bool
   {
     $normalized = strtolower(trim($tableName));
-    return in_array($normalized, self::getAllowedTables(), true);
+    $allowed = self::getAllowedTables();
+
+    // Whitelist opt-in: Si se definieron tablas explícitas no vacías en ALLOWED_TABLES, validar contra la whitelist
+    if (self::$whitelistEnabled) {
+      return in_array($normalized, $allowed, true);
+    }
+
+    // Zero-Config (por defecto): validar sintaxis segura de identificador SQL (letras, números y guión bajo)
+    return (bool)preg_match('/^[a-zA-Z0-9_]+$/', $normalized);
   }
 
   public static function validateTableName(string $tableName): string
   {
+    $normalized = strtolower(trim($tableName));
+
     if (!self::isAllowedTable($tableName)) {
-      throw new \InvalidArgumentException("Tabla '$tableName' no está en la lista de tablas permitidas");
+      throw new \InvalidArgumentException("Tabla '$tableName' no es válida o no está en la lista de tablas permitidas");
     }
 
-    return strtolower(trim($tableName));
+    return $normalized;
   }
 
   public static function addAllowedTable(string $tableName): void
@@ -497,12 +482,20 @@ class SecurityModule
 
   public static function isProduction(): bool
   {
-    return defined('ENVIRONMENT') && ENVIRONMENT === 'production';
+    if (!defined('ENVIRONMENT')) {
+      return false;
+    }
+    $env = strtolower((string)ENVIRONMENT);
+    return in_array($env, ['production', 'prod'], true);
   }
 
   public static function isDevelopment(): bool
   {
-    return !defined('ENVIRONMENT') || ENVIRONMENT === 'development';
+    if (!defined('ENVIRONMENT')) {
+      return true;
+    }
+    $env = strtolower((string)ENVIRONMENT);
+    return in_array($env, ['dev', 'development', 'local'], true);
   }
 
   public static function configureErrorHandling(): void

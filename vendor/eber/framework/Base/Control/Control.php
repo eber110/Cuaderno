@@ -37,17 +37,18 @@ class Control
   // ============================================
 
   /**
-   * Renderiza una vista con datos.
-   * Modificado para optimizar SEO y TTFB usando ResponseModule::sendContent.
+   * Renderiza una vista con datos y layout opcional.
+   * Optimizado para SEO y TTFB usando ResponseModule::sendContent.
    * 
-   * @param string $route Ruta de la vista (sin extensión).
+   * @param string $route Ruta de la vista (sin extensión, ej: "home.index" o "Home/index").
    * @param array $data Datos a pasar a la vista.
+   * @param string|null $layout Nombre del layout opcional dentro de App/Views (ej: "layouts.app" o "layouts/admin").
    * @return void
    */
-  public function view($route, $data = [])
+  public function view($route, $data = [], ?string $layout = null)
   {
     \ViewData::set($data);
-    $datas = $this->viewPart($route, ['data' => $data]);
+    $datas = $this->viewPart($route, ['data' => $data], $layout);
 
     // Agregar script de lazy loading si está habilitado
     $datas .= ViewOptimizerModule::getLazyLoadScript();
@@ -57,18 +58,53 @@ class Control
   }
 
   /**
-   * Extrae y renderiza una parte de vista.
+   * Renderiza una vista limpia sin HTML/head/estilos.
+   * Ideal para componentes dinámicos, fragmentos modales o peticiones HTMX/Fetch/AJAX.
+   * 
+   * @param string $route Ruta de la vista (sin extensión, con puntos o barras).
+   * @param array $data Datos a pasar a la vista.
+   * @return string Contenido renderizado.
+   */
+  public function viewClean(string $route, array $data = []): string
+  {
+    \ViewData::set($data);
+    $route = str_replace('.', '/', $route);
+    $route = ltrim($route, '/');
+    $filePath = ROUTE_VIEW . $route . '.php';
+
+    if (!file_exists($filePath)) {
+      ErrorHandler::handleCode(404, 404, 'No existe la vista especificada.');
+      return '';
+    }
+
+    ob_start();
+    try {
+      if (!empty($data)) {
+        extract($data);
+      }
+      require $filePath;
+      return (string)ob_get_clean();
+    } catch (\Exception $e) {
+      ob_end_clean();
+      return "Error: " . $e->getMessage();
+    }
+  }
+
+  /**
+   * Extrae y renderiza una parte de vista con soporte opcional de layout.
    * 
    * @param string $route Ruta de la vista.
    * @param array $data Datos para la vista.
+   * @param string|null $layout Layout opcional.
    * @return string|void Contenido renderizado.
    */
-  private function viewPart($route, $data = [])
+  private function viewPart($route, $data = [], ?string $layout = null)
   {
     $route = str_replace('.', '/', $route);
     $route = ltrim($route, '/');
+    $filePath = ROUTE_VIEW . $route . '.php';
 
-    if (file_exists(ROUTE_VIEW . $route . '.php')) {
+    if (file_exists($filePath)) {
       ob_start();
 
       try {
@@ -76,9 +112,26 @@ class Control
           extract($data['data']);
         }
 
+        if ($layout !== null) {
+          $layoutPath = ROUTE_VIEW . str_replace('.', '/', ltrim($layout, '/')) . '.php';
+          if (file_exists($layoutPath)) {
+            // Renderizar la vista interna en la variable $content
+            ob_start();
+            require $filePath;
+            $content = ob_get_clean();
+
+            $this->confView();
+            print '<body>';
+            require $layoutPath;
+            print '</body>';
+            print '</html>';
+            return ob_get_clean();
+          }
+        }
+
         $this->confView();
         print '<body>';
-        require_once ROUTE_VIEW . $route . '.php';
+        require_once $filePath;
         print '</body>';
         print '</html>';
         return ob_get_clean();
@@ -120,31 +173,12 @@ class Control
     echo SeoModule::getRobotsMeta();
     echo SeoModule::openGraph();
 
-    // JSON-LD estructurado de Persona de forma dinámica
-    $personName = defined('SEO_PERSON_NAME') && !empty(SEO_PERSON_NAME) ? SEO_PERSON_NAME : 'Eber Sánchez';
-    $personUrl = defined('SEO_PERSON_URL') && !empty(SEO_PERSON_URL) ? SEO_PERSON_URL : '';
-    if (empty($personUrl)) {
-        $personUrl = DOMAIN;
-    } else {
-        $personUrl = rtrim($personUrl, '/') . '/';
-    }
-    $personJob = defined('SEO_PERSON_JOB') && !empty(SEO_PERSON_JOB) ? SEO_PERSON_JOB : 'Desarrollador Web Full-Stack';
-    $personKnowsRaw = defined('SEO_PERSON_KNOWS') && !empty(SEO_PERSON_KNOWS) ? SEO_PERSON_KNOWS : 'PHP, JavaScript Vanilla, CSS, Optimización Web';
-    $personKnows = array_map('trim', explode(',', $personKnowsRaw));
-
-    $schemaData = [
-        "@context" => "https://schema.org",
-        "@type" => "Person",
-        "name" => $personName,
-        "url" => $personUrl,
-        "jobTitle" => $personJob,
-        "knowsAbout" => $personKnows
-    ];
-    echo "\n" . '<script type="application/ld+json">' . "\n" . json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n";
+    // JSON-LD estructurado de Persona (opcional, solo si está configurado)
+    echo SeoModule::personSchema();
 
     echo ViewOptimizerModule::getPreloads();
 
-    require_once FRAMEWORK_PATH . 'Core/Load/LoadStyle.php';
+    require_once FRAMEWORK_PATH . 'Core/ConfigLoader/LoadStyle.php';
 
     // Script inline sincrónico: aplica el tema guardado o valor por defecto antes del primer paint (evita FOUC)
     $defaultTheme = $_ENV['DEFAULT_THEME'] ?? 'system';
@@ -369,217 +403,32 @@ class Control
   }
 
   // ============================================
-  // MÉTODOS DE SEO (Delegados a SeoModule)
+  // MÉTODOS HTTP DE RESPUESTA
   // ============================================
 
   /**
-   * Genera título de página.
-   * @deprecated Usar SeoModule::setTitle() directamente.
+   * Envía una respuesta JSON limpia.
+   * 
+   * @param mixed $data Datos a enviar
+   * @param int $status Código HTTP (default: 200)
+   * @param array $headers Cabeceras HTTP adicionales
+   * @return never
    */
-  public function title($home = '')
-  {
-    if ($home !== '') {
-      SeoModule::setTitle($home);
-    }
-    return SeoModule::title();
-  }
-
-  /**
-   * Genera meta description.
-   * @deprecated Usar SeoModule::setMetaDescription() directamente.
-   */
-  public function meta_description($desc = null)
-  {
-    if ($desc !== null) {
-      SeoModule::setMetaDescription($desc);
-    }
-    $this->description = SeoModule::metaDescription();
-    return print $this->description;
-  }
-
-  /**
-   * Configura Open Graph y Twitter Cards.
-   * @deprecated Usar SeoModule::setOpenGraph() directamente.
-   */
-  public function config_share($param = null)
-  {
-    if ($param !== null) {
-      SeoModule::setOpenGraph($param);
-    }
-    $this->share_conf = SeoModule::openGraph();
-  }
-
-  // ============================================
-  // MÉTODOS DE TEXTO (Delegados a TextModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar TextModule::removeAccents() directamente.
-   */
-  public function remove_accents($strings)
-  {
-    return TextModule::removeAccents($strings);
-  }
-
-  /**
-   * @deprecated Usar TextModule::toSlug() directamente.
-   */
-  public function uri($uri)
-  {
-    return TextModule::toSlug($uri);
-  }
-
-  /**
-   * @deprecated Usar TextModule::clean() directamente.
-   */
-  public function clean_text($text)
-  {
-    return TextModule::clean($text);
-  }
-
-  /**
-   * @deprecated Usar TextModule::process() directamente.
-   */
-  public function process_text($text, $cant = null, $options = [])
-  {
-    return TextModule::process($text, $cant, $options);
-  }
-
-  /**
-   * @deprecated Usar TextModule::truncate() directamente.
-   */
-  public function text_token($text, $cant = null, string $suffix = '')
-  {
-    return TextModule::truncate($text, $cant, $suffix);
-  }
-
-  /**
-   * @deprecated Usar TextModule::truncateRaw() directamente.
-   */
-  public function text_token_unformatted($text, $cant = null, string $suffix = '')
-  {
-    return TextModule::truncateRaw($text, $cant, $suffix);
-  }
-
-  /**
-   * @deprecated Usar TextModule::formatParagraphs() directamente.
-   */
-  public function textFormatP($text)
-  {
-    return TextModule::formatParagraphs($text);
-  }
-
-  /**
-   * @deprecated Usar TextModule::truncate() directamente.
-   */
-  public function text_string($text, $cant = null, string $suffix = '')
-  {
-    return TextModule::truncate($text, $cant, $suffix);
-  }
-
-  // ============================================
-  // MÉTODOS DE FECHA/TIEMPO (Delegados a DateTimeModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar DateTimeModule::timeAgo() directamente.
-   */
-  public function time_post($date_reg)
-  {
-    return DateTimeModule::timeAgo($date_reg);
-  }
-
-  /**
-   * @deprecated Usar DateTimeModule::countdown() directamente.
-   */
-  public function countDown($date = null, $time = null)
-  {
-    return DateTimeModule::countdown($date, $time);
-  }
-
-  // ============================================
-  // MÉTODOS DE CACHÉ (Delegados a CacheModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar CacheModule::get() y CacheModule::set() directamente.
-   */
-  public function cache($key, $value = null, $ttl = 3600)
-  {
-    if ($value === null) {
-      return CacheModule::get($key);
-    }
-    return CacheModule::set($key, $value, $ttl) ? $value : null;
-  }
-
-  // ============================================
-  // MÉTODOS DE EVENTOS (Delegados a EventModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar EventModule::on() directamente.
-   */
-  public function on($event, callable $callback)
-  {
-    EventModule::on($event, $callback);
-  }
-
-  /**
-   * @deprecated Usar EventModule::trigger() directamente.
-   */
-  public function trigger($event, $data = [])
-  {
-    return EventModule::trigger($event, $data);
-  }
-
-  // ============================================
-  // MÉTODOS HTTP (Delegados a ResponseModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar ResponseModule::json() directamente.
-   */
-  public function json($data, $status = 200, $headers = [])
+  public function json(mixed $data, int $status = 200, array $headers = []): never
   {
     ResponseModule::json($data, $status, $headers);
   }
 
   /**
-   * @deprecated Usar ResponseModule::redirect() directamente.
+   * Redirecciona a una URL con mensaje opcional.
+   * 
+   * @param string $route Ruta de destino
+   * @param string|null $msg Mensaje opcional
+   * @param int|null $type 0=success, 1=warning, 2=danger, null=error
+   * @return never
    */
-  public function redirect($route, $msg = null, $type = null)
+  public function redirect(string $route, ?string $msg = null, ?int $type = null): never
   {
-    $typeMap = [0 => 'success', 1 => 'warning', 2 => 'danger'];
-    $typeError = $typeMap[$type] ?? 'error';
-
-    if (strpos($route, '?') !== false) {
-      $route = substr_replace($route, '', strpos($route, '?'));
-    }
-
-    if ($msg === null) {
-      header('Location: ' . $route);
-    } else {
-      header('Location: ' . $route . '?' . $typeError . '=' . $msg);
-    }
-  }
-
-  /**
-   * @deprecated Usar ResponseModule::showError() directamente.
-   */
-  public function error($style_class = null)
-  {
-    ResponseModule::showError($style_class);
-  }
-
-  // ============================================
-  // MÉTODOS DE COOKIES (Delegados a CookieModule)
-  // ============================================
-
-  /**
-   * @deprecated Usar CookieModule::set() directamente.
-   */
-  public function configCookie(string $name, array $options = []): string
-  {
-    return CookieModule::set($name, $options);
+    ResponseModule::redirect($route, $msg, $type);
   }
 }

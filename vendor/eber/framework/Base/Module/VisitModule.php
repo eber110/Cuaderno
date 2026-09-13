@@ -229,7 +229,7 @@ class VisitModule
   /**
    * Obtiene datos geográficos para una IP.
    */
-  private static function fetchGeoData(?string $ip, bool $forceRefresh = false): array
+  public static function fetchGeoData(?string $ip, bool $forceRefresh = false): array
   {
     $defaultData = [
       'ip' => $ip ?? '127.0.0.1',
