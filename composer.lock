@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "0b8ccfb41bbfdbf20de88c51771ade9917f08ce0"
+                "reference": "3498d3fe1c46c7348a9d0449c82e98c131f914aa"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -101,7 +101,7 @@
                     "Base\\": "Base/"
                 },
                 "files": [
-                    "Base/Helpers/SvgModule.php",
+                    "Base/Helpers/Svg.php",
                     "Base/Helpers/Part.php",
                     "Base/Cookie/CookieConfiguration.php"
                 ]

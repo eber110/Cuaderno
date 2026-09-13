@@ -21,7 +21,7 @@
             "Base\\": "Base/"
         },
         "files": [
-            "Base/Helpers/SvgModule.php",
+            "Base/Helpers/Svg.php",
             "Base/Helpers/Part.php",
             "Base/Cookie/CookieConfiguration.php"
         ]

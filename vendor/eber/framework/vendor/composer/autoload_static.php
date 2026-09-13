@@ -10,7 +10,7 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        'cca06b4dad8fb37e4d2948565ec7d803' => __DIR__ . '/../..' . '/Base/Helpers/SvgModule.php',
+        'd94387a1c078aa6a2bb51684b5685de7' => __DIR__ . '/../..' . '/Base/Helpers/Svg.php',
         'c3c4c64c266c1494cc3c24afba16262a' => __DIR__ . '/../..' . '/Base/Helpers/Part.php',
         '50aa4457e719a51b73dc3f62a852475b' => __DIR__ . '/../..' . '/Base/Cookie/CookieConfiguration.php',
     );

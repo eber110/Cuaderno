@@ -42,7 +42,7 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Builder/Builder.php    # Query Builder MySQL/PostgreSQL (fluido, anti-inyección)
 │   ├── Module/                # 29 módulos reutilizables (ver tabla en §4)
 │   ├── LibraryCssJit/         # Reglas JIT CSS (JitRule interface + reglas)
-│   ├── Helpers/               # Part.php (vistas parciales), SvgModule.php (svg())
+│   ├── Helpers/               # Part.php (vistas parciales), Svg.php (svg())
 │   ├── Cookie/                # CookieConfiguration
 │   ├── Error/HandlerError.php # Plantilla de error (se copia a App/errorViews/)
 │   ├── Providers/ServiceProvider.php  # Clase base de providers
@@ -88,7 +88,7 @@ frame/                         # Repositorio del framework (también es un proye
 ## 3. Reglas críticas (IMPORTANTE)
 
 1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` inicializa la estructura de `App/` y copia recursos base (`Resources/{Ico,Fonts,Library}` y `App/Rsc/Helper`) a `App/Rsc/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
-2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/SvgModule.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono: agréguelo a `Resources/Ico` y **luego** a `App/Rsc/Ico`. Uso: `svg('heart-fill', 'color2 x25')`.
+2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/Svg.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono: agréguelo a `Resources/Ico` y **luego** a `App/Rsc/Ico`. Uso: `svg('heart-fill', 'color2 x25')`.
 3. **No editar archivos generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `preloadFonts.json`. Se regeneran con `composer min-script`.
 4. **`.env` nunca se commitea** (está en `.gitignore`). Usa `.env.example` como plantilla.
 5. **Constantes de ruta:** usa las definidas en `config.php` (`ROUTE_VIEW`, `ROUTE_CONTROLLER`, `ROUTE_ICO`, `TIME_DAY`, `TIME_HOUR`…) — no rutas literales.
