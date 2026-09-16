@@ -187,15 +187,18 @@ function registerGsapEffects() {
     effect: (targets, config) => {
       const infinite = config.repeat === -1 || config.infinite;
       const duration = config.duration || 1.5;
+      const tweenConfig = { ...config };
+      delete tweenConfig.infinite;
+
       return gsap.to(targets, {
         rotation: 360,
         ease: 'none',
         duration: duration,
         repeat: infinite ? -1 : 0,
-        ...config
+        ...tweenConfig
       });
     },
-    defaults: { infinite: false }
+    defaults: { duration: 1.5 }
   });
 
   // 7. Pulse
@@ -242,17 +245,25 @@ export function animate(element, effectName, options = {}) {
 
   // 1. ANIMACIÓN MEDIANTE GSAP (Si está disponible)
   if (hasGsap() && typeof gsap !== 'undefined' && gsap.effects && gsap.effects[effectName]) {
+    const gsapOptions = { ...options };
+
+    // Si infinite es true, convertir al estándar de GSAP (repeat: -1); siempre eliminar para evitar 'Invalid property infinite'
+    if (gsapOptions.infinite) {
+      gsapOptions.repeat = -1;
+    }
+    delete gsapOptions.infinite;
+
     // Si se especifica cleanup, lo hacemos al completar
-    const originalComplete = options.onComplete;
-    options.onComplete = () => {
-      if (options.clearProps) {
-        gsap.set(el, { clearProps: options.clearProps });
+    const originalComplete = gsapOptions.onComplete;
+    gsapOptions.onComplete = () => {
+      if (gsapOptions.clearProps) {
+        gsap.set(el, { clearProps: gsapOptions.clearProps });
       }
       if (originalComplete) originalComplete();
     };
 
     el.classList.add('animated');
-    gsap.effects[effectName](el, options);
+    gsap.effects[effectName](el, gsapOptions);
     return;
   }
 

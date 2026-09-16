@@ -1,5 +1,5 @@
 <div class="container-xl back8 observer">
-  <div class="container container-xl-mid container-sml flex-column gap20 flex-row center-center flex-column-sml center-center-sml pt150 pb150 h-dvh-sml">
+  <div class="container container-xl-mid container-sml flex-column gap20 flex-row center-center flex-column-sml center-center-sml pt150 pb150 pt-sml-50 pb-sml-50 |h-dvh-sml">
     <div class="w80 w-sml-100 back2 br15 flex-column center-center m-mid-15 ob-40 dl-200 slide-in-left animate-slow">
       <img src="<?= DIR_UPLOAD_MEDIA_STATIC."section2.webp"?>" alt="" class="cover ar-square">
     </div>

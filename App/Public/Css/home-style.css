@@ -17,3 +17,62 @@
   filter: drop-shadow(5px 1px 10px #00000080);
   transform: rotate(4deg) translate(60px, 20px);
 }
+
+/* ==========================================================================
+   Carrusel Infinito Vertical de Productos (Product Section)
+   ========================================================================== */
+.product-vertical-carousel {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%) rotate(5deg);
+  width: 60%;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.product-carousel-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  will-change: transform;
+  user-select: none;
+}
+
+.product-carousel-set {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+}
+
+.product-carousel-item {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  transform-origin: center center;
+  will-change: transform;
+  filter: drop-shadow(0px 8px 18px rgba(0, 0, 0, 0.18));
+  transition: filter 0.3s ease;
+}
+
+.product-carousel-item:hover {
+  filter: drop-shadow(0px 16px 30px rgba(0, 0, 0, 0.28));
+}
+
+.product-carousel-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 992px) {
+  .product-vertical-carousel {
+    width: 80%;
+  }
+}

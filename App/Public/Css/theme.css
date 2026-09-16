@@ -327,6 +327,11 @@ body,
     width: 100%;
   }
 
+  .faded-image-sml{
+    -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+  }
+
 }
 
 .texto, .texto a, .texto input, .texto textarea, .texto select, .texto button, input.texto, textarea.texto, select.texto, button.texto {
