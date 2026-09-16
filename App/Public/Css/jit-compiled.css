@@ -443,6 +443,10 @@
 @media screen and (min-width: 993px) {
   .dl-desk-200 { -webkit-animation-delay: 200ms !important; animation-delay: 200ms !important; --animate-delay: 200ms; }
 }
+@media screen and (min-width: 993px) {
+  .container-desk { max-width: 90%; width: var(--width-window); margin: 0 auto; }
+
+}
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .container-mid { max-width: 90%; width: var(--width-window); margin: 0 auto; }
 

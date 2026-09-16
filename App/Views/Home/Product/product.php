@@ -1,7 +1,7 @@
 <div class="container-xl back5 observer overflow">
-  <div class="container container-xl-mid container-sml flex-column gap20 gap-sml-0 flex-row center-center flex-column-sml center-center-sml pt100 pb100 pt-sml-0 pb-sml-0">
+  <div class="container-desk container-xl-mid |container-sml w-sml-100 flex-column gap20 gap-sml-0 flex-row center-center flex-column-sml center-center-sml pt100 pb100 pt-sml-0 pb-sml-0">
     
-    <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-0 back5 faded-image-sml z-index-10 pt-sml-50 pb-sml-80">
+    <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-20 back5 faded-image-sml z-index-10 pt-sml-50 pb-sml-80">
       <div class="flex-column gap10">
         <p class="oswald bold600 x28 textc slide-in-left ob-40 dl-100 animate-slow">PERSONALIZACIÓN SIN LÍMITES</p>
         <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-40 dl-200 animate-slow m0 p0">Adapta tu contenido al ritmo de tus campañas.</h2>
