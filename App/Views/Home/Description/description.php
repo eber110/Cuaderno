@@ -5,9 +5,9 @@
     </div>
     <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-0">
       <div class="flex-column gap10">
-        <p class="oswald bold600 x28 color4 slide-in-right ob-40 dl-100 animate-slow">CÓDIGO ULTRALIGERO</p>
-        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-right ob-40 dl-200 animate-slow m0 p0">Todo lo que necesitas. Nada que sobre.</h2>
-        <p class="bold500 x20 x-sml-18 slide-in-right ob-40 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Eliminamos el peso innecesario para entregarte una plataforma limpia, moderna y enfocada exclusivamente en hacer crecer tus conversiones.</p>
+        <p class="oswald bold600 x28 color4 slide-in-right ob-40 dl-100 animate-slow">FÁCIL Y RÁPIDO</p>
+        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-right ob-40 dl-200 animate-slow m0 p0">Tu perfil con tu estilo, en segundos.</h2>
+        <p class="bold400 x20 x-sml-18 slide-in-right ob-40 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Olvídate de configuraciones complicadas. Elige tus colores favoritos, adapta tus fotos y dale vida a tu página sin perder tiempo en menús pesados.</p>
       </div>
       <a href="/registrar" class="slide-in-right ob-40 dl-600 p10 pr30 pl30 br50 w-auto back4-hover texto x20 x-sml-18 bold600 pointer">
         <p>Crear mi hub</p>

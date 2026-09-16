@@ -776,10 +776,10 @@
   .pb-sml-10 { padding-bottom: 10px !important; }
 }
 @media screen and (max-width: 576px) {
-  .pb-sml-100 { padding-bottom: 100px !important; }
+  .pb-sml-50 { padding-bottom: 50px !important; }
 }
 @media screen and (max-width: 576px) {
-  .pb-sml-50 { padding-bottom: 50px !important; }
+  .pb-sml-80 { padding-bottom: 80px !important; }
 }
 @media screen and (max-width: 576px) {
   .pl-sml-10 { padding-left: 10px !important; }
