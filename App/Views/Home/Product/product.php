@@ -3,9 +3,9 @@
     
     <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-20 back5 faded-image-sml z-index-10 pt-sml-50 pb-sml-80">
       <div class="flex-column gap10">
-        <p class="oswald bold600 x28 textc slide-in-left ob-40 dl-100 animate-slow">PERSONALIZACIÓN SIN LÍMITES</p>
-        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-40 dl-200 animate-slow m0 p0">Adapta tu contenido al ritmo de tus campañas.</h2>
-        <p class="bold500 x20 x-sml-18 slide-in-left ob-40 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Cambia de estrategia sin reconstruir tu web. Activa bloques para eventos, lanzamientos especiales o redes sociales con un solo clic.</p>
+        <p class="oswald bold600 x28 textc slide-in-left ob-30 dl-100 animate-slow">PERSONALIZACIÓN SIN LÍMITES</p>
+        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-30 dl-200 animate-slow m0 p0">Adapta tu contenido al ritmo de tus campañas.</h2>
+        <p class="bold500 x20 x-sml-18 slide-in-left ob-30 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Cambia de estrategia sin reconstruir tu web. Activa bloques para eventos, lanzamientos especiales o redes sociales con un solo clic.</p>
       </div>
       <a href="/registrar" class="slide-in-bottom ob-40 dl-600 p10 pr30 pl30 br50 w-auto back7-hover texto x20 x-sml-18 bold600 pointer">
         <p>Regístrate gratis</p>
