@@ -6,6 +6,7 @@
 .dl-300 { -webkit-animation-delay: 300ms !important; animation-delay: 300ms !important; --animate-delay: 300ms; }
 .dl-400 { -webkit-animation-delay: 400ms !important; animation-delay: 400ms !important; --animate-delay: 400ms; }
 .dl-600 { -webkit-animation-delay: 600ms !important; animation-delay: 600ms !important; --animate-delay: 600ms; }
+.dl-800 { -webkit-animation-delay: 800ms !important; animation-delay: 800ms !important; --animate-delay: 800ms; }
 .dur-400 { -webkit-animation-duration: 400ms !important; animation-duration: 400ms !important; --animate-duration: 400ms; }
 .dur-800 { -webkit-animation-duration: 800ms !important; animation-duration: 800ms !important; --animate-duration: 800ms; }
 .duration-500 { -webkit-animation-duration: 500ms !important; animation-duration: 500ms !important; --animate-duration: 500ms; }
@@ -21,6 +22,8 @@
 .ob-30:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .ob-40 { --ob-threshold: 0.4; }
 .ob-40:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
+.ob-50 { --ob-threshold: 0.5; }
+.ob-50:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .observer { position: relative; }
 .observer [class*="ob-"]:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .container { max-width: 90%; width: var(--width-window); margin: 0 auto; }

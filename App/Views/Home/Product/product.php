@@ -13,7 +13,7 @@
     </div>  
 
     <div class="w100 w-sml-100 flex-column center-center |m-mid-15 relative pb-sml-50 pt-sml-0">
-      <figure class="br30 w60 w-mid-80 w-sml-80 pointer-events-none">
+      <figure class="br30 w60 w-mid-80 w-sml-80 pointer-events-none slide-in-right ob-40 dl-400">
         <img src="<?= DIR_UPLOAD_MEDIA_STATIC."prodBack.webp"?>" alt="" class="contain">
       </figure>
 
@@ -32,7 +32,7 @@
       ?>
 
       <?php if (!empty($slideFiles)): ?>
-        <div class="product-vertical-carousel flex-column center-center">
+        <div class="product-vertical-carousel flex-column center-center fade-in ob-50 dl-800">
           <div class="product-carousel-track flex-column center-center gap30 absolute ml80 w100 w-mid-80 w-sml-90">
             <?php for ($s = 0; $s < 3; $s++): ?>
               <div class="product-carousel-set flex-column center-center gap30 w100" <?= $s > 0 ? 'aria-hidden="true"' : '' ?>>
