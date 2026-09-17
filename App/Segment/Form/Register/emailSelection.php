@@ -4,8 +4,8 @@
 <form id="form-step-email" action="/registrar" method="post" autocomplete="on">
   <div class="flex-column gap10">
     
-    <label for="email" class="x18 bold500">
-      <input type="email" name="email" id="input-email" placeholder="Correo electrónico" class="<?= $style?>" required>
+    <label for="input-email" class="x18 bold500">
+      <input type="email" name="email" id="input-email" placeholder="Correo electrónico" class="<?= $style?>" autocomplete="email" required>
     </label>
 
     <p id="error-email" class="textw back-danger bold500 x20 p10 pl20 pr20 br15" style="display: none;"></p>

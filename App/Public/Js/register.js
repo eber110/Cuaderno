@@ -63,28 +63,185 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${secs} seg`;
   }
 
-  // --- TRANSICIONES ---
-  function showStep(containerToShow) {
-    // Ocultar todos
-    stepUsernameContainer.style.display = "none";
-    stepEmailContainer.style.display = "none";
-    stepPasswordContainer.style.display = "none";
+  // Contenedores ordenados de los pasos
+  const stepContainers = [
+    stepUsernameContainer,
+    stepEmailContainer,
+    stepPasswordContainer
+  ];
 
-    // Mostrar el seleccionado
-    containerToShow.style.display = "flex";
+  // Inputs principales para auto-enfoque
+  const stepInputs = [
+    inputUsername,
+    inputEmail,
+    inputPassword
+  ];
+
+  let currentStepIndex = 0;
+  let isTransitioning = false;
+
+  // Actualiza el estado visual del indicador/menú de pasos
+  function updateStepIndicator(targetIndex) {
+    const indicator = document.getElementById("register-steps-indicator");
+    if (!indicator) return;
+
+    const items = indicator.querySelectorAll(".step-indicator-item");
+    const prog1 = document.getElementById("step-prog-1");
+    const prog2 = document.getElementById("step-prog-2");
+
+    items.forEach((item, index) => {
+      const badge = item.querySelector(".step-badge");
+      item.classList.remove("active", "completed");
+
+      if (index < targetIndex) {
+        item.classList.add("completed");
+        if (badge) badge.innerHTML = "✓";
+      } else if (index === targetIndex) {
+        item.classList.add("active");
+        if (badge) badge.textContent = (index + 1).toString();
+      } else {
+        if (badge) badge.textContent = (index + 1).toString();
+      }
+    });
+
+    if (prog1) {
+      prog1.style.width = targetIndex >= 1 ? "100%" : "0%";
+    }
+    if (prog2) {
+      prog2.style.width = targetIndex >= 2 ? "100%" : "0%";
+    }
+  }
+
+  // Permite retroceder haciendo clic en pasos ya completados del indicador
+  const stepsIndicator = document.getElementById("register-steps-indicator");
+  if (stepsIndicator) {
+    const indicatorItems = stepsIndicator.querySelectorAll(".step-indicator-item");
+    indicatorItems.forEach((item, idx) => {
+      item.addEventListener("click", () => {
+        if (idx < currentStepIndex && !isTransitioning) {
+          showStep(stepContainers[idx], -1);
+        }
+      });
+    });
+  }
+
+  function focusStepInput(index) {
+    const input = stepInputs[index];
+    if (input) {
+      setTimeout(() => {
+        input.focus();
+      }, 50);
+    }
+  }
+
+  // --- TRANSICIONES ANIMADAS ENTRE PASOS ---
+  function showStep(containerToShow, explicitDirection = null) {
+    const targetIndex = stepContainers.indexOf(containerToShow);
+    if (targetIndex === -1 || targetIndex === currentStepIndex || isTransitioning) {
+      return;
+    }
+
+    const currentContainer = stepContainers[currentStepIndex];
+    const targetContainer = stepContainers[targetIndex];
+    if (!currentContainer || !targetContainer) return;
+
+    isTransitioning = true;
+    const direction = explicitDirection !== null ? explicitDirection : (targetIndex > currentStepIndex ? 1 : -1);
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasGsap = typeof gsap !== "undefined";
+
+    // Actualizar indicador visual de pasos
+    updateStepIndicator(targetIndex);
+
+    // Fallback: Si no hay GSAP o se prefiere movimiento reducido
+    if (prefersReducedMotion || !hasGsap) {
+      stepContainers.forEach((container) => {
+        if (container) {
+          container.style.display = "none";
+          container.style.opacity = "";
+          container.style.transform = "";
+        }
+      });
+
+      targetContainer.style.display = "flex";
+      targetContainer.style.opacity = "1";
+      targetContainer.style.transform = "";
+
+      currentStepIndex = targetIndex;
+      isTransitioning = false;
+      focusStepInput(targetIndex);
+      return;
+    }
+
+    // Transición fluida con GSAP
+    const stepsWrapper = document.getElementById("register-steps-wrapper");
+    const initialHeight = stepsWrapper ? stepsWrapper.offsetHeight : 0;
+
+    // Matar tweens activos previos
+    gsap.killTweensOf(currentContainer);
+    gsap.killTweensOf(targetContainer);
+    if (stepsWrapper) gsap.killTweensOf(stepsWrapper);
+
+    // 1. Desvanecer y desplazar el paso saliente hacia fuera
+    gsap.to(currentContainer, {
+      opacity: 0,
+      x: direction * -35,
+      duration: 0.22,
+      ease: "power2.in",
+      onComplete: () => {
+        currentContainer.style.display = "none";
+        currentContainer.style.transform = "";
+
+        // 2. Preparar el paso entrante en posición inicial
+        targetContainer.style.display = "flex";
+        targetContainer.style.opacity = "0";
+        gsap.set(targetContainer, { x: direction * 35, opacity: 0 });
+
+        // 3. Suavizar cambio de altura del contenedor si difiere
+        if (stepsWrapper && initialHeight > 0) {
+          const targetHeight = stepsWrapper.offsetHeight;
+          if (targetHeight !== initialHeight) {
+            gsap.fromTo(stepsWrapper,
+              { height: initialHeight },
+              {
+                height: targetHeight,
+                duration: 0.28,
+                ease: "power2.out",
+                onComplete: () => {
+                  stepsWrapper.style.height = "";
+                }
+              }
+            );
+          }
+        }
+
+        // 4. Desvanecer y desplazar el nuevo paso a posición visible
+        gsap.to(targetContainer, {
+          opacity: 1,
+          x: 0,
+          duration: 0.28,
+          ease: "power2.out",
+          onComplete: () => {
+            currentStepIndex = targetIndex;
+            isTransitioning = false;
+            focusStepInput(targetIndex);
+          }
+        });
+      }
+    });
   }
 
   // Retroceder de Email a Username
   if (btnBackToUsername) {
     btnBackToUsername.addEventListener("click", () => {
-      showStep(stepUsernameContainer);
+      showStep(stepUsernameContainer, -1);
     });
   }
 
   // Retroceder de Password a Email
   if (btnBackToEmail) {
     btnBackToEmail.addEventListener("click", () => {
-      showStep(stepEmailContainer);
+      showStep(stepEmailContainer, -1);
     });
   }
 

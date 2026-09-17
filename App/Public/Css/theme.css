@@ -714,6 +714,275 @@ body,
   line-height: 1.1 !important;
 }
 
+/* ==========================================================================
+   Animación optimizada para .input-note y combinación con .animate / .animated
+   ========================================================================== */
 
+/* Estado base oculto para .input-note */
+.input-note {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: max-height, opacity, transform;
+}
 
+/* Revelado suave al enfocar el input */
+input:focus + .input-note,
+input:focus ~ .input-note,
+textarea:focus + .input-note,
+textarea:focus ~ .input-note,
+label:focus-within > .input-note,
+.form-group:focus-within > .input-note {
+  max-height: 5rem;
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 6px !important;
+  pointer-events: auto;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Estado base para notas con clase .animate o .animated */
+.input-note.animate,
+.input-note.animated {
+  transform: translateY(-8px) scale(0.96);
+  filter: blur(1.5px);
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: max-height, opacity, transform, filter;
+}
+
+/* Animación de ENTRADA cuando recibe foco o clase opening */
+input:focus + .input-note.animate,
+input:focus + .input-note.animated,
+input:focus ~ .input-note.animate,
+input:focus ~ .input-note.animated,
+textarea:focus + .input-note.animate,
+textarea:focus ~ .input-note.animated,
+label:focus-within > .input-note.animate,
+label:focus-within > .input-note.animated,
+.form-group:focus-within > .input-note.animate,
+.form-group:focus-within > .input-note.animated,
+.input-note.animate.input-note-opening,
+.input-note.animated.input-note-opening {
+  max-height: 5rem;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  margin-top: 6px !important;
+  pointer-events: auto;
+  animation: inputNoteIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Animación de SALIDA explícita cuando pierde el foco */
+.input-note.animate.input-note-closing,
+.input-note.animated.input-note-closing {
+  pointer-events: none;
+  animation: inputNoteOut 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Keyframes de ENTRADA */
+@keyframes inputNoteIn {
+  0% {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px) scale(0.96);
+    filter: blur(1.5px);
+    margin-top: 0;
+  }
+  35% {
+    opacity: 0.6;
+    filter: blur(0.5px);
+  }
+  100% {
+    opacity: 1;
+    max-height: 5rem;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    margin-top: 6px;
+  }
+}
+
+/* Keyframes de SALIDA */
+@keyframes inputNoteOut {
+  0% {
+    opacity: 1;
+    max-height: 5rem;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    margin-top: 6px;
+  }
+  50% {
+    opacity: 0.4;
+    filter: blur(0.8px);
+  }
+  100% {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px) scale(0.96);
+    filter: blur(1.5px);
+    margin-top: 0;
+  }
+}
+
+/* Respeto por preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .input-note,
+  .input-note.animate,
+  .input-note.animated,
+  .input-note.input-note-opening,
+  .input-note.input-note-closing,
+  input:focus + .input-note,
+  input:focus + .input-note.animate,
+  input:focus + .input-note.animated {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+    transition: opacity 0.2s ease !important;
+  }
+}
+
+/* ==========================================================================
+   Animaciones y Estilos para el Formulario de Registro por Pasos
+   ========================================================================== */
+
+.register-steps-indicator {
+  padding: 10px 18px;
+  background-color: var(--back-color3);
+  border-radius: 15px;
+  user-select: none;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.step-indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  opacity: 0.55;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  position: relative;
+  z-index: 2;
+  cursor: default;
+}
+
+.step-indicator-item.completed {
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.step-indicator-item.completed:hover {
+  opacity: 1;
+}
+
+.step-indicator-item.active {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 18, 77, 0.1);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 15px;
+  line-height: 1;
+}
+
+[data-theme="dark"] .step-badge {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.step-indicator-item.active .step-badge {
+  background: var(--back-color8);
+  color: var(--text-secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.step-indicator-item.completed .step-badge {
+  background: var(--success);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.step-label {
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+
+@media (max-width: 540px) {
+  .step-label {
+    display: none;
+  }
+  .register-steps-indicator {
+    padding: 8px 12px;
+  }
+}
+
+.step-indicator-divider {
+  position: relative;
+  height: 3px;
+  background: rgba(0, 18, 77, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 6px;
+}
+
+[data-theme="dark"] .step-indicator-divider {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.step-indicator-progress {
+  width: 0%;
+  height: 100%;
+  background: var(--back-color8);
+  border-radius: inherit;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.register-steps-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 15px;
+  box-sizing: border-box;
+}
+
+.register-step-panel {
+  width: 100%;
+  box-sizing: border-box;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-step-panel,
+  .register-steps-wrapper,
+  .step-indicator-item,
+  .step-indicator-progress,
+  .step-badge {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
 

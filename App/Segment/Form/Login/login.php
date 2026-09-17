@@ -6,7 +6,7 @@
     
     <label for="username" class="x18 bold500">Ingrese su usuario
       <input type="text" name="username" id="username" placeholder="Usuario" class="<?= $style?>" autocomplete="username" required>
-      <p class="input-note x18 xp16 bold700">Ingresa con tu usuario o tu correo electrónico</p>
+      <p class="input-note animate x18 xp16 bold700">Ingresa con tu usuario o tu correo electrónico</p>
     </label>
 
     <label for="password" class="x18 bold500">Ingrese su contraseña

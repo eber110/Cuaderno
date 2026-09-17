@@ -1,12 +1,12 @@
 <?php
   $style = "br10 mb5 w100";
 ?>
-<form id="form-step-username" action="/registrar" method="post" autocomplete="off">
+<form id="form-step-username" action="/registrar" method="post" autocomplete="on">
   <div class="flex-column gap10">
     
-    <label for="username" class="x18 bold500">
-      <input type="text" name="username" id="input-username" placeholder="Usuario" class="<?= $style?>" required>
-      <p class="input-note x18 xp16 bold700">Mínimo 4 letras y sin espacios</p>
+    <label for="input-username" class="x18 bold500">
+      <input type="text" name="username" id="input-username" placeholder="Usuario" class="<?= $style?>" autocomplete="username" required>
+      <p class="input-note animate x18 xp16 bold700">Mínimo 4 letras y sin espacios</p>
     </label>
 
     <p id="error-username" class="textw back-danger bold500 x20 p10 pl20 pr20 br15" style="display: none;"></p>

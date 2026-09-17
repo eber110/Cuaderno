@@ -768,4 +768,53 @@ export function formComponents() {
       }
     }
   });
+
+  // 2. Control de animaciones de entrada y salida para .input-note.animate
+  initInputNoteAnimations();
 }
+
+/**
+ * Inicializa la gestión de animación de entrada y salida para notas de input (.input-note.animate).
+ * 
+ * @function initInputNoteAnimations
+ * @description Escucha eventos delegados de foco (focusin y focusout) en inputs/textareas para coordinar
+ *              las clases de animación de apertura y cierre (.input-note-opening y .input-note-closing).
+ */
+function initInputNoteAnimations() {
+  document.addEventListener('focusin', (e) => {
+    const input = e.target;
+    if (!input || !input.matches('input, textarea, select')) return;
+
+    const parent = input.closest('label, .form-group') || input.parentElement;
+    if (!parent) return;
+
+    const notes = parent.querySelectorAll('.input-note.animate, .input-note.animated');
+    notes.forEach(note => {
+      note.classList.remove('input-note-closing');
+      note.classList.add('input-note-opening');
+    });
+  });
+
+  document.addEventListener('focusout', (e) => {
+    const input = e.target;
+    if (!input || !input.matches('input, textarea, select')) return;
+
+    const parent = input.closest('label, .form-group') || input.parentElement;
+    if (!parent) return;
+
+    const notes = parent.querySelectorAll('.input-note.animate, .input-note.animated');
+    notes.forEach(note => {
+      if (!note.classList.contains('input-note-opening')) return;
+      note.classList.remove('input-note-opening');
+      note.classList.add('input-note-closing');
+
+      const handleEnd = (evt) => {
+        if (evt.target !== note) return;
+        note.classList.remove('input-note-closing');
+        note.removeEventListener('animationend', handleEnd);
+      };
+      note.addEventListener('animationend', handleEnd);
+    });
+  });
+}
+

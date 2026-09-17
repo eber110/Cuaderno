@@ -11,11 +11,13 @@ $csrfToken = class_exists('\Base\Module\SecurityModule') ? \Base\Module\Security
   <div class="form-group flex-col gap5">
     <label for="email" class="form-label bold600 x14 color2">Correo electrónico</label>
     <input type="email" id="email" name="email" class="form-input p10 br6 border w100" required autocomplete="email" placeholder="tu@email.com">
+    <p class="input-note animate x14 color2 bold500">Ingresa tu correo electrónico registrado</p>
   </div>
 
   <div class="form-group flex-col gap5">
     <label for="password" class="form-label bold600 x14 color2">Contraseña</label>
     <input type="password" id="password" name="password" class="form-input p10 br6 border w100" required autocomplete="current-password" placeholder="••••••••">
+    <p class="input-note animate x14 color2 bold500">Ingresa tu contraseña</p>
   </div>
 
   <div class="form-actions flex-row justify-between items-center mt10">
