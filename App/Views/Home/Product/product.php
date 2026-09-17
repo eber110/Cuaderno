@@ -7,7 +7,7 @@
         <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-30 dl-200 animate-slow m0 p0">Adapta tu contenido al ritmo de tus campañas.</h2>
         <p class="bold500 x20 x-sml-18 slide-in-left ob-30 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Cambia de estrategia sin reconstruir tu web. Activa bloques para eventos, lanzamientos especiales o redes sociales con un solo clic.</p>
       </div>
-      <a href="/registrar" class="slide-in-bottom ob-40 dl-600 p10 pr30 pl30 br50 w-auto back7-hover texto x20 x-sml-18 bold600 pointer">
+      <a href="/registrar" class="slide-in-bottom ob-40 dl-600 p10 pr30 pl30 br50 w-auto back7-hover texto x20 x-sml-18 bold500 pointer">
         <p>Regístrate gratis</p>
       </a>
     </div>  
