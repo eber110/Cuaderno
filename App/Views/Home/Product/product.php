@@ -32,7 +32,7 @@
       ?>
 
       <?php if (!empty($slideFiles)): ?>
-        <div class="product-vertical-carousel flex-column center-center fade-in ob-50 dl-800">
+        <div class="product-vertical-carousel flex-column center-center fade-in ob-40 dl-1000">
           <div class="product-carousel-track flex-column center-center gap30 absolute ml80 w100 w-mid-80 w-sml-90">
             <?php for ($s = 0; $s < 3; $s++): ?>
               <div class="product-carousel-set flex-column center-center gap30 w100" <?= $s > 0 ? 'aria-hidden="true"' : '' ?>>
