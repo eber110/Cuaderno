@@ -6,29 +6,60 @@ use Base\Builder\Builder;
 use Base\Module\AnalyticsModule;
 use Base\Module\GeoIpModule;
 use Base\Module\MovilDetectorModule;
-use Base\Module\VisitModule;
 use Exception;
-use GeoIp2\Database\Reader;
 
 /**
  * Clase VisitModels
  * 
  * Modelo encargado del procesamiento de reglas de negocio relativas a visitas de usuarios,
- * control de frecuencia en sesión, extracción de geolocalización mediante MaxMind MMDB local y guardado en SQLite.
+ * control de frecuencia en sesión, extracción de geolocalización exclusivamente mediante
+ * MaxMind MMDB local (GeoIpModule) y guardado en SQLite.
  */
 class VisitModels extends Builder {
 
   protected $table = "profile_views";
 
   /**
-   * Obtiene la información de ubicación utilizando la base de datos local MMDB de MaxMind.
-   * Prioriza /App/DatabaseComponent/GeoLite2-City.mmdb del proyecto.
+   * Obtiene la dirección IP del cliente a partir de cabeceras de proxy o REMOTE_ADDR.
+   *
+   * @return string Dirección IP resuelta.
+   */
+  public static function getClientIp(): string {
+    $headers = ["HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "HTTP_X_REAL_IP", "HTTP_CLIENT_IP"];
+    foreach ($headers as $header) {
+      if (!empty($_SERVER[$header])) {
+        $ips = explode(",", $_SERVER[$header]);
+        $candidate = trim($ips[0]);
+        if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+          return $candidate;
+        }
+      }
+    }
+    return $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+  }
+
+  /**
+   * Determina si una IP es de entorno local o privada.
+   *
+   * @param string $ip Dirección IP.
+   * @return bool True si es local/privada.
+   */
+  public static function isLocalIp(string $ip): bool {
+    if (in_array($ip, ["::1", "127.0.0.1", "localhost"], true)) {
+      return true;
+    }
+    return !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+  }
+
+  /**
+   * Obtiene la información de ubicación utilizando exclusivamente la base de datos local MMDB de MaxMind.
+   * Nunca realiza consultas a la red ni a APIs externas.
    *
    * @param string $ip Dirección IP a consultar.
    * @return array Datos con country_code, country_name, city_name.
    */
   private static function getGeoData(string $ip): array {
-    if (VisitModule::isLocalIp($ip)) {
+    if (self::isLocalIp($ip)) {
       return [
         "country_code" => "DEV",
         "country_name" => "Local Development",
@@ -86,7 +117,7 @@ class VisitModels extends Builder {
     try {
       $_SESSION[$sessionKey] = time();
 
-      $ip         = VisitModule::getClientIp() ?? $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+      $ip         = self::getClientIp();
       $geo        = self::getGeoData($ip);
       $deviceType = MovilDetectorModule::getDeviceType();
       $os         = MovilDetectorModule::getOS();
@@ -161,7 +192,7 @@ class VisitModels extends Builder {
     try {
       $_SESSION[$sessionKey] = time();
 
-      $ip         = VisitModule::getClientIp() ?? $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+      $ip         = self::getClientIp();
       $geo        = self::getGeoData($ip);
       $deviceType = MovilDetectorModule::getDeviceType();
 

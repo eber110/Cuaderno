@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\CloudinaryService;
 use Base\Builder\Builder;
+use Base\Module\CacheModule;
 use Base\Module\ImgProcessModule;
 use Base\Module\RequestMetaModule;
 
@@ -127,7 +128,7 @@ class DesignModels extends Builder {
   }
 
   /**
-   * Obtiene los datos del diseño del usuario (revisa primero borrador custom, luego oficial publicado).
+   * Obtiene los datos del diseño del usuario (revisa primero borrador custom en caché de cambio, luego oficial).
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos del diseño o false si no existe.
@@ -135,13 +136,13 @@ class DesignModels extends Builder {
   public static function dataUser(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    // 1. Revisar si existe borrador custom (is_draft = 1)
+    // 1. Revisar contenedor de borrador / caché de cambio de alta velocidad
     $custom = self::getCustomDesign($userClean);
     if ($custom !== false) {
       return $custom;
     }
 
-    // 2. Revisar si existe diseño oficial publicado (is_draft = 0)
+    // 2. Revisar si existe diseño oficial publicado
     $official = self::getOfficialDesign($userClean);
     if ($official !== false) {
       return $official;
@@ -151,56 +152,102 @@ class DesignModels extends Builder {
   }
 
   /**
-   * Verifica si existe un diseño borrador (custom) para el usuario en SQLite.
+   * Verifica si existe un diseño borrador (custom) para el usuario en la caché de cambio o SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool True si existe el registro de borrador.
    */
   public static function hasCustomDesign(string $user): bool {
     $userClean = mb_strtolower($user, "UTF-8");
+    $cacheKey  = "design_draft_" . $userClean;
+
+    // 1. Verificar existencia directa en caché de cambio
+    if (class_exists(CacheModule::class) && CacheModule::has($cacheKey)) {
+      $cached = CacheModule::get($cacheKey);
+      if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        return true;
+      }
+    }
+
+    // 2. Consulta de respaldo en SQLite
     $row = (new Builder("user_designs"))
       ->where("username", $userClean)
       ->where("is_draft", 1)
       ->get_one();
 
-    return !empty($row[0]);
+    $exists = !empty($row[0]);
+    if ($exists && class_exists(CacheModule::class)) {
+      CacheModule::set($cacheKey, self::formatRowToData($row[0]), 86400 * 7);
+    }
+
+    return $exists;
   }
 
   /**
-   * Lee el diseño borrador (custom) del usuario si existe en SQLite.
+   * Lee el diseño borrador (custom) del usuario desde la caché de cambio o SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos del borrador o false.
    */
   public static function getCustomDesign(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
+    $cacheKey  = "design_draft_" . $userClean;
+
+    // 1. Revisar contenedor de caché de cambio de alta velocidad (runtime / disco)
+    if (class_exists(CacheModule::class)) {
+      $cached = CacheModule::get($cacheKey);
+      if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        return $cached;
+      }
+    }
+
+    // 2. Fallback a la base de datos SQLite
     $row = (new Builder("user_designs"))
       ->where("username", $userClean)
       ->where("is_draft", 1)
       ->get_one();
 
     if ($row && !empty($row[0])) {
-      return self::formatRowToData($row[0]);
+      $data = self::formatRowToData($row[0]);
+      if (class_exists(CacheModule::class)) {
+        CacheModule::set($cacheKey, $data, 86400 * 7);
+      }
+      return $data;
     }
 
     return false;
   }
 
   /**
-   * Lee el diseño oficial (publicado) del usuario si existe en SQLite.
+   * Lee el diseño oficial (publicado) del usuario desde la caché o SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool|array Datos oficiales o false.
    */
   public static function getOfficialDesign(string $user): bool|array {
     $userClean = mb_strtolower($user, "UTF-8");
+    $cacheKey  = "design_official_" . $userClean;
+
+    // 1. Revisar caché oficial de alta velocidad
+    if (class_exists(CacheModule::class)) {
+      $cached = CacheModule::get($cacheKey);
+      if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        return $cached;
+      }
+    }
+
+    // 2. Fallback a la base de datos SQLite
     $row = (new Builder("user_designs"))
       ->where("username", $userClean)
       ->where("is_draft", 0)
       ->get_one();
 
     if ($row && !empty($row[0])) {
-      return self::formatRowToData($row[0]);
+      $data = self::formatRowToData($row[0]);
+      if (class_exists(CacheModule::class)) {
+        CacheModule::set($cacheKey, $data, 86400 * 30);
+      }
+      return $data;
     }
 
     return false;
@@ -512,6 +559,23 @@ class DesignModels extends Builder {
               $subMetaTitle = $subTitle;
             } else {
               $subMetaTitle = $subTitle ?: ($subUrl ? (parse_url($subUrl, PHP_URL_HOST) ?: $subUrl) : "");
+            }
+
+            // Consultar metadatos en caché de URLs si aún no han sido scrapeados
+            if (empty($subMetaScraped) && class_exists(CacheModule::class) && !empty($subUrl)) {
+              $cachedMeta = CacheModule::get("url_meta_" . md5($subUrl));
+              if ($cachedMeta !== null && is_array($cachedMeta)) {
+                if (empty($subTitle) || $subTitle === $subUrl) {
+                  $subMetaTitle = $cachedMeta["title"] ?? $subMetaTitle;
+                }
+                if (empty($subMetaDesc)) {
+                  $subMetaDesc = $cachedMeta["description"] ?? "";
+                }
+                if (empty($subMetaImg) && !empty($cachedMeta["image"])) {
+                  $subMetaImg = $cachedMeta["image"];
+                }
+                $subMetaScraped = true;
+              }
             }
 
             if (empty($subMetaScraped) && !empty($subUrl) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
@@ -952,6 +1016,23 @@ class DesignModels extends Builder {
           $metaTitle = $titleBtn ?: ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : "");
         }
 
+        // Consultar metadatos en caché de URLs si aún no han sido scrapeados
+        if (empty($metaScraped) && class_exists(CacheModule::class) && !empty($url)) {
+          $cachedMeta = CacheModule::get("url_meta_" . md5($url));
+          if ($cachedMeta !== null && is_array($cachedMeta)) {
+            if (empty($titleBtn) || $titleBtn === $url) {
+              $metaTitle = $cachedMeta["title"] ?? $metaTitle;
+            }
+            if (empty($metaDesc)) {
+              $metaDesc = $cachedMeta["description"] ?? "";
+            }
+            if (empty($metaImg) && !empty($cachedMeta["image"])) {
+              $metaImg = $cachedMeta["image"];
+            }
+            $metaScraped = true;
+          }
+        }
+
         if (empty($metaScraped) && !empty($url) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
           $hasPendingMetadata = true;
         }
@@ -1220,13 +1301,13 @@ class DesignModels extends Builder {
       "content"      => $content ?? $dataRequest["content"] ?? []
     ];
 
-    // Guardar en la tabla user_designs con is_draft = 1
-    $saved = self::saveDesignToDb($userClean, 1, $cardPayload);
-
-    // Si existen URLs que requieren extracción de metadatos, delegar a segundo plano usando HttpPostModule
-    if (!empty($hasPendingMetadata)) {
-      self::triggerBackgroundMetadataExtraction($userClean);
+    // 1. Guardar en el contenedor de caché de cambio ultra rápido (runtime / disco)
+    if (class_exists(CacheModule::class)) {
+      CacheModule::set("design_draft_" . $userClean, ["card" => $cardPayload], 86400 * 7);
     }
+
+    // 2. Persistir en la tabla user_designs con is_draft = 1 como respaldo seguro en SQLite
+    $saved = self::saveDesignToDb($userClean, 1, $cardPayload);
 
     return $saved;
   }
@@ -1342,6 +1423,12 @@ class DesignModels extends Builder {
         (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
       }
 
+      // 6. Actualizar y sincronizar la caché oficial y limpiar el borrador
+      if (class_exists(CacheModule::class)) {
+        CacheModule::set("design_official_" . $userClean, ["card" => $card], 86400 * 30);
+        CacheModule::forget("design_draft_" . $userClean);
+      }
+
       return true;
     } else {
       if ($officialData !== false && isset($officialData["card"])) {
@@ -1349,6 +1436,9 @@ class DesignModels extends Builder {
         if (!($card["active"] ?? false)) {
           $card["active"] = true;
           self::saveDesignToDb($userClean, 0, $card);
+          if (class_exists(CacheModule::class)) {
+            CacheModule::set("design_official_" . $userClean, ["card" => $card], 86400 * 30);
+          }
         }
         return true;
       }
@@ -1431,7 +1521,16 @@ class DesignModels extends Builder {
         (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
       }
 
+      // 5. Limpiar el borrador del contenedor de caché de cambio
+      if (class_exists(CacheModule::class)) {
+        CacheModule::forget("design_draft_" . $userClean);
+      }
+
       return true;
+    }
+
+    if (class_exists(CacheModule::class)) {
+      CacheModule::forget("design_draft_" . $userClean);
     }
 
     return true;
@@ -1517,6 +1616,15 @@ class DesignModels extends Builder {
               if (!empty($subMetaImg)) {
                 $sub["metaImg"] = $subMetaImg;
               }
+
+              // Almacenar en caché de URLs
+              if (class_exists(CacheModule::class)) {
+                CacheModule::set("url_meta_" . md5($subUrl), [
+                  "title"       => $sub["metaTitle"],
+                  "description" => $sub["metaDesc"],
+                  "image"       => $sub["metaImg"] ?? ""
+                ], 86400 * 7);
+              }
             }
             $sub["metaScraped"] = true;
             $updated = true;
@@ -1561,6 +1669,15 @@ class DesignModels extends Builder {
             if (!empty($itemMetaImg)) {
               $item["metaImg"] = $itemMetaImg;
             }
+
+            // Almacenar en caché de URLs
+            if (class_exists(CacheModule::class)) {
+              CacheModule::set("url_meta_" . md5($url), [
+                "title"       => $item["metaTitle"],
+                "description" => $item["metaDesc"],
+                "image"       => $item["metaImg"] ?? ""
+              ], 86400 * 7);
+            }
           }
           $item["metaScraped"] = true;
           $updated = true;
@@ -1571,6 +1688,10 @@ class DesignModels extends Builder {
 
     if ($updated) {
       self::saveDesignToDb($userClean, $isDraft, $card);
+      if (class_exists(CacheModule::class)) {
+        $cacheKey = ($isDraft === 1) ? ("design_draft_" . $userClean) : ("design_official_" . $userClean);
+        CacheModule::set($cacheKey, ["card" => $card], ($isDraft === 1) ? (86400 * 7) : (86400 * 30));
+      }
       return true;
     }
 
