@@ -107,9 +107,8 @@ class DesignControllers extends Control {
     $userClean = mb_strtolower($user, "UTF-8");
 
     // Si recibimos parámetros POST con cambios acumulados del borrador, persistirlos en el modelo
-    $postData = !empty($param) && is_array($param) ? $param : $_POST;
-    if (!empty($postData)) {
-      DesignModels::updateCustomDesign($userClean, $postData);
+    if (!empty($param) && is_array($param)) {
+      DesignModels::updateCustomDesign($userClean, $param);
     }
 
     // Delegar la publicación oficial del diseño al modelo DesignModels
