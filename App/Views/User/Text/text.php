@@ -21,7 +21,7 @@
   };
 ?>
 
-<div data-content-index="<?= $dataContent ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;">
+<div data-content-index="<?= $dataContent ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
   <p class="<?= $weightClass ?> color-text-card capitalize-p">
     <?= nl2br(e($textContent)) ?>
   </p>

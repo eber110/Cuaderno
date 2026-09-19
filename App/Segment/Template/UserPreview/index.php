@@ -30,7 +30,7 @@
           <?php _part("User.midHero", ["card" => $card]); ?>
         </div>
         <?php
-          _part("User.widget", ["card" => $card]);
+          _part("User.widget", ["card" => $card, "isPreview" => true]);
         ?>
       </header>
 

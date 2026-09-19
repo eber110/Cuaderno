@@ -26,6 +26,7 @@ class userPreviewComponent {
 
     // Si ya viene una tarjeta formateada y estructurada con su contenido o estilo, usarla directamente
     if (is_array($card) && (isset($card["content"]) || isset($card["backCard"]))) {
+      $card["isPreview"] = true;
       return ["card" => $card];
     }
 
@@ -40,6 +41,7 @@ class userPreviewComponent {
       }
     }
 
+    $card["isPreview"] = true;
     return ["card" => $card];
   }
 
