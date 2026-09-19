@@ -18,10 +18,19 @@
     <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1" data-scroll-memory="user-preview" style="scroll-behavior: auto !important;">
       <header class="w100">
         <?php
-          
-          _part("User." . ($card["header"] ?? "regularHero"), ["card" => $card]);
+          $currentHeader = $card["header"] ?? "regularHero";
+        ?>
+        <div class="header-variant-wrapper header-regularHero <?= $currentHeader === 'regularHero' ? '' : 'hidden' ?>" data-header-variant="regularHero">
+          <?php _part("User.regularHero", ["card" => $card]); ?>
+        </div>
+        <div class="header-variant-wrapper header-voidHero <?= $currentHeader === 'voidHero' ? '' : 'hidden' ?>" data-header-variant="voidHero">
+          <?php _part("User.voidHero", ["card" => $card]); ?>
+        </div>
+        <div class="header-variant-wrapper header-midHero <?= $currentHeader === 'midHero' ? '' : 'hidden' ?>" data-header-variant="midHero">
+          <?php _part("User.midHero", ["card" => $card]); ?>
+        </div>
+        <?php
           _part("User.widget", ["card" => $card]);
-          
         ?>
       </header>
 

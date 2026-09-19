@@ -161,6 +161,9 @@ export function autoSubmitForm() {
     const form = target.closest('form.auto-submit');
     if (!form) return;
 
+    // Si pertenece al editor de diseño del panel, ignorar (es gestionado por designDraftManager en caché local)
+    if (target.closest('.remote-container')) return;
+
     // Si el elemento individual tiene la marca para ser ignorado, no enviar
     if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) {
       return;
@@ -253,6 +256,7 @@ export function autoSubmitForm() {
   document.addEventListener('input', (e) => {
     const target = e.target;
     if (!target) return;
+    if (target.closest('.remote-container')) return;
 
     // Manejo de selectores de color (input de color directo o interacción en popover)
     const isColorInput = (target.tagName === 'INPUT' && (target.type === 'color' || target.classList.contains('color-picker')));
@@ -319,6 +323,7 @@ export function autoSubmitForm() {
   document.addEventListener('submit', async (e) => {
     const form = e.target;
     if (!form || !form.matches('form.auto-submit, form[data-fetch-preview]')) return;
+    if (form.closest('.remote-container')) return;
 
     // Evitar la recarga normal de la página
     e.preventDefault();

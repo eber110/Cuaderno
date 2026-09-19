@@ -103,8 +103,14 @@ class DesignControllers extends Control {
    * @param string $user Nombre de usuario.
    * @return void Redirige al panel del usuario.
    */
-  public function saveDesign(string $user): void {
+  public function saveDesign(string $user, array|string $param = []): void {
     $userClean = mb_strtolower($user, "UTF-8");
+
+    // Si recibimos parámetros POST con cambios acumulados del borrador, persistirlos en el modelo
+    $postData = !empty($param) && is_array($param) ? $param : $_POST;
+    if (!empty($postData)) {
+      DesignModels::updateCustomDesign($userClean, $postData);
+    }
 
     // Delegar la publicación oficial del diseño al modelo DesignModels
     DesignModels::publishDesign($userClean);
@@ -129,8 +135,8 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      // Optimización ultrarrápida: el diseño ya fue publicado en BD y el navegador ya tiene la preview y formularios actualizados.
-      // Solo respondemos éxito y el nuevo estado publicado ("En línea") sin re-renderizar 260KB de HTML ni recalcular estadísticas.
+      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+
       if (ob_get_length()) {
         ob_clean();
       }
@@ -138,6 +144,7 @@ class DesignControllers extends Control {
       ResponseModule::json([
         "success"           => true,
         "hasCustom"         => false,
+        "html"              => $previewHtml,
         "sidebarStatusHtml" => $sidebarStatusHtml,
         "card"              => $cardData
       ]);

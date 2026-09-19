@@ -251,25 +251,34 @@ export function saveButtonController() {
     }
   });
 
-  // Al detectar cualquier interacción de edición o color, reflejar "Guardando..." de inmediato
+  // Al detectar cualquier interacción de edición o color, habilitar el botón de guardar
   document.addEventListener("input", (e) => {
-    if (e.target.closest("form.auto-submit, .remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
-      setSavingState();
+    if (e.target.closest(".remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
+      enableSaveButton();
     }
   });
 
   document.addEventListener("change", (e) => {
-    if (e.target.closest("form.auto-submit, .remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
-      setSavingState();
+    if (e.target.closest(".remote-container, .custom-color-picker-popover") || e.target.classList.contains("color-picker") || e.target.type === "color") {
+      enableSaveButton();
     }
   });
 
-  // Notificación de autoSubmitForm cuando inicia el guardado de borrador
+  // Notificación de designDraftManager cuando cambia el estado del borrador local
+  document.addEventListener("designDraftStateChanged", (e) => {
+    if (isPublishing) return;
+    if (e.detail && e.detail.hasDraft) {
+      enableSaveButton();
+    } else {
+      disableSaveButton();
+    }
+  });
+
+  // Compatibilidad con eventos personalizados
   document.addEventListener("draftSaving", () => {
     setSavingState();
   });
 
-  // Notificación de autoSubmitForm cuando el borrador se guardó en la BD SQLite con éxito
   document.addEventListener("draftSaved", (e) => {
     if (isPublishing) return;
     if (e.detail && typeof e.detail.hasCustom === "boolean") {
@@ -288,7 +297,6 @@ export function saveButtonController() {
     enableSaveButton();
   });
 
-  // Escuchar evento personalizado disparado por autoSubmitForm
   document.addEventListener("previewUpdated", (e) => {
     if (isPublishing) return;
 
@@ -313,7 +321,7 @@ export function saveButtonController() {
     updateSaveButtonVisibility(activeBtn);
   }
 
-  const hasCustom = saveContainer.dataset.hasCustom === "true";
+  const hasCustom = saveContainer.dataset.hasCustom === "true" || (window.__designDraftManager && window.__designDraftManager.hasDraft && window.__designDraftManager.hasDraft());
   if (hasCustom) {
     enableSaveButton();
   } else {
@@ -322,75 +330,50 @@ export function saveButtonController() {
 
   let isPublishing = false;
 
-  // Interceptar clic en el botón Guardar para publicar cambios con fetch
+  // Interceptar clic en el botón Guardar para publicar cambios en lote con fetch
   saveBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
     if (isPublishing) return;
 
     const isSaveDisabled = saveBtn.classList.contains("disabled-save-btn");
-    const hasPending = typeof window.__hasPendingDraft === "function" ? window.__hasPendingDraft() : false;
-    const hasCustom = saveContainer.dataset.hasCustom === "true";
+    const hasLocalDraft = window.__designDraftManager && typeof window.__designDraftManager.hasDraft === "function" ? window.__designDraftManager.hasDraft() : false;
+    const hasCustomServer = saveContainer.dataset.hasCustom === "true";
 
-    // Si está completamente deshabilitado y no hay cambios en proceso, ignorar
-    if (isSaveDisabled && !hasPending && !hasCustom) {
+    // Si está completamente deshabilitado y no hay cambios, ignorar
+    if (isSaveDisabled && !hasLocalDraft && !hasCustomServer) {
       return;
     }
-
-    const targetUrl = saveBtn.getAttribute("href") || saveBtn.dataset.href;
-    if (!targetUrl) return;
 
     isPublishing = true;
     setSavingState();
 
     try {
-      // 1. Si hay cambios pendientes de enviar o peticiones AJAX de borrador en vuelo, esperar a que terminen
-      if (typeof window.__flushAutoSubmit === "function") {
-        await window.__flushAutoSubmit();
-      }
-
-      // 2. Ahora que el borrador está 100% guardado y persistido en la BD SQLite, publicar oficialmente
-      const response = await fetch(targetUrl, {
-        method: "POST",
-        headers: {
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
-
-      if (!response.ok) {
-        console.error("Error al publicar el diseño:", response.statusText);
-        enableSaveButton();
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data && data.success) {
-        saveBtn.classList.remove("save-btn-saving");
-        saveBtn.innerHTML = "¡Guardado!";
-
-        setTimeout(() => {
-          disableSaveButton();
-        }, 600);
-
-        if (data.sidebarStatusHtml) {
-          document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
-            el.innerHTML = data.sidebarStatusHtml;
-          });
-        }
-
-        if (data.html) {
-          updatePreviewHtml(data.html);
-        }
-
-        if (data.formHtml) {
-          restoreFormHtml(data.formHtml);
-        }
-
-        document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+      if (window.__designDraftManager && typeof window.__designDraftManager.saveDraft === "function") {
+        await window.__designDraftManager.saveDraft();
       } else {
-        enableSaveButton();
+        const targetUrl = saveBtn.getAttribute("href") || saveBtn.dataset.href;
+        if (targetUrl) {
+          const response = await fetch(targetUrl, {
+            method: "POST",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+          if (!response.ok) throw new Error("Error en servidor al guardar.");
+          const data = await response.json();
+          if (data && data.sidebarStatusHtml) {
+            document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
+              el.innerHTML = data.sidebarStatusHtml;
+            });
+          }
+        }
       }
+
+      saveBtn.classList.remove("save-btn-saving");
+      saveBtn.innerHTML = "¡Guardado!";
+
+      setTimeout(() => {
+        disableSaveButton();
+      }, 600);
     } catch (err) {
       console.error("Error al publicar el diseño con fetch:", err);
       enableSaveButton();
@@ -410,14 +393,6 @@ export function saveButtonController() {
 
       if (isPublishing) return;
 
-      // 1. Cancelar cualquier auto-submit pendiente o en vuelo para no re-guardar el borrador descartado
-      if (typeof window.__cancelPendingAutoSubmit === "function") {
-        window.__cancelPendingAutoSubmit();
-      }
-
-      const targetUrl = discardBtn.getAttribute("href") || discardBtn.dataset.href;
-      if (!targetUrl) return;
-
       isPublishing = true;
       discardBtn.setAttribute("aria-disabled", "true");
       discardBtn.classList.add("disabled-save-btn");
@@ -425,47 +400,22 @@ export function saveButtonController() {
       discardBtn.innerHTML = '<span class="save-btn-spinner save-btn-spinner-dark"></span><span class="save-btn-text">Descartando...</span>';
 
       try {
-        const response = await fetch(targetUrl, {
-          method: "POST",
-          headers: {
-            "X-Requested-With": "XMLHttpRequest"
-          }
-        });
-
-        if (!response.ok) {
-          discardBtn.textContent = "Descartar";
-          discardBtn.removeAttribute("aria-disabled");
-          discardBtn.classList.remove("disabled-save-btn");
-          discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data && data.success) {
-          disableSaveButton();
-
-          if (data.sidebarStatusHtml) {
-            document.querySelectorAll(".sidebar-profile-status").forEach((el) => {
-              el.innerHTML = data.sidebarStatusHtml;
-            });
-          }
-
-          if (data.html) {
-            updatePreviewHtml(data.html);
-          }
-
-          if (data.formHtml) {
-            restoreFormHtml(data.formHtml);
-          }
-
-          document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+        if (window.__designDraftManager && typeof window.__designDraftManager.discardDraft === "function") {
+          await window.__designDraftManager.discardDraft();
         } else {
-          discardBtn.textContent = "Descartar";
-          discardBtn.removeAttribute("aria-disabled");
-          discardBtn.classList.remove("disabled-save-btn");
-          discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
+          const targetUrl = discardBtn.getAttribute("href") || discardBtn.dataset.href;
+          if (targetUrl) {
+            const response = await fetch(targetUrl, {
+              method: "POST",
+              headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!response.ok) throw new Error("Error al descartar.");
+            const data = await response.json();
+            if (data && data.html) updatePreviewHtml(data.html);
+            if (data && data.formHtml) restoreFormHtml(data.formHtml);
+          }
         }
+        disableSaveButton();
       } catch (err) {
         console.error("Error al descartar el diseño con fetch:", err);
         discardBtn.textContent = "Descartar";
