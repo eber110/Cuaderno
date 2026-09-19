@@ -113,6 +113,9 @@ export function autoSubmitForm() {
     const target = e.target;
     if (!target) return;
 
+    // Si pertenece al editor de diseño del panel, ignorar (es gestionado por designDraftManager en caché local)
+    if (target.closest('.remote-container')) return;
+
     // Sincronizar UI condicional de inmediato
     syncConditionalUI(target);
 
@@ -128,41 +131,21 @@ export function autoSubmitForm() {
 
     // Sincronizar visibilidad de elementos en la vista previa de forma instantánea al conmutar switches
     if (target.matches('.checkbox-switch')) {
-      const itemBlock = target.closest('.sortable-item');
-      if (itemBlock) {
-        const itemType = itemBlock.getAttribute('data-type');
-        const contentList = document.getElementById('sortable-content-list');
-        if (contentList && itemType) {
-          const sameTypeItems = Array.from(contentList.querySelectorAll(`.sortable-item[data-type="${itemType}"]`));
-          const idx = sameTypeItems.indexOf(itemBlock);
-          if (idx !== -1) {
-            const selectorMap = {
-              'banner': '.banner-block-wrapper',
-              'campaign': '.campaign-block-wrapper',
-              'product_group': '.product-group-wrapper',
-              'product': '.product-item-wrapper, .product-regular-wrapper',
-              'link': '.link-item-wrapper, .theme-button-wrapper'
-            };
-            const selector = selectorMap[itemType];
-            if (selector) {
-              document.querySelectorAll('.user-profile-preview').forEach((preview) => {
-                const wrappers = preview.querySelectorAll(selector);
-                if (wrappers[idx]) {
-                  wrappers[idx].style.display = target.checked ? '' : 'none';
-                }
-              });
-            }
+      const match = target.name && target.name.match(/^content\[(\d+)\]/);
+      if (match) {
+        const idx = match[1];
+        document.querySelectorAll('.user-profile-preview').forEach((preview) => {
+          const item = preview.querySelector(`[data-content-index="${idx}"]`);
+          if (item) {
+            item.style.display = target.checked ? '' : 'none';
           }
-        }
+        });
       }
     }
 
     // Verificar si el elemento pertenece a un formulario con la clase .auto-submit
     const form = target.closest('form.auto-submit');
     if (!form) return;
-
-    // Si pertenece al editor de diseño del panel, ignorar (es gestionado por designDraftManager en caché local)
-    if (target.closest('.remote-container')) return;
 
     // Si el elemento individual tiene la marca para ser ignorado, no enviar
     if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) {

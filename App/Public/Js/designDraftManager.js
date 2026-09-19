@@ -389,7 +389,7 @@ export function designDraftManager() {
     // --- D. TEXTOS DEL PERFIL (TÍTULO Y BIO) ---
     if (fields.title !== undefined) {
       previews.forEach((p) => {
-        p.querySelectorAll(".title-color").forEach((el) => {
+        p.querySelectorAll("header .title-color, .title-hero-regular, .title-hero-big, .title-hero-mini").forEach((el) => {
           el.textContent = fields.title;
         });
       });
@@ -420,6 +420,21 @@ export function designDraftManager() {
         previews.forEach((p) => p.querySelectorAll(".campaign-countdown-wrapper, [data-countdown]").forEach((el) => el.style.setProperty("background-color", val, "important")));
       } else if (key.includes("countdown_text_color")) {
         previews.forEach((p) => p.querySelectorAll(".campaign-countdown-wrapper *, [data-countdown] *").forEach((el) => el.style.setProperty("color", val, "important")));
+      }
+    });
+
+    // --- F. VISIBILIDAD DE BLOQUES DE CONTENIDO (SWITCHES) ---
+    Object.keys(fields).forEach((key) => {
+      const match = key.match(/^content\[(\d+)\]\[active\]$/);
+      if (match) {
+        const idx = match[1];
+        const isAct = (fields[key] === "true" || fields[key] === true || fields[key] === 1 || fields[key] === "1");
+        previews.forEach((p) => {
+          const item = p.querySelector(`[data-content-index="${idx}"]`);
+          if (item) {
+            item.style.display = isAct ? "" : "none";
+          }
+        });
       }
     });
   }
@@ -455,7 +470,12 @@ export function designDraftManager() {
       const checkboxes = document.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
       if (checkboxes.length) {
         checkboxes.forEach((cb) => {
-          cb.checked = (val === true || val === "true" || val === 1 || val === "1");
+          const isChecked = (val === true || val === "true" || val === 1 || val === "1");
+          cb.checked = isChecked;
+          cb.setAttribute("active", isChecked ? "1" : "2");
+          if (cb.previousElementSibling && cb.previousElementSibling.type === "hidden" && cb.previousElementSibling.name === cb.name) {
+            cb.previousElementSibling.disabled = isChecked;
+          }
         });
         return;
       }
@@ -544,35 +564,18 @@ export function designDraftManager() {
 
       // Sincronizar visibilidad de elementos en la vista previa al conmutar switches
       if (target.matches(".checkbox-switch")) {
-        const itemBlock = target.closest(".sortable-item");
-        if (itemBlock) {
-          const itemType = itemBlock.getAttribute("data-type");
-          const contentList = document.getElementById("sortable-content-list");
-          if (contentList && itemType) {
-            const sameTypeItems = Array.from(contentList.querySelectorAll(`.sortable-item[data-type="${itemType}"]`));
-            const idx = sameTypeItems.indexOf(itemBlock);
-            if (idx !== -1) {
-              const selectorMap = {
-                "banner": ".banner-block-wrapper",
-                "campaign": ".campaign-block-wrapper",
-                "product_group": ".product-group-wrapper",
-                "product": ".product-item-wrapper, .product-regular-wrapper",
-                "link": ".link-item-wrapper, .theme-button-wrapper"
-              };
-              const selector = selectorMap[itemType];
-              if (selector) {
-                document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-                  const wrappers = preview.querySelectorAll(selector);
-                  if (wrappers[idx]) {
-                    wrappers[idx].style.display = target.checked ? "" : "none";
-                  }
-                });
-              }
+        const match = target.name && target.name.match(/^content\[(\d+)\]/);
+        if (match) {
+          const idx = match[1];
+          document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+            const item = preview.querySelector(`[data-content-index="${idx}"]`);
+            if (item) {
+              item.style.display = target.checked ? "" : "none";
             }
-          }
+          });
         }
+        return;
       }
-      return;
     }
 
     // Selectores y otros inputs
@@ -610,36 +613,14 @@ export function designDraftManager() {
    */
   async function saveDraft() {
     const draft = getDraft();
-    const formData = new FormData();
-
-    // 1. Añadir todos los campos acumulados en el borrador
-    Object.keys(draft).forEach((key) => {
-      formData.append(key, draft[key]);
-    });
-
-    // 2. Si hay formularios en el contenedor remoto, capturar campos adicionales y archivos
     const activeForm = document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
-    if (activeForm) {
-      const formElements = activeForm.elements;
-      for (let i = 0; i < formElements.length; i++) {
-        const el = formElements[i];
-        if (!el.name || el.type === "submit" || el.type === "button") continue;
+    // Usar FormData nativo para respetar disabled en inputs hidden emparejados con switches
+    const formData = activeForm ? new FormData(activeForm) : new FormData();
 
-        if (el.type === "file") {
-          if (el.files && el.files.length > 0) {
-            formData.set(el.name, el.files[0]);
-          }
-        } else if (!formData.has(el.name)) {
-          if (el.type === "checkbox") {
-            if (el.checked) formData.set(el.name, el.value || "true");
-          } else if (el.type === "radio") {
-            if (el.checked) formData.set(el.name, el.value);
-          } else {
-            formData.set(el.name, el.value);
-          }
-        }
-      }
-    }
+    // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen prioridad)
+    Object.keys(draft).forEach((key) => {
+      formData.set(key, draft[key]);
+    });
 
     const saveUrl = `/panel/${user}/guardar`;
 
@@ -666,7 +647,30 @@ export function designDraftManager() {
         dynamicStyleEl.textContent = "";
       }
 
+      // Actualizar la vista previa con el HTML oficial retornado por el servidor
+      if (data.html) {
+        document.querySelectorAll(".user-profile-preview").forEach((container) => {
+          const temp = document.createElement("div");
+          temp.innerHTML = data.html.trim();
+          const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+          if (targetPreview && container.parentNode) {
+            container.parentNode.replaceChild(targetPreview, container);
+          } else {
+            container.innerHTML = data.html;
+          }
+        });
+      }
+
+      // Actualizar el estado de la barra lateral si viene en la respuesta
+      if (data.sidebarStatusHtml) {
+        const sidebar = document.querySelector(".sidebar-profile-status");
+        if (sidebar) {
+          sidebar.outerHTML = data.sidebarStatusHtml;
+        }
+      }
+
       document.dispatchEvent(new CustomEvent("designDraftSaved", { detail: data }));
+      document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
       return true;
     } else {
       throw new Error(data?.message || "No se pudo completar el guardado del diseño.");
