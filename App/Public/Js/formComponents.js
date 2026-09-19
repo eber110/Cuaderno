@@ -212,8 +212,14 @@ export function formComponents() {
 
   // 2b. Inicializar switches de tipo checkbox
   function initCheckboxSwitches() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"].checkbox-switch');
     checkboxes.forEach(input => {
+      // Si ya está correctamente envuelto en su contenedor visual, no re-procesar
+      if (input.parentElement && input.parentElement.classList.contains('checkbox-switch-container')) {
+        return;
+      }
+
+      input.removeAttribute('data-switch-initialized');
       input.setAttribute('data-switch-initialized', 'true');
       
       // Ocultar el checkbox original
@@ -226,7 +232,7 @@ export function formComponents() {
       const valInactive = options[1] || 'false'; // OFF (Unchecked, active="2")
       
       // Leer active actual
-      let active = input.getAttribute('active') || '1';
+      let active = input.getAttribute('active') || (input.checked ? '1' : '2');
       
       // Configurar estado inicial
       if (active === '1') {
@@ -288,11 +294,28 @@ export function formComponents() {
     });
   }
 
+  // Exponer API global para llamadas inmediatas desde otros scripts (p.ej. designDraftManager)
+  window.__formComponents = {
+    initCheckboxSwitches,
+    styleColorPickers
+  };
+
   // Inicializar componentes existentes
   styleColorPickers();
   initCheckboxSwitches();
 
+  // Escuchar eventos de actualización reactiva
   document.addEventListener('previewUpdated', () => {
+    styleColorPickers();
+    initCheckboxSwitches();
+  });
+
+  document.addEventListener('remoteContentUpdated', () => {
+    styleColorPickers();
+    initCheckboxSwitches();
+  });
+
+  window.addEventListener('pageshow', () => {
     styleColorPickers();
     initCheckboxSwitches();
   });

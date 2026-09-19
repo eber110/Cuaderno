@@ -241,17 +241,25 @@ export function sortableContent() {
 
     // Auto-recuperación cuando se actualiza la vista previa o formulario por Fetch
     document.addEventListener("previewUpdated", () => {
-      const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
-      containers.forEach((c) => {
-        c.dataset.sortableBound = "";
-        delete c.dataset.sortableBound;
-      });
-      initAllContainers();
+      try {
+        const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
+        containers.forEach((c) => {
+          c.dataset.sortableBound = "";
+          delete c.dataset.sortableBound;
+        });
+        initAllContainers();
+      } catch (err) {
+        console.warn("sortableContent previewUpdated warning:", err);
+      }
     });
 
     // Auto-recuperación si la página se restaura desde BFCache
     window.addEventListener("pageshow", () => {
-      initAllContainers();
+      try {
+        initAllContainers();
+      } catch (err) {
+        console.warn("sortableContent pageshow warning:", err);
+      }
     });
 
     // Sincronización en vivo del título y controles mientras el usuario interactúa
@@ -653,10 +661,12 @@ export function sortableContent() {
       });
     });
 
-    // Disparar auto-submit
-    const form = container.closest("form.auto-submit");
+    // Disparar actualización asíncrona mediante submitRemoteFormAjax
+    const form = container.closest("form.auto-submit") || container.closest("form");
     if (form) {
-      if (typeof form.requestSubmit === "function") {
+      if (window.__designDraftManager && typeof window.__designDraftManager.submitRemoteFormAjax === "function") {
+        window.__designDraftManager.submitRemoteFormAjax(form);
+      } else if (typeof form.requestSubmit === "function") {
         form.requestSubmit();
       } else {
         form.submit();

@@ -127,7 +127,9 @@
     box-sizing: content-box;
     border: solid 2px <?= $colorShadow3?>;
     box-shadow: 3px 5px 0px <?= $colorShadow3?>;
-    & img {border: solid 2px <?= $colorShadow3?>;}
+  }
+  .shadow-3 img {
+    border: solid 2px <?= $colorShadow3?>;
   }
 
   .color-menu-user, .color-menu-user * {

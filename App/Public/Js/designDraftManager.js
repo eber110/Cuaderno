@@ -340,12 +340,69 @@ export function designDraftManager() {
       const validBorders = ["br0", "br10", "br20", "br50"];
       const validImgBorders = ["br0", "br5", "br12", "br50"];
 
+      // En productos y banners, br50 se adapta a br20 (y br12 en imágenes) para evitar deformaciones
+      const clampedBorder = (btnBorder === "br50") ? "br20" : btnBorder;
+      const clampedImgBorder = (imgBorder === "br50") ? "br12" : imgBorder;
+
+      // 1. Actualizar indicador visual en el panel de botones del dashboard
+      document.querySelectorAll(".button-fill-style").forEach((el) => {
+        validBorders.forEach((b) => el.classList.remove(b));
+        el.classList.add(btnBorder);
+      });
+
       previews.forEach((p) => {
-        p.querySelectorAll(".theme-button").forEach((btn) => {
+        // 2. Enlaces regulares
+        p.querySelectorAll(".link-item-wrapper").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
         });
-        p.querySelectorAll(".theme-button img.cover").forEach((img) => {
+        p.querySelectorAll(".link-item-wrapper img.cover").forEach((img) => {
+          validImgBorders.forEach((b) => img.classList.remove(b));
+          img.classList.add(imgBorder);
+        });
+
+        // 3. Productos regulares
+        p.querySelectorAll(".product-item-wrapper, .product-regular-wrapper").forEach((btn) => {
+          validBorders.forEach((b) => btn.classList.remove(b));
+          btn.classList.add(clampedBorder);
+        });
+        p.querySelectorAll(".product-item-wrapper img.cover, .product-regular-wrapper img.cover").forEach((img) => {
+          validImgBorders.forEach((b) => img.classList.remove(b));
+          img.classList.add(clampedImgBorder);
+        });
+
+        // 4. Grupos de productos (Cuadrícula y Carrusel)
+        p.querySelectorAll(".product-grid-card, .product-slide-card").forEach((btn) => {
+          validBorders.forEach((b) => btn.classList.remove(b));
+          btn.classList.add(clampedBorder);
+        });
+        p.querySelectorAll(".product-grid-card img.cover, .product-slide-card img.cover").forEach((img) => {
+          validImgBorders.forEach((b) => img.classList.remove(b));
+          img.classList.add(clampedImgBorder);
+        });
+
+        // 5. Banners
+        p.querySelectorAll(".banner-block-wrapper").forEach((banner) => {
+          validBorders.forEach((b) => banner.classList.remove(b));
+          banner.classList.add(clampedBorder);
+        });
+
+        // 6. Campañas (bloque contenedor y botón de acción)
+        p.querySelectorAll(".campaign-block-wrapper").forEach((camp) => {
+          validBorders.forEach((b) => camp.classList.remove(b));
+          camp.classList.add(clampedBorder);
+        });
+        p.querySelectorAll(".campaign-content .modal-btn, .campaign-button").forEach((btn) => {
+          validBorders.forEach((b) => btn.classList.remove(b));
+          btn.classList.add(btnBorder);
+        });
+
+        // Fallback genérico para cualquier otro elemento con clase .theme-button
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card)").forEach((btn) => {
+          validBorders.forEach((b) => btn.classList.remove(b));
+          btn.classList.add(btnBorder);
+        });
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card) img.cover").forEach((img) => {
           validImgBorders.forEach((b) => img.classList.remove(b));
           img.classList.add(imgBorder);
         });
@@ -354,12 +411,16 @@ export function designDraftManager() {
 
     if (fields.shadow) {
       const shadowClass = String(fields.shadow);
-      const validShadows = ["shadow-0", "shadow-1", "shadow-2", "shadow-3"];
+      const validShadows = ["shadow-0", "shadow-1", "shadow-2", "shadow-3", "shadow-card"];
 
       previews.forEach((p) => {
-        p.querySelectorAll(".theme-button").forEach((btn) => {
-          validShadows.forEach((s) => btn.classList.remove(s));
-          btn.classList.add(shadowClass);
+        // Aplicar sombras a todos los bloques: enlaces, productos regulares, grupos de productos, banners y campañas
+        const targets = p.querySelectorAll(
+          ".theme-button, .link-item-wrapper, .product-item-wrapper, .product-regular-wrapper, .product-grid-card, .product-slide-card, .banner-block-wrapper, .campaign-block-wrapper, .campaign-content .modal-btn, .campaign-button"
+        );
+        targets.forEach((el) => {
+          validShadows.forEach((s) => el.classList.remove(s));
+          el.classList.add(shadowClass);
         });
       });
     }
@@ -498,19 +559,248 @@ export function designDraftManager() {
   }
 
   // =========================================================================
-  // 5. CAPTURA Y DELEGACIÓN DE EVENTOS DE INTERACCIÓN (INPUT / CHANGE)
+  // 5. MANEJO ESTRUCTURAL ASÍNCRONO (AJAX PARA AÑADIR / ELIMINAR / TOGGLE)
   // =========================================================================
 
-  // Evitar envíos automáticos no deseados
+  let isSubmittingRemoteAjax = false;
+  let lastClickedSubmitButton = null;
+
+  /**
+   * Determina si un elemento de envío o botón corresponde a una acción estructural
+   * (añadir bloque, añadir red, añadir subproducto, eliminar elemento/subproducto, toggle imagen).
+   *
+   * @param {HTMLElement} el Elemento disparador
+   * @returns {boolean}
+   */
+  function isStructuralAction(el) {
+    if (!el || !el.name) return false;
+    const name = el.name;
+    return (
+      name === "add_content_type" ||
+      name === "add_rrss_name" ||
+      name.includes("add_sub_product") ||
+      name.includes("delete_sub_product") ||
+      name.includes("delete_img") ||
+      name.includes("toggle_img_show") ||
+      name.includes("[delete]")
+    );
+  }
+
+  /**
+   * Envía el formulario de .remote-container mediante petición asíncrona (Fetch/AJAX),
+   * procesa adiciones o eliminaciones y actualiza la vista previa y el editor en vivo
+   * sin provocar recargas completas de la página ni perder la pestaña activa.
+   *
+   * @async
+   * @param {HTMLFormElement} [form] Formulario origen
+   * @param {HTMLElement} [triggerElement] Elemento botón o checkbox que disparó la acción
+   * @returns {Promise<boolean>}
+   */
+  async function submitRemoteFormAjax(form, triggerElement = null) {
+    if (isSubmittingRemoteAjax) return false;
+    isSubmittingRemoteAjax = true;
+
+    try {
+      // 1. Cerrar cualquier modal abierto (confirmación de eliminar, menús emergentes)
+      document.querySelectorAll(".modal-overlay, .custom-modal-overlay").forEach((m) => m.remove());
+      document.querySelectorAll(".content-modal-menu").forEach((m) => m.classList.add("hidden"));
+      document.querySelectorAll(".open-modal-menu").forEach((b) => b.classList.remove("active"));
+
+      // 2. Obtener el formulario activo si no fue provisto
+      if (!form) {
+        form = document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+      }
+      if (!form) {
+        isSubmittingRemoteAjax = false;
+        return false;
+      }
+
+      // 3. Crear FormData con los campos del formulario
+      const formData = new FormData(form);
+
+      // 4. Si hay un disparador con nombre y valor (ej. botón submit o checkbox), asegurar su valor
+      if (triggerElement && triggerElement.name) {
+        const val = triggerElement.value !== undefined && triggerElement.value !== null ? triggerElement.value : "true";
+        formData.set(triggerElement.name, val);
+      }
+
+      // 5. Incorporar cambios acumulados en el borrador local (excepto si el ítem fue eliminado)
+      const draft = getDraft();
+      const isDeleteAction = triggerElement && triggerElement.name && triggerElement.name.includes("[delete]");
+      let deletedPrefix = null;
+      if (isDeleteAction) {
+        deletedPrefix = triggerElement.name.replace(/\[delete\]$/, "");
+      }
+
+      Object.keys(draft).forEach((key) => {
+        if (deletedPrefix && key.startsWith(deletedPrefix)) {
+          return; // Omitir datos antiguos de un elemento que se está borrando
+        }
+        formData.set(key, draft[key]);
+      });
+
+      // 6. Si es una acción de añadir nuevo elemento, marcar sessionStorage para expandirlo al renderizar
+      const isAddAction = triggerElement && (
+        triggerElement.name === "add_content_type" ||
+        triggerElement.name === "add_rrss_name" ||
+        (typeof triggerElement.name === "string" && triggerElement.name.includes("add_sub_product"))
+      );
+      if (isAddAction) {
+        sessionStorage.setItem("open_new_block_on_load", "true");
+      }
+
+      // 7. Guardar posición de scroll actual para evitar saltos indeseados
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+
+      // 8. Enviar petición Fetch con encabezado XMLHttpRequest
+      const postUrl = form.getAttribute("action") || `/panel/${user}/diseno`;
+      const response = await fetch(postUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en el servidor al actualizar el diseño: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data && data.success) {
+        // 9. Como el servidor ya consolidó los cambios en SQLite, limpiar borrador local para evitar desfaces
+        clearDraft();
+
+        if (dynamicStyleEl) {
+          dynamicStyleEl.textContent = "";
+        }
+
+        // 10. Actualizar vista previa oficial (.user-profile-preview)
+        if (data.html) {
+          document.querySelectorAll(".user-profile-preview").forEach((container) => {
+            const temp = document.createElement("div");
+            temp.innerHTML = data.html.trim();
+            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+            if (targetPreview && container.parentNode) {
+              container.parentNode.replaceChild(targetPreview, container);
+            } else {
+              container.innerHTML = data.html;
+            }
+          });
+        }
+
+        // 11. Actualizar banner de estado en barra lateral
+        if (data.sidebarStatusHtml) {
+          document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
+            sidebar.outerHTML = data.sidebarStatusHtml;
+          });
+        }
+
+        // 12. Actualizar formularios en .remote-container manteniendo la pestaña activa
+        if (data.formHtml) {
+          const remoteContainer = document.querySelector(".remote-container");
+          if (remoteContainer) {
+            const activeContent = remoteContainer.querySelector(".remote-content.active");
+            const activeId = activeContent ? activeContent.id : null;
+
+            const temp = document.createElement("div");
+            temp.innerHTML = data.formHtml.trim();
+            const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
+            if (newContainer) {
+              remoteContainer.innerHTML = newContainer.innerHTML;
+              if (activeId) {
+                remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
+                  if (c.id === activeId) {
+                    c.classList.remove("hidden");
+                    c.classList.add("active");
+                  } else {
+                    c.classList.remove("active");
+                    c.classList.add("hidden");
+                  }
+                });
+              }
+
+              // Inicializar inmediatamente switches y componentes de formulario en el nuevo contenido
+              if (window.__formComponents) {
+                window.__formComponents.initCheckboxSwitches?.();
+                window.__formComponents.styleColorPickers?.();
+              }
+            }
+          }
+        }
+
+        // 13. Restaurar scroll de la ventana
+        window.scrollTo(0, currentScrollY);
+
+        // 14. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
+        document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+        document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
+        notifyDraftState();
+        return true;
+      } else {
+        throw new Error(data?.message || "No se pudo actualizar el elemento.");
+      }
+    } catch (err) {
+      console.error("Error en submitRemoteFormAjax:", err);
+      return false;
+    } finally {
+      isSubmittingRemoteAjax = false;
+    }
+  }
+
+  // =========================================================================
+  // 6. CAPTURA Y DELEGACIÓN DE EVENTOS DE INTERACCIÓN (SUBMIT / CLICK / INPUT / CHANGE)
+  // =========================================================================
+
+  // Prevenir envíos de navegación convencionales en el panel y delegar a AJAX
   document.addEventListener("submit", (e) => {
     const form = e.target;
     if (form && form.closest(".remote-container")) {
-      // Si el envío fue disparado por un botón específico de añadir/eliminar ítem, permitir
-      if (e.submitter && (e.submitter.name === "add_content_type" || e.submitter.name === "add_rrss_name")) {
-        return; // Permite adiciones de items
-      }
-      // De lo contrario, interceptar y prevenir envío automático
       e.preventDefault();
+
+      const submitter = e.submitter || lastClickedSubmitButton;
+      if (submitter && isStructuralAction(submitter)) {
+        submitRemoteFormAjax(form, submitter);
+        return;
+      }
+
+      // Si es un submit estándar de formulario (ej. Enter en un campo)
+      saveDraft();
+    }
+  });
+
+  // Delegación de clics: interceptar modales de borrado y botones de adición/eliminación
+  document.addEventListener("click", (e) => {
+    // 1. Confirmación de eliminación en modal (label asociado a checkbox delete)
+    const deleteLabel = e.target.closest('label[for^="delete-link-"], label[for^="delete-rrss-"]');
+    if (deleteLabel) {
+      e.preventDefault();
+      const targetId = deleteLabel.getAttribute("for");
+      const checkbox = document.getElementById(targetId);
+      if (checkbox) {
+        checkbox.checked = true;
+        const form = checkbox.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+        submitRemoteFormAjax(form, checkbox);
+      }
+      return;
+    }
+
+    // 2. Botones submit dentro de .remote-container (añadir tipo, red social, subproducto, borrar imagen)
+    const submitBtn = e.target.closest('button[type="submit"], input[type="submit"]');
+    if (submitBtn) {
+      const form = submitBtn.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+      if (form && form.closest(".remote-container")) {
+        lastClickedSubmitButton = submitBtn;
+        setTimeout(() => {
+          if (lastClickedSubmitButton === submitBtn) lastClickedSubmitButton = null;
+        }, 300);
+
+        if (isStructuralAction(submitBtn)) {
+          e.preventDefault();
+          submitRemoteFormAjax(form, submitBtn);
+        }
+      }
     }
   });
 
@@ -550,6 +840,13 @@ export function designDraftManager() {
     // Sincronizar UI condicional del formulario
     syncConditionalUI(target);
 
+    // Checkbox de borrado directo
+    if (target.type === "checkbox" && target.name.includes("[delete]") && target.checked) {
+      const form = target.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+      submitRemoteFormAjax(form, target);
+      return;
+    }
+
     // Radios
     if (target.type === "radio" && target.checked) {
       setDraftField(target.name, target.value);
@@ -585,7 +882,7 @@ export function designDraftManager() {
     }
   });
 
-  // Manejo de recorte y selección de avatar en cliente
+  // Manejo de imágenes (avatar y bloques de contenido) en cliente con vista previa instantánea
   document.addEventListener("change", (e) => {
     const target = e.target;
     if (!target || target.type !== "file") return;
@@ -596,6 +893,40 @@ export function designDraftManager() {
       document.querySelectorAll(".user-profile-preview figure img.cover").forEach((img) => {
         img.src = previewUrl;
       });
+      notifyDraftState();
+    } else if (target.name && target.name.startsWith("content_img_") && target.files && target.files[0]) {
+      const file = target.files[0];
+      const previewUrl = URL.createObjectURL(file);
+      const match = target.name.match(/^content_img_(\d+)(?:_(\d+))?$/);
+      if (match) {
+        const itemIdx = match[1];
+        const subIdx = match[2];
+
+        // 1. Actualizar miniatura dentro del formulario en el editor
+        const block = target.closest(".sortable-item") || target.closest(".content-block");
+        if (block) {
+          const thumb = block.querySelector("figure img");
+          if (thumb) thumb.src = previewUrl;
+        }
+
+        // 2. Actualizar imagen en la vista previa
+        document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+          const item = preview.querySelector(`[data-content-index="${itemIdx}"]`);
+          if (item) {
+            if (subIdx !== undefined) {
+              const subImgs = item.querySelectorAll("img");
+              if (subImgs[subIdx]) {
+                subImgs[subIdx].src = previewUrl;
+              }
+            } else {
+              const previewImg = item.querySelector("img");
+              if (previewImg) {
+                previewImg.src = previewUrl;
+              }
+            }
+          }
+        });
+      }
       notifyDraftState();
     }
   });
@@ -767,6 +1098,7 @@ export function designDraftManager() {
     hasDraft,
     saveDraft,
     discardDraft,
+    submitRemoteFormAjax,
     applyDraftToPreview,
     syncFormControls
   };

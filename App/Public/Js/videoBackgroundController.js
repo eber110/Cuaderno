@@ -617,9 +617,17 @@ export function videoBackgroundController() {
 
   // Sincronización al actualizarse el preview
   document.addEventListener("previewUpdated", () => {
-    syncThumbnailPlayback();
+    try {
+      syncThumbnailPlayback();
+    } catch (err) {
+      console.warn("videoBackgroundController previewUpdated warning:", err);
+    }
   });
 
   // Sincronización inicial
-  syncThumbnailPlayback();
+  try {
+    syncThumbnailPlayback();
+  } catch (err) {
+    console.warn("videoBackgroundController init warning:", err);
+  }
 }

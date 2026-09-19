@@ -270,8 +270,18 @@ export function saveButtonController() {
     if (e.detail && e.detail.hasDraft) {
       enableSaveButton();
     } else {
-      disableSaveButton();
+      const hasCustomServer = saveContainer.dataset.hasCustom === "true";
+      if (!hasCustomServer) {
+        disableSaveButton();
+      }
     }
+  });
+
+  // Notificación de descarte del diseño
+  document.addEventListener("designDraftDiscarded", () => {
+    if (isPublishing) return;
+    saveContainer.dataset.hasCustom = "false";
+    disableSaveButton();
   });
 
   // Compatibilidad con eventos personalizados
@@ -282,6 +292,7 @@ export function saveButtonController() {
   document.addEventListener("draftSaved", (e) => {
     if (isPublishing) return;
     if (e.detail && typeof e.detail.hasCustom === "boolean") {
+      saveContainer.dataset.hasCustom = e.detail.hasCustom ? "true" : "false";
       if (e.detail.hasCustom) {
         enableSaveButton();
       } else {
@@ -301,6 +312,7 @@ export function saveButtonController() {
     if (isPublishing) return;
 
     if (e.detail && typeof e.detail.hasCustom === "boolean") {
+      saveContainer.dataset.hasCustom = e.detail.hasCustom ? "true" : "false";
       if (e.detail.hasCustom) {
         enableSaveButton();
       } else {

@@ -81,7 +81,7 @@
   $campaignId   = "campaign-block-" . $dataContent;
 ?>
 
-<div id="<?= $campaignId ?>" data-content-index="<?= $dataContent ?>" class="campaign-block-wrapper |theme-button w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
+<div id="<?= $campaignId ?>" data-content-index="<?= $dataContent ?>" class="campaign-block-wrapper theme-button w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
 
   <?php if ($isBgMode) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
@@ -138,7 +138,7 @@
       <?php endif; ?>
     </div>
 
-    <p class="modal-btn animated darken p15 bold500 pointer text-center <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
+    <p class="modal-btn animated darken p15 bold500 pointer text-center campaign-button <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
 
     <div class="hidden">
       <div class="flex-column center-center w100 wrap">
