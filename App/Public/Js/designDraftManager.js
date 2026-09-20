@@ -472,11 +472,11 @@ export function designDraftManager() {
         });
 
         // Fallback genérico para cualquier otro elemento con clase .theme-button
-        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card)").forEach((btn) => {
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper)").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
         });
-        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card) img.cover").forEach((img) => {
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper) img.cover").forEach((img) => {
           validImgBorders.forEach((b) => img.classList.remove(b));
           img.classList.add(imgBorder);
         });
