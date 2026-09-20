@@ -5,10 +5,6 @@
    */
   $titleData = $card["content"][$dataContent] ?? [];
   $titleText = trim($titleData["title"] ?? "");
-  if ($titleText === "") {
-    return;
-  }
-
   $size   = $titleData["title_size"] ?? "small";
   $weight = $titleData["title_weight"] ?? "500";
 
@@ -24,9 +20,11 @@
     "900"    => "bold900",
     default  => "bold500",
   };
+
+  $showTitle = ($titleText !== "" && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= $dataContent ?>" class="title-block-wrapper w100 flex-row center-center text-center p0"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+<div data-content-index="<?= $dataContent ?>" class="title-block-wrapper w100 flex-row center-center text-center p0" style="<?= $showTitle ? '' : 'display: none;' ?>">
   <h2 class="<?= $sizeClass ?> <?= $weightClass ?> title-color" style="margin: 0;">
     <?= e($titleText) ?>
   </h2>

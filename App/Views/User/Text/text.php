@@ -5,10 +5,6 @@
    */
   $textData    = $card["content"][$dataContent] ?? [];
   $textContent = trim((string)($textData["text"] ?? ($textData["title"] ?? "")));
-  if ($textContent === "") {
-    return;
-  }
-
   $weight = $textData["text_weight"] ?? "400";
   $align  = $textData["text_align"] ?? "left";
 
@@ -19,9 +15,11 @@
     "right"  => "text-right",
     default  => "text-left",
   };
+
+  $showText = ($textContent !== "" && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= $dataContent ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
+<div data-content-index="<?= $dataContent ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= $showText ? '' : ' display: none;' ?>">
   <p class="<?= $weightClass ?> color-text-card capitalize-p">
     <?= nl2br(e($textContent)) ?>
   </p>

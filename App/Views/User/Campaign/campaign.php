@@ -16,7 +16,8 @@
   $bgColor         = $campaignData["bg_color"] ?? "#1e1e1e";
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
-  if ($hasCountdown && !empty($countdownDate)) {
+  $isPreview       = !empty($card["isPreview"]);
+  if (!$isPreview && $hasCountdown && !empty($countdownDate)) {
     $targetTimestamp = strtotime($countdownDate);
     if ($targetTimestamp !== false && $targetTimestamp <= time()) {
       return;
@@ -83,15 +84,15 @@
 
 <div id="<?= $campaignId ?>" data-content-index="<?= $dataContent ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
 
-  <?php if ($isBgMode) : ?>
+  <?php if ($imgShow && $hasImg) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
-    <div class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;">
+    <div class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;<?= ($imgPosition === 'background') ? '' : ' display: none;' ?>">
       <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
       <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= e($bgColor) ?> l c h / <?= $bgOpacity ?>%);"></div>
     </div>
-  <?php elseif ($hasHeaderImg) : ?>
+
     <!-- Imagen destacada de cabecera cuadrada -->
-    <figure class="w100 ar-square overflow-hidden faded-image">
+    <figure class="w100 ar-square overflow-hidden faded-image" style="<?= ($imgPosition === 'header') ? '' : 'display: none;' ?>">
       <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
     </figure>
   <?php endif; ?>
@@ -103,40 +104,38 @@
     <div class="campaign-text-group flex-column gap15 w100 campaign-align-<?= $textAlign ?> <?= $textPosClass ?>">
       <!-- Título y Descripción -->
       <div class="flex-column gap5 w100 campaign-align-<?= $textAlign ?>">
-        <?php if (!empty($title)) : ?>
-          <h3 class="bold700 campaign-title-<?= $titleSize ?> w100" style="color: <?= e($titleColor) ?>;"><?= e($title) ?></h3>
-        <?php endif; ?>
+        <h3 class="bold700 campaign-title-<?= $titleSize ?> w100" style="color: <?= e($titleColor) ?>;<?= empty($title) ? ' display: none;' : '' ?>"><?= e($title) ?></h3>
 
-        <?php if (!empty($desc)) : ?>
-          <p class="campaign-desc-<?= $descSize ?> w100" style="color: <?= e($descColor) ?>;"><?= nl2br(e($desc)) ?></p>
-        <?php endif; ?>
+        <p class="campaign-desc-<?= $descSize ?> w100" style="color: <?= e($descColor) ?>;<?= empty($desc) ? ' display: none;' : '' ?>"><?= nl2br(e($desc)) ?></p>
       </div>
 
-      <!-- Contador Regresivo (si está configurado) -->
-      <?php if ($hasCountdown && !empty($countdownDate)) : ?>
-        <div class="campaign-countdown-box grid col-7 campaign-countdown-widget-<?= $countdownWidgetSize ?> countdown-text-<?= $countdownTextSize ?>" data-countdown="<?= e($countdownDate) ?>" style="background-color: <?= e($countdownBgColor) ?>; color: <?= e($countdownTextColor) ?>; backdrop-filter: blur(4px);">
-          <div class="flex-column center-center flex-1">
-            <span class="countdown-days countdown-num bold700">00</span>
-            <span class="countdown-unit text-uppercase opacity-70">Días</span>
-          </div>
-          <span class="countdown-sep bold700 opacity-50">:</span>
-          <div class="flex-column center-center flex-1">
-            <span class="countdown-hours countdown-num bold700">00</span>
-            <span class="countdown-unit text-uppercase opacity-70">Horas</span>
-          </div>
-          <span class="countdown-sep bold700 opacity-50">:</span>
-          <div class="flex-column center-center flex-1">
-            <span class="countdown-minutes countdown-num bold700">00</span>
-            <span class="countdown-unit text-uppercase opacity-70">Min</span>
-          </div>
-          <span class="countdown-sep bold700 opacity-50">:</span>
-          <div class="flex-column center-center flex-1">
-            <span class="countdown-seconds countdown-num bold700">00</span>
-            <span class="countdown-unit text-uppercase opacity-70">Seg</span>
-          </div>
+      <!-- Contador Regresivo -->
+      <?php 
+        $showCountdownBox = ($hasCountdown && !empty($countdownDate));
+      ?>
+      <div class="campaign-countdown-box grid col-7 campaign-countdown-widget-<?= $countdownWidgetSize ?> countdown-text-<?= $countdownTextSize ?>" data-countdown="<?= e($countdownDate) ?>" style="background-color: <?= e($countdownBgColor) ?>; color: <?= e($countdownTextColor) ?>; backdrop-filter: blur(4px);<?= $showCountdownBox ? '' : ' display: none;' ?>">
+        <div class="flex-column center-center flex-1">
+          <span class="countdown-days countdown-num bold700">00</span>
+          <span class="countdown-unit text-uppercase opacity-70">Días</span>
         </div>
-      <?php endif; ?>
+        <span class="countdown-sep bold700 opacity-50">:</span>
+        <div class="flex-column center-center flex-1">
+          <span class="countdown-hours countdown-num bold700">00</span>
+          <span class="countdown-unit text-uppercase opacity-70">Horas</span>
+        </div>
+        <span class="countdown-sep bold700 opacity-50">:</span>
+        <div class="flex-column center-center flex-1">
+          <span class="countdown-minutes countdown-num bold700">00</span>
+          <span class="countdown-unit text-uppercase opacity-70">Min</span>
+        </div>
+        <span class="countdown-sep bold700 opacity-50">:</span>
+        <div class="flex-column center-center flex-1">
+          <span class="countdown-seconds countdown-num bold700">00</span>
+          <span class="countdown-unit text-uppercase opacity-70">Seg</span>
+        </div>
+      </div>
     </div>
+
 
     <p class="modal-btn animated darken p15 bold500 pointer text-center campaign-button <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
 

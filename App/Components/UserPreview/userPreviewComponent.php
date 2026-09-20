@@ -24,8 +24,9 @@ class userPreviewComponent {
   public static function data($view = "UserPreview.index", $viewType = "template", $params = []) {
     $card = $params["data"] ?? [];
 
-    // Si ya viene una tarjeta formateada y estructurada con su contenido o estilo, usarla directamente
+    // Si ya viene una tarjeta formateada y estructurada con su contenido o estilo, asegurar que pase por formatCardImages
     if (is_array($card) && (isset($card["content"]) || isset($card["backCard"]))) {
+      $card = UserModels::formatCardImages($card);
       $card["isPreview"] = true;
       return ["card" => $card];
     }

@@ -140,9 +140,16 @@ export function designDraftManager() {
       if (sizeWrap) sizeWrap.style.display = target.value === "background" ? "flex" : "none";
       if (target.value === "header") {
         const horizRadio = document.getElementById(`campaign-size-horiz-${idx}`);
-        if (horizRadio) horizRadio.checked = true;
+        if (horizRadio) {
+          horizRadio.checked = true;
+          setDraftField(horizRadio.name, "horizontal");
+        }
         const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
         if (textPosWrap) textPosWrap.style.display = "none";
+      } else {
+        const checkedSize = document.querySelector(`input[name="content[${idx}][size]"]:checked`);
+        const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
+        if (textPosWrap) textPosWrap.style.display = (checkedSize && checkedSize.value !== "horizontal") ? "flex" : "none";
       }
     }
 
@@ -207,6 +214,16 @@ export function designDraftManager() {
     let clean = String(hex || "#272727").trim();
     if (!clean.startsWith("#")) clean = `#${clean}`;
     return `oklch(from ${clean} calc(l + 0.015) calc(c - 0.025) h)`;
+  }
+
+  function escapeHtml(str) {
+    if (typeof str !== "string") return String(str || "");
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   /**
@@ -504,39 +521,442 @@ export function designDraftManager() {
       });
     }
 
-    // --- E. COLORES DE CAMPAÑA Y BANNER ---
-    Object.keys(fields).forEach((key) => {
-      const val = fields[key];
-      if (!val) return;
+    // --- E. ACTUALIZACIÓN EN VIVO DE BLOQUES DE CONTENIDO (CAMPAÑAS, BANNERS, TÍTULOS, TEXTOS, ETC.) ---
+    const contentMap = {};
+    const contentProductMap = {};
 
-      if (key.includes("title_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-title").forEach((el) => el.style.setProperty("color", val, "important")));
-      } else if (key.includes("desc_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-desc").forEach((el) => el.style.setProperty("color", val, "important")));
-      } else if (key.includes("btn_bg_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-button").forEach((el) => el.style.setProperty("background-color", val, "important")));
-      } else if (key.includes("btn_text_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-button").forEach((el) => el.style.setProperty("color", val, "important")));
-      } else if (key.includes("countdown_bg_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-countdown-wrapper, [data-countdown]").forEach((el) => el.style.setProperty("background-color", val, "important")));
-      } else if (key.includes("countdown_text_color")) {
-        previews.forEach((p) => p.querySelectorAll(".campaign-countdown-wrapper *, [data-countdown] *").forEach((el) => el.style.setProperty("color", val, "important")));
+    Object.keys(fields).forEach((key) => {
+      const matchSub = key.match(/^content\[(\d+)\]\[products\]\[(\d+)\]\[([^\]]+)\]$/);
+      if (matchSub) {
+        const idx = matchSub[1];
+        const pIdx = matchSub[2];
+        const prop = matchSub[3];
+        if (!contentProductMap[idx]) contentProductMap[idx] = {};
+        if (!contentProductMap[idx][pIdx]) contentProductMap[idx][pIdx] = {};
+        contentProductMap[idx][pIdx][prop] = fields[key];
+        return;
+      }
+
+      const match = key.match(/^content\[(\d+)\]\[([^\]]+)\]$/);
+      if (match) {
+        const idx = match[1];
+        const prop = match[2];
+        if (!contentMap[idx]) contentMap[idx] = {};
+        contentMap[idx][prop] = fields[key];
       }
     });
 
-    // --- F. VISIBILIDAD DE BLOQUES DE CONTENIDO (SWITCHES) ---
-    Object.keys(fields).forEach((key) => {
-      const match = key.match(/^content\[(\d+)\]\[active\]$/);
-      if (match) {
-        const idx = match[1];
-        const isAct = (fields[key] === "true" || fields[key] === true || fields[key] === 1 || fields[key] === "1");
-        previews.forEach((p) => {
-          const item = p.querySelector(`[data-content-index="${idx}"]`);
-          if (item) {
-            item.style.display = isAct ? "" : "none";
+    previews.forEach((p) => {
+      // 1. Actualización de cada bloque por su índice
+      Object.keys(contentMap).forEach((idx) => {
+        const cData = contentMap[idx];
+        const block = p.querySelector(`[data-content-index="${idx}"]`);
+        if (!block) return;
+
+        // Visibilidad (switch active)
+        if (cData.active !== undefined) {
+          const isAct = (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1");
+          block.style.display = isAct ? "" : "none";
+        }
+
+        // A. CAMPAÑA
+        if (block.classList.contains("campaign-block-wrapper")) {
+          const imgPosition = cData.img_position || (block.querySelector("figure.faded-image:not([style*='display: none'])") ? "header" : "background");
+          const effectiveSize = (imgPosition === "header") ? "horizontal" : (cData.size || (block.classList.contains("campaign-size-square") ? "square" : (block.classList.contains("campaign-size-vertical") ? "vertical" : "horizontal")));
+
+          // Tamaño del contenedor
+          block.classList.remove("campaign-size-horizontal", "campaign-size-square", "campaign-size-vertical");
+          block.classList.add("campaign-size-" + effectiveSize);
+
+          // Posición de imagen (Fondo vs Cabecera)
+          const bgLayer = block.querySelector(".campaign-bg-layer");
+          const headerFig = block.querySelector("figure.faded-image");
+          const contentEl = block.querySelector(".campaign-content");
+
+          if (imgPosition === "header") {
+            if (bgLayer) bgLayer.style.display = "none";
+            if (headerFig) {
+              headerFig.style.display = "";
+            } else if (bgLayer) {
+              const bgImg = bgLayer.querySelector("img");
+              if (bgImg && bgImg.src) {
+                const fig = document.createElement("figure");
+                fig.className = "w100 ar-square overflow-hidden faded-image";
+                fig.innerHTML = `<img src="${bgImg.src}" alt="Campaña" class="cover w100 ar-square">`;
+                if (contentEl) block.insertBefore(fig, contentEl);
+              }
+            }
+            if (contentEl) {
+              contentEl.classList.remove("pt20");
+              contentEl.classList.add("pt0");
+            }
+          } else {
+            if (headerFig) headerFig.style.display = "none";
+            if (bgLayer) {
+              bgLayer.style.display = "";
+            } else if (headerFig) {
+              const hImg = headerFig.querySelector("img");
+              if (hImg && hImg.src) {
+                const newBgLayer = document.createElement("div");
+                newBgLayer.className = "campaign-bg-layer";
+                newBgLayer.style.cssText = "position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;";
+                newBgLayer.innerHTML = `
+                  <img src="${hImg.src}" alt="Campaña" class="cover w100 h100" style="object-fit: cover;">
+                  <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from ${cData.bg_color || "#1e1e1e"} l c h / ${cData.bg_opacity || 80}%);"></div>
+                `;
+                block.insertBefore(newBgLayer, block.firstChild);
+              }
+            }
+            if (contentEl) {
+              contentEl.classList.remove("pt0");
+              contentEl.classList.add("pt20");
+            }
+          }
+
+          // Formato flex de contenido y ancla del botón según tamaño
+          const isNotHorizontal = (effectiveSize !== "horizontal");
+          if (contentEl) {
+            if (isNotHorizontal) {
+              contentEl.classList.add("flex-1");
+              contentEl.style.flex = "1 1 auto";
+              contentEl.style.minHeight = "max-content";
+            } else {
+              contentEl.classList.remove("flex-1");
+              contentEl.style.flex = "";
+              contentEl.style.minHeight = "";
+            }
+          }
+
+          const btnEl = block.querySelector(".campaign-button");
+          if (btnEl) {
+            if (isNotHorizontal) {
+              btnEl.classList.add("campaign-btn-anchor-bottom");
+            } else {
+              btnEl.classList.remove("campaign-btn-anchor-bottom");
+            }
+            if (cData.button_text !== undefined) {
+              btnEl.textContent = cData.button_text.trim() || "Suscribirme";
+            }
+            if (cData.btn_bg_color) {
+              btnEl.style.setProperty("background-color", cData.btn_bg_color, "important");
+            }
+            if (cData.btn_text_color) {
+              btnEl.style.setProperty("color", cData.btn_text_color, "important");
+            }
+          }
+
+          // Colores de fondo y opacidad de overlay
+          const bgColor = cData.bg_color || block.style.backgroundColor || "#1e1e1e";
+          if (cData.bg_color) {
+            block.style.setProperty("background-color", bgColor, "important");
+          }
+
+          const bgOverlay = block.querySelector(".campaign-bg-overlay");
+          if (bgOverlay && (cData.bg_color || cData.bg_opacity !== undefined)) {
+            const opacityVal = (cData.bg_opacity !== undefined) ? cData.bg_opacity : 80;
+            bgOverlay.style.setProperty("background-color", `oklch(from ${bgColor} l c h / ${opacityVal}%)`, "important");
+          }
+
+          // Grupo de texto
+          const textGroup = block.querySelector(".campaign-text-group");
+          if (textGroup) {
+            // Alineación horizontal
+            if (cData.text_align) {
+              ["left", "center", "right"].forEach((a) => {
+                textGroup.classList.remove("campaign-align-" + a);
+              });
+              textGroup.classList.add("campaign-align-" + cData.text_align);
+
+              const innerDiv = textGroup.querySelector("div.flex-column.gap5");
+              if (innerDiv) {
+                ["left", "center", "right"].forEach((a) => {
+                  innerDiv.classList.remove("campaign-align-" + a);
+                });
+                innerDiv.classList.add("campaign-align-" + cData.text_align);
+              }
+            }
+
+            // Alineación vertical
+            ["top", "center", "bottom"].forEach((p) => {
+              textGroup.classList.remove("campaign-text-pos-" + p);
+            });
+            if (isNotHorizontal && cData.text_position) {
+              textGroup.classList.add("campaign-text-pos-" + cData.text_position);
+            }
+
+            // Título
+            let h3 = textGroup.querySelector("h3");
+            const titleVal = (cData.title !== undefined) ? cData.title : (h3 ? h3.textContent : "");
+            if (titleVal.trim() !== "") {
+              if (!h3) {
+                h3 = document.createElement("h3");
+                h3.className = "bold700 campaign-title-large w100";
+                const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
+                innerDiv.insertBefore(h3, innerDiv.firstChild);
+              }
+              h3.textContent = titleVal;
+              h3.style.display = "";
+            } else if (h3) {
+              h3.style.display = "none";
+            }
+
+            if (h3) {
+              if (cData.title_size) {
+                ["small", "medium", "large"].forEach((s) => h3.classList.remove("campaign-title-" + s));
+                h3.classList.add("campaign-title-" + cData.title_size);
+              }
+              if (cData.title_color) {
+                h3.style.setProperty("color", cData.title_color, "important");
+              }
+            }
+
+            // Descripción
+            let pDesc = textGroup.querySelector("p:not(.modal-btn):not(.campaign-button)");
+            const descVal = (cData.desc !== undefined) ? cData.desc : (pDesc ? pDesc.textContent : "");
+            if (descVal.trim() !== "") {
+              if (!pDesc) {
+                pDesc = document.createElement("p");
+                pDesc.className = "campaign-desc-medium w100";
+                const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
+                innerDiv.appendChild(pDesc);
+              }
+              pDesc.innerHTML = escapeHtml(descVal).replace(/\n/g, "<br>");
+              pDesc.style.display = "";
+            } else if (pDesc) {
+              pDesc.style.display = "none";
+            }
+
+            if (pDesc) {
+              if (cData.desc_size) {
+                ["small", "medium", "large"].forEach((s) => pDesc.classList.remove("campaign-desc-" + s));
+                pDesc.classList.add("campaign-desc-" + cData.desc_size);
+              }
+              if (cData.desc_color) {
+                pDesc.style.setProperty("color", cData.desc_color, "important");
+              }
+            }
+
+            // Contador regresivo
+            const countdownBox = block.querySelector(".campaign-countdown-box, [data-countdown]");
+            if (countdownBox) {
+              if (cData.has_countdown !== undefined) {
+                const hasCd = (cData.has_countdown === true || cData.has_countdown === "true" || cData.has_countdown === "1" || cData.has_countdown === 1);
+                countdownBox.style.display = hasCd ? "" : "none";
+              }
+              if (cData.countdown_date) {
+                countdownBox.setAttribute("data-countdown", cData.countdown_date);
+              }
+              if (cData.countdown_bg_color) {
+                countdownBox.style.setProperty("background-color", cData.countdown_bg_color, "important");
+              }
+              if (cData.countdown_text_color) {
+                countdownBox.style.setProperty("color", cData.countdown_text_color, "important");
+              }
+              if (cData.countdown_text_size) {
+                ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("countdown-text-" + s));
+                countdownBox.classList.add("countdown-text-" + cData.countdown_text_size);
+              }
+              if (cData.countdown_widget_size) {
+                ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("campaign-countdown-widget-" + s));
+                countdownBox.classList.add("campaign-countdown-widget-" + cData.countdown_widget_size);
+              }
+            }
+          }
+        }
+
+        // B. TÍTULO
+        else if (block.classList.contains("title-block-wrapper")) {
+          const h2 = block.querySelector("h2");
+          if (h2) {
+            if (cData.title !== undefined) {
+              h2.textContent = cData.title;
+              block.style.display = (cData.title.trim() === "") ? "none" : "";
+            }
+            if (cData.title_size) {
+              ["x18", "x20", "x24"].forEach((s) => h2.classList.remove(s));
+              const sizeMap = { small: "x18", medium: "x20", large: "x24" };
+              h2.classList.add(sizeMap[cData.title_size] || "x18");
+            }
+            if (cData.title_weight) {
+              ["bold500", "bold600", "bold700", "bold900"].forEach((w) => h2.classList.remove(w));
+              h2.classList.add("bold" + cData.title_weight);
+            }
+          }
+        }
+
+        // C. TEXTO
+        else if (block.classList.contains("text-block-wrapper")) {
+          const pEl = block.querySelector("p");
+          if (pEl) {
+            if (cData.text !== undefined) {
+              pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
+              block.style.display = (cData.text.trim() === "") ? "none" : "";
+            }
+            if (cData.text_weight) {
+              ["bold400", "bold500"].forEach((w) => pEl.classList.remove(w));
+              pEl.classList.add("bold" + cData.text_weight);
+            }
+            if (cData.text_align) {
+              ["text-left", "text-center", "text-right"].forEach((a) => block.classList.remove(a));
+              block.classList.add("text-" + cData.text_align);
+            }
+          }
+        }
+
+        // D. SEPARADOR
+        else if (block.classList.contains("separator-block-wrapper")) {
+          if (cData.space_size) {
+            if (block.style.height || (!block.classList.contains("flex-row") && !block.querySelector("svg"))) {
+              block.style.height = cData.space_size + "px";
+            }
+          }
+          if (cData.separator_size) {
+            const innerWrap = block.querySelector("div");
+            if (innerWrap) {
+              const widthMap = { small: "18px", medium: "60%", large: "100%" };
+              const w = widthMap[cData.separator_size] || "100%";
+              innerWrap.style.width = w;
+              innerWrap.style.maxWidth = w;
+            }
+          }
+        }
+
+        // E. BANNER
+        else if (block.classList.contains("banner-block-wrapper")) {
+          if (cData.bg_color) {
+            block.style.setProperty("background-color", cData.bg_color, "important");
+          }
+          if (cData.bg_opacity !== undefined) {
+            const img = block.querySelector("img");
+            if (img) {
+              img.style.opacity = (cData.bg_opacity / 100).toFixed(2);
+            }
+          }
+          if (cData.size) {
+            const ratioMap = {
+              "720x720": "720 / 720",
+              "1024x720": "1024 / 720",
+              "720x1024": "720 / 1024"
+            };
+            if (ratioMap[cData.size]) {
+              block.style.aspectRatio = ratioMap[cData.size];
+            }
+          }
+        }
+
+        // F. PRODUCTO REGULAR
+        else if (block.classList.contains("product-regular-wrapper")) {
+          if (cData.title !== undefined) {
+            const pTitle = block.querySelector(".capitalize-p");
+            if (pTitle) {
+              const svgEl = pTitle.querySelector("svg");
+              pTitle.innerHTML = "";
+              if (svgEl) pTitle.appendChild(svgEl);
+              pTitle.appendChild(document.createTextNode(" " + cData.title));
+            }
+          }
+          if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined) {
+            const priceContainer = block.querySelector(".flex-column.gap5.w50.p15");
+            if (priceContainer) {
+              const isOffer = (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1");
+              const priceVal = (cData.price !== undefined) ? cData.price : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "") || "");
+              const discountVal = (cData.discount !== undefined) ? cData.discount : "";
+
+              // Eliminar contenido de precios anterior
+              const existingPrices = priceContainer.querySelectorAll("p:not(.capitalize-p), div.flex-column");
+              existingPrices.forEach((el) => el.remove());
+
+              if (!isOffer) {
+                const p = document.createElement("p");
+                p.className = "bold500";
+                p.textContent = "$" + priceVal;
+                priceContainer.appendChild(p);
+              } else {
+                const div = document.createElement("div");
+                div.className = "flex-column center-start gap0";
+                div.innerHTML = `
+                  <p class="inactive" style="text-decoration:line-through;">$${priceVal}</p>
+                  <p class="x16">Precio oferta</p>
+                  <p class="bold500">$${discountVal}</p>
+                `;
+                priceContainer.appendChild(div);
+              }
+            }
+          }
+        }
+
+        // G. GRUPO DE PRODUCTOS
+        else if (block.classList.contains("product-group-wrapper")) {
+          if (cData.title !== undefined) {
+            let pTitle = block.querySelector("p.title-color");
+            if (cData.title.trim() !== "") {
+              if (!pTitle) {
+                pTitle = document.createElement("p");
+                pTitle.className = "bold600 text-c title-color w100";
+                block.insertBefore(pTitle, block.firstChild);
+              }
+              pTitle.textContent = cData.title;
+              pTitle.style.display = "";
+            } else if (pTitle) {
+              pTitle.style.display = "none";
+            }
+          }
+        }
+
+        // H. ENLACE REGULAR
+        else if (block.classList.contains("link-item-wrapper")) {
+          if (cData.title !== undefined) {
+            const pTitle = block.querySelector(".cut-phrase");
+            if (pTitle) {
+              pTitle.textContent = cData.title;
+            }
+          }
+        }
+      });
+
+      // 2. Sub-productos de grupos de productos
+      Object.keys(contentProductMap).forEach((idx) => {
+        const block = p.querySelector(`[data-content-index="${idx}"]`);
+        if (!block) return;
+        const subMap = contentProductMap[idx];
+        const cards = block.querySelectorAll(".product-grid-card, .product-slide-card");
+
+        Object.keys(subMap).forEach((pIdx) => {
+          const card = cards[pIdx];
+          if (!card) return;
+          const pData = subMap[pIdx];
+
+          if (pData.title !== undefined) {
+            const titleEl = card.querySelector(".capitalize-p");
+            if (titleEl) {
+              const svgEl = titleEl.querySelector("svg");
+              titleEl.innerHTML = "";
+              if (svgEl) titleEl.appendChild(svgEl);
+              titleEl.appendChild(document.createTextNode(" " + pData.title));
+            }
+          }
+
+          if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined) {
+            const priceContainer = card.querySelector(".mt-auto");
+            if (priceContainer) {
+              const isOffer = (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1");
+              const priceVal = (pData.price !== undefined) ? pData.price : "";
+              const discountVal = (pData.discount !== undefined) ? pData.discount : "";
+
+              if (!isOffer || !discountVal) {
+                priceContainer.innerHTML = priceVal !== "" ? `<p class="bold500">$${priceVal}</p>` : "";
+              } else {
+                priceContainer.innerHTML = `
+                  <div class="flex-column gap0">
+                    <p class="inactive x16" style="text-decoration: line-through;">$${priceVal}</p>
+                    <p class="bold500 text-success">$${discountVal}</p>
+                  </div>
+                `;
+              }
+            }
           }
         });
-      }
+      });
     });
   }
 
@@ -599,6 +1019,16 @@ export function designDraftManager() {
           const labelText = input.closest("label")?.querySelector("p, span");
           if (labelText) {
             labelText.textContent = val;
+          }
+        }
+
+        // Actualizar sliders de rango
+        if (input.type === "range") {
+          input.style.setProperty("--range-progress", `${val}%`);
+          const valTargetId = input.dataset.valTarget;
+          if (valTargetId) {
+            const valEl = document.getElementById(valTargetId);
+            if (valEl) valEl.textContent = `${val}%`;
           }
         }
       });
@@ -1174,6 +1604,14 @@ export function designDraftManager() {
     // Manejo de campos de texto, bio y deslizadores de rango
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
       if (target.type === "file") return;
+      if (target.type === "range") {
+        target.style.setProperty("--range-progress", `${target.value}%`);
+        const valTargetId = target.dataset.valTarget;
+        if (valTargetId) {
+          const valEl = document.getElementById(valTargetId);
+          if (valEl) valEl.textContent = `${target.value}%`;
+        }
+      }
       setDraftField(target.name, target.value);
       applyDraftToPreview(getDraft());
     }
