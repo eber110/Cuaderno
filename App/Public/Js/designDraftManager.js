@@ -577,6 +577,13 @@ export function designDraftManager() {
           if (cb.previousElementSibling && cb.previousElementSibling.type === "hidden" && cb.previousElementSibling.name === cb.name) {
             cb.previousElementSibling.disabled = isChecked;
           }
+
+          if (cb.name === "hide") {
+            const statusText = document.getElementById("profile-visibility-status-text");
+            if (statusText) {
+              statusText.textContent = isChecked ? "oculto" : "visible";
+            }
+          }
         });
         return;
       }
@@ -627,6 +634,191 @@ export function designDraftManager() {
   }
 
   /**
+   * Muestra un aviso visual flotante (toast) con estado de la acción en curso.
+   *
+   * @param {string} message Texto a mostrar
+   * @param {"loading"|"success"|"error"} [type="loading"] Tipo de aviso
+   * @param {number} [duration=0] Duración en ms antes de auto-ocultarse
+   */
+  function showActionToast(message, type = "loading", duration = 0) {
+    let toast = document.getElementById("action-feedback-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "action-feedback-toast";
+      toast.style.position = "fixed";
+      toast.style.bottom = "28px";
+      toast.style.left = "50%";
+      toast.style.transform = "translateX(-50%) translateY(20px)";
+      toast.style.opacity = "0";
+      toast.style.transition = "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)";
+      toast.style.zIndex = "999999";
+      toast.style.pointerEvents = "none";
+      toast.style.borderRadius = "50px";
+      toast.style.padding = "10px 22px";
+      toast.style.fontWeight = "500";
+      toast.style.fontSize = "14px";
+      toast.style.boxShadow = "0 8px 24px rgba(0,0,0,0.18)";
+      toast.style.display = "flex";
+      toast.style.alignItems = "center";
+      toast.style.gap = "10px";
+      document.body.appendChild(toast);
+    }
+
+    if (toast.__timer) {
+      clearTimeout(toast.__timer);
+      toast.__timer = null;
+    }
+
+    if (type === "loading") {
+      toast.style.background = "rgba(25, 25, 25, 0.92)";
+      toast.style.backdropFilter = "blur(8px)";
+      toast.style.color = "#ffffff";
+      toast.innerHTML = `
+        <span class="save-btn-spinner" style="margin-right: 0; width: 13px; height: 13px; border-width: 2px;"></span>
+        <span>${message}</span>
+      `;
+    } else if (type === "success") {
+      toast.style.background = "rgba(22, 101, 52, 0.95)";
+      toast.style.backdropFilter = "blur(8px)";
+      toast.style.color = "#ffffff";
+      toast.innerHTML = `
+        <span style="font-size: 15px; line-height: 1; font-weight: bold;">✓</span>
+        <span>${message}</span>
+      `;
+    } else if (type === "error") {
+      toast.style.background = "rgba(185, 28, 28, 0.95)";
+      toast.style.backdropFilter = "blur(8px)";
+      toast.style.color = "#ffffff";
+      toast.innerHTML = `
+        <span style="font-size: 15px; line-height: 1; font-weight: bold;">✕</span>
+        <span>${message}</span>
+      `;
+    }
+
+    requestAnimationFrame(() => {
+      toast.style.transform = "translateX(-50%) translateY(0)";
+      toast.style.opacity = "1";
+    });
+
+    if (duration > 0) {
+      toast.__timer = setTimeout(() => {
+        hideActionToast();
+      }, duration);
+    }
+  }
+
+  /**
+   * Oculta suavemente el aviso flotante (toast).
+   */
+  function hideActionToast() {
+    const toast = document.getElementById("action-feedback-toast");
+    if (toast) {
+      toast.style.transform = "translateX(-50%) translateY(20px)";
+      toast.style.opacity = "0";
+    }
+  }
+
+  /**
+   * Anima la salida y colapso de un elemento visual (panel o preview).
+   *
+   * @param {HTMLElement} element Elemento a colapsar y ocultar
+   */
+  function animateElementRemoval(element) {
+    if (!element || element.classList.contains("item-deleting")) return;
+    element.classList.add("item-deleting");
+    element.style.pointerEvents = "none";
+    const startHeight = element.offsetHeight;
+    element.style.maxHeight = startHeight + "px";
+    
+    // Forzar reflujo para que la transición CSS desde startHeight hasta 0 funcione
+    void element.offsetHeight;
+    
+    element.style.opacity = "0";
+    element.style.transform = "scale(0.92) translateY(-8px)";
+    element.style.maxHeight = "0px";
+    element.style.paddingTop = "0px";
+    element.style.paddingBottom = "0px";
+    element.style.marginTop = "0px";
+    element.style.marginBottom = "0px";
+    element.style.overflow = "hidden";
+  }
+
+  /**
+   * Ejecuta la eliminación optimista en la interfaz (panel + vista previa).
+   *
+   * @param {HTMLElement} [triggerElement] Elemento disparador (checkbox, botón)
+   * @param {string} [targetId] ID del checkbox objetivo si vino de un label
+   */
+  function performOptimisticDelete(triggerElement = null, targetId = null) {
+    let panelElement = null;
+    let previewElements = [];
+    let deleteNotice = "Eliminando bloque...";
+
+    const idStr = targetId || (triggerElement && triggerElement.id ? triggerElement.id : "");
+    const nameStr = triggerElement && triggerElement.name ? triggerElement.name : "";
+
+    // 1. Caso: delete-link-X o content[X][delete]
+    let contentIndex = null;
+    if (idStr.startsWith("delete-link-")) {
+      contentIndex = idStr.replace("delete-link-", "");
+    } else if (nameStr) {
+      const match = nameStr.match(/content\[(\d+)\]\[delete\]/);
+      if (match) contentIndex = match[1];
+    }
+
+    if (contentIndex !== null) {
+      panelElement = document.getElementById("content-item-" + contentIndex) || (triggerElement ? triggerElement.closest(".sortable-item, .content-block") : null);
+      previewElements = Array.from(document.querySelectorAll(`.user-profile-preview [data-content-index="${contentIndex}"]`));
+      deleteNotice = "Eliminando bloque...";
+    }
+
+    // 2. Caso: delete-rrss-X o rrss[X][delete]
+    let rrssIndex = null;
+    if (idStr.startsWith("delete-rrss-")) {
+      rrssIndex = idStr.replace("delete-rrss-", "");
+    } else if (nameStr) {
+      const match = nameStr.match(/rrss\[(\d+)\]\[delete\]/);
+      if (match) rrssIndex = match[1];
+    }
+
+    if (rrssIndex !== null) {
+      panelElement = document.getElementById("rrss-item-" + rrssIndex) || (triggerElement ? triggerElement.closest(".sortable-item, .rrss-item") : null);
+      const rrssNameInput = panelElement ? panelElement.querySelector(`input[name="rrss[${rrssIndex}][0]"]`) : null;
+      const socialName = rrssNameInput ? rrssNameInput.value : "";
+      if (socialName) {
+        previewElements = Array.from(document.querySelectorAll(`.user-profile-preview [data-link-id="rrss_${socialName}"], .user-profile-preview [aria-label="${socialName}"]`));
+      }
+      deleteNotice = "Eliminando red social...";
+    }
+
+    // 3. Caso: sub-producto dentro de product_group
+    if (nameStr.includes("delete_sub_product")) {
+      panelElement = triggerElement ? (triggerElement.closest(".sub-product-item, .product-item, [class*='sub-product']") || triggerElement.closest("div.flex-column, div.flex-row")) : null;
+      deleteNotice = "Eliminando sub-producto...";
+    } else if (nameStr.includes("delete_img")) {
+      deleteNotice = "Eliminando imagen...";
+    }
+
+    // Animar en el panel
+    if (panelElement) {
+      animateElementRemoval(panelElement);
+    }
+
+    // Animar en el preview
+    if (previewElements && previewElements.length > 0) {
+      previewElements.forEach((pItem) => {
+        animateElementRemoval(pItem);
+      });
+    }
+
+    // Mostrar aviso flotante
+    showActionToast(deleteNotice, "loading");
+
+    // Activar inmediatamente los botones Guardar / Descartar
+    document.dispatchEvent(new CustomEvent("designDraftChanged"));
+  }
+
+  /**
    * Envía el formulario de .remote-container mediante petición asíncrona (Fetch/AJAX),
    * procesa adiciones o eliminaciones y actualiza la vista previa y el editor en vivo
    * sin provocar recargas completas de la página ni perder la pestaña activa.
@@ -639,6 +831,22 @@ export function designDraftManager() {
   async function submitRemoteFormAjax(form, triggerElement = null) {
     if (isSubmittingRemoteAjax) return false;
     isSubmittingRemoteAjax = true;
+
+    const isDeleteAction = triggerElement && triggerElement.name && (
+      triggerElement.name.includes("[delete]") ||
+      triggerElement.name.includes("delete_sub_product") ||
+      triggerElement.name.includes("delete_img")
+    );
+
+    // Si no se había ejecutado el borrado optimista aún, ejecutarlo ahora
+    if (isDeleteAction) {
+      performOptimisticDelete(triggerElement);
+    }
+
+    // Deshabilitar temporalmente clics en botones de eliminación para evitar peticiones duplicadas
+    document.querySelectorAll('label[for^="delete-link-"], label[for^="delete-rrss-"], .modal-btn').forEach((btn) => {
+      btn.style.pointerEvents = "none";
+    });
 
     try {
       // 1. Cerrar cualquier modal abierto (confirmación de eliminar, menús emergentes)
@@ -666,9 +874,8 @@ export function designDraftManager() {
 
       // 5. Incorporar cambios acumulados en el borrador local (excepto si el ítem fue eliminado)
       const draft = getDraft();
-      const isDeleteAction = triggerElement && triggerElement.name && triggerElement.name.includes("[delete]");
       let deletedPrefix = null;
-      if (isDeleteAction) {
+      if (isDeleteAction && triggerElement.name) {
         deletedPrefix = triggerElement.name.replace(/\[delete\]$/, "");
       }
 
@@ -733,7 +940,7 @@ export function designDraftManager() {
         // 11. Actualizar banner de estado en barra lateral
         if (data.sidebarStatusHtml) {
           document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
-            sidebar.outerHTML = data.sidebarStatusHtml;
+            sidebar.innerHTML = data.sidebarStatusHtml;
           });
         }
 
@@ -773,7 +980,12 @@ export function designDraftManager() {
         // 13. Restaurar scroll de la ventana
         window.scrollTo(0, currentScrollY);
 
-        // 14. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
+        // 14. Mostrar confirmación en toast si fue eliminación
+        if (isDeleteAction) {
+          showActionToast("Elemento eliminado", "success", 2000);
+        }
+
+        // 15. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
         document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
         notifyDraftState();
@@ -783,8 +995,27 @@ export function designDraftManager() {
       }
     } catch (err) {
       console.error("Error en submitRemoteFormAjax:", err);
+      if (isDeleteAction) {
+        showActionToast("Error al eliminar el elemento", "error", 3000);
+        // Revertir animación de los elementos si falló la petición
+        document.querySelectorAll(".item-deleting").forEach((el) => {
+          el.classList.remove("item-deleting");
+          el.style.opacity = "";
+          el.style.transform = "";
+          el.style.maxHeight = "";
+          el.style.paddingTop = "";
+          el.style.paddingBottom = "";
+          el.style.marginTop = "";
+          el.style.marginBottom = "";
+          el.style.overflow = "";
+          el.style.pointerEvents = "";
+        });
+      }
       return false;
     } finally {
+      document.querySelectorAll('label[for^="delete-link-"], label[for^="delete-rrss-"], .modal-btn').forEach((btn) => {
+        btn.style.pointerEvents = "";
+      });
       isSubmittingRemoteAjax = false;
     }
   }
@@ -801,6 +1032,9 @@ export function designDraftManager() {
 
       const submitter = e.submitter || lastClickedSubmitButton;
       if (submitter && isStructuralAction(submitter)) {
+        if (submitter.name && (submitter.name.includes("delete_sub_product") || submitter.name.includes("delete_img"))) {
+          performOptimisticDelete(submitter);
+        }
         submitRemoteFormAjax(form, submitter);
         return;
       }
@@ -821,6 +1055,13 @@ export function designDraftManager() {
       if (checkbox) {
         checkbox.checked = true;
         const form = checkbox.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+        
+        // Cerrar modal inmediatamente
+        document.querySelectorAll(".modal-overlay, .custom-modal-overlay").forEach((m) => m.remove());
+        
+        // Aplicar eliminación optimista inmediata en panel y preview
+        performOptimisticDelete(checkbox, targetId);
+
         submitRemoteFormAjax(form, checkbox);
       }
       return;
@@ -838,6 +1079,9 @@ export function designDraftManager() {
 
         if (isStructuralAction(submitBtn)) {
           e.preventDefault();
+          if (submitBtn.name && (submitBtn.name.includes("delete_sub_product") || submitBtn.name.includes("delete_img"))) {
+            performOptimisticDelete(submitBtn);
+          }
           submitRemoteFormAjax(form, submitBtn);
         }
       }
@@ -898,6 +1142,14 @@ export function designDraftManager() {
     if (target.type === "checkbox") {
       setDraftField(target.name, target.checked ? (target.value || "true") : "false");
       applyDraftToPreview(getDraft());
+
+      // Si es el switch de ocultar perfil, sincronizar el texto explicativo de la tarjeta
+      if (target.name === "hide") {
+        const statusText = document.getElementById("profile-visibility-status-text");
+        if (statusText) {
+          statusText.textContent = target.checked ? "oculto" : "visible";
+        }
+      }
 
       // Sincronizar visibilidad de elementos en la vista previa al conmutar switches
       if (target.matches(".checkbox-switch")) {
@@ -983,6 +1235,10 @@ export function designDraftManager() {
    * @returns {Promise<boolean>} True si se guardó con éxito.
    */
   async function saveDraft() {
+    while (isSubmittingRemoteAjax) {
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+
     const draft = getDraft();
     const activeForm = document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
     // Usar FormData nativo para respetar disabled en inputs hidden emparejados con switches
@@ -1034,9 +1290,22 @@ export function designDraftManager() {
 
       // Actualizar el estado de la barra lateral si viene en la respuesta
       if (data.sidebarStatusHtml) {
-        const sidebar = document.querySelector(".sidebar-profile-status");
-        if (sidebar) {
-          sidebar.outerHTML = data.sidebarStatusHtml;
+        document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
+          sidebar.innerHTML = data.sidebarStatusHtml;
+        });
+      }
+
+      // Si data.card tiene hide, asegurar que el texto explicativo y el switch estén sincronizados
+      if (data.card && data.card.hide !== undefined) {
+        const isHidden = (data.card.hide === true || data.card.hide === "true" || data.card.hide === 1 || data.card.hide === "1");
+        const statusText = document.getElementById("profile-visibility-status-text");
+        if (statusText) {
+          statusText.textContent = isHidden ? "oculto" : "visible";
+        }
+        const hideCheckbox = document.querySelector('input[type="checkbox"][name="hide"]');
+        if (hideCheckbox) {
+          hideCheckbox.checked = isHidden;
+          hideCheckbox.setAttribute("active", isHidden ? "1" : "2");
         }
       }
 
@@ -1056,6 +1325,10 @@ export function designDraftManager() {
    * @returns {Promise<boolean>} True si se descartó con éxito.
    */
   async function discardDraft() {
+    while (isSubmittingRemoteAjax) {
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+
     clearDraft();
 
     // Eliminar sobreescrituras dinámicas
@@ -1128,8 +1401,21 @@ export function designDraftManager() {
       // 3. Restaurar banner de estado en barra lateral si viene en la respuesta
       if (data.sidebarStatusHtml) {
         document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
-          sidebar.outerHTML = data.sidebarStatusHtml;
+          sidebar.innerHTML = data.sidebarStatusHtml;
         });
+      }
+
+      if (data.card && data.card.hide !== undefined) {
+        const isHidden = (data.card.hide === true || data.card.hide === "true" || data.card.hide === 1 || data.card.hide === "1");
+        const statusText = document.getElementById("profile-visibility-status-text");
+        if (statusText) {
+          statusText.textContent = isHidden ? "oculto" : "visible";
+        }
+        const hideCheckbox = document.querySelector('input[type="checkbox"][name="hide"]');
+        if (hideCheckbox) {
+          hideCheckbox.checked = isHidden;
+          hideCheckbox.setAttribute("active", isHidden ? "1" : "2");
+        }
       }
 
       document.dispatchEvent(new CustomEvent("designDraftDiscarded", { detail: data }));

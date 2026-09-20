@@ -3,7 +3,7 @@
    * @var mixed $card 
    * @var mixed $uri
    */
-  $isHide = !empty($card["hide"]);
+  $isHide = !empty($card["hide"]) && ($card["hide"] === true || $card["hide"] === 'true' || $card["hide"] === 1 || $card["hide"] === '1');
 ?>
 <form class="auto-submit" action="<?= $uri["formDesign"]?>" method="post">
   <input type="hidden" name="hide_form_submitted" value="1">
