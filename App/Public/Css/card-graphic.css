@@ -182,5 +182,16 @@ input[type="checkbox"].checkbox-switch {
   pointer-events: none !important;
 }
 
+.item-deleting-in-place {
+  pointer-events: none !important;
+  opacity: 0.85 !important;
+  transition: opacity 0.25s ease !important;
+}
+
+.in-place-delete-notice {
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
 
 

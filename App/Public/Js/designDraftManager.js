@@ -719,6 +719,75 @@ export function designDraftManager() {
   }
 
   /**
+   * Muestra el aviso visual directamente en la posición del bloque que se está eliminando.
+   *
+   * @param {HTMLElement} panelElement Elemento contenedor del bloque en el panel
+   * @param {string} message Mensaje a mostrar (ej: "Eliminando bloque...")
+   */
+  function showInPlaceDeleteNotice(panelElement, message = "Eliminando bloque...") {
+    if (!panelElement || panelElement.querySelector(".in-place-delete-notice")) return;
+
+    panelElement.classList.add("item-deleting-in-place");
+    panelElement.style.pointerEvents = "none";
+
+    const currentHeight = panelElement.offsetHeight;
+    if (currentHeight > 0) {
+      panelElement.style.minHeight = Math.min(currentHeight, 70) + "px";
+    }
+
+    // Ocultar elementos visuales existentes sin tocar los inputs (para que FormData los conserve)
+    Array.from(panelElement.children).forEach((child) => {
+      if (child.tagName !== "INPUT" && !child.classList.contains("in-place-delete-notice")) {
+        child.dataset.prevDisplay = child.style.display || "";
+        child.style.display = "none";
+      }
+    });
+
+    // Crear el aviso en la posición exacta del bloque
+    const noticeEl = document.createElement("div");
+    noticeEl.className = "in-place-delete-notice flex-row center-center gap10 w100 p15 text-c";
+    noticeEl.style.minHeight = "48px";
+    noticeEl.style.opacity = "0";
+    noticeEl.style.transform = "scale(0.96)";
+    noticeEl.style.transition = "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)";
+    noticeEl.innerHTML = `
+      <span class="save-btn-spinner save-btn-spinner-dark" style="margin-right: 0; width: 15px; height: 15px; border-width: 2px;"></span>
+      <span class="bold500 texto x15">${message}</span>
+    `;
+
+    panelElement.appendChild(noticeEl);
+
+    requestAnimationFrame(() => {
+      noticeEl.style.opacity = "1";
+      noticeEl.style.transform = "scale(1)";
+    });
+  }
+
+  /**
+   * Restaura el contenido visual del bloque si la eliminación falló en el servidor.
+   *
+   * @param {HTMLElement} panelElement Elemento contenedor del bloque
+   */
+  function restoreInPlaceBlock(panelElement) {
+    if (!panelElement) return;
+    panelElement.classList.remove("item-deleting-in-place");
+    panelElement.style.pointerEvents = "";
+    panelElement.style.minHeight = "";
+
+    const noticeEl = panelElement.querySelector(".in-place-delete-notice");
+    if (noticeEl) {
+      noticeEl.remove();
+    }
+
+    Array.from(panelElement.children).forEach((child) => {
+      if (child.tagName !== "INPUT" && child.dataset.prevDisplay !== undefined) {
+        child.style.display = child.dataset.prevDisplay;
+        delete child.dataset.prevDisplay;
+      }
+    });
+  }
+
+  /**
    * Anima la salida y colapso de un elemento visual (panel o preview).
    *
    * @param {HTMLElement} element Elemento a colapsar y ocultar
@@ -799,20 +868,17 @@ export function designDraftManager() {
       deleteNotice = "Eliminando imagen...";
     }
 
-    // Animar en el panel
+    // Mostrar el aviso directamente en la posición del bloque en el panel
     if (panelElement) {
-      animateElementRemoval(panelElement);
+      showInPlaceDeleteNotice(panelElement, deleteNotice);
     }
 
-    // Animar en el preview
+    // Animar salida en la vista previa
     if (previewElements && previewElements.length > 0) {
       previewElements.forEach((pItem) => {
         animateElementRemoval(pItem);
       });
     }
-
-    // Mostrar aviso flotante
-    showActionToast(deleteNotice, "loading");
 
     // Activar inmediatamente los botones Guardar / Descartar
     document.dispatchEvent(new CustomEvent("designDraftChanged"));
@@ -980,12 +1046,7 @@ export function designDraftManager() {
         // 13. Restaurar scroll de la ventana
         window.scrollTo(0, currentScrollY);
 
-        // 14. Mostrar confirmación en toast si fue eliminación
-        if (isDeleteAction) {
-          showActionToast("Elemento eliminado", "success", 2000);
-        }
-
-        // 15. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
+        // 14. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
         document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
         notifyDraftState();
@@ -996,8 +1057,11 @@ export function designDraftManager() {
     } catch (err) {
       console.error("Error en submitRemoteFormAjax:", err);
       if (isDeleteAction) {
-        showActionToast("Error al eliminar el elemento", "error", 3000);
-        // Revertir animación de los elementos si falló la petición
+        // Restaurar bloques en el panel
+        document.querySelectorAll(".item-deleting-in-place").forEach((el) => {
+          restoreInPlaceBlock(el);
+        });
+        // Revertir animación de los elementos en preview
         document.querySelectorAll(".item-deleting").forEach((el) => {
           el.classList.remove("item-deleting");
           el.style.opacity = "";
