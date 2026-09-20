@@ -157,14 +157,6 @@ export function videoBackgroundController() {
         voidContainer.style.display = target.value === "voidHero" ? "flex" : "none";
       }
     }
-
-    // 1.3 Al soltar el deslizador de opacidad, persistir con auto-submit
-    if (target.id === "select-opacity-overlay") {
-      const form = target.closest("form.auto-submit") || target.closest("form");
-      if (form && typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-      }
-    }
   });
 
   // =========================================================================
@@ -229,10 +221,15 @@ export function videoBackgroundController() {
       const hiddenInput = document.getElementById("input-opacity-val");
       if (hiddenInput) hiddenInput.value = actualOpacity;
 
+      if (window.__designDraftManager && typeof window.__designDraftManager.setDraftField === "function") {
+        window.__designDraftManager.setDraftField("back_video_opacity", actualOpacity);
+      }
+
       const colorPicker = document.getElementById("select-color-overlay");
       const overlayColor = colorPicker ? colorPicker.value : "#000000";
       document.querySelectorAll(".back-video-overlay").forEach((overlay) => {
-        overlay.style.backgroundColor = `oklch(from ${overlayColor} l c h / ${actualOpacity}%)`;
+        overlay.style.backgroundColor = overlayColor;
+        overlay.style.opacity = (actualOpacity / 100).toFixed(2);
       });
     }
 
@@ -240,8 +237,14 @@ export function videoBackgroundController() {
     if (target.id === "select-color-overlay") {
       const hiddenInput = document.getElementById("input-opacity-val");
       const val = hiddenInput ? parseInt(hiddenInput.value, 10) : 45;
+
+      if (window.__designDraftManager && typeof window.__designDraftManager.setDraftField === "function") {
+        window.__designDraftManager.setDraftField("back_video_overlay", target.value);
+      }
+
       document.querySelectorAll(".back-video-overlay").forEach((overlay) => {
-        overlay.style.backgroundColor = `oklch(from ${target.value} l c h / ${val}%)`;
+        overlay.style.backgroundColor = target.value;
+        overlay.style.opacity = (val / 100).toFixed(2);
       });
     }
 
@@ -435,6 +438,11 @@ export function videoBackgroundController() {
                   container.innerHTML = resData.html;
                 }
               });
+
+              // Asegurar reproducción automática del video en el preview
+              document.querySelectorAll(".user-profile-preview video.back-video-bg").forEach((v) => {
+                v.play().catch(() => {});
+              });
             }
 
             // 2. Actualizar el panel #background-remote con el nuevo HTML del form
@@ -446,6 +454,10 @@ export function videoBackgroundController() {
                 const matchingNewContent = tempForm.querySelector("#" + CSS.escape(activeRemote.id));
                 if (matchingNewContent) {
                   activeRemote.innerHTML = matchingNewContent.innerHTML;
+                  if (window.__formComponents) {
+                    window.__formComponents.initCheckboxSwitches?.();
+                    window.__formComponents.styleColorPickers?.();
+                  }
                 }
               }
             }
@@ -464,27 +476,10 @@ export function videoBackgroundController() {
               `;
             }
 
-            // 4. Activar botón guardar global
-            const saveBtnContainer = document.getElementById("save-btn-container");
-            if (saveBtnContainer) {
-              saveBtnContainer.dataset.hasCustom = "true";
-              const saveBtn = document.getElementById("save-btn");
-                if (saveBtn) {
-                  saveBtn.classList.remove("disabled-save-btn", "texto", "back-card-graphic");
-                  saveBtn.classList.add("pointer", "back-card-graphic-red", "shadow-card-graphic", "hover-scale-soft", "textw", "bold500", "border-none");
-                  saveBtn.removeAttribute("tabindex");
-                  saveBtn.removeAttribute("aria-disabled");
-                }
-                const discardBtn = document.getElementById("discard-btn");
-                if (discardBtn) {
-                  discardBtn.classList.remove("hidden", "disabled-save-btn");
-                  discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
-                  discardBtn.removeAttribute("tabindex");
-                  discardBtn.removeAttribute("aria-disabled");
-                  discardBtn.textContent = "Descartar";
-                }
-              document.dispatchEvent(new CustomEvent("draftSaved", { detail: resData }));
-            }
+            // 4. Activar botón guardar global y notificar a los demás módulos
+            document.dispatchEvent(new CustomEvent("previewUpdated", { detail: resData }));
+            document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: resData }));
+            document.dispatchEvent(new CustomEvent("draftSaved", { detail: resData }));
 
           } else {
             let errorMsg = "Error en la subida a Cloudinary.";

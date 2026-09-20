@@ -18,15 +18,15 @@
     <div class="flex-column top-start gap10 w100">
       <p class="texto">Estilo del fondo</p>
 
+      <?php
+        [$gradStart, $gradEnd] = \App\Models\DesignModels::getGradientColors($backPerfil);
+      ?>
       <div class="flex-row center-start flex-wrap gap10 w100">
         
         <input type="radio" id="style_gradient" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo "checked";?>>
         <label for="style_gradient">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
-            <div class="hpx80 wpx80 br15" style="background: linear-gradient(180deg,
-              oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.01) h / 88%),
-              oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
-              );"></div>
+            <div id="preview-style-gradient" class="hpx80 wpx80 br15" style="background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);"></div>
             <p class="x16 texto">Degradado</p>
           </div>
         </label>
@@ -34,7 +34,7 @@
         <input type="radio" id="style_solid" name="style_back" class="hidden-radio" value="solid" <?php if ($styleBack == "solid") echo "checked";?>>
         <label for="style_solid">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
-            <div class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
+            <div id="preview-style-solid" class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
             <p class="x16 texto">Sólido</p>
           </div>
         </label>

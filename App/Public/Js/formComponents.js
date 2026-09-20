@@ -147,6 +147,9 @@ export function formComponents() {
       }
 
       /* Estilos para el Checkbox Switch */
+      input[type="checkbox"].checkbox-switch {
+        display: none !important;
+      }
       .checkbox-switch-container {
         display: inline-flex;
         align-items: center;
@@ -315,10 +318,51 @@ export function formComponents() {
     initCheckboxSwitches();
   });
 
+  document.addEventListener('designDraftDiscarded', () => {
+    styleColorPickers();
+    initCheckboxSwitches();
+  });
+
   window.addEventListener('pageshow', () => {
     styleColorPickers();
     initCheckboxSwitches();
   });
+
+  // MutationObserver para capturar cualquier nuevo switch o selector de color inyectado dinámicamente
+  if (typeof MutationObserver !== 'undefined') {
+    const switchObserver = new MutationObserver((mutations) => {
+      let hasNewComponent = false;
+      for (const m of mutations) {
+        if (m.addedNodes && m.addedNodes.length > 0) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.matches && (node.matches('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') || node.matches('input[type="color"].color-picker'))) {
+                hasNewComponent = true;
+                break;
+              }
+              if (node.querySelector && (node.querySelector('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') || node.querySelector('input[type="color"].color-picker'))) {
+                hasNewComponent = true;
+                break;
+              }
+            }
+          }
+        }
+        if (hasNewComponent) break;
+      }
+      if (hasNewComponent) {
+        styleColorPickers();
+        initCheckboxSwitches();
+      }
+    });
+
+    if (document.body) {
+      switchObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        switchObserver.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
 
   // 3. Funciones Helper para conversión HSL y HEX
   function hslToHex(h, s, l) {

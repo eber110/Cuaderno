@@ -40,38 +40,29 @@
     color: <?= $color?>;
   }
 
+  <?php
+    [$gradStart, $gradEnd] = \App\Models\DesignModels::getGradientColors($backPerfil);
+  ?>
   <?php if ($styleBack == "solid") :?>
     .back-card{
       background-color: <?= $backPerfil?>;
     }
     .back-card-container{
-      background-color: oklch(from <?= $backPerfil?> calc(l * 0.65) c h / 70%);
+      background-color: <?= $backPerfil?>;
     }
   <?php elseif ($styleBack == "gradientUp") :?>
     .back-card{
-      background: radial-gradient(circle at bottom,
-      <?= $backPerfil?> 20%,
-      oklch(from <?= $backPerfil?> calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%,
-      oklch(from <?= $backPerfil?> calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100%;
+      background: linear-gradient(0deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
     .back-card-container{
-      background: linear-gradient(0deg,
-        oklch(from <?= $backPerfil?> calc(l * 0.60) c h / 75%),
-        oklch(from <?= $backPerfil?> calc(l * 1.35) calc(c - 0.03) calc(h - 30) / 90%)
-      );
+      background: linear-gradient(0deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
   <?php elseif ($styleBack == "gradientDown") :?>
     .back-card{
-      background: radial-gradient(circle at top,
-      <?= $backPerfil?> 20%,
-      oklch(from <?= $backPerfil?> calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%,
-      oklch(from <?= $backPerfil?> calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100%;
+      background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
     .back-card-container{
-      background: linear-gradient(180deg,
-        oklch(from <?= $backPerfil?> calc(l * 0.60) c h / 75%),
-        oklch(from <?= $backPerfil?> calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)
-      );
+      background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
   <?php elseif ($styleBack == "video" && !empty($backVideo)) :?>
     .back-card{
@@ -79,14 +70,14 @@
       position: relative;
     }
     .back-card-container{
-      background-color: oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+      background-color: <?= $backPerfil?>;
     }
   <?php else :?>
     .back-card{
       background-color: <?= $backPerfil?>;
     }
     .back-card-container{
-      background-color: oklch(from <?= $backPerfil?> calc(l * 0.60) calc(c - 0.02) h / 88%);
+      background-color: <?= $backPerfil?>;
     }
   <?php endif?>
 
@@ -107,7 +98,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: <?= "oklch(from {$backVideoOverlay} l c h / {$backVideoOpacity}%)" ?>;
+    background-color: <?= $backVideoOverlay ?>;
+    opacity: <?= ($backVideoOpacity / 100) ?>;
     z-index: 0;
     pointer-events: none;
   }

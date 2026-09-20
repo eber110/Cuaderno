@@ -241,6 +241,14 @@ export function saveButtonController() {
         }
       }
     });
+
+    // Inicializar inmediatamente switches y selectores de color en el HTML restaurado
+    if (window.__formComponents) {
+      window.__formComponents.initCheckboxSwitches?.();
+      window.__formComponents.styleColorPickers?.();
+    }
+
+    document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: { formHtml } }));
   }
 
   // Escuchar clic en los botones remotos del sidebar

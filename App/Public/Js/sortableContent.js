@@ -240,7 +240,7 @@ export function sortableContent() {
     window.__sortableContentInitialized = true;
 
     // Auto-recuperación cuando se actualiza la vista previa o formulario por Fetch
-    document.addEventListener("previewUpdated", () => {
+    const rebindContainers = () => {
       try {
         const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
         containers.forEach((c) => {
@@ -249,9 +249,13 @@ export function sortableContent() {
         });
         initAllContainers();
       } catch (err) {
-        console.warn("sortableContent previewUpdated warning:", err);
+        console.warn("sortableContent rebind warning:", err);
       }
-    });
+    };
+
+    document.addEventListener("previewUpdated", rebindContainers);
+    document.addEventListener("remoteContentUpdated", rebindContainers);
+    document.addEventListener("designDraftDiscarded", rebindContainers);
 
     // Auto-recuperación si la página se restaura desde BFCache
     window.addEventListener("pageshow", () => {

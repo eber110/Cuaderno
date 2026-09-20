@@ -22,6 +22,85 @@ class DesignModels extends Builder {
   public static ?string $videoUploadSuccess = null;
 
   /**
+   * Genera los dos colores de parada para un degradado armónico basado en un color hexadecimal base.
+   * Preserva el tono y la saturación, generando un degradado visible y estético tanto para
+   * colores claros/pasteles como para oscuros y medios en cualquier navegador.
+   *
+   * @param string $hex Color hexadecimal de origen (ej: #f7efff).
+   * @return array [colorInicio, colorFin]
+   */
+  public static function getGradientColors(string $hex): array {
+    $clean = ltrim(trim($hex), "#");
+    if (strlen($clean) === 3) {
+      $clean = $clean[0] . $clean[0] . $clean[1] . $clean[1] . $clean[2] . $clean[2];
+    }
+    if (strlen($clean) !== 6 || !ctype_xdigit($clean)) {
+      return ["#272727", "#444444"];
+    }
+
+    $r = hexdec(substr($clean, 0, 2)) / 255;
+    $g = hexdec(substr($clean, 2, 2)) / 255;
+    $b = hexdec(substr($clean, 4, 2)) / 255;
+
+    $max = max($r, $g, $b);
+    $min = min($r, $g, $b);
+    $l   = ($max + $min) / 2;
+
+    if ($max === $min) {
+      $h = 0;
+      $s = 0;
+    } else {
+      $d = $max - $min;
+      $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
+      switch ($max) {
+        case $r: $h = ($g - $b) / $d + ($g < $b ? 6 : 0); break;
+        case $g: $h = ($b - $r) / $d + 2; break;
+        case $b: $h = ($r - $g) / $d + 4; break;
+      }
+      $h = round($h * 60);
+    }
+
+    $sPct = round($s * 100);
+    $lPct = round($l * 100);
+
+    // Si es muy claro / pastel (L >= 70%)
+    if ($lPct >= 70) {
+      $endS = ($sPct > 5) ? max(40, $sPct) : $sPct;
+      $endL = max(40, $lPct - 22);
+    } elseif ($lPct <= 30) {
+      // Si es muy oscuro (L <= 30%)
+      $endS = ($sPct > 5) ? max(25, $sPct) : $sPct;
+      $endL = min(65, $lPct + 22);
+    } else {
+      // Tonos medios
+      $endS = min(100, $sPct + 5);
+      $endL = max(15, $lPct - 20);
+    }
+
+    $endHex = self::hslToHex($h, $endS, $endL);
+    return ["#" . $clean, $endHex];
+  }
+
+  /**
+   * Convierte valores HSL a código hexadecimal.
+   *
+   * @param float|int $h Tono (0-360).
+   * @param float|int $s Saturación (0-100).
+   * @param float|int $l Luminosidad (0-100).
+   * @return string Código hexadecimal con almohadilla (ej: #d3b8f0).
+   */
+  private static function hslToHex(float|int $h, float|int $s, float|int $l): string {
+    $l /= 100;
+    $a = $s * min($l, 1 - $l) / 100;
+    $f = function (int $n) use ($h, $l, $a) {
+      $k = fmod($n + $h / 30, 12);
+      $color = $l - $a * max(min($k - 3, 9 - $k, 1), -1);
+      return str_pad(dechex((int)round(255 * $color)), 2, "0", STR_PAD_LEFT);
+    };
+    return "#" . $f(0) . $f(8) . $f(4);
+  }
+
+  /**
    * Transforma una fila de la tabla user_designs en la estructura asociativa de tarjeta ($data['card']).
    *
    * @param array $row Fila obtenida de SQLite.

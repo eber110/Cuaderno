@@ -194,6 +194,65 @@ export function designDraftManager() {
     return dynamicStyleEl;
   }
 
+  function hexToHsl(hex) {
+    let clean = hex.replace(/^#/, "");
+    if (clean.length === 3) {
+      clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+    }
+    if (clean.length !== 6) return { h: 0, s: 0, l: 0 };
+    let r = parseInt(clean.slice(0, 2), 16) / 255;
+    let g = parseInt(clean.slice(2, 4), 16) / 255;
+    let b = parseInt(clean.slice(4, 6), 16) / 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h = Math.round(h * 60);
+    }
+    return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, "0");
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  function getGradientColors(hex) {
+    let clean = hex.replace(/^#/, "");
+    if (clean.length === 3) {
+      clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+    }
+    if (clean.length !== 6) return ["#272727", "#444444"];
+    const hsl = hexToHsl(clean);
+    let endS, endL;
+    if (hsl.l >= 70) {
+      endS = hsl.s > 5 ? Math.max(40, hsl.s) : hsl.s;
+      endL = Math.max(40, hsl.l - 22);
+    } else if (hsl.l <= 30) {
+      endS = hsl.s > 5 ? Math.max(25, hsl.s) : hsl.s;
+      endL = Math.min(65, hsl.l + 22);
+    } else {
+      endS = Math.min(100, hsl.s + 5);
+      endL = Math.max(15, hsl.l - 20);
+    }
+    const endHex = hslToHex(hsl.h, endS, endL);
+    return [`#${clean}`, endHex];
+  }
+
   /**
    * Aplica un conjunto de estilos acumulados a la vista previa.
    * @param {Object} fields Diccionario con los campos del borrador
@@ -208,63 +267,78 @@ export function designDraftManager() {
     const cssRules = [];
 
     // --- A. COLORES GENERALES Y FONDOS ---
-    const backPerfil = fields.back_perfil;
-    const styleBack = fields.style_back;
+    const activeStyleRadio = document.querySelector('input[name="style_back"]:checked');
+    const styleBack = fields.style_back || (activeStyleRadio ? activeStyleRadio.value : "solid");
 
-    if (backPerfil) {
-      if (styleBack === "gradientUp") {
-        cssRules.push(`
-          .user-profile-preview .back-card {
-            background: radial-gradient(circle at bottom, ${backPerfil} 20%, oklch(from ${backPerfil} calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%, oklch(from ${backPerfil} calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100% !important;
-          }
-          .user-profile-preview .back-card-container {
-            background: linear-gradient(0deg, oklch(from ${backPerfil} calc(l * 0.60) c h / 75%), oklch(from ${backPerfil} calc(l * 1.35) calc(c - 0.03) calc(h - 30) / 90%)) !important;
-          }
-        `);
-      } else if (styleBack === "gradientDown") {
-        cssRules.push(`
-          .user-profile-preview .back-card {
-            background: radial-gradient(circle at top, ${backPerfil} 20%, oklch(from ${backPerfil} calc(l * 1.4) calc(c - 0.02) calc(h - 30)) 75%, oklch(from ${backPerfil} calc(l * 1.5) calc(c - 0.02) calc(h - 30))) 100% !important;
-          }
-          .user-profile-preview .back-card-container {
-            background: linear-gradient(180deg, oklch(from ${backPerfil} calc(l * 0.60) c h / 75%), oklch(from ${backPerfil} calc(l * 1.15) calc(c - 0.03) calc(h - 30) / 90%)) !important;
-          }
-        `);
-      } else {
-        cssRules.push(`
-          .user-profile-preview .back-card {
-            background: ${backPerfil} !important;
-            background-color: ${backPerfil} !important;
-          }
-          .user-profile-preview .back-card-container {
-            background-color: oklch(from ${backPerfil} calc(l * 0.65) c h / 70%) !important;
-          }
-        `);
-      }
+    const backPerfilInput = document.querySelector('input[name="back_perfil"]');
+    const backPerfil = fields.back_perfil || (backPerfilInput ? backPerfilInput.value : "#272727");
+
+    // Actualizar miniaturas en backgroundPanel.php
+    const [gradStart, gradEnd] = getGradientColors(backPerfil);
+    const thumbSolid = document.getElementById("preview-style-solid");
+    if (thumbSolid) thumbSolid.style.backgroundColor = backPerfil;
+    const thumbGradient = document.getElementById("preview-style-gradient");
+    if (thumbGradient) thumbGradient.style.background = `linear-gradient(180deg, ${gradStart}, ${gradEnd})`;
+
+    if (styleBack === "gradientUp") {
+      cssRules.push(`
+        .user-profile-preview .back-card,
+        .user-profile-preview .back-card-container {
+          background: linear-gradient(0deg, ${gradStart}, ${gradEnd}) !important;
+        }
+      `);
+    } else if (styleBack === "gradientDown") {
+      cssRules.push(`
+        .user-profile-preview .back-card,
+        .user-profile-preview .back-card-container {
+          background: linear-gradient(180deg, ${gradStart}, ${gradEnd}) !important;
+        }
+      `);
+    } else {
+      cssRules.push(`
+        .user-profile-preview .back-card,
+        .user-profile-preview .back-card-container {
+          background: ${backPerfil} !important;
+          background-color: ${backPerfil} !important;
+        }
+      `);
     }
 
-    // Video de fondo: visibilidad según style_back
+    // Video de fondo: visibilidad y reproducción según style_back
     if (styleBack !== undefined) {
       previews.forEach((p) => {
         const videoBg = p.querySelector(".back-video-bg");
         const videoOverlay = p.querySelector(".back-video-overlay");
-        if (videoBg) videoBg.style.display = styleBack === "video" ? "" : "none";
-        if (videoOverlay) videoOverlay.style.display = styleBack === "video" ? "" : "none";
+        if (videoBg) {
+          if (styleBack === "video") {
+            videoBg.style.display = "";
+            videoBg.play().catch(() => {});
+          } else {
+            videoBg.style.display = "none";
+            videoBg.pause();
+          }
+        }
+        if (videoOverlay) {
+          videoOverlay.style.display = styleBack === "video" ? "" : "none";
+        }
       });
     }
 
     // Opacidad y color del overlay de video
-    const videoOverlayColor = fields.back_video_overlay;
-    const videoOverlayOpacity = fields.back_video_opacity;
-    if (videoOverlayColor || videoOverlayOpacity !== undefined) {
-      const color = videoOverlayColor || "#000000";
-      const opacity = videoOverlayOpacity !== undefined ? Math.max(0, Math.min(95, parseInt(videoOverlayOpacity, 10))) : 45;
-      cssRules.push(`
-        .user-profile-preview .back-video-overlay {
-          background-color: oklch(from ${color} l c h / ${opacity}%) !important;
-        }
-      `);
-    }
+    const videoOverlayColor = fields.back_video_overlay || document.getElementById("select-color-overlay")?.value || "#000000";
+    const overlayInput = document.getElementById("input-opacity-val");
+    const videoOverlayOpacity = fields.back_video_opacity !== undefined
+      ? fields.back_video_opacity
+      : (overlayInput ? overlayInput.value : 45);
+
+    const opacity = Math.max(0, Math.min(95, parseInt(videoOverlayOpacity, 10) || 45));
+    const opacityFraction = (opacity / 100).toFixed(2);
+    cssRules.push(`
+      .user-profile-preview .back-video-overlay {
+        background-color: ${videoOverlayColor} !important;
+        opacity: ${opacityFraction} !important;
+      }
+    `);
 
     // Color de texto general
     if (fields.colorText) {
@@ -1076,11 +1150,26 @@ export function designDraftManager() {
                 }
               });
             }
+            // Inicializar inmediatamente switches y componentes de formulario en el nuevo contenido
+            if (window.__formComponents) {
+              window.__formComponents.initCheckboxSwitches?.();
+              window.__formComponents.styleColorPickers?.();
+            }
           }
         }
       }
 
+      // 3. Restaurar banner de estado en barra lateral si viene en la respuesta
+      if (data.sidebarStatusHtml) {
+        document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
+          sidebar.outerHTML = data.sidebarStatusHtml;
+        });
+      }
+
       document.dispatchEvent(new CustomEvent("designDraftDiscarded", { detail: data }));
+      document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+      document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
+      notifyDraftState();
       return true;
     } else {
       throw new Error(data?.message || "No se pudo descartar el diseño.");

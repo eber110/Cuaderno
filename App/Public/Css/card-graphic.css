@@ -2,6 +2,11 @@
   background-color: #f0f0f0;
 }
 
+/* Ocultar checkbox nativo del switch para evitar FOUC y asegurar que nunca se vea como checkbox del navegador */
+input[type="checkbox"].checkbox-switch {
+  display: none !important;
+}
+
 .back-card-graphic{
   background-color: #ffffff;
   filter: drop-shadow(0px 0px 1px #bdbdbd);
