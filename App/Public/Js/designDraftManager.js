@@ -194,63 +194,19 @@ export function designDraftManager() {
     return dynamicStyleEl;
   }
 
-  function hexToHsl(hex) {
-    let clean = hex.replace(/^#/, "");
-    if (clean.length === 3) {
-      clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+  function getGradientColors(hex, target = "card") {
+    let clean = String(hex || "#272727").trim();
+    if (!clean.startsWith("#")) clean = `#${clean}`;
+    if (target === "container") {
+      return [clean, `oklch(from ${clean} calc(l + 0.15) calc(c - 0.085) h)`];
     }
-    if (clean.length !== 6) return { h: 0, s: 0, l: 0 };
-    let r = parseInt(clean.slice(0, 2), 16) / 255;
-    let g = parseInt(clean.slice(2, 4), 16) / 255;
-    let b = parseInt(clean.slice(4, 6), 16) / 255;
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max === min) {
-      h = s = 0;
-    } else {
-      let d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h = Math.round(h * 60);
-    }
-    return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+    return [clean, `oklch(from ${clean} calc(l + 0.15) c h)`];
   }
 
-  function hslToHex(h, s, l) {
-    l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
-    const f = (n) => {
-      const k = (n + h / 30) % 12;
-      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color).toString(16).padStart(2, "0");
-    };
-    return `#${f(0)}${f(8)}${f(4)}`;
-  }
-
-  function getGradientColors(hex) {
-    let clean = hex.replace(/^#/, "");
-    if (clean.length === 3) {
-      clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
-    }
-    if (clean.length !== 6) return ["#272727", "#444444"];
-    const hsl = hexToHsl(clean);
-    let endS, endL;
-    if (hsl.l >= 70) {
-      endS = hsl.s > 5 ? Math.max(40, hsl.s) : hsl.s;
-      endL = Math.max(40, hsl.l - 22);
-    } else if (hsl.l <= 30) {
-      endS = hsl.s > 5 ? Math.max(25, hsl.s) : hsl.s;
-      endL = Math.min(65, hsl.l + 22);
-    } else {
-      endS = Math.min(100, hsl.s + 5);
-      endL = Math.max(15, hsl.l - 20);
-    }
-    const endHex = hslToHex(hsl.h, endS, endL);
-    return [`#${clean}`, endHex];
+  function getContainerSolidColor(hex) {
+    let clean = String(hex || "#272727").trim();
+    if (!clean.startsWith("#")) clean = `#${clean}`;
+    return `oklch(from ${clean} calc(l + 0.015) calc(c - 0.025) h)`;
   }
 
   /**
@@ -274,32 +230,42 @@ export function designDraftManager() {
     const backPerfil = fields.back_perfil || (backPerfilInput ? backPerfilInput.value : "#272727");
 
     // Actualizar miniaturas en backgroundPanel.php
-    const [gradStart, gradEnd] = getGradientColors(backPerfil);
+    const [gradStart, gradEnd] = getGradientColors(backPerfil, "card");
     const thumbSolid = document.getElementById("preview-style-solid");
     if (thumbSolid) thumbSolid.style.backgroundColor = backPerfil;
     const thumbGradient = document.getElementById("preview-style-gradient");
     if (thumbGradient) thumbGradient.style.background = `linear-gradient(180deg, ${gradStart}, ${gradEnd})`;
 
     if (styleBack === "gradientUp") {
+      const [gradStartCont, gradEndCont] = getGradientColors(backPerfil, "container");
       cssRules.push(`
-        .user-profile-preview .back-card,
-        .user-profile-preview .back-card-container {
+        .user-profile-preview .back-card {
           background: linear-gradient(0deg, ${gradStart}, ${gradEnd}) !important;
+        }
+        .user-profile-preview .back-card-container {
+          background: linear-gradient(0deg, ${gradStartCont}, ${gradEndCont}) !important;
         }
       `);
     } else if (styleBack === "gradientDown") {
+      const [gradStartCont, gradEndCont] = getGradientColors(backPerfil, "container");
       cssRules.push(`
-        .user-profile-preview .back-card,
-        .user-profile-preview .back-card-container {
+        .user-profile-preview .back-card {
           background: linear-gradient(180deg, ${gradStart}, ${gradEnd}) !important;
+        }
+        .user-profile-preview .back-card-container {
+          background: linear-gradient(180deg, ${gradStartCont}, ${gradEndCont}) !important;
         }
       `);
     } else {
+      const containerSolid = getContainerSolidColor(backPerfil);
       cssRules.push(`
-        .user-profile-preview .back-card,
-        .user-profile-preview .back-card-container {
+        .user-profile-preview .back-card {
           background: ${backPerfil} !important;
           background-color: ${backPerfil} !important;
+        }
+        .user-profile-preview .back-card-container {
+          background: ${containerSolid} !important;
+          background-color: ${containerSolid} !important;
         }
       `);
     }

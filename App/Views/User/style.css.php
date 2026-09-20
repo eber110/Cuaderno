@@ -41,28 +41,30 @@
   }
 
   <?php
-    [$gradStart, $gradEnd] = \App\Models\DesignModels::getGradientColors($backPerfil);
+    [$gradStart, $gradEnd]                   = \App\Models\DesignModels::getGradientColors($backPerfil, "card");
+    [$gradStartContainer, $gradEndContainer] = \App\Models\DesignModels::getGradientColors($backPerfil, "container");
+    $containerSolid                          = \App\Models\DesignModels::getContainerSolidColor($backPerfil);
   ?>
   <?php if ($styleBack == "solid") :?>
     .back-card{
       background-color: <?= $backPerfil?>;
     }
     .back-card-container{
-      background-color: <?= $backPerfil?>;
+      background-color: <?= $containerSolid ?>;
     }
   <?php elseif ($styleBack == "gradientUp") :?>
     .back-card{
       background: linear-gradient(0deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
     .back-card-container{
-      background: linear-gradient(0deg, <?= $gradStart ?>, <?= $gradEnd ?>);
+      background: linear-gradient(0deg, <?= $gradStartContainer ?>, <?= $gradEndContainer ?>);
     }
   <?php elseif ($styleBack == "gradientDown") :?>
     .back-card{
       background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);
     }
     .back-card-container{
-      background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);
+      background: linear-gradient(180deg, <?= $gradStartContainer ?>, <?= $gradEndContainer ?>);
     }
   <?php elseif ($styleBack == "video" && !empty($backVideo)) :?>
     .back-card{
@@ -70,14 +72,14 @@
       position: relative;
     }
     .back-card-container{
-      background-color: <?= $backPerfil?>;
+      background-color: <?= $containerSolid ?>;
     }
   <?php else :?>
     .back-card{
       background-color: <?= $backPerfil?>;
     }
     .back-card-container{
-      background-color: <?= $backPerfil?>;
+      background-color: <?= $containerSolid ?>;
     }
   <?php endif?>
 
