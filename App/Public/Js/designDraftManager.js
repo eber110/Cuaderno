@@ -214,8 +214,8 @@ export function designDraftManager() {
 
       // Actualizar datos del elemento en la vista previa (imagen, proporción), respetando estrictamente el estado del switch
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const item = preview.querySelector(`[data-content-index="${idx}"]`);
-        if (item) {
+        const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+        items.forEach((item) => {
           if (type === "banner") {
             if (extraData.previewUrl) {
               const previewImg = item.querySelector("img");
@@ -234,9 +234,21 @@ export function designDraftManager() {
             }
           }
 
-          // El bloque SOLO se muestra en el preview si el switch está activado (checked)
-          item.style.display = activeSwitch.checked ? "" : "none";
-        }
+          const variant = item.dataset.layoutVariant;
+          if (variant) {
+            const selectedLayout = block.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid";
+            if (variant === selectedLayout) {
+              item.style.display = activeSwitch.checked ? "" : "none";
+              if (activeSwitch.checked) item.classList.remove("hidden");
+            } else {
+              item.style.display = "none";
+              item.classList.add("hidden");
+            }
+          } else {
+            // El bloque SOLO se muestra en el preview si el switch está activado (checked)
+            item.style.display = activeSwitch.checked ? "" : "none";
+          }
+        });
       });
     } else {
       activeSwitch.setAttribute("disabled", "disabled");
@@ -250,10 +262,10 @@ export function designDraftManager() {
       }
 
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const item = preview.querySelector(`[data-content-index="${idx}"]`);
-        if (item) {
+        const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+        items.forEach((item) => {
           item.style.display = "none";
-        }
+        });
       });
     }
   }
@@ -829,505 +841,539 @@ export function designDraftManager() {
       // 1. Actualización de cada bloque por su índice
       Object.keys(contentMap).forEach((idx) => {
         const cData = contentMap[idx];
-        const block = p.querySelector(`[data-content-index="${idx}"]`);
-        if (!block) return;
+        const blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+        if (!blocks.length) return;
 
-        // Visibilidad (switch active)
-        if (cData.active !== undefined) {
-          const isAct = (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1");
-          block.style.display = isAct ? "" : "none";
-        }
+        blocks.forEach((block) => {
+          // Visibilidad (switch active)
+          if (cData.active !== undefined) {
+            const isAct = (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1");
+            const variant = block.dataset.layoutVariant;
+            if (variant) {
+              const currentLayout = cData.layout || (document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid");
+              if (variant === currentLayout) {
+                block.style.display = isAct ? "" : "none";
+              } else {
+                block.style.display = "none";
+              }
+            } else {
+              block.style.display = isAct ? "" : "none";
+            }
+          }
 
-        // A. CAMPAÑA
-        if (block.classList.contains("campaign-block-wrapper")) {
-          const imgPosition = cData.img_position || (block.querySelector("figure.faded-image:not([style*='display: none'])") ? "header" : "background");
-          const effectiveSize = (imgPosition === "header") ? "horizontal" : (cData.size || (block.classList.contains("campaign-size-square") ? "square" : (block.classList.contains("campaign-size-vertical") ? "vertical" : "horizontal")));
+          // A. CAMPAÑA
+          if (block.classList.contains("campaign-block-wrapper")) {
+            const imgPosition = cData.img_position || (block.querySelector("figure.faded-image:not([style*='display: none'])") ? "header" : "background");
+            const effectiveSize = (imgPosition === "header") ? "horizontal" : (cData.size || (block.classList.contains("campaign-size-square") ? "square" : (block.classList.contains("campaign-size-vertical") ? "vertical" : "horizontal")));
 
-          // Tamaño del contenedor
-          block.classList.remove("campaign-size-horizontal", "campaign-size-square", "campaign-size-vertical");
-          block.classList.add("campaign-size-" + effectiveSize);
+            // Tamaño del contenedor
+            block.classList.remove("campaign-size-horizontal", "campaign-size-square", "campaign-size-vertical");
+            block.classList.add("campaign-size-" + effectiveSize);
 
-          // Posición de imagen (Fondo vs Cabecera)
-          const bgLayer = block.querySelector(".campaign-bg-layer");
-          const headerFig = block.querySelector("figure.faded-image");
-          const contentEl = block.querySelector(".campaign-content");
+            // Posición de imagen (Fondo vs Cabecera)
+            const bgLayer = block.querySelector(".campaign-bg-layer");
+            const headerFig = block.querySelector("figure.faded-image");
+            const contentEl = block.querySelector(".campaign-content");
 
-          if (imgPosition === "header") {
-            if (bgLayer) bgLayer.style.display = "none";
-            if (headerFig) {
-              headerFig.style.display = "";
-            } else if (bgLayer) {
-              const bgImg = bgLayer.querySelector("img");
-              if (bgImg && bgImg.src) {
-                const fig = document.createElement("figure");
-                fig.className = "w100 ar-square overflow-hidden faded-image";
-                fig.innerHTML = `<img src="${bgImg.src}" alt="Campaña" class="cover w100 ar-square">`;
-                if (contentEl) block.insertBefore(fig, contentEl);
+            if (imgPosition === "header") {
+              if (bgLayer) bgLayer.style.display = "none";
+              if (headerFig) {
+                headerFig.style.display = "";
+              } else if (bgLayer) {
+                const bgImg = bgLayer.querySelector("img");
+                if (bgImg && bgImg.src) {
+                  const fig = document.createElement("figure");
+                  fig.className = "w100 ar-square overflow-hidden faded-image";
+                  fig.innerHTML = `<img src="${bgImg.src}" alt="Campaña" class="cover w100 ar-square">`;
+                  if (contentEl) block.insertBefore(fig, contentEl);
+                }
+              }
+              if (contentEl) {
+                contentEl.classList.remove("pt20");
+                contentEl.classList.add("pt0");
+              }
+            } else {
+              if (headerFig) headerFig.style.display = "none";
+              if (bgLayer) {
+                bgLayer.style.display = "";
+              } else if (headerFig) {
+                const hImg = headerFig.querySelector("img");
+                if (hImg && hImg.src) {
+                  const newBgLayer = document.createElement("div");
+                  newBgLayer.className = "campaign-bg-layer";
+                  newBgLayer.style.cssText = "position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;";
+                  newBgLayer.innerHTML = `
+                    <img src="${hImg.src}" alt="Campaña" class="cover w100 h100" style="object-fit: cover;">
+                    <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from ${cData.bg_color || "#1e1e1e"} l c h / ${cData.bg_opacity || 80}%);"></div>
+                  `;
+                  block.insertBefore(newBgLayer, block.firstChild);
+                }
+              }
+              if (contentEl) {
+                contentEl.classList.remove("pt0");
+                contentEl.classList.add("pt20");
               }
             }
+
+            // Formato flex de contenido y ancla del botón según tamaño
+            const isNotHorizontal = (effectiveSize !== "horizontal");
             if (contentEl) {
-              contentEl.classList.remove("pt20");
-              contentEl.classList.add("pt0");
-            }
-          } else {
-            if (headerFig) headerFig.style.display = "none";
-            if (bgLayer) {
-              bgLayer.style.display = "";
-            } else if (headerFig) {
-              const hImg = headerFig.querySelector("img");
-              if (hImg && hImg.src) {
-                const newBgLayer = document.createElement("div");
-                newBgLayer.className = "campaign-bg-layer";
-                newBgLayer.style.cssText = "position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;";
-                newBgLayer.innerHTML = `
-                  <img src="${hImg.src}" alt="Campaña" class="cover w100 h100" style="object-fit: cover;">
-                  <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from ${cData.bg_color || "#1e1e1e"} l c h / ${cData.bg_opacity || 80}%);"></div>
-                `;
-                block.insertBefore(newBgLayer, block.firstChild);
+              if (isNotHorizontal) {
+                contentEl.classList.add("flex-1");
+                contentEl.style.flex = "1 1 auto";
+                contentEl.style.minHeight = "max-content";
+              } else {
+                contentEl.classList.remove("flex-1");
+                contentEl.style.flex = "";
+                contentEl.style.minHeight = "";
               }
             }
-            if (contentEl) {
-              contentEl.classList.remove("pt0");
-              contentEl.classList.add("pt20");
-            }
-          }
 
-          // Formato flex de contenido y ancla del botón según tamaño
-          const isNotHorizontal = (effectiveSize !== "horizontal");
-          if (contentEl) {
-            if (isNotHorizontal) {
-              contentEl.classList.add("flex-1");
-              contentEl.style.flex = "1 1 auto";
-              contentEl.style.minHeight = "max-content";
-            } else {
-              contentEl.classList.remove("flex-1");
-              contentEl.style.flex = "";
-              contentEl.style.minHeight = "";
+            const btnEl = block.querySelector(".campaign-button");
+            if (btnEl) {
+              if (isNotHorizontal) {
+                btnEl.classList.add("campaign-btn-anchor-bottom");
+              } else {
+                btnEl.classList.remove("campaign-btn-anchor-bottom");
+              }
+              if (cData.button_text !== undefined) {
+                btnEl.textContent = cData.button_text.trim() || "Suscribirme";
+              }
+              if (cData.btn_bg_color) {
+                btnEl.style.setProperty("background-color", cData.btn_bg_color, "important");
+              }
+              if (cData.btn_text_color) {
+                btnEl.style.setProperty("color", cData.btn_text_color, "important");
+              }
             }
-          }
 
-          const btnEl = block.querySelector(".campaign-button");
-          if (btnEl) {
-            if (isNotHorizontal) {
-              btnEl.classList.add("campaign-btn-anchor-bottom");
-            } else {
-              btnEl.classList.remove("campaign-btn-anchor-bottom");
+            // Colores de fondo y opacidad de overlay
+            const bgColor = cData.bg_color || block.style.backgroundColor || "#1e1e1e";
+            if (cData.bg_color) {
+              block.style.setProperty("background-color", bgColor, "important");
             }
-            if (cData.button_text !== undefined) {
-              btnEl.textContent = cData.button_text.trim() || "Suscribirme";
+
+            const bgOverlay = block.querySelector(".campaign-bg-overlay");
+            if (bgOverlay && (cData.bg_color || cData.bg_opacity !== undefined)) {
+              const opacityVal = (cData.bg_opacity !== undefined) ? cData.bg_opacity : 80;
+              bgOverlay.style.setProperty("background-color", `oklch(from ${bgColor} l c h / ${opacityVal}%)`, "important");
             }
-            if (cData.btn_bg_color) {
-              btnEl.style.setProperty("background-color", cData.btn_bg_color, "important");
-            }
-            if (cData.btn_text_color) {
-              btnEl.style.setProperty("color", cData.btn_text_color, "important");
-            }
-          }
 
-          // Colores de fondo y opacidad de overlay
-          const bgColor = cData.bg_color || block.style.backgroundColor || "#1e1e1e";
-          if (cData.bg_color) {
-            block.style.setProperty("background-color", bgColor, "important");
-          }
-
-          const bgOverlay = block.querySelector(".campaign-bg-overlay");
-          if (bgOverlay && (cData.bg_color || cData.bg_opacity !== undefined)) {
-            const opacityVal = (cData.bg_opacity !== undefined) ? cData.bg_opacity : 80;
-            bgOverlay.style.setProperty("background-color", `oklch(from ${bgColor} l c h / ${opacityVal}%)`, "important");
-          }
-
-          // Grupo de texto
-          const textGroup = block.querySelector(".campaign-text-group");
-          if (textGroup) {
-            // Alineación horizontal
-            if (cData.text_align) {
-              ["left", "center", "right"].forEach((a) => {
-                textGroup.classList.remove("campaign-align-" + a);
-              });
-              textGroup.classList.add("campaign-align-" + cData.text_align);
-
-              const innerDiv = textGroup.querySelector("div.flex-column.gap5");
-              if (innerDiv) {
+            // Grupo de texto
+            const textGroup = block.querySelector(".campaign-text-group");
+            if (textGroup) {
+              // Alineación horizontal
+              if (cData.text_align) {
                 ["left", "center", "right"].forEach((a) => {
-                  innerDiv.classList.remove("campaign-align-" + a);
+                  textGroup.classList.remove("campaign-align-" + a);
                 });
-                innerDiv.classList.add("campaign-align-" + cData.text_align);
+                textGroup.classList.add("campaign-align-" + cData.text_align);
+
+                const innerDiv = textGroup.querySelector("div.flex-column.gap5");
+                if (innerDiv) {
+                  ["left", "center", "right"].forEach((a) => {
+                    innerDiv.classList.remove("campaign-align-" + a);
+                  });
+                  innerDiv.classList.add("campaign-align-" + cData.text_align);
+                }
+              }
+
+              // Alineación vertical
+              ["top", "center", "bottom"].forEach((p) => {
+                textGroup.classList.remove("campaign-text-pos-" + p);
+              });
+              if (isNotHorizontal && cData.text_position) {
+                textGroup.classList.add("campaign-text-pos-" + cData.text_position);
+              }
+
+              // Título
+              let h3 = textGroup.querySelector("h3");
+              const titleVal = (cData.title !== undefined) ? cData.title : (h3 ? h3.textContent : "");
+              if (titleVal.trim() !== "") {
+                if (!h3) {
+                  h3 = document.createElement("h3");
+                  h3.className = "bold700 campaign-title-large w100";
+                  const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
+                  innerDiv.insertBefore(h3, innerDiv.firstChild);
+                }
+                h3.textContent = titleVal;
+                h3.style.display = "";
+              } else if (h3) {
+                h3.style.display = "none";
+              }
+
+              if (h3) {
+                if (cData.title_size) {
+                  ["small", "medium", "large"].forEach((s) => h3.classList.remove("campaign-title-" + s));
+                  h3.classList.add("campaign-title-" + cData.title_size);
+                }
+                if (cData.title_color) {
+                  h3.style.setProperty("color", cData.title_color, "important");
+                }
+              }
+
+              // Descripción
+              let pDesc = textGroup.querySelector("p:not(.modal-btn):not(.campaign-button)");
+              const descVal = (cData.desc !== undefined) ? cData.desc : (pDesc ? pDesc.textContent : "");
+              if (descVal.trim() !== "") {
+                if (!pDesc) {
+                  pDesc = document.createElement("p");
+                  pDesc.className = "campaign-desc-medium w100";
+                  const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
+                  innerDiv.appendChild(pDesc);
+                }
+                pDesc.innerHTML = escapeHtml(descVal).replace(/\n/g, "<br>");
+                pDesc.style.display = "";
+              } else if (pDesc) {
+                pDesc.style.display = "none";
+              }
+
+              if (pDesc) {
+                if (cData.desc_size) {
+                  ["small", "medium", "large"].forEach((s) => pDesc.classList.remove("campaign-desc-" + s));
+                  pDesc.classList.add("campaign-desc-" + cData.desc_size);
+                }
+                if (cData.desc_color) {
+                  pDesc.style.setProperty("color", cData.desc_color, "important");
+                }
+              }
+
+              // Contador regresivo
+              const countdownBox = block.querySelector(".campaign-countdown-box, [data-countdown]");
+              if (countdownBox) {
+                if (cData.has_countdown !== undefined) {
+                  const hasCd = (cData.has_countdown === true || cData.has_countdown === "true" || cData.has_countdown === "1" || cData.has_countdown === 1);
+                  countdownBox.style.display = hasCd ? "" : "none";
+                }
+                if (cData.countdown_date) {
+                  countdownBox.setAttribute("data-countdown", cData.countdown_date);
+                }
+                if (cData.countdown_bg_color) {
+                  countdownBox.style.setProperty("background-color", cData.countdown_bg_color, "important");
+                }
+                if (cData.countdown_text_color) {
+                  countdownBox.style.setProperty("color", cData.countdown_text_color, "important");
+                }
+                if (cData.countdown_text_size) {
+                  ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("countdown-text-" + s));
+                  countdownBox.classList.add("countdown-text-" + cData.countdown_text_size);
+                }
+                if (cData.countdown_widget_size) {
+                  ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("campaign-countdown-widget-" + s));
+                  countdownBox.classList.add("campaign-countdown-widget-" + cData.countdown_widget_size);
+                }
               }
             }
+          }
 
-            // Alineación vertical
-            ["top", "center", "bottom"].forEach((p) => {
-              textGroup.classList.remove("campaign-text-pos-" + p);
-            });
-            if (isNotHorizontal && cData.text_position) {
-              textGroup.classList.add("campaign-text-pos-" + cData.text_position);
-            }
-
-            // Título
-            let h3 = textGroup.querySelector("h3");
-            const titleVal = (cData.title !== undefined) ? cData.title : (h3 ? h3.textContent : "");
-            if (titleVal.trim() !== "") {
-              if (!h3) {
-                h3 = document.createElement("h3");
-                h3.className = "bold700 campaign-title-large w100";
-                const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
-                innerDiv.insertBefore(h3, innerDiv.firstChild);
+          // B. TÍTULO
+          else if (block.classList.contains("title-block-wrapper")) {
+            const h2 = block.querySelector("h2");
+            if (h2) {
+              if (cData.title !== undefined) {
+                h2.textContent = cData.title;
+                block.style.display = (cData.title.trim() === "") ? "none" : "";
               }
-              h3.textContent = titleVal;
-              h3.style.display = "";
-            } else if (h3) {
-              h3.style.display = "none";
-            }
-
-            if (h3) {
               if (cData.title_size) {
-                ["small", "medium", "large"].forEach((s) => h3.classList.remove("campaign-title-" + s));
-                h3.classList.add("campaign-title-" + cData.title_size);
+                ["x18", "x20", "x24"].forEach((s) => h2.classList.remove(s));
+                const sizeMap = { small: "x18", medium: "x20", large: "x24" };
+                h2.classList.add(sizeMap[cData.title_size] || "x18");
               }
-              if (cData.title_color) {
-                h3.style.setProperty("color", cData.title_color, "important");
-              }
-            }
-
-            // Descripción
-            let pDesc = textGroup.querySelector("p:not(.modal-btn):not(.campaign-button)");
-            const descVal = (cData.desc !== undefined) ? cData.desc : (pDesc ? pDesc.textContent : "");
-            if (descVal.trim() !== "") {
-              if (!pDesc) {
-                pDesc = document.createElement("p");
-                pDesc.className = "campaign-desc-medium w100";
-                const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
-                innerDiv.appendChild(pDesc);
-              }
-              pDesc.innerHTML = escapeHtml(descVal).replace(/\n/g, "<br>");
-              pDesc.style.display = "";
-            } else if (pDesc) {
-              pDesc.style.display = "none";
-            }
-
-            if (pDesc) {
-              if (cData.desc_size) {
-                ["small", "medium", "large"].forEach((s) => pDesc.classList.remove("campaign-desc-" + s));
-                pDesc.classList.add("campaign-desc-" + cData.desc_size);
-              }
-              if (cData.desc_color) {
-                pDesc.style.setProperty("color", cData.desc_color, "important");
-              }
-            }
-
-            // Contador regresivo
-            const countdownBox = block.querySelector(".campaign-countdown-box, [data-countdown]");
-            if (countdownBox) {
-              if (cData.has_countdown !== undefined) {
-                const hasCd = (cData.has_countdown === true || cData.has_countdown === "true" || cData.has_countdown === "1" || cData.has_countdown === 1);
-                countdownBox.style.display = hasCd ? "" : "none";
-              }
-              if (cData.countdown_date) {
-                countdownBox.setAttribute("data-countdown", cData.countdown_date);
-              }
-              if (cData.countdown_bg_color) {
-                countdownBox.style.setProperty("background-color", cData.countdown_bg_color, "important");
-              }
-              if (cData.countdown_text_color) {
-                countdownBox.style.setProperty("color", cData.countdown_text_color, "important");
-              }
-              if (cData.countdown_text_size) {
-                ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("countdown-text-" + s));
-                countdownBox.classList.add("countdown-text-" + cData.countdown_text_size);
-              }
-              if (cData.countdown_widget_size) {
-                ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("campaign-countdown-widget-" + s));
-                countdownBox.classList.add("campaign-countdown-widget-" + cData.countdown_widget_size);
+              if (cData.title_weight) {
+                ["bold500", "bold600", "bold700", "bold900"].forEach((w) => h2.classList.remove(w));
+                h2.classList.add("bold" + cData.title_weight);
               }
             }
           }
-        }
 
-        // B. TÍTULO
-        else if (block.classList.contains("title-block-wrapper")) {
-          const h2 = block.querySelector("h2");
-          if (h2) {
+          // C. TEXTO
+          else if (block.classList.contains("text-block-wrapper")) {
+            const pEl = block.querySelector("p");
+            if (pEl) {
+              if (cData.text !== undefined) {
+                pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
+                block.style.display = (cData.text.trim() === "") ? "none" : "";
+              }
+              if (cData.text_weight) {
+                ["bold400", "bold500"].forEach((w) => pEl.classList.remove(w));
+                pEl.classList.add("bold" + cData.text_weight);
+              }
+              if (cData.text_align) {
+                ["text-left", "text-center", "text-right"].forEach((a) => block.classList.remove(a));
+                block.classList.add("text-" + cData.text_align);
+              }
+            }
+          }
+
+          // D. SEPARADOR
+          else if (block.classList.contains("separator-block-wrapper")) {
+            const sepIcon = cData.separator_icon !== undefined 
+              ? cData.separator_icon 
+              : (document.querySelector(`input[name="content[${idx}][separator_icon]"]:checked`)?.value || "none");
+            const sepSize = cData.separator_size !== undefined 
+              ? cData.separator_size 
+              : (document.querySelector(`input[name="content[${idx}][separator_size]"]:checked`)?.value || "large");
+            const spaceSize = cData.space_size !== undefined 
+              ? cData.space_size 
+              : (document.querySelector(`input[name="content[${idx}][space_size]"]:checked`)?.value || "40");
+
+            const isSpace = (sepIcon === "none" || sepIcon === "ban" || cData.separator_mode === "space");
+
+            if (isSpace) {
+              block.className = "separator-block-wrapper w100";
+              block.style.margin = "";
+              block.style.boxSizing = "";
+              block.style.userSelect = "";
+              block.style.height = spaceSize + "px";
+              block.innerHTML = "";
+            } else {
+              const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
+              const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
+              const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
+              const svgHtml = svgEl ? svgEl.outerHTML : "";
+
+              block.className = "separator-block-wrapper w100 flex-row center-center color-text-card p0";
+              block.style.margin = "10px 0";
+              block.style.boxSizing = "border-box";
+              block.style.userSelect = "none";
+              block.style.height = "";
+
+              if (svgHtml) {
+                if (sepSize === "small") {
+                  block.innerHTML = `<span class="flex-row center-center" style="width: 18px; height: 18px; font-size: 18px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
+                } else {
+                  const widthPercent = (sepSize === "medium") ? "60%" : "100%";
+                  let spans = "";
+                  for (let k = 0; k < 35; k++) {
+                    spans += `<span class="flex-row center-center" style="width: 16px; height: 16px; font-size: 16px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
+                  }
+                  block.innerHTML = `<div style="display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; align-items: center; gap: 8px; height: 18px; overflow: hidden; width: ${widthPercent}; max-width: ${widthPercent};">${spans}</div>`;
+                }
+              }
+            }
+          }
+
+          // E. BANNER
+          else if (block.classList.contains("banner-block-wrapper")) {
+            if (cData.bg_color) {
+              block.style.setProperty("background-color", cData.bg_color, "important");
+            }
+            if (cData.bg_opacity !== undefined) {
+              const img = block.querySelector("img");
+              if (img) {
+                img.style.opacity = (cData.bg_opacity / 100).toFixed(2);
+              }
+            }
+            if (cData.size) {
+              const ratioMap = {
+                "720x720": "720 / 720",
+                "1024x720": "1024 / 720",
+                "720x1024": "720 / 1024"
+              };
+              if (ratioMap[cData.size]) {
+                block.style.aspectRatio = ratioMap[cData.size];
+              }
+            }
+            if (cData.url !== undefined) {
+              const aEl = block.querySelector("a");
+              if (aEl) aEl.href = cData.url || "#";
+            }
+          }
+
+          // F. PRODUCTO REGULAR
+          else if (block.classList.contains("product-regular-wrapper")) {
             if (cData.title !== undefined) {
-              h2.textContent = cData.title;
-              block.style.display = (cData.title.trim() === "") ? "none" : "";
+              const pTitle = block.querySelector(".capitalize-p");
+              if (pTitle) {
+                const svgEl = pTitle.querySelector("svg");
+                pTitle.innerHTML = "";
+                if (svgEl) pTitle.appendChild(svgEl);
+                pTitle.appendChild(document.createTextNode(" " + cData.title));
+              }
             }
-            if (cData.title_size) {
-              ["x18", "x20", "x24"].forEach((s) => h2.classList.remove(s));
-              const sizeMap = { small: "x18", medium: "x20", large: "x24" };
-              h2.classList.add(sizeMap[cData.title_size] || "x18");
+            if (cData.url !== undefined) {
+              const aEl = block.querySelector("a");
+              if (aEl) aEl.href = cData.url || "#";
             }
-            if (cData.title_weight) {
-              ["bold500", "bold600", "bold700", "bold900"].forEach((w) => h2.classList.remove(w));
-              h2.classList.add("bold" + cData.title_weight);
-            }
-          }
-        }
+            if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined || cData.porcentage !== undefined) {
+              const priceContainer = block.querySelector(".flex-column.gap5.w50.p15");
+              if (priceContainer) {
+                const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][offer]"]`);
+                const isOffer = (cData.offer !== undefined)
+                  ? (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1")
+                  : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
 
-        // C. TEXTO
-        else if (block.classList.contains("text-block-wrapper")) {
-          const pEl = block.querySelector("p");
-          if (pEl) {
-            if (cData.text !== undefined) {
-              pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
-              block.style.display = (cData.text.trim() === "") ? "none" : "";
-            }
-            if (cData.text_weight) {
-              ["bold400", "bold500"].forEach((w) => pEl.classList.remove(w));
-              pEl.classList.add("bold" + cData.text_weight);
-            }
-            if (cData.text_align) {
-              ["text-left", "text-center", "text-right"].forEach((a) => block.classList.remove(a));
-              block.classList.add("text-" + cData.text_align);
-            }
-          }
-        }
+                const priceInput = document.querySelector(`input[name="content[${idx}][price]"]`);
+                const priceVal = (cData.price !== undefined)
+                  ? String(cData.price).trim()
+                  : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
 
-        // D. SEPARADOR
-        else if (block.classList.contains("separator-block-wrapper")) {
-          const sepIcon = cData.separator_icon !== undefined 
-            ? cData.separator_icon 
-            : (document.querySelector(`input[name="content[${idx}][separator_icon]"]:checked`)?.value || "none");
-          const sepSize = cData.separator_size !== undefined 
-            ? cData.separator_size 
-            : (document.querySelector(`input[name="content[${idx}][separator_size]"]:checked`)?.value || "large");
-          const spaceSize = cData.space_size !== undefined 
-            ? cData.space_size 
-            : (document.querySelector(`input[name="content[${idx}][space_size]"]:checked`)?.value || "40");
+                const discountInput = document.querySelector(`input[name="content[${idx}][discount]"]`);
+                const percentageInput = document.querySelector(`input[name="content[${idx}][porcentage]"]`);
 
-          const isSpace = (sepIcon === "none" || sepIcon === "ban" || cData.separator_mode === "space");
+                let discountVal = (cData.discount !== undefined)
+                  ? String(cData.discount).trim()
+                  : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".bold500:last-child")?.textContent.replace("$", "").trim() || ""));
 
-          if (isSpace) {
-            block.className = "separator-block-wrapper w100";
-            block.style.margin = "";
-            block.style.boxSizing = "";
-            block.style.userSelect = "";
-            block.style.height = spaceSize + "px";
-            block.innerHTML = "";
-          } else {
-            const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
-            const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
-            const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
-            const svgHtml = svgEl ? svgEl.outerHTML : "";
+                let pctVal = (cData.porcentage !== undefined)
+                  ? String(cData.porcentage).trim()
+                  : (percentageInput ? percentageInput.value.trim() : "");
 
-            block.className = "separator-block-wrapper w100 flex-row center-center color-text-card p0";
-            block.style.margin = "10px 0";
-            block.style.boxSizing = "border-box";
-            block.style.userSelect = "none";
-            block.style.height = "";
-
-            if (svgHtml) {
-              if (sepSize === "small") {
-                block.innerHTML = `<span class="flex-row center-center" style="width: 18px; height: 18px; font-size: 18px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
-              } else {
-                const widthPercent = (sepSize === "medium") ? "60%" : "100%";
-                let spans = "";
-                for (let k = 0; k < 35; k++) {
-                  spans += `<span class="flex-row center-center" style="width: 16px; height: 16px; font-size: 16px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
+                // Si discountVal está vacío o es igual al precio y tenemos porcentaje > 0, calcularlo
+                if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
+                  discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
                 }
-                block.innerHTML = `<div style="display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; align-items: center; gap: 8px; height: 18px; overflow: hidden; width: ${widthPercent}; max-width: ${widthPercent};">${spans}</div>`;
-              }
-            }
-          }
-        }
 
-        // E. BANNER
-        else if (block.classList.contains("banner-block-wrapper")) {
-          if (cData.bg_color) {
-            block.style.setProperty("background-color", cData.bg_color, "important");
-          }
-          if (cData.bg_opacity !== undefined) {
-            const img = block.querySelector("img");
-            if (img) {
-              img.style.opacity = (cData.bg_opacity / 100).toFixed(2);
-            }
-          }
-          if (cData.size) {
-            const ratioMap = {
-              "720x720": "720 / 720",
-              "1024x720": "1024 / 720",
-              "720x1024": "720 / 1024"
-            };
-            if (ratioMap[cData.size]) {
-              block.style.aspectRatio = ratioMap[cData.size];
-            }
-          }
-          if (cData.url !== undefined) {
-            const aEl = block.querySelector("a");
-            if (aEl) aEl.href = cData.url || "#";
-          }
-        }
+                // Eliminar contenido de precios anterior
+                const existingPrices = priceContainer.querySelectorAll("p:not(.capitalize-p), div.flex-column");
+                existingPrices.forEach((el) => el.remove());
 
-        // F. PRODUCTO REGULAR
-        else if (block.classList.contains("product-regular-wrapper")) {
-          if (cData.title !== undefined) {
-            const pTitle = block.querySelector(".capitalize-p");
-            if (pTitle) {
-              const svgEl = pTitle.querySelector("svg");
-              pTitle.innerHTML = "";
-              if (svgEl) pTitle.appendChild(svgEl);
-              pTitle.appendChild(document.createTextNode(" " + cData.title));
-            }
-          }
-          if (cData.url !== undefined) {
-            const aEl = block.querySelector("a");
-            if (aEl) aEl.href = cData.url || "#";
-          }
-          if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined || cData.porcentage !== undefined) {
-            const priceContainer = block.querySelector(".flex-column.gap5.w50.p15");
-            if (priceContainer) {
-              const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][offer]"]`);
-              const isOffer = (cData.offer !== undefined)
-                ? (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1")
-                : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
-
-              const priceInput = document.querySelector(`input[name="content[${idx}][price]"]`);
-              const priceVal = (cData.price !== undefined)
-                ? String(cData.price).trim()
-                : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
-
-              const discountInput = document.querySelector(`input[name="content[${idx}][discount]"]`);
-              const percentageInput = document.querySelector(`input[name="content[${idx}][porcentage]"]`);
-
-              let discountVal = (cData.discount !== undefined)
-                ? String(cData.discount).trim()
-                : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".bold500:last-child")?.textContent.replace("$", "").trim() || ""));
-
-              let pctVal = (cData.porcentage !== undefined)
-                ? String(cData.porcentage).trim()
-                : (percentageInput ? percentageInput.value.trim() : "");
-
-              // Si discountVal está vacío o es igual al precio y tenemos porcentaje > 0, calcularlo
-              if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
-                discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
-              }
-
-              // Eliminar contenido de precios anterior
-              const existingPrices = priceContainer.querySelectorAll("p:not(.capitalize-p), div.flex-column");
-              existingPrices.forEach((el) => el.remove());
-
-              if (!isOffer) {
-                if (priceVal !== "") {
-                  const p = document.createElement("p");
-                  p.className = "bold500";
-                  p.textContent = "$" + priceVal;
-                  priceContainer.appendChild(p);
+                if (!isOffer) {
+                  if (priceVal !== "") {
+                    const p = document.createElement("p");
+                    p.className = "bold500";
+                    p.textContent = "$" + priceVal;
+                    priceContainer.appendChild(p);
+                  }
+                } else {
+                  const effectiveDiscount = discountVal || priceVal;
+                  const div = document.createElement("div");
+                  div.className = "flex-column center-start gap0";
+                  div.innerHTML = `
+                    <p class="inactive" style="text-decoration:line-through;">$${priceVal}</p>
+                    <p class="x16">Precio oferta</p>
+                    <p class="bold500">$${effectiveDiscount}</p>
+                  `;
+                  priceContainer.appendChild(div);
                 }
-              } else {
-                const effectiveDiscount = discountVal || priceVal;
-                const div = document.createElement("div");
-                div.className = "flex-column center-start gap0";
-                div.innerHTML = `
-                  <p class="inactive" style="text-decoration:line-through;">$${priceVal}</p>
-                  <p class="x16">Precio oferta</p>
-                  <p class="bold500">$${effectiveDiscount}</p>
-                `;
-                priceContainer.appendChild(div);
               }
             }
           }
-        }
 
-        // G. GRUPO DE PRODUCTOS
-        else if (block.classList.contains("product-group-wrapper")) {
-          if (cData.title !== undefined) {
-            let pTitle = block.querySelector("p.title-color");
-            if (cData.title.trim() !== "") {
-              if (!pTitle) {
-                pTitle = document.createElement("p");
-                pTitle.className = "bold600 text-c title-color w100";
-                block.insertBefore(pTitle, block.firstChild);
+          // G. GRUPO DE PRODUCTOS
+          else if (block.classList.contains("product-group-wrapper")) {
+            if (cData.title !== undefined) {
+              let pTitle = block.querySelector("p.title-color");
+              if (cData.title.trim() !== "") {
+                if (!pTitle) {
+                  pTitle = document.createElement("p");
+                  pTitle.className = "bold600 text-c title-color w100";
+                  block.insertBefore(pTitle, block.firstChild);
+                }
+                pTitle.textContent = cData.title;
+                pTitle.style.display = "";
+              } else if (pTitle) {
+                pTitle.style.display = "none";
               }
-              pTitle.textContent = cData.title;
-              pTitle.style.display = "";
-            } else if (pTitle) {
-              pTitle.style.display = "none";
             }
-          }
-        }
 
-        // H. ENLACE REGULAR
-        else if (block.classList.contains("link-item-wrapper")) {
-          if (cData.title !== undefined) {
-            const pTitle = block.querySelector(".cut-phrase");
-            if (pTitle) {
-              pTitle.textContent = cData.title;
+            // Cambio instantáneo de formato (Cuadrícula vs Carrusel)
+            if (cData.layout !== undefined) {
+              const variant = block.dataset.layoutVariant;
+              if (variant) {
+                const isSelected = (variant === cData.layout);
+                if (isSelected) {
+                  block.classList.remove("hidden");
+                  const activeSwitch = document.querySelector(`input[name="content[${idx}][active]"]`);
+                  const isAct = (cData.active !== undefined)
+                    ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
+                    : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
+                  block.style.display = isAct ? "" : "none";
+                } else {
+                  block.classList.add("hidden");
+                  block.style.display = "none";
+                }
+              }
             }
           }
-          if (cData.url !== undefined) {
-            const aEl = block.querySelector("a");
-            if (aEl) aEl.href = cData.url || "#";
+
+          // H. ENLACE REGULAR
+          else if (block.classList.contains("link-item-wrapper")) {
+            if (cData.title !== undefined) {
+              const pTitle = block.querySelector(".cut-phrase");
+              if (pTitle) {
+                pTitle.textContent = cData.title;
+              }
+            }
+            if (cData.url !== undefined) {
+              const aEl = block.querySelector("a");
+              if (aEl) aEl.href = cData.url || "#";
+            }
           }
-        }
+        });
       });
 
       // 2. Sub-productos de grupos de productos
       Object.keys(contentProductMap).forEach((idx) => {
-        const block = p.querySelector(`[data-content-index="${idx}"]`);
-        if (!block) return;
+        const blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+        if (!blocks.length) return;
         const subMap = contentProductMap[idx];
-        const cards = block.querySelectorAll(".product-grid-card, .product-slide-card");
 
-        Object.keys(subMap).forEach((pIdx) => {
-          const card = cards[pIdx];
-          if (!card) return;
-          const pData = subMap[pIdx];
+        blocks.forEach((block) => {
+          const cards = block.querySelectorAll(".product-grid-card, .product-slide-card");
 
-          if (pData.title !== undefined) {
-            const titleEl = card.querySelector(".capitalize-p");
-            if (titleEl) {
-              const svgEl = titleEl.querySelector("svg");
-              titleEl.innerHTML = "";
-              if (svgEl) titleEl.appendChild(svgEl);
-              titleEl.appendChild(document.createTextNode(" " + pData.title));
-            }
-          }
+          Object.keys(subMap).forEach((pIdx) => {
+            const card = cards[pIdx];
+            if (!card) return;
+            const pData = subMap[pIdx];
 
-          if (pData.url !== undefined) {
-            const aEl = card.querySelector("a");
-            if (aEl) aEl.href = pData.url || "#";
-          }
-
-          if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined || pData.porcentage !== undefined) {
-            const priceContainer = card.querySelector(".mt-auto");
-            if (priceContainer) {
-              const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][products][${pIdx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][products][${pIdx}][offer]"]`);
-              const isOffer = (pData.offer !== undefined)
-                ? (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1")
-                : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
-
-              const priceInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][price]"]`);
-              const priceVal = (pData.price !== undefined)
-                ? String(pData.price).trim()
-                : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
-
-              const discountInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][discount]"]`);
-              const percentageInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][porcentage]"]`);
-
-              let discountVal = (pData.discount !== undefined)
-                ? String(pData.discount).trim()
-                : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".text-success")?.textContent.replace("$", "").trim() || ""));
-
-              let pctVal = (pData.porcentage !== undefined)
-                ? String(pData.porcentage).trim()
-                : (percentageInput ? percentageInput.value.trim() : "");
-
-              if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
-                discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
-              }
-
-              if (!isOffer) {
-                priceContainer.innerHTML = priceVal !== "" ? `<p class="bold500">$${priceVal}</p>` : "";
-              } else {
-                const effectiveDiscount = discountVal || priceVal;
-                priceContainer.innerHTML = `
-                  <div class="flex-column gap0">
-                    <p class="inactive x16" style="text-decoration: line-through;">$${priceVal}</p>
-                    <p class="bold500 text-success">$${effectiveDiscount}</p>
-                  </div>
-                `;
+            if (pData.title !== undefined) {
+              const titleEl = card.querySelector(".capitalize-p");
+              if (titleEl) {
+                const svgEl = titleEl.querySelector("svg");
+                titleEl.innerHTML = "";
+                if (svgEl) titleEl.appendChild(svgEl);
+                titleEl.appendChild(document.createTextNode(" " + pData.title));
               }
             }
-          }
+
+            if (pData.url !== undefined) {
+              const aEl = card.querySelector("a");
+              if (aEl) aEl.href = pData.url || "#";
+            }
+
+            if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined || pData.porcentage !== undefined) {
+              const priceContainer = card.querySelector(".mt-auto");
+              if (priceContainer) {
+                const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][products][${pIdx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][products][${pIdx}][offer]"]`);
+                const isOffer = (pData.offer !== undefined)
+                  ? (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1")
+                  : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
+
+                const priceInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][price]"]`);
+                const priceVal = (pData.price !== undefined)
+                  ? String(pData.price).trim()
+                  : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
+
+                const discountInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][discount]"]`);
+                const percentageInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][porcentage]"]`);
+
+                let discountVal = (pData.discount !== undefined)
+                  ? String(pData.discount).trim()
+                  : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".text-success")?.textContent.replace("$", "").trim() || ""));
+
+                let pctVal = (pData.porcentage !== undefined)
+                  ? String(pData.porcentage).trim()
+                  : (percentageInput ? percentageInput.value.trim() : "");
+
+                if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
+                  discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
+                }
+
+                if (!isOffer) {
+                  priceContainer.innerHTML = priceVal !== "" ? `<p class="bold500">$${priceVal}</p>` : "";
+                } else {
+                  const effectiveDiscount = discountVal || priceVal;
+                  priceContainer.innerHTML = `
+                    <div class="flex-column gap0">
+                      <p class="inactive x16" style="text-decoration: line-through;">$${priceVal}</p>
+                      <p class="bold500 text-success">$${effectiveDiscount}</p>
+                    </div>
+                  `;
+                }
+              }
+            }
+          });
         });
       });
     });
@@ -2053,10 +2099,22 @@ export function designDraftManager() {
         if (match) {
           const idx = match[1];
           document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-            const item = preview.querySelector(`[data-content-index="${idx}"]`);
-            if (item) {
-              item.style.display = target.checked ? "" : "none";
-            }
+            const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+            items.forEach((item) => {
+              const variant = item.dataset.layoutVariant;
+              if (variant) {
+                const selectedLayout = document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid";
+                if (variant === selectedLayout) {
+                  item.style.display = target.checked ? "" : "none";
+                  if (target.checked) item.classList.remove("hidden");
+                } else {
+                  item.style.display = "none";
+                  item.classList.add("hidden");
+                }
+              } else {
+                item.style.display = target.checked ? "" : "none";
+              }
+            });
           });
         }
         return;
@@ -2110,8 +2168,8 @@ export function designDraftManager() {
 
         // 2. Actualizar imagen en la vista previa
         document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-          const item = preview.querySelector(`[data-content-index="${itemIdx}"]`);
-          if (item) {
+          const items = preview.querySelectorAll(`[data-content-index="${itemIdx}"]`);
+          items.forEach((item) => {
             if (subIdx !== undefined) {
               const card = item.querySelector(`[data-sub-index="${subIdx}"]`) 
                 || item.querySelectorAll(".product-grid-card, .product-slide-card")[subIdx];
@@ -2146,7 +2204,7 @@ export function designDraftManager() {
                 fig.style.display = "";
               }
             }
-          }
+          });
         });
 
         // 3. Sincronizar estado del bloque y habilitar/activar switch en tiempo real

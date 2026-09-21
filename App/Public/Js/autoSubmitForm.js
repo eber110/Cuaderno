@@ -135,10 +135,22 @@ export function autoSubmitForm() {
       if (match) {
         const idx = match[1];
         document.querySelectorAll('.user-profile-preview').forEach((preview) => {
-          const item = preview.querySelector(`[data-content-index="${idx}"]`);
-          if (item) {
-            item.style.display = target.checked ? '' : 'none';
-          }
+          const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+          items.forEach((item) => {
+            const variant = item.dataset.layoutVariant;
+            if (variant) {
+              const selectedLayout = document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || 'grid';
+              if (variant === selectedLayout) {
+                item.style.display = target.checked ? '' : 'none';
+                if (target.checked) item.classList.remove('hidden');
+              } else {
+                item.style.display = 'none';
+                item.classList.add('hidden');
+              }
+            } else {
+              item.style.display = target.checked ? '' : 'none';
+            }
+          });
         });
       }
     }
