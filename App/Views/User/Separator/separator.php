@@ -13,7 +13,7 @@
 ?>
 
 <?php if ($isSpace) : ?>
-  <div data-content-index="<?= $dataContent ?>" class="separator-block-wrapper w100" style="height: 10px;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>" aria-hidden="true"></div>
+  <div data-content-index="<?= $dataContent ?>" class="separator-block-wrapper w100" style="height: <?= e($sepData['space_size'] ?? 40) ?>px;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>" aria-hidden="true"></div>
 <?php else : ?>
   <div data-content-index="<?= $dataContent ?>" class="separator-block-wrapper w100 flex-row center-center color-text-card p0" style="margin: 10px 0; box-sizing: border-box; user-select: none;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>" aria-hidden="true">
     <?php if ($sepSize === "small") : ?>

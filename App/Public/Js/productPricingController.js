@@ -58,10 +58,12 @@ export function productPricingController() {
       }
     });
 
+    let isSyncingPricing = false;
+
     // Sincronización en tiempo real al escribir en los inputs de precios y descuentos
     document.addEventListener('input', (e) => {
       const target = e.target;
-      if (!target) return;
+      if (!target || isSyncingPricing) return;
 
       const container = target.closest('.sub-product-item') || target.closest('.sortable-item');
       if (!container) return;
@@ -91,6 +93,10 @@ export function productPricingController() {
         } else {
           discountInput.value = '';
         }
+
+        isSyncingPricing = true;
+        discountInput.dispatchEvent(new Event('input', { bubbles: true }));
+        isSyncingPricing = false;
       }
 
       // 2. El usuario modificó el precio rebajado directamente
@@ -101,6 +107,9 @@ export function productPricingController() {
           discountVal = 0;
           discountInput.value = '';
           percentageInput.value = 0;
+          isSyncingPricing = true;
+          percentageInput.dispatchEvent(new Event('input', { bubbles: true }));
+          isSyncingPricing = false;
           return;
         }
 
@@ -116,6 +125,10 @@ export function productPricingController() {
         } else {
           percentageInput.value = 0;
         }
+
+        isSyncingPricing = true;
+        percentageInput.dispatchEvent(new Event('input', { bubbles: true }));
+        isSyncingPricing = false;
       }
 
       // 3. El usuario modificó el precio original
@@ -125,14 +138,24 @@ export function productPricingController() {
           if (currentPct > 0) {
             const calculatedDiscount = Math.round(priceVal * (1 - (currentPct / 100)));
             discountInput.value = calculatedDiscount;
+            isSyncingPricing = true;
+            discountInput.dispatchEvent(new Event('input', { bubbles: true }));
+            isSyncingPricing = false;
           } else {
             const currentDiscount = parseFloat(discountInput.value) || 0;
             if (currentDiscount > priceVal) {
               discountInput.value = priceVal;
               percentageInput.value = 0;
+              isSyncingPricing = true;
+              discountInput.dispatchEvent(new Event('input', { bubbles: true }));
+              percentageInput.dispatchEvent(new Event('input', { bubbles: true }));
+              isSyncingPricing = false;
             } else if (currentDiscount > 0) {
               const calculatedPct = Math.round(((priceVal - currentDiscount) / priceVal) * 100);
               percentageInput.value = Math.max(0, Math.min(100, calculatedPct));
+              isSyncingPricing = true;
+              percentageInput.dispatchEvent(new Event('input', { bubbles: true }));
+              isSyncingPricing = false;
             }
           }
         }

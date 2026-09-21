@@ -894,7 +894,7 @@ class DesignModels extends Builder {
 
           $rawActive = $item["active"] ?? false;
           $active    = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
-          if ($size === "" || $bannerUrl === "" || empty($img) || $img === "no-image.webp") {
+          if ($size === "" || empty($img) || $img === "no-image.webp") {
             $active = false;
           }
 

@@ -139,9 +139,9 @@
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
           $isOpen = (trim($itemTitle) === '');
         } elseif ($itemType === 'banner') {
-          $isEmpty = (empty($itemSize) || trim($itemUrl) === '' || empty($itemImg) || $itemImg === 'no-image.webp');
+          $isEmpty = (empty($itemSize) || empty($itemImg) || $itemImg === 'no-image.webp');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (empty($itemSize) || (trim($itemUrl) === '' && (empty($itemImg) || $itemImg === 'no-image.webp')));
+          $isOpen = (empty($itemSize) || empty($itemImg) || $itemImg === 'no-image.webp');
         } elseif ($itemType === 'title') {
           $isEmpty = (trim($itemTitle) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');

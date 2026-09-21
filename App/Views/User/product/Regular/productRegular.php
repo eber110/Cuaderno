@@ -5,7 +5,8 @@
   */
   //var_dump($data);
   $price = $card["content"][$dataContent]["price"] ?? '';
-  $offer = $card["content"][$dataContent]["offer"] ?? '';
+  $rawOffer = $card["content"][$dataContent]["offer"] ?? false;
+  $isOffer = ($rawOffer === true || $rawOffer === 'true' || $rawOffer === 1 || $rawOffer === '1');
   $discount = $card["content"][$dataContent]["discount"] ?? '';
   $porcentage = $card["content"][$dataContent]["porcentage"] ?? '';
   $img = $card["content"][$dataContent]["img"] ?? '';
@@ -35,13 +36,13 @@
 
     <div class="flex-column gap5 w50 p15">
       <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= svg("basket-shopping", "x20") ?> <?= $content;?></p>
-      <?php if ($offer === false):?>
-        <p class="bold500">$<?= $price?></p>
+      <?php if (!$isOffer):?>
+        <p class="bold500">$<?= e($price)?></p>
       <?php else :?>
         <div class="flex-column center-start gap0">
-          <p class="inactive" style="text-decoration:line-through;">$<?= $price?></p>
+          <p class="inactive" style="text-decoration:line-through;">$<?= e($price)?></p>
           <p class="x16">Precio oferta</p>
-          <p class="bold500">$<?= $discount;?></p>
+          <p class="bold500">$<?= e($discount);?></p>
         </div>
       <?php endif;?>
     </div>

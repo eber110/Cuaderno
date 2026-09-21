@@ -631,7 +631,12 @@ export function sortableContent() {
           element.setAttribute("name", newName);
         }
         if (oldName && oldName.startsWith("content_img_")) {
-          element.setAttribute("name", `content_img_${index}`);
+          const matchSub = oldName.match(/^content_img_\d+_(\d+)$/);
+          if (matchSub) {
+            element.setAttribute("name", `content_img_${index}_${matchSub[1]}`);
+          } else {
+            element.setAttribute("name", `content_img_${index}`);
+          }
         }
 
         // Re-indexar IDs y atributos for de eliminación y switches para modales
@@ -645,7 +650,7 @@ export function sortableContent() {
         if (oldId && oldId.startsWith("offer-switch-")) {
           element.setAttribute("id", `offer-switch-${index}`);
         }
-        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-") || oldId.startsWith("sep-mode-") || oldId.startsWith("space-size-") || oldId.startsWith("sep-ico-") || oldId.startsWith("sep-size-"))) {
+        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-") || oldId.startsWith("sep-mode-") || oldId.startsWith("space-size-") || oldId.startsWith("sep-ico-") || oldId.startsWith("sep-size-") || oldId.startsWith("banner-") || oldId.startsWith("content_img_banner_"))) {
           element.setAttribute("id", oldId.replace(/-\d+$/, `-${index}`));
         }
 
@@ -659,7 +664,7 @@ export function sortableContent() {
         if (oldFor && oldFor.startsWith("offer-switch-")) {
           element.setAttribute("for", `offer-switch-${index}`);
         }
-        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-") || oldFor.startsWith("sep-mode-") || oldFor.startsWith("space-size-") || oldFor.startsWith("sep-ico-") || oldFor.startsWith("sep-size-"))) {
+        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-") || oldFor.startsWith("sep-mode-") || oldFor.startsWith("space-size-") || oldFor.startsWith("sep-ico-") || oldFor.startsWith("sep-size-") || oldFor.startsWith("banner-"))) {
           element.setAttribute("for", oldFor.replace(/-\d+$/, `-${index}`));
         }
       });

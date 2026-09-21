@@ -131,7 +131,7 @@ export function autoSubmitForm() {
 
     // Sincronizar visibilidad de elementos en la vista previa de forma instantánea al conmutar switches
     if (target.matches('.checkbox-switch')) {
-      const match = target.name && target.name.match(/^content\[(\d+)\]/);
+      const match = target.name && target.name.match(/^content\[(\d+)\]\[active\]$/);
       if (match) {
         const idx = match[1];
         document.querySelectorAll('.user-profile-preview').forEach((preview) => {

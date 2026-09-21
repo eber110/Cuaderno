@@ -92,6 +92,193 @@ export function designDraftManager() {
   // =========================================================================
 
   /**
+   * Obtiene el índice global del bloque de contenido.
+   * @param {HTMLElement} block
+   * @returns {string|null}
+   */
+  function getBlockIndex(block) {
+    if (!block) return null;
+    const matchId = block.id && block.id.match(/^content-item-(\d+)$/);
+    if (matchId) return matchId[1];
+    const anyInput = block.querySelector('[name^="content["]');
+    if (anyInput) {
+      const matchName = anyInput.name.match(/^content\[(\d+)\]/);
+      if (matchName) return matchName[1];
+    }
+    return null;
+  }
+
+  /**
+   * Determina si un bloque de contenido cumple con sus requisitos mínimos para poder activarse.
+   *
+   * @param {HTMLElement} block Bloque en el editor.
+   * @param {string|number} idx Índice del bloque.
+   * @param {string} type Tipo de bloque (link, product, product_group, campaign, banner, title, text, separator).
+   * @param {Object} [extraData] Datos auxiliares (como previewUrl de una imagen recién subida).
+   * @returns {boolean}
+   */
+  function isBlockValid(block, idx, type, extraData = {}) {
+    if (!block) return false;
+
+    switch (type) {
+      case "separator":
+        return true;
+
+      case "title": {
+        const input = block.querySelector(`input[name="content[${idx}][title]"]`);
+        return !!(input && input.value.trim() !== "");
+      }
+
+      case "text": {
+        const textarea = block.querySelector(`textarea[name="content[${idx}][text]"]`);
+        return !!(textarea && textarea.value.trim() !== "");
+      }
+
+      case "campaign": {
+        const titleInput = block.querySelector(`input[name="content[${idx}][title]"]`);
+        return !!(titleInput && titleInput.value.trim() !== "");
+      }
+
+      case "banner": {
+        const sizeRadio = block.querySelector(".banner-size-radio:checked");
+        const hasSize = !!sizeRadio && !!sizeRadio.value;
+
+        const fileInput = block.querySelector(`input[name="content_img_${idx}"]`);
+        const hiddenImg = block.querySelector(`input[name="content[${idx}][img]"]`);
+        const thumbImg = block.querySelector("figure img");
+
+        const hasNewFile = fileInput && fileInput.files && fileInput.files.length > 0;
+        const hasSavedImg = hiddenImg && hiddenImg.value && hiddenImg.value !== "no-image.webp" && hiddenImg.value !== "";
+        const hasThumbImg = thumbImg && thumbImg.src && !thumbImg.src.includes("no-image.webp") && thumbImg.src !== "";
+        const hasImg = hasNewFile || hasSavedImg || hasThumbImg || !!extraData.previewUrl;
+
+        return hasSize && hasImg;
+      }
+
+      case "product_group": {
+        const subProds = block.querySelectorAll(".sub-product-item");
+        let validCount = 0;
+        subProds.forEach((sub) => {
+          const title = sub.querySelector('input[name*="[title]"]')?.value || "";
+          const url = sub.querySelector('input[name*="[url]"]')?.value || "";
+          if (title.trim() !== "" && url.trim() !== "") {
+            validCount++;
+          }
+        });
+        return validCount >= 2;
+      }
+
+      case "product":
+      case "link":
+      default: {
+        const titleInput = block.querySelector(`input[name="content[${idx}][title]"]`);
+        const urlInput = block.querySelector(`input[name="content[${idx}][url]"]`);
+        const hasTitle = !!(titleInput && titleInput.value.trim() !== "");
+        const hasUrl = !!(urlInput && urlInput.value.trim() !== "");
+        return hasTitle && hasUrl;
+      }
+    }
+  }
+
+  /**
+   * Sincroniza el estado de activación y visibilidad de cualquier bloque de contenido.
+   * Si cumple los requisitos mínimos, habilita el switch de activación (remueve disabled)
+   * permitiendo que el usuario lo active a voluntad. El bloque solo se mostrará en la
+   * vista previa si el switch se encuentra encendido (checked).
+   *
+   * @param {HTMLElement} block Bloque en el editor.
+   * @param {string|number} idx Índice del bloque.
+   * @param {Object} [extraData] Datos auxiliares (como previewUrl para imágenes).
+   */
+  function syncBlockActiveState(block, idx, extraData = {}) {
+    if (!block) return;
+    const type = block.dataset.type || "link";
+    const activeSwitch = block.querySelector(`input[type="checkbox"][name="content[${idx}][active]"]`) || block.querySelector(`.checkbox-switch[name="content[${idx}][active]"]`);
+    if (!activeSwitch) return;
+
+    const isValid = isBlockValid(block, idx, type, extraData);
+
+    const container = activeSwitch.closest(".checkbox-switch-container") || activeSwitch;
+    const hiddenInput = container.previousElementSibling && container.previousElementSibling.name === activeSwitch.name 
+      ? container.previousElementSibling 
+      : null;
+
+    if (isValid) {
+      // Habilitar el switch para que el usuario pueda activarlo u ocultarlo a voluntad
+      activeSwitch.removeAttribute("disabled");
+      activeSwitch.disabled = false;
+
+      if (hiddenInput && hiddenInput.tagName === "INPUT" && hiddenInput.type === "hidden") {
+        hiddenInput.disabled = activeSwitch.checked;
+      }
+
+      // Actualizar datos del elemento en la vista previa (imagen, proporción), respetando estrictamente el estado del switch
+      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        const item = preview.querySelector(`[data-content-index="${idx}"]`);
+        if (item) {
+          if (type === "banner") {
+            if (extraData.previewUrl) {
+              const previewImg = item.querySelector("img");
+              if (previewImg) previewImg.src = extraData.previewUrl;
+            }
+            const sizeRadio = block.querySelector(".banner-size-radio:checked");
+            if (sizeRadio && sizeRadio.value) {
+              const ratioMap = {
+                "720x720": "720 / 720",
+                "1024x720": "1024 / 720",
+                "720x1024": "720 / 1024"
+              };
+              if (ratioMap[sizeRadio.value]) {
+                item.style.aspectRatio = ratioMap[sizeRadio.value];
+              }
+            }
+          }
+
+          // El bloque SOLO se muestra en el preview si el switch está activado (checked)
+          item.style.display = activeSwitch.checked ? "" : "none";
+        }
+      });
+    } else {
+      activeSwitch.setAttribute("disabled", "disabled");
+      activeSwitch.disabled = true;
+      activeSwitch.checked = false;
+      activeSwitch.setAttribute("active", "2");
+      setDraftField(activeSwitch.name, "false");
+
+      if (hiddenInput && hiddenInput.tagName === "INPUT" && hiddenInput.type === "hidden") {
+        hiddenInput.disabled = false;
+      }
+
+      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        const item = preview.querySelector(`[data-content-index="${idx}"]`);
+        if (item) {
+          item.style.display = "none";
+        }
+      });
+    }
+  }
+
+  /**
+   * Refresca el estado de todos los bloques de contenido en el panel.
+   */
+  function refreshAllBlocksActiveState() {
+    document.querySelectorAll("#sortable-content-list .sortable-item.content-block").forEach((block) => {
+      const idx = getBlockIndex(block);
+      if (idx !== null) {
+        syncBlockActiveState(block, idx);
+      }
+    });
+  }
+
+  // Alias para mantener compatibilidad
+  function syncBannerState(block, idx, previewUrl = null) {
+    syncBlockActiveState(block, idx, { previewUrl });
+  }
+  function refreshAllBannersState() {
+    refreshAllBlocksActiveState();
+  }
+
+  /**
    * Sincroniza la visibilidad de elementos dependientes en el formulario de edición.
    * @param {HTMLElement} target Elemento modificado
    */
@@ -175,6 +362,59 @@ export function designDraftManager() {
       if (targetId) {
         const fieldWrap = document.getElementById(targetId);
         if (fieldWrap) fieldWrap.style.display = target.checked ? "flex" : "none";
+      }
+    }
+
+    // 8. Bloques de separador: cambio entre figura (ícono) y espacio en blanco
+    if (target.classList && target.classList.contains("separator-icon-radio")) {
+      const block = target.closest(".sortable-item, .content-item-body, .flex-column");
+      if (block) {
+        const isSpace = (target.value === "none" || target.value === "ban");
+        const spaceOpts = block.querySelector(".separator-space-options");
+        const sizeOpts = block.querySelector(".separator-size-options");
+        if (spaceOpts) spaceOpts.style.display = isSpace ? "flex" : "none";
+        if (sizeOpts) sizeOpts.style.display = isSpace ? "none" : "flex";
+      }
+    }
+
+    // 9. Bloques de banner: selector de tamaño habilita recorte y subida
+    if (target.classList && target.classList.contains("banner-size-radio")) {
+      const idx = target.dataset.index;
+      if (idx !== undefined) {
+        const hint = document.getElementById(`banner-size-hint-${idx}`);
+        if (hint) hint.classList.add("hidden");
+        const cropWrap = document.getElementById(`banner-crop-btn-wrap-${idx}`);
+        if (cropWrap) cropWrap.classList.remove("opacity-40", "pointer-events-none");
+        const cropInput = document.getElementById(`content_img_banner_${idx}`);
+        if (cropInput) {
+          cropInput.removeAttribute("disabled");
+          cropInput.setAttribute("cropping-size", target.value);
+        }
+
+        // Sincronizar de inmediato la proporción en las vistas previas
+        const ratioMap = {
+          "720x720": "720 / 720",
+          "1024x720": "1024 / 720",
+          "720x1024": "720 / 1024"
+        };
+        if (ratioMap[target.value]) {
+          document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+            const bannerEl = preview.querySelector(`[data-content-index="${idx}"]`);
+            if (bannerEl) bannerEl.style.aspectRatio = ratioMap[target.value];
+          });
+        }
+
+        const block = target.closest(".sortable-item") || target.closest(".content-block");
+        syncBannerState(block, idx);
+      }
+    }
+
+    // 10. Productos: switch de oferta/rebaja habilita wrapper de descuentos
+    if (target.classList && target.classList.contains("product-offer-switch")) {
+      const block = target.closest(".sub-product-item, .content-item-body");
+      if (block) {
+        const discountWrap = block.querySelector(".product-discount-wrapper");
+        if (discountWrap) discountWrap.style.display = target.checked ? "flex" : "none";
       }
     }
   }
@@ -386,6 +626,25 @@ export function designDraftManager() {
       `);
     }
 
+    // Animación hover en botones
+    const buttonBack = fields.back || document.getElementById("select-color-button")?.value || "#d6d6d6";
+    if (fields.hover !== undefined) {
+      const isHoverActive = (fields.hover === "true" || fields.hover === true || fields.hover === 1 || fields.hover === "1");
+      if (isHoverActive) {
+        cssRules.push(`
+          .user-profile-preview .theme-button:hover {
+            background-color: oklch(from ${buttonBack} calc(l * 0.92) c h) !important;
+          }
+        `);
+      } else {
+        cssRules.push(`
+          .user-profile-preview .theme-button:hover {
+            background-color: ${buttonBack} !important;
+          }
+        `);
+      }
+    }
+
     // Actualizar la hoja de estilos en vivo
     styleSheet.textContent = cssRules.join("\n");
 
@@ -520,6 +779,26 @@ export function designDraftManager() {
         });
       });
     }
+
+    // --- D2. REDES SOCIALES (RRSS) ---
+    Object.keys(fields).forEach((key) => {
+      const matchRrss = key.match(/^rrss\[(\d+)\]\[1\]$/);
+      if (matchRrss) {
+        const rrssIdx = matchRrss[1];
+        const rrssUrl = String(fields[key] || "").trim();
+        const nameInput = document.querySelector(`input[name="rrss[${rrssIdx}][0]"]`);
+        const socialName = nameInput ? nameInput.value : "";
+        if (socialName) {
+          previews.forEach((p) => {
+            const link = p.querySelector(`[data-link-id="rrss_${socialName}"], [aria-label="${socialName}"]`);
+            if (link) {
+              link.href = rrssUrl || "#";
+              link.style.display = rrssUrl !== "" ? "" : "none";
+            }
+          });
+        }
+      }
+    });
 
     // --- E. ACTUALIZACIÓN EN VIVO DE BLOQUES DE CONTENIDO (CAMPAÑAS, BANNERS, TÍTULOS, TEXTOS, ETC.) ---
     const contentMap = {};
@@ -805,18 +1084,48 @@ export function designDraftManager() {
 
         // D. SEPARADOR
         else if (block.classList.contains("separator-block-wrapper")) {
-          if (cData.space_size) {
-            if (block.style.height || (!block.classList.contains("flex-row") && !block.querySelector("svg"))) {
-              block.style.height = cData.space_size + "px";
-            }
-          }
-          if (cData.separator_size) {
-            const innerWrap = block.querySelector("div");
-            if (innerWrap) {
-              const widthMap = { small: "18px", medium: "60%", large: "100%" };
-              const w = widthMap[cData.separator_size] || "100%";
-              innerWrap.style.width = w;
-              innerWrap.style.maxWidth = w;
+          const sepIcon = cData.separator_icon !== undefined 
+            ? cData.separator_icon 
+            : (document.querySelector(`input[name="content[${idx}][separator_icon]"]:checked`)?.value || "none");
+          const sepSize = cData.separator_size !== undefined 
+            ? cData.separator_size 
+            : (document.querySelector(`input[name="content[${idx}][separator_size]"]:checked`)?.value || "large");
+          const spaceSize = cData.space_size !== undefined 
+            ? cData.space_size 
+            : (document.querySelector(`input[name="content[${idx}][space_size]"]:checked`)?.value || "40");
+
+          const isSpace = (sepIcon === "none" || sepIcon === "ban" || cData.separator_mode === "space");
+
+          if (isSpace) {
+            block.className = "separator-block-wrapper w100";
+            block.style.margin = "";
+            block.style.boxSizing = "";
+            block.style.userSelect = "";
+            block.style.height = spaceSize + "px";
+            block.innerHTML = "";
+          } else {
+            const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
+            const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
+            const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
+            const svgHtml = svgEl ? svgEl.outerHTML : "";
+
+            block.className = "separator-block-wrapper w100 flex-row center-center color-text-card p0";
+            block.style.margin = "10px 0";
+            block.style.boxSizing = "border-box";
+            block.style.userSelect = "none";
+            block.style.height = "";
+
+            if (svgHtml) {
+              if (sepSize === "small") {
+                block.innerHTML = `<span class="flex-row center-center" style="width: 18px; height: 18px; font-size: 18px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
+              } else {
+                const widthPercent = (sepSize === "medium") ? "60%" : "100%";
+                let spans = "";
+                for (let k = 0; k < 35; k++) {
+                  spans += `<span class="flex-row center-center" style="width: 16px; height: 16px; font-size: 16px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
+                }
+                block.innerHTML = `<div style="display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; align-items: center; gap: 8px; height: 18px; overflow: hidden; width: ${widthPercent}; max-width: ${widthPercent};">${spans}</div>`;
+              }
             }
           }
         }
@@ -842,6 +1151,10 @@ export function designDraftManager() {
               block.style.aspectRatio = ratioMap[cData.size];
             }
           }
+          if (cData.url !== undefined) {
+            const aEl = block.querySelector("a");
+            if (aEl) aEl.href = cData.url || "#";
+          }
         }
 
         // F. PRODUCTO REGULAR
@@ -855,29 +1168,58 @@ export function designDraftManager() {
               pTitle.appendChild(document.createTextNode(" " + cData.title));
             }
           }
-          if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined) {
+          if (cData.url !== undefined) {
+            const aEl = block.querySelector("a");
+            if (aEl) aEl.href = cData.url || "#";
+          }
+          if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined || cData.porcentage !== undefined) {
             const priceContainer = block.querySelector(".flex-column.gap5.w50.p15");
             if (priceContainer) {
-              const isOffer = (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1");
-              const priceVal = (cData.price !== undefined) ? cData.price : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "") || "");
-              const discountVal = (cData.discount !== undefined) ? cData.discount : "";
+              const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][offer]"]`);
+              const isOffer = (cData.offer !== undefined)
+                ? (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1")
+                : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
+
+              const priceInput = document.querySelector(`input[name="content[${idx}][price]"]`);
+              const priceVal = (cData.price !== undefined)
+                ? String(cData.price).trim()
+                : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
+
+              const discountInput = document.querySelector(`input[name="content[${idx}][discount]"]`);
+              const percentageInput = document.querySelector(`input[name="content[${idx}][porcentage]"]`);
+
+              let discountVal = (cData.discount !== undefined)
+                ? String(cData.discount).trim()
+                : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".bold500:last-child")?.textContent.replace("$", "").trim() || ""));
+
+              let pctVal = (cData.porcentage !== undefined)
+                ? String(cData.porcentage).trim()
+                : (percentageInput ? percentageInput.value.trim() : "");
+
+              // Si discountVal está vacío o es igual al precio y tenemos porcentaje > 0, calcularlo
+              if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
+                discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
+              }
 
               // Eliminar contenido de precios anterior
               const existingPrices = priceContainer.querySelectorAll("p:not(.capitalize-p), div.flex-column");
               existingPrices.forEach((el) => el.remove());
 
               if (!isOffer) {
-                const p = document.createElement("p");
-                p.className = "bold500";
-                p.textContent = "$" + priceVal;
-                priceContainer.appendChild(p);
+                if (priceVal !== "") {
+                  const p = document.createElement("p");
+                  p.className = "bold500";
+                  p.textContent = "$" + priceVal;
+                  priceContainer.appendChild(p);
+                }
               } else {
+                const effectiveDiscount = discountVal || priceVal;
                 const div = document.createElement("div");
                 div.className = "flex-column center-start gap0";
                 div.innerHTML = `
                   <p class="inactive" style="text-decoration:line-through;">$${priceVal}</p>
                   <p class="x16">Precio oferta</p>
-                  <p class="bold500">$${discountVal}</p>
+                  <p class="bold500">$${effectiveDiscount}</p>
                 `;
                 priceContainer.appendChild(div);
               }
@@ -911,6 +1253,10 @@ export function designDraftManager() {
               pTitle.textContent = cData.title;
             }
           }
+          if (cData.url !== undefined) {
+            const aEl = block.querySelector("a");
+            if (aEl) aEl.href = cData.url || "#";
+          }
         }
       });
 
@@ -936,20 +1282,47 @@ export function designDraftManager() {
             }
           }
 
-          if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined) {
+          if (pData.url !== undefined) {
+            const aEl = card.querySelector("a");
+            if (aEl) aEl.href = pData.url || "#";
+          }
+
+          if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined || pData.porcentage !== undefined) {
             const priceContainer = card.querySelector(".mt-auto");
             if (priceContainer) {
-              const isOffer = (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1");
-              const priceVal = (pData.price !== undefined) ? pData.price : "";
-              const discountVal = (pData.discount !== undefined) ? pData.discount : "";
+              const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][products][${pIdx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][products][${pIdx}][offer]"]`);
+              const isOffer = (pData.offer !== undefined)
+                ? (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1")
+                : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
 
-              if (!isOffer || !discountVal) {
+              const priceInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][price]"]`);
+              const priceVal = (pData.price !== undefined)
+                ? String(pData.price).trim()
+                : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
+
+              const discountInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][discount]"]`);
+              const percentageInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][porcentage]"]`);
+
+              let discountVal = (pData.discount !== undefined)
+                ? String(pData.discount).trim()
+                : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".text-success")?.textContent.replace("$", "").trim() || ""));
+
+              let pctVal = (pData.porcentage !== undefined)
+                ? String(pData.porcentage).trim()
+                : (percentageInput ? percentageInput.value.trim() : "");
+
+              if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
+                discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
+              }
+
+              if (!isOffer) {
                 priceContainer.innerHTML = priceVal !== "" ? `<p class="bold500">$${priceVal}</p>` : "";
               } else {
+                const effectiveDiscount = discountVal || priceVal;
                 priceContainer.innerHTML = `
                   <div class="flex-column gap0">
                     <p class="inactive x16" style="text-decoration: line-through;">$${priceVal}</p>
-                    <p class="bold500 text-success">$${discountVal}</p>
+                    <p class="bold500 text-success">$${effectiveDiscount}</p>
                   </div>
                 `;
               }
@@ -994,8 +1367,10 @@ export function designDraftManager() {
           const isChecked = (val === true || val === "true" || val === 1 || val === "1");
           cb.checked = isChecked;
           cb.setAttribute("active", isChecked ? "1" : "2");
-          if (cb.previousElementSibling && cb.previousElementSibling.type === "hidden" && cb.previousElementSibling.name === cb.name) {
-            cb.previousElementSibling.disabled = isChecked;
+          const container = cb.closest(".checkbox-switch-container") || cb;
+          const hiddenInput = container.previousElementSibling && container.previousElementSibling.name === cb.name ? container.previousElementSibling : null;
+          if (hiddenInput && hiddenInput.type === "hidden") {
+            hiddenInput.disabled = isChecked;
           }
 
           if (cb.name === "hide") {
@@ -1004,6 +1379,8 @@ export function designDraftManager() {
               statusText.textContent = isChecked ? "oculto" : "visible";
             }
           }
+
+          syncConditionalUI(cb);
         });
         return;
       }
@@ -1469,6 +1846,7 @@ export function designDraftManager() {
                 window.__formComponents.initCheckboxSwitches?.();
                 window.__formComponents.styleColorPickers?.();
               }
+              refreshAllBannersState();
             }
           }
         }
@@ -1614,6 +1992,15 @@ export function designDraftManager() {
       }
       setDraftField(target.name, target.value);
       applyDraftToPreview(getDraft());
+
+      // Sincronizar estado de activación/desbloqueo del bloque en tiempo real mientras se escribe
+      const block = target.closest(".sortable-item.content-block");
+      if (block) {
+        const idx = getBlockIndex(block);
+        if (idx !== null) {
+          syncBlockActiveState(block, idx);
+        }
+      }
     }
   });
 
@@ -1637,6 +2024,13 @@ export function designDraftManager() {
     if (target.type === "radio" && target.checked) {
       setDraftField(target.name, target.value);
       applyDraftToPreview(getDraft());
+      const block = target.closest(".sortable-item.content-block");
+      if (block) {
+        const idx = getBlockIndex(block);
+        if (idx !== null) {
+          syncBlockActiveState(block, idx);
+        }
+      }
       return;
     }
 
@@ -1653,9 +2047,9 @@ export function designDraftManager() {
         }
       }
 
-      // Sincronizar visibilidad de elementos en la vista previa al conmutar switches
+      // Sincronizar visibilidad de elementos en la vista previa al conmutar switches de activación de bloque
       if (target.matches(".checkbox-switch")) {
-        const match = target.name && target.name.match(/^content\[(\d+)\]/);
+        const match = target.name && target.name.match(/^content\[(\d+)\]\[active\]$/);
         if (match) {
           const idx = match[1];
           document.querySelectorAll(".user-profile-preview").forEach((preview) => {
@@ -1673,6 +2067,13 @@ export function designDraftManager() {
     if (target.type !== "file") {
       setDraftField(target.name, target.value);
       applyDraftToPreview(getDraft());
+      const block = target.closest(".sortable-item.content-block");
+      if (block) {
+        const idx = getBlockIndex(block);
+        if (idx !== null) {
+          syncBlockActiveState(block, idx);
+        }
+      }
     }
   });
 
@@ -1697,8 +2098,12 @@ export function designDraftManager() {
         const subIdx = match[2];
 
         // 1. Actualizar miniatura dentro del formulario en el editor
+        const subItem = target.closest(".sub-product-item");
         const block = target.closest(".sortable-item") || target.closest(".content-block");
-        if (block) {
+        if (subItem) {
+          const thumb = subItem.querySelector("figure img");
+          if (thumb) thumb.src = previewUrl;
+        } else if (block) {
           const thumb = block.querySelector("figure img");
           if (thumb) thumb.src = previewUrl;
         }
@@ -1708,18 +2113,47 @@ export function designDraftManager() {
           const item = preview.querySelector(`[data-content-index="${itemIdx}"]`);
           if (item) {
             if (subIdx !== undefined) {
-              const subImgs = item.querySelectorAll("img");
-              if (subImgs[subIdx]) {
-                subImgs[subIdx].src = previewUrl;
+              const card = item.querySelector(`[data-sub-index="${subIdx}"]`) 
+                || item.querySelectorAll(".product-grid-card, .product-slide-card")[subIdx];
+              if (card) {
+                let fig = card.querySelector("figure");
+                let img = card.querySelector("figure img");
+                if (!fig) {
+                  fig = document.createElement("figure");
+                  fig.className = "w100 ar-square overflow-hidden";
+                  img = document.createElement("img");
+                  img.className = "cover w100 h100 br12";
+                  fig.appendChild(img);
+                  const link = card.querySelector("a");
+                  if (link) {
+                    link.insertBefore(fig, link.firstElementChild);
+                  } else {
+                    card.insertBefore(fig, card.firstElementChild);
+                  }
+                }
+                if (img) {
+                  img.src = previewUrl;
+                }
+                fig.style.display = "";
               }
             } else {
-              const previewImg = item.querySelector("img");
+              let fig = item.querySelector("figure");
+              let previewImg = item.querySelector("figure img") || item.querySelector("img");
               if (previewImg) {
                 previewImg.src = previewUrl;
+              }
+              if (fig) {
+                fig.style.display = "";
               }
             }
           }
         });
+
+        // 3. Sincronizar estado del bloque y habilitar/activar switch en tiempo real
+        if (block) {
+          const bIdx = getBlockIndex(block) || itemIdx;
+          syncBlockActiveState(block, bIdx, { previewUrl });
+        }
       }
       notifyDraftState();
     }
@@ -1896,6 +2330,7 @@ export function designDraftManager() {
               window.__formComponents.initCheckboxSwitches?.();
               window.__formComponents.styleColorPickers?.();
             }
+            refreshAllBannersState();
           }
         }
       }
@@ -1954,6 +2389,7 @@ export function designDraftManager() {
       syncFormControls(draft);
       notifyDraftState();
     }
+    refreshAllBannersState();
   }
 
   if (document.readyState === "loading") {
