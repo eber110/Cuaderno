@@ -98,5 +98,25 @@
                 "redirect": ""
             }
         }
+    },
+    {
+        "timestamp": "2026-09-26 21:25:37",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "unknown",
+        "method": "unknown",
+        "uri": "unknown",
+        "user_agent": "unknown",
+        "context": {
+            "time": "2026-09-26 21:25:37",
+            "code": 405,
+            "msg": "Método no permitido",
+            "ip": "unknown",
+            "url": "unknown",
+            "method": "unknown",
+            "context": {
+                "code": 405,
+                "redirect": ""
+            }
+        }
     }
 ]

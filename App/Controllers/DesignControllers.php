@@ -36,6 +36,7 @@ class DesignControllers extends Control {
    * @return void Redirige al panel del usuario o responde en JSON si es AJAX.
    */
   public function configDesign(string $user, array|string $param): void {
+    ob_start();
     $userClean = mb_strtolower($user, "UTF-8");
 
     // Delegar el procesamiento completo de actualización al modelo DesignModels
@@ -77,8 +78,8 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      if (ob_get_length()) {
-        ob_clean();
+      while (ob_get_level() > 0) {
+        ob_end_clean();
       }
 
       ResponseModule::json([
@@ -151,8 +152,8 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      if (ob_get_length()) {
-        ob_clean();
+      while (ob_get_level() > 0) {
+        ob_end_clean();
       }
 
       ResponseModule::json([
@@ -217,8 +218,8 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      if (ob_get_length()) {
-        ob_clean();
+      while (ob_get_level() > 0) {
+        ob_end_clean();
       }
 
       ResponseModule::json([
@@ -284,41 +285,80 @@ class DesignControllers extends Control {
   }
 
   /**
-   * Endpoint en segundo plano para procesar metadatos pendientes vía HttpPostModule.
-   * Responde de inmediato cerrando la conexión HTTP para no demorar al cliente.
+   * Extrae metadatos en segundo plano para enlaces o productos pendientes.
+   * Diseñado para ser llamado vía Fetch/AJAX desde el navegador sin bloquear
+   * la carga del panel ni la navegación.
    *
    * @param string $user Nombre de usuario.
-   * @return void
+   * @return void Emite respuesta JSON.
    */
   public function extractMetadataBackground(string $user): void {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    // 1. Cerrar sesión para liberar cualquier cerrojo remanente
+    // 1. Liberar cerrojo de sesión para que el usuario pueda seguir interactuando
     if (session_status() === PHP_SESSION_ACTIVE) {
       session_write_close();
     }
 
-    // 2. Responder de inmediato al emisor (cURL / navegador) y desvincular la conexión
-    ignore_user_abort(true);
-    set_time_limit(120);
+    // 2. Procesar los metadatos pendientes
+    $updated = DesignModels::processPendingMetadata($userClean);
 
-    if (function_exists('fastcgi_finish_request')) {
-      header("Content-Type: application/json");
-      echo json_encode(["success" => true, "status" => "processing"]);
-      fastcgi_finish_request();
-    } else {
-      ob_start();
-      header("Content-Type: application/json");
-      header("Connection: close");
-      echo json_encode(["success" => true, "status" => "processing"]);
-      $size = ob_get_length();
-      header("Content-Length: " . $size);
-      ob_end_flush();
-      @flush();
+    // 3. Preparar respuesta
+    if ($updated) {
+      $dataUser = DesignModels::dataUser($userClean);
+      $cardData = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
+        ? UserModels::formatCardImages($dataUser["card"]) 
+        : [];
+
+      if (empty($cardData["profile"])) {
+        $cardData["profile"] = $userClean;
+      }
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+
+      $sessionData = $_SESSION["user"] ?? [];
+      $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
+        "card"    => $cardData,
+        "session" => $sessionData
+      ]);
+
+      $uri = [
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
+      ];
+
+      $formHtml = _partToString("Dashboard.contentPanel", [
+        "card"    => $cardData,
+        "uri"     => $uri,
+        "user"    => $userClean,
+        "stats"   => [],
+        "session" => $sessionData
+      ]);
+
+      while (ob_get_level() > 0) {
+        ob_end_clean();
+      }
+
+      ResponseModule::json([
+        "success"           => true,
+        "updated"           => true,
+        "html"              => $previewHtml,
+        "formHtml"          => $formHtml,
+        "sidebarStatusHtml" => $sidebarStatusHtml,
+        "card"              => $cardData
+      ]);
     }
 
-    // 3. Ejecutar la extracción de metadatos pesada en segundo plano
-    DesignModels::processPendingMetadata($userClean);
+    while (ob_get_level() > 0) {
+      ob_end_clean();
+    }
+
+    ResponseModule::json([
+      "success" => true,
+      "updated" => false
+    ]);
   }
 
 }

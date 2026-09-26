@@ -71,6 +71,7 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
   Route::post("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);
   Route::get("/estadisticas", [\App\Controllers\StatisticsControllers::class, "loadStatsHtml"]);
   Route::post("/estadisticas", [\App\Controllers\StatisticsControllers::class, "loadStatsHtml"]);
+  Route::get("/extraer-metadatos", [DesignControllers::class, "extractMetadataBackground"]);
   Route::post("/extraer-metadatos", [DesignControllers::class, "extractMetadataBackground"]);
 
 });

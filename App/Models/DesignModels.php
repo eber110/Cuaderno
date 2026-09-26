@@ -424,6 +424,7 @@ class DesignModels extends Builder {
     $backVideo = $dataRequest["backCard"]["back_video"] ?? "";
     $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
     $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
+    $styleBack = $param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "solid");
 
     self::$videoUploadError = null;
     self::$videoUploadSuccess = null;
@@ -1596,6 +1597,180 @@ class DesignModels extends Builder {
    * @param string $user Nombre de usuario.
    * @return void
    */
+  /**
+   * Extrae metadatos de un enlace de YouTube utilizando la API oEmbed oficial
+   * con fallback directo a la miniatura por ID del video.
+   *
+   * @param string $url URL de YouTube.
+   * @return array|false Arreglo con title, description e image, o false si no es válido.
+   */
+  public static function fetchYouTubeMetadata(string $url): array|false {
+    $videoId = "";
+    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $url, $matches)) {
+      $videoId = $matches[1];
+    }
+
+    $fallbackImg = !empty($videoId) ? "https://i.ytimg.com/vi/{$videoId}/hqdefault.jpg" : "";
+
+    $oembedUrl = "https://www.youtube.com/oembed?url=" . urlencode($url) . "&format=json";
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $oembedUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    $response = curl_exec($ch);
+    $curlErr = curl_error($ch);
+    curl_close($ch);
+
+    if (!$curlErr && !empty($response)) {
+      $data = json_decode($response, true);
+      if ($data && !empty($data["title"])) {
+        return [
+          "title"       => $data["title"],
+          "description" => $data["author_name"] ?? "YouTube",
+          "image"       => !empty($data["thumbnail_url"]) ? $data["thumbnail_url"] : $fallbackImg
+        ];
+      }
+    }
+
+    // Fallback: si tenemos videoId pero falló oEmbed (ej. timeout de red)
+    if (!empty($videoId)) {
+      return [
+        "title"       => "Video de YouTube",
+        "description" => "YouTube",
+        "image"       => $fallbackImg
+      ];
+    }
+
+    return false;
+  }
+
+  /**
+   * Extrae metadatos (título, descripción, imagen) de una URL dada.
+   * Soporta de forma especializada la API oEmbed oficial de YouTube para evitar bloqueos de bots,
+   * y recurre a RequestMetaModule para el resto de los sitios web.
+   *
+   * @param string $url URL a consultar.
+   * @return array|false Arreglo asociativo con title, description e image, o false si falla.
+   */
+  public static function fetchUrlMetadata(string $url): array|false {
+    $url = trim($url);
+    if (empty($url)) {
+      return false;
+    }
+
+    if (!preg_match('~^(?:f|ht)tps?://~i', $url)) {
+      $url = "https://" . $url;
+    }
+
+    if (!preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
+      return false;
+    }
+
+    $cacheKey = "url_meta_" . md5($url);
+    if (class_exists(CacheModule::class)) {
+      $cached = CacheModule::get($cacheKey);
+      if ($cached !== null && is_array($cached)) {
+        return $cached;
+      }
+    }
+
+    $result = false;
+
+    // 1. Detección especializada para YouTube (vía oEmbed + video ID)
+    if (preg_match('#(?:youtube\.com|youtu\.be)#i', $url)) {
+      $result = self::fetchYouTubeMetadata($url);
+    }
+
+    // 2. Si no es YouTube o si falló, recurrir a RequestMetaModule
+    if ($result === false) {
+      $metaData = RequestMetaModule::requestMeta($url);
+      if ($metaData !== false && is_array($metaData)) {
+        $title = !empty($metaData["title"])
+          ? $metaData["title"]
+          : (!empty($metaData["og"]["title"])
+            ? $metaData["og"]["title"]
+            : (!empty($metaData["twitter"]["title"])
+              ? $metaData["twitter"]["title"]
+              : ""));
+
+        $desc = !empty($metaData["description"])
+          ? $metaData["description"]
+          : (!empty($metaData["og"]["description"])
+            ? $metaData["og"]["description"]
+            : (!empty($metaData["twitter"]["description"])
+              ? $metaData["twitter"]["description"]
+              : ""));
+
+        $image = !empty($metaData["og"]["image"])
+          ? $metaData["og"]["image"]
+          : (!empty($metaData["twitter"]["image"])
+            ? $metaData["twitter"]["image"]
+            : (!empty($metaData["og"]["logo"])
+              ? $metaData["og"]["logo"]
+              : ""));
+
+        if (!empty($title) || !empty($desc) || !empty($image)) {
+          $result = [
+            "title"       => $title,
+            "description" => $desc,
+            "image"       => $image
+          ];
+        }
+      }
+    }
+
+    // 3. Si se obtuvieron metadatos válidos, guardar en caché por 7 días
+    if ($result !== false && is_array($result) && class_exists(CacheModule::class)) {
+      CacheModule::set($cacheKey, $result, 86400 * 7);
+    }
+
+    return $result;
+  }
+
+  /**
+   * Determina si el diseño de un usuario contiene enlaces o productos pendientes de metadatos.
+   *
+   * @param string $user Nombre de usuario.
+   * @return bool True si hay al menos un elemento pendiente.
+   */
+  public static function hasPendingMetadata(string $user): bool {
+    $userClean = mb_strtolower($user, "UTF-8");
+    $hasDraft  = self::hasCustomDesign($userClean);
+    $data      = $hasDraft ? self::getCustomDesign($userClean) : self::getOfficialDesign($userClean);
+
+    if (empty($data["card"]["content"]) || !is_array($data["card"]["content"])) {
+      return false;
+    }
+
+    foreach ($data["card"]["content"] as $item) {
+      if (($item["type"] ?? "") === "product_group" && !empty($item["products"]) && is_array($item["products"])) {
+        foreach ($item["products"] as $sub) {
+          $subUrl = trim($sub["url"] ?? "");
+          if (!empty($subUrl) && (empty($sub["metaScraped"]) || empty($sub["metaImg"]))) {
+            return true;
+          }
+        }
+      } else {
+        $url = trim($item["url"] ?? "");
+        if (!empty($url) && (empty($item["metaScraped"]) || empty($item["metaImg"]))) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Dispara la extracción de metadatos en segundo plano.
+   *
+   * @param string $user Nombre de usuario.
+   * @return void
+   */
   public static function triggerBackgroundMetadataExtraction(string $user): void {
     $userClean = mb_strtolower($user, "UTF-8");
 
@@ -1628,7 +1803,7 @@ class DesignModels extends Builder {
 
   /**
    * Procesa en segundo plano todos los enlaces o productos pendientes de extracción de metadatos
-   * utilizando RequestMetaModule y actualiza la tarjeta guardada en SQLite.
+   * utilizando fetchUrlMetadata y actualiza la tarjeta guardada en SQLite.
    *
    * @param string $user Nombre de usuario.
    * @return bool True si hubo cambios y se actualizaron en BD, false de lo contrario.
@@ -1654,29 +1829,21 @@ class DesignModels extends Builder {
       if ($itemType === "product_group" && isset($item["products"]) && is_array($item["products"])) {
         foreach ($item["products"] as &$sub) {
           $subUrl = trim($sub["url"] ?? "");
-          $alreadyScraped = !empty($sub["metaScraped"]);
+          $needsScrape = !empty($subUrl) && (empty($sub["metaScraped"]) || empty($sub["metaImg"]));
 
-          if (!empty($subUrl) && !$alreadyScraped && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
-            $metaData = RequestMetaModule::requestMeta($subUrl);
+          if ($needsScrape && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $subUrl)) {
+            $metaData = self::fetchUrlMetadata($subUrl);
             if ($metaData !== false && is_array($metaData)) {
               if (empty($sub["title"]) || $sub["title"] === $subUrl || $sub["title"] === parse_url($subUrl, PHP_URL_HOST)) {
-                $sub["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : (!empty($metaData["og"]["title"]) ? $metaData["og"]["title"] : ($sub["metaTitle"] ?? ""));
+                $sub["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : ($sub["metaTitle"] ?? "");
               } else {
-                $sub["metaTitle"] = $sub["title"];
+                $sub["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : $sub["title"];
               }
-              $sub["metaDesc"] = !empty($metaData["description"]) ? $metaData["description"] : (!empty($metaData["og"]["description"]) ? $metaData["og"]["description"] : ($sub["metaDesc"] ?? ""));
-              $subMetaImg      = !empty($metaData["og"]["image"]) ? $metaData["og"]["image"] : (!empty($metaData["twitter"]["image"]) ? $metaData["twitter"]["image"] : "");
-              if (!empty($subMetaImg)) {
-                $sub["metaImg"] = $subMetaImg;
+              if (!empty($metaData["description"])) {
+                $sub["metaDesc"] = $metaData["description"];
               }
-
-              // Almacenar en caché de URLs
-              if (class_exists(CacheModule::class)) {
-                CacheModule::set("url_meta_" . md5($subUrl), [
-                  "title"       => $sub["metaTitle"],
-                  "description" => $sub["metaDesc"],
-                  "image"       => $sub["metaImg"] ?? ""
-                ], 86400 * 7);
+              if (!empty($metaData["image"])) {
+                $sub["metaImg"] = $metaData["image"];
               }
             }
             $sub["metaScraped"] = true;
@@ -1686,50 +1853,25 @@ class DesignModels extends Builder {
         unset($sub);
       } else {
         $url = trim($item["url"] ?? "");
-        $alreadyScraped = !empty($item["metaScraped"]);
+        $needsScrape = !empty($url) && (empty($item["metaScraped"]) || empty($item["metaImg"]));
 
-        if (!empty($url) && !$alreadyScraped && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
-          $metaData = RequestMetaModule::requestMeta($url);
+        if ($needsScrape && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
+          $metaData = self::fetchUrlMetadata($url);
           if ($metaData !== false && is_array($metaData)) {
             $titleBtn = trim($item["title"] ?? "");
+            // Si el título es genérico o vacío o igual a la URL
             if (empty($titleBtn) || $titleBtn === $url || $titleBtn === parse_url($url, PHP_URL_HOST)) {
-              $item["metaTitle"] = !empty($metaData["title"])
-                ? $metaData["title"]
-                : (!empty($metaData["og"]["title"])
-                  ? $metaData["og"]["title"]
-                  : (!empty($metaData["twitter"]["title"])
-                    ? $metaData["twitter"]["title"]
-                    : ($item["metaTitle"] ?? "")));
+              $item["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : ($item["metaTitle"] ?? "");
             } else {
-              $item["metaTitle"] = $titleBtn;
+              $item["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : $titleBtn;
             }
 
-            $item["metaDesc"] = !empty($metaData["description"])
-              ? $metaData["description"]
-              : (!empty($metaData["og"]["description"])
-                ? $metaData["og"]["description"]
-                : (!empty($metaData["twitter"]["description"])
-                  ? $metaData["twitter"]["description"]
-                  : ($item["metaDesc"] ?? "")));
-
-            $itemMetaImg = !empty($metaData["og"]["image"])
-              ? $metaData["og"]["image"]
-              : (!empty($metaData["twitter"]["image"])
-                ? $metaData["twitter"]["image"]
-                : (!empty($metaData["og"]["logo"])
-                  ? $metaData["og"]["logo"]
-                  : ""));
-            if (!empty($itemMetaImg)) {
-              $item["metaImg"] = $itemMetaImg;
+            if (!empty($metaData["description"])) {
+              $item["metaDesc"] = $metaData["description"];
             }
 
-            // Almacenar en caché de URLs
-            if (class_exists(CacheModule::class)) {
-              CacheModule::set("url_meta_" . md5($url), [
-                "title"       => $item["metaTitle"],
-                "description" => $item["metaDesc"],
-                "image"       => $item["metaImg"] ?? ""
-              ], 86400 * 7);
+            if (!empty($metaData["image"])) {
+              $item["metaImg"] = $metaData["image"];
             }
           }
           $item["metaScraped"] = true;

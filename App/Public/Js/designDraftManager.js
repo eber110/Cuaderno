@@ -1738,6 +1738,117 @@ export function designDraftManager() {
   }
 
   /**
+   * Parsea de manera segura respuestas que deben ser JSON, limpiando
+   * cualquier salida previa o posterior (como warnings o notices de depuración).
+   *
+   * @async
+   * @param {Response} response Objeto Response retornado por fetch.
+   * @returns {Promise<any>} Objeto JSON parseado.
+   */
+  async function parseSafeJson(response) {
+    const rawText = await response.text();
+    try {
+      return JSON.parse(rawText);
+    } catch (e) {
+      const jsonStart = rawText.indexOf("{");
+      const jsonEnd = rawText.lastIndexOf("}");
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        return JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+      }
+      throw e;
+    }
+  }
+
+  let isCheckingMetadata = false;
+
+  /**
+   * Consulta al servidor en segundo plano si existen enlaces o productos con
+   * metadatos pendientes de extraer (OpenGraph / YouTube oEmbed) y actualiza
+   * la vista previa y los campos sin bloquear la interacción ni recargar la página.
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
+  async function triggerPendingMetadataCheck() {
+    if (isCheckingMetadata || isSubmittingRemoteAjax) return;
+
+    try {
+      isCheckingMetadata = true;
+      const response = await fetch(`/panel/${user}/extraer-metadatos`, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+
+      if (!response.ok) return;
+
+      const data = await parseSafeJson(response);
+      if (data && data.success && data.updated) {
+        // 1. Actualizar vista previa oficial
+        if (data.html) {
+          document.querySelectorAll(".user-profile-preview").forEach((container) => {
+            const temp = document.createElement("div");
+            temp.innerHTML = data.html.trim();
+            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+            if (targetPreview && container.parentNode) {
+              container.parentNode.replaceChild(targetPreview, container);
+            } else {
+              container.innerHTML = data.html;
+            }
+          });
+        }
+
+        // 2. Actualizar formularios en .remote-container manteniendo la pestaña activa
+        if (data.formHtml) {
+          const remoteContainer = document.querySelector(".remote-container");
+          if (remoteContainer) {
+            const activeContent = remoteContainer.querySelector(".remote-content.active");
+            const activeId = activeContent ? activeContent.id : null;
+            const savedScroll = activeContent ? activeContent.scrollTop : 0;
+
+            const temp = document.createElement("div");
+            temp.innerHTML = data.formHtml.trim();
+            const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
+            if (newContainer) {
+              remoteContainer.innerHTML = newContainer.innerHTML;
+              if (activeId) {
+                remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
+                  if (c.id === activeId) {
+                    c.classList.remove("hidden");
+                    c.classList.add("active");
+                    if (savedScroll > 0) {
+                      c.scrollTop = savedScroll;
+                    }
+                  } else {
+                    c.classList.remove("active");
+                    c.classList.add("hidden");
+                  }
+                });
+              }
+
+              if (window.__formComponents) {
+                window.__formComponents.initCheckboxSwitches?.();
+                window.__formComponents.styleColorPickers?.();
+              }
+              refreshAllBannersState();
+            }
+          }
+        }
+
+        // 3. Notificar eventos
+        document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+        document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
+        notifyDraftState();
+      }
+    } catch (e) {
+      console.warn("Extracción de metadatos en segundo plano:", e);
+    } finally {
+      isCheckingMetadata = false;
+    }
+  }
+
+  /**
    * Envía el formulario de .remote-container mediante petición asíncrona (Fetch/AJAX),
    * procesa adiciones o eliminaciones y actualiza la vista previa y el editor en vivo
    * sin provocar recargas completas de la página ni perder la pestaña activa.
@@ -1832,7 +1943,7 @@ export function designDraftManager() {
         throw new Error(`Error en el servidor al actualizar el diseño: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await parseSafeJson(response);
 
       if (data && data.success) {
         // 9. Como el servidor ya consolidó los cambios en SQLite, limpiar borrador local para evitar desfaces
@@ -1868,7 +1979,11 @@ export function designDraftManager() {
           const remoteContainer = document.querySelector(".remote-container");
           if (remoteContainer) {
             const activeContent = remoteContainer.querySelector(".remote-content.active");
-            const activeId = activeContent ? activeContent.id : null;
+            let activeId = activeContent ? activeContent.id : null;
+            if (!activeId) {
+              const closestRemote = triggerElement ? triggerElement.closest(".remote-content") : null;
+              activeId = closestRemote ? closestRemote.id : (localStorage.getItem("vertical_menu_active") || null);
+            }
 
             const temp = document.createElement("div");
             temp.innerHTML = data.formHtml.trim();
@@ -1904,6 +2019,11 @@ export function designDraftManager() {
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
         document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
         notifyDraftState();
+
+        setTimeout(() => {
+          triggerPendingMetadataCheck();
+        }, 500);
+
         return true;
       } else {
         throw new Error(data?.message || "No se pudo actualizar el elemento.");
@@ -2132,6 +2252,14 @@ export function designDraftManager() {
           syncBlockActiveState(block, idx);
         }
       }
+
+      // Si el campo modificado es una URL válida, programar comprobación de metadatos en segundo plano
+      if (target.matches(".content-url-input") || (target.name && target.name.includes("[url]"))) {
+        const urlVal = (target.value || "").trim();
+        if (urlVal.startsWith("http://") || urlVal.startsWith("https://")) {
+          setTimeout(triggerPendingMetadataCheck, 600);
+        }
+      }
     }
   });
 
@@ -2284,7 +2412,7 @@ export function designDraftManager() {
       throw new Error(`Error en el servidor al guardar el diseño: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await parseSafeJson(response);
 
     if (data && data.success) {
       // Limpiar la caché local tras guardar con éxito
@@ -2407,7 +2535,7 @@ export function designDraftManager() {
       throw new Error(`Error en el servidor al descartar el diseño: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await parseSafeJson(response);
 
     if (data && data.success) {
       // 1. Restaurar HTML oficial de la vista previa
@@ -2500,7 +2628,8 @@ export function designDraftManager() {
     discardDraft,
     submitRemoteFormAjax,
     applyDraftToPreview,
-    syncFormControls
+    syncFormControls,
+    triggerPendingMetadataCheck
   };
 
   // Restauración inmediata al cargar la página
@@ -2512,6 +2641,11 @@ export function designDraftManager() {
       notifyDraftState();
     }
     refreshAllBannersState();
+
+    // Comprobación no intrusiva de metadatos pendientes en segundo plano
+    setTimeout(() => {
+      triggerPendingMetadataCheck();
+    }, 1000);
   }
 
   if (document.readyState === "loading") {
