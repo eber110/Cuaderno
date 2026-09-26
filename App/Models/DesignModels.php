@@ -22,6 +22,19 @@ class DesignModels extends Builder {
   public static ?string $videoUploadSuccess = null;
 
   /**
+   * Determina si la funcionalidad de videos está habilitada en la aplicación.
+   *
+   * @return bool True si la subida y visualización de videos está activa, false si está desactivada.
+   */
+  public static function isVideoEnabled(): bool {
+    if (defined('ENABLE_VIDEO_UPLOAD')) {
+      return (bool) ENABLE_VIDEO_UPLOAD;
+    }
+    $envVal = $_ENV['ENABLE_VIDEO_UPLOAD'] ?? getenv('ENABLE_VIDEO_UPLOAD') ?: false;
+    return filter_var($envVal, FILTER_VALIDATE_BOOLEAN);
+  }
+
+  /**
    * Genera los dos colores de parada para el fondo degradado basados en la sintaxis OKLCH relativa.
    * Mantiene el tono (h) y la pureza cromática (c) sin sobresaturar, elevando la luminosidad (l) en 0.15.
    *
@@ -415,37 +428,44 @@ class DesignModels extends Builder {
     self::$videoUploadError = null;
     self::$videoUploadSuccess = null;
 
-    if (!empty($param["back_video_url_direct"])) {
-      $newUrl = $param["back_video_url_direct"];
-      $newPublicId = $param["back_video_public_id_direct"] ?? "";
-
-      if (!empty($backVideoPublicId) && $backVideoPublicId !== $newPublicId && $backVideoPublicId !== $officialVideoPublicId) {
-        CloudinaryService::deleteVideo($backVideoPublicId);
+    if (!self::isVideoEnabled()) {
+      // Si la subida de videos está desactivada por variable de entorno, forzar fallback a solid
+      if ($styleBack === "video") {
+        $styleBack = "solid";
       }
-      $backVideo = $newUrl;
-      $backVideoPublicId = $newPublicId;
-      $styleBack = "video";
-      self::$videoUploadSuccess = "Video de fondo subido con éxito a Cloudinary.";
-    } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_OK) {
-      $tmpFile = $_FILES["back_video"]["tmp_name"];
-      $uploadResult = CloudinaryService::uploadVideo($tmpFile, [
-        "folder"         => "cuaderno/backgrounds/{$userClean}",
-        "transformation" => "du_20,w_720,c_limit,q_auto,vc_auto,ac_none,f_auto"
-      ]);
+    } else {
+      if (!empty($param["back_video_url_direct"])) {
+        $newUrl = $param["back_video_url_direct"];
+        $newPublicId = $param["back_video_public_id_direct"] ?? "";
 
-      if ($uploadResult !== null && !empty($uploadResult["url"])) {
-        if (!empty($backVideoPublicId) && $backVideoPublicId !== $uploadResult["public_id"] && $backVideoPublicId !== $officialVideoPublicId) {
+        if (!empty($backVideoPublicId) && $backVideoPublicId !== $newPublicId && $backVideoPublicId !== $officialVideoPublicId) {
           CloudinaryService::deleteVideo($backVideoPublicId);
         }
-        $backVideo = $uploadResult["url"];
-        $backVideoPublicId = $uploadResult["public_id"];
+        $backVideo = $newUrl;
+        $backVideoPublicId = $newPublicId;
         $styleBack = "video";
         self::$videoUploadSuccess = "Video de fondo subido con éxito a Cloudinary.";
-      } else {
-        self::$videoUploadError = CloudinaryService::getLastErrorMessage() ?? "Error al subir video a Cloudinary.";
+      } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_OK) {
+        $tmpFile = $_FILES["back_video"]["tmp_name"];
+        $uploadResult = CloudinaryService::uploadVideo($tmpFile, [
+          "folder"         => "cuaderno/backgrounds/{$userClean}",
+          "transformation" => "du_20,w_720,c_limit,q_auto,vc_auto,ac_none,f_auto"
+        ]);
+
+        if ($uploadResult !== null && !empty($uploadResult["url"])) {
+          if (!empty($backVideoPublicId) && $backVideoPublicId !== $uploadResult["public_id"] && $backVideoPublicId !== $officialVideoPublicId) {
+            CloudinaryService::deleteVideo($backVideoPublicId);
+          }
+          $backVideo = $uploadResult["url"];
+          $backVideoPublicId = $uploadResult["public_id"];
+          $styleBack = "video";
+          self::$videoUploadSuccess = "Video de fondo subido con éxito a Cloudinary.";
+        } else {
+          self::$videoUploadError = CloudinaryService::getLastErrorMessage() ?? "Error al subir video a Cloudinary.";
+        }
+      } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_INI_SIZE) {
+        self::$videoUploadError = "El video excede el límite máximo de tamaño de archivo permitido en el servidor.";
       }
-    } elseif (isset($_FILES["back_video"]) && $_FILES["back_video"]["error"] === UPLOAD_ERR_INI_SIZE) {
-      self::$videoUploadError = "El video excede el límite máximo de tamaño de archivo permitido en el servidor.";
     }
 
     if (isset($param["delete_video"]) && ($param["delete_video"] === "true" || $param["delete_video"] === true || $param["delete_video"] === "1")) {

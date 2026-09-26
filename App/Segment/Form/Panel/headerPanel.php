@@ -3,6 +3,7 @@
    * @var mixed $card 
    * @var mixed $uri
    */
+  $isVideoEnabled = \App\Models\DesignModels::isVideoEnabled();
   $headerVal = $card["header"] ?? 'regularHero';
   $avatarVal = $card["avatar"] ?? 'no-user.webp';
   $avatarSrc = $card["avatarSrc"] ?? '';
@@ -117,6 +118,7 @@
       <div class="br15 p15 back-card-graphic shadow-card-graphic hover-scale-soft">
         <input type="file" 
         name="avatar" 
+        accept="image/*"
         class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
         placeholder="Elige una imagen" 
         cropping-size="500x500"
@@ -125,6 +127,10 @@
       </div>
 
     </div>
+
+    <?php if ($isVideoEnabled) : ?>
+      <!-- Bloque para futura cabecera con video o avatar animado (desactivado por variable de entorno) -->
+    <?php endif; ?>
 
     <!-- Titulo del perfil -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">

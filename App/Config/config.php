@@ -71,6 +71,12 @@ if (class_exists('\Base\Module\SecurityModule')) {
     \Base\Module\SecurityModule::addAllowedTable('lemon_squeezy_subscriptions');
 }
 
+// Control global de funciones de video (subida y visualización en vistas/panel)
+if (!defined('ENABLE_VIDEO_UPLOAD')) {
+    $envVideo = $_ENV['ENABLE_VIDEO_UPLOAD'] ?? getenv('ENABLE_VIDEO_UPLOAD') ?: false;
+    define('ENABLE_VIDEO_UPLOAD', filter_var($envVideo, FILTER_VALIDATE_BOOLEAN));
+}
+
 
 
 // Cargar configuración del framework

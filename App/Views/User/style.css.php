@@ -66,7 +66,7 @@
     .back-card-container{
       background: linear-gradient(180deg, <?= $gradStartContainer ?>, <?= $gradEndContainer ?>);
     }
-  <?php elseif ($styleBack == "video" && !empty($backVideo)) :?>
+  <?php elseif (\App\Models\DesignModels::isVideoEnabled() && $styleBack == "video" && !empty($backVideo)) :?>
     .back-card{
       background-color: <?= $backPerfil?>;
       position: relative;

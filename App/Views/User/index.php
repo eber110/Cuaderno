@@ -8,7 +8,7 @@
   <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0">
     <div class="flex-column between-center back-card color-text-card shadow-card dvh-cuaderno h100 p0 brtl-desk-30 brtr-desk-30 brtl-mid-30 brtr-mid-30 brtl-sml-0 brtr-sml-0 overflow-hidden position-relative">
       
-      <?php if ($styleBack === "video" && !empty($backVideo)) : ?>
+      <?php if (\App\Models\DesignModels::isVideoEnabled() && $styleBack === "video" && !empty($backVideo)) : ?>
         <video class="back-video-bg" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">
           <source src="<?= $backVideo ?>" type="video/mp4" onerror="var v = this.parentElement; if(v){ v.style.display='none'; if(v.nextElementSibling) v.nextElementSibling.style.display='none'; }">
         </video>
