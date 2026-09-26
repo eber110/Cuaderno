@@ -7,14 +7,15 @@
   $price = $card["content"][$dataContent]["price"] ?? '';
   $rawOffer = $card["content"][$dataContent]["offer"] ?? false;
   $isOffer = ($rawOffer === true || $rawOffer === 'true' || $rawOffer === 1 || $rawOffer === '1');
+  $offer = $isOffer;
   $discount = $card["content"][$dataContent]["discount"] ?? '';
   $porcentage = $card["content"][$dataContent]["porcentage"] ?? '';
   $img = $card["content"][$dataContent]["img"] ?? '';
   $imgSrc = $card["content"][$dataContent]["imgSrc"] ?? '';
   $content = $card["content"][$dataContent]["title"] ?? '';
-  $profile = $card["profile"];
-  $url = $card["content"][$dataContent]["url"];
-  $metaImg = $card["content"][$dataContent]["metaImg"];
+  $profile = $card["profile"] ?? '';
+  $url = $card["content"][$dataContent]["url"] ?? '';
+  $metaImg = $card["content"][$dataContent]["metaImg"] ?? '';
   $share = $card["content"][$dataContent]["share"] ?? [];
 
   $rawImgShow = $card["content"][$dataContent]["imgShow"] ?? true;
@@ -40,8 +41,8 @@
         <p class="bold500">$<?= e($price)?></p>
       <?php else :?>
         <div class="flex-column center-start gap0">
-          <p class="inactive" style="text-decoration:line-through;">$<?= e($price)?></p>
-          <p class="x16">Precio oferta</p>
+          <p class="bold500" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($price)?></p>
+          <p class="x16 bold500">Precio oferta</p>
           <p class="bold500">$<?= e($discount);?></p>
         </div>
       <?php endif;?>

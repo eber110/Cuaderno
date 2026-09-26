@@ -78,7 +78,7 @@
                   <?php endif; ?>
                 <?php else : ?>
                   <div class="flex-column gap0">
-                    <p class="inactive x16" style="text-decoration: line-through;">$<?= e($pPrice) ?></p>
+                    <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
                     <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
                   </div>
                 <?php endif; ?>
@@ -166,7 +166,7 @@
                     <?php endif; ?>
                   <?php else : ?>
                     <div class="flex-column gap0">
-                      <p class="inactive x16" style="text-decoration: line-through;">$<?= e($pPrice) ?></p>
+                      <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
                       <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
                     </div>
                   <?php endif; ?>
@@ -253,7 +253,7 @@
                     <?php endif; ?>
                   <?php else : ?>
                     <div class="flex-column gap0">
-                      <p class="inactive x16" style="text-decoration: line-through;">$<?= e($pPrice) ?></p>
+                      <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
                       <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
                     </div>
                   <?php endif; ?>
@@ -344,7 +344,7 @@
                       <?php endif; ?>
                     <?php else : ?>
                       <div class="flex-column gap0">
-                        <p class="inactive x16" style="text-decoration: line-through;">$<?= e($pPrice) ?></p>
+                        <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
                         <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
                       </div>
                     <?php endif; ?>
