@@ -136,6 +136,21 @@ class DesignControllers extends Control {
 
       $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
 
+      $uri = [
+        "formDesign"    => "/panel/{$userClean}/diseno",
+        "saveDesign"    => "/panel/{$userClean}/guardar",
+        "discardDesign" => "/panel/{$userClean}/descartar",
+        "simularDatos"  => "/panel/{$userClean}/simular-datos"
+      ];
+
+      $formHtml = _partToString("Dashboard.contentPanel", [
+        "card"    => $cardData,
+        "uri"     => $uri,
+        "user"    => $userClean,
+        "stats"   => [], // Optimización: no recalcular 20 queries de estadísticas al guardar
+        "session" => $sessionData
+      ]);
+
       if (ob_get_length()) {
         ob_clean();
       }
@@ -144,6 +159,7 @@ class DesignControllers extends Control {
         "success"           => true,
         "hasCustom"         => false,
         "html"              => $previewHtml,
+        "formHtml"          => $formHtml,
         "sidebarStatusHtml" => $sidebarStatusHtml,
         "card"              => $cardData
       ]);

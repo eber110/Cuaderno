@@ -2141,13 +2141,31 @@ export function designDraftManager() {
     if (!target || target.type !== "file") return;
 
     if (target.name === "avatar" && target.files && target.files[0]) {
+      const isCropInput = target.classList.contains("selectAndCropImage");
+      if (isCropInput && target.dataset.isCropped !== "true") {
+        return;
+      }
+
       const file = target.files[0];
       const previewUrl = URL.createObjectURL(file);
-      document.querySelectorAll(".user-profile-preview figure img.cover").forEach((img) => {
+
+      // 1. Actualizar las miniaturas de los botones de estilo de cabecera en el panel del editor
+      document.querySelectorAll('label[for="regularHeader"] figure img, label[for="midHeader"] figure img, label[for$="Header"] figure img').forEach((img) => {
         img.src = previewUrl;
       });
+
+      // 2. Actualizar ÚNICAMENTE la imagen de cabecera / avatar en la vista previa (.user-profile-preview)
+      document.querySelectorAll(".user-profile-preview .header-variant-wrapper figure img, .user-profile-preview .header-regularHero figure img, .user-profile-preview .header-midHero figure img").forEach((img) => {
+        img.src = previewUrl;
+      });
+
       notifyDraftState();
     } else if (target.name && target.name.startsWith("content_img_") && target.files && target.files[0]) {
+      const isCropInput = target.classList.contains("selectAndCropImage");
+      if (isCropInput && target.dataset.isCropped !== "true") {
+        return;
+      }
+
       const file = target.files[0];
       const previewUrl = URL.createObjectURL(file);
       const match = target.name.match(/^content_img_(\d+)(?:_(\d+))?$/);
@@ -2238,6 +2256,15 @@ export function designDraftManager() {
     // Usar FormData nativo para respetar disabled en inputs hidden emparejados con switches
     const formData = activeForm ? new FormData(activeForm) : new FormData();
 
+    // Incluir cualquier archivo pendiente en inputs file de todo .remote-container
+    document.querySelectorAll(".remote-container input[type='file']").forEach((fileInput) => {
+      if (fileInput.files && fileInput.files.length > 0 && !formData.has(fileInput.name)) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append(fileInput.name, fileInput.files[i]);
+        }
+      }
+    });
+
     // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen prioridad)
     Object.keys(draft).forEach((key) => {
       formData.set(key, draft[key]);
@@ -2280,6 +2307,43 @@ export function designDraftManager() {
             container.innerHTML = data.html;
           }
         });
+      }
+
+      // Actualizar formularios del editor si vienen en la respuesta oficial
+      if (data.formHtml) {
+        const remoteContainer = document.querySelector(".remote-container");
+        if (remoteContainer) {
+          const activeContent = remoteContainer.querySelector(".remote-content.active");
+          const activeId = activeContent ? activeContent.id : null;
+          const savedScrollTop = activeContent ? activeContent.scrollTop : 0;
+
+          const temp = document.createElement("div");
+          temp.innerHTML = data.formHtml.trim();
+          const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
+          if (newContainer) {
+            remoteContainer.innerHTML = newContainer.innerHTML;
+            if (activeId) {
+              remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
+                if (c.id === activeId) {
+                  c.classList.remove("hidden");
+                  c.classList.add("active");
+                  if (savedScrollTop > 0) {
+                    c.style.setProperty("scroll-behavior", "auto", "important");
+                    c.scrollTop = savedScrollTop;
+                  }
+                } else {
+                  c.classList.remove("active");
+                  c.classList.add("hidden");
+                }
+              });
+            }
+
+            if (window.__formComponents) {
+              window.__formComponents.initCheckboxSwitches?.();
+              window.__formComponents.styleColorPickers?.();
+            }
+          }
+        }
       }
 
       // Actualizar el estado de la barra lateral si viene en la respuesta
