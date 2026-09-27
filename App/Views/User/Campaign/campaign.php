@@ -87,13 +87,13 @@
   <?php if ($imgShow && $hasImg) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
     <div class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;<?= ($imgPosition === 'background') ? '' : ' display: none;' ?>">
-      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
+      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;border: none;">
       <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= $bgColor ?> l c h / <?= $bgOpacity ?>%);"></div>
     </div>
 
     <!-- Imagen destacada de cabecera cuadrada -->
     <figure class="w100 ar-square overflow-hidden faded-image" style="<?= ($imgPosition === 'header') ? '' : 'display: none;' ?>">
-      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
+      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square" style="border: none;">
     </figure>
   <?php endif; ?>
 
