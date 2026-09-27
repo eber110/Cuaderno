@@ -648,8 +648,11 @@ export function designDraftManager() {
         }
         
         if (imageBg) {
-          const hasSrc = imageBg.getAttribute("src") && imageBg.getAttribute("src") !== "";
-          imageBg.style.display = (styleBack === "image" && hasSrc) ? "" : "none";
+          const defaultNoImage = "/App/Public/Img/Custom/no-image.webp";
+          if (!imageBg.getAttribute("src") || imageBg.getAttribute("src") === "") {
+            imageBg.src = defaultNoImage;
+          }
+          imageBg.style.display = styleBack === "image" ? "" : "none";
         }
         if (imageOverlay) {
           imageOverlay.style.display = styleBack === "image" ? "" : "none";

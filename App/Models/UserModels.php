@@ -69,7 +69,7 @@ class UserModels extends BuilderSqlite {
     }
 
     $backImageVal = $card["backCard"]["back_image"] ?? "";
-    if (!empty($backImageVal)) {
+    if (!empty($backImageVal) && $backImageVal !== "no-image.webp") {
       $diskBg = ROOT_PATH . "/Uploads/Background/" . $backImageVal;
       $diskRoot = ROOT_PATH . "/Uploads/" . $backImageVal;
       if (file_exists($diskBg)) {
@@ -77,10 +77,10 @@ class UserModels extends BuilderSqlite {
       } elseif (file_exists($diskRoot)) {
         $card["backCard"]["backImageSrc"] = DIR_SHOW_MEDIA . $backImageVal;
       } else {
-        $card["backCard"]["backImageSrc"] = "";
+        $card["backCard"]["backImageSrc"] = URL_IMG . "no-image.webp";
       }
     } else {
-      $card["backCard"]["backImageSrc"] = "";
+      $card["backCard"]["backImageSrc"] = URL_IMG . "no-image.webp";
     }
 
     $avatarVal = $card["avatar"] ?? "no-user.webp";

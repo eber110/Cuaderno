@@ -71,15 +71,14 @@
               <?php 
                 $backImage = $card["backCard"]["back_image"] ?? '';
                 $displayBackImgSrc = $card["backCard"]["backImageSrc"] ?? '';
-                if (empty($displayBackImgSrc) && !empty($backImage)) {
+                if (empty($displayBackImgSrc) && !empty($backImage) && $backImage !== 'no-image.webp') {
                   $displayBackImgSrc = DIR_SHOW_MEDIA . "Background/" . $backImage;
                 }
+                if (empty($displayBackImgSrc)) {
+                  $displayBackImgSrc = URL_IMG . 'no-image.webp';
+                }
               ?>
-              <?php if (!empty($displayBackImgSrc)) : ?>
-                <img id="thumb-style-image" src="<?= eUrl($displayBackImgSrc) ?>" class="cover w100 h100" style="object-fit: cover; pointer-events: none;">
-              <?php else : ?>
-                <span class="x22 textw">🖼️</span>
-              <?php endif; ?>
+              <img id="thumb-style-image" src="<?= eUrl($displayBackImgSrc) ?>" class="cover w100 h100" style="object-fit: cover; pointer-events: none;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
             </div>
             <p class="x16 texto">Imagen</p>
           </div>
@@ -99,10 +98,9 @@
         <div class="flex-row center-between gap10 w100 wrap">
           <div class="flex-row center-start gap10">
             <figure class="wpx60 hpx100 br10 overflow-hidden back-card-graphic shadow-card-graphic position-relative" style="aspect-ratio: 9/16; background-color: #1e1e1e;">
-              <img id="thumb-image-preview" src="<?= eUrl($displayBackImgSrc) ?>" alt="Fondo" class="cover w100 h100" style="<?= !empty($displayBackImgSrc) ? '' : 'display: none;' ?>">
-              <span class="x24 text-muted flex-row center-center w100 h100" style="<?= !empty($displayBackImgSrc) ? 'display: none;' : '' ?>">🖼️</span>
+              <img id="thumb-image-preview" src="<?= eUrl($displayBackImgSrc) ?>" alt="Fondo" class="cover w100 h100" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
             </figure>
-            <?php if (!empty($backImage)) : ?>
+            <?php if (!empty($backImage) && $backImage !== 'no-image.webp') : ?>
               <button type="submit" name="delete_back_image" value="true" class="pointer p8 br10 back-danger textw hover-scale-soft x13 bold500 flex-row center-center gap5" style="border: none;">
                 <?= svg("trash", "x16"); ?> Eliminar
               </button>
@@ -182,7 +180,7 @@
           <p id="active-filter-name" class="bold500 texto opacity-70"><?= $activeFilterName ?></p>
         </div>
 
-        <div class="flex-row center-start wrap top-start-sml gap8 flex-wrap w50 w-sml-100">
+        <div class="flex-row center-end wrap top-start-sml gap8 flex-wrap w50 w-sml-100">
           <?php foreach ($filtersList as $fKey => $fData) : ?>
             <div>
               <input type="radio" id="filter_<?= $fData['num'] ?>" name="back_image_filter" value="<?= $fKey ?>" class="hidden-radio filter-number-radio" data-filter-name="<?= $fData['name'] ?>" <?= ($currentFilter === $fKey) ? 'checked' : '' ?>>
@@ -234,7 +232,7 @@
             </div>
           <?php else : ?>
             <label for="upload-video-input" class="w100 p20 br15 pointer flex-column center-center gap10 hover-scale-soft back-item-menu" style="border: 2px dashed rgba(150,150,150,0.4);">
-              <span class="x28">📹</span>
+              <?= svg("film", "x28"); ?>
               <p class="texto x14 bold500 text-center">Haz clic para subir un video corto (MP4, WebM)</p>
               <p class="texto x12 opacity-70 text-center">Duración máxima: 20 segundos</p>
             </label>
@@ -352,13 +350,13 @@
             <span id="trim-play-icon" class="x16">▶</span>
           </button>
         </div>
-        <p class="x11 texto opacity-70 mt5">📱 Vista previa en encuadre de teléfono (9:16)</p>
+        <p class="x11 texto opacity-70 mt5 flex-row center-center gap5"><?= svg("circle-info", "x14"); ?> Vista previa en encuadre de teléfono (9:16)</p>
       </div>
 
       <!-- Controles de tiempo (Inicio, Fin y Duración) -->
       <div class="flex-column gap10 w100 p12 br15 back-item-menu">
         <div class="flex-row center-between w100 x13 bold500 texto">
-          <span>⏱️ Intervalo: <b id="trim-range-text" class="color-success">00:00 - 00:20</b></span>
+          <span class="flex-row center-start gap5"><?= svg("clock", "x14"); ?> Intervalo: <b id="trim-range-text" class="color-success">00:00 - 00:20</b></span>
           <span id="trim-duration-badge" class="x12 bold600 p2 px6 br10 back-card-graphic">20s</span>
         </div>
 

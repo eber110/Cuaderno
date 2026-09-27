@@ -17,12 +17,15 @@
 
       <?php 
         $backImage = $card["backCard"]["backImageSrc"] ?? $card["backCard"]["back_image"] ?? "";
+        if (empty($backImage)) {
+          $backImage = URL_IMG . "no-image.webp";
+        }
         $backImageFilter = $card["backCard"]["back_image_filter"] ?? "none";
         $numMap = ['0'=>'none', '1'=>'vignette', '2'=>'blur', '3'=>'brightness', '4'=>'contrast', '5'=>'grayscale', '6'=>'hue-rotate', '7'=>'invert', '8'=>'saturate', '9'=>'sepia'];
         if (isset($numMap[$backImageFilter])) $backImageFilter = $numMap[$backImageFilter];
       ?>
-      <?php if ($styleBack === "image" && !empty($backImage)) : ?>
-        <img src="<?= eUrl($backImage) ?>" class="back-image-bg" alt="Fondo" onerror="this.style.display='none';">
+      <?php if ($styleBack === "image") : ?>
+        <img src="<?= eUrl($backImage) ?>" class="back-image-bg" alt="Fondo" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
         <?php if ($backImageFilter === "vignette") : ?>
           <div class="back-image-vignette"></div>
         <?php endif; ?>
