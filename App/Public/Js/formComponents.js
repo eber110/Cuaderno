@@ -297,38 +297,148 @@ export function formComponents() {
     });
   }
 
+  // 2c. Inicializar controles deslizables con diseño de switch y soporte táctil total
+  function initCustomRangeSliders() {
+    const sliders = document.querySelectorAll('input[type="range"].custom-range-slider');
+    sliders.forEach(slider => {
+      // Sincronizar estilo inicial de progreso visual
+      const minVal = parseFloat(slider.min) !== undefined && !isNaN(parseFloat(slider.min)) ? parseFloat(slider.min) : 0;
+      const maxVal = parseFloat(slider.max) !== undefined && !isNaN(parseFloat(slider.max)) ? parseFloat(slider.max) : 100;
+      const curVal = parseFloat(slider.value) !== undefined && !isNaN(parseFloat(slider.value)) ? parseFloat(slider.value) : minVal;
+      const initialPct = maxVal > minVal ? Math.max(0, Math.min(100, ((curVal - minVal) / (maxVal - minVal)) * 100)) : 0;
+      slider.style.setProperty('--range-progress', `${initialPct}%`);
+
+      if (slider.dataset.sliderTouchBound) return;
+      slider.dataset.sliderTouchBound = 'true';
+
+      let isDragging = false;
+
+      const updateValueFromClientX = (clientX) => {
+        const rect = slider.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        const min = parseFloat(slider.min) !== undefined && !isNaN(parseFloat(slider.min)) ? parseFloat(slider.min) : 0;
+        const max = parseFloat(slider.max) !== undefined && !isNaN(parseFloat(slider.max)) ? parseFloat(slider.max) : 100;
+        const step = parseFloat(slider.step) || 1;
+
+        // El thumb mide 18px (radio de 9px)
+        const thumbRadius = 9;
+        const usableWidth = Math.max(1, rect.width - (thumbRadius * 2));
+        const relativeX = clientX - rect.left - thumbRadius;
+        const ratio = Math.max(0, Math.min(1, relativeX / usableWidth));
+
+        let computed = min + ratio * (max - min);
+        if (step > 0) {
+          computed = Math.round((computed - min) / step) * step + min;
+        }
+        computed = Math.max(min, Math.min(max, computed));
+
+        slider.value = computed;
+
+        const progressPercent = max > min ? Math.max(0, Math.min(100, ((computed - min) / (max - min)) * 100)) : 0;
+        slider.style.setProperty('--range-progress', `${progressPercent}%`);
+
+        // Disparar evento de input inmediato (actualiza preview en vivo)
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+
+      // Eventos Pointer para soporte unificado (touch, stylus, mouse)
+      slider.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        try {
+          slider.setPointerCapture(e.pointerId);
+        } catch (_) {}
+        updateValueFromClientX(e.clientX);
+      });
+
+      slider.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        updateValueFromClientX(e.clientX);
+      });
+
+      const onPointerRelease = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        try {
+          slider.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+        slider.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+
+      slider.addEventListener('pointerup', onPointerRelease);
+      slider.addEventListener('pointercancel', onPointerRelease);
+
+      // Eventos Touch directos para asegurar respuesta táctil fluida en smartphones y tablets
+      slider.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault();
+        isDragging = true;
+        if (e.touches && e.touches[0]) {
+          updateValueFromClientX(e.touches[0].clientX);
+        }
+      }, { passive: false });
+
+      slider.addEventListener('touchmove', (e) => {
+        if (e.cancelable) e.preventDefault();
+        if (!isDragging) return;
+        if (e.touches && e.touches[0]) {
+          updateValueFromClientX(e.touches[0].clientX);
+        }
+      }, { passive: false });
+
+      slider.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        slider.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      // Sincronizar --range-progress en cambios por teclado o interacción nativa
+      slider.addEventListener('input', () => {
+        const curMin = parseFloat(slider.min) !== undefined && !isNaN(parseFloat(slider.min)) ? parseFloat(slider.min) : 0;
+        const curMax = parseFloat(slider.max) !== undefined && !isNaN(parseFloat(slider.max)) ? parseFloat(slider.max) : 100;
+        const val = parseFloat(slider.value) !== undefined && !isNaN(parseFloat(slider.value)) ? parseFloat(slider.value) : curMin;
+        const pct = curMax > curMin ? Math.max(0, Math.min(100, ((val - curMin) / (curMax - curMin)) * 100)) : 0;
+        slider.style.setProperty('--range-progress', `${pct}%`);
+      });
+    });
+  }
+
   // Exponer API global para llamadas inmediatas desde otros scripts (p.ej. designDraftManager)
   window.__formComponents = {
     initCheckboxSwitches,
-    styleColorPickers
+    styleColorPickers,
+    initCustomRangeSliders
   };
 
   // Inicializar componentes existentes
   styleColorPickers();
   initCheckboxSwitches();
+  initCustomRangeSliders();
 
   // Escuchar eventos de actualización reactiva
   document.addEventListener('previewUpdated', () => {
     styleColorPickers();
     initCheckboxSwitches();
+    initCustomRangeSliders();
   });
 
   document.addEventListener('remoteContentUpdated', () => {
     styleColorPickers();
     initCheckboxSwitches();
+    initCustomRangeSliders();
   });
 
   document.addEventListener('designDraftDiscarded', () => {
     styleColorPickers();
     initCheckboxSwitches();
+    initCustomRangeSliders();
   });
 
   window.addEventListener('pageshow', () => {
     styleColorPickers();
     initCheckboxSwitches();
+    initCustomRangeSliders();
   });
 
-  // MutationObserver para capturar cualquier nuevo switch o selector de color inyectado dinámicamente
+  // MutationObserver para capturar cualquier nuevo switch, slider o selector de color inyectado dinámicamente
   if (typeof MutationObserver !== 'undefined') {
     const switchObserver = new MutationObserver((mutations) => {
       let hasNewComponent = false;
@@ -336,11 +446,19 @@ export function formComponents() {
         if (m.addedNodes && m.addedNodes.length > 0) {
           for (const node of m.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              if (node.matches && (node.matches('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') || node.matches('input[type="color"].color-picker'))) {
+              if (node.matches && (
+                node.matches('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') ||
+                node.matches('input[type="color"].color-picker') ||
+                node.matches('input[type="range"].custom-range-slider:not([data-slider-touch-bound])')
+              )) {
                 hasNewComponent = true;
                 break;
               }
-              if (node.querySelector && (node.querySelector('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') || node.querySelector('input[type="color"].color-picker'))) {
+              if (node.querySelector && (
+                node.querySelector('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])') ||
+                node.querySelector('input[type="color"].color-picker') ||
+                node.querySelector('input[type="range"].custom-range-slider:not([data-slider-touch-bound])')
+              )) {
                 hasNewComponent = true;
                 break;
               }
@@ -352,6 +470,7 @@ export function formComponents() {
       if (hasNewComponent) {
         styleColorPickers();
         initCheckboxSwitches();
+        initCustomRangeSliders();
       }
     });
 

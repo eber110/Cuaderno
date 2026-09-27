@@ -2182,6 +2182,7 @@ export function designDraftManager() {
               if (window.__formComponents) {
                 window.__formComponents.initCheckboxSwitches?.();
                 window.__formComponents.styleColorPickers?.();
+                window.__formComponents.initCustomRangeSliders?.();
               }
               refreshAllBannersState();
             }
@@ -2363,6 +2364,7 @@ export function designDraftManager() {
               if (window.__formComponents) {
                 window.__formComponents.initCheckboxSwitches?.();
                 window.__formComponents.styleColorPickers?.();
+                window.__formComponents.initCustomRangeSliders?.();
               }
               refreshAllBannersState();
             }
@@ -2987,6 +2989,7 @@ export function designDraftManager() {
             if (window.__formComponents) {
               window.__formComponents.initCheckboxSwitches?.();
               window.__formComponents.styleColorPickers?.();
+              window.__formComponents.initCustomRangeSliders?.();
             }
           }
         }
@@ -3099,6 +3102,7 @@ export function designDraftManager() {
             if (window.__formComponents) {
               window.__formComponents.initCheckboxSwitches?.();
               window.__formComponents.styleColorPickers?.();
+              window.__formComponents.initCustomRangeSliders?.();
             }
             refreshAllBannersState();
           }

@@ -246,6 +246,7 @@ export function saveButtonController() {
     if (window.__formComponents) {
       window.__formComponents.initCheckboxSwitches?.();
       window.__formComponents.styleColorPickers?.();
+      window.__formComponents.initCustomRangeSliders?.();
     }
 
     document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: { formHtml } }));

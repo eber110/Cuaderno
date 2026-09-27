@@ -131,7 +131,6 @@
         <p class="texto">Opacidad del overlay</p>
         <?php $imgOpacityPercent = $backImageOpacity > 0 ? min(100, max(0, round(($backImageOpacity / 95) * 100))) : 0; ?>
         <div class="flex-row center-end gap10 w-sml-100">
-          <span id="image-opacity-val" class="x14 bold600 texto wpx40 text-right"><?= $imgOpacityPercent ?>%</span>
           <input type="range" id="select-opacity-image-overlay" min="0" max="100" step="1" value="<?= $imgOpacityPercent ?>" class="pointer custom-range-slider" style="--range-progress: <?= $imgOpacityPercent ?>%;">
           <input type="hidden" id="input-opacity-image-val" name="back_image_opacity" value="<?= $backImageOpacity ?>">
         </div>
@@ -198,7 +197,6 @@
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-filter-intensity-row" style="<?= ($currentFilter === 'none') ? 'display: none;' : '' ?>">
         <p class="texto">Intensidad del filtro</p>
         <div class="flex-row center-end gap10 w-sml-100">
-          <span id="image-filter-val" class="x14 bold600 texto wpx40 text-right"><?= $filterIntensity ?>%</span>
           <input type="range" id="select-filter-intensity" min="0" max="100" step="1" value="<?= $filterIntensity ?>" class="pointer custom-range-slider" style="--range-progress: <?= $filterIntensity ?>%;">
           <input type="hidden" id="input-filter-intensity-val" name="back_image_filter_intensity" value="<?= $filterIntensity ?>">
         </div>
@@ -251,7 +249,6 @@
 
           <?php $userOpacityPercent = $backVideoOpacity > 0 ? min(100, max(0, round(($backVideoOpacity / 95) * 100))) : 0; ?>
           <div class="flex-row center-end gap10 w-sml-100">
-            <span id="video-opacity-val" class="x14 bold600 texto wpx40 text-right"><?= $userOpacityPercent ?>%</span>
             <input type="range" id="select-opacity-overlay" min="0" max="100" step="1" value="<?= $userOpacityPercent ?>" class="pointer custom-range-slider" style="--range-progress: <?= $userOpacityPercent ?>%;">
             <input type="hidden" id="input-opacity-val" name="back_video_opacity" value="<?= $backVideoOpacity ?>">
           </div>

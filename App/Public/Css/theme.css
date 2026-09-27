@@ -342,26 +342,35 @@ body,
   color: var(--text-secondary) !important;
 }
 
-/* Deslizador de rango estilizado con recorrido perfecto de extremo a extremo */
+/* Deslizador de rango con estilo idéntico al Switch (Píldora / Cápsula) */
 .custom-range-slider {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   width: 140px;
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(to right, #2563eb 0%, #2563eb var(--range-progress, 47%), rgba(180, 180, 180, 0.3) var(--range-progress, 47%), rgba(180, 180, 180, 0.3) 100%);
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(to right, #4cd964 0%, #4cd964 var(--range-progress, 0%), #e0e0e0 var(--range-progress, 0%), #e0e0e0 100%);
+  border: 1px solid #dcdcdc;
   outline: none;
   cursor: pointer;
   margin: 0;
   padding: 0;
-  border: none;
+  box-sizing: border-box;
+  touch-action: none !important;
+  user-select: none;
+  -webkit-user-select: none;
   vertical-align: middle;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-range-slider:focus-visible {
+  box-shadow: 0 0 0 2px rgba(76, 217, 100, 0.35);
 }
 
 .custom-range-slider::-webkit-slider-runnable-track {
-  height: 6px;
-  border-radius: 999px;
+  height: 22px;
+  border-radius: 11px;
   background: transparent;
   border: none;
 }
@@ -369,42 +378,63 @@ body,
 .custom-range-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #2563eb;
+  background: #ffffff;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  border: 2px solid #ffffff;
-  margin-top: -5px;
-  transition: transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  border: none;
+  margin-top: 2px;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
 }
 
-.custom-range-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+.custom-range-slider::-webkit-slider-thumb:hover,
+.custom-range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.08);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .custom-range-slider::-moz-range-track {
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(180, 180, 180, 0.3);
+  height: 22px;
+  border-radius: 11px;
+  background: transparent;
   border: none;
 }
 
 .custom-range-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #2563eb;
+  background: #ffffff;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  border: none;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+}
+
+.custom-range-slider::-moz-range-thumb:hover,
+.custom-range-slider::-moz-range-thumb:active {
+  transform: scale(1.08);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .custom-range-slider::-moz-range-progress {
-  height: 6px;
-  border-radius: 999px;
-  background: #2563eb;
+  height: 22px;
+  border-radius: 11px;
+  background: transparent;
+}
+
+/* Modo oscuro para custom-range-slider */
+[data-theme="dark"] .custom-range-slider,
+.dark-mode .custom-range-slider {
+  background: linear-gradient(to right, #30d158 0%, #30d158 var(--range-progress, 0%), #333333 var(--range-progress, 0%), #333333 100%);
+  border-color: #444444;
+}
+
+[data-theme="dark"] .custom-range-slider:focus-visible,
+.dark-mode .custom-range-slider:focus-visible {
+  box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.4);
 }
 
 /* Carrusel de Productos (Modo Slide) */

@@ -664,8 +664,7 @@
                     <span class="x11 text-muted">Ajusta la intensidad del color sobre la imagen</span>
                   </div>
                   <div class="flex-row center-end gap10 w-sml-100">
-                    <span id="campaign-opacity-val-<?= $i?>" class="x14 bold600 texto wpx40 text-right"><?= $itemBgOpacity ?>%</span>
-                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="campaign-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
+                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" style="--range-progress: <?= $itemBgOpacity ?>%;">
                   </div>
                 </div>
 
@@ -988,8 +987,7 @@
                     <span class="x11 text-muted">Ajusta la transparencia de la imagen sobre el color de fondo</span>
                   </div>
                   <div class="flex-row center-end gap10 w-sml-100">
-                    <span id="banner-opacity-val-<?= $i?>" class="x14 bold600 texto wpx40 text-right"><?= $itemBgOpacity ?>%</span>
-                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" data-val-target="banner-opacity-val-<?= $i?>" style="--range-progress: <?= $itemBgOpacity ?>%;">
+                    <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" style="--range-progress: <?= $itemBgOpacity ?>%;">
                   </div>
                 </div>
               </div>

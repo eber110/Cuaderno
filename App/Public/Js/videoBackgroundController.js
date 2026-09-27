@@ -467,6 +467,7 @@ export function videoBackgroundController() {
                   if (window.__formComponents) {
                     window.__formComponents.initCheckboxSwitches?.();
                     window.__formComponents.styleColorPickers?.();
+                    window.__formComponents.initCustomRangeSliders?.();
                   }
                 }
               }
