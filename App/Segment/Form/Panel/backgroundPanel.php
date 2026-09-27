@@ -91,13 +91,13 @@
     <div id="image-controls-wrapper" class="flex-column gap15 w100" style="<?php if ($styleBack !== 'image') echo 'display: none;'; ?>">
       <!-- Panel de subida / visor de imagen -->
       <p class="texto">Imagen de fondo</p>
-      <div class="flex-column top-start gap10 w100 p15 br20 back-card-graphic shadow-card-graphic" id="image-background-config">
+      <div class="flex-column top-start gap5 w100 p10 br20 back-card-graphic shadow-card-graphic" id="image-background-config">
         <!-- <div class="flex-row center-between w100">
           <span class="x12 texto opacity-70">Formato 9:16 (Smartphone)</span>
         </div> -->
         <div class="flex-row center-between gap10 w100 wrap">
           <div class="flex-row center-start gap10">
-            <figure class="wpx60 hpx100 br10 overflow-hidden back-card-graphic shadow-card-graphic position-relative" style="aspect-ratio: 9/16; background-color: #1e1e1e;">
+            <figure class="wpx60 hpx100 br15 overflow-hidden back-card-graphic shadow-card-graphic position-relative" style="aspect-ratio: 9/16; background-color: #1e1e1e;">
               <img id="thumb-image-preview" src="<?= eUrl($displayBackImgSrc) ?>" alt="Fondo" class="cover w100 h100" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
             </figure>
             <?php //if (!empty($backImage) && $backImage !== 'no-image.webp') : ?>
