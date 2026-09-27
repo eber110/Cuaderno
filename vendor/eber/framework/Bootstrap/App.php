@@ -25,6 +25,9 @@ foreach ($providers as $providerClass) {
     if (method_exists($provider, 'register')) {
       $provider->register();
     }
+  } else {
+    error_log("No se pudo cargar el Service Provider: " . $providerClass);
+    throw new \Exception("No se pudo cargar el Service Provider: " . $providerClass);
   }
 }
 

@@ -1,18 +1,70 @@
 [
     {
-        "timestamp": "2026-09-27 02:32:00",
-        "reason": "HTTP Error 405 (Método no permitido)",
-        "ip": "unknown",
-        "method": "unknown",
-        "uri": "unknown",
-        "user_agent": "unknown",
+        "timestamp": "2026-09-27 14:31:27",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/",
+        "user_agent": "curl/8.21.0",
         "context": {
-            "time": "2026-09-27 02:32:00",
+            "time": "2026-09-27 14:31:27",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-09-27 14:31:30",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/op/active-viewers",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
+        "context": {
+            "time": "2026-09-27 14:31:30",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/op/active-viewers",
+            "method": "POST"
+        }
+    },
+    {
+        "timestamp": "2026-09-27 14:31:46",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/registrar/check-username?username=eber",
+        "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CL) WindowsPowerShell/5.1.26100.9444",
+        "context": {
+            "time": "2026-09-27 14:31:46",
             "code": 405,
             "msg": "Método no permitido",
-            "ip": "unknown",
-            "url": "unknown",
-            "method": "unknown",
+            "ip": "::1",
+            "url": "/registrar/check-username?username=eber",
+            "method": "GET",
+            "context": {
+                "code": 405,
+                "redirect": ""
+            }
+        }
+    },
+    {
+        "timestamp": "2026-09-27 14:31:46",
+        "reason": "HTTP Error 405 (Método no permitido)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/op/track-click",
+        "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CL) WindowsPowerShell/5.1.26100.9444",
+        "context": {
+            "time": "2026-09-27 14:31:46",
+            "code": 405,
+            "msg": "Método no permitido",
+            "ip": "::1",
+            "url": "/op/track-click",
+            "method": "GET",
             "context": {
                 "code": 405,
                 "redirect": ""

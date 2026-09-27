@@ -21,15 +21,9 @@ Route::addGlobalMiddleware([CsrfMiddleware::class]);
 Route::get("/robots.txt", function(){ SeoModule::robots([],["llms.txt"]); });
 Route::get("/sitemap.xml", function(){ 
   SeoModule::sitemap([
-    "/salir", 
-    "/op/image", 
-    "/op/check", 
-    "/test/2", 
-    "/op/track-click", 
-    "/op/active-viewers", 
-    "/lemon-squeezy/init-db", 
-    "/lemon-squeezy/test", 
-    "/lemon-squeezy/webhook"
+    "/ingresar",
+    "/registrar",
+    "/recuperar"
   ], ['/' => ['priority' => 1.0, 'changefreq' => 'daily']]); 
 });
 Route::get("/llms.txt", function(){ SeoModule::llms([

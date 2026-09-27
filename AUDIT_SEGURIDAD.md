@@ -1,5 +1,10 @@
 # Informe de Auditoría de Seguridad — Cuaderno (Eber Framework)
 
+> ⚠️ **Este documento contiene la auditoría ORIGINAL (2026-09-26).**
+> Los hallazgos ya están parcialmente corregidos. El **estado verificado actual** está en
+> **[§10 — Reauditoría](#10-reauditoría--estado-verificado-tras-las-correcciones)**,
+> que incluye hallazgos nuevos. Consulta §10 antes de actuar sobre §1-§9.
+
 **Fecha:** 2026-09-26
 **Alcance:** `C:\Users\eber\Proyectos\Cuaderno` (App + `vendor/eber/framework`)
 **Método:** revisión estática de código (sin exploited)
@@ -658,3 +663,327 @@ aceptables para producción, más el endurecimiento del servidor (§7).
 *Informe generado por revisión estática de código. Los hallazgos marcados como
 "verificado" fueron confirmados leyendo el código fuente en las líneas citadas;
 los marcados como "potencial" requieren prueba en el entorno de ejecución.*
+
+---
+---
+
+# 11. Segunda reauditoría — verificación de las correcciones
+
+**Fecha:** 2026-09-27 · **Método:** revisión estática + pruebas en vivo contra `http://cuaderno`
+**Cambios revisados:** `024aec7` + cambios sin commitear en el árbol de trabajo
+
+> **Corrección de §10:** el N-1 estaba **más cerrado** de lo que reporté. `TokenModule::getSeed()`
+> y `ImgProcessModule::delete_img_disk()` ya incluían los controles correctos en `024aec7`
+> (no los había leído, sólo el encabezado de la función). El informe original los daba por
+> pendientes por error.
+
+## 11.1 Estado: los 5 hallazgos de §10 están resueltos
+
+| ID | Verificación | Resultado |
+|---|---|---|
+| **N-1** | `ProviderLoader` ya no duplica el namespace; ejecutado con PHP real devuelve `class_exists(App\Providers\SecurityProvider) = SI`. Sonda en vivo: `boot()` se ejecuta, y al bloquear la IP con la API del propio sistema la web responde **HTTP 403**. | **Cerrado** |
+| **N-2** | `safeCssColor()` movida a `Base/Helpers/Part.php:602` (autoload de Composer), ya no depende del orden de vistas. | **Cerrado** |
+| **N-3** | `App/Safety` añadido al `RewriteRule` (`.htaccess:60`); `/App/Safety/*.json` y `*.log` → **403**. | **Cerrado** |
+| **N-5** | `App/Route/test.php` eliminado; `/test/2` → **404**. | **Cerrado** |
+| **Sitemap** | `web.php:23-27` sólo publica `/ingresar`, `/registrar`, `/recuperar`. | **Cerrado** |
+
+Además, ya estaba corregido y ahora confirmado: **C-2** (`getSeed()` lanza `RuntimeException`
+si el seed falta o es < 32 chars; `.env` tiene 64) y **A-1** (`ImgProcessModule::delete_img_disk`
+usa `basename()` + `realpath()` + `str_starts_with()`, líneas 860-862).
+
+**M-4** mejoró: `Session.php:85-89` ahora es **fail-closed** — `$status` cae en `''` si falta y
+`in_array($status, ['active','1',1,true], true)` rechaza → borra la cookie. Antes era fail-open.
+
+**Sin regresiones:** `POST /ingresar` sin token → **403**; `/proxy?url=169.254.169.254` → **403**;
+`/.env` → **403**; sitio → **200**. `composer audit`: sin avisos de seguridad.
+
+## 11.2 Lo que queda abierto
+
+### N-4 · ALTA → BAJA — Open redirect en `/proxy` (sin corregir)
+
+`ProxyModule.php:20-22` sigue aceptando `//host` como "ruta relativa". Confirmado en vivo:
+
+```
+GET /proxy?url=//evil.com
+HTTP/1.1 302 Found
+Location: //evil.com
+```
+
+Un atacante ponería eso en un enlace de tu dominio y ganaría un redirector/phishing creíble.
+No lo había tocado. Arreglo de una línea:
+
+```php
+if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+```
+
+### N-6 · MEDIA — `TRUSTED_PROXIES` no está definido: la allowlist es *fail-open*
+
+`Builder.php:138-158` y `VisitModels.php:28-50` implementan la allowlist de proxies, pero:
+
+```php
+if ($isTrusted || empty($trustedProxies)) {   // ← si NO está definido, confía igual
+    // lee CF-Connecting-IP, X-Forwarded-For, X-Real-IP, Client-IP
+}
+```
+
+`TRUSTED_PROXIES` **no aparece** en `.env`, `.env.example` ni en ningún `config.php`. Con la
+configuración actual `empty($trustedProxies)` es `true`, así que **se siguen creyendo las
+cabeceras falsificables**: B-2 sigue abierto y M-6 sigue mal resuelta (el rate limit sigue
+usando la IP del borde de Cloudflare, no la del usuario real).
+
+Define la constante con los rangos de Cloudflare, y considera invertir la condición para que
+"no configurado" signifique "no confío":
+
+```php
+if ($isTrusted) { /* leer cabeceras */ }   // fail-closed
+```
+
+### N-7 · MEDIA — TLS desactivado en `CloudinaryService::deleteVideo()`
+
+B-6 se corrigió en `RequestMetaModule` (`:47-48`), `CloudinaryService:205-206` y
+`LemonSqueezyProvider:93-94`. **Pero hay un segundo `curl` en `CloudinaryService.php:272-273`
+que se quedó sin tocar:**
+
+```php
+$postFields = ["api_key" => $apiKey, "timestamp" => $timestamp, "signature" => $signature];
+// $signature = sha1("public_id=...&timestamp=..." . $apiSecret)   ← deriva del SECRET
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+```
+
+La petición viaja sin verificación de certificado, así que un MITM puede capturar la firma y
+**reconstruir el `api_secret` de Cloudinary** (`sha1` es determinista y los tres campos viajan
+en claro). Es el mismo riesgo que Originally se-chanalaba para LemonSqueezy. Poner ambos a
+`true` / `2`.
+
+### M-3 · MEDIA — Sigue sin el bloque 7.2.2/7.2.3
+
+`.htaccess` no tiene ningún `<DirectoryMatch>` ni `php_flag engine off`. Lo que sí está:
+`Options -Indexes` (43), `FilesMatch` de extensiones sensibles (47) y el `RewriteRule` de
+directorios (60). En la práctica `/.env` y `/Cache/` responden 403 y `Uploads/` da error de
+conexión al listar, así que **no hay exposición inmediata** — pero si algún fichero bajo
+`Uploads/` o `App/Public/` acaba en disco con extensión `.php`, se ejecutará. Aplica el §7.2
+completo, o al menos `<FilesMatch "\.(php|phtml|phar)$">` con `Require all denied` y la regla
+equivalente en Nginx (§7.4) si producción no es Apache.
+
+### M-4 · MEDIA — sigue sin revalidar contra la BD
+
+El chequeo *fail-closed* evita aceptar un token con `user_status` forjado, pero un token
+**legítimamente emitido** a una cuenta que luego se borra o suspende sigue siendo válido durante
+los 30 días de `TokenConfiguration.php:66`, porque `Session.php:90` copia el payload sin
+consultar la base de datos. Es el residual de diseño de M-4 original; decide si lo aceptas
+o reduces la duración del JWT.
+
+## 11.3 Sin revisar en esta pasada
+
+B-1, B-3, B-4, B-7, B-8. `composer audit` sí pasó limpio.
+
+## 11.4 Plan de cierre
+
+**Antes de producción (~15 min):**
+1. **N-4** — una línea en `ProxyModule.php:20`.
+2. **N-6** — definir `TRUSTED_PROXIES` en `.env` y documentarlo en `.env.example`; invertir la
+   condición a *fail-closed*.
+3. **N-7** — `true` / `2` en `CloudinaryService.php:272-273`.
+
+**Altamente recomendable (~1 h):**
+4. **M-3** — bloque 7.2.2/7.2.3 del `.htaccess` **y** las reglas de Nginx §7.4.
+5. **M-4** — revalidar `user_status` en BD al restaurar la sesión, o acortar la vida del JWT.
+6. Verificar §7 completo contra la configuración real de Linux (lo probado aquí es Apache/Windows;
+   con Nginx el `.htaccess` se ignora por completo).
+
+**Sin bloqueantes críticos ni altos abiertos.** Con N-4, N-6 y N-7 aplicados, la aplicación
+pasa a depender únicamente del endurecimiento del servidor (§7) para un despliegue aceptable.
+
+
+---
+---
+
+# 10. Reauditoría — estado verificado tras las correcciones
+
+**Fecha:** 2026-09-27 · **Método:** revisión estática **+ pruebas en vivo contra `http://cuaderno`**
+**Alcance:** App + `vendor/eber/framework`, commit de seguridad `024aec7` (`HEAD` `2957671`, árbol limpio)
+
+## 10.1 Resumen
+
+El trabajo de remediación es **sustancial y de buena calidad**. Los dos críticos están
+neutralizados y la mayoría de altos/medios se han cerrado. **Pero hay un fallo nuevo que
+anula por completo el M-2, y varios residuales.** La aplicación **sigue sin estar lista para
+producción** por N-1 (ver §10.4), aunque por motivos mucho menores que los originales.
+
+| Severidad | Original | Estado actual |
+|---|---|---|
+| CRÍTICA | 2 | **0** (ambas corregidas y verificadas) |
+| ALTA | 4 | **0** (3 corregidas, A-1 parcial en el framework) |
+| MEDIA | 8 | **5 corregidas · 1 rota por N-1 · 2 parciales** |
+| NUEVA | — | **1 alta (N-1) + 3 bajas** |
+
+## 10.2 Corregido y verificado
+
+Verificado leyendo el código **y** probando en vivo.
+
+| ID | Evidencia de la corrección |
+|---|---|
+| **C-1** | `extract($param)` eliminado (`DesignModels.php:389`); el objetivo se re-deriva de la sesión en `:371-376`. **Cerrado.** |
+| **C-2** | `SEED` rotado a 64 hex en `.env:3`; el valor antiguo no aparece en el árbol ni en `git log --all -- .env`. **Cerrado** (queda la guardia, ver 10.3). |
+| **A-1** | `deleteAvatarFromDisk()` y `deleteContentImageFromDisk()` usan `basename()` + `realpath()` + `str_starts_with()` sobre el prefijo (`DesignModels.php:1394-1427`). **Cerrado en la app.** |
+| **A-2** | Ver §10.3. **Cerrado en toda la superficie pública.** |
+| **A-3** | Allowlist con límite de punto, `FOLLOWLOCATION` off, TLS on, filtro de IP privada, `image/*`. En vivo: `notlinkedin.com`, `127.0.0.1` y `169.254.169.254` → **403**. **Cerrado.** |
+| **A-4** | Middleware global registrado (`web.php:18`) y aplicado por el router. En vivo: `POST /ingresar` sin token → **403**. **Cerrado.** |
+| **M-1** | `/op/check` → **404**; `/op/image` → **403**; `/lemon-squeezy/init-db` → **403**. Confirmado que `ENVIRONMENT` resuelve correctamente a `'production'` (`config.php:38-41` normaliza `APP_ENV="PRODUCTION"`). **Cerrado.** |
+| **M-5** | `CacheModule.php:184,346` usan `['allowed_classes' => false]`. **Cerrado.** |
+| **M-7** | CORS `*` eliminado; `Cache-Control: public` sólo en estáticos. **Cerrado.** |
+| **M-8** | `LoginControllers.php:267` usa `error_log()`. **Cerrado.** |
+
+### A-2 en detalle — por qué se considera cerrado
+
+Las 51 salidas `<?= $` que quedan en vistas públicas son **todas seguras** porque el dato se
+sanea antes de interpolar, no al escapar:
+
+- **Colores** — las 27 de `style.css.php` y las de `banner/campaign/productGroup/productRegular/
+  modalXShare` pasan por `safeCssColor()` (allowlist, correcto para contexto CSS).
+- **Clases** — `campaign.php` valida con `in_array(..., true)` (`$textAlign`, `$titleSize`,
+  `$descSize`, `$countdownTextSize`, `$countdownWidgetSize`, `$size`, `$textPosition`);
+  `text.php:11-17` deriva `$weightClass`/`$alignClass` con ternario y `match` cerrados.
+- **Enteros** — `(int)$dataContent` en `campaign.php:85` y en `banner/productRegular`.
+- **ID en contexto JS** — `campaign.php:192` intercala dentro de `<script>`, pero
+  `$campaignId = "campaign-block-" . (int)$dataContent` (`:82`): prefijo fijo + cast, no inyectable.
+- **`separator.php:21,28`** — `$iconSvg` viene de `svg()`, que lee del sistema de ficheros.
+- **Contenido** — `text.php:24` ya usa `nl2br(e($textContent))`.
+
+`Control.php:161` también escapa el `<title>`.
+
+## 10.3 Pendientes y parciales
+
+| ID | Qué falta |
+|---|---|
+| **C-2** *(cola)* | `TokenModule::getSeed()` sigue sin **fallar de forma ruidosa**: si `SEED` falta, cae en `md5(NAME_SITE)`. Hoy es inocuo (el valor es válido), pero un despliegue con `.env` mal copiado reintroduce C-2 en silencio. Añadir la excepción recomendada en §C-2, punto 3. |
+| **A-1** *(cola)* | El mismo patrón sigue en `vendor/eber/framework/Base/Module/ImgProcessModule.php` (`delete_img_disk`). No corregido. |
+| **M-3** *(parcial)* | `/.env` → **403** y `/Cache/` → **403**. Pero **no se añadió el `<DirectoryMatch>`**: `.htaccess:60` sólo protege directorios en la raíz. `/App/Safety/blocked_ips.json` responde **200** (ver N-3). Falta el bloque 7.2.2/7.2.3 del §7.2. |
+| **M-4** *(parcial)* | `Session.php:85-89` rechaza `user_status` no activo, pero (a) **no revalida contra la BD**, así que una cuenta borrada conserva acceso 30 días, y (b) el chequeo es *fail-open*: `isset($user_status) && ...` concede la sesión si el campo **falta** del payload. Debería ser `($userData['user_status'] ?? '') !== 'active'`. |
+| **M-6** | Sin cambios: `Builder.php:138,180` sigue usando `REMOTE_ADDR` sólo. Detrás de Cloudflare todos los usuarios comparten IP. |
+| **B-1** | No revisado. |
+| **B-2** | **No corregido**: `VisitModels.php:28` sigue confiando en `HTTP_CF_CONNECTING_IP`, `X-Forwarded-For`, `X-Real-IP` y `HTTP_CLIENT_IP` sin allowlist de proxies. |
+| **B-3, B-4** | No revisados. |
+| **B-5** | **No corregido** — ver N-5. |
+| **B-6** | Parcial: arreglado en `ProxyModule`. Sin verificar en `RequestMetaModule`, `CloudinaryService` y `LemonSqueezyProvider`. |
+| **B-7, B-8** | No revisados. |
+| **Sitemap** | `web.php:23-33` **sigue publicando** `/op/image`, `/op/check`, `/test/2`, `/lemon-squeezy/init-db` y `/lemon-squeezy/test`. Aunque los tres primeros ya responden 403/404, el sitemap regala la lista exacta de rutas a probar y mantiene vivo B-8. |
+
+## 10.4 Hallazgos nuevos
+
+### N-1 · ALTA — `SecurityProvider` nunca se carga: el subsistema de seguridad sigue muerto
+
+Este es el hallazgo más importante de la reauditoría. **M-2 parece corregido pero no lo está.**
+
+`providers.json` ya registra el provider, pero `ProviderLoader` le **añade el namespace otra vez**:
+
+```php
+// vendor/eber/framework/Core/ConfigLoader/ProviderLoader.php:30-32
+$namespace = str_replace('.', '\\', $provider);
+return 'App\\Providers\\' . $namespace;   // ← prefijo duplicado
+```
+
+Y `Bootstrap/App.php:13` descarta en silencio lo que no exista:
+
+```php
+foreach ($providers as $providerClass) {
+    if (class_exists($providerClass)) { ... }   // si no, no hace nada ni avisa
+}
+```
+
+Comprobado ejecutando el cargador real:
+
+```
+providers.json devuelve: ["App\Providers\App\Providers\SecurityProvider"]
+  class_exists  : NO  <-- SE OMITE EN SILENCIO
+```
+
+Consecuencia: `SecurityProvider::boot()` nunca se ejecuta, así que
+**`AccessBlocker::checkAndBlockRequest()` no se llama nunca** — no hay bloqueo de IP ni registro
+de intrusiones en ninguna ruta. Es exactamente el estado original de M-2, sólo que ahora
+aparenta estar arreglado porque el archivo y el registro existen.
+
+**Dos arreglos posibles:**
+1. En `providers.json`, usar sólo el nombre corto: `"SecurityProvider"`.
+2. (Mejor) En `ProviderLoader::load()`, no prefijar si el valor ya empieza por `App\`, y en
+   `Bootstrap/App.php` **lanzar una excepción o escribir en el log** cuando `class_exists()`
+   devuelva `false`, para que un provider mal escrito nunca vuelva a fallar en silencio.
+
+### N-2 · BAJA — `safeCssColor()` depende del orden de carga de vistas
+
+La función está definida dentro de una vista (`App/Views/User/style.css.php:3`) pero la usan
+**10 vistas** (`campaign`, `banner`, `productGroup`, `productRegular`, los `modal*Share`).
+
+Hoy funciona porque `App/Views/User/index.php:3` es lo primero que se ejecuta, y el contenido
+se carga después (`:25`). Pero cualquier ruta que renderice `campaign.php` sin pasar por
+`index.php` —una preview, un test, un nuevo entry point— provoca un **error fatal**
+`Call to undefined function safeCssColor()`.
+
+Mover la función a `Base\Helpers\Part.php` junto a `e()`/`eUrl()`, que sí están autocargados.
+Es la misma categoría que las reglas 11 y 12 que ya añadiste a `AGENTS.md`.
+
+### N-3 · BAJA — Lista de IPs bloqueadas legible por web
+
+`GET /App/Safety/blocked_ips.json` → **200**. No está en el `RewriteRule` de `.htaccess:60`,
+que sólo cubre `Cache|Logs|Database|\.git|vendor` en la raíz. Filtra quién está bloqueado y la
+estructura del sistema. Se arregla con el `<DirectoryMatch>` de §7.2.2 (o moviendo `App/Safety/`
+fuera del webroot, que es lo preferible).
+
+### N-4 · BAJA — `ProxyModule` acepta `//host` (open redirect)
+
+`ProxyModule.php:20-23` trata como "ruta relativa segura" cualquier cadena que empiece por `/`,
+incluyendo `//evil.com`, que los navegadores interpretan como URL absoluta:
+
+```
+GET /proxy?url=//evil.com   →   Location: //evil.com
+```
+
+Basta exigir **exactamente una** barra inicial (`str_starts_with($url, '/') && !str_starts_with($url, '//')`)
+o rechazar el caso en la ruta.
+
+### N-5 · BAJA — `/test/2` sigue abierto y filtra rutas del servidor
+
+B-5 no se corrigió. En vivo: `GET /test/2` → **200** con un *stack trace* de Xdebug que expone
+la **ruta absoluta del servidor**, versión de PHP y que Xdebug está activo:
+
+```
+Deprecated: mb_strtolower(): Passing null to parameter #1 ...
+  ... on line 16 in C:\Users\eber\Proyectos\Cuaderno\App\Middleware\TestMiddleware.php
+```
+
+En producción (Linux) esto es `display_errors=On` o un `log_errors` mal configurado. Además
+`TestMiddleware` conserva la lógica invertida. **Eliminar `App/Route/test.php` del despliegue**
+y quitarlo del sitemap.
+
+## 10.5 Plan de cierre
+
+**Bloqueante antes de producción (~30 min):**
+1. **N-1** — arreglar el namespace en `providers.json` o en `ProviderLoader`, y hacer que
+   `Bootstrap/App.php` falle de forma visible si un provider no existe. Verificar después con
+   un intento de acceso desde IP bloqueada.
+2. **N-5** — eliminar `App/Route/test.php` del despliegue.
+3. **Sitemap** — quitar `/op/image`, `/op/check`, `/test/2`, `/lemon-squeezy/init-db`,
+   `/lemon-squeezy/test` y `/salir` de `web.php:23-33`.
+
+**Altamente recomendable (~2 h):**
+4. **M-3** — añadir los `<DirectoryMatch>` de §7.2.2 y 7.2.3, y mover `App/Safety/` fuera del webroot (N-3).
+5. **M-4** — revalidar `user_status` contra la BD y hacer el chequeo *fail-closed*.
+6. **C-2 (cola)** — guardia que lance excepción si `SEED` es vacío o < 32 caracteres.
+7. **A-1 (cola)** — `ImgProcessModule::delete_img_disk()`.
+8. **M-6 / B-2** — `getClientIp()` con allowlist de proxies de confianza (Cloudflare), reutilizable
+   por analítica, rate limit y `AccessBlocker`.
+9. **N-2** — mover `safeCssColor()` a `Base/Helpers/Part.php`.
+10. **N-4** — rechazar `//` en `ProxyModule`.
+11. Aplicar el §7 completo contra la configuración real de **Linux** (el `.htaccess` verificado es
+    Apache/Windows; si producción es Nginx, `.htaccess` se ignora por completo).
+
+**Pendiente de revisar:** B-1, B-3, B-4, B-6 (parcial), B-7, B-8, y `composer audit`.
+
+## 10.6 Nota sobre la verificación
+
+Todo lo marcado "verificado" en §10.2 se comprobó con peticiones reales a `http://cuaderno`
+(códigos 403/404/200 citados) y ejecutando el cargador de providers con PHP 8.4.15.
+Los códigos del §10.4 provienen de lectura de código, no de ejecución, y conviene
+confirmarlos tras aplicar el arreglo.
+

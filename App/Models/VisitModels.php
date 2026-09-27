@@ -25,17 +25,39 @@ class VisitModels extends Builder {
    * @return string Dirección IP resuelta.
    */
   public static function getClientIp(): string {
+    $remoteAddr = $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+
+    // Allowlist de proxies para aceptar cabeceras X-Forwarded-For etc.
+    // Define TRUSTED_PROXIES en .env o config.php, p.ej. "10.0.0.,192.168."
+    $trustedProxies = defined('TRUSTED_PROXIES') ? explode(',', TRUSTED_PROXIES) : [];
+    
+    $isTrusted = false;
+    foreach ($trustedProxies as $proxy) {
+      if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
+        $isTrusted = true;
+        break;
+      }
+    }
+
+    if (!$isTrusted && !empty($trustedProxies)) {
+      return $remoteAddr; // Si hay lista pero no coincide, no confiamos
+    } elseif (empty($trustedProxies)) {
+      // Si no hay proxy configurado, por defecto confiamos SOLO si viene de un rango privado típico
+      // o directamente devolvemos REMOTE_ADDR (más seguro).
+      return $remoteAddr;
+    }
+
     $headers = ["HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "HTTP_X_REAL_IP", "HTTP_CLIENT_IP"];
     foreach ($headers as $header) {
       if (!empty($_SERVER[$header])) {
         $ips = explode(",", $_SERVER[$header]);
-        $candidate = trim($ips[0]);
+        $candidate = trim(end($ips)); // X-Forwarded-For puede estar encadenado, tomamos el último o primero confiable
         if (filter_var($candidate, FILTER_VALIDATE_IP)) {
           return $candidate;
         }
       }
     }
-    return $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+    return $remoteAddr;
   }
 
   /**

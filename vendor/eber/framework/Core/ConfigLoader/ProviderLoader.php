@@ -28,6 +28,10 @@ class ProviderLoader
                 return array_map(function ($provider) {
                     // Convertir puntos a backslashes
                     $namespace = str_replace('.', '\\', $provider);
+                    // No agregar el prefijo si ya lo tiene
+                    if (str_starts_with($namespace, 'App\\Providers\\')) {
+                        return $namespace;
+                    }
                     // Agregar el prefijo App\Providers\
                     return 'App\\Providers\\' . $namespace;
                 }, $config['providers']);

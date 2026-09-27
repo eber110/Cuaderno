@@ -135,7 +135,28 @@ class Builder
       return true;
     }
 
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $trustedProxies = defined('TRUSTED_PROXIES') ? explode(',', TRUSTED_PROXIES) : [];
+    $isTrusted = false;
+    foreach ($trustedProxies as $proxy) {
+      if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
+        $isTrusted = true; break;
+      }
+    }
+    $ip = $remoteAddr;
+    if ($isTrusted || empty($trustedProxies)) {
+      $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
+      foreach ($headers as $header) {
+        if (!empty($_SERVER[$header])) {
+          $ips = explode(',', $_SERVER[$header]);
+          $candidate = trim(end($ips));
+          if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+            $ip = $candidate; break;
+          }
+        }
+      }
+    }
+
     $tableName = defined('DB_DRIVER') && DB_DRIVER === 'pgsql' ? 'ratelimits' : 'RateLimits';
 
     // Usamos una instancia limpia para no alterar el estado de esta consulta
@@ -177,7 +198,28 @@ class Builder
       return;
     }
 
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $trustedProxies = defined('TRUSTED_PROXIES') ? explode(',', TRUSTED_PROXIES) : [];
+    $isTrusted = false;
+    foreach ($trustedProxies as $proxy) {
+      if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
+        $isTrusted = true; break;
+      }
+    }
+    $ip = $remoteAddr;
+    if ($isTrusted || empty($trustedProxies)) {
+      $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
+      foreach ($headers as $header) {
+        if (!empty($_SERVER[$header])) {
+          $ips = explode(',', $_SERVER[$header]);
+          $candidate = trim(end($ips));
+          if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+            $ip = $candidate; break;
+          }
+        }
+      }
+    }
+
     $tableName = defined('DB_DRIVER') && DB_DRIVER === 'pgsql' ? 'ratelimits' : 'RateLimits';
 
     $db = new self($tableName);

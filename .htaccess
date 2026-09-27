@@ -57,7 +57,7 @@ DirectoryIndex index.php
 RewriteEngine On
 
 # Bloquear acceso web directo a carpetas sensibles del sistema
-RewriteRule ^(Cache|Logs|Database|\.git|vendor)(/|$) - [F,L,NC]
+RewriteRule ^(Cache|Logs|Database|\.git|vendor|App/Safety)(/|$) - [F,L,NC]
 
 # --- PROTECCIÓN CONTRA ESCANEOS Y BOTS (HTTP 418 I'm a teapot 🫖) ---
 # ErrorDocument 418 "418 I'm a teapot. This server is a teapot, not WordPress 🫖"
