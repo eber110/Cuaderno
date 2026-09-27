@@ -177,6 +177,11 @@ export function designDraftManager() {
         return validCount >= 2;
       }
 
+      case "video": {
+        const urlInput = block.querySelector(`input[name="content[${idx}][url]"]`);
+        return !!(urlInput && urlInput.value.trim() !== "");
+      }
+
       case "product":
       case "link":
       default: {
@@ -653,8 +658,8 @@ export function designDraftManager() {
     }
 
     // Sombra shadow-3 y color de sombra 3
-    const colorShadow3 = fields.colorShadow3 || "#000000";
-    if (fields.colorShadow3) {
+    const colorShadow3 = fields.colorShadow3 || document.getElementById("button-select-color-shadow3")?.value || document.getElementById("select-color-shadow3")?.value || document.querySelector('input[name="colorShadow3"]')?.value || "#000000";
+    if (fields.colorShadow3 || fields.shadow === "shadow-3") {
       cssRules.push(`
         .user-profile-preview .shadow-3 {
           border-color: ${colorShadow3} !important;
@@ -667,7 +672,7 @@ export function designDraftManager() {
     }
 
     // Animación hover en botones
-    const buttonBack = fields.back || document.getElementById("select-color-button")?.value || "#d6d6d6";
+    const buttonBack = fields.back || document.getElementById("button-select-color")?.value || document.getElementById("select-color-button")?.value || document.querySelector('input[name="back"]')?.value || "#d6d6d6";
     if (fields.hover !== undefined) {
       const isHoverActive = (fields.hover === "true" || fields.hover === true || fields.hover === 1 || fields.hover === "1");
       if (isHoverActive) {
@@ -693,10 +698,10 @@ export function designDraftManager() {
       const borderParts = String(fields.borders).split(",");
       const btnBorder = borderParts[0] || "br0";
       const imgBorder = borderParts[1] || "br0";
-      const validBorders = ["br0", "br10", "br20", "br50"];
-      const validImgBorders = ["br0", "br5", "br12", "br50"];
+      const validBorders = ["br0", "br5", "br10", "br12", "br15", "br20", "br30", "br50"];
+      const validImgBorders = ["br0", "br5", "br10", "br12", "br15", "br20", "br30", "br50"];
 
-      // En productos y banners, br50 se adapta a br20 (y br12 en imágenes) para evitar deformaciones
+      // En productos, banners y videos, br50 se adapta a br20 (y br12 en imágenes) para evitar deformaciones
       const clampedBorder = (btnBorder === "br50") ? "br20" : btnBorder;
       const clampedImgBorder = (imgBorder === "br50") ? "br12" : imgBorder;
 
@@ -753,12 +758,18 @@ export function designDraftManager() {
           btn.classList.add(btnBorder);
         });
 
+        // 7. Videos (bloque contenedor en ambos modos)
+        p.querySelectorAll(".video-block-wrapper").forEach((video) => {
+          validBorders.forEach((b) => video.classList.remove(b));
+          video.classList.add(clampedBorder);
+        });
+
         // Fallback genérico para cualquier otro elemento con clase .theme-button
-        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper)").forEach((btn) => {
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper):not(.video-block-wrapper)").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
         });
-        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper) img.cover").forEach((img) => {
+        p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper):not(.video-block-wrapper) img.cover").forEach((img) => {
           validImgBorders.forEach((b) => img.classList.remove(b));
           img.classList.add(imgBorder);
         });
@@ -770,9 +781,9 @@ export function designDraftManager() {
       const validShadows = ["shadow-0", "shadow-1", "shadow-2", "shadow-3", "shadow-card"];
 
       previews.forEach((p) => {
-        // Aplicar sombras a todos los bloques: enlaces, productos regulares, grupos de productos, banners y campañas
+        // Aplicar sombras a todos los bloques: enlaces, productos regulares, grupos de productos, banners, campañas y videos
         const targets = p.querySelectorAll(
-          ".theme-button, .link-item-wrapper, .product-item-wrapper, .product-regular-wrapper, .product-grid-card, .product-slide-card, .banner-block-wrapper, .campaign-block-wrapper, .campaign-content .modal-btn, .campaign-button"
+          ".theme-button, .link-item-wrapper, .product-item-wrapper, .product-regular-wrapper, .product-grid-card, .product-slide-card, .banner-block-wrapper, .campaign-block-wrapper, .video-block-wrapper, .campaign-content .modal-btn, .campaign-button"
         );
         targets.forEach((el) => {
           validShadows.forEach((s) => el.classList.remove(s));
@@ -877,9 +888,17 @@ export function designDraftManager() {
           if (cData.active !== undefined) {
             const isAct = (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1");
             const variant = block.dataset.layoutVariant;
+            const videoVariant = block.dataset.videoVariant;
             if (variant) {
               const currentLayout = cData.layout || (document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid");
               if (variant === currentLayout) {
+                block.style.display = isAct ? "" : "none";
+              } else {
+                block.style.display = "none";
+              }
+            } else if (videoVariant) {
+              const currentVideoMode = cData.video_mode || (document.querySelector(`input[name="content[${idx}][video_mode]"]:checked`)?.value || "link");
+              if (videoVariant === currentVideoMode) {
                 block.style.display = isAct ? "" : "none";
               } else {
                 block.style.display = "none";
@@ -1326,6 +1345,62 @@ export function designDraftManager() {
             if (cData.url !== undefined) {
               const aEl = block.querySelector("a");
               if (aEl) aEl.href = cData.url || "#";
+            }
+          }
+
+          // I. ENLACE DE VIDEO
+          else if (block.classList.contains("video-block-wrapper")) {
+            if (cData.title !== undefined) {
+              const pDesc = block.querySelector(".video-desc-wrap p");
+              if (pDesc) {
+                pDesc.textContent = cData.title;
+              }
+              const pPlayerTitle = block.querySelector(".video-player-mode p");
+              if (pPlayerTitle) {
+                pPlayerTitle.textContent = cData.title;
+              }
+            }
+            if (cData.url !== undefined) {
+              const aEls = block.querySelectorAll("a");
+              aEls.forEach((aEl) => { aEl.href = cData.url || "#"; });
+              const iframe = block.querySelector("iframe");
+              if (iframe && cData.url) {
+                const ytMatch = cData.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+                if (ytMatch && ytMatch[1]) {
+                  iframe.src = `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0`;
+                } else {
+                  const vmMatch = cData.url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/i);
+                  if (vmMatch && vmMatch[1]) {
+                    iframe.src = `https://player.vimeo.com/video/${vmMatch[1]}`;
+                  }
+                }
+              }
+              const video = block.querySelector("video");
+              if (video && cData.url) {
+                const source = video.querySelector("source");
+                if (source) {
+                  source.src = cData.url;
+                  video.load();
+                }
+              }
+            }
+            // Cambio instantáneo de modo de video (link vs player)
+            if (cData.video_mode !== undefined) {
+              const variant = block.dataset.videoVariant;
+              if (variant) {
+                const isSelected = (variant === cData.video_mode);
+                if (isSelected) {
+                  block.classList.remove("hidden");
+                  const activeSwitch = document.querySelector(`input[name="content[${idx}][active]"]`);
+                  const isAct = (cData.active !== undefined)
+                    ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
+                    : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
+                  block.style.display = isAct ? "" : "none";
+                } else {
+                  block.classList.add("hidden");
+                  block.style.display = "none";
+                }
+              }
             }
           }
         });
@@ -2327,9 +2402,19 @@ export function designDraftManager() {
             const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
             items.forEach((item) => {
               const variant = item.dataset.layoutVariant;
+              const videoVariant = item.dataset.videoVariant;
               if (variant) {
                 const selectedLayout = document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid";
                 if (variant === selectedLayout) {
+                  item.style.display = target.checked ? "" : "none";
+                  if (target.checked) item.classList.remove("hidden");
+                } else {
+                  item.style.display = "none";
+                  item.classList.add("hidden");
+                }
+              } else if (videoVariant) {
+                const selectedVideoMode = document.querySelector(`input[name="content[${idx}][video_mode]"]:checked`)?.value || "link";
+                if (videoVariant === selectedVideoMode) {
                   item.style.display = target.checked ? "" : "none";
                   if (target.checked) item.classList.remove("hidden");
                 } else {

@@ -218,12 +218,21 @@
   .text-block-wrapper,
   .title-block-wrapper,
   .banner-block-wrapper,
+  .video-block-wrapper,
   .header-variant-wrapper,
   .cut-phrase,
   .cut-phrase-wrapper {
     word-break: normal !important;
     overflow-wrap: break-word !important;
     hyphens: none !important;
+  }
+
+  .video-block-wrapper {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .video-block-wrapper:hover .video-play-button {
+    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.85) !important;
   }
 
   .cut-phrase-wrapper {

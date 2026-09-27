@@ -445,6 +445,9 @@ export function formComponents() {
           el.style.setProperty('border-color', hex, 'important');
           el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
         });
+        preview.querySelectorAll('.shadow-3 img').forEach(el => {
+          el.style.setProperty('border-color', hex, 'important');
+        });
       } else if (name.includes('bg_color')) {
         const itemBlock = inputElement?.closest('.sortable-item');
         const itemType = itemBlock?.getAttribute('data-type');
@@ -556,7 +559,17 @@ export function formComponents() {
     const inputId = input.id;
 
     function getLiveInput() {
+      if (activeInput && activeInput.isConnected) {
+        return activeInput;
+      }
       if (inputId) {
+        if (trigger && trigger.closest) {
+          const container = trigger.closest('.remote-content, .remote-container, form');
+          if (container) {
+            const scoped = container.querySelector('#' + CSS.escape(inputId));
+            if (scoped) return scoped;
+          }
+        }
         const live = document.getElementById(inputId);
         if (live) return live;
       }
@@ -818,11 +831,10 @@ export function formComponents() {
     if (trigger.tagName === 'INPUT' && trigger.type === 'color') {
       colorInput = trigger;
     } else if (trigger.tagName === 'LABEL') {
-      const forId = trigger.getAttribute('for');
-      colorInput = forId ? document.getElementById(forId) : trigger.querySelector('input[type="color"]');
+      colorInput = trigger.querySelector('input[type="color"]') || (trigger.getAttribute('for') ? document.getElementById(trigger.getAttribute('for')) : null);
     } else {
       const inputId = trigger.getAttribute('data-trigger-color');
-      colorInput = document.getElementById(inputId);
+      colorInput = (trigger.querySelector && trigger.querySelector('input[type="color"]')) || (inputId ? document.getElementById(inputId) : null);
     }
 
     // Si encontramos un input de color elegible que use nuestra clase color-picker

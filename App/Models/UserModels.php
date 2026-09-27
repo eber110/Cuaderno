@@ -188,6 +188,12 @@ class UserModels extends BuilderSqlite {
           $item["separator_size"] = in_array($item["separator_size"] ?? "", ["small", "medium", "large"], true) ? $item["separator_size"] : "large";
         }
 
+        if (($item["type"] ?? "") === "video") {
+          $item["video_mode"] = in_array($item["video_mode"] ?? "", ["link", "player"], true) ? $item["video_mode"] : "link";
+          $item["url"]        = $item["url"] ?? "";
+          $item["title"]      = $item["title"] ?? "";
+        }
+
         if (($item["type"] ?? "") === "product_group" && isset($item["products"]) && is_array($item["products"])) {
           $prodCount = count($item["products"]);
           $layout = $item["layout"] ?? "grid";

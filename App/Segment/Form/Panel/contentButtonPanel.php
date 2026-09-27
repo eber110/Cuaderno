@@ -20,6 +20,9 @@
         <button type="submit" name="add_content_type" value="link" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Enlace
         </button>
+        <button type="submit" name="add_content_type" value="video" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+          <?= svg("add") ?> Enlace de video
+        </button>
         <button type="submit" name="add_content_type" value="product" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
           <?= svg("add") ?> Producto
         </button>
@@ -155,6 +158,10 @@
           $isEmpty = false;
           $itemActive = ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
           $isOpen = false;
+        } elseif ($itemType === 'video') {
+          $isEmpty = (trim($itemUrl) === '');
+          $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
+          $isOpen = (trim($itemTitle) === '' && trim($itemUrl) === '');
         } else {
           // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
           $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
@@ -202,6 +209,9 @@
                       };
                       echo 'Separador - Figuras' . $sizeLabel;
                     }
+                  } elseif ($itemType === 'video') {
+                    $displayTitle = trim($itemTitle);
+                    echo ($displayTitle !== '') ? 'Enlace de video - ' . e($displayTitle) : 'Enlace de video - (Sin título)';
                   } else {
                     $displayTitle = trim($itemTitle);
                     echo ($displayTitle !== '') ? 'Enlace - ' . e($displayTitle) : 'Enlace - (Sin título)';
@@ -1182,6 +1192,78 @@
                   </div>
                 </div>
               </div>
+
+            <?php elseif ($itemType === 'video') : ?>
+              <?php 
+                $videoMode = $card["content"][$i]["video_mode"] ?? 'link';
+                $displayImgSrc = $card["content"][$i]["imgSrc"] ?? '';
+                if (empty($displayImgSrc)) {
+                  $itemMetaImg = $card["content"][$i]["metaImg"] ?? '';
+                  if ($imgDefault && !empty($itemImg)) {
+                    $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                    $displayImgSrc = $itemMetaImg;
+                  } else {
+                    $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
+                  }
+                }
+              ?>
+
+              <!-- Selector de modo (Enlace vs Reproductor) -->
+              <div class="flex-column gap8 w100">
+                <div class="flex-column gap2">
+                  <p class="x13 bold600 texto">Modo de visualización</p>
+                  <span class="x11 text-muted">Elige cómo se presentará el video en el perfil</span>
+                </div>
+                <div class="flex-row center-between gap10 w100">
+                  <input type="radio" id="video-mode-link-<?= $i?>" name="content[<?= $i?>][video_mode]" value="link" class="hidden-radio video-mode-radio" <?= ($videoMode === 'link') ? 'checked' : '' ?>>
+                  <label for="video-mode-link-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Modo enlace: banner con carátula y descripción">
+                    <?= svg("link", "x16") ?>
+                    <span class="bold500 x13">Enlace</span>
+                  </label>
+
+                  <input type="radio" id="video-mode-player-<?= $i?>" name="content[<?= $i?>][video_mode]" value="player" class="hidden-radio video-mode-radio" <?= ($videoMode === 'player') ? 'checked' : '' ?>>
+                  <label for="video-mode-player-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Modo reproductor: reproduce directamente en el perfil">
+                    <?= svg("film", "x16") ?>
+                    <span class="bold500 x13">Reproductor</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Carátula del video (Miniatura y subida personalizada) -->
+              <div class="flex-row center-between gap10">
+                <div class="flex-row center-center gap10 relative">
+                  <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
+                    <img src="<?= e($displayImgSrc) ?>" alt="Carátula del video" class="cover">
+                  </figure>
+
+                  <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
+                    <?php if ($imgDefault) : ?>
+                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen personalizada">
+                        <?= svg("trash", "x20") ?>
+                      </button>
+                    <?php endif; ?>
+                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar carátula' : 'Mostrar carátula' ?>">
+                      <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                    </button>
+                  </div>
+                </div>
+                <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
+                  <input type="file" 
+                    name="content_img_<?= $i ?>" 
+                    class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
+                    placeholder="Subir imagen" 
+                    cropping-size="1280x720"
+                    box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+                    box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+                </div>
+              </div>
+
+              <!-- Título o descripción del video -->
+              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título o descripción del video">
+
+              <!-- URL del video -->
+              <input type="text" name="content[<?= $i?>][url]" class="content-url-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="URL del video (ej: https://www.youtube.com/watch?v=...)">
 
             <?php else : ?>
               <!-- Imagen enlace / producto individual -->

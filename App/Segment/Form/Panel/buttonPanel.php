@@ -126,8 +126,8 @@
       <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-        <label data-trigger-color="select-color-button" for="select-color-button" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color-button" name="back" value="<?= $card["back"] ?? "#d6d6d6"?>" class="color-picker box-color-picker"
+        <label data-trigger-color="button-select-color" for="button-select-color" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="button-select-color" name="back" value="<?= $card["back"] ?? "#d6d6d6"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 texto"><?= $card["back"] ?? "#d6d6d6"?></p>
         </label>
@@ -139,8 +139,8 @@
       <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-        <label data-trigger-color="select-color-text" for="select-color-text" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color-text" name="color" value="<?= $card["color"] ?? "#494949"?>" class="color-picker box-color-picker"
+        <label data-trigger-color="button-select-color-text" for="button-select-color-text" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="button-select-color-text" name="color" value="<?= $card["color"] ?? "#494949"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 texto"><?= $card["color"] ?? "#494949"?></p>
         </label>
@@ -152,8 +152,8 @@
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
-        <label data-trigger-color="select-color-shadow3" for="select-color-shadow3" class="flex-row center-start p10 gap10 pointer">
-          <input type="color" id="select-color-shadow3" name="colorShadow3" value="<?= $card["colorShadow3"] ?? "#000000"?>" class="color-picker box-color-picker"
+        <label data-trigger-color="button-select-color-shadow3" for="button-select-color-shadow3" class="flex-row center-start p10 gap10 pointer">
+          <input type="color" id="button-select-color-shadow3" name="colorShadow3" value="<?= $card["colorShadow3"] ?? "#000000"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 texto"><?= $card["colorShadow3"] ?? "#000000"?></p>
         </label>

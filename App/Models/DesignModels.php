@@ -1023,6 +1023,124 @@ class DesignModels extends Builder {
           continue;
         }
 
+        // Procesamiento específico para Enlace de Video (video)
+        if ($type === "video") {
+          $titleBtn = trim((string)($item["title"] ?? ""));
+          $url      = trim((string)($item["url"] ?? ""));
+          if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, "mailto:") !== 0 && strpos($url, "tel:") !== 0) {
+            $url = "https://" . $url;
+          }
+
+          $videoMode = in_array($item["video_mode"] ?? "", ["link", "player"], true) ? $item["video_mode"] : "link";
+
+          if (isset($item["delete_img"]) && ($item["delete_img"] === "true" || $item["delete_img"] === true)) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $item["img"] = "no-image.webp";
+          }
+
+          if (isset($uploadedContentImgs[$index])) {
+            if (!empty($oldImg) && !in_array($oldImg, $officialImages, true) && strpos($oldImg, "Custom/") === false && strpos($oldImg, "Origin/") === false && $oldImg !== "no-image.webp") {
+              self::deleteContentImageFromDisk($oldImg);
+            }
+            $img = $uploadedContentImgs[$index];
+            $imgDefault = true;
+          } else {
+            $img = $item["img"] ?? "no-image.webp";
+            $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
+            $imgDefault = !$isDefaultImg;
+          }
+
+          $rawActive = $item["active"] ?? false;
+          $active = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
+          if ($url === "") {
+            $active = false;
+          }
+
+          $existingItem = null;
+          if (isset($existingContentList[$index]) && ($existingContentList[$index]["url"] ?? "") === $url) {
+            $existingItem = $existingContentList[$index];
+          } else {
+            foreach ($existingContentList as $prevItem) {
+              if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
+                $existingItem = $prevItem;
+                break;
+              }
+            }
+          }
+
+          $metaTitle   = trim((string)($item["metaTitle"] ?? ""));
+          $metaDesc    = trim((string)($item["metaDesc"] ?? ""));
+          $metaImg     = trim((string)($item["metaImg"] ?? ""));
+          $metaScraped = false;
+
+          if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
+            $metaTitle   = $existingItem["metaTitle"];
+            $metaDesc    = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
+            $metaImg     = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
+            $metaScraped = !empty($existingItem["metaScraped"]);
+          }
+
+          // Consultar metadatos en caché de URLs si aún no han sido scrapeados
+          if (empty($metaScraped) && class_exists(CacheModule::class) && !empty($url)) {
+            $cachedMeta = CacheModule::get("url_meta_" . md5($url));
+            if ($cachedMeta !== null && is_array($cachedMeta)) {
+              if (empty($titleBtn) || $titleBtn === $url) {
+                $titleBtn  = $cachedMeta["title"] ?? $titleBtn;
+                $metaTitle = $cachedMeta["title"] ?? $metaTitle;
+              }
+              if (empty($metaDesc)) {
+                $metaDesc = $cachedMeta["description"] ?? "";
+              }
+              if (empty($metaImg) && !empty($cachedMeta["image"])) {
+                $metaImg = $cachedMeta["image"];
+              }
+              $metaScraped = true;
+            }
+          }
+
+          if (empty($metaScraped) && !empty($url) && preg_match('#^https?://[a-z0-9\-\.]+\.[a-z]{2,}#i', $url)) {
+            $hasPendingMetadata = true;
+          }
+
+          if (empty($metaTitle)) {
+            $metaTitle = $titleBtn ?: ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : "");
+          }
+          if (empty($metaImg)) {
+            if (!empty($img) && $img !== "no-image.webp" && $img !== "no-user.webp" && strpos($img, "Custom/") === false) {
+              $metaImg = "/Uploads/" . $img;
+            } else {
+              $metaImg = "";
+            }
+          } elseif (!str_starts_with($metaImg, "http://") && !str_starts_with($metaImg, "https://") && !str_starts_with($metaImg, "/")) {
+            $metaImg = "/Uploads/" . $metaImg;
+          }
+
+          $rawImgShow = $item["imgShow"] ?? true;
+          $imgShow = ($rawImgShow === "true" || $rawImgShow === true || $rawImgShow === 1 || $rawImgShow === "1");
+
+          if (isset($item["toggle_img_show"]) && ($item["toggle_img_show"] === "true" || $item["toggle_img_show"] === true)) {
+            $imgShow = !$imgShow;
+          }
+
+          $content[] = [
+            "type"        => "video",
+            "video_mode"  => $videoMode,
+            "img"         => $img,
+            "title"       => $titleBtn,
+            "url"         => $url,
+            "active"      => $active,
+            "imgDefault"  => $imgDefault,
+            "imgShow"     => $imgShow,
+            "metaTitle"   => $metaTitle,
+            "metaDesc"    => $metaDesc,
+            "metaImg"     => $metaImg,
+            "metaScraped" => $metaScraped
+          ];
+          continue;
+        }
+
         $titleBtn = trim($item["title"] ?? "");
         $url      = trim($item["url"] ?? "");
         if ($url !== "" && !preg_match('#^https?://#i', $url) && strpos($url, "mailto:") !== 0 && strpos($url, "tel:") !== 0) {
@@ -1300,6 +1418,20 @@ class DesignModels extends Builder {
           "separator_size" => "large",
           "space_size"     => "40",
           "active"         => true
+        ],
+        "video"         => [
+          "type"        => "video",
+          "video_mode"  => "link",
+          "img"         => "no-image.webp",
+          "title"       => "",
+          "url"         => "",
+          "active"      => false,
+          "imgDefault"  => false,
+          "imgShow"     => true,
+          "metaTitle"   => "",
+          "metaDesc"    => "",
+          "metaImg"     => "",
+          "metaScraped" => false
         ]
       ];
 
@@ -1922,6 +2054,9 @@ class DesignModels extends Builder {
             // Si el título es genérico o vacío o igual a la URL
             if (empty($titleBtn) || $titleBtn === $url || $titleBtn === parse_url($url, PHP_URL_HOST)) {
               $item["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : ($item["metaTitle"] ?? "");
+              if (($item["type"] ?? "") === "video" || empty($titleBtn)) {
+                $item["title"] = !empty($metaData["title"]) ? $metaData["title"] : $titleBtn;
+              }
             } else {
               $item["metaTitle"] = !empty($metaData["title"]) ? $metaData["title"] : $titleBtn;
             }

@@ -182,7 +182,7 @@ export function sortableContent() {
     const titleInput = item.querySelector('input[name*="[title]"]');
     if (!titleInput) return;
 
-    const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : (type === "title" ? "Título" : "Enlace"));
+    const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : (type === "title" ? "Título" : (type === "video" ? "Enlace de video" : "Enlace")));
     const rawVal = titleInput.value.trim();
     const emptyPlaceholder = type === "title" ? "(Sin texto)" : "(Sin título)";
 

@@ -42,6 +42,7 @@
         "title"         => "User.title",
         "text"          => "User.text",
         "separator"     => "User.separator",
+        "video"         => "User.video",
         default         => null,
       };
 
