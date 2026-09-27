@@ -70,7 +70,7 @@ export function videoBackgroundController() {
 
   // Sincronizar reproducción del thumbnail y visibilidad del panel de video según el estilo seleccionado
   function syncThumbnailPlayback() {
-    const checkedRadio = document.querySelector('input[name="style_back"]:checked');
+    const checkedRadio = document.querySelector('input[name="background_mode"]:checked, input[name="style_back"]:checked');
     const isVideoActive = checkedRadio && checkedRadio.value === "video";
     const thumb = document.getElementById("thumb-video-preview");
     const videoWrapper = document.getElementById("video-controls-wrapper");
@@ -146,7 +146,7 @@ export function videoBackgroundController() {
     }
 
     // 1.2 Cambio de estilo de fondo (Video / Sólido / Degradado)
-    if (target.name === "style_back") {
+    if (target.name === "style_back" || target.name === "background_mode") {
       syncThumbnailPlayback();
     }
 
@@ -405,6 +405,7 @@ export function videoBackgroundController() {
             // Enviar formulario al backend
             const saveFormData = new FormData(form);
             saveFormData.set("style_back", "video");
+            saveFormData.set("background_mode", "video");
             saveFormData.set("back_video_url_direct", secureUrl);
             saveFormData.set("back_video_public_id_direct", publicId);
             saveFormData.delete("back_video");
@@ -551,8 +552,10 @@ export function videoBackgroundController() {
       const deleteFlag = document.getElementById("delete-video-flag");
       if (deleteFlag) deleteFlag.value = "true";
 
-      const solidRadio = form.querySelector('input[name="style_back"][value="solid"]');
+      const solidRadio = form.querySelector('input[name="background_mode"][value="solid"], input[name="style_back"][value="solid"]');
       if (solidRadio) solidRadio.checked = true;
+      const inputStyleBack = form.querySelector('#input_style_back');
+      if (inputStyleBack) inputStyleBack.value = "solid";
 
       const statusBox = document.getElementById("video-upload-status");
       if (statusBox) {

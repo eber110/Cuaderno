@@ -3,11 +3,34 @@
   if (!function_exists('safeCssColor')) {
     function safeCssColor(mixed $val, string $default = '#000000'): string {
       $v = trim((string)$val);
+      if ($v === '') {
+        return $default;
+      }
       if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) {
         return $v;
       }
-      if (preg_match('/^(rgba?|hsla?)\([0-9.,% ]+\)$/', $v)) {
+      if ($v === 'transparent' || $v === 'currentColor') {
         return $v;
+      }
+      if (preg_match('/^(rgba?|hsla?|oklch|oklab|color)\([0-9a-zA-Z#.,%+\-*\/ ()]+\)$/i', $v)) {
+        if (stripos($v, 'url') !== false || stripos($v, 'javascript') !== false || stripos($v, 'expression') !== false || stripos($v, '@import') !== false) {
+          return $default;
+        }
+        $depth = 0;
+        $len = strlen($v);
+        for ($i = 0; $i < $len; $i++) {
+          if ($v[$i] === '(') {
+            $depth++;
+          } elseif ($v[$i] === ')') {
+            $depth--;
+            if ($depth < 0) {
+              return $default;
+            }
+          }
+        }
+        if ($depth === 0) {
+          return $v;
+        }
       }
       return $default;
     }

@@ -307,16 +307,19 @@ export function designDraftManager() {
     if (!target) return;
 
     // 1. Estilo de fondo (Sólido, Degradado, Video)
-    if (target.name === "style_back") {
+    if (target.name === "style_back" || target.name === "background_mode") {
       const gradientWrapper = document.getElementById("gradient-direction-wrapper");
       const videoWrapper = document.getElementById("video-controls-wrapper");
-      if (target.value === "gradientUp" || target.value === "gradientDown") {
+      const isGradient = target.value === "gradient" || target.value === "gradientUp" || target.value === "gradientDown";
+      const isSolid = target.value === "solid";
+      const isVideo = target.value === "video";
+      if (isGradient) {
         if (gradientWrapper) gradientWrapper.style.display = "flex";
         if (videoWrapper) videoWrapper.style.display = "none";
-      } else if (target.value === "solid") {
+      } else if (isSolid) {
         if (gradientWrapper) gradientWrapper.style.display = "none";
         if (videoWrapper) videoWrapper.style.display = "none";
-      } else if (target.value === "video") {
+      } else if (isVideo) {
         if (gradientWrapper) gradientWrapper.style.display = "none";
         if (videoWrapper) videoWrapper.style.display = "flex";
       }
@@ -501,8 +504,26 @@ export function designDraftManager() {
     const cssRules = [];
 
     // --- A. COLORES GENERALES Y FONDOS ---
+    const activeStyleInput = document.getElementById("input_style_back") || document.querySelector('input[name="style_back"]');
     const activeStyleRadio = document.querySelector('input[name="style_back"]:checked');
-    const styleBack = fields.style_back || (activeStyleRadio ? activeStyleRadio.value : "solid");
+    let styleBack = fields.style_back;
+    if (!styleBack) {
+      const bgModeRadio = document.querySelector('input[name="background_mode"]:checked');
+      if (bgModeRadio) {
+        if (bgModeRadio.value === "gradient") {
+          const dirRadio = document.querySelector('input[name="gradient_direction"]:checked');
+          styleBack = dirRadio ? dirRadio.value : "gradientDown";
+        } else {
+          styleBack = bgModeRadio.value;
+        }
+      } else if (activeStyleInput && activeStyleInput.value) {
+        styleBack = activeStyleInput.value;
+      } else if (activeStyleRadio) {
+        styleBack = activeStyleRadio.value;
+      } else {
+        styleBack = "solid";
+      }
+    }
 
     const backPerfilInput = document.querySelector('input[name="back_perfil"]');
     const backPerfil = fields.back_perfil || (backPerfilInput ? backPerfilInput.value : "#272727");
@@ -1401,6 +1422,41 @@ export function designDraftManager() {
     Object.keys(fields).forEach((name) => {
       const val = fields[name];
 
+      // Manejo específico para style_back / fondo
+      if (name === "style_back") {
+        const styleVal = String(val);
+        const hiddenStyleInput = document.getElementById("input_style_back");
+        if (hiddenStyleInput) hiddenStyleInput.value = styleVal;
+
+        const isGrad = (styleVal === "gradientUp" || styleVal === "gradientDown");
+        const gradRadio = document.getElementById("style_gradient");
+        const solidRadio = document.getElementById("style_solid");
+        const videoRadio = document.getElementById("style_video");
+
+        if (isGrad && gradRadio) {
+          gradRadio.checked = true;
+        } else if (styleVal === "solid" && solidRadio) {
+          solidRadio.checked = true;
+        } else if (styleVal === "video" && videoRadio) {
+          videoRadio.checked = true;
+        }
+
+        if (isGrad) {
+          const upRadio = document.getElementById("direction_up");
+          const downRadio = document.getElementById("direction_down");
+          if (styleVal === "gradientUp" && upRadio) {
+            upRadio.checked = true;
+          } else if (styleVal === "gradientDown" && downRadio) {
+            downRadio.checked = true;
+          }
+        }
+
+        const gradientWrapper = document.getElementById("gradient-direction-wrapper");
+        const videoWrapper = document.getElementById("video-controls-wrapper");
+        if (gradientWrapper) gradientWrapper.style.display = isGrad ? "flex" : "none";
+        if (videoWrapper) videoWrapper.style.display = (styleVal === "video") ? "flex" : "none";
+      }
+
       // 1. Inputs tipo radio
       const radios = document.querySelectorAll(`input[type="radio"][name="${name}"]`);
       if (radios.length) {
@@ -2202,6 +2258,41 @@ export function designDraftManager() {
 
     // Radios
     if (target.type === "radio" && target.checked) {
+      if (target.name === "background_mode" || target.name === "gradient_direction") {
+        let effectiveStyle = "solid";
+        const bgModeRadio = document.querySelector('input[name="background_mode"]:checked');
+        const bgMode = bgModeRadio ? bgModeRadio.value : (target.name === "background_mode" ? target.value : "solid");
+
+        if (bgMode === "gradient") {
+          const gradRadio = document.getElementById("style_gradient");
+          if (gradRadio && !gradRadio.checked) {
+            gradRadio.checked = true;
+          }
+          const dirRadio = document.querySelector('input[name="gradient_direction"]:checked');
+          effectiveStyle = dirRadio ? dirRadio.value : "gradientDown";
+        } else if (bgMode === "video") {
+          effectiveStyle = "video";
+        } else {
+          effectiveStyle = "solid";
+        }
+
+        const hiddenStyleInput = document.getElementById("input_style_back");
+        if (hiddenStyleInput) {
+          hiddenStyleInput.value = effectiveStyle;
+        }
+
+        setDraftField("style_back", effectiveStyle);
+        setDraftField("background_mode", bgMode);
+        if (bgMode === "gradient") {
+          const dirRadio = document.querySelector('input[name="gradient_direction"]:checked');
+          if (dirRadio) {
+            setDraftField("gradient_direction", dirRadio.value);
+          }
+        }
+        applyDraftToPreview(getDraft());
+        return;
+      }
+
       setDraftField(target.name, target.value);
       applyDraftToPreview(getDraft());
       const block = target.closest(".sortable-item.content-block");

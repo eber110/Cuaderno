@@ -8,6 +8,8 @@
   if (!$isVideoEnabled && $styleBack === 'video') {
     $styleBack = 'solid';
   }
+  $isGradient        = ($styleBack === 'gradientUp' || $styleBack === 'gradientDown');
+  $gradientDir       = ($styleBack === 'gradientUp') ? 'gradientUp' : 'gradientDown';
   $backPerfil        = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
   $backVideo         = $card["backCard"]["back_video"] ?? '';
   $backVideoPublicId = $card["backCard"]["back_video_public_id"] ?? '';
@@ -16,6 +18,9 @@
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
+
+  <!-- Campo de sincronización de estilo de fondo -->
+  <input type="hidden" id="input_style_back" name="style_back" value="<?= $styleBack ?>">
 
   <div class="flex-column top-between gap20">
 
@@ -28,24 +33,24 @@
       ?>
       <div class="flex-row center-start flex-wrap gap10 w100">
         
-        <input type="radio" id="style_gradient" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientUp" || $styleBack == "gradientDown") echo "checked";?>>
+        <input type="radio" id="style_gradient" name="background_mode" class="hidden-radio" value="gradient" <?= $isGradient ? 'checked' : '' ?>>
         <label for="style_gradient">
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div id="preview-style-gradient" class="hpx80 wpx80 br15" style="background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);"></div>
             <p class="x16 texto">Degradado</p>
           </div>
         </label>
     
-        <input type="radio" id="style_solid" name="style_back" class="hidden-radio" value="solid" <?php if ($styleBack == "solid") echo "checked";?>>
+        <input type="radio" id="style_solid" name="background_mode" class="hidden-radio" value="solid" <?= ($styleBack === 'solid') ? 'checked' : '' ?>>
         <label for="style_solid">
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div id="preview-style-solid" class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
             <p class="x16 texto">Sólido</p>
           </div>
         </label>
 
         <?php if ($isVideoEnabled) : ?>
-        <input type="radio" id="style_video" name="style_back" class="hidden-radio" value="video" <?php if ($styleBack == "video") echo "checked";?>>
+        <input type="radio" id="style_video" name="background_mode" class="hidden-radio" value="video" <?= ($styleBack === 'video') ? 'checked' : '' ?>>
         <label for="style_video">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div class="hpx80 wpx80 br15 flex-column center-center pointer" style="background-color: #1e1e1e; overflow: hidden; position: relative;">
@@ -159,21 +164,21 @@
     </div>
   
     <!-- Dirección del degradado -->
-    <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="display: <?= ($styleBack === 'gradientUp' || $styleBack === 'gradientDown') ? 'flex' : 'none' ?>;">
+    <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="display: <?= $isGradient ? 'flex' : 'none' ?>;">
 
       <p class="texto">Dirección del degradado</p>
 
       <div class="flex-row center-end gap10">
-        <input type="radio" id="direction_up" name="style_back" class="hidden-radio" value="gradientUp" <?php if ($styleBack == "gradientUp") echo "checked";?>>
+        <input type="radio" id="direction_up" name="gradient_direction" class="hidden-radio" value="gradientUp" <?= ($gradientDir === 'gradientUp') ? 'checked' : '' ?>>
         <label for="direction_up">
-          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
+          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto pointer">
             <?= svg("arrow-up");?> Arriba
           </div>
         </label>
         
-        <input type="radio" id="direction_down" name="style_back" class="hidden-radio" value="gradientDown" <?php if ($styleBack == "gradientDown") echo "checked";?>>
+        <input type="radio" id="direction_down" name="gradient_direction" class="hidden-radio" value="gradientDown" <?= ($gradientDir === 'gradientDown') ? 'checked' : '' ?>>
         <label for="direction_down">
-          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto">
+          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft texto pointer">
             <?= svg("arrow-down");?> Abajo
           </div>
         </label>

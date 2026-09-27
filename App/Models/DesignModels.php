@@ -427,7 +427,23 @@ class DesignModels extends Builder {
     $backVideo = $dataRequest["backCard"]["back_video"] ?? "";
     $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
     $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
-    $styleBack = $param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "solid");
+
+    if (isset($param["background_mode"])) {
+      if ($param["background_mode"] === "gradient") {
+        $dir = $param["gradient_direction"] ?? ($param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "gradientDown"));
+        $styleBack = ($dir === "gradientUp") ? "gradientUp" : "gradientDown";
+      } elseif ($param["background_mode"] === "video") {
+        $styleBack = "video";
+      } else {
+        $styleBack = "solid";
+      }
+    } else {
+      $styleBack = $param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "solid");
+    }
+
+    if (!in_array($styleBack, ["solid", "gradientUp", "gradientDown", "video"], true)) {
+      $styleBack = "solid";
+    }
 
     self::$videoUploadError = null;
     self::$videoUploadSuccess = null;
@@ -478,7 +494,7 @@ class DesignModels extends Builder {
       }
       $backVideo = "";
       $backVideoPublicId = "";
-      if (($param["style_back"] ?? "") === "video" || ($dataRequest["backCard"]["style_back"] ?? "") === "video") {
+      if (($param["style_back"] ?? "") === "video" || ($param["background_mode"] ?? "") === "video" || ($dataRequest["backCard"]["style_back"] ?? "") === "video") {
         $styleBack = "solid";
       }
     }

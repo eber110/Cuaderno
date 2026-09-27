@@ -593,7 +593,7 @@ function eUrl(?string $url): string
 
 /**
  * Sanitiza un valor de color CSS para prevenir inyección de código/CSS o escape de tags.
- * Solo permite valores hex (#fff, #ffffff), rgb, rgba, hsl, hsla, transparent o currentColor.
+ * Permite valores hex (#fff, #ffffff), rgb, rgba, hsl, hsla, oklch, oklab, color, transparent o currentColor.
  *
  * @param mixed $val Color recibido
  * @param string $default Color por defecto si no es válido
@@ -602,14 +602,34 @@ function eUrl(?string $url): string
 function safeCssColor(mixed $val, string $default = '#000000'): string
 {
   $v = trim((string)$val);
-  if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) {
-    return $v;
+  if ($v === '') {
+    return $default;
   }
-  if (preg_match('/^(rgba?|hsla?)\([0-9.,% ]+\)$/', $v)) {
+  if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) {
     return $v;
   }
   if ($v === 'transparent' || $v === 'currentColor') {
     return $v;
+  }
+  if (preg_match('/^(rgba?|hsla?|oklch|oklab|color)\([0-9a-zA-Z#.,%+\-*\/ ()]+\)$/i', $v)) {
+    if (stripos($v, 'url') !== false || stripos($v, 'javascript') !== false || stripos($v, 'expression') !== false || stripos($v, '@import') !== false) {
+      return $default;
+    }
+    $depth = 0;
+    $len = strlen($v);
+    for ($i = 0; $i < $len; $i++) {
+      if ($v[$i] === '(') {
+        $depth++;
+      } elseif ($v[$i] === ')') {
+        $depth--;
+        if ($depth < 0) {
+          return $default;
+        }
+      }
+    }
+    if ($depth === 0) {
+      return $v;
+    }
   }
   return $default;
 }

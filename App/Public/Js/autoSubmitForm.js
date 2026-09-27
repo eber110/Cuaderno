@@ -20,17 +20,21 @@ export function autoSubmitForm() {
     if (!target) return;
 
     // 1. Alternancia de estilo de fondo (Sólido, Degradado, Video)
-    if (target.name === 'style_back') {
+    if (target.name === 'style_back' || target.name === 'background_mode') {
       const gradientWrapper = document.getElementById('gradient-direction-wrapper');
       const videoWrapper = document.getElementById('video-controls-wrapper');
 
-      if (target.value === 'gradientUp' || target.value === 'gradientDown') {
+      const isGradient = target.value === 'gradient' || target.value === 'gradientUp' || target.value === 'gradientDown';
+      const isSolid = target.value === 'solid';
+      const isVideo = target.value === 'video';
+
+      if (isGradient) {
         if (gradientWrapper) gradientWrapper.style.display = 'flex';
         if (videoWrapper) videoWrapper.style.display = 'none';
-      } else if (target.value === 'solid') {
+      } else if (isSolid) {
         if (gradientWrapper) gradientWrapper.style.display = 'none';
         if (videoWrapper) videoWrapper.style.display = 'none';
-      } else if (target.value === 'video') {
+      } else if (isVideo) {
         if (gradientWrapper) gradientWrapper.style.display = 'none';
         if (videoWrapper) videoWrapper.style.display = 'flex';
       }
