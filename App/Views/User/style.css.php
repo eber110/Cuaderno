@@ -1,17 +1,30 @@
 <?php
   /** @var mixed $card */
-  $back         = $card["back"] ?? "#d6d6d6";
-  $color        = $card["color"] ?? "#494949";
-  $hover        = $card["hover"] ?? false;
-  $backPerfil   = $card["backCard"]["back_perfil"] ?? "#a0a0a0";
-  $styleBack    = $card["backCard"]["style_back"] ?? "solid";
-  $colorShadow3     = $card["colorShadow3"] ?? "#000000";
-  $colorText        = $card["colorText"] ?? "#383838";
-  $titleColor       = $card["titleColor"] ?? "#383838";
+  if (!function_exists('safeCssColor')) {
+    function safeCssColor(mixed $val, string $default = '#000000'): string {
+      $v = trim((string)$val);
+      if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) {
+        return $v;
+      }
+      if (preg_match('/^(rgba?|hsla?)\([0-9.,% ]+\)$/', $v)) {
+        return $v;
+      }
+      return $default;
+    }
+  }
+
+  $back             = safeCssColor($card["back"] ?? "#d6d6d6", "#d6d6d6");
+  $color            = safeCssColor($card["color"] ?? "#494949", "#494949");
+  $hover            = ($card["hover"] ?? false) === true || ($card["hover"] ?? false) === 'true' || ($card["hover"] ?? false) === 1 || ($card["hover"] ?? false) === '1';
+  $backPerfil       = safeCssColor($card["backCard"]["back_perfil"] ?? "#a0a0a0", "#a0a0a0");
+  $styleBack        = in_array($card["backCard"]["style_back"] ?? "solid", ["solid", "gradientUp", "gradientDown", "video"], true) ? ($card["backCard"]["style_back"] ?? "solid") : "solid";
+  $colorShadow3     = safeCssColor($card["colorShadow3"] ?? "#000000", "#000000");
+  $colorText        = safeCssColor($card["colorText"] ?? "#383838", "#383838");
+  $titleColor       = safeCssColor($card["titleColor"] ?? "#383838", "#383838");
   $backVideo        = $card["backCard"]["back_video"] ?? "";
-  $backVideoOverlay = $card["backCard"]["back_video_overlay"] ?? "#000000";
+  $backVideoOverlay = safeCssColor($card["backCard"]["back_video_overlay"] ?? "#000000", "#000000");
   $backVideoOpacity = max(0, min(95, intval($card["backCard"]["back_video_opacity"] ?? 45)));
-  $voidSpace = $card["voidHero"]["space"] ?? ($card["void_space"] ?? 70);
+  $voidSpace        = (int)($card["voidHero"]["space"] ?? ($card["void_space"] ?? 70));
   if ($voidSpace == 130) $voidSpace = 20;
   elseif ($voidSpace == 250) $voidSpace = 45;
   elseif ($voidSpace == 450) $voidSpace = 70;
@@ -22,7 +35,7 @@
     background-color: <?= $back?>;
     color: <?= $color?>;
   }
-  <?php if ($hover === true || $hover === 'true' || $hover === 1 || $hover === '1') echo ".theme-button:hover{background-color:  oklch(from ".$back." calc(l * 0.92) c h);}"?>
+  <?php if ($hover) echo ".theme-button:hover{background-color: oklch(from ".$back." calc(l * 0.92) c h);}"?>
 
   .theme-button-menu{
     background-color: <?= $back?>00;
@@ -44,6 +57,11 @@
     [$gradStart, $gradEnd]                   = \App\Models\DesignModels::getGradientColors($backPerfil, "card");
     [$gradStartContainer, $gradEndContainer] = \App\Models\DesignModels::getGradientColors($backPerfil, "container");
     $containerSolid                          = \App\Models\DesignModels::getContainerSolidColor($backPerfil);
+    $gradStart                               = safeCssColor($gradStart, $backPerfil);
+    $gradEnd                                 = safeCssColor($gradEnd, $backPerfil);
+    $gradStartContainer                      = safeCssColor($gradStartContainer, $backPerfil);
+    $gradEndContainer                        = safeCssColor($gradEndContainer, $backPerfil);
+    $containerSolid                          = safeCssColor($containerSolid, $backPerfil);
   ?>
   <?php if ($styleBack == "solid") :?>
     .back-card{

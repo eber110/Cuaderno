@@ -78,9 +78,11 @@ class ErrorHandler
         $_SERVER['REDIRECT_STATUS'] = (string)$httpCode;
 
         // Usar Control para renderizar con los estilos correctos
+        if (class_exists('\Base\Module\SeoModule')) {
+            \Base\Module\SeoModule::setMetaDescription($description);
+            \Base\Module\SeoModule::setTitle($title);
+        }
         $control = new Control();
-        $control->meta_description($description);
-        $control->title($title);
         echo $control->pag_error($errorFile, $data);
 
         exit;

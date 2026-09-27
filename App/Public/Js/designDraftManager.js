@@ -24,6 +24,15 @@ export function designDraftManager() {
   const DRAFT_KEY = `cuaderno_design_draft_${user}`;
   const INITIAL_KEY = `cuaderno_design_initial_${user}`;
 
+  function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) {
+      return meta.getAttribute('content');
+    }
+    const input = document.querySelector('input[name="_token"], input[name="csrf_token"]');
+    return input ? input.value : '';
+  }
+
   // =========================================================================
   // 1. GESTIÓN DEL ALMACENAMIENTO LOCAL (localStorage)
   // =========================================================================
@@ -1772,10 +1781,12 @@ export function designDraftManager() {
 
     try {
       isCheckingMetadata = true;
+      const csrf = getCsrfToken();
       const response = await fetch(`/panel/${user}/extraer-metadatos`, {
         method: "POST",
         headers: {
-          "X-Requested-With": "XMLHttpRequest"
+          "X-Requested-With": "XMLHttpRequest",
+          ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
         }
       });
 
@@ -1927,13 +1938,18 @@ export function designDraftManager() {
       // 7. Guardar posición de scroll actual para evitar saltos indeseados
       const currentScrollY = window.scrollY || document.documentElement.scrollTop;
 
-      // 8. Enviar petición Fetch con encabezado XMLHttpRequest
+      // 8. Enviar petición Fetch con encabezado XMLHttpRequest y token CSRF
+      const csrf = getCsrfToken();
+      if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
+        formData.append("_token", csrf);
+      }
       const postUrl = form.getAttribute("action") || `/panel/${user}/diseno`;
       const response = await fetch(postUrl, {
         method: "POST",
         body: formData,
         headers: {
-          "X-Requested-With": "XMLHttpRequest"
+          "X-Requested-With": "XMLHttpRequest",
+          ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
         }
       });
 
@@ -2396,13 +2412,19 @@ export function designDraftManager() {
       formData.set(key, draft[key]);
     });
 
+    const csrf = getCsrfToken();
+    if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
+      formData.append("_token", csrf);
+    }
+
     const saveUrl = `/panel/${user}/guardar`;
 
     const response = await fetch(saveUrl, {
       method: "POST",
       body: formData,
       headers: {
-        "X-Requested-With": "XMLHttpRequest"
+        "X-Requested-With": "XMLHttpRequest",
+        ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
       }
     });
 
@@ -2520,12 +2542,14 @@ export function designDraftManager() {
       dynamicStyleEl.textContent = "";
     }
 
+    const csrf = getCsrfToken();
     const discardUrl = `/panel/${user}/descartar`;
 
     const response = await fetch(discardUrl, {
       method: "POST",
       headers: {
-        "X-Requested-With": "XMLHttpRequest"
+        "X-Requested-With": "XMLHttpRequest",
+        ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
       }
     });
 

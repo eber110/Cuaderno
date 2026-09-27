@@ -169,6 +169,7 @@
     </ul>
 
     <form id="lemon-checkout-form" action="/lemon-squeezy/checkout" method="POST" class="flex-column gap15 w100">
+      <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
       <input type="hidden" name="variant_id" value="<?= e(!empty($variantId) ? $variantId : '2004539'); ?>">
       <input type="hidden" name="locale" value="<?= e($locale ?? 'es'); ?>">
       <input type="hidden" name="country" id="country_input" value="<?= e($countryCode ?? 'CL'); ?>">

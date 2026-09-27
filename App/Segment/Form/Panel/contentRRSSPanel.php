@@ -16,6 +16,7 @@
   ];
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
+  <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
 
   <div class="flex-column top-center gap20">
 

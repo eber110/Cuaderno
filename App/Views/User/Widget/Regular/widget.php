@@ -6,7 +6,9 @@
      * @var bool|null $isPreview
      */
     $content   = is_array($card["content"] ?? null) ? $card["content"] : [];
-    $cardStyle = $card["style"] ?? "buttonRegular";
+    $allowedStyles = ["buttonRegular"];
+    $rawStyle  = $card["style"] ?? "buttonRegular";
+    $cardStyle = in_array($rawStyle, $allowedStyles, true) ? $rawStyle : "buttonRegular";
     $isPreview = !empty($isPreview) || !empty($card["isPreview"]);
 
     for ($i = 0; $i < count($content); $i++) {

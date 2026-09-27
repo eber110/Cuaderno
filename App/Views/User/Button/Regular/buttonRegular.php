@@ -18,20 +18,20 @@
   $imgShow = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
   $hasImg = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
 ?>
-<div data-content-index="<?= $dataContent ?>" class="link-item-wrapper flex-row center-between wrap hpx65 w100 theme-button pointer <?= $card["borders"][0]?> <?= $card["shadow"]?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+<div data-content-index="<?= e((string)$dataContent) ?>" class="link-item-wrapper flex-row center-between wrap hpx65 w100 theme-button pointer <?= e($card["borders"][0] ?? '')?> <?= e($card["shadow"] ?? '')?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start hpx65 wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
+  <a href="<?= eUrl($card["content"][$dataContent]["url"] ?? '#') ?>" target="_blank" class="flex-row center-start hpx65 wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
     <div class="wpx65 flex-row center-center">
       <?php if ($imgShow && $hasImg) :?>
         <figure class="ar-square p7">
-          <img src="<?= $imgSrc ?>" alt="" class="cover <?= $card["borders"][1]?>">
+          <img src="<?= eUrl($imgSrc) ?>" alt="" class="cover <?= e($card["borders"][1] ?? '')?>">
         </figure>
       <?php else :?>
         <div class=""></div>
       <?php endif?>
     </div>
 
-    <p class="flex-column center-center wrap bold500 w90 text-c cut-phrase" cant-col="2" style="flex-grow: 1; width: calc(134px - 100%);"><?= $content;?></p>
+    <p class="flex-column center-center wrap bold500 w90 text-c cut-phrase" cant-col="2" style="flex-grow: 1; width: calc(134px - 100%);"><?= e($content);?></p>
   </a>
 
   <div class="flex-column center-end pr15 wrap">

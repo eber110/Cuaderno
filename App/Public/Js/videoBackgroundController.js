@@ -414,10 +414,19 @@ export function videoBackgroundController() {
             const overlayColorInput = document.getElementById("select-color-overlay");
             if (overlayColorInput) saveFormData.set("back_video_overlay", overlayColorInput.value);
 
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            if (csrfToken && !saveFormData.has("_token") && !saveFormData.has("csrf_token")) {
+              saveFormData.append("_token", csrfToken);
+            }
+
             const saveResponse = await fetch(formAction, {
               method: "POST",
               body: saveFormData,
-              headers: { "X-Requested-With": "XMLHttpRequest" }
+              headers: { 
+                "X-Requested-With": "XMLHttpRequest",
+                ...(csrfToken ? { "X-CSRF-TOKEN": csrfToken } : {})
+              }
             });
 
             if (!saveResponse.ok) {

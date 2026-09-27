@@ -368,7 +368,12 @@ class DesignModels extends Builder {
    * @return bool True tras guardar el borrador en SQLite.
    */
   public static function updateCustomDesign(string $user, array|string $param): bool {
-    $userClean = mb_strtolower($user, "UTF-8");
+    // Si hay sesión activa, el usuario objetivo es obligatoriamente el usuario autenticado (anti-IDOR)
+    $sessionUser = (class_exists('\Base\Module\Session') && \Base\Module\Session::session_active()) 
+      ? \Base\Module\Session::session_data("username") 
+      : null;
+    $targetUser = (!empty($sessionUser) && is_string($sessionUser)) ? $sessionUser : $user;
+    $userClean  = mb_strtolower($targetUser, "UTF-8");
     $hasPendingMetadata = false;
 
     $currentData  = self::getCustomDesign($userClean);
@@ -381,9 +386,7 @@ class DesignModels extends Builder {
 
     $dataRequest = $currentData["card"] ?? self::getDefaultCard($userClean);
 
-    if (is_array($param)) {
-      extract($param);
-    }
+    // VULNERABILIDAD CRÍTICA C-1 CORREGIDA: Eliminado extract($param) para prevenir IDOR y sobrescritura de variables internas
 
     // 1. Procesar imágenes subidas (Avatar e ítems de contenido)
     $uploadedContentImgs = [];
@@ -1325,8 +1328,8 @@ class DesignModels extends Builder {
       "hide"         => isset($param["hide_form_submitted"])
         ? (isset($param["hide"]) && ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1"))
         : (isset($param["hide"]) ? ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1") : ($dataRequest["hide"] ?? false)),
-      "profile"      => $param["profile"] ?? $dataRequest["profile"] ?? $userClean,
-      "avatar"       => $avatar ?? $dataRequest["avatar"] ?? "no-user.webp",
+      "profile"      => $userClean,
+      "avatar"       => $avatar ?? (isset($param["avatar"]) && is_string($param["avatar"]) ? basename($param["avatar"]) : ($dataRequest["avatar"] ?? "no-user.webp")),
       "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
       "titleColor"   => $param["titleColor"] ?? ($param["colorText"] ?? ($dataRequest["titleColor"] ?? "#383838")),
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
@@ -1367,7 +1370,7 @@ class DesignModels extends Builder {
   }
 
   /**
-   * Elimina un archivo de avatar del disco de manera segura.
+   * Elimina un archivo de avatar del disco de manera segura contra Path Traversal.
    *
    * @param string $avatarFilename Nombre del archivo de avatar.
    * @return void
@@ -1376,15 +1379,19 @@ class DesignModels extends Builder {
     if (empty($avatarFilename) || $avatarFilename === "no-user.webp" || str_contains($avatarFilename, "Custom/") || str_contains($avatarFilename, "Origin/")) {
       return;
     }
-    $avatarDir = ROOT_PATH . "/Uploads/Avatar/";
-    $filePath  = $avatarDir . $avatarFilename;
-    if (file_exists($filePath) && is_file($filePath)) {
+    $avatarDir = realpath(ROOT_PATH . "/Uploads/Avatar/");
+    if ($avatarDir === false) {
+      return;
+    }
+    $cleanFilename = basename($avatarFilename);
+    $filePath = realpath($avatarDir . DIRECTORY_SEPARATOR . $cleanFilename);
+    if ($filePath !== false && str_starts_with($filePath, $avatarDir . DIRECTORY_SEPARATOR) && is_file($filePath)) {
       @unlink($filePath);
     }
   }
 
   /**
-   * Elimina un archivo de imagen de contenido del disco de manera segura.
+   * Elimina un archivo de imagen de contenido del disco de manera segura contra Path Traversal.
    *
    * @param string $imageFilename Nombre del archivo de imagen.
    * @return void
@@ -1393,9 +1400,13 @@ class DesignModels extends Builder {
     if (empty($imageFilename) || $imageFilename === "no-image.webp" || $imageFilename === "no-user.webp" || str_contains($imageFilename, "Custom/") || str_contains($imageFilename, "Origin/")) {
       return;
     }
-    $contentImgDir = ROOT_PATH . "/Uploads/";
-    $filePath      = $contentImgDir . $imageFilename;
-    if (file_exists($filePath) && is_file($filePath)) {
+    $contentImgDir = realpath(ROOT_PATH . "/Uploads/");
+    if ($contentImgDir === false) {
+      return;
+    }
+    $cleanFilename = basename($imageFilename);
+    $filePath = realpath($contentImgDir . DIRECTORY_SEPARATOR . $cleanFilename);
+    if ($filePath !== false && str_starts_with($filePath, $contentImgDir . DIRECTORY_SEPARATOR) && is_file($filePath)) {
       @unlink($filePath);
     }
   }
@@ -1961,7 +1972,7 @@ class DesignModels extends Builder {
    * @return string Código SVG renderizado o '?!' si no se encuentra.
    */
   public static function renderSeparatorSvg(string $iconName, string $class = ''): string {
-    $cleanIcon = trim($iconName);
+    $cleanIcon = preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($iconName));
     if ($cleanIcon === '' || $cleanIcon === 'none') {
       return '';
     }

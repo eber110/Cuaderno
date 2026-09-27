@@ -2,6 +2,7 @@
   $style = "br10 mb5 w100";
 ?>
 <form id="form-step-username" action="/registrar" method="post" autocomplete="on">
+  <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
   <div class="flex-column gap10">
     
     <label for="input-username" class="x18 bold500">

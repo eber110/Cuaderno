@@ -262,11 +262,15 @@ class SecurityModule
    */
   public static function verifyCsrf(bool $throwException = false): bool
   {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
       return true;
     }
 
-    $token = $_POST['_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+    $token = $_POST['_token'] 
+      ?? $_POST['csrf_token'] 
+      ?? $_SERVER['HTTP_X_CSRF_TOKEN'] 
+      ?? $_SERVER['HTTP_X_XSRF_TOKEN'] 
+      ?? null;
 
     if (!self::validateCsrfToken($token)) {
       if ($throwException) {

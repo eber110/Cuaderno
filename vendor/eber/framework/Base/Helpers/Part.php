@@ -570,6 +570,51 @@ function ee(?string $string): void
 }
 
 /**
+ * Sanitiza y escapa una URL para prevenir XSS (ej. javascript:).
+ * Solo permite protocolos http://, https://, mailto:, tel: o rutas relativas seguras.
+ *
+ * @param string|null $url URL a escapar
+ * @return string
+ */
+function eUrl(?string $url): string
+{
+  $u = trim((string)($url ?? ''));
+  if ($u === '' || $u === '#') {
+    return '#';
+  }
+  if (str_starts_with($u, '/') && !str_starts_with($u, '//')) {
+    return e($u);
+  }
+  if (preg_match('#^(https?://|mailto:|tel:)#i', $u)) {
+    return e($u);
+  }
+  return '#';
+}
+
+/**
+ * Sanitiza un valor de color CSS para prevenir inyección de código/CSS o escape de tags.
+ * Solo permite valores hex (#fff, #ffffff), rgb, rgba, hsl, hsla, transparent o currentColor.
+ *
+ * @param mixed $val Color recibido
+ * @param string $default Color por defecto si no es válido
+ * @return string
+ */
+function safeCssColor(mixed $val, string $default = '#000000'): string
+{
+  $v = trim((string)$val);
+  if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) {
+    return $v;
+  }
+  if (preg_match('/^(rgba?|hsla?)\([0-9.,% ]+\)$/', $v)) {
+    return $v;
+  }
+  if ($v === 'transparent' || $v === 'currentColor') {
+    return $v;
+  }
+  return $default;
+}
+
+/**
  * Genera atributos HTML desde un array.
  *
  * @param array $attributes Array de atributos

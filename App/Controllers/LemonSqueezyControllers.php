@@ -229,7 +229,7 @@ class LemonSqueezyControllers extends Control
   {
     $payload   = file_get_contents("php://input");
     $rawSig    = $_SERVER["HTTP_X_SIGNATURE"] ?? $_SERVER["HTTP_X_LEMON_SQUEEZY_SIGNATURE"] ?? "";
-    $signature = SecurityModule::sanitize($rawSig);
+    $signature = trim((string)$rawSig);
 
     if (empty($payload)) {
       header("Content-Type: application/json", true, 400);

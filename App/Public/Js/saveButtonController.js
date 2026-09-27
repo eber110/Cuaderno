@@ -374,9 +374,14 @@ export function saveButtonController() {
       } else {
         const targetUrl = saveBtn.getAttribute("href") || saveBtn.dataset.href;
         if (targetUrl) {
+          const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+          const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
           const response = await fetch(targetUrl, {
             method: "POST",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
+            headers: { 
+              "X-Requested-With": "XMLHttpRequest",
+              ...(csrfToken ? { "X-CSRF-TOKEN": csrfToken } : {})
+            }
           });
           if (!response.ok) throw new Error("Error en servidor al guardar.");
           const data = await response.json();
@@ -425,9 +430,14 @@ export function saveButtonController() {
         } else {
           const targetUrl = discardBtn.getAttribute("href") || discardBtn.dataset.href;
           if (targetUrl) {
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
             const response = await fetch(targetUrl, {
               method: "POST",
-              headers: { "X-Requested-With": "XMLHttpRequest" }
+              headers: { 
+                "X-Requested-With": "XMLHttpRequest",
+                ...(csrfToken ? { "X-CSRF-TOKEN": csrfToken } : {})
+              }
             });
             if (!response.ok) throw new Error("Error al descartar.");
             const data = await response.json();

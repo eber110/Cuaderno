@@ -158,7 +158,10 @@ class Control
     // Metadatos principales y SEO
     echo '<meta charset="UTF-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . SeoModule::title() . '</title>';
+    echo '<title>' . htmlspecialchars(SeoModule::title(), ENT_QUOTES, 'UTF-8') . '</title>';
+    if (class_exists('\Base\Module\SecurityModule')) {
+      echo \Base\Module\SecurityModule::csrfMeta();
+    }
     echo SeoModule::metaDescription();
     
     // Canónico dinámico libre de parámetros query

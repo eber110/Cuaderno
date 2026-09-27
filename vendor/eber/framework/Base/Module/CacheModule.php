@@ -181,7 +181,7 @@ class CacheModule
       return $default;
     }
 
-    $content = @unserialize(file_get_contents($filename));
+    $content = @unserialize(file_get_contents($filename), ['allowed_classes' => false]);
 
     if ($content === false) {
       @unlink($filename);
@@ -343,7 +343,7 @@ class CacheModule
     $files = glob($path . '*.cache');
 
     foreach ($files as $file) {
-      $content = @unserialize(file_get_contents($file));
+      $content = @unserialize(file_get_contents($file), ['allowed_classes' => false]);
 
       if ($content === false) {
         @unlink($file);

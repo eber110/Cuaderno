@@ -22,19 +22,25 @@ class ProxyModule
             exit;
         }
 
-        // Validar URL externa
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        // Validar URL externa (solo esquemas http o https)
+        if (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('#^https?://#i', $url)) {
             ResponseModule::error("URL inválida", 400);
         }
 
         $parsedUrl = parse_url($url);
+        $host = strtolower($parsedUrl['host'] ?? '');
+        $scheme = strtolower($parsedUrl['scheme'] ?? '');
+
+        if (empty($host) || !in_array($scheme, ['http', 'https'], true)) {
+            ResponseModule::error("Protocolo o host no permitido", 400);
+        }
         
-        // Validar dominio permitido si existe lista blanca
+        // Validar dominio permitido si existe lista blanca (con límite de punto estricto anti-SSRF)
         if (!empty($allowedDomains)) {
-            $host = strtolower($parsedUrl['host'] ?? '');
             $allowed = false;
             foreach ($allowedDomains as $domain) {
-                if (str_ends_with($host, strtolower($domain))) {
+                $d = strtolower(trim($domain));
+                if ($host === $d || str_ends_with($host, '.' . $d)) {
                     $allowed = true;
                     break;
                 }
@@ -44,14 +50,24 @@ class ProxyModule
             }
         }
 
+        // Resolver dirección IP y verificar que no sea privada ni reservada (anti-SSRF / metadata cloud)
+        $ips = @gethostbynamel($host);
+        if ($ips === false || empty($ips)) {
+            ResponseModule::error("No se pudo resolver el host", 404);
+        }
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                ResponseModule::error("Acceso a dirección IP privada o reservada denegado", 403);
+            }
+        }
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         
         // User agent de navegador común para evitar rechazos del servidor origen
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
@@ -63,6 +79,11 @@ class ProxyModule
 
         if ($httpCode !== 200 || !$content) {
             ResponseModule::error("No se pudo obtener la imagen", 404);
+        }
+
+        // Validar que el Content-Type devuelto sea efectivamente de imagen
+        if (!empty($contentType) && !str_starts_with(strtolower(trim($contentType)), 'image/')) {
+            ResponseModule::error("El contenido solicitado no corresponde a una imagen válida", 400);
         }
 
         // Limpiar cualquier buffer previo (evita caracteres corruptos en la imagen)

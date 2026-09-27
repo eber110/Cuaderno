@@ -6,15 +6,32 @@ use App\Controllers\HomeControllers;
 use App\Controllers\LoginControllers;
 use App\Controllers\UserControllers;
 use App\Middleware\AuthMiddleware;
+use App\Middleware\CsrfMiddleware;
 use App\Middleware\DashboardMiddleware;
 use App\Middleware\VisitMiddleware;
 use Base\Module\ImgProcessModule;
+use Base\Module\ResponseModule;
 use Base\Module\SeoModule;
 use Core\Route;
 
+// Registro del Middleware de protección CSRF para todas las solicitudes POST
+Route::addGlobalMiddleware([CsrfMiddleware::class]);
+
 #Configuración SEO
 Route::get("/robots.txt", function(){ SeoModule::robots([],["llms.txt"]); });
-Route::get("/sitemap.xml", function(){ SeoModule::sitemap(["/salir", "/op/image", "/op/check", "/test/2"],['/' => ['priority' => 1.0, 'changefreq' => 'daily']]); });
+Route::get("/sitemap.xml", function(){ 
+  SeoModule::sitemap([
+    "/salir", 
+    "/op/image", 
+    "/op/check", 
+    "/test/2", 
+    "/op/track-click", 
+    "/op/active-viewers", 
+    "/lemon-squeezy/init-db", 
+    "/lemon-squeezy/test", 
+    "/lemon-squeezy/webhook"
+  ], ['/' => ['priority' => 1.0, 'changefreq' => 'daily']]); 
+});
 Route::get("/llms.txt", function(){ SeoModule::llms([
     "title"    => "Mi Proyecto Web",
     "summary"  => "Aplicación web optimizada construida con Eber-Framework (Software propietario).",
@@ -45,6 +62,9 @@ Route::prefix("/lemon-squeezy")->group(function(){
   Route::get("/success", [LemonSqueezyControllers::class, "success"]);
   Route::get("/cancel", [LemonSqueezyControllers::class, "cancel"]);
   Route::get("/init-db", function(){
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+      ResponseModule::error("Acceso denegado en producción", 403);
+    }
     $res = \App\DatabaseComponent\LemonSqueezyTable::setupTables();
     header("Content-Type: application/json");
     echo json_encode($res, JSON_PRETTY_PRINT);
@@ -95,6 +115,7 @@ Route::middleware([AuthMiddleware::class])->group(function(){
 
 //LoginController: métodos de registro y validación de ingreso de usuarios
 Route::get("/salir", [LoginControllers::class, "exitApp"]);
+Route::post("/salir", [LoginControllers::class, "exitApp"]);
 
 //Proxy global
 Route::get("/proxy", function() {
@@ -121,6 +142,9 @@ Route::middleware([VisitMiddleware::class])->group(function(){
 });
 
 Route::get("/op/image", function(){
+  if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    ResponseModule::error("No disponible en producción", 403);
+  }
   // Optimizamos las imágenes de /App/Public/Img/ y las guardamos en /App/Public/Img/Optimized/ en formato WebP a un máximo de 50 KB
   $result = ImgProcessModule::optimizeDirectoryImages(
     ROOT_PATH . '/App/Public/Img/Custom/', 
@@ -135,14 +159,7 @@ Route::get("/op/image", function(){
 });
 
 Route::get("/op/check", function(){
-  header('Content-Type: application/json');
-  echo json_encode([
-    'extension_loaded_imagick' => extension_loaded('imagick'),
-    'class_exists_Imagick' => class_exists('Imagick'),
-    'php_version' => PHP_VERSION,
-    'ini_path' => php_ini_loaded_file(),
-  ], JSON_PRETTY_PRINT);
-  exit;
+  ResponseModule::error("Página no encontrada", 404);
 });
 
 Route::post("/op/track-click", function(){

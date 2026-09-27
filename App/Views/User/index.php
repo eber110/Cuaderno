@@ -10,7 +10,7 @@
       
       <?php if (\App\Models\DesignModels::isVideoEnabled() && $styleBack === "video" && !empty($backVideo)) : ?>
         <video class="back-video-bg" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">
-          <source src="<?= $backVideo ?>" type="video/mp4" onerror="var v = this.parentElement; if(v){ v.style.display='none'; if(v.nextElementSibling) v.nextElementSibling.style.display='none'; }">
+          <source src="<?= eUrl($backVideo) ?>" type="video/mp4" onerror="var v = this.parentElement; if(v){ v.style.display='none'; if(v.nextElementSibling) v.nextElementSibling.style.display='none'; }">
         </video>
         <div class="back-video-overlay"></div>
       <?php endif; ?>
@@ -20,10 +20,10 @@
       <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1" data-scroll-memory="user-profile" style="scroll-behavior: auto !important;">
         <header class="w100">
           <?php
-            
-            _part("User." . ($card["header"] ?? "regularHero"), ["card" => $card]);
+            $allowedHeaders = ['regularHero', 'midHero', 'voidHero'];
+            $headerPart = in_array($card["header"] ?? '', $allowedHeaders, true) ? $card["header"] : "regularHero";
+            _part("User." . $headerPart, ["card" => $card]);
             _part("User.widget", ["card" => $card]);
-            
           ?>
         </header>
 

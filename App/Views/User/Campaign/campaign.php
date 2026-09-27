@@ -13,7 +13,7 @@
   $imgSrc          = $campaignData["imgSrc"] ?? "";
   $imgPosition     = $campaignData["img_position"] ?? "background";
   $bgOpacity       = (int)($campaignData["bg_opacity"] ?? 80);
-  $bgColor         = $campaignData["bg_color"] ?? "#1e1e1e";
+  $bgColor         = safeCssColor($campaignData["bg_color"] ?? "#1e1e1e", "#1e1e1e");
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
   $isPreview       = !empty($card["isPreview"]);
@@ -30,12 +30,12 @@
   $hasHeaderImg = ($imgPosition === "header" && $imgShow && $hasImg);
 
   $buttonText      = !empty(trim($campaignData["button_text"] ?? "")) ? trim($campaignData["button_text"]) : "Suscribirme";
-  $titleColor      = !empty($campaignData["title_color"]) ? $campaignData["title_color"] : ($isBgMode ? "#ffffff" : ($card["titleColor"] ?? "#1e1e1e"));
-  $descColor       = !empty($campaignData["desc_color"]) ? $campaignData["desc_color"] : ($isBgMode ? "#ffffff" : ($card["colorText"] ?? "#4a4a4a"));
-  $btnBgColor      = !empty($campaignData["btn_bg_color"]) ? $campaignData["btn_bg_color"] : ($card["back"] ?? "#595a83");
-  $btnTextColor    = !empty($campaignData["btn_text_color"]) ? $campaignData["btn_text_color"] : ($card["color"] ?? "#ffffff");
-  $countdownBgColor   = !empty($campaignData["countdown_bg_color"]) ? $campaignData["countdown_bg_color"] : ($isBgMode ? "rgba(0,0,0,0.35)" : "rgba(150,150,150,0.1)");
-  $countdownTextColor = !empty($campaignData["countdown_text_color"]) ? $campaignData["countdown_text_color"] : ($isBgMode ? "#ffffff" : "#1e1e1e");
+  $titleColor      = safeCssColor($campaignData["title_color"] ?? ($isBgMode ? "#ffffff" : ($card["titleColor"] ?? "#1e1e1e")), "#ffffff");
+  $descColor       = safeCssColor($campaignData["desc_color"] ?? ($isBgMode ? "#ffffff" : ($card["colorText"] ?? "#4a4a4a")), "#ffffff");
+  $btnBgColor      = safeCssColor($campaignData["btn_bg_color"] ?? ($card["back"] ?? "#595a83"), "#595a83");
+  $btnTextColor    = safeCssColor($campaignData["btn_text_color"] ?? ($card["color"] ?? "#ffffff"), "#ffffff");
+  $countdownBgColor   = safeCssColor($campaignData["countdown_bg_color"] ?? ($isBgMode ? "rgba(0,0,0,0.35)" : "rgba(150,150,150,0.1)"), "rgba(0,0,0,0.35)");
+  $countdownTextColor = safeCssColor($campaignData["countdown_text_color"] ?? ($isBgMode ? "#ffffff" : "#1e1e1e"), "#ffffff");
   $countdownTextSize  = $campaignData["countdown_text_size"] ?? "medium";
   if (!in_array($countdownTextSize, ["small", "medium", "large"], true)) {
     $countdownTextSize = "medium";
@@ -79,21 +79,21 @@
 
   $borderCard = ($card["borders"][0] == "br50") ? "br20" : ($card["borders"][0] ?? "br15");
   $shadowCard = $card["shadow"] ?? "shadow-card";
-  $campaignId   = "campaign-block-" . $dataContent;
+  $campaignId   = "campaign-block-" . (int)$dataContent;
 ?>
 
-<div id="<?= $campaignId ?>" data-content-index="<?= $dataContent ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
+<div id="<?= e($campaignId) ?>" data-content-index="<?= (int)$dataContent ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor ?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
 
   <?php if ($imgShow && $hasImg) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
     <div class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;<?= ($imgPosition === 'background') ? '' : ' display: none;' ?>">
-      <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
-      <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= e($bgColor) ?> l c h / <?= $bgOpacity ?>%);"></div>
+      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;">
+      <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= $bgColor ?> l c h / <?= $bgOpacity ?>%);"></div>
     </div>
 
     <!-- Imagen destacada de cabecera cuadrada -->
     <figure class="w100 ar-square overflow-hidden faded-image" style="<?= ($imgPosition === 'header') ? '' : 'display: none;' ?>">
-      <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
+      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square">
     </figure>
   <?php endif; ?>
 

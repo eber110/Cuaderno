@@ -16,21 +16,36 @@ class RequestMetaModule
     public static function requestMeta(string $url)
     {
         // Asegurarse de que la URL tenga el esquema http o https
-        if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
+        if (!preg_match("~^https?://~i", $url)) {
             $url = "https://" . $url;
+        }
+
+        $parsed = parse_url($url);
+        $host = strtolower($parsed['host'] ?? '');
+        if (empty($host)) {
+            return false;
+        }
+
+        // Prevenir SSRF bloqueando rangos privados y reservados
+        $ips = @gethostbynamel($host);
+        if ($ips === false || empty($ips)) {
+            return false;
+        }
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
         }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        // Deshabilitar la verificación SSL estricta para evitar errores con certificados locales o autofirmados
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         // Usar el User-Agent del crawler de Facebook. 
         // Sitios como LinkedIn, Twitter o Instagram bloquean peticiones automatizadas con User-Agents genéricos (HTTP 999),
         // pero tienen listas blancas (whitelist) para los bots de redes sociales y así poder mostrar las "cards" al compartir enlaces.

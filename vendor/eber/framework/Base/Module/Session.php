@@ -82,6 +82,10 @@ class Session
       if ($jwtToken) {
         $userData = TokenModule::validateJWT($jwtToken);
         if ($userData !== false && is_array($userData)) {
+          if (isset($userData['user_status']) && !in_array($userData['user_status'], ['active', '1', 1, true], true)) {
+            CookieModule::delete('auth_token');
+            return;
+          }
           $_SESSION['user'] = $userData;
         }
       }

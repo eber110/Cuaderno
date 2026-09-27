@@ -7,7 +7,7 @@
 
   <?php if ($connect ?? false == true) :?>
     <div class="flex-row center-between">
-      <a href="/panel/<?= $username ?? "Usuario";?>" class="color-menu-user back-item-menu pl15 pr15" aria-label="Configuración"><span class="no-phone">Configuración</span> <?= svg("gear");?></a>
+      <a href="/panel/<?= e($username ?? "Usuario");?>" class="color-menu-user back-item-menu pl15 pr15" aria-label="Configuración"><span class="no-phone">Configuración</span> <?= svg("gear");?></a>
 
       <div class="flex-row center-end gap5">
         <p class="color-menu-user back-item-menu flex-row center-center ar-square modal-btn animated"><?= svg("share-from");?></p>

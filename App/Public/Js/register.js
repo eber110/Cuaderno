@@ -43,11 +43,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Helper para peticiones POST AJAX
   async function apiPost(url, data) {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    if (csrfToken) {
+      headers["X-CSRF-TOKEN"] = csrfToken;
+    }
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: headers,
       body: JSON.stringify(data)
     });
     return response;

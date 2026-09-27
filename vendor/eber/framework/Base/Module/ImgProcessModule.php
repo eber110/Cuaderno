@@ -845,43 +845,28 @@ class ImgProcessModule
    */
   public function delete_img_disk(string $route_img, array|string $image): bool
   {
+    $realBase = realpath($route_img);
+    if ($realBase === false) {
+      return false;
+    }
 
-    if (is_array($image)) {
+    $images = is_array($image) ? $image : [$image];
+    $deletedAny = false;
 
-      if (!empty($image) && !is_null($image[0])) {
-
-        foreach ($image as $value) {
-
-          $file_path = $route_img . $value;
-          if (file_exists($file_path) && is_file($file_path)) {
-            unlink($file_path);
-          }
-        }
-
-        return true;
-      } else {
-
-        return false;
+    foreach ($images as $val) {
+      if (empty($val) || !is_string($val)) {
+        continue;
       }
-    } else {
-
-      if (!empty($image)) {
-
-        $file_path = $route_img . $image;
-
-        if (file_exists($file_path) && is_file($file_path)) {
-
-          unlink($file_path);
-          return true;
-        } else {
-
-          return false;
+      $cleanFilename = basename($val);
+      $filePath = realpath($realBase . DIRECTORY_SEPARATOR . $cleanFilename);
+      if ($filePath !== false && str_starts_with($filePath, $realBase . DIRECTORY_SEPARATOR) && is_file($filePath)) {
+        if (@unlink($filePath)) {
+          $deletedAny = true;
         }
-      } else {
-
-        return false;
       }
     }
+
+    return $deletedAny;
   }
 
   /**

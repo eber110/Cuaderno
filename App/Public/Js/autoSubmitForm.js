@@ -346,6 +346,13 @@ export function autoSubmitForm() {
         formData.append(submitter.name, submitter.value || 'true');
       }
 
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : (formData.get('_token') || formData.get('csrf_token') || '');
+
+      if (csrfToken && !formData.has('_token') && !formData.has('csrf_token')) {
+        formData.append('_token', csrfToken);
+      }
+
       const action = form.action || window.location.href;
 
       const response = await fetch(action, {
@@ -353,7 +360,8 @@ export function autoSubmitForm() {
         body: formData,
         signal: activeDraftAbortController.signal,
         headers: {
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {})
         }
       });
 

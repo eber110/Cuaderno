@@ -50,6 +50,17 @@ class DashboardMiddleware implements MiddlewareInterface {
       return ResponseModule::redirect("/panel/" . $sessionUserClean);
     }
 
+    // 4.1 Validar existencia y estado activo del usuario en base de datos (M-4)
+    $dbUser = (new UserModels())->where("username", $sessionUserClean)->get_one();
+    $userDataRow = $dbUser[0] ?? null;
+    if (!$userDataRow || (!empty($userDataRow['user_status']) && !in_array($userDataRow['user_status'], ['active', '1', 1, true], true)) || !empty($userDataRow['deleted_at_user'])) {
+      Session::destroy();
+      if (class_exists('\Base\Module\CookieModule')) {
+        \Base\Module\CookieModule::delete('auth_token');
+      }
+      return ResponseModule::redirect("/ingresar", "Tu cuenta se encuentra inactiva o no existe.", 1);
+    }
+
     // 5. Garantizar que exista la tarjeta inicial si no existía
     DesignModels::createInitialDesign($sessionUserClean);
 

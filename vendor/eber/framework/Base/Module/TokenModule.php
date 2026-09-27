@@ -204,14 +204,16 @@ class TokenModule
   /**
    * Obtiene la semilla secreta desde el entorno (.env).
    * 
+   * @throws \RuntimeException Si la semilla no está configurada o tiene menos de 32 caracteres.
    * @return string
    */
   private static function getSeed(): string
   {
     $seed = $_ENV['SEED'] ?? getenv('SEED') ?? (defined('SEED') ? SEED : '');
-    if (empty($seed)) {
-      // Fallback a un hash del nombre del sitio o un valor constante seguro
-      $seed = defined('NAME_SITE') ? md5(NAME_SITE) : 'fallback_secret_seed_phrase';
+    if (empty($seed) || strlen($seed) < 32) {
+      throw new \RuntimeException(
+        "Configuración de seguridad crítica: La variable de entorno SEED debe estar definida y contener al menos 32 caracteres criptográficamente seguros."
+      );
     }
     return $seed;
   }

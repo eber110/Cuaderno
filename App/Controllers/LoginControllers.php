@@ -60,8 +60,7 @@ class LoginControllers extends Control {
     }
 
     if (!$userTrue[0]) {
-      if (($userTrue[1] ?? null) === 0) return ResponseModule::redirect("/ingresar", "El usuario no es valido");
-      if (($userTrue[1] ?? null) === 1) return ResponseModule::redirect("/ingresar", "La contraseña no es valida");
+      return ResponseModule::redirect("/ingresar", "El usuario o la contraseña ingresada no es válida.", 2);
     }
 
     if (Session::session_active()) {
@@ -265,7 +264,8 @@ class LoginControllers extends Control {
         return ResponseModule::redirect("/registrar", "Hubo un error al registrar al usuario. Inténtelo más tarde.", 2);
       }
     } catch (\Exception $e) {
-      return ResponseModule::redirect("/registrar", "Error en el registro: " . $e->getMessage(), 2);
+      error_log("Error en registro de usuario: " . $e->getMessage());
+      return ResponseModule::redirect("/registrar", "Ocurrió un error inesperado al procesar el registro. Por favor, inténtelo de nuevo más tarde.", 2);
     }
   }
 

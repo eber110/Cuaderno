@@ -55,10 +55,10 @@
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= $data["url"] ?? '#' ?>" target="_blank" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= $card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b' ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= $card["colorText"] ?? '#ffffff' ?> !important;">
+  <a href="<?= eUrl($data["url"] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= safeCssColor($card["colorText"] ?? '#ffffff', '#ffffff') ?> !important;">
     <?php if (!empty($modalImg)) : ?>
       <figure class="ar-square wpx200 |wpx-sml-160 br15">
-        <img src="<?= e($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
+        <img src="<?= eUrl($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
       </figure>
     <?php endif; ?>
 
@@ -77,7 +77,7 @@
 
       <div class="ic-track w100">
         <?php foreach ($data["share"] as $networkName => $shareUrl) : ?>
-          <a href="<?= $shareUrl ?>" target="_blank" aria-label="<?= e($networkName) ?>" 
+          <a href="<?= eUrl($shareUrl) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e($networkName) ?>" 
             class="ic-item p5 br100 btn-share-profile hpx50 hpx-sml-40 wpx50 wpx-sml-40 flex-row center-center pointer" style="flex-shrink: 0;">
             <?= svg($networkName, "x30 x-sml-25"); ?>
           </a>

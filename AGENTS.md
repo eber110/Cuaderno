@@ -315,6 +315,9 @@ composer update-geoip        # Descargar GeoLite2 actualizado
 7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder ya escapa; NO concatenar SQL.
 8. **Tablas nuevas:** registrarlas en `ALLOWED_TABLES` (`config.php` del framework o `App/Config/config.php`).
 9. **Escribir en español** (código, docblocks, commits y docs).
+10. **Seguridad contra IDOR e inyección:** Prohibido terminantemente usar `extract()` sobre datos de usuario o arrays de parámetros de peticiones. Leer explícitamente cada campo.
+11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`.
+12. **Protección CSRF y métodos seguros:** Todas las operaciones con cambio de estado o mutación (guardar, editar, eliminar, salir/logout) deben ejecutarse por `POST` y validar token CSRF (`_token`, `csrf_token` o header `X-CSRF-TOKEN`).
 
 ---
 
@@ -373,6 +376,9 @@ Ejemplo: `feat(home): agregar hero con datos de HomeModels`, `fix(middleware): r
 ## 10. Antipatrones a evitar
 
 - ❌ SQL directo o `$_GET`/`$_POST` crudos en controladores — usar modelos y `HttpPostModule`.
+- ❌ Usar `extract()` sobre inputs o arrays de parámetros provenientes del usuario.
+- ❌ Salidas dinámicas en vistas sin escapar (`e()`, `eUrl()`).
+- ❌ Operaciones mutables o logout mediante `GET` sin token CSRF.
 - ❌ Lógica de negocio o consultas dentro de vistas o componentes — van a modelos.
 - ❌ Duplicar piezas entre vistas — mover a `App/Segment/` o componente.
 - ❌ Añadir frameworks/libs frontend sin avisar.

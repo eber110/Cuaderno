@@ -2,6 +2,7 @@
   $style = "br10 mb5 w100";
 ?>
 <form id="form-step-password" action="/registrar" method="post" autocomplete="on">
+  <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
   <!-- Campo de usuario para accesibilidad y gestores de contraseñas (flujo multi-paso) -->
   <input type="text" name="username" id="hidden-username" autocomplete="username" style="display: none;" tabindex="-1" aria-hidden="true">
   <input type="email" name="email" id="hidden-email" autocomplete="email" style="display: none;" tabindex="-1" aria-hidden="true">

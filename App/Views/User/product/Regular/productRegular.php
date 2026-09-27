@@ -22,13 +22,13 @@
   $imgShow = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
   $hasImg = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
 ?>
-<div data-content-index="<?= $dataContent ?>" class="product-item-wrapper product-regular-wrapper flex-row center-between wrap w100 theme-button pointer <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0]?> <?= $card["shadow"]?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+<div data-content-index="<?= (int)$dataContent ?>" class="product-item-wrapper product-regular-wrapper flex-row center-between wrap w100 theme-button pointer <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0]?> <?= $card["shadow"]?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
 
-  <a href="<?= $card["content"][$dataContent]["url"] ?? '#' ?>" target="_blank" class="flex-row center-start wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
+  <a href="<?= eUrl($url ?: '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-row center-start wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
     <div class="w50 h50 flex-row center-center">
       <?php if ($imgShow && $hasImg) :?>
         <figure class="ar-square p7">
-          <img src="<?= $imgSrc ?>" alt="" class="cover <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1]?>" fetchpriority=high>
+          <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($content) ?>" class="cover <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1]?>" fetchpriority="high">
         </figure>
       <?php else :?>
         <div class=""></div>
@@ -36,12 +36,12 @@
     </div>
 
     <div class="flex-column gap5 w50 p15">
-      <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= svg("basket-shopping", "x20") ?> <?= $content;?></p>
+      <p class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= svg("basket-shopping", "x20") ?> <?= e($content);?></p>
       <?php if (!$isOffer):?>
         <p class="bold500">$<?= e($price)?></p>
       <?php else :?>
         <div class="flex-column center-start gap0">
-          <p class="bold500" style="text-decoration:line-through;color: oklch(from <?= $card["color"] ?> calc(l * 1) c h /30%);">$<?= e($price)?></p>
+          <p class="bold500" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($price)?></p>
           <p class="x16 bold500">Precio oferta</p>
           <p class="bold500">$<?= e($discount);?></p>
         </div>

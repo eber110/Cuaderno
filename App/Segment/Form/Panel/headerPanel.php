@@ -10,6 +10,7 @@
   $voidSpaceVal = $card["voidHero"]["space"] ?? ($card["void_space"] ?? 450);
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
+  <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
 
   <div class="flex-column top-between gap20">
     

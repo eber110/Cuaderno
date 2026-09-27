@@ -2,6 +2,7 @@
   $style = "br10 mb5 w100";
 ?>
 <form action="/ingresar" class="w100" method="post">
+  <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
   <div class="flex-column gap10">
     
     <label for="username" class="x18 bold500">Ingrese su usuario
