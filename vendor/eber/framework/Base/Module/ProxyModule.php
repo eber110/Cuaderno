@@ -17,7 +17,7 @@ class ProxyModule
     public static function proxyImage(string $url, array $allowedDomains = []): never
     {
         // Si la URL es una ruta relativa (local del servidor), simplemente redirigimos.
-        if (str_starts_with($url, '/')) {
+        if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
             header("Location: " . $url);
             exit;
         }

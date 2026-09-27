@@ -144,7 +144,7 @@ class Builder
       }
     }
     $ip = $remoteAddr;
-    if ($isTrusted || empty($trustedProxies)) {
+    if ($isTrusted) {
       $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
       foreach ($headers as $header) {
         if (!empty($_SERVER[$header])) {
@@ -207,7 +207,7 @@ class Builder
       }
     }
     $ip = $remoteAddr;
-    if ($isTrusted || empty($trustedProxies)) {
+    if ($isTrusted) {
       $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
       foreach ($headers as $header) {
         if (!empty($_SERVER[$header])) {

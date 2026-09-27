@@ -1,5 +1,9 @@
 # Informe de Auditoría de Seguridad — Cuaderno (Eber Framework)
 
+> ⚠️ **§1-§9 son la auditoría ORIGINAL (2026-09-26).** La mayoría de sus hallazgos ya
+> están corregidos. **El estado verificado actual está en [§11](#11-segunda-reauditoría--verificación-de-las-correcciones)**,
+> que incluye el trabajo pendiente. Consulta §11 antes de actuar sobre §1-§9.
+
 **Fecha:** 2026-09-26
 **Alcance:** `C:\Users\eber\Proyectos\Cuaderno` (App + `vendor/eber/framework`)
 **Método:** revisión estática de código (sin exploited)
@@ -658,3 +662,343 @@ aceptables para producción, más el endurecimiento del servidor (§7).
 *Informe generado por revisión estática de código. Los hallazgos marcados como
 "verificado" fueron confirmados leyendo el código fuente en las líneas citadas;
 los marcados como "potencial" requieren prueba en el entorno de ejecución.*
+
+---
+---
+
+# 10. Primera reauditoría — estado tras las primeras correcciones
+
+**Fecha:** 2026-09-27 · **Método:** revisión estática + pruebas en vivo contra `http://cuaderno`
+**Alcance:** App + `vendor/eber/framework`, commit de seguridad `024aec7`
+
+## 10.1 Resumen
+
+El trabajo de remediación es **sustancial y de buena calidad**. Los dos críticos están
+neutralizados y la mayoría de altos/medios se han cerrado. **Pero hay un fallo nuevo que
+anula por completo el M-2, y varios residuales.** La aplicación **sigue sin estar lista para
+producción** por N-1 (ver §10.4), aunque por motivos mucho menores que los originales.
+
+| Severidad | Original | Estado actual |
+|---|---|---|
+| CRÍTICA | 2 | **0** (ambas corregidas y verificadas) |
+| ALTA | 4 | **0** (3 corregidas, A-1 parcial en el framework) |
+| MEDIA | 8 | **5 corregidas · 1 rota por N-1 · 2 parciales** |
+| NUEVA | — | **1 alta (N-1) + 3 bajas** |
+
+## 10.2 Corregido y verificado
+
+Verificado leyendo el código **y** probando en vivo.
+
+| ID | Evidencia de la corrección |
+|---|---|
+| **C-1** | `extract($param)` eliminado (`DesignModels.php:389`); el objetivo se re-deriva de la sesión en `:371-376`. **Cerrado.** |
+| **C-2** | `SEED` rotado a 64 hex en `.env:3`; el valor antiguo no aparece en el árbol ni en `git log --all -- .env`. **Cerrado** (quedaba la guardia, resuelta en §11). |
+| **A-1** | `deleteAvatarFromDisk()` y `deleteContentImageFromDisk()` usan `basename()` + `realpath()` + `str_starts_with()` sobre el prefijo (`DesignModels.php:1394-1427`). **Cerrado en la app.** |
+| **A-2** | Ver §10.3. **Cerrado en toda la superficie pública.** |
+| **A-3** | Allowlist con límite de punto, `FOLLOWLOCATION` off, TLS on, filtro de IP privada, `image/*`. En vivo: `notlinkedin.com`, `127.0.0.1` y `169.254.169.254` → **403**. **Cerrado.** |
+| **A-4** | Middleware global registrado (`web.php:18`) y aplicado por el router. En vivo: `POST /ingresar` sin token → **403**. **Cerrado.** |
+| **M-1** | `/op/check` → **404**; `/op/image` → **403**; `/lemon-squeezy/init-db` → **403**. Confirmado que `ENVIRONMENT` resuelve a `'production'` (`config.php:38-41` normaliza `APP_ENV="PRODUCTION"`). **Cerrado.** |
+| **M-5** | `CacheModule.php:184,346` usan `['allowed_classes' => false]`. **Cerrado.** |
+| **M-7** | CORS `*` eliminado; `Cache-Control: public` sólo en estáticos. **Cerrado.** |
+| **M-8** | `LoginControllers.php:267` usa `error_log()`. **Cerrado.** |
+
+### A-2 en detalle — por qué se considera cerrado
+
+Las 51 salidas `<?= $` que quedan en vistas públicas son **todas seguras** porque el dato se
+sanea antes de interpolar, no al escapar:
+
+- **Colores** — las 27 de `style.css.php` y las de `banner/campaign/productGroup/productRegular/
+  modalXShare` pasan por `safeCssColor()` (allowlist, correcto para contexto CSS).
+- **Clases** — `campaign.php` valida con `in_array(..., true)` (`$textAlign`, `$titleSize`,
+  `$descSize`, `$countdownTextSize`, `$countdownWidgetSize`, `$size`, `$textPosition`);
+  `text.php:11-17` deriva `$weightClass`/`$alignClass` con ternario y `match` cerrados.
+- **Enteros** — `(int)$dataContent` en `campaign.php:85` y en `banner/productRegular`.
+- **ID en contexto JS** — `campaign.php:192` intercala dentro de `<script>`, pero
+  `$campaignId = "campaign-block-" . (int)$dataContent` (`:82`): prefijo fijo + cast, no inyectable.
+- **`separator.php:21,28`** — `$iconSvg` viene de `svg()`, que lee del sistema de ficheros.
+- **Contenido** — `text.php:24` ya usa `nl2br(e($textContent))`.
+
+`Control.php:161` también escapa el `<title>`.
+
+## 10.3 Pendientes y parciales
+
+| ID | Qué falta |
+|---|---|
+| **A-1** *(cola)* | El mismo patrón seguía en `vendor/eber/framework/Base/Module/ImgProcessModule.php` (`delete_img_disk`). **Resuelto después — ver §11.1.** |
+| **M-3** *(parcial)* | `/.env` → **403** y `/Cache/` → **403**. Pero **no se añadió el `<DirectoryMatch>`**: `.htaccess:60` sólo protegía directorios en la raíz. `/App/Safety/blocked_ips.json` respondía **200** (N-3). |
+| **M-4** *(parcial)* | `Session.php:85-89` rechazaba `user_status` no activo, pero el chequeo era *fail-open* (`isset($user_status) &&` concede la sesión si el campo falta) y sin revalidar en BD. **Fail-open corregido en §11; la revalidación sigue pendiente.** |
+| **M-6** | Sin cambios: `Builder.php:138,180` seguía usando `REMOTE_ADDR` sólo. |
+| **B-1** | No revisado. |
+| **B-2** | **No corregido**: `VisitModels.php:28` confiaba en `HTTP_CF_CONNECTING_IP`, `X-Forwarded-For`, `X-Real-IP` y `HTTP_CLIENT_IP` sin allowlist de proxies. |
+| **B-3, B-4** | No revisados. |
+| **B-5** | **No corregido** — ver N-5. |
+| **B-6** | Parcial: arreglado en `ProxyModule`. Sin verificar en `RequestMetaModule`, `CloudinaryService` y `LemonSqueezyProvider`. |
+| **B-7, B-8** | No revisados. |
+| **Sitemap** | `web.php:23-33` seguía publicando `/op/image`, `/op/check`, `/test/2`, `/lemon-squeezy/init-db` y `/lemon-squeezy/test`. **Resuelto en §11.** |
+
+## 10.4 Hallazgos nuevos
+
+### N-1 · ALTA — `SecurityProvider` nunca se carga: el subsistema de seguridad sigue muerto
+
+M-2 parecía corregido pero no lo estaba. `providers.json` yaregistraba el provider, pero
+`ProviderLoader` le **añadía el namespace otra vez**:
+
+```php
+// vendor/eber/framework/Core/ConfigLoader/ProviderLoader.php:30-32
+$namespace = str_replace('.', '\\', $provider);
+return 'App\\Providers\\' . $namespace;   // ← prefijo duplicado
+```
+
+Y `Bootstrap/App.php:13` descartaba en silencio lo que no existiera. Ejecutando el cargador real:
+
+```
+providers.json devuelve: ["App\Providers\App\Providers\SecurityProvider"]
+  class_exists  : NO  <-- SE OMITE EN SILENCIO
+```
+
+**Resuelto en §11.1.**
+
+### N-2 · BAJA — `safeCssColor()` dependía del orden de carga de vistas
+
+Definida dentro de una vista (`App/Views/User/style.css.php:3`) pero usada por **10 vistas**.
+Funcionaba sólo porque `index.php:3` es lo primero que se ejecuta. **Resuelto en §11.1.**
+
+### N-3 · BAJA — Lista de IPs bloqueadas legible por web
+
+`GET /App/Safety/blocked_ips.json` → **200**. **Resuelto en §11.1.**
+
+### N-4 · BAJA — `ProxyModule` acepta `//host` (open redirect)
+
+`ProxyModule.php:20-23` trata como ruta relativa cualquier cadena que empiece por `/`,
+incluido `//evil.com`. **Sigue abierto — ver §11.2.**
+
+### N-5 · BAJA — `/test/2` abierto, filtraba rutas del servidor
+
+En vivo: `GET /test/2` → **200** con un *stack trace* de Xdebug exponiendo la ruta absoluta,
+versión de PHP y que Xdebug está activo. **Resuelto en §11.1.**
+
+## 10.5 Nota sobre la verificación
+
+Todo lo marcado "verificado" en §10.2 se comprobó con peticiones reales a `http://cuaderno`
+(códigos 403/404/200 citados) y ejecutando el cargador de providers con PHP 8.4.15.
+
+---
+---
+
+# 11. Segunda reauditoría — verificación de las correcciones
+
+**Fecha:** 2026-09-27 · **Método:** revisión estática + pruebas en vivo contra `http://cuaderno`
+**Cambios revisados:** `024aec7` + `10f5263` + cambios sin commitear del árbol de trabajo
+
+> **Corrección de §10:** N-1 estaba **más cerrado** de lo que reporté. `TokenModule::getSeed()`
+> y `ImgProcessModule::delete_img_disk()` ya incluían los controles correctos en `024aec7`
+> (no los había leído, sólo el encabezado de la función). El informe original los daba por
+> pendientes por error.
+
+## 11.1 Estado: los 5 hallazgos de §10 están resueltos
+
+| ID | Verificación | Resultado |
+|---|---|---|
+| **N-1** | `ProviderLoader` ya no duplica el namespace; ejecutado con PHP real devuelve `class_exists(App\Providers\SecurityProvider) = SI`. Sonda en vivo: `boot()` se ejecuta, y al bloquear la IP con la API del propio sistema la web responde **HTTP 403**. | **Cerrado** |
+| **N-2** | `safeCssColor()` movida a `Base/Helpers/Part.php:602` (autoload de Composer), ya no depende del orden de vistas. | **Cerrado** |
+| **N-3** | `App/Safety` añadido al `RewriteRule` (`.htaccess:60`); `/App/Safety/*.json` y `*.log` → **403**. | **Cerrado** |
+| **N-5** | `App/Route/test.php` eliminado; `/test/2` → **404**. | **Cerrado** |
+| **Sitemap** | `web.php:23-27` sólo publica `/ingresar`, `/registrar`, `/recuperar`. | **Cerrado** |
+
+Además, ya estaba corregido y ahora confirmado: **C-2** (`getSeed()` lanza `RuntimeException`
+si el seed falta o es < 32 chars; `.env` tiene 64) y **A-1** (`ImgProcessModule::delete_img_disk`
+usa `basename()` + `realpath()` + `str_starts_with()`, líneas 860-862).
+
+**M-4** mejoró: `Session.php:85-89` ahora es **fail-closed** — `$status` cae en `''` si falta y
+`in_array($status, ['active','1',1,true], true)` rechaza → borra la cookie. Antes era fail-open.
+
+**Sin regresiones:** `POST /ingresar` sin token → **403**; `/proxy?url=169.254.169.254` → **403**;
+`/.env` → **403**; sitio → **200**. `composer audit`: sin avisos de seguridad.
+
+## 11.2 LO QUE QUEDA POR HACER
+
+### N-4 · ALTA — Open redirect en `/proxy` (sin corregir)
+
+`ProxyModule.php:20-22` sigue aceptando `//host` como "ruta relativa". Confirmado en vivo:
+
+```
+GET /proxy?url=//evil.com
+HTTP/1.1 302 Found
+Location: //evil.com
+```
+
+Un atacante pondría eso en un enlace de tu dominio y ganaría un redirector/phishing creíble.
+Arreglo de una línea:
+
+```php
+if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+```
+
+### N-6 · MEDIA — `TRUSTED_PROXIES` no está definido: la allowlist es *fail-open*
+
+`Builder.php:138-158` y `VisitModels.php:28-50` implementan la allowlist de proxies, pero:
+
+```php
+if ($isTrusted || empty($trustedProxies)) {   // ← si NO está definido, confía igual
+    // lee CF-Connecting-IP, X-Forwarded-For, X-Real-IP, Client-IP
+}
+```
+
+`TRUSTED_PROXIES` **no aparece** en `.env`, `.env.example` ni en ningún `config.php`. Con la
+configuración actual `empty($trustedProxies)` es `true`, así que **se siguen creyendo las
+cabeceras falsificables**: B-2 sigue abierto y M-6 sigue mal resuelta (el rate limit sigue
+usando la IP del borde de Cloudflare, no la del usuario real).
+
+Define la constante con los rangos de Cloudflare, y considera invertir la condición para que
+"no configurado" signifique "no confío":
+
+```php
+if ($isTrusted) { /* leer cabeceras */ }   // fail-closed
+```
+
+### N-7 · MEDIA — TLS desactivado en `CloudinaryService::deleteVideo()`
+
+B-6 se corrigió en `RequestMetaModule` (`:47-48`), `CloudinaryService:205-206` y
+`LemonSqueezyProvider:93-94`. **Pero hay un segundo `curl` en `CloudinaryService.php:272-273`
+que se quedó sin tocar:**
+
+```php
+$postFields = ["api_key" => $apiKey, "timestamp" => $timestamp, "signature" => $signature];
+// $signature = sha1("public_id=...&timestamp=..." . $apiSecret)   ← deriva del SECRET
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+```
+
+La petición viaja sin verificación de certificado, así que un MITM puede capturar la firma y
+**reconstruir el `api_secret` de Cloudinary** (`sha1` es determinista y los tres campos viajan
+en claro). Es el mismo riesgo que Originally señalaba para LemonSqueezy. Poner ambos a
+`true` / `2`.
+
+### M-3 · MEDIA — Sigue sin el bloque 7.2.2/7.2.3
+
+`.htaccess` no tiene ningún `<DirectoryMatch>` ni `php_flag engine off`. Lo que sí está:
+`Options -Indexes` (43), `FilesMatch` de extensiones sensibles (47) y el `RewriteRule` de
+directorios (60). En la práctica `/.env` y `/Cache/` responden 403 y `Uploads/` no se lista,
+así que **no hay exposición inmediata** — pero si algún fichero bajo `Uploads/` o `App/Public/`
+acaba en disco con extensión `.php`, se ejecutará. Aplica el §7.2 completo, o al menos
+`<FilesMatch "\.(php|phtml|phar)$">` con `Require all denied` y la regla equivalente en
+Nginx (§7.4) si producción no es Apache.
+
+### M-4 · MEDIA — sigue sin revalidar contra la BD
+
+El chequeo *fail-closed* evita aceptar un token con `user_status` forjado, pero un token
+**legítimamente emitido** a una cuenta que luego se borra o suspende sigue siendo válido durante
+los 30 días de `TokenConfiguration.php:66`, porque `Session.php:90` copia el payload sin
+consultar la base de datos. Es el residual de diseño de M-4 original; decide si lo aceptas
+o reduces la duración del JWT.
+
+## 11.3 Sin revisar en esta pasada
+
+B-1, B-3, B-4, B-7, B-8. `composer audit` sí pasó limpio.
+
+## 11.4 Plan de cierre
+
+**Antes de producción (~15 min):**
+1. **N-4** — una línea en `ProxyModule.php:20`.
+2. **N-6** — definir `TRUSTED_PROXIES` en `.env` y documentarlo en `.env.example`; invertir la
+   condición a *fail-closed*.
+3. **N-7** — `true` / `2` en `CloudinaryService.php:272-273`.
+
+**Altamente recomendable (~1 h):**
+4. **M-3** — bloque 7.2.2/7.2.3 del `.htaccess` **y** las reglas de Nginx §7.4.
+5. **M-4** — revalidar `user_status` en BD al restaurar la sesión, o acortar la vida del JWT.
+6. Verificar §7 completo contra la configuración real de Linux (lo probado aquí es Apache/Windows;
+   con Nginx el `.htaccess` se ignora por completo).
+
+**Sin bloqueantes críticos ni altos abiertos.** Con N-4, N-6 y N-7 aplicados, la aplicación
+pasa a depender únicamente del endurecimiento del servidor (§7) para un despliegue aceptable.
+
+---
+---
+
+# 12. Tercera reauditoría — verificación final pre-producción
+
+**Fecha:** 2026-09-27 · **Método:** revisión estática + pruebas en vivo contra `http://cuaderno`
+**Veredicto:** **no quedan críticos ni altos abiertos. Se puede desplegar**, pendiente de
+resolver 3 puntos de §12.2 y de aplicar el §7 en el servidor real.
+
+## 12.1 Cerrado en esta ronda
+
+| ID | Verificación en vivo | Estado |
+|---|---|---|
+| **N-4** | `GET /proxy?url=//evil.com` → **400 Bad Request** (antes `302 Location: //evil.com`). La ruta relativa legítima `/proxy?url=/App/Public/Img/logo.webp` → **302** correcta: sin regresión. | **Cerrado** |
+| **N-6 (fail-open)** | `Builder.php:147` pasó a `if ($isTrusted)` y `VisitModels.php:42-44` a `if (!$isTrusted) return $remoteAddr;`. Con `TRUSTED_PROXIES` sin casar, las cabeceras falsificables **ya no se leen**. | **Cerrado** |
+| **N-6 (config)** | `TRUSTED_PROXIES` definido en `.env:245` y documentado en `.env.example:151` con los 15 rangos de Cloudflare. | **Cerrado** (con N-9) |
+| **N-7** | `CloudinaryService.php:272-273` ahora `true` / `2`. | **Cerrado** |
+
+**Regresión completa, todas correctas:** `/` → 200 · `/.env` → 403 · `/proxy?url=169.254.169.254` → 403 ·
+`/proxy?url=notlinkedin.com` → 403 · `/op/check` → 404 · `/op/image` → 403 · `/test/2` → 404 ·
+`/App/Safety/blocked_ips.json` → 403 · `POST /ingresar` sin token → 403.
+`.env` sigue fuera de git y `.env.example` sólo tiene placeholders vacíos.
+
+## 12.2 Pendiente antes de producción
+
+### N-9 · MEDIA — La allowlist de proxies nunca casa: CIDR contra `str_starts_with`
+
+`TRUSTED_PROXIES` se configuró en notación CIDR, pero el matcher sigue siendo prefijo de cadena:
+
+```php
+// Builder.php:142 y VisitModels.php:36
+if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
+```
+
+`"173.245.48.5"` no empieza por `"173.245.48.0/20"` — el `/20` hace que sea imposible. Comprobado:
+
+```
+173.245.48.5 vs allowlist -> NO confiable (usa REMOTE_ADDR)
+104.16.1.1   vs allowlist -> NO confiable
+162.158.1.1  vs allowlist -> NO confiable
+192.168.1.10 vs allowlist -> TRUSTED (sí casa, es prefijo plano)
+```
+
+**No es una vulnerabilidad** (gracias al *fail-closed* las cabeceras se ignoran, que era el
+riesgo real). **Es un fallo funcional:** detrás de Cloudflare, `REMOTE_ADDR` es la IP del borde,
+así que el rate limit y las analiticas siguen viendo a todos los usuarios como la misma IP — el
+problema original de M-6 sigue presente. Un atacante con 5 intentos de login fallidos bloquearía
+a todos los usuarios legítimos durante la ventana.
+
+Dos arreglos posibles:
+1. **Simple:** usar prefijos planos en `.env` — `173.245.48.`, `104.16.`, `162.158.`, `141.101.`,
+   `198.41.128.`, `108.162.192.`, `131.0.72.`, `188.114.96.`, `190.93.240.`, `197.234.240.`,
+   `103.21.244.`, `103.22.200.`, `103.31.4.`.
+2. **Correcto:** implementar comparación CIDR de verdad (bit a bit sobre `inet_pton`), en un
+   helper único reutilizado por `Builder` y `VisitModels`.
+
+### M-3 · MEDIA — Sigue sin el bloque 7.2.2/7.2.3
+
+`.htaccess` continúa sin `<DirectoryMatch>` ni `php_flag engine off`. Hoy no hay exposición
+(`/.env` y `/Cache/` dan 403), pero un `.php` que aterrice en `Uploads/` o `App/Public/`
+**se ejecutaría**. Aplica §7.2.2 y §7.2.3, y las reglas de Nginx §7.4 si no usas Apache.
+Este punto es configuración de servidor, no de código: es la última barrera real.
+
+### M-4 · MEDIA — La sesión JWT no se revalida en BD
+
+`Session.php:78-94` es *fail-closed* (correcto) pero sigue copiando el payload sin consultar la
+base de datos: una cuenta borrada o suspendida conserva acceso hasta 30 días
+(`TokenConfiguration.php:66`). Riesgo residual de diseño; acortar la vida del JWT lo reduce.
+
+### N-8 · BAJA — `SSL_VERIFYPEER=false` en `fetchYouTubeMetadata`
+
+`DesignModels.php:1682` lo desactiva sin condición (además con `FOLLOWLOCATION=true`, línea 1679).
+No envía secretos, así que el impacto es bajo: un MITM sólo Falsearía el título del vídeo. Dejarlo
+`true`/`2` por consistencia.
+
+> `GeminiModule.php:88-92` **no** es un hallazgo: la relajación está correctamente condicionada a
+> `ENVIRONMENT === 'development'`, así que en producción no se desactiva. Además la app no lo usa.
+
+## 12.3 Lista mínima para producción
+
+1. **N-9** — arreglar la allowlist de proxies (afecta a rate limit y analíticas si hay Cloudflare).
+2. **M-3** — §7.2.2/7.2.3 en Apache **y/o** §7.4 en Nginx.
+3. **§7.3/§7.5** — `php.ini` de producción y permisos POSIX.
+4. Ejecutar la checklist de **§7.6** contra el dominio real, no contra `http://cuaderno`.
+5. Copia de seguridad de `Database/` y `Uploads/` verificada **y restaurada** al menos una vez.
+
+**Sin críticos ni altos pendientes.** Con los puntos 1-5 hechos, el despliegue es aceptable.
+
+

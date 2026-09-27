@@ -39,11 +39,7 @@ class VisitModels extends Builder {
       }
     }
 
-    if (!$isTrusted && !empty($trustedProxies)) {
-      return $remoteAddr; // Si hay lista pero no coincide, no confiamos
-    } elseif (empty($trustedProxies)) {
-      // Si no hay proxy configurado, por defecto confiamos SOLO si viene de un rango privado típico
-      // o directamente devolvemos REMOTE_ADDR (más seguro).
+    if (!$isTrusted) {
       return $remoteAddr;
     }
 
