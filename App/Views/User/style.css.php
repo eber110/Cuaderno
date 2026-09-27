@@ -6,13 +6,22 @@
   $color            = safeCssColor($card["color"] ?? "#494949", "#494949");
   $hover            = ($card["hover"] ?? false) === true || ($card["hover"] ?? false) === 'true' || ($card["hover"] ?? false) === 1 || ($card["hover"] ?? false) === '1';
   $backPerfil       = safeCssColor($card["backCard"]["back_perfil"] ?? "#a0a0a0", "#a0a0a0");
-  $styleBack        = in_array($card["backCard"]["style_back"] ?? "solid", ["solid", "gradientUp", "gradientDown", "video"], true) ? ($card["backCard"]["style_back"] ?? "solid") : "solid";
+  $styleBack        = in_array($card["backCard"]["style_back"] ?? "solid", ["solid", "gradientUp", "gradientDown", "video", "image"], true) ? ($card["backCard"]["style_back"] ?? "solid") : "solid";
   $colorShadow3     = safeCssColor($card["colorShadow3"] ?? "#000000", "#000000");
   $colorText        = safeCssColor($card["colorText"] ?? "#383838", "#383838");
   $titleColor       = safeCssColor($card["titleColor"] ?? "#383838", "#383838");
   $backVideo        = $card["backCard"]["back_video"] ?? "";
   $backVideoOverlay = safeCssColor($card["backCard"]["back_video_overlay"] ?? "#000000", "#000000");
   $backVideoOpacity = max(0, min(95, intval($card["backCard"]["back_video_opacity"] ?? 45)));
+  $backImage        = $card["backCard"]["backImageSrc"] ?? $card["backCard"]["back_image"] ?? "";
+  $backImageOverlay = safeCssColor($card["backCard"]["back_image_overlay"] ?? "#000000", "#000000");
+  $backImageOpacity = max(0, min(95, intval($card["backCard"]["back_image_opacity"] ?? 45)));
+  $rawFilter        = $card["backCard"]["back_image_filter"] ?? 'none';
+  $numMap           = ['0'=>'none', '1'=>'vignette', '2'=>'blur', '3'=>'brightness', '4'=>'contrast', '5'=>'grayscale', '6'=>'hue-rotate', '7'=>'invert', '8'=>'saturate', '9'=>'sepia'];
+  if (isset($numMap[$rawFilter])) $rawFilter = $numMap[$rawFilter];
+  $validFilters     = ['none', 'vignette', 'blur', 'brightness', 'contrast', 'grayscale', 'hue-rotate', 'invert', 'saturate', 'sepia'];
+  $backImageFilter  = in_array($rawFilter, $validFilters, true) ? $rawFilter : 'none';
+  $backImageFilterIntensity = max(0, min(100, intval($card["backCard"]["back_image_filter_intensity"] ?? 80)));
   $voidSpace        = (int)($card["voidHero"]["space"] ?? ($card["void_space"] ?? 70));
   if ($voidSpace == 130) $voidSpace = 20;
   elseif ($voidSpace == 250) $voidSpace = 45;
@@ -81,6 +90,14 @@
     .back-card-container{
       background-color: <?= $containerSolid ?>;
     }
+  <?php elseif ($styleBack == "image" && !empty($backImage)) :?>
+    .back-card{
+      background-color: <?= $backPerfil?>;
+      position: relative;
+    }
+    .back-card-container{
+      background-color: <?= $containerSolid ?>;
+    }
   <?php else :?>
     .back-card{
       background-color: <?= $backPerfil?>;
@@ -111,6 +128,71 @@
     opacity: <?= ($backVideoOpacity / 100) ?>;
     z-index: 0;
     pointer-events: none;
+  }
+
+  .back-image-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    <?php
+      $filterCss = 'none';
+      $scaleCss = '';
+      $ratio = $backImageFilterIntensity / 100;
+      if ($backImageFilter === 'blur') {
+        $blurPx = round($ratio * 15, 1);
+        $filterCss = "blur({$blurPx}px)";
+        $scaleCss = "transform: scale(1.06);";
+      } elseif ($backImageFilter === 'brightness') {
+        $val = round($ratio * 2, 2);
+        $filterCss = "brightness({$val})";
+      } elseif ($backImageFilter === 'contrast') {
+        $val = round($ratio * 2, 2);
+        $filterCss = "contrast({$val})";
+      } elseif ($backImageFilter === 'grayscale') {
+        $filterCss = "grayscale({$backImageFilterIntensity}%)";
+      } elseif ($backImageFilter === 'hue-rotate') {
+        $deg = round($ratio * 360);
+        $filterCss = "hue-rotate({$deg}deg)";
+      } elseif ($backImageFilter === 'invert') {
+        $filterCss = "invert({$backImageFilterIntensity}%)";
+      } elseif ($backImageFilter === 'saturate') {
+        $val = round($ratio * 3, 2);
+        $filterCss = "saturate({$val})";
+      } elseif ($backImageFilter === 'sepia') {
+        $filterCss = "sepia({$backImageFilterIntensity}%)";
+      }
+    ?>
+    filter: <?= $filterCss ?>;
+    <?= $scaleCss ?>
+  }
+  
+  .back-image-vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 30%, #000000 100%);
+    opacity: <?= ($backImageFilterIntensity / 100) ?>;
+  }
+
+  .back-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    background-color: <?= $backImageOverlay ?>;
+    opacity: <?= ($backImageOpacity / 100) ?>;
   }
 
   .z-index-1 {

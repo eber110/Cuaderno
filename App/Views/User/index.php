@@ -15,6 +15,20 @@
         <div class="back-video-overlay"></div>
       <?php endif; ?>
 
+      <?php 
+        $backImage = $card["backCard"]["backImageSrc"] ?? $card["backCard"]["back_image"] ?? "";
+        $backImageFilter = $card["backCard"]["back_image_filter"] ?? "none";
+        $numMap = ['0'=>'none', '1'=>'vignette', '2'=>'blur', '3'=>'brightness', '4'=>'contrast', '5'=>'grayscale', '6'=>'hue-rotate', '7'=>'invert', '8'=>'saturate', '9'=>'sepia'];
+        if (isset($numMap[$backImageFilter])) $backImageFilter = $numMap[$backImageFilter];
+      ?>
+      <?php if ($styleBack === "image" && !empty($backImage)) : ?>
+        <img src="<?= eUrl($backImage) ?>" class="back-image-bg" alt="Fondo" onerror="this.style.display='none';">
+        <?php if ($backImageFilter === "vignette") : ?>
+          <div class="back-image-vignette"></div>
+        <?php endif; ?>
+        <div class="back-image-overlay"></div>
+      <?php endif; ?>
+
       <?php _component("Menu.menuUser"); ?>
 
       <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1" data-scroll-memory="user-profile" style="scroll-behavior: auto !important;">

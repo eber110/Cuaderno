@@ -63,7 +63,147 @@
           </div>
         </label>
         <?php endif; ?>
+        
+        <input type="radio" id="style_image" name="background_mode" class="hidden-radio" value="image" <?= ($styleBack === 'image') ? 'checked' : '' ?>>
+        <label for="style_image">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
+            <div id="preview-style-image" class="hpx80 wpx80 br15 flex-column center-center pointer" style="background-color: #1e1e1e; overflow: hidden; position: relative;">
+              <?php 
+                $backImage = $card["backCard"]["back_image"] ?? '';
+                $displayBackImgSrc = $card["backCard"]["backImageSrc"] ?? '';
+                if (empty($displayBackImgSrc) && !empty($backImage)) {
+                  $displayBackImgSrc = DIR_SHOW_MEDIA . "Background/" . $backImage;
+                }
+              ?>
+              <?php if (!empty($displayBackImgSrc)) : ?>
+                <img id="thumb-style-image" src="<?= eUrl($displayBackImgSrc) ?>" class="cover w100 h100" style="object-fit: cover; pointer-events: none;">
+              <?php else : ?>
+                <span class="x22 textw">🖼️</span>
+              <?php endif; ?>
+            </div>
+            <p class="x16 texto">Imagen</p>
+          </div>
+        </label>
   
+      </div>
+    </div>
+
+    <!-- Contenedor de configuración de imagen -->
+    <div id="image-controls-wrapper" class="flex-column gap15 w100" style="<?php if ($styleBack !== 'image') echo 'display: none;'; ?>">
+      <!-- Panel de subida / visor de imagen -->
+      <div class="flex-column top-start gap10 w100 p15 br20 back-card-graphic shadow-card-graphic" id="image-background-config">
+        <div class="flex-row center-between w100">
+          <p class="texto bold500">Imagen de fondo</p>
+          <span class="x12 texto opacity-70">Formato 9:16 (Smartphone)</span>
+        </div>
+        <div class="flex-row center-between gap10 w100 wrap">
+          <div class="flex-row center-start gap10">
+            <figure class="wpx60 hpx100 br10 overflow-hidden back-card-graphic shadow-card-graphic position-relative" style="aspect-ratio: 9/16; background-color: #1e1e1e;">
+              <img id="thumb-image-preview" src="<?= eUrl($displayBackImgSrc) ?>" alt="Fondo" class="cover w100 h100" style="<?= !empty($displayBackImgSrc) ? '' : 'display: none;' ?>">
+              <span class="x24 text-muted flex-row center-center w100 h100" style="<?= !empty($displayBackImgSrc) ? 'display: none;' : '' ?>">🖼️</span>
+            </figure>
+            <?php if (!empty($backImage)) : ?>
+              <button type="submit" name="delete_back_image" value="true" class="pointer p8 br10 back-danger textw hover-scale-soft x13 bold500 flex-row center-center gap5" style="border: none;">
+                <?= svg("trash", "x16"); ?> Eliminar
+              </button>
+            <?php endif; ?>
+          </div>
+
+          <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
+            <input type="file" 
+              name="back_image" 
+              id="upload-image-background"
+              accept="image/*"
+              class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
+              placeholder="<?= !empty($backImage) ? 'Cambiar imagen' : 'Subir imagen' ?>" 
+              cropping-size="720x1280"
+              box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
+              box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- Control de Opacidad del Overlay de Imagen -->
+      <?php 
+        $backImageOverlay = $card["backCard"]["back_image_overlay"] ?? '#000000';
+        $backImageOpacity = max(0, min(95, intval($card["backCard"]["back_image_opacity"] ?? 45)));
+        $backImageFilter  = $card["backCard"]["back_image_filter"] ?? 'none';
+      ?>
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-overlay-opacity-row">
+        <p class="texto">Opacidad del overlay</p>
+        <?php $imgOpacityPercent = $backImageOpacity > 0 ? min(100, max(0, round(($backImageOpacity / 95) * 100))) : 0; ?>
+        <div class="flex-row center-end gap10 w-sml-100">
+          <span id="image-opacity-val" class="x14 bold600 texto wpx40 text-right"><?= $imgOpacityPercent ?>%</span>
+          <input type="range" id="select-opacity-image-overlay" min="0" max="100" step="1" value="<?= $imgOpacityPercent ?>" class="pointer custom-range-slider" style="--range-progress: <?= $imgOpacityPercent ?>%;">
+          <input type="hidden" id="input-opacity-image-val" name="back_image_opacity" value="<?= $backImageOpacity ?>">
+        </div>
+      </div>
+
+      <!-- Selector de color para superposición de Imagen -->
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-overlay-color-row">
+        <p class="texto">Color de superposición (Overlay)</p>
+        <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+          <label data-trigger-color="select-color-image-overlay" class="flex-row center-start p10 gap10 pointer">
+            <input type="color" id="select-color-image-overlay" name="back_image_overlay" value="<?= $backImageOverlay?>" class="color-picker box-color-picker"
+            style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
+            <p class="x16 bold500 texto"><?= $backImageOverlay?></p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Selector de filtro de imagen con números tipo Estilo de sombra -->
+      <?php
+        $filtersList = [
+          'none'        => ['num' => '0', 'name' => 'Ninguno'],
+          'vignette'    => ['num' => '1', 'name' => 'Viñeta'],
+          'blur'        => ['num' => '2', 'name' => 'Desenfoque'],
+          'brightness'  => ['num' => '3', 'name' => 'Brillo'],
+          'contrast'    => ['num' => '4', 'name' => 'Contraste'],
+          'grayscale'   => ['num' => '5', 'name' => 'B&N'],
+          'hue-rotate'  => ['num' => '6', 'name' => 'Tono'],
+          'invert'      => ['num' => '7', 'name' => 'Invertir'],
+          'saturate'    => ['num' => '8', 'name' => 'Saturar'],
+          'sepia'       => ['num' => '9', 'name' => 'Sepia']
+        ];
+        $currentFilter = $card["backCard"]["back_image_filter"] ?? 'none';
+        $numToFilterMap = ['0' => 'none', '1' => 'vignette', '2' => 'blur', '3' => 'brightness', '4' => 'contrast', '5' => 'grayscale', '6' => 'hue-rotate', '7' => 'invert', '8' => 'saturate', '9' => 'sepia'];
+        if (isset($numToFilterMap[$currentFilter])) {
+          $currentFilter = $numToFilterMap[$currentFilter];
+        }
+        if (!isset($filtersList[$currentFilter])) {
+          $currentFilter = 'none';
+        }
+        $activeFilterName = $filtersList[$currentFilter]['name'] ?? 'Ninguno';
+        $filterIntensity = max(0, min(100, intval($card["backCard"]["back_image_filter_intensity"] ?? 80)));
+      ?>
+      <div class="flex-row top-between flex-column-sml top-start-sml gap10 w100" id="image-filter-row">
+        <div class="flex-column gap2 w50 w-sml-100">
+          <p class="texto">Filtros de imagen</p>
+          <p id="active-filter-name" class="bold500 texto opacity-70"><?= $activeFilterName ?></p>
+        </div>
+
+        <div class="flex-row center-start wrap top-start-sml gap8 flex-wrap w50 w-sml-100">
+          <?php foreach ($filtersList as $fKey => $fData) : ?>
+            <div>
+              <input type="radio" id="filter_<?= $fData['num'] ?>" name="back_image_filter" value="<?= $fKey ?>" class="hidden-radio filter-number-radio" data-filter-name="<?= $fData['name'] ?>" <?= ($currentFilter === $fKey) ? 'checked' : '' ?>>
+              <label for="filter_<?= $fData['num'] ?>" class="flex-row center-start p8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15" title="<?= $fData['name'] ?>">
+                <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
+                  <?= $fData['num'] ?>
+                </p>
+              </label>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+
+      <!-- Control de Intensidad del Filtro -->
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-filter-intensity-row" style="<?= ($currentFilter === 'none') ? 'display: none;' : '' ?>">
+        <p class="texto">Intensidad del filtro</p>
+        <div class="flex-row center-end gap10 w-sml-100">
+          <span id="image-filter-val" class="x14 bold600 texto wpx40 text-right"><?= $filterIntensity ?>%</span>
+          <input type="range" id="select-filter-intensity" min="0" max="100" step="1" value="<?= $filterIntensity ?>" class="pointer custom-range-slider" style="--range-progress: <?= $filterIntensity ?>%;">
+          <input type="hidden" id="input-filter-intensity-val" name="back_image_filter_intensity" value="<?= $filterIntensity ?>">
+        </div>
       </div>
     </div>
 

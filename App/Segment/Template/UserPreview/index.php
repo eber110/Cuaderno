@@ -13,6 +13,17 @@
       <div class="back-video-overlay" style="<?= ($styleBack === 'video') ? '' : 'display: none;' ?>"></div>
     <?php endif; ?>
 
+    <?php 
+      $backImage = $card["backCard"]["backImageSrc"] ?? $card["backCard"]["back_image"] ?? ""; 
+      $backImageFilter = $card["backCard"]["back_image_filter"] ?? "none";
+      $numMap = ['0'=>'none', '1'=>'vignette', '2'=>'blur', '3'=>'brightness', '4'=>'contrast', '5'=>'grayscale', '6'=>'hue-rotate', '7'=>'invert', '8'=>'saturate', '9'=>'sepia'];
+      if (isset($numMap[$backImageFilter])) $backImageFilter = $numMap[$backImageFilter];
+    ?>
+    <img src="<?= !empty($backImage) ? eUrl($backImage) : '' ?>" class="back-image-bg" style="<?= ($styleBack === 'image' && !empty($backImage)) ? '' : 'display: none;' ?>" alt="Background" onerror="this.style.display='none';">
+    <div class="back-image-vignette" style="<?= ($styleBack === 'image' && $backImageFilter === 'vignette') ? '' : 'display: none;' ?>"></div>
+    <div class="back-image-overlay" style="<?= ($styleBack === 'image') ? '' : 'display: none;' ?>"></div>
+
+
     <?php// _component("Menu.menuUser"); ?>
 
     <div class="w100 h100 flex-column between-center overflow-y-scroll z-index-1" data-scroll-memory="user-preview" style="scroll-behavior: auto !important;">

@@ -68,6 +68,21 @@ class UserModels extends BuilderSqlite {
       $card["backCard"] = array_merge($defaultCard["backCard"], $card["backCard"]);
     }
 
+    $backImageVal = $card["backCard"]["back_image"] ?? "";
+    if (!empty($backImageVal)) {
+      $diskBg = ROOT_PATH . "/Uploads/Background/" . $backImageVal;
+      $diskRoot = ROOT_PATH . "/Uploads/" . $backImageVal;
+      if (file_exists($diskBg)) {
+        $card["backCard"]["backImageSrc"] = DIR_SHOW_MEDIA . "Background/" . $backImageVal;
+      } elseif (file_exists($diskRoot)) {
+        $card["backCard"]["backImageSrc"] = DIR_SHOW_MEDIA . $backImageVal;
+      } else {
+        $card["backCard"]["backImageSrc"] = "";
+      }
+    } else {
+      $card["backCard"]["backImageSrc"] = "";
+    }
+
     $avatarVal = $card["avatar"] ?? "no-user.webp";
     $isDefaultAvatar = (empty($avatarVal) || $avatarVal === "no-user.webp" || strpos($avatarVal, "Origin/") !== false || strpos($avatarVal, "Custom/") !== false);
     

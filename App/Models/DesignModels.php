@@ -326,7 +326,12 @@ class DesignModels extends Builder {
         "back_video"           => "",
         "back_video_public_id" => "",
         "back_video_overlay"   => "#000000",
-        "back_video_opacity"   => 45
+        "back_video_opacity"   => 45,
+        "back_image"           => "",
+        "back_image_overlay"   => "#000000",
+        "back_image_opacity"   => 45,
+        "back_image_filter"    => "none",
+        "back_image_filter_intensity" => 80
       ],
       "colorText"    => "#383838",
       "style"        => "buttonRegular",
@@ -408,6 +413,22 @@ class DesignModels extends Builder {
 
       $contentImgDir = ROOT_PATH . "/Uploads/";
       if (!is_dir($contentImgDir)) @mkdir($contentImgDir, 0777, true);
+      // 1.0b Procesar imagen de fondo
+      if (isset($_FILES["back_image"]) && $_FILES["back_image"]["error"] === UPLOAD_ERR_OK) {
+        $bgDir = ROOT_PATH . "/Uploads/Background/";
+        if (!is_dir($bgDir)) @mkdir($bgDir, 0777, true);
+        $imgProcessor = new ImgProcessModule("back_image", $bgDir);
+        $nombres = $imgProcessor->save_img_disk(null);
+        if ($nombres !== false && !empty($nombres[0])) {
+          $officialBackImage = $officialCard["backCard"]["back_image"] ?? "";
+          if (!empty($dataRequest["backCard"]["back_image"]) && $dataRequest["backCard"]["back_image"] !== $officialBackImage) {
+            self::deleteBackgroundImageFromDisk($dataRequest["backCard"]["back_image"]);
+          }
+          $backImage = $nombres[0];
+          $styleBack = "image";
+        }
+      }
+
       foreach ($_FILES as $fileKey => $fileVal) {
         if (strpos($fileKey, "content_img_") === 0 && $fileVal["error"] === UPLOAD_ERR_OK) {
           $rawKey = str_replace("content_img_", "", $fileKey);
@@ -423,6 +444,19 @@ class DesignModels extends Builder {
       }
     }
 
+    // Procesar eliminación de imagen de fondo si se solicita
+    $backImage = $backImage ?? ($dataRequest["backCard"]["back_image"] ?? "");
+    if (isset($param["delete_back_image"]) && ($param["delete_back_image"] === "true" || $param["delete_back_image"] === true)) {
+      $officialBackImage = $officialCard["backCard"]["back_image"] ?? "";
+      if (!empty($backImage) && $backImage !== $officialBackImage) {
+        self::deleteBackgroundImageFromDisk($backImage);
+      }
+      $backImage = "";
+      if (($param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "")) === "image" || ($param["background_mode"] ?? "") === "image") {
+        $styleBack = "solid";
+      }
+    }
+
     // 1.1 Procesar video de fondo (subida directa en 2do plano o subida clásica)
     $backVideo = $dataRequest["backCard"]["back_video"] ?? "";
     $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
@@ -434,14 +468,16 @@ class DesignModels extends Builder {
         $styleBack = ($dir === "gradientUp") ? "gradientUp" : "gradientDown";
       } elseif ($param["background_mode"] === "video") {
         $styleBack = "video";
+      } elseif ($param["background_mode"] === "image") {
+        $styleBack = "image";
       } else {
         $styleBack = "solid";
       }
     } else {
-      $styleBack = $param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "solid");
+      $styleBack = $styleBack ?? ($param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "solid"));
     }
 
-    if (!in_array($styleBack, ["solid", "gradientUp", "gradientDown", "video"], true)) {
+    if (!in_array($styleBack, ["solid", "gradientUp", "gradientDown", "video", "image"], true)) {
       $styleBack = "solid";
     }
 
@@ -1492,7 +1528,18 @@ class DesignModels extends Builder {
         "back_video"           => $backVideo ?? $dataRequest["backCard"]["back_video"] ?? "",
         "back_video_public_id" => $backVideoPublicId ?? $dataRequest["backCard"]["back_video_public_id"] ?? "",
         "back_video_overlay"   => $param["back_video_overlay"] ?? $dataRequest["backCard"]["back_video_overlay"] ?? "#000000",
-        "back_video_opacity"   => isset($param["back_video_opacity"]) ? max(0, min(95, intval($param["back_video_opacity"]))) : ($dataRequest["backCard"]["back_video_opacity"] ?? 45)
+        "back_video_opacity"   => isset($param["back_video_opacity"]) ? max(0, min(95, intval($param["back_video_opacity"]))) : ($dataRequest["backCard"]["back_video_opacity"] ?? 45),
+        "back_image"           => $backImage ?? $dataRequest["backCard"]["back_image"] ?? "",
+        "back_image_overlay"   => $param["back_image_overlay"] ?? $dataRequest["backCard"]["back_image_overlay"] ?? "#000000",
+        "back_image_opacity"   => isset($param["back_image_opacity"]) ? max(0, min(95, intval($param["back_image_opacity"]))) : ($dataRequest["backCard"]["back_image_opacity"] ?? 45),
+        "back_image_filter"    => (function() use ($param, $dataRequest) {
+          $raw = $param["back_image_filter"] ?? ($dataRequest["backCard"]["back_image_filter"] ?? "none");
+          $map = ['0'=>'none', '1'=>'vignette', '2'=>'blur', '3'=>'brightness', '4'=>'contrast', '5'=>'grayscale', '6'=>'hue-rotate', '7'=>'invert', '8'=>'saturate', '9'=>'sepia'];
+          if (isset($map[$raw])) $raw = $map[$raw];
+          $valid = ['none', 'vignette', 'blur', 'brightness', 'contrast', 'grayscale', 'hue-rotate', 'invert', 'saturate', 'sepia'];
+          return in_array($raw, $valid, true) ? $raw : "none";
+        })(),
+        "back_image_filter_intensity" => isset($param["back_image_filter_intensity"]) ? max(0, min(100, intval($param["back_image_filter_intensity"]))) : ($dataRequest["backCard"]["back_image_filter_intensity"] ?? 80)
       ],
       "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
       "style"        => $param["style"] ?? $dataRequest["style"] ?? "buttonRegular",
@@ -1560,6 +1607,28 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Elimina un archivo de imagen de fondo del disco de manera segura contra Path Traversal.
+   *
+   * @param string $bgFilename Nombre del archivo de imagen.
+   * @return void
+   */
+  public static function deleteBackgroundImageFromDisk(string $bgFilename): void {
+    if (empty($bgFilename) || str_contains($bgFilename, "Custom/") || str_contains($bgFilename, "Origin/")) {
+      return;
+    }
+    $bgDir = realpath(ROOT_PATH . "/Uploads/Background/");
+    if ($bgDir === false) {
+      $bgDir = realpath(ROOT_PATH . "/Uploads/");
+      if ($bgDir === false) return;
+    }
+    $cleanFilename = basename($bgFilename);
+    $filePath = realpath($bgDir . DIRECTORY_SEPARATOR . $cleanFilename);
+    if ($filePath !== false && str_starts_with($filePath, $bgDir . DIRECTORY_SEPARATOR) && is_file($filePath)) {
+      @unlink($filePath);
+    }
+  }
+
+  /**
    * Publica oficialmente el diseño borrador (is_draft = 1) hacia el diseño público (is_draft = 0)
    * activando el perfil del usuario (active = true) en SQLite y eliminando archivos obsoletos.
    *
@@ -1580,6 +1649,13 @@ class DesignModels extends Builder {
       $newAvatar         = $card["avatar"] ?? "";
       if (!empty($oldOfficialAvatar) && $oldOfficialAvatar !== $newAvatar) {
         self::deleteAvatarFromDisk($oldOfficialAvatar);
+      }
+
+      // 1b. Si la imagen de fondo oficial fue reemplazada, eliminar la imagen anterior del disco
+      $oldOfficialBackImage = $officialCard["backCard"]["back_image"] ?? "";
+      $newBackImage         = $card["backCard"]["back_image"] ?? "";
+      if (!empty($oldOfficialBackImage) && $oldOfficialBackImage !== $newBackImage) {
+        self::deleteBackgroundImageFromDisk($oldOfficialBackImage);
       }
 
       // 2. Si el video oficial de Cloudinary fue reemplazado, eliminar el video anterior de Cloudinary
@@ -1690,6 +1766,13 @@ class DesignModels extends Builder {
       $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
       if (!empty($draftVideoPublicId) && $draftVideoPublicId !== $officialVideoPublicId) {
         CloudinaryService::deleteVideo($draftVideoPublicId);
+      }
+
+      // 2b. Eliminar imagen de fondo del borrador si es diferente a la oficial
+      $draftBackImage    = $draftCard["backCard"]["back_image"] ?? "";
+      $officialBackImage = $officialCard["backCard"]["back_image"] ?? "";
+      if (!empty($draftBackImage) && $draftBackImage !== $officialBackImage) {
+        self::deleteBackgroundImageFromDisk($draftBackImage);
       }
 
       // 3. Eliminar imágenes de ítems de contenido del borrador que no pertenezcan a la versión oficial

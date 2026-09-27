@@ -318,15 +318,24 @@ export function designDraftManager() {
       const isGradient = target.value === "gradient" || target.value === "gradientUp" || target.value === "gradientDown";
       const isSolid = target.value === "solid";
       const isVideo = target.value === "video";
+      const isImage = target.value === "image";
+      const imageWrapper = document.getElementById("image-controls-wrapper");
       if (isGradient) {
         if (gradientWrapper) gradientWrapper.style.display = "flex";
         if (videoWrapper) videoWrapper.style.display = "none";
+        if (imageWrapper) imageWrapper.style.display = "none";
       } else if (isSolid) {
         if (gradientWrapper) gradientWrapper.style.display = "none";
         if (videoWrapper) videoWrapper.style.display = "none";
+        if (imageWrapper) imageWrapper.style.display = "none";
       } else if (isVideo) {
         if (gradientWrapper) gradientWrapper.style.display = "none";
         if (videoWrapper) videoWrapper.style.display = "flex";
+        if (imageWrapper) imageWrapper.style.display = "none";
+      } else if (isImage) {
+        if (gradientWrapper) gradientWrapper.style.display = "none";
+        if (videoWrapper) videoWrapper.style.display = "none";
+        if (imageWrapper) imageWrapper.style.display = "flex";
       }
     }
 
@@ -444,6 +453,19 @@ export function designDraftManager() {
       if (block) {
         const discountWrap = block.querySelector(".product-discount-wrapper");
         if (discountWrap) discountWrap.style.display = target.checked ? "flex" : "none";
+      }
+    }
+
+    // 11. Filtro de imagen de fondo: mostrar/ocultar control deslizante de intensidad y actualizar texto del filtro activo
+    if (target.name === "back_image_filter") {
+      const activeFilterName = document.getElementById("active-filter-name");
+      if (activeFilterName) {
+        activeFilterName.textContent = target.dataset.filterName || target.value;
+      }
+      const intensityRow = document.getElementById("image-filter-intensity-row");
+      if (intensityRow) {
+        const isNone = target.value === "none" || target.value === "0";
+        intensityRow.style.display = isNone ? "none" : "flex";
       }
     }
   }
@@ -574,11 +596,44 @@ export function designDraftManager() {
       `);
     }
 
-    // Video de fondo: visibilidad y reproducción según style_back
+    // Filtro y porcentaje de intensidad para imagen de fondo
+    const checkedFilterRadio = document.querySelector('input[name="back_image_filter"]:checked');
+    let backImageFilter = fields.back_image_filter || (checkedFilterRadio ? checkedFilterRadio.value : "none");
+    const numToFilterMap = {
+      "0": "none",
+      "1": "vignette",
+      "2": "blur",
+      "3": "brightness",
+      "4": "contrast",
+      "5": "grayscale",
+      "6": "hue-rotate",
+      "7": "invert",
+      "8": "saturate",
+      "9": "sepia"
+    };
+    if (numToFilterMap[backImageFilter]) {
+      backImageFilter = numToFilterMap[backImageFilter];
+    }
+
+    const intensitySlider = document.getElementById("select-filter-intensity");
+    const intensityHidden = document.getElementById("input-filter-intensity-val");
+    const backImageFilterIntensity = fields.back_image_filter_intensity !== undefined
+      ? fields.back_image_filter_intensity
+      : (intensityHidden ? intensityHidden.value : (intensitySlider ? intensitySlider.value : 80));
+
+    const parsedIntensity = parseInt(backImageFilterIntensity, 10);
+    const intensityNum = isNaN(parsedIntensity) ? 80 : Math.max(0, Math.min(100, parsedIntensity));
+    const filterRatio = (intensityNum / 100).toFixed(2);
+
+    // Video e Imagen de fondo: visibilidad y reproducción según style_back
     if (styleBack !== undefined) {
       previews.forEach((p) => {
         const videoBg = p.querySelector(".back-video-bg");
         const videoOverlay = p.querySelector(".back-video-overlay");
+        const imageBg = p.querySelector(".back-image-bg");
+        const imageOverlay = p.querySelector(".back-image-overlay");
+        const imageVignette = p.querySelector(".back-image-vignette");
+        
         if (videoBg) {
           if (styleBack === "video") {
             videoBg.style.display = "";
@@ -591,6 +646,17 @@ export function designDraftManager() {
         if (videoOverlay) {
           videoOverlay.style.display = styleBack === "video" ? "" : "none";
         }
+        
+        if (imageBg) {
+          const hasSrc = imageBg.getAttribute("src") && imageBg.getAttribute("src") !== "";
+          imageBg.style.display = (styleBack === "image" && hasSrc) ? "" : "none";
+        }
+        if (imageOverlay) {
+          imageOverlay.style.display = styleBack === "image" ? "" : "none";
+        }
+        if (imageVignette) {
+          imageVignette.style.display = (styleBack === "image" && backImageFilter === "vignette") ? "" : "none";
+        }
       });
     }
 
@@ -601,12 +667,73 @@ export function designDraftManager() {
       ? fields.back_video_opacity
       : (overlayInput ? overlayInput.value : 45);
 
-    const opacity = Math.max(0, Math.min(95, parseInt(videoOverlayOpacity, 10) || 45));
+    const parsedVideoOpacity = parseInt(videoOverlayOpacity, 10);
+    const opacity = isNaN(parsedVideoOpacity) ? 45 : Math.max(0, Math.min(95, parsedVideoOpacity));
     const opacityFraction = (opacity / 100).toFixed(2);
     cssRules.push(`
       .user-profile-preview .back-video-overlay {
         background-color: ${videoOverlayColor} !important;
         opacity: ${opacityFraction} !important;
+      }
+    `);
+
+    // Opacidad y color del overlay de imagen (SIEMPRE presente e independiente de los filtros)
+    const imageOverlayColor = fields.back_image_overlay || document.getElementById("select-color-image-overlay")?.value || "#000000";
+    const imageOverlayInput = document.getElementById("input-opacity-image-val");
+    const imageOverlayOpacity = fields.back_image_opacity !== undefined
+      ? fields.back_image_opacity
+      : (imageOverlayInput ? imageOverlayInput.value : 45);
+
+    const parsedImgOpacity = parseInt(imageOverlayOpacity, 10);
+    const imgOpacity = isNaN(parsedImgOpacity) ? 45 : Math.max(0, Math.min(95, parsedImgOpacity));
+    const imgOpacityFraction = (imgOpacity / 100).toFixed(2);
+
+    cssRules.push(`
+      .user-profile-preview .back-image-overlay {
+        background-color: ${imageOverlayColor} !important;
+        opacity: ${imgOpacityFraction} !important;
+      }
+    `);
+
+    // Regla para la viñeta (oscurece bordes con radial-gradient negro e intensidad controlada por el slider)
+    cssRules.push(`
+      .user-profile-preview .back-image-vignette {
+        background: radial-gradient(ellipse at center, transparent 30%, #000000 100%) !important;
+        opacity: ${filterRatio} !important;
+      }
+    `);
+
+    // Reglas CSS para filtros de imagen estándar según la intensidad del slider
+    let filterCss = 'none';
+    let filterTransform = 'none';
+    if (backImageFilter === 'blur') {
+      const blurPx = ((intensityNum / 100) * 15).toFixed(1);
+      filterCss = `blur(${blurPx}px)`;
+      filterTransform = 'scale(1.05)';
+    } else if (backImageFilter === 'brightness') {
+      const brightnessVal = ((intensityNum / 100) * 2).toFixed(2);
+      filterCss = `brightness(${brightnessVal})`;
+    } else if (backImageFilter === 'contrast') {
+      const contrastVal = ((intensityNum / 100) * 2).toFixed(2);
+      filterCss = `contrast(${contrastVal})`;
+    } else if (backImageFilter === 'grayscale') {
+      filterCss = `grayscale(${intensityNum}%)`;
+    } else if (backImageFilter === 'hue-rotate') {
+      const hueDeg = Math.round((intensityNum / 100) * 360);
+      filterCss = `hue-rotate(${hueDeg}deg)`;
+    } else if (backImageFilter === 'invert') {
+      filterCss = `invert(${intensityNum}%)`;
+    } else if (backImageFilter === 'saturate') {
+      const satVal = ((intensityNum / 100) * 3).toFixed(2);
+      filterCss = `saturate(${satVal})`;
+    } else if (backImageFilter === 'sepia') {
+      filterCss = `sepia(${intensityNum}%)`;
+    }
+
+    cssRules.push(`
+      .user-profile-preview .back-image-bg {
+        filter: ${filterCss} !important;
+        transform: ${filterTransform} !important;
       }
     `);
 
@@ -1507,6 +1634,7 @@ export function designDraftManager() {
         const gradRadio = document.getElementById("style_gradient");
         const solidRadio = document.getElementById("style_solid");
         const videoRadio = document.getElementById("style_video");
+        const imageRadio = document.getElementById("style_image");
 
         if (isGrad && gradRadio) {
           gradRadio.checked = true;
@@ -1514,6 +1642,8 @@ export function designDraftManager() {
           solidRadio.checked = true;
         } else if (styleVal === "video" && videoRadio) {
           videoRadio.checked = true;
+        } else if (styleVal === "image" && imageRadio) {
+          imageRadio.checked = true;
         }
 
         if (isGrad) {
@@ -1528,8 +1658,87 @@ export function designDraftManager() {
 
         const gradientWrapper = document.getElementById("gradient-direction-wrapper");
         const videoWrapper = document.getElementById("video-controls-wrapper");
+        const imageWrapper = document.getElementById("image-controls-wrapper");
         if (gradientWrapper) gradientWrapper.style.display = isGrad ? "flex" : "none";
         if (videoWrapper) videoWrapper.style.display = (styleVal === "video") ? "flex" : "none";
+        if (imageWrapper) imageWrapper.style.display = (styleVal === "image") ? "flex" : "none";
+      }
+
+      // Manejo específico para filtro de imagen
+      if (name === "back_image_filter") {
+        const numToFilterMap = {
+          "0": "none",
+          "1": "vignette",
+          "2": "blur",
+          "3": "brightness",
+          "4": "contrast",
+          "5": "grayscale",
+          "6": "hue-rotate",
+          "7": "invert",
+          "8": "saturate",
+          "9": "sepia"
+        };
+        const filterVal = numToFilterMap[String(val)] || String(val);
+        const radios = document.querySelectorAll(`input[type="radio"][name="back_image_filter"]`);
+        radios.forEach((r) => {
+          if (r.value === filterVal || r.id === `filter_${val}`) {
+            r.checked = true;
+            syncConditionalUI(r);
+          }
+        });
+        return;
+      }
+
+      // Manejo específico para intensidad de filtro de imagen
+      if (name === "back_image_filter_intensity") {
+        const intensitySlider = document.getElementById("select-filter-intensity");
+        const intensityVal = document.getElementById("image-filter-val");
+        const intensityHidden = document.getElementById("input-filter-intensity-val");
+        if (intensitySlider) {
+          intensitySlider.value = val;
+          intensitySlider.style.setProperty("--range-progress", `${val}%`);
+        }
+        if (intensityVal) {
+          intensityVal.textContent = `${val}%`;
+        }
+        if (intensityHidden) {
+          intensityHidden.value = val;
+        }
+        return;
+      }
+
+      // Manejo específico para opacidad de imagen de fondo
+      if (name === "back_image_opacity") {
+        const opacityHidden = document.getElementById("input-opacity-image-val");
+        const opacitySlider = document.getElementById("select-opacity-image-overlay");
+        const opacityValText = document.getElementById("image-opacity-val");
+        const parsedVal = parseInt(val, 10);
+        const actualOpacity = isNaN(parsedVal) ? 45 : Math.max(0, Math.min(95, parsedVal));
+        const userPercent = actualOpacity > 0 ? Math.min(100, Math.round((actualOpacity / 95) * 100)) : 0;
+        if (opacityHidden) opacityHidden.value = actualOpacity;
+        if (opacitySlider) {
+          opacitySlider.value = userPercent;
+          opacitySlider.style.setProperty("--range-progress", `${userPercent}%`);
+        }
+        if (opacityValText) opacityValText.textContent = `${userPercent}%`;
+        return;
+      }
+
+      // Manejo específico para opacidad de video de fondo
+      if (name === "back_video_opacity") {
+        const opacityHidden = document.getElementById("input-opacity-val");
+        const opacitySlider = document.getElementById("select-opacity-overlay");
+        const opacityValText = document.getElementById("video-opacity-val");
+        const parsedVal = parseInt(val, 10);
+        const actualOpacity = isNaN(parsedVal) ? 45 : Math.max(0, Math.min(95, parsedVal));
+        const userPercent = actualOpacity > 0 ? Math.min(100, Math.round((actualOpacity / 95) * 100)) : 0;
+        if (opacityHidden) opacityHidden.value = actualOpacity;
+        if (opacitySlider) {
+          opacitySlider.value = userPercent;
+          opacitySlider.style.setProperty("--range-progress", `${userPercent}%`);
+        }
+        if (opacityValText) opacityValText.textContent = `${userPercent}%`;
+        return;
       }
 
       // 1. Inputs tipo radio
@@ -2273,7 +2482,62 @@ export function designDraftManager() {
 
   document.addEventListener("input", (e) => {
     const target = e.target;
-    if (!target || !target.name) return;
+    if (!target) return;
+
+    // Control deslizante de opacidad de overlay de imagen
+    if (target.id === "select-opacity-image-overlay") {
+      const parsedVal = parseInt(target.value, 10);
+      const sliderVal = Math.max(0, Math.min(100, isNaN(parsedVal) ? 0 : parsedVal));
+      const actualOpacity = Math.round((sliderVal / 100) * 95);
+      target.style.setProperty("--range-progress", `${sliderVal}%`);
+
+      const valText = document.getElementById("image-opacity-val");
+      if (valText) valText.textContent = `${sliderVal}%`;
+
+      const hiddenInput = document.getElementById("input-opacity-image-val");
+      if (hiddenInput) hiddenInput.value = actualOpacity;
+
+      setDraftField("back_image_opacity", actualOpacity);
+      applyDraftToPreview(getDraft());
+      return;
+    }
+
+    // Control deslizante de opacidad de overlay de video
+    if (target.id === "select-opacity-overlay") {
+      const parsedVal = parseInt(target.value, 10);
+      const sliderVal = Math.max(0, Math.min(100, isNaN(parsedVal) ? 0 : parsedVal));
+      const actualOpacity = Math.round((sliderVal / 100) * 95);
+      target.style.setProperty("--range-progress", `${sliderVal}%`);
+
+      const valText = document.getElementById("video-opacity-val");
+      if (valText) valText.textContent = `${sliderVal}%`;
+
+      const hiddenInput = document.getElementById("input-opacity-val");
+      if (hiddenInput) hiddenInput.value = actualOpacity;
+
+      setDraftField("back_video_opacity", actualOpacity);
+      applyDraftToPreview(getDraft());
+      return;
+    }
+
+    // Control deslizante de intensidad del filtro de imagen
+    if (target.id === "select-filter-intensity") {
+      const parsedVal = parseInt(target.value, 10);
+      const sliderVal = Math.max(0, Math.min(100, isNaN(parsedVal) ? 0 : parsedVal));
+      target.style.setProperty("--range-progress", `${sliderVal}%`);
+
+      const valText = document.getElementById("image-filter-val");
+      if (valText) valText.textContent = `${sliderVal}%`;
+
+      const hiddenInput = document.getElementById("input-filter-intensity-val");
+      if (hiddenInput) hiddenInput.value = sliderVal;
+
+      setDraftField("back_image_filter_intensity", sliderVal);
+      applyDraftToPreview(getDraft());
+      return;
+    }
+
+    if (!target.name) return;
 
     // Solo procesar controles pertenecientes al contenedor de edición
     if (!target.closest(".remote-container") && !target.closest(".custom-color-picker-popover")) return;
@@ -2347,6 +2611,8 @@ export function designDraftManager() {
           effectiveStyle = dirRadio ? dirRadio.value : "gradientDown";
         } else if (bgMode === "video") {
           effectiveStyle = "video";
+        } else if (bgMode === "image") {
+          effectiveStyle = "image";
         } else {
           effectiveStyle = "solid";
         }
@@ -2478,6 +2744,55 @@ export function designDraftManager() {
       });
 
       notifyDraftState();
+    } else if (target.name === "back_image" && target.files && target.files[0]) {
+      const isCropInput = target.classList.contains("selectAndCropImage");
+      if (isCropInput && target.dataset.isCropped !== "true") {
+        return;
+      }
+
+      const file = target.files[0];
+      const previewUrl = URL.createObjectURL(file);
+
+      // 1. Actualizar imagen, overlay y viñeta en la vista previa del celular
+      document.querySelectorAll(".user-profile-preview .back-image-bg").forEach((img) => {
+        img.src = previewUrl;
+        img.style.display = "";
+      });
+      document.querySelectorAll(".user-profile-preview .back-image-overlay").forEach((ov) => {
+        ov.style.display = "";
+      });
+      document.querySelectorAll(".user-profile-preview .back-image-vignette").forEach((vig) => {
+        const checkedFilter = document.querySelector('input[name="back_image_filter"]:checked');
+        const filterVal = checkedFilter ? checkedFilter.value : "none";
+        vig.style.display = (filterVal === "vignette" || filterVal === "1") ? "" : "none";
+      });
+
+      // 2. Actualizar miniaturas en el panel de fondo del editor
+      const thumb = document.getElementById("thumb-image-preview");
+      if (thumb) {
+        thumb.src = previewUrl;
+        thumb.style.display = "";
+        if (thumb.nextElementSibling) thumb.nextElementSibling.style.display = "none";
+      }
+      const thumbStyle = document.getElementById("thumb-style-image");
+      if (thumbStyle) {
+        thumbStyle.src = previewUrl;
+      }
+
+      // 3. Conmutar a modo 'image' automáticamente al subir una imagen
+      const imageRadio = document.getElementById("style_image");
+      if (imageRadio && !imageRadio.checked) {
+        imageRadio.checked = true;
+      }
+      const hiddenStyle = document.getElementById("input_style_back");
+      if (hiddenStyle) {
+        hiddenStyle.value = "image";
+      }
+      setDraftField("style_back", "image");
+      setDraftField("background_mode", "image");
+
+      notifyDraftState();
+      applyDraftToPreview(getDraft());
     } else if (target.name && target.name.startsWith("content_img_") && target.files && target.files[0]) {
       const isCropInput = target.classList.contains("selectAndCropImage");
       if (isCropInput && target.dataset.isCropped !== "true") {
@@ -2576,9 +2891,13 @@ export function designDraftManager() {
 
     // Incluir cualquier archivo pendiente en inputs file de todo .remote-container
     document.querySelectorAll(".remote-container input[type='file']").forEach((fileInput) => {
-      if (fileInput.files && fileInput.files.length > 0 && !formData.has(fileInput.name)) {
-        for (let i = 0; i < fileInput.files.length; i++) {
-          formData.append(fileInput.name, fileInput.files[i]);
+      if (fileInput.files && fileInput.files.length > 0) {
+        const existing = formData.get(fileInput.name);
+        if (!existing || (existing instanceof File && existing.size === 0)) {
+          formData.delete(fileInput.name);
+          for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append(fileInput.name, fileInput.files[i]);
+          }
         }
       }
     });

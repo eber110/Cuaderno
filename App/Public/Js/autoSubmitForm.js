@@ -27,16 +27,26 @@ export function autoSubmitForm() {
       const isGradient = target.value === 'gradient' || target.value === 'gradientUp' || target.value === 'gradientDown';
       const isSolid = target.value === 'solid';
       const isVideo = target.value === 'video';
+      const isImage = target.value === 'image';
+
+      const imageWrapper = document.getElementById('image-controls-wrapper');
 
       if (isGradient) {
         if (gradientWrapper) gradientWrapper.style.display = 'flex';
         if (videoWrapper) videoWrapper.style.display = 'none';
+        if (imageWrapper) imageWrapper.style.display = 'none';
       } else if (isSolid) {
         if (gradientWrapper) gradientWrapper.style.display = 'none';
         if (videoWrapper) videoWrapper.style.display = 'none';
+        if (imageWrapper) imageWrapper.style.display = 'none';
       } else if (isVideo) {
         if (gradientWrapper) gradientWrapper.style.display = 'none';
         if (videoWrapper) videoWrapper.style.display = 'flex';
+        if (imageWrapper) imageWrapper.style.display = 'none';
+      } else if (isImage) {
+        if (gradientWrapper) gradientWrapper.style.display = 'none';
+        if (videoWrapper) videoWrapper.style.display = 'none';
+        if (imageWrapper) imageWrapper.style.display = 'flex';
       }
     }
 
