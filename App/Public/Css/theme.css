@@ -986,3 +986,22 @@ label:focus-within > .input-note.animated,
   }
 }
 
+/* Evitar que las palabras se partan a la mitad en truncamiento dinámico y bloques de usuario */
+.cut-phrase,
+.cut-phrase-wrapper,
+.product-item-wrapper,
+.product-grid-card,
+.product-slide-card,
+.link-item-wrapper,
+.title-block-wrapper,
+.text-block-wrapper,
+.campaign-block-wrapper,
+.banner-block-wrapper,
+.back-card,
+.user-profile-preview {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+}
+
+

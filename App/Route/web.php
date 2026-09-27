@@ -100,7 +100,7 @@ Route::get("/salir", [LoginControllers::class, "exitApp"]);
 Route::get("/proxy", function() {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
     $url = '';
-    $matches = '';
+    $matches = [];
     
     // Extraer todo lo que viene después de 'url=' para evitar que parámetros como &t= de LinkedIn se pierdan 
     // si el frontend olvidó hacer encodeURIComponent().

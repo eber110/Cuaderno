@@ -199,4 +199,30 @@
     }
   }
 
+  /* Evitar que las palabras se partan a la mitad en todos los bloques del perfil y preview */
+  .back-card,
+  .user-profile-preview,
+  .back-card-container,
+  .product-item-wrapper,
+  .product-grid-card,
+  .product-slide-card,
+  .link-item-wrapper,
+  .campaign-block-wrapper,
+  .text-block-wrapper,
+  .title-block-wrapper,
+  .banner-block-wrapper,
+  .header-variant-wrapper,
+  .cut-phrase,
+  .cut-phrase-wrapper {
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+  }
+
+  .cut-phrase-wrapper {
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+  }
+
 </style>

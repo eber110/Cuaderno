@@ -1591,12 +1591,48 @@ class DesignModels extends Builder {
   }
 
   /**
-   * Dispara la extracción de metadatos en segundo plano utilizando HttpPostModule.
-   * Cierra la sesión activa para evitar bloqueos por cerrojos de archivo de sesión (session lock).
+   * Extrae el ID de video de YouTube (11 caracteres) de cualquier formato de URL conocido.
    *
-   * @param string $user Nombre de usuario.
-   * @return void
+   * @param string $url URL de YouTube.
+   * @return string ID del video de 11 caracteres o cadena vacía si no es un enlace válido de YouTube.
    */
+  public static function extractYouTubeId(string $url): string {
+    $url = trim($url);
+    if (empty($url)) {
+      return "";
+    }
+
+    $parts = parse_url($url);
+    $host  = strtolower($parts["host"] ?? "");
+
+    // Validar que el dominio corresponda estrictamente a YouTube o youtu.be
+    if (!preg_match('#(?:^|\.)(?:youtube\.com|youtu\.be)$#i', $host)) {
+      return "";
+    }
+
+    // 1. Caso estándar: parámetro v= en query string (youtube.com/watch?v=...)
+    if (!empty($parts["query"])) {
+      parse_str($parts["query"], $queryParams);
+      if (!empty($queryParams["v"]) && is_string($queryParams["v"]) && preg_match('#^[a-zA-Z0-9_-]{11}$#', $queryParams["v"])) {
+        return $queryParams["v"];
+      }
+    }
+
+    // 2. Caso rutas directas: youtu.be/ID o youtube.com/(embed|shorts|v)/ID
+    $matches = [];
+    if (preg_match('#(?:youtu\.be/|/(?:embed|shorts|v)/)([a-zA-Z0-9_-]{11})#i', $url, $matches)) {
+      return $matches[1] ?? "";
+    }
+
+    // 3. Fallback con búsqueda de v= en la URL
+    $matches = [];
+    if (preg_match('#[?&]v=([a-zA-Z0-9_-]{11})#i', $url, $matches)) {
+      return $matches[1] ?? "";
+    }
+
+    return "";
+  }
+
   /**
    * Extrae metadatos de un enlace de YouTube utilizando la API oEmbed oficial
    * con fallback directo a la miniatura por ID del video.
@@ -1605,10 +1641,7 @@ class DesignModels extends Builder {
    * @return array|false Arreglo con title, description e image, o false si no es válido.
    */
   public static function fetchYouTubeMetadata(string $url): array|false {
-    $videoId = "";
-    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $url, $matches)) {
-      $videoId = $matches[1];
-    }
+    $videoId = self::extractYouTubeId($url);
 
     $fallbackImg = !empty($videoId) ? "https://i.ytimg.com/vi/{$videoId}/hqdefault.jpg" : "";
 

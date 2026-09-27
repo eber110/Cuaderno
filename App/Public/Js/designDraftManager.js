@@ -589,16 +589,14 @@ export function designDraftManager() {
       `);
     }
 
-    // Color del título principal
+    // Color del título principal del perfil
     if (fields.titleColor) {
       cssRules.push(`
-        .user-profile-preview .title-color,
+        .user-profile-preview .header-variant-wrapper .title-color,
+        .user-profile-preview .header-variant-wrapper h1,
         .user-profile-preview .title-hero-regular,
         .user-profile-preview .title-hero-big,
-        .user-profile-preview .title-hero-mini,
-        .user-profile-preview h1,
-        .user-profile-preview h2,
-        .user-profile-preview h3 {
+        .user-profile-preview .title-hero-mini {
           color: ${fields.titleColor} !important;
         }
       `);
@@ -778,7 +776,7 @@ export function designDraftManager() {
     // --- D. TEXTOS DEL PERFIL (TÍTULO Y BIO) ---
     if (fields.title !== undefined) {
       previews.forEach((p) => {
-        p.querySelectorAll("header .title-color, .title-hero-regular, .title-hero-big, .title-hero-mini").forEach((el) => {
+        p.querySelectorAll(".header-variant-wrapper h1, .header-variant-wrapper .title-hero-regular, .header-variant-wrapper .title-hero-big, .header-variant-wrapper .title-hero-mini").forEach((el) => {
           el.textContent = fields.title;
         });
       });
@@ -786,7 +784,7 @@ export function designDraftManager() {
 
     if (fields.desc !== undefined) {
       previews.forEach((p) => {
-        p.querySelectorAll("main p.bold500, .desc-hero-regular, .desc-hero-big, .desc-hero-mini").forEach((el) => {
+        p.querySelectorAll(".header-variant-wrapper p.bold500, .header-variant-wrapper .desc-hero-regular, .header-variant-wrapper .desc-hero-big, .header-variant-wrapper .desc-hero-mini").forEach((el) => {
           el.textContent = fields.desc;
         });
       });
