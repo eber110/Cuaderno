@@ -31,7 +31,7 @@
       <?php
         [$gradStart, $gradEnd] = \App\Models\DesignModels::getGradientColors($backPerfil);
       ?>
-      <div class="flex-row center-start flex-wrap gap10 w100">
+      <div class="flex-row center-end flex-wrap gap10 w100">
         
         <input type="radio" id="style_gradient" name="background_mode" class="hidden-radio" value="gradient" <?= $isGradient ? 'checked' : '' ?>>
         <label for="style_gradient">
