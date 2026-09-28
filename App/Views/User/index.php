@@ -4,8 +4,8 @@
   $styleBack = $card["backCard"]["style_back"] ?? "solid";
   $backVideo = $card["backCard"]["back_video"] ?? "";
 ?>
-<div class="container-xl container-xl-sml flex-column center-center text-protected back-card-container overflow-hidden">
-  <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0">
+<div class="container-xl container-xl-sml flex-column center-center text-protected back-card-container overflow-hidden position-relative">
+  <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0 z-index-1">
     <div class="flex-column between-center back-card color-text-card shadow-card dvh-cuaderno h100 p0 brtl-desk-30 brtr-desk-30 brtl-mid-30 brtr-mid-30 brtl-sml-0 brtr-sml-0 overflow-hidden position-relative">
       
       <?php if (\App\Models\DesignModels::isVideoEnabled() && $styleBack === "video" && !empty($backVideo)) : ?>

@@ -36,6 +36,64 @@ body,
 
 .back-card-container {
   overscroll-behavior: none;
+  position: relative;
+}
+
+/* Patrón de puntos dinámico para fondo exterior (Desktop y Tablet) */
+@media (min-width: 769px) {
+  .back-card-container {
+    --dot-pattern-color: rgba(0, 0, 0, 0.055);
+  }
+
+  .back-card-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image: 
+      radial-gradient(circle, var(--dot-pattern-color, rgba(0, 0, 0, 0.16)) 2px, transparent 2.2px),
+      radial-gradient(circle, var(--dot-pattern-color, rgba(0, 0, 0, 0.16)) 2px, transparent 2.2px);
+    background-size: 32px 32px;
+    background-position: 0 0, 16px 16px;
+    animation: dynamicDotDrift 30s linear infinite;
+  }
+
+  /* Asegurar que la tarjeta del perfil se ubique por encima del patrón */
+  .back-card-container > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-theme="dark"] .back-card-container,
+  .dark-mode .back-card-container {
+    --dot-pattern-color: rgba(255, 255, 255, 0.14);
+  }
+
+  [data-theme="dark"] .back-card-container::before,
+  .dark-mode .back-card-container::before {
+    background-image: 
+      radial-gradient(circle, var(--dot-pattern-color, rgba(255, 255, 255, 0.14)) 2px, transparent 2.2px),
+      radial-gradient(circle, var(--dot-pattern-color, rgba(255, 255, 255, 0.14)) 2px, transparent 2.2px);
+  }
+
+  /* Movimiento continuo en loop desde abajo a la derecha hacia arriba a la izquierda */
+  @keyframes dynamicDotDrift {
+    0% {
+      background-position: 0 0, 16px 16px;
+    }
+    100% {
+      background-position: -64px -64px, -48px -48px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-card-container::before {
+      animation: none !important;
+    }
+  }
 }
 
 .back-menu-img-form{

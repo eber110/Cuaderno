@@ -68,6 +68,35 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Genera el color para el patrón de puntos del fondo dinámico.
+   * Oscurece sutilmente el color base del perfil para dar contraste y armonía.
+   *
+   * @param string $hex Color hexadecimal base.
+   * @return string Color OKLCH relativo.
+   */
+  public static function getDotPatternColor(string $hex): string {
+    $clean = trim($hex);
+    if (!str_starts_with($clean, "#")) {
+      $clean = "#" . $clean;
+    }
+    $cleanHex = ltrim($clean, "#");
+    if (strlen($cleanHex) === 3) {
+      $cleanHex = $cleanHex[0].$cleanHex[0].$cleanHex[1].$cleanHex[1].$cleanHex[2].$cleanHex[2];
+    }
+    $isDark = false;
+    if (strlen($cleanHex) === 6 && ctype_xdigit($cleanHex)) {
+      $r = hexdec(substr($cleanHex, 0, 2));
+      $g = hexdec(substr($cleanHex, 2, 2));
+      $b = hexdec(substr($cleanHex, 4, 2));
+      $isDark = (0.299 * $r + 0.587 * $g + 0.114 * $b) < 140;
+    }
+    if ($isDark) {
+      return "oklch(from {$clean} calc(l * 0.55) c h / 0.85)";
+    }
+    return "oklch(from {$clean} calc(l * 0.68) calc(c * 1.1) h / 0.25)";
+  }
+
+  /**
    * Transforma una fila de la tabla user_designs en la estructura asociativa de tarjeta ($data['card']).
    *
    * @param array $row Fila obtenida de SQLite.

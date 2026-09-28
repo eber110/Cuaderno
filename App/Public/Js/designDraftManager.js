@@ -596,6 +596,25 @@ export function designDraftManager() {
       `);
     }
 
+    const cleanHex = String(backPerfil).replace("#", "").trim();
+    let isDarkBg = false;
+    if (cleanHex.length === 6) {
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        isDarkBg = (0.299 * r + 0.587 * g + 0.114 * b) < 140;
+      }
+    }
+    const dotColor = isDarkBg
+      ? `oklch(from ${backPerfil} calc(l * 0.55) c h / 0.85)`
+      : `oklch(from ${backPerfil} calc(l * 0.68) calc(c * 1.1) h / 0.85)`;
+    cssRules.push(`
+      .back-card-container {
+        --dot-pattern-color: ${dotColor} !important;
+      }
+    `);
+
     // Filtro y porcentaje de intensidad para imagen de fondo
     const checkedFilterRadio = document.querySelector('input[name="back_image_filter"]:checked');
     let backImageFilter = fields.back_image_filter || (checkedFilterRadio ? checkedFilterRadio.value : "none");

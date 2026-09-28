@@ -60,6 +60,7 @@
     $gradStartContainer                      = safeCssColor($gradStartContainer, $backPerfil);
     $gradEndContainer                        = safeCssColor($gradEndContainer, $backPerfil);
     $containerSolid                          = safeCssColor($containerSolid, $backPerfil);
+    $dotPatternColor                         = \App\Models\DesignModels::getDotPatternColor($backPerfil);
   ?>
   <?php if ($styleBack == "solid") :?>
     .back-card{
@@ -67,6 +68,7 @@
     }
     .back-card-container{
       background-color: <?= $containerSolid ?>;
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php elseif ($styleBack == "gradientUp") :?>
     .back-card{
@@ -74,6 +76,7 @@
     }
     .back-card-container{
       background: linear-gradient(0deg, <?= $gradStartContainer ?>, <?= $gradEndContainer ?>);
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php elseif ($styleBack == "gradientDown") :?>
     .back-card{
@@ -81,6 +84,7 @@
     }
     .back-card-container{
       background: linear-gradient(180deg, <?= $gradStartContainer ?>, <?= $gradEndContainer ?>);
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php elseif (\App\Models\DesignModels::isVideoEnabled() && $styleBack == "video" && !empty($backVideo)) :?>
     .back-card{
@@ -89,6 +93,7 @@
     }
     .back-card-container{
       background-color: <?= $containerSolid ?>;
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php elseif ($styleBack == "image" && !empty($backImage)) :?>
     .back-card{
@@ -97,6 +102,7 @@
     }
     .back-card-container{
       background-color: <?= $containerSolid ?>;
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php else :?>
     .back-card{
@@ -104,6 +110,7 @@
     }
     .back-card-container{
       background-color: <?= $containerSolid ?>;
+      --dot-pattern-color: <?= $dotPatternColor ?>;
     }
   <?php endif?>
 
