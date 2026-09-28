@@ -91,9 +91,9 @@ class DesignModels extends Builder {
       $isDark = (0.299 * $r + 0.587 * $g + 0.114 * $b) < 140;
     }
     if ($isDark) {
-      return "oklch(from {$clean} calc(l * 0.55) c h / 0.85)";
+      return "oklch(from {$clean} calc(l * 1.25) c h / 0.55)";
     }
-    return "oklch(from {$clean} calc(l * 0.68) calc(c * 1.1) h / 0.25)";
+    return "oklch(from {$clean} calc(l * 1.25) calc(c * 1.1) h / 0.55)";
   }
 
   /**
