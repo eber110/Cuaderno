@@ -12,6 +12,7 @@
  */
 export function sortableContent() {
   let isDragging = false;
+  let blockNextClick = false;
   const hasGsap = typeof gsap !== "undefined";
 
   const animConfig = {
@@ -395,6 +396,23 @@ export function sortableContent() {
       }
     });
 
+    // Interceptor en fase de captura para bloquear clics sintéticos tras finalizar un arrastre (táctil o ratón)
+    document.addEventListener("click", (e) => {
+      if (blockNextClick || isDragging) {
+        e.preventDefault();
+        e.stopPropagation();
+        blockNextClick = false;
+        return;
+      }
+    }, true);
+
+    // Evitar menú contextual durante el arrastre
+    window.addEventListener("contextmenu", (e) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    });
+
     // Gestión de apertura/cierre exclusivamente manual al hacer clic en bloques
     document.addEventListener("click", (e) => {
       // 1. Detectar clic en botones de añadir nuevo elemento
@@ -404,7 +422,7 @@ export function sortableContent() {
         return;
       }
 
-      if (isDragging) return;
+      if (isDragging || blockNextClick) return;
 
       const target = e.target;
       if (!target) return;
@@ -446,7 +464,9 @@ export function sortableContent() {
         el.classList.remove("dragging");
         el.style.opacity = "1";
       });
+      blockNextClick = true;
       setTimeout(() => {
+        blockNextClick = false;
         isDragging = false;
       }, 50);
     });
@@ -568,7 +588,10 @@ export function sortableContent() {
       const afterElement = getDragAfterElement(container, e.clientY);
 
       if (afterElement == null) {
-        if (container.lastElementChild !== draggedItem) {
+        const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
+        if (lastSortable && lastSortable !== draggedItem) {
+          lastSortable.after(draggedItem);
+        } else if (!lastSortable && container.lastElementChild !== draggedItem) {
           container.appendChild(draggedItem);
         }
       } else {
@@ -577,6 +600,245 @@ export function sortableContent() {
         }
       }
     });
+
+    // --- SOPORTE PARA PANTALLAS TÁCTILES (Touch Events) ---
+    let touchItem = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchCurrentY = 0;
+    let touchInitialIndex = null;
+    let isTouchDragging = false;
+    let autoScrollRaf = null;
+
+    /**
+     * Obtiene el contenedor desplazable más cercano o window.
+     *
+     * @param {HTMLElement} element Elemento de referencia.
+     * @returns {HTMLElement|Window} Contenedor con scroll.
+     */
+    function getScrollParent(element) {
+      let parent = element ? element.parentElement : null;
+      while (parent && parent !== document.body && parent !== document.documentElement) {
+        const style = window.getComputedStyle(parent);
+        const overflowY = style.overflowY;
+        if ((overflowY === "auto" || overflowY === "scroll") && parent.scrollHeight > parent.clientHeight) {
+          return parent;
+        }
+        parent = parent.parentElement;
+      }
+      return window;
+    }
+
+    /**
+     * Detiene la animación de auto-desplazamiento.
+     */
+    function stopAutoScroll() {
+      if (autoScrollRaf) {
+        cancelAnimationFrame(autoScrollRaf);
+        autoScrollRaf = null;
+      }
+    }
+
+    /**
+     * Realiza desplazamiento automático suave si el dedo se acerca a los extremos de la pantalla.
+     *
+     * @param {number} clientY Coordenada Y del toque.
+     */
+    function checkAutoScroll(clientY) {
+      stopAutoScroll();
+      if (!isTouchDragging || !touchItem) return;
+
+      const viewportHeight = window.innerHeight;
+      const edgeThreshold = 75;
+      let speed = 0;
+
+      if (clientY < edgeThreshold) {
+        speed = -Math.min(14, Math.max(4, Math.round((edgeThreshold - clientY) / 3)));
+      } else if (clientY > viewportHeight - edgeThreshold) {
+        speed = Math.min(14, Math.max(4, Math.round((clientY - (viewportHeight - edgeThreshold)) / 3)));
+      }
+
+      if (speed !== 0) {
+        const scrollParent = getScrollParent(container);
+        const scrollStep = () => {
+          if (!isTouchDragging || !touchItem) return;
+
+          if (scrollParent === window || scrollParent === document.body || scrollParent === document.documentElement) {
+            window.scrollBy(0, speed);
+          } else {
+            const prevTop = scrollParent.scrollTop;
+            scrollParent.scrollTop += speed;
+            if (scrollParent.scrollTop === prevTop) {
+              window.scrollBy(0, speed);
+            }
+          }
+
+          // Recalcular orden en vivo mientras ocurre el scroll
+          const afterElement = getDragAfterElement(container, touchCurrentY);
+          if (afterElement == null) {
+            const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
+            if (lastSortable && lastSortable !== touchItem) {
+              lastSortable.after(touchItem);
+            } else if (!lastSortable && container.lastElementChild !== touchItem) {
+              container.appendChild(touchItem);
+            }
+          } else {
+            if (touchItem.nextElementSibling !== afterElement && touchItem !== afterElement) {
+              container.insertBefore(touchItem, afterElement);
+            }
+          }
+
+          autoScrollRaf = requestAnimationFrame(scrollStep);
+        };
+        autoScrollRaf = requestAnimationFrame(scrollStep);
+      }
+    }
+
+    /**
+     * Manejador de touchmove en window.
+     *
+     * @param {TouchEvent} e Evento táctil.
+     */
+    const onTouchMove = (e) => {
+      if (!touchItem || !e.touches || e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      touchCurrentY = touch.clientY;
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+
+      if (!isTouchDragging) {
+        // Si el usuario desliza horizontalmente de forma marcada, cancelar arrastre para permitir gestos del navegador
+        if (deltaX > 12 && deltaX > deltaY) {
+          cleanUpTouch();
+          return;
+        }
+
+        // Superar umbral para confirmar arrastre
+        if (deltaY > 6 && deltaY >= deltaX) {
+          isTouchDragging = true;
+          isDragging = true;
+          touchItem.classList.add("dragging");
+          touchItem.style.opacity = "0.4";
+
+          if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+          }
+        }
+      }
+
+      if (isTouchDragging) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+
+        const afterElement = getDragAfterElement(container, touch.clientY);
+        if (afterElement == null) {
+          const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
+          if (lastSortable && lastSortable !== touchItem) {
+            lastSortable.after(touchItem);
+          } else if (!lastSortable && container.lastElementChild !== touchItem) {
+            container.appendChild(touchItem);
+          }
+        } else {
+          if (touchItem.nextElementSibling !== afterElement && touchItem !== afterElement) {
+            container.insertBefore(touchItem, afterElement);
+          }
+        }
+
+        checkAutoScroll(touch.clientY);
+      }
+    };
+
+    /**
+     * Manejador de touchend.
+     *
+     * @param {TouchEvent} e Evento táctil.
+     */
+    const onTouchEnd = (e) => {
+      stopAutoScroll();
+
+      if (isTouchDragging && touchItem) {
+        if (e && e.cancelable) {
+          e.preventDefault();
+        }
+
+        touchItem.classList.remove("dragging");
+        touchItem.style.opacity = "1";
+
+        const allItems = [...container.querySelectorAll(".sortable-item")];
+        const newIndex = allItems.indexOf(touchItem);
+
+        if (touchInitialIndex !== null && newIndex !== -1 && touchInitialIndex !== newIndex) {
+          updateIndicesAndSubmit(container);
+        }
+
+        blockNextClick = true;
+        setTimeout(() => {
+          blockNextClick = false;
+          isDragging = false;
+        }, 350);
+      }
+
+      cleanUpTouch();
+    };
+
+    /**
+     * Manejador de touchcancel.
+     */
+    const onTouchCancel = () => {
+      stopAutoScroll();
+      if (touchItem) {
+        touchItem.classList.remove("dragging");
+        touchItem.style.opacity = "1";
+      }
+      blockNextClick = true;
+      setTimeout(() => {
+        blockNextClick = false;
+        isDragging = false;
+      }, 150);
+      cleanUpTouch();
+    };
+
+    /**
+     * Limpia listeners táctiles de window y resetea variables.
+     */
+    function cleanUpTouch() {
+      stopAutoScroll();
+      window.removeEventListener("touchmove", onTouchMove, { passive: false });
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchCancel);
+      touchItem = null;
+      touchInitialIndex = null;
+      isTouchDragging = false;
+    }
+
+    container.addEventListener("touchstart", (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+
+      const handle = e.target.closest(".drag-handle");
+      if (!handle) return;
+
+      // No iniciar arrastre si el toque ocurre en controles interactivos internos
+      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a, [contenteditable]")) {
+        return;
+      }
+
+      const item = handle.closest(".sortable-item");
+      if (!item || !container.contains(item)) return;
+
+      touchItem = item;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchCurrentY = e.touches[0].clientY;
+      const allItems = [...container.querySelectorAll(".sortable-item")];
+      touchInitialIndex = allItems.indexOf(item);
+      isTouchDragging = false;
+
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+      window.addEventListener("touchend", onTouchEnd);
+      window.addEventListener("touchcancel", onTouchCancel);
+    }, { passive: true });
   }
 
   // Calcula el elemento que se encuentra justo debajo de la posición del cursor Y
