@@ -5,6 +5,7 @@
    * @var mixed $uri
    */
   $hasCustom = $hasCustom ?? false;
+  $username = $session["username"] ?? ($card["profile"] ?? "");
   $profile = $card["profile"] ?? "";
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
   $discardUrl = $uri["discardDesign"] ?? ("/panel/" . $profile . "/descartar");
@@ -55,7 +56,8 @@
   
         <div class="no-desk">
           <div class="modal-btn animated pointer |before-menu-overlay">
-            <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto">Vista previa</p>
+            <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-phone">Vista previa</p>
+            <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-tablet"><?= svg("eye")?></p>
           </div>
           <div class="hidden">
             <div class="flex-column center-center w100">
@@ -68,4 +70,10 @@
         </div>
       </div>
   </nav>
+
+  <div class="no-desk no-tablet flex-row center-start">
+
+    <a href="/<?= e($username) ?>" class="back-card-graphic shadow-card-graphic hover-scale-soft w-auto p5 pl15 pr15 br50 ml20 mt10 texto pointer"><?= svg("arrow-l-l") ?> Ver perfil</a>
+
+  </div>
 </div>

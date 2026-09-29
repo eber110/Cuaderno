@@ -8,9 +8,9 @@
 <div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar pt-sml-35">
   <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
   
-    <div class="sidebar-profile-status w100">
+    <!-- <div class="sidebar-profile-status w100">
       <?php _part("Dashboard.SideMenu.statusBanner", ["card" => $card, "session" => $session]); ?>
-    </div>
+    </div> -->
     
     <div id="side-menu-phone" class="vertical-menu animated w100" active-item="back-item-active" active-principal="back-item-active">
       <div class="flex-column top-start gap10 w100">
