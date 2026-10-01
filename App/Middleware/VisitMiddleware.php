@@ -24,7 +24,7 @@ class VisitMiddleware implements MiddlewareInterface {
 
     try {
       // 1. Obtener la URI de la petición
-      $uri = parse_url($_SERVER["REQUEST_URI"] ?? "", PHP_URL_PATH);
+      $uri = parse_url(\Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_URI"] ?? "") ?? "", PHP_URL_PATH);
 
       // 2. Si la petición es para un archivo de recurso estático, ignorarla de inmediato
       $extension = strtolower(pathinfo($uri, PATHINFO_EXTENSION));

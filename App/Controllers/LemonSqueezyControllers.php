@@ -46,7 +46,7 @@ class LemonSqueezyControllers extends Control
     $variantId = SecurityModule::get("variant_id", "2004539", true);
 
 
-    $clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $clientIp = \Base\Module\VisitModule::getClientIp();
     if (str_contains($clientIp, ',')) {
       $clientIp = trim(explode(',', $clientIp)[0]);
     }
@@ -104,8 +104,8 @@ class LemonSqueezyControllers extends Control
     $rawInput = file_get_contents("php://input");
     $decoded  = json_decode($rawInput, true);
 
-    $getVars  = SecurityModule::sanitizeArray($_GET ?? []);
-    $postVars = SecurityModule::sanitizeArray($_POST ?? []);
+    $getVars  = \Base\Module\SecurityModule::sanitizeArray($_GET ?? []);
+    $postVars = \Base\Module\SecurityModule::sanitizeArray($_POST ?? []);
     $reqVars  = SecurityModule::sanitizeArray(is_array($requestData) ? $requestData : []);
 
     $input = is_array($decoded) ? SecurityModule::sanitizeArray($decoded) : array_merge($getVars, $postVars, $reqVars);
@@ -118,7 +118,7 @@ class LemonSqueezyControllers extends Control
 
 
     if (empty($variantId)) {
-      $reqMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
+      $reqMethod = \Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_METHOD"] ?? "GET") ?? "GET";
       if ($reqMethod === "GET") {
         return ResponseModule::redirect("/suscripcion");
       }
@@ -182,7 +182,7 @@ class LemonSqueezyControllers extends Control
     // Ubicación / País por defecto (detectado automáticamente o 'CL' por defecto)
     $country = !empty($input["country"]) ? strtoupper(trim((string)$input["country"])) : null;
     if (empty($country)) {
-      $clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+      $clientIp = \Base\Module\VisitModule::getClientIp();
       if (str_contains($clientIp, ',')) {
         $clientIp = trim(explode(',', $clientIp)[0]);
       }
@@ -206,7 +206,7 @@ class LemonSqueezyControllers extends Control
 
 
 
-    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $httpAccept = \Base\Module\SecurityModule::sanitize($_SERVER["HTTP_ACCEPT"] ?? "") ?? "";
     $wantsJson  = str_contains($httpAccept, "application/json");
     if ($wantsJson || !empty($input["json"])) {
       header("Content-Type: application/json");
@@ -228,7 +228,7 @@ class LemonSqueezyControllers extends Control
   public function webhook()
   {
     $payload   = file_get_contents("php://input");
-    $rawSig    = $_SERVER["HTTP_X_SIGNATURE"] ?? $_SERVER["HTTP_X_LEMON_SQUEEZY_SIGNATURE"] ?? "";
+    $rawSig    = \Base\Module\SecurityModule::sanitize($_SERVER["HTTP_X_SIGNATURE"] ?? $_SERVER["HTTP_X_LEMON_SQUEEZY_SIGNATURE"] ?? "");
     $signature = trim((string)$rawSig);
 
     if (empty($payload)) {
@@ -353,7 +353,7 @@ class LemonSqueezyControllers extends Control
       $_SESSION["user"]["premium"] = false;
     }
 
-    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $httpAccept = \Base\Module\SecurityModule::sanitize($_SERVER["HTTP_ACCEPT"] ?? "") ?? "";
     $wantsJson  = str_contains($httpAccept, "application/json");
     $jsonFlag   = SecurityModule::get("json");
 
@@ -380,7 +380,7 @@ class LemonSqueezyControllers extends Control
     SeoModule::setTitle("Proceso Cancelado - Suscripción Pendiente");
     SeoModule::setMetaDescription("El proceso de compra fue cancelado o no completado.");
 
-    $httpAccept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    $httpAccept = \Base\Module\SecurityModule::sanitize($_SERVER["HTTP_ACCEPT"] ?? "") ?? "";
     $wantsJson  = str_contains($httpAccept, "application/json");
     $jsonFlag   = SecurityModule::get("json");
 

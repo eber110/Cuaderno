@@ -379,7 +379,7 @@ class LemonSqueezyModels extends Builder
 
     // 1. Verificación en Sesión RAM (0 DB, 0 I/O)
     if (session_status() === PHP_SESSION_ACTIVE || (class_exists('\Base\Module\Session') && \Base\Module\Session::session_active())) {
-      $sessionPrem = $_SESSION["premium"] ?? $_SESSION["user"]["premium"] ?? null;
+      $sessionPrem = \Base\Module\Session::session_data("premium") ?? (\Base\Module\Session::user_session_show()["premium"] ?? null);
       if (is_array($sessionPrem) && isset($sessionPrem["is_premium"])) {
         $isPrem    = !empty($sessionPrem["is_premium"]);
         $expiresAt = $sessionPrem["expires_at"] ?? null;

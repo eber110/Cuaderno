@@ -30,10 +30,10 @@ class CsrfMiddleware implements MiddlewareInterface
    */
   public function handle($requestData, callable $next)
   {
-    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    $method = \Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_METHOD"] ?? "GET") ?? 'GET';
 
     if ($method === 'POST') {
-      $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '/';
+      $uri = parse_url(\Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_URI"] ?? "") ?? '', PHP_URL_PATH) ?? '/';
       $uri = rtrim($uri, '/') ?: '/';
 
       foreach (self::EXCLUDED_ROUTES as $excluded) {

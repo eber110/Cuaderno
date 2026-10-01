@@ -39,7 +39,7 @@ class DashboardMiddleware implements MiddlewareInterface {
 
     // 3. Extraer de forma robusta el parámetro :user de la URL /panel/:user
     $matches = [];
-    $uri = parse_url($_SERVER["REQUEST_URI"] ?? "", PHP_URL_PATH);
+    $uri = parse_url(\Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_URI"] ?? "") ?? "", PHP_URL_PATH);
     $urlUserClean = null;
     if (preg_match('#/panel/([^/]+)#i', $uri, $matches)) {
       $urlUserClean = mb_strtolower(rawurldecode($matches[1]), "UTF-8");
@@ -68,7 +68,7 @@ class DashboardMiddleware implements MiddlewareInterface {
     $userData  = $userModel->dataUser($sessionUserClean);
 
     // 6. Redirigir si los datos están incompletos
-    $currentUri = parse_url($_SERVER["REQUEST_URI"] ?? "", PHP_URL_PATH);
+    $currentUri = parse_url(\Base\Module\SecurityModule::sanitize($_SERVER["REQUEST_URI"] ?? "") ?? "", PHP_URL_PATH);
     $currentUri = "/" . trim($currentUri, "/");
     $panelUri   = "/panel/" . $sessionUserClean;
 

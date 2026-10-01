@@ -57,7 +57,7 @@ class DashboardControllers extends Control {
         "simularDatos"  => "/panel/{$userClean}/simular-datos",
         "estadisticas"  => "/panel/{$userClean}/estadisticas"
       ],
-      "session" => $_SESSION["user"] ?? false,
+      "session" => \Base\Module\Session::user_session_show() ?: false,
       "premium" => LemonSqueezyModels::isUserSubscribedFast(Session::session_data("user_id") ?? Session::session_data("id") ?? $userClean)
     ];
 

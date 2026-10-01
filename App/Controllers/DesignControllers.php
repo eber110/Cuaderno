@@ -64,7 +64,7 @@ class DesignControllers extends Control {
       ];
 
       $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $sessionData       = $_SESSION["user"] ?? [];
+      $sessionData       = \Base\Module\Session::user_session_show() ?: [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData
@@ -132,7 +132,7 @@ class DesignControllers extends Control {
         $cardData["profile"] = $userClean;
       }
 
-      $sessionData       = $_SESSION["user"] ?? [];
+      $sessionData       = \Base\Module\Session::user_session_show() ?: [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData
@@ -207,7 +207,7 @@ class DesignControllers extends Control {
       ];
 
       $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-      $sessionData       = $_SESSION["user"] ?? [];
+      $sessionData       = \Base\Module\Session::user_session_show() ?: [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData
@@ -239,13 +239,7 @@ class DesignControllers extends Control {
     ResponseModule::redirect("/panel/{$userClean}");
   }
 
-  public static function orderShare() : array{
-    
-    //redes aceptadas con card og:
-    $acceptedLinks = [1,2,3,6,8,21,4,5,11,12,13,14,15,16,17,18,20,10];
-    return $acceptedLinks;
   
-  }
 
   /**
    * Genera los parámetros de subida firmados para Cloudinary para subida en 2do plano sin bloquear PHP,
@@ -259,8 +253,8 @@ class DesignControllers extends Control {
     $userClean = mb_strtolower($user, "UTF-8");
     $folder    = "cuaderno/backgrounds/{$userClean}";
 
-    $start    = max(0, floatval($_GET["start"] ?? $_POST["start"] ?? 0));
-    $duration = floatval($_GET["duration"] ?? $_POST["duration"] ?? 20);
+    $start    = max(0, floatval(\Base\Module\SecurityModule::get("start", \Base\Module\SecurityModule::post("start", 0))));
+    $duration = floatval(\Base\Module\SecurityModule::get("duration", \Base\Module\SecurityModule::post("duration", 20)));
     if ($duration <= 0 || $duration > 20) {
       $duration = 20;
     }
@@ -319,7 +313,7 @@ class DesignControllers extends Control {
 
       $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
 
-      $sessionData = $_SESSION["user"] ?? [];
+      $sessionData = \Base\Module\Session::user_session_show() ?: [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData

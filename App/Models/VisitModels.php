@@ -25,7 +25,7 @@ class VisitModels extends Builder {
    * @return string Dirección IP resuelta.
    */
   public static function getClientIp(): string {
-    $remoteAddr = $_SERVER["REMOTE_ADDR"] ?? "127.0.0.1";
+    $remoteAddr = \Base\Module\VisitModule::getClientIp() ?? "127.0.0.1";
 
     // Allowlist de proxies para aceptar cabeceras X-Forwarded-For etc.
     // Define TRUSTED_PROXIES en .env o config.php, p.ej. "10.0.0.,192.168."

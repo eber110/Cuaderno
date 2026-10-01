@@ -54,7 +54,7 @@ class menuUserComponent {
     $profileAvatar = $card["avatarSrc"] ?? (DIR_UPLOAD_MEDIA_STATIC . "Custom/no-user.webp");
 
     //redes aceptadas con card og:
-    $acceptedLinks = DesignControllers::orderShare();
+    $acceptedLinks = [1,2,3,6,8,21,4,5,11,12,13,14,15,16,17,18,20,10];
 
     $share = ShareButtonModule::share($profileUrl, $profileDesc, $acceptedLinks);
 

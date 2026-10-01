@@ -282,7 +282,7 @@ class UserModels extends BuilderSqlite {
     }
 
     $desc = $card["desc"] ?? "";
-    $acceptedLinks = DesignControllers::orderShare();
+    $acceptedLinks = [1,2,3,6,8,21,4,5,11,12,13,14,15,16,17,18,20,10];
 
     foreach ($card["content"] as $key => &$item) {
       $itemUrl = $item["url"] ?? "";
