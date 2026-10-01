@@ -9,6 +9,7 @@
 /Docs/
 /Database/*
 !/Database/.gitkeep
+/App/Route/test.php
 
 # SQLite Databases & WAL journal files
 *.sqlite
