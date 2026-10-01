@@ -9,7 +9,6 @@
 /Docs/
 /Database/*
 !/Database/.gitkeep
-/App/Route/test.php
 
 # SQLite Databases & WAL journal files
 *.sqlite
@@ -67,3 +66,6 @@
 *.bin
 *.app
 *.zip
+
+# Ignorar archivo de prueba de rutas
+/App/Route/test.php
