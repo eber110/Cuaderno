@@ -250,37 +250,22 @@ class VisitModule
     }
 
     try {
-      // Intentar caché en disco primero
-      if (!$forceRefresh) {
-        $cached = self::getFromCache($ip);
-        if ($cached !== null) {
-          return array_merge($defaultData, $cached, ['last_check' => time()]);
-        }
-      }
-
-      // Consultar API primaria (api.ipquery.io)
-      $response = self::queryGeoApi($ip, self::getGeoApiPrimary());
-      if (!empty($response) && is_array($response)) {
-        $data = self::normalizeGeoResponse($response, $ip, 'ipquery');
-        if (!empty($data['pais']) && $data['pais'] !== 'Desconocido') {
-          $data['last_check'] = time();
-          self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipquery']));
-          return $data;
-        }
-      }
-
-      // Fallback: API secundaria (ip.guide)
-      $response = self::queryGeoApi($ip, self::getGeoApiFallback());
-      if (!empty($response) && is_array($response)) {
-        $data = self::normalizeGeoResponse($response, $ip, 'ipguide');
-        if (!empty($data['pais']) && $data['pais'] !== 'Desconocido') {
-          $data['last_check'] = time();
-          self::saveToCache($ip, array_merge($response, ['_api_source' => 'ipguide']));
-          return $data;
+      // Consultar exclusivamente mediante GeoIpModule (base de datos local MaxMind)
+      if (class_exists(\Base\Module\GeoIpModule::class)) {
+        $record = \Base\Module\GeoIpModule::getCityRecord($ip);
+        if ($record) {
+          return [
+            'ip'         => $ip,
+            'pais'       => $record->country->name ?? 'Desconocido',
+            'codigo'     => $record->country->isoCode ?? 'N/A',
+            'region'     => (!empty($record->subdivisions)) ? ($record->subdivisions[0]->name ?? 'Desconocido') : 'Desconocido',
+            'ciudad'     => $record->city->name ?? 'Desconocido',
+            'last_check' => time()
+          ];
         }
       }
     } catch (\Throwable $e) {
-      error_log("VisitModule fetchGeoData error: " . $e->getMessage());
+      error_log("VisitModule fetchGeoData local MaxMind error: " . $e->getMessage());
     }
 
     return $defaultData;

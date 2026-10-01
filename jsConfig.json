@@ -34,7 +34,7 @@
       "inlineCarousel": [],
       "textLimiter": [],
       "saveButtonController": [],
-      "trackClick": [],
+      "analyticsTracker": [],
       "activeViewers": [],
       "hamburgerMenu": [],
       "videoBackgroundController": [],

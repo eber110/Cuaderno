@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-10-01 19:36:33",
-    "total_routes": 43,
+    "generated_at": "2026-10-01 23:42:13",
+    "total_routes": 45,
     "static_routes": [
         {
             "method": "GET",
@@ -234,6 +234,15 @@
         },
         {
             "method": "POST",
+            "uri": "/op/track-view",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
+        },
+        {
+            "method": "POST",
             "uri": "/op/track-click",
             "has_variables": false,
             "variables": [],
@@ -258,6 +267,17 @@
             "protect_at_controller": false,
             "action": "Closure",
             "middlewares": []
+        },
+        {
+            "method": "GET",
+            "uri": "/test/1",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": [
+                "App\\Middleware\\TestMiddleware"
+            ]
         }
     ],
     "dynamic_routes": [
@@ -497,13 +517,11 @@
             "protect_at_controller": true,
             "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
             "action": "App\\Controllers\\UserControllers@userPage",
-            "middlewares": [
-                "App\\Middleware\\VisitMiddleware"
-            ]
+            "middlewares": []
         }
     ],
     "summary_by_method": {
-        "GET": 27,
-        "POST": 16
+        "GET": 28,
+        "POST": 17
     }
 }

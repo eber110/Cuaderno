@@ -106,6 +106,7 @@ class AnalyticsModule
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 link_id TEXT,
                 profile_id TEXT NOT NULL,
+                ip_address TEXT,
                 country_code TEXT,
                 device_type TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -113,6 +114,8 @@ class AnalyticsModule
 
             CREATE INDEX IF NOT EXISTS idx_link_clicks_profile ON link_clicks(profile_id);
             CREATE INDEX IF NOT EXISTS idx_link_clicks_created ON link_clicks(created_at);
+            CREATE INDEX IF NOT EXISTS idx_link_clicks_dedup ON link_clicks(profile_id, link_id, ip_address, created_at);
+            CREATE INDEX IF NOT EXISTS idx_profile_views_dedup ON profile_views(profile_id, ip_address, created_at);
         ";
 
         self::$pdo->exec($sql);
@@ -157,11 +160,42 @@ class AnalyticsModule
     }
 
     /**
+     * Comprueba si ya existe una visita reciente para el mismo perfil e IP dentro de la ventana de tiempo especificada.
+     *
+     * @param string $profileId Nombre del perfil
+     * @param string $ipAddress Dirección IP del cliente
+     * @param int $seconds Ventana en segundos (por defecto 86400 = 24 horas)
+     * @return bool True si ya fue registrada recientemente
+     */
+    public static function hasRecentProfileView(string $profileId, string $ipAddress, int $seconds = 86400): bool
+    {
+        try {
+            $pdo = self::getPdo();
+            $stmt = $pdo->prepare("
+                SELECT 1 FROM profile_views 
+                WHERE profile_id = :profile 
+                  AND ip_address = :ip 
+                  AND created_at >= datetime('now', '-' || :seconds || ' seconds')
+                LIMIT 1
+            ");
+            $stmt->bindValue(':profile', mb_strtolower($profileId, 'UTF-8'));
+            $stmt->bindValue(':ip', $ipAddress);
+            $stmt->bindValue(':seconds', $seconds, \PDO::PARAM_INT);
+            $stmt->execute();
+
+            return (bool) $stmt->fetchColumn();
+        } catch (Exception $e) {
+            error_log("AnalyticsModule hasRecentProfileView Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Registra un clic en un enlace individual en la tabla link_clicks.
      *
      * @param string $profileId Username o ID del creador
      * @param string $linkId ID o identificador del enlace cliqueado
-     * @param array $data Datos adicionales (country_code, device_type)
+     * @param array $data Datos adicionales (ip_address, country_code, device_type)
      * @return bool True si se insertó con éxito.
      */
     public static function logLinkClick(string $profileId, string $linkId, array $data = []): bool
@@ -170,9 +204,9 @@ class AnalyticsModule
             $pdo = self::getPdo();
             $stmt = $pdo->prepare("
                 INSERT INTO link_clicks 
-                (link_id, profile_id, country_code, device_type, created_at)
+                (link_id, profile_id, ip_address, country_code, device_type, created_at)
                 VALUES 
-                (:link_id, :profile_id, :country_code, :device_type, :created_at)
+                (:link_id, :profile_id, :ip_address, :country_code, :device_type, :created_at)
             ");
 
             $nowUtc = gmdate('Y-m-d H:i:s');
@@ -180,12 +214,47 @@ class AnalyticsModule
             return $stmt->execute([
                 ':link_id'      => (string)$linkId,
                 ':profile_id'   => mb_strtolower($profileId, 'UTF-8'),
+                ':ip_address'   => $data['ip_address'] ?? '',
                 ':country_code' => $data['country_code'] ?? 'N/A',
                 ':device_type'  => $data['device_type'] ?? 'desktop',
                 ':created_at'   => $data['created_at'] ?? $nowUtc
             ]);
         } catch (Exception $e) {
             error_log("AnalyticsModule logLinkClick Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Comprueba si ya existe un clic reciente para el mismo perfil, enlace e IP dentro de la ventana de tiempo especificada.
+     *
+     * @param string $profileId Nombre del perfil
+     * @param string $linkId Identificador del enlace
+     * @param string $ipAddress Dirección IP del cliente
+     * @param int $seconds Ventana en segundos (por defecto 86400 = 24 horas)
+     * @return bool True si ya fue registrado recientemente
+     */
+    public static function hasRecentLinkClick(string $profileId, string $linkId, string $ipAddress, int $seconds = 86400): bool
+    {
+        try {
+            $pdo = self::getPdo();
+            $stmt = $pdo->prepare("
+                SELECT 1 FROM link_clicks 
+                WHERE profile_id = :profile 
+                  AND link_id = :linkId 
+                  AND ip_address = :ip 
+                  AND created_at >= datetime('now', '-' || :seconds || ' seconds')
+                LIMIT 1
+            ");
+            $stmt->bindValue(':profile', mb_strtolower($profileId, 'UTF-8'));
+            $stmt->bindValue(':linkId', (string)$linkId);
+            $stmt->bindValue(':ip', $ipAddress);
+            $stmt->bindValue(':seconds', $seconds, \PDO::PARAM_INT);
+            $stmt->execute();
+
+            return (bool) $stmt->fetchColumn();
+        } catch (Exception $e) {
+            error_log("AnalyticsModule hasRecentLinkClick Error: " . $e->getMessage());
             return false;
         }
     }

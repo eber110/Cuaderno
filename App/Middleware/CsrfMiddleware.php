@@ -18,6 +18,7 @@ class CsrfMiddleware implements MiddlewareInterface
   private const EXCLUDED_ROUTES = [
     '/lemon-squeezy/webhook',
     '/op/track-click',
+    '/op/track-view',
     '/op/active-viewers'
   ];
 

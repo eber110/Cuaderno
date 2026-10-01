@@ -179,6 +179,7 @@ class SQLiteSetup
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       link_id TEXT,
       profile_id TEXT NOT NULL,
+      ip_address TEXT,
       country_code TEXT,
       device_type TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP

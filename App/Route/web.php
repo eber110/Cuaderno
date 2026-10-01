@@ -8,7 +8,6 @@ use App\Controllers\UserControllers;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 use App\Middleware\DashboardMiddleware;
-use App\Middleware\VisitMiddleware;
 use Base\Module\ImgProcessModule;
 use Base\Module\ResponseModule;
 use Base\Module\SeoModule;
@@ -130,10 +129,8 @@ Route::get("/proxy", function() {
     }
 });
 
-//UserControllers: Datos y personalización de los datos de usuario
-Route::middleware([VisitMiddleware::class])->group(function(){
-  Route::get("/:user", [UserControllers::class, "userPage"]);
-});
+// UserControllers: Datos y página pública del perfil de usuario
+Route::get("/:user", [UserControllers::class, "userPage"]);
 
 Route::get("/op/image", function(){
   if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
@@ -156,16 +153,34 @@ Route::get("/op/check", function(){
   ResponseModule::error("Página no encontrada", 404);
 });
 
+Route::post("/op/track-view", function(){
+  header('Content-Type: application/json');
+  $rawInput = file_get_contents('php://input');
+  $decoded  = json_decode($rawInput, true);
+  $input    = is_array($decoded) ? $decoded : ($_POST ?? []);
+
+  $user     = trim($input['user'] ?? '');
+  $referrer = trim($input['referrer'] ?? '');
+
+  $success  = \App\Models\VisitModels::processVisit($user, ['referrer' => $referrer]);
+  echo json_encode(['success' => $success]);
+  exit;
+});
+
 Route::post("/op/track-click", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
   $decoded  = json_decode($rawInput, true);
   $input    = is_array($decoded) ? $decoded : ($_POST ?? []);
 
-  $user   = $input['user'] ?? '';
-  $linkId = $input['linkId'] ?? '';
+  $user      = trim($input['user'] ?? '');
+  $linkId    = trim($input['linkId'] ?? '');
+  $isTrusted = isset($input['isTrusted']) ? (bool)$input['isTrusted'] : true;
 
-  $success = \App\Models\VisitModels::processClick($user, $linkId);
+  $success   = \App\Models\VisitModels::processClick($user, $linkId, [
+    'is_trusted' => $isTrusted,
+    'is_trap'    => !empty($input['isTrap'])
+  ]);
   echo json_encode(['success' => $success]);
   exit;
 });
