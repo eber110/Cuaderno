@@ -13,7 +13,7 @@ class TestMiddleware implements MiddlewareInterface{
 
     $user = Session::session_data("username");
     if (!Session::session_active() && empty($user)) {
-      $userClean = mb_strtolower($user, 'UTF-8');
+      //$userClean = mb_strtolower($user, 'UTF-8');
       return ResponseModule::redirect("/");
     }
 
