@@ -1832,6 +1832,7 @@ export function designDraftManager() {
   // =========================================================================
 
   let isSubmittingRemoteAjax = false;
+  let pendingRemoteAjax = null;
   let lastClickedSubmitButton = null;
 
   /**
@@ -2231,7 +2232,10 @@ export function designDraftManager() {
    * @returns {Promise<boolean>}
    */
   async function submitRemoteFormAjax(form, triggerElement = null) {
-    if (isSubmittingRemoteAjax) return false;
+    if (isSubmittingRemoteAjax) {
+      pendingRemoteAjax = { form, triggerElement };
+      return false;
+    }
     isSubmittingRemoteAjax = true;
 
     const isDeleteAction = triggerElement && triggerElement.name && (
@@ -2281,9 +2285,14 @@ export function designDraftManager() {
         deletedPrefix = triggerElement.name.replace(/\[delete\]$/, "");
       }
 
+      const isReorderAction = formData.has("is_reorder") || (triggerElement && triggerElement.name === "is_reorder");
+
       Object.keys(draft).forEach((key) => {
         if (deletedPrefix && key.startsWith(deletedPrefix)) {
           return; // Omitir datos antiguos de un elemento que se está borrando
+        }
+        if (isReorderAction && (key.startsWith("content[") || key.startsWith("rrss["))) {
+          return; // En reordenamiento, los inputs del formulario ya reflejan el orden y valores exactos reindexados
         }
         formData.set(key, draft[key]);
       });
@@ -2433,6 +2442,12 @@ export function designDraftManager() {
         btn.style.pointerEvents = "";
       });
       isSubmittingRemoteAjax = false;
+
+      if (pendingRemoteAjax) {
+        const next = pendingRemoteAjax;
+        pendingRemoteAjax = null;
+        submitRemoteFormAjax(next.form, next.triggerElement);
+      }
     }
   }
 

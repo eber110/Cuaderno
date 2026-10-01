@@ -93,6 +93,11 @@ export function saveButtonController() {
   function enableSaveButton() {
     saveContainer.dataset.hasCustom = "true";
 
+    const activeBtn = getActiveRemoteBtn();
+    if (!activeBtn || activeBtn.dataset.savable !== "false") {
+      saveContainer.classList.remove("hidden");
+    }
+
     const wasSaving = saveBtn.classList.contains("save-btn-saving");
     const wasDisabled = saveBtn.classList.contains("disabled-save-btn");
 
@@ -503,4 +508,12 @@ export function saveButtonController() {
   if (currentActiveBtn && currentActiveBtn.dataset.remote === "statistics-remote") {
     loadStatisticsIfNeeded();
   }
+
+  // Exponer interfaz global para otros módulos (sortableContent, designDraftManager, etc.)
+  window.__saveButtonController = {
+    enableSaveButton,
+    disableSaveButton,
+    setSavingState,
+    updateSaveButtonVisibility
+  };
 }

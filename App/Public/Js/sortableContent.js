@@ -243,11 +243,6 @@ export function sortableContent() {
     // Auto-recuperación cuando se actualiza la vista previa o formulario por Fetch
     const rebindContainers = () => {
       try {
-        const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
-        containers.forEach((c) => {
-          c.dataset.sortableBound = "";
-          delete c.dataset.sortableBound;
-        });
         initAllContainers();
       } catch (err) {
         console.warn("sortableContent rebind warning:", err);
@@ -564,7 +559,7 @@ export function sortableContent() {
 
         // Solo re-indexar y enviar si la posición realmente cambió
         if (initialIndex !== null && newIndex !== -1 && initialIndex !== newIndex) {
-          updateIndicesAndSubmit(container);
+          updateIndicesAndSubmit(container, draggedItem);
         }
       }
 
@@ -770,14 +765,14 @@ export function sortableContent() {
         const newIndex = allItems.indexOf(touchItem);
 
         if (touchInitialIndex !== null && newIndex !== -1 && touchInitialIndex !== newIndex) {
-          updateIndicesAndSubmit(container);
+          updateIndicesAndSubmit(container, touchItem);
         }
 
         blockNextClick = true;
         setTimeout(() => {
           blockNextClick = false;
           isDragging = false;
-        }, 350);
+        }, 200);
       }
 
       cleanUpTouch();
@@ -861,10 +856,159 @@ export function sortableContent() {
     return closest.element;
   }
 
-  // Re-indexa los nombres de los inputs (`content[index][...]` o `rrss[index][...]`) según el nuevo orden del DOM
-  function updateIndicesAndSubmit(container) {
-    const items = container.querySelectorAll(".sortable-item");
+  /**
+   * Muestra o actualiza el badge indicador de procesamiento interno de ordenamiento.
+   *
+   * @param {HTMLElement} container Contenedor sortable.
+   * @param {HTMLElement|null} targetItem Elemento movido.
+   * @param {'syncing'|'success'|'error'} state Estado de la operación.
+   * @param {string} [customText] Texto a mostrar.
+   */
+  function showSyncIndicator(container, targetItem, state, customText = "") {
+    if (!container) return;
 
+    let badge = container.querySelector(".sortable-sync-badge") || container.parentElement?.querySelector(".sortable-sync-badge");
+    if (!badge && state === "syncing") {
+      badge = document.createElement("div");
+      badge.className = "sortable-sync-badge";
+      if (container.parentElement) {
+        container.parentElement.insertBefore(badge, container);
+      } else {
+        container.prepend(badge);
+      }
+    }
+
+    if (!badge) return;
+
+    if (state === "syncing") {
+      badge.className = "sortable-sync-badge";
+      badge.style.opacity = "1";
+      badge.style.transform = "translateY(0)";
+      badge.innerHTML = `<span class="save-btn-spinner-dark"></span> <span>${customText || "Guardando nuevo orden..."}</span>`;
+      if (targetItem) {
+        targetItem.classList.add("item-syncing");
+      }
+    } else if (state === "success") {
+      badge.classList.add("is-done");
+      badge.innerHTML = `<span>${customText || "✓ Orden guardado"}</span>`;
+      if (targetItem) {
+        targetItem.classList.remove("item-syncing");
+      }
+      setTimeout(() => {
+        badge.style.opacity = "0";
+        badge.style.transform = "translateY(-6px)";
+        setTimeout(() => {
+          if (badge.parentNode) badge.parentNode.removeChild(badge);
+        }, 300);
+      }, 700);
+    } else if (state === "error") {
+      badge.classList.add("is-error");
+      badge.innerHTML = `<span>${customText || "⚠ Error al guardar orden"}</span>`;
+      if (targetItem) {
+        targetItem.classList.remove("item-syncing");
+      }
+      setTimeout(() => {
+        badge.style.opacity = "0";
+        badge.style.transform = "translateY(-6px)";
+        setTimeout(() => {
+          if (badge.parentNode) badge.parentNode.removeChild(badge);
+        }, 300);
+      }, 1500);
+    }
+  }
+
+  /**
+   * Reordena de forma optimista (0ms de latencia) los elementos en las vistas previas
+   * para que el usuario visualice el cambio instantáneamente.
+   *
+   * @param {HTMLElement} container Contenedor sortable reordenado.
+   * @param {Array<number|string>} oldIndices Lista de los índices antiguos en el nuevo orden DOM.
+   */
+  function reorderPreviewOptimistically(container, oldIndices) {
+    if (!container) return;
+
+    const isContent = container.id === "sortable-content-list";
+    const isRRSS = container.id === "sortable-rrss-list";
+
+    if (isContent && oldIndices && oldIndices.length) {
+      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        const sampleBlock = preview.querySelector("[data-content-index]");
+        if (!sampleBlock || !sampleBlock.parentElement) return;
+
+        const widgetWrapper = sampleBlock.parentElement;
+        const previewMap = new Map();
+
+        widgetWrapper.querySelectorAll("[data-content-index]").forEach((el) => {
+          const idx = parseInt(el.getAttribute("data-content-index"), 10);
+          if (!isNaN(idx)) {
+            if (!previewMap.has(idx)) previewMap.set(idx, []);
+            previewMap.get(idx).push(el);
+          }
+        });
+
+        oldIndices.forEach((oldIdx, newIdx) => {
+          const elements = previewMap.get(oldIdx);
+          if (elements && elements.length) {
+            elements.forEach((el) => {
+              widgetWrapper.appendChild(el);
+              el.setAttribute("data-content-index", String(newIdx));
+            });
+          }
+        });
+      });
+    } else if (isRRSS) {
+      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
+        if (!sampleLink || !sampleLink.parentElement) return;
+
+        const rrssWrapper = sampleLink.parentElement;
+        const allItems = Array.from(container.querySelectorAll(".sortable-item"));
+
+        allItems.forEach((item) => {
+          const nameInput = item.querySelector('input[name*="[0]"]');
+          const name = nameInput ? nameInput.value.trim().toLowerCase() : "";
+          if (name) {
+            const previewLink = rrssWrapper.querySelector(`[data-link-id="rrss_${name}"]`);
+            if (previewLink) {
+              rrssWrapper.appendChild(previewLink);
+            }
+          }
+        });
+      });
+    }
+  }
+
+  // Re-indexa los nombres de los inputs (`content[index][...]` o `rrss[index][...]`) según el nuevo orden del DOM
+  function updateIndicesAndSubmit(container, draggedItem = null) {
+    const items = Array.from(container.querySelectorAll(".sortable-item"));
+
+    // 1. Capturar índices previos antes de renombrar para la sincronización optimista del preview
+    const oldIndices = items.map((item) => {
+      if (item.id && item.id.startsWith("content-item-")) {
+        const val = parseInt(item.id.replace("content-item-", ""), 10);
+        return isNaN(val) ? null : val;
+      }
+      return null;
+    });
+
+    // 2. Notificar INMEDIATAMENTE (0ms) a saveButtonController y designDraftManager
+    //    para que el botón Guardar aparezca al instante sin esperar la respuesta del servidor
+    if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+      window.__saveButtonController.enableSaveButton();
+    }
+    document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+
+    // 3. Reordenar el preview en 0ms
+    if (oldIndices.some((idx) => idx !== null)) {
+      reorderPreviewOptimistically(container, oldIndices);
+    } else if (container.id === "sortable-rrss-list") {
+      reorderPreviewOptimistically(container, []);
+    }
+
+    // 4. Mostrar indicador de procesamiento interno en la lista y en el elemento movido
+    showSyncIndicator(container, draggedItem, "syncing");
+
+    // 5. Re-indexar los campos input dentro de la tarjeta
     items.forEach((item, index) => {
       // Actualizar ID del contenedor de la tarjeta
       if (item.id && item.id.startsWith("content-item-")) {
@@ -932,11 +1076,21 @@ export function sortableContent() {
       });
     });
 
-    // Disparar actualización asíncrona mediante submitRemoteFormAjax
+    // 6. Disparar actualización asíncrona mediante submitRemoteFormAjax pasando is_reorder
     const form = container.closest("form.auto-submit") || container.closest("form");
     if (form) {
       if (window.__designDraftManager && typeof window.__designDraftManager.submitRemoteFormAjax === "function") {
-        window.__designDraftManager.submitRemoteFormAjax(form);
+        window.__designDraftManager.submitRemoteFormAjax(form, { name: "is_reorder", value: "true" })
+          .then((success) => {
+            if (success !== false) {
+              showSyncIndicator(container, draggedItem, "success", "✓ Orden guardado");
+            } else {
+              showSyncIndicator(container, draggedItem, "error", "⚠ Error al guardar");
+            }
+          })
+          .catch(() => {
+            showSyncIndicator(container, draggedItem, "error", "⚠ Error al guardar");
+          });
       } else if (typeof form.requestSubmit === "function") {
         form.requestSubmit();
       } else {
