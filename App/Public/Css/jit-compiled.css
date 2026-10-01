@@ -469,9 +469,6 @@
   .gap-sml-30 { gap: 30px; }
 }
 @media screen and (max-width: 576px) {
-  .gap-sml-5 { gap: 5px; }
-}
-@media screen and (max-width: 576px) {
   .gap-sml-8 { gap: 8px; }
 }
 .flex-column.around-start { justify-content: space-around; align-items: flex-start; }

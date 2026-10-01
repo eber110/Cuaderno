@@ -42,21 +42,28 @@
   } elseif (!empty($titleRaw)) {
     $displayDesc = $titleRaw;
   }
+
+  // Garantizar que existan enlaces de compartir si se cuenta con la URL del enlace
+  if (empty($data["share"]) && !empty($data["url"]) && $data["url"] !== "#") {
+    $acceptedLinks = \App\Controllers\DesignControllers::orderShare();
+    $data["share"] = \Base\Module\ShareButtonModule::share($data["url"], $card["desc"] ?? "", $acceptedLinks);
+  }
 ?>
-<div class="flex-column center-center gap15 gap-sml-5 h100 back-modal-item">
-  <p class="absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
+<div class="flex-column center-center gap15 back-modal-item">
+  <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>
+  <p class="no-phone absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 
   <p class="bold600 pb-sml-10">Comparte este link</p>
 
-  <a href="<?= eUrl($data["url"] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-column center-center gap5 gap-sml-0 wpx320 p30 p-sml-10 br20 border-card-modal pointer |hover-scale-soft" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= safeCssColor($card["colorText"] ?? '#ffffff', '#ffffff') ?> !important;">
+  <a href="<?= eUrl($data["url"] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= safeCssColor($card["colorText"] ?? '#ffffff', '#ffffff') ?> !important;">
     <?php if (!empty($modalImg)) : ?>
-      <figure class="ar-square wpx200 wpx-sml-160 br15">
+      <figure class="ar-square wpx200 |wpx-sml-160 br15">
         <img src="<?= eUrl($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
       </figure>
     <?php endif; ?>
 
     <?php if (!empty($displayDesc)) : ?>
-      <p class="bold500 text-c bold900 x22 x-sml-20 cut-phrase textw" cant-col="1"><?= e($displayDesc) ?></p>
+      <p class="bold500 text-c bold400 x20 x-sml-20 textw"><?= e($displayDesc) ?></p>
     <?php endif; ?>
     <p class="x16 text-c cut-phrase textw" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>
@@ -86,7 +93,7 @@
 
   <div class="flex-column top-start gap20 gap-sml-10 w100 mt20 mt5">
     <div class="">
-      <p class="bold700">Únete a <?= e($card["profile"] ?? $card["title"] ?? "") ?> en Clikhub.</p>
+      <p class="bold700">Únete a <?= e($card["profile"] ?? ($data["profile"] ?? '')) ?> en Clikhub.</p>
       <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
     </div>
 
