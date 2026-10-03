@@ -3,7 +3,8 @@
     "aaSvgStore.js",
     "component.js",
     "config.js",
-    "querys.js"
+    "querys.js",
+    "scrollObserver.js"
   ],
   "exclude": [],
   "functions": {
@@ -42,7 +43,8 @@
       "productPricingController": [],
       "productSlider": [],
       "productInfiniteCarousel": [],
-      "scrollMemory": []
+      "scrollMemory": [],
+      "textAnimator": []
     },
     "async": {}
   }

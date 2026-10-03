@@ -34,6 +34,7 @@
 .gap15 { gap: 15px; }
 .gap2 { gap: 2px; }
 .gap20 { gap: 20px; }
+.gap25 { gap: 25px; }
 .gap30 { gap: 30px; }
 .gap4 { gap: 4px; }
 .gap5 { gap: 5px; }
@@ -594,6 +595,20 @@
 .flex-row.end-center-sml { align-items: flex-end !important; justify-content: center !important; }
 .flex-column-sml.end-center-sml { justify-content: flex-end !important; align-items: center !important; }
 .flex-row-sml.end-center-sml { align-items: flex-end !important; justify-content: center !important; }
+}
+.flex-column.end-start { justify-content: flex-end; align-items: flex-start; }
+.flex-row.end-start { align-items: flex-end; justify-content: flex-start; }
+@media screen and (min-width: 993px) {
+  .flex-column-desk.end-start { justify-content: flex-end; align-items: flex-start; }
+  .flex-row-desk.end-start { align-items: flex-end; justify-content: flex-start; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .flex-column-mid.end-start { justify-content: flex-end; align-items: flex-start; }
+  .flex-row-mid.end-start { align-items: flex-end; justify-content: flex-start; }
+}
+@media screen and (max-width: 576px) {
+  .flex-column-sml.end-start { justify-content: flex-end; align-items: flex-start; }
+  .flex-row-sml.end-start { align-items: flex-end; justify-content: flex-start; }
 }
 @media screen and (min-width: 993px) {
   .flex-column-desk { display: flex !important; flex-direction: column !important; }

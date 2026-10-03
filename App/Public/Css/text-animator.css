@@ -1,0 +1,317 @@
+/**
+ * text-animator.css
+ * 
+ * Estilos y keyframes nativos para animaciones de texto y contadores numéricos.
+ * Diseñado sin dependencias externas, con soporte para tema oscuro y claro.
+ * 
+ * Convención de clases:
+ * - Base: .text-animation
+ * - Entradas: .text-scramble, .text-typewriter, .text-fade-blur, .text-slide-up, .text-split-chars, .text-counter
+ * - Bucles: .text-loop-pulse (o .text-pulse), .text-loop-shimmer (o .text-shimmer), .text-loop-breathing (o .text-breathing)
+ * - Salidas: .is-exiting, .text-exit-fade-blur, .text-exit-slide-down, .text-exit-collapse
+ */
+
+:root {
+  --anim-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --anim-shimmer-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ==========================================================
+ * 0. CLASE BASE
+ * ========================================================== */
+.text-animation {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================
+ * 1. ANIMACIONES DE ENTRADA (ENTRANCE)
+ * ========================================================== */
+
+/* Fade In con Desenfoque Progresivo */
+.text-animation.text-fade-blur,
+.anim-enter-fade-blur {
+  animation: textFadeBlurIn 0.8s var(--anim-ease-out-expo) forwards;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes textFadeBlurIn {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Slide Up Suave */
+.text-animation.text-slide-up,
+.anim-enter-slide-up {
+  animation: textSlideUpIn 0.7s var(--anim-ease-out-expo) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes textSlideUpIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typewriter: Cursor Parpadeante */
+.anim-typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: currentColor;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  animation: typewriterBlink 0.8s steps(2, start) infinite;
+}
+
+@keyframes typewriterBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Scramble / Decoder Texto: Mantiene estrictamente la misma tipografía, tamaño, peso y altura */
+.text-animation.text-scramble {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.text-animation.text-scramble.anim-scramble-active,
+.anim-scramble-active {
+  opacity: 0.95;
+  will-change: contents;
+}
+
+/* Split Word / Letter Reveal */
+.anim-char-item {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(14px) rotateX(30deg);
+  animation: charPopIn 0.5s var(--anim-ease-out-expo) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes charPopIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+/* ==========================================================
+ * 2. ANIMACIONES EN BUCLE (LOOPS CONTINUOS)
+ * ========================================================== */
+
+/* Pulse Suave */
+.text-animation.text-loop-pulse,
+.text-animation.text-pulse,
+.anim-loop-pulse {
+  animation: textLoopPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes textLoopPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.985);
+  }
+}
+
+/* Shimmer (Brillo Metálico que barre el texto) */
+.text-animation.text-loop-shimmer,
+.text-animation.text-shimmer,
+.anim-loop-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  animation: textLoopShimmer 3s linear infinite;
+  display: inline-block;
+}
+
+@keyframes textLoopShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Breathing (Respiración Lumínica) */
+.text-animation.text-loop-breathing,
+.text-animation.text-breathing,
+.anim-loop-breathing {
+  animation: textLoopBreathing 3s ease-in-out infinite alternate;
+}
+
+@keyframes textLoopBreathing {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0));
+    opacity: 0.8;
+  }
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.45));
+    opacity: 1;
+  }
+}
+
+/* ==========================================================
+ * 3. ANIMACIONES DE SALIDA (EXIT)
+ * ========================================================== */
+
+/* Fade Out con Desenfoque (Default Exit) */
+.text-animation.is-exiting,
+.text-animation.text-exit-fade-blur,
+.anim-exit-fade-blur {
+  animation: textFadeBlurOut 0.5s var(--anim-ease-in) forwards !important;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes textFadeBlurOut {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-10px) scale(0.96);
+  }
+}
+
+/* Slide Down hacia fuera */
+.text-animation.text-exit-slide-down,
+.anim-exit-slide-down {
+  animation: textSlideDownOut 0.5s var(--anim-ease-in) forwards !important;
+  will-change: transform, opacity;
+}
+
+@keyframes textSlideDownOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Colapso suave */
+.text-animation.text-exit-collapse,
+.anim-exit-collapse {
+  animation: textCollapseOut 0.45s var(--anim-ease-in) forwards !important;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+@keyframes textCollapseOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+/* ==========================================================
+ * 4. ESTILOS DE PRUEBA Y TARJETAS DARK SANDBOX
+ * ========================================================== */
+.sandbox-card {
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.sandbox-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.sandbox-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sandbox-btn {
+  background: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f4f4f5;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.sandbox-btn:hover {
+  background: #3f3f46;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.sandbox-btn:active {
+  transform: translateY(0);
+}
+
+.sandbox-btn-primary {
+  background: #ffffff;
+  color: #09090b;
+  border-color: #ffffff;
+}
+
+.sandbox-btn-primary:hover {
+  background: #e4e4e7;
+  color: #09090b;
+}
+
+.sandbox-btn-danger {
+  background: #7f1d1d;
+  color: #fecaca;
+  border-color: #b91c1c;
+}
+
+.sandbox-btn-danger:hover {
+  background: #991b1b;
+}

@@ -498,233 +498,17 @@ export function initGsapHoverAnimations() {
 }
 
 /**
- * Extrae el umbral numérico (0.0 a 1.0) desde las clases ob-N o atributos del elemento.
- * 
- * @param {HTMLElement} el
- * @returns {number}
- */
-function extractThreshold(el) {
-  const match = el.className.match(/(?:^|\s)ob-(\d+)(?:\s|$)/);
-  if (match) {
-    const pct = parseInt(match[1], 10);
-    return Math.min(1, Math.max(0, pct / 100));
-  }
-  if (el.dataset.obThreshold) {
-    return parseFloat(el.dataset.obThreshold);
-  }
-  return 0.15;
-}
-
-/**
- * Extrae el retardo en segundos desde las clases dl-N (ej: dl-200 -> 0.2s).
- * 
- * @param {HTMLElement} el
- * @returns {number|null}
- */
-function extractDelay(el) {
-  const match = el.className.match(/(?:^|\s)dl-(\d+)(ms|s)?(?:\s|$)/);
-  if (match) {
-    const num = parseFloat(match[1]);
-    const unit = match[2] || 'ms';
-    return unit === 's' ? num : num / 1000;
-  }
-  if (el.dataset.animateDelay) {
-    return parseFloat(el.dataset.animateDelay);
-  }
-  return null;
-}
-
-/**
- * Extrae la duración en segundos desde las clases dur-N (ej: dur-400 -> 0.4s).
- * 
- * @param {HTMLElement} el
- * @returns {number|null}
- */
-function extractDuration(el) {
-  const match = el.className.match(/(?:^|\s)(?:dur|duration)-(\d+)(ms|s)?(?:\s|$)/);
-  if (match) {
-    const num = parseFloat(match[1]);
-    const unit = match[2] || 'ms';
-    return unit === 's' ? num : num / 1000;
-  }
-  if (el.dataset.animateDuration) {
-    return parseFloat(el.dataset.animateDuration);
-  }
-  return null;
-}
-
-/**
- * Detecta el nombre del efecto de animación configurado en las clases o atributos del elemento.
- * 
- * @param {HTMLElement} el
- * @returns {string}
- */
-function extractEffect(el) {
-  if (el.dataset.animate) {
-    return el.dataset.animate;
-  }
-  const classList = Array.from(el.classList);
-  for (const cls of classList) {
-    if (classToEffectMap[cls]) {
-      return classToEffectMap[cls];
-    }
-  }
-  return 'fadeIn';
-}
-
-/**
- * Ejecuta la animación en el elemento objetivo.
- * 
- * @param {HTMLElement} el
- * @param {string} effect
- * @param {Object} options
- */
-function triggerElementAnimation(el, effect, options = {}) {
-  if (el.dataset.obAnimated === 'true' && !options.infinite) return;
-  el.dataset.obAnimated = 'true';
-
-  animate(el, effect, options);
-}
-
-/**
- * Inicializa el sistema reactivo de animaciones con IntersectionObserver y clases CSS.
- * Soporta contenedores .observer y selectores de umbral ob-10..ob-100 con retardos dl-N.
+ * Inicializa el sistema reactivo de animaciones con IntersectionObserver.
+ * Delega la gestión reactiva del viewport al módulo independiente scrollObserver.js.
  * 
  * @function initObserverAnimations
- * @description Escanea el DOM en busca de contenedores '.observer' y elementos 'ob-*',
- *              vinculando la activación de animaciones al porcentaje de scroll exacto.
- * @example
- * <div class="container observer" style="height: 100dvh;">
- *   <h1 class="slide-in-bottom ob-30 dl-200">Texto animado</h1>
- *   <h2 class="slide-in-bottom ob-30 dl-300">Segundo texto</h2>
- * </div>
  */
 export function initObserverAnimations() {
-  if (!('IntersectionObserver' in window)) {
-    // Fallback si el navegador no soporta IntersectionObserver: activar todas inmediatamente
-    document.querySelectorAll('.observer [class*="ob-"], [class*="ob-"]').forEach(el => {
-      el.classList.add('animated');
-    });
-    return;
+  if (typeof initScrollObserver === 'function') {
+    initScrollObserver();
+  } else if (typeof window !== 'undefined' && window.ScrollObserver && typeof window.ScrollObserver.initScrollObserver === 'function') {
+    window.ScrollObserver.initScrollObserver();
   }
-
-  // Generar lista de umbrales finos (0.00 a 1.00 de 2% en 2%)
-  const thresholds = [];
-  for (let i = 0; i <= 100; i += 2) {
-    thresholds.push(i / 100);
-  }
-
-  // 1. Manejo de Contenedores .observer (cada contenedor tiene su propia instancia 100% independiente)
-  const observerContainers = document.querySelectorAll('.observer');
-
-  observerContainers.forEach(container => {
-    if (container.dataset.obContainerBound === 'true') return;
-    container.dataset.obContainerBound = 'true';
-
-    // Buscar elementos hijos a animar QUE PERTENEZCAN DIRECTAMENTE a este contenedor
-    const childSelector = '[class*="ob-"], .slide-in-bottom, .slide-in-top, .slide-in-left, .slide-in-right, .slide-out-bottom, .slide-out-top, .slide-out-left, .slide-out-right, .fade-in, .fade-out, .zoom-in, .zoom-out, .scale-in, .scale-out, .bounce-in, .bounce-out, .spin, .pulse, .pulse-once, [data-animate]';
-    const allDescendants = Array.from(container.querySelectorAll(childSelector));
-    const animChildren = allDescendants.filter(el => el.closest('.observer') === container);
-
-    if (animChildren.length === 0) return;
-
-    // Extraer configuración de cada hijo
-    const items = animChildren.map(el => {
-      return {
-        element: el,
-        threshold: extractThreshold(el),
-        delay: extractDelay(el),
-        duration: extractDuration(el),
-        effect: extractEffect(el),
-        infinite: el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true',
-        animated: false
-      };
-    });
-
-    // Instancia de observador dedicada y aislada exclusivamente para este contenedor
-    const containerObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
-
-        const rect = entry.boundingClientRect;
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const enteredDistance = vh - rect.top;
-        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
-        const currentRatio = Math.min(1, Math.max(entry.intersectionRatio || 0, scrollRatio));
-
-        let allDone = true;
-
-        items.forEach(item => {
-          if (item.animated && !item.infinite) return;
-
-          if (currentRatio >= item.threshold) {
-            item.animated = true;
-            triggerElementAnimation(item.element, item.effect, {
-              delay: item.delay,
-              duration: item.duration,
-              infinite: item.infinite
-            });
-          } else {
-            allDone = false;
-          }
-        });
-
-        // Si todos los elementos de este contenedor terminaron, liberar este observador
-        if (allDone && !items.some(it => it.infinite)) {
-          containerObserver.unobserve(container);
-        }
-      });
-    }, {
-      root: null,
-      threshold: thresholds,
-      rootMargin: '0px 0px 0px 0px'
-    });
-
-    containerObserver.observe(container);
-  });
-
-  // 2. Manejo de Elementos Autónomos (fuera de cualquier contenedor .observer)
-  const allObElements = document.querySelectorAll('[class*="ob-"]');
-  allObElements.forEach(el => {
-    // Si ya está dentro de un contenedor con .observer, es administrado por la instancia del contenedor
-    if (el.closest('.observer')) return;
-    if (el.dataset.obElementBound === 'true') return;
-    el.dataset.obElementBound = 'true';
-
-    const threshold = extractThreshold(el);
-    const delay = extractDelay(el);
-    const duration = extractDuration(el);
-    const effect = extractEffect(el);
-    const infinite = el.classList.contains('animate-infinite') || el.dataset.animateInfinite === 'true';
-
-    const singleObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting && entry.intersectionRatio <= 0) return;
-
-        const rect = entry.boundingClientRect;
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const enteredDistance = vh - rect.top;
-        const scrollRatio = rect.height > 0 ? (enteredDistance / rect.height) : 0;
-        const currentRatio = Math.min(1, Math.max(entry.intersectionRatio || 0, scrollRatio));
-
-        if (currentRatio >= threshold) {
-          triggerElementAnimation(el, effect, {
-            delay,
-            duration,
-            infinite
-          });
-          if (!infinite) {
-            singleObserver.unobserve(el);
-          }
-        }
-      });
-    }, {
-      root: null,
-      threshold: thresholds
-    });
-
-    singleObserver.observe(el);
-  });
 }
 
 /**
@@ -814,10 +598,12 @@ export function initAnimations() {
   });
 }
 
-// Auto-inicializar cuando el DOM esté listo si no se importa como módulo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAnimations);
-} else {
-  initAnimations();
+// Auto-inicializar de forma segura permitiendo que todo el bundle se evalúe primero
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initAnimations());
+  } else {
+    setTimeout(() => initAnimations(), 0);
+  }
 }
 
