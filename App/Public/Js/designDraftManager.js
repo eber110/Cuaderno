@@ -51,6 +51,23 @@ export function designDraftManager() {
   }
 
   /**
+   * Persiste el borrador en localStorage de manera segura y notifica a la aplicación.
+   * @param {Object} draft
+   */
+  function saveDraftToStorage(draft) {
+    try {
+      if (!draft || Object.keys(draft).length === 0) {
+        localStorage.removeItem(DRAFT_KEY);
+      } else {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      }
+    } catch (e) {
+      console.warn("Error al escribir en localStorage:", e);
+    }
+    notifyDraftState();
+  }
+
+  /**
    * Guarda un campo en el borrador local.
    * @param {string} name Nombre del campo
    * @param {*} value Valor del campo
@@ -59,22 +76,14 @@ export function designDraftManager() {
     if (!name) return;
     const draft = getDraft();
     draft[name] = value;
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    } catch (e) {
-      console.warn("Error al escribir en localStorage:", e);
-    }
-    notifyDraftState();
+    saveDraftToStorage(draft);
   }
 
   /**
    * Limpia el borrador local.
    */
   function clearDraft() {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-    } catch (e) {}
-    notifyDraftState();
+    saveDraftToStorage({});
   }
 
   /**
@@ -1831,8 +1840,8 @@ export function designDraftManager() {
   // 5. MANEJO ESTRUCTURAL ASÍNCRONO (AJAX PARA AÑADIR / ELIMINAR / TOGGLE)
   // =========================================================================
 
+  let remoteAjaxQueue = Promise.resolve();
   let isSubmittingRemoteAjax = false;
-  let pendingRemoteAjax = null;
   let lastClickedSubmitButton = null;
 
   /**
@@ -2231,11 +2240,30 @@ export function designDraftManager() {
    * @param {HTMLElement} [triggerElement] Elemento botón o checkbox que disparó la acción
    * @returns {Promise<boolean>}
    */
-  async function submitRemoteFormAjax(form, triggerElement = null) {
-    if (isSubmittingRemoteAjax) {
-      pendingRemoteAjax = { form, triggerElement };
-      return false;
-    }
+  /**
+   * Encola y procesa el envío asíncrono de un formulario de .remote-container
+   * garantizando ejecución secuencial y retornando siempre una promesa.
+   *
+   * @param {HTMLFormElement} [form] Formulario origen
+   * @param {HTMLElement} [triggerElement] Elemento botón o checkbox que disparó la acción
+   * @returns {Promise<boolean>}
+   */
+  function submitRemoteFormAjax(form, triggerElement = null) {
+    const run = () => executeSubmitRemoteFormAjax(form, triggerElement);
+    const promise = remoteAjaxQueue.then(run, run);
+    remoteAjaxQueue = promise.then(() => true, () => false);
+    return promise;
+  }
+
+  /**
+   * Ejecución real de la petición Fetch asíncrona hacia el backend.
+   *
+   * @async
+   * @param {HTMLFormElement} [form]
+   * @param {HTMLElement} [triggerElement]
+   * @returns {Promise<boolean>}
+   */
+  async function executeSubmitRemoteFormAjax(form, triggerElement = null) {
     isSubmittingRemoteAjax = true;
 
     const isDeleteAction = triggerElement && triggerElement.name && (
@@ -2260,17 +2288,19 @@ export function designDraftManager() {
       document.querySelectorAll(".content-modal-menu").forEach((m) => m.classList.add("hidden"));
       document.querySelectorAll(".open-modal-menu").forEach((b) => b.classList.remove("active"));
 
-      // 2. Obtener el formulario activo si no fue provisto
-      if (!form) {
-        form = document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
+      // 2. Obtener siempre el formulario más actualizado desde el DOM
+      let currentForm = form;
+      if (!currentForm || !document.body.contains(currentForm)) {
+        currentForm = document.querySelector("#sortable-content-list")?.closest("form") 
+          || document.querySelector(".remote-content.active form") 
+          || document.querySelector(".remote-container form");
       }
-      if (!form) {
-        isSubmittingRemoteAjax = false;
+      if (!currentForm) {
         return false;
       }
 
       // 3. Crear FormData con los campos del formulario
-      const formData = new FormData(form);
+      const formData = new FormData(currentForm);
 
       // 4. Si hay un disparador con nombre y valor (ej. botón submit o checkbox), asegurar su valor
       if (triggerElement && triggerElement.name) {
@@ -2292,7 +2322,7 @@ export function designDraftManager() {
           return; // Omitir datos antiguos de un elemento que se está borrando
         }
         if (isReorderAction && (key.startsWith("content[") || key.startsWith("rrss["))) {
-          return; // En reordenamiento, los inputs del formulario ya reflejan el orden y valores exactos reindexados
+          return; // En reordenamiento, los inputs del formulario en el DOM ya reflejan el orden y valores exactos reindexados
         }
         formData.set(key, draft[key]);
       });
@@ -2315,7 +2345,7 @@ export function designDraftManager() {
       if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
         formData.append("_token", csrf);
       }
-      const postUrl = form.getAttribute("action") || `/panel/${user}/diseno`;
+      const postUrl = currentForm.getAttribute("action") || `/panel/${user}/diseno`;
       const response = await fetch(postUrl, {
         method: "POST",
         body: formData,
@@ -2332,11 +2362,33 @@ export function designDraftManager() {
       const data = await parseSafeJson(response);
 
       if (data && data.success) {
-        // 9. Como el servidor ya consolidó los cambios en SQLite, limpiar borrador local para evitar desfaces
-        clearDraft();
-
-        if (dynamicStyleEl) {
-          dynamicStyleEl.textContent = "";
+        // 9. En reordenamiento, purgar únicamente las claves de content/rrss del borrador local
+        // ya que el servidor consolidó el nuevo orden y el DOM tiene los valores actualizados.
+        // NUNCA borrar el resto del borrador (colores, fondo, estilos, etc.)
+        if (isReorderAction) {
+          const currentDraft = getDraft();
+          let draftModified = false;
+          Object.keys(currentDraft).forEach((k) => {
+            if (k.startsWith("content[") || k.startsWith("rrss[")) {
+              delete currentDraft[k];
+              draftModified = true;
+            }
+          });
+          if (draftModified) {
+            saveDraftToStorage(currentDraft);
+          }
+        } else if (isDeleteAction && deletedPrefix) {
+          const currentDraft = getDraft();
+          let draftModified = false;
+          Object.keys(currentDraft).forEach((k) => {
+            if (k.startsWith(deletedPrefix)) {
+              delete currentDraft[k];
+              draftModified = true;
+            }
+          });
+          if (draftModified) {
+            saveDraftToStorage(currentDraft);
+          }
         }
 
         // 10. Actualizar vista previa oficial (.user-profile-preview)
@@ -2367,7 +2419,7 @@ export function designDraftManager() {
             const activeContent = remoteContainer.querySelector(".remote-content.active");
             let activeId = activeContent ? activeContent.id : null;
             if (!activeId) {
-              const closestRemote = triggerElement ? triggerElement.closest(".remote-content") : null;
+              const closestRemote = (triggerElement && typeof triggerElement.closest === "function") ? triggerElement.closest(".remote-content") : null;
               activeId = closestRemote ? closestRemote.id : (localStorage.getItem("vertical_menu_active") || null);
             }
 
@@ -2387,6 +2439,9 @@ export function designDraftManager() {
                   }
                 });
               }
+
+              // Sincronizar de inmediato los controles de formulario con cualquier cambio pendiente del borrador
+              syncFormControls(getDraft());
 
               // Inicializar inmediatamente switches y componentes de formulario en el nuevo contenido
               if (window.__formComponents) {
@@ -2442,12 +2497,6 @@ export function designDraftManager() {
         btn.style.pointerEvents = "";
       });
       isSubmittingRemoteAjax = false;
-
-      if (pendingRemoteAjax) {
-        const next = pendingRemoteAjax;
-        pendingRemoteAjax = null;
-        submitRemoteFormAjax(next.form, next.triggerElement);
-      }
     }
   }
 
@@ -2470,8 +2519,13 @@ export function designDraftManager() {
         return;
       }
 
-      // Si es un submit estándar de formulario (ej. Enter en un campo)
-      saveDraft();
+      // Si es un submit convencional por presionar Enter en un input dentro del editor,
+      // desenfocar el campo para consolidar su valor en el borrador local sin disparar
+      // un guardado remoto ni recargar el DOM mientras el usuario sigue interactuando
+      if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")) {
+        document.activeElement.blur();
+        return;
+      }
     }
   });
 
@@ -2911,6 +2965,8 @@ export function designDraftManager() {
   // 6. ACCIONES GLOBALES: GUARDAR Y DESCARTAR
   // =========================================================================
 
+  let isSavingDraft = false;
+
   /**
    * Vuelca la caché del borrador local a la base de datos del usuario
    * en una única petición consolidada y limpia la caché local al tener éxito.
@@ -2919,142 +2975,171 @@ export function designDraftManager() {
    * @returns {Promise<boolean>} True si se guardó con éxito.
    */
   async function saveDraft() {
-    while (isSubmittingRemoteAjax) {
-      await new Promise((resolve) => setTimeout(resolve, 80));
+    if (isSavingDraft) {
+      return false;
     }
+    isSavingDraft = true;
 
-    const draft = getDraft();
-    const activeForm = document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
-    // Usar FormData nativo para respetar disabled en inputs hidden emparejados con switches
-    const formData = activeForm ? new FormData(activeForm) : new FormData();
+    try {
+      await remoteAjaxQueue;
+      while (isSubmittingRemoteAjax) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+      }
 
-    // Incluir cualquier archivo pendiente en inputs file de todo .remote-container
-    document.querySelectorAll(".remote-container input[type='file']").forEach((fileInput) => {
-      if (fileInput.files && fileInput.files.length > 0) {
-        const existing = formData.get(fileInput.name);
-        if (!existing || (existing instanceof File && existing.size === 0)) {
-          formData.delete(fileInput.name);
-          for (let i = 0; i < fileInput.files.length; i++) {
-            formData.append(fileInput.name, fileInput.files[i]);
+      const draft = getDraft();
+      const formData = new FormData();
+
+      // Recorrer todos los formularios dentro de .remote-container para no omitir secciones inactivas
+      const forms = document.querySelectorAll(".remote-container form");
+      if (forms.length > 0) {
+        forms.forEach((formEl) => {
+          const formEntries = new FormData(formEl);
+          for (const [key, value] of formEntries.entries()) {
+            formData.append(key, value);
+          }
+        });
+      } else {
+        const activeForm = document.querySelector(".remote-content.active form") || document.querySelector("form.auto-submit") || document.querySelector("form");
+        if (activeForm) {
+          const formEntries = new FormData(activeForm);
+          for (const [key, value] of formEntries.entries()) {
+            formData.append(key, value);
           }
         }
       }
-    });
 
-    // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen prioridad)
-    Object.keys(draft).forEach((key) => {
-      formData.set(key, draft[key]);
-    });
-
-    const csrf = getCsrfToken();
-    if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
-      formData.append("_token", csrf);
-    }
-
-    const saveUrl = `/panel/${user}/guardar`;
-
-    const response = await fetch(saveUrl, {
-      method: "POST",
-      body: formData,
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error en el servidor al guardar el diseño: ${response.statusText}`);
-    }
-
-    const data = await parseSafeJson(response);
-
-    if (data && data.success) {
-      // Limpiar la caché local tras guardar con éxito
-      clearDraft();
-
-      // Eliminar sobreescrituras dinámicas temporales ya que el preview oficial las reemplazará
-      if (dynamicStyleEl) {
-        dynamicStyleEl.textContent = "";
-      }
-
-      // Actualizar la vista previa con el HTML oficial retornado por el servidor
-      if (data.html) {
-        document.querySelectorAll(".user-profile-preview").forEach((container) => {
-          const temp = document.createElement("div");
-          temp.innerHTML = data.html.trim();
-          const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
-          if (targetPreview && container.parentNode) {
-            container.parentNode.replaceChild(targetPreview, container);
-          } else {
-            container.innerHTML = data.html;
+      // Incluir cualquier archivo pendiente en inputs file de todo .remote-container
+      document.querySelectorAll(".remote-container input[type='file']").forEach((fileInput) => {
+        if (fileInput.files && fileInput.files.length > 0) {
+          const existing = formData.get(fileInput.name);
+          if (!existing || (existing instanceof File && existing.size === 0)) {
+            formData.delete(fileInput.name);
+            for (let i = 0; i < fileInput.files.length; i++) {
+              formData.append(fileInput.name, fileInput.files[i]);
+            }
           }
-        });
+        }
+      });
+
+      // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad)
+      Object.keys(draft).forEach((key) => {
+        formData.set(key, draft[key]);
+      });
+
+      const csrf = getCsrfToken();
+      if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
+        formData.append("_token", csrf);
       }
 
-      // Actualizar formularios del editor si vienen en la respuesta oficial
-      if (data.formHtml) {
-        const remoteContainer = document.querySelector(".remote-container");
-        if (remoteContainer) {
-          const activeContent = remoteContainer.querySelector(".remote-content.active");
-          const activeId = activeContent ? activeContent.id : null;
-          const savedScrollTop = activeContent ? activeContent.scrollTop : 0;
+      const saveUrl = `/panel/${user}/guardar`;
 
-          const temp = document.createElement("div");
-          temp.innerHTML = data.formHtml.trim();
-          const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
-          if (newContainer) {
-            remoteContainer.innerHTML = newContainer.innerHTML;
-            if (activeId) {
-              remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
-                if (c.id === activeId) {
-                  c.classList.remove("hidden");
-                  c.classList.add("active");
-                  if (savedScrollTop > 0) {
-                    c.style.setProperty("scroll-behavior", "auto", "important");
-                    c.scrollTop = savedScrollTop;
+      const response = await fetch(saveUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en el servidor al guardar el diseño: ${response.statusText}`);
+      }
+
+      const data = await parseSafeJson(response);
+
+      if (data && data.success) {
+        // Limpiar la caché local tras guardar con éxito oficial
+        clearDraft();
+
+        // Eliminar sobreescrituras dinámicas temporales ya que el preview oficial las reemplazará
+        if (dynamicStyleEl) {
+          dynamicStyleEl.textContent = "";
+        }
+
+        // Actualizar la vista previa con el HTML oficial retornado por el servidor
+        if (data.html) {
+          document.querySelectorAll(".user-profile-preview").forEach((container) => {
+            const temp = document.createElement("div");
+            temp.innerHTML = data.html.trim();
+            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+            if (targetPreview && container.parentNode) {
+              container.parentNode.replaceChild(targetPreview, container);
+            } else {
+              container.innerHTML = data.html;
+            }
+          });
+        }
+
+        // Actualizar formularios del editor si vienen en la respuesta oficial
+        if (data.formHtml) {
+          const remoteContainer = document.querySelector(".remote-container");
+          if (remoteContainer) {
+            const activeContent = remoteContainer.querySelector(".remote-content.active");
+            const activeId = activeContent ? activeContent.id : null;
+            const savedScrollTop = activeContent ? activeContent.scrollTop : 0;
+
+            const temp = document.createElement("div");
+            temp.innerHTML = data.formHtml.trim();
+            const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
+            if (newContainer) {
+              remoteContainer.innerHTML = newContainer.innerHTML;
+              if (activeId) {
+                remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
+                  if (c.id === activeId) {
+                    c.classList.remove("hidden");
+                    c.classList.add("active");
+                    if (savedScrollTop > 0) {
+                      c.style.setProperty("scroll-behavior", "auto", "important");
+                      c.scrollTop = savedScrollTop;
+                    }
+                  } else {
+                    c.classList.remove("active");
+                    c.classList.add("hidden");
                   }
-                } else {
-                  c.classList.remove("active");
-                  c.classList.add("hidden");
-                }
-              });
-            }
+                });
+              }
 
-            if (window.__formComponents) {
-              window.__formComponents.initCheckboxSwitches?.();
-              window.__formComponents.styleColorPickers?.();
-              window.__formComponents.initCustomRangeSliders?.();
+              if (window.__formComponents) {
+                window.__formComponents.initCheckboxSwitches?.();
+                window.__formComponents.styleColorPickers?.();
+                window.__formComponents.initCustomRangeSliders?.();
+              }
+              refreshAllBannersState();
             }
           }
         }
-      }
 
-      // Actualizar el estado de la barra lateral si viene en la respuesta
-      if (data.sidebarStatusHtml) {
-        document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
-          sidebar.innerHTML = data.sidebarStatusHtml;
-        });
-      }
-
-      // Si data.card tiene hide, asegurar que el texto explicativo y el switch estén sincronizados
-      if (data.card && data.card.hide !== undefined) {
-        const isHidden = (data.card.hide === true || data.card.hide === "true" || data.card.hide === 1 || data.card.hide === "1");
-        const statusText = document.getElementById("profile-visibility-status-text");
-        if (statusText) {
-          statusText.textContent = isHidden ? "oculto" : "visible";
+        // Actualizar el estado de la barra lateral si viene en la respuesta
+        if (data.sidebarStatusHtml) {
+          document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
+            sidebar.innerHTML = data.sidebarStatusHtml;
+          });
         }
-        const hideCheckbox = document.querySelector('input[type="checkbox"][name="hide"]');
-        if (hideCheckbox) {
-          hideCheckbox.checked = isHidden;
-          hideCheckbox.setAttribute("active", isHidden ? "1" : "2");
-        }
-      }
 
-      document.dispatchEvent(new CustomEvent("designDraftSaved", { detail: data }));
-      document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
-      return true;
-    } else {
-      throw new Error(data?.message || "No se pudo completar el guardado del diseño.");
+        // Si data.card tiene hide, asegurar que el texto explicativo y el switch estén sincronizados
+        if (data.card && data.card.hide !== undefined) {
+          const isHidden = (data.card.hide === true || data.card.hide === "true" || data.card.hide === 1 || data.card.hide === "1");
+          const statusText = document.getElementById("profile-visibility-status-text");
+          if (statusText) {
+            statusText.textContent = isHidden ? "oculto" : "visible";
+          }
+          const hideCheckbox = document.querySelector('input[type="checkbox"][name="hide"]');
+          if (hideCheckbox) {
+            hideCheckbox.checked = isHidden;
+            hideCheckbox.setAttribute("active", isHidden ? "1" : "2");
+          }
+        }
+
+        document.dispatchEvent(new CustomEvent("designDraftSaved", { detail: data }));
+        document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
+        notifyDraftState();
+        return true;
+      } else {
+        throw new Error(data?.message || "No se pudo completar el guardado del diseño.");
+      }
+    } finally {
+      isSavingDraft = false;
     }
   }
 
@@ -3066,6 +3151,7 @@ export function designDraftManager() {
    * @returns {Promise<boolean>} True si se descartó con éxito.
    */
   async function discardDraft() {
+    await remoteAjaxQueue;
     while (isSubmittingRemoteAjax) {
       await new Promise((resolve) => setTimeout(resolve, 80));
     }

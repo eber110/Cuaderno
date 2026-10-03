@@ -21,14 +21,14 @@
         continue;
       }
 
-      // Expiración de cuenta regresiva para campañas
-      if ($itemType === "campaign") {
+      // Expiración de cuenta regresiva para campañas (solo en perfil público, nunca en vista previa)
+      if ($itemType === "campaign" && !$isPreview) {
         $hasCountdown  = !empty($content[$i]["has_countdown"]);
         $countdownDate = $content[$i]["countdown_date"] ?? "";
         if ($hasCountdown && !empty($countdownDate)) {
           $ts = strtotime($countdownDate);
           if ($ts !== false && $ts <= time()) {
-            continue; // Expiró el tiempo límite
+            continue; // Expiró el tiempo límite en el perfil público
           }
         }
       }

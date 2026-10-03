@@ -580,7 +580,21 @@ class DesignModels extends Builder {
         }
       }
 
+      $isExplicitListAction = isset($param["is_reorder"]) || !empty($param["add_content_type"]);
+      if (!$isExplicitListAction) {
+        foreach ($param["content"] as $idx => $it) {
+          if (isset($it["delete"]) && ($it["delete"] === "true" || $it["delete"] === true)) {
+            $isExplicitListAction = true;
+            break;
+          }
+        }
+      }
+
       foreach ($param["content"] as $index => $item) {
+        $existingItem = $existingContentList[$index] ?? [];
+        if (!empty($existingItem) && is_array($existingItem)) {
+          $item = array_merge($existingItem, $item);
+        }
         $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
 
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
@@ -1368,6 +1382,14 @@ class DesignModels extends Builder {
         }
 
         $content[] = $contentItem;
+      }
+
+      if (!$isExplicitListAction && count($existingContentList) > count($param["content"])) {
+        foreach ($existingContentList as $exIdx => $exItem) {
+          if (!array_key_exists($exIdx, $param["content"])) {
+            $content[] = $exItem;
+          }
+        }
       }
     }
 

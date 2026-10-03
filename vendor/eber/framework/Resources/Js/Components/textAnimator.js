@@ -1,10 +1,10 @@
 /**
- * textAnimator.js
+ * ✍️ textAnimator.js
  * 
- * Librería de animaciones para texto y números en Vanilla JS (ES Modules).
- * Cero dependencias externas.
+ * Librería universal de animaciones para texto y números en Vanilla JS (ES Modules).
+ * Cero dependencias externas. Componente nativo del framework Eber.
  * 
- * Convención de uso (sin IDs):
+ * Convención de clases (sin IDs):
  *   class="text-animation text-scramble"
  *   class="text-animation text-typewriter"
  *   class="text-animation text-fade-blur"
@@ -15,11 +15,19 @@
  *   class="text-animation text-loop-shimmer" (o text-shimmer)
  *   class="text-animation text-loop-breathing" (o text-breathing)
  * 
- * Todo elemento se descubre e inicializa mediante querySelectorAll().
+ * Todo elemento se descubre e inicializa automáticamente mediante querySelectorAll('.text-animation').
+ * 
+ * @module textAnimator
  */
 
-// Glifos para el efecto Scramble / Decoder (alfanuméricos limpios que respetan el ancho del glifo)
-const SCRAMBLE_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+/**
+ * Glifos para el efecto Scramble / Decoder
+ * 
+ * @returns {string}
+ */
+function getScrambleGlyphs() {
+  return "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+}
 
 /**
  * Funciones de Easing matemáticas
@@ -38,8 +46,8 @@ export const EASING = {
  * @param {number} decimals Cantidad de decimales.
  * @returns {string} Número formateado.
  */
-function formatNumber(value, decimals = 0) {
-  const parts = value.toFixed(decimals).split(".");
+export function formatNumber(value, decimals = 0) {
+  const parts = Number(value).toFixed(decimals).split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
 }
@@ -156,6 +164,8 @@ export function animateText(el, effect = "fade-blur", options = {}) {
     el.dataset.originalText = text;
   }
 
+  const glyphs = getScrambleGlyphs();
+
   return new Promise((resolve) => {
     switch (effect) {
       case "scramble":
@@ -191,7 +201,7 @@ export function animateText(el, effect = "fade-blur", options = {}) {
             } else if (i < revealedCharsCount) {
               output += char;
             } else {
-              const randomGlyph = SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
+              const randomGlyph = glyphs[Math.floor(Math.random() * glyphs.length)];
               output += randomGlyph;
             }
           }
@@ -464,10 +474,10 @@ export function toggleAllLoops(container = document, forceState = null) {
  * Función principal para inicio automático con el framework Eber
  */
 export function textAnimator() {
-  playAllTextAnimations(document);
+  playAllTextAnimations(document, false);
 }
 
-// Exposición global en window para pruebas y modularidad
+// Exposición global en window para accesibilidad universal
 if (typeof window !== "undefined") {
   window.TextAnimator = {
     animateCounter,
@@ -478,6 +488,18 @@ if (typeof window !== "undefined") {
     playAllTextExits,
     toggleAllLoops,
     textAnimator,
+    formatNumber,
     EASING
   };
+
+  // Helpers directos globales
+  window.animateText = animateText;
+  window.animateCounter = animateCounter;
+  window.playTextAnimation = playTextAnimation;
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => textAnimator());
+  } else {
+    setTimeout(() => textAnimator(), 0);
+  }
 }

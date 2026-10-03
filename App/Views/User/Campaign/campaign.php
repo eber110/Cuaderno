@@ -16,7 +16,7 @@
   $bgColor         = safeCssColor($campaignData["bg_color"] ?? "#1e1e1e", "#1e1e1e");
   $hasCountdown    = !empty($campaignData["has_countdown"]);
   $countdownDate   = $campaignData["countdown_date"] ?? "";
-  $isPreview       = !empty($card["isPreview"]);
+  $isPreview       = !empty($isPreview) || !empty($card["isPreview"]);
   if (!$isPreview && $hasCountdown && !empty($countdownDate)) {
     $targetTimestamp = strtotime($countdownDate);
     if ($targetTimestamp !== false && $targetTimestamp <= time()) {
@@ -196,6 +196,7 @@
         const targetStr = box.getAttribute('data-countdown');
         if (!targetStr) return;
         const target = new Date(targetStr).getTime();
+        const isPreview = <?= $isPreview ? 'true' : 'false' ?>;
         let timer = null;
 
         function updateCountdown() {
@@ -203,7 +204,9 @@
           const diff = target - now;
           if (diff <= 0) {
             if (timer) clearInterval(timer);
-            wrapper.style.display = 'none';
+            if (!isPreview) {
+              wrapper.style.display = 'none';
+            }
             return;
           }
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));

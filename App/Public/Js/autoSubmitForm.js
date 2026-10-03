@@ -281,7 +281,7 @@ export function autoSubmitForm() {
       }
 
       const form = isColorInput ? target.closest('form.auto-submit') : document.querySelector('.remote-content.active form.auto-submit');
-      if (form) {
+      if (form && !form.closest('.remote-container')) {
         pendingAutoSubmitForm = form;
         document.dispatchEvent(new CustomEvent('draftSaving', { detail: { form } }));
 

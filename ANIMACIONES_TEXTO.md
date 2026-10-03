@@ -32,11 +32,11 @@ Guía técnica, plan de implementación y bitácora de avance para la librería 
 
 | Tipo | Archivo | Propósito |
 |---|---|---|
-| **JS** | `App/Public/Js/textAnimator.js` | Funciones exportables para números (odometer/lerp) y textos con `querySelectorAll()`. |
-| **CSS** | `App/Public/Css/text-animator.css` | Clases base `.text-animation`, keyframes (blur, typewriter cursor, shimmer, slide, etc.). |
+| **JS Framework** | `vendor/eber/framework/Resources/Js/Components/textAnimator.js` (y repo `frame`) | Módulo universal exportable para números (odometer/lerp) y textos con `querySelectorAll()`. Disponible globalmente en todos los proyectos. |
+| **CSS Framework** | `vendor/eber/framework/Resources/Css/text-animator.css` (y repo `frame`) | Clases base `.text-animation`, keyframes (blur, typewriter cursor, shimmer, slide, etc.). |
 | **Controlador** | `App/Controllers/TestControllers.php` | Controlador del entorno de prueba con datos mock para testear. |
 | **Vista** | `App/Views/Test/test2.php` | Sandbox visual con tarjetas oscuras, botones de control (Entrada, Loops, Salida, Reset). |
-| **Config** | `jsConfig.json` | Registro de la función en el pipeline del framework si aplica defer. |
+| **Config** | `jsConfig.json` | Registro de la función en el pipeline del framework bajo defer. |
 
 ---
 
@@ -72,3 +72,5 @@ Guía técnica, plan de implementación y bitácora de avance para la librería 
 | 2026-10-02 | Refactorización de arquitectura a Clases y `querySelectorAll` |  Completado y validado | Se eliminó por completo el uso de IDs para invocar textos. Ahora se utiliza estrictamente `class="text-animation text-<nombre>"` y procesamiento masivo con `querySelectorAll()`. |
 | 2026-10-02 | Corrección efecto Scramble (Layout Shift / Salto de tamaño) |  Corregido y estabilizado | Se eliminó el cambio dinámico a tipografía monospace. Ahora conserva la fuente, tamaño, peso y altura originales, y fija dimensiones durante la animación para evitar saltos en el contenedor. |
 | 2026-10-02 | Desacoplamiento de `scrollObserver.js` y corrección Landing Page / Sandbox |  Resuelto y verificado | Se resolvió colisión de identificadores en `js.min.js` (`extractThreshold`). Se desacopló el observer del framework en su módulo autónomo `scrollObserver.js` restaurando el cálculo proporcional para `.observer` (`ob-40`, `ob-30`, etc.), permitiendo que la landing page y todos los textos animados funcionen sin colisiones. |
+| 2026-10-02 | Migración de módulos al Eber Framework (`textAnimator`, `scrollMemory`, `sortableContent`) |  Completado y sincronizado | Se migraron los 3 módulos JS con sus estilos CSS (`text-animator.css`, `sortable.css`) a `vendor/eber/framework/Resources/` y `C:/Users/eber/Proyectos/frame/Resources/`, haciéndolos componentes globales nativos para todos los proyectos futuros. Se compilaron y validaron los assets con `composer min-script`. |
+

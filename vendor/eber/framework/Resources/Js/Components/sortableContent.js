@@ -1,12 +1,20 @@
 /**
  * Componente sortableContent.
  * 
- * Permite reordenar tarjetas (.sortable-item) mediante arrastrar y soltar (Drag and Drop)
- * dentro de los contenedores #sortable-content-list, #sortable-rrss-list o .sortable-container.
+ * Permite reordenar elementos (.sortable-item) mediante arrastrar y soltar (Drag and Drop)
+ * tanto con ratón como con eventos táctiles en dispositivos móviles y tablets.
  * 
- * Gestiona además el colapso, expansión y foco automático de bloques en #sortable-content-list,
- * optimizando la vista para listas extensas de enlaces y productos.
+ * Contenedores soportados:
+ * - `.sortable-container`
+ * - `[data-sortable]`
+ * - `[data-sortable-list]`
+ * - `#sortable-content-list`
+ * - `#sortable-rrss-list`
  * 
+ * Gestiona además el colapso, expansión y foco automático de bloques interactivos (.content-block, [data-collapsible]),
+ * sincronización de títulos de cabecera en vivo, re-indexación de inputs y feedback visual mediante badge de sincronización.
+ * 
+ * @module sortableContent
  * @function sortableContent
  * @returns {void}
  */
@@ -22,7 +30,7 @@ export function sortableContent() {
   };
 
   /**
-   * Expande un bloque de contenido específico con animación y colapsa los demás.
+   * Expande un bloque de contenido específico con animación y colapsa los demás hermanos.
    *
    * @param {HTMLElement} item Elemento .sortable-item a expandir
    * @param {boolean} focusTitle Si es true, enfoca el campo de título
@@ -35,10 +43,10 @@ export function sortableContent() {
       sessionStorage.setItem("active_content_block_id", item.id);
     }
 
-    // Colapsar todos los demás bloques abiertos
-    const container = item.closest("#sortable-content-list");
+    // Colapsar todos los demás bloques abiertos en el mismo contenedor
+    const container = item.closest(".sortable-container, [data-sortable], [data-sortable-list], #sortable-content-list, #sortable-rrss-list");
     if (container) {
-      container.querySelectorAll(".sortable-item.content-block.is-open").forEach((openItem) => {
+      container.querySelectorAll(".sortable-item.content-block.is-open, .sortable-item[data-collapsible].is-open").forEach((openItem) => {
         if (openItem !== item) {
           collapseContentBlock(openItem, animate, false);
         }
@@ -48,7 +56,7 @@ export function sortableContent() {
     item.classList.remove("is-collapsed");
     item.classList.add("is-open");
 
-    const body = item.querySelector(".content-item-body");
+    const body = item.querySelector(".content-item-body, [data-sortable-body]");
     if (body) {
       body.style.display = "flex";
 
@@ -77,7 +85,7 @@ export function sortableContent() {
     }
 
     if (focusTitle) {
-      const titleInput = item.querySelector('input[name*="[title]"]');
+      const titleInput = item.querySelector('input[name*="[title]"], [data-sortable-focus]');
       if (titleInput) {
         setTimeout(() => {
           titleInput.focus();
@@ -100,7 +108,7 @@ export function sortableContent() {
       sessionStorage.removeItem("active_content_block_id");
     }
 
-    const body = item.querySelector(".content-item-body");
+    const body = item.querySelector(".content-item-body, [data-sortable-body]");
     if (!body) {
       item.classList.remove("is-open");
       item.classList.add("is-collapsed");
@@ -138,7 +146,7 @@ export function sortableContent() {
   function syncHeaderTitle(item) {
     if (!item) return;
 
-    const label = item.querySelector(".item-title-label");
+    const label = item.querySelector(".item-title-label, [data-sortable-title-label]");
     if (!label) return;
 
     const type = item.getAttribute("data-type") || item.querySelector('input[name*="[type]"]')?.value || "link";
@@ -180,7 +188,7 @@ export function sortableContent() {
       return;
     }
 
-    const titleInput = item.querySelector('input[name*="[title]"]');
+    const titleInput = item.querySelector('input[name*="[title]"], [data-sortable-title-input]');
     if (!titleInput) return;
 
     const prefix = type === "product" ? "Producto" : (type === "campaign" ? "Campaña" : (type === "title" ? "Título" : (type === "video" ? "Enlace de video" : "Enlace")));
@@ -194,7 +202,7 @@ export function sortableContent() {
    * Inicializa todos los contenedores drag & drop y restaura el estado del bloque activo.
    */
   function initAllContainers() {
-    const containers = document.querySelectorAll("#sortable-content-list, #sortable-rrss-list, .sortable-container");
+    const containers = document.querySelectorAll(".sortable-container, [data-sortable], [data-sortable-list], #sortable-content-list, #sortable-rrss-list");
     if (!containers.length) return;
 
     containers.forEach((container) => {
@@ -204,9 +212,9 @@ export function sortableContent() {
       }
     });
 
-    const contentList = document.getElementById("sortable-content-list");
+    const contentList = document.getElementById("sortable-content-list") || document.querySelector("[data-sortable-accordion]");
     if (contentList) {
-      const allItems = contentList.querySelectorAll(".sortable-item.content-block");
+      const allItems = contentList.querySelectorAll(".sortable-item.content-block, .sortable-item[data-collapsible]");
       const openNew = sessionStorage.getItem("open_new_block_on_load");
       const savedActiveId = sessionStorage.getItem("active_content_block_id");
 
@@ -319,8 +327,8 @@ export function sortableContent() {
         return;
       }
 
-      if (target.matches('input[name*="[title]"], textarea[name*="[text]"], input[name*="[text]"]') || target.matches('.sortable-item[data-type="banner"] input[name*="[url]"]')) {
-        const item = target.closest(".sortable-item.content-block");
+      if (target.matches('input[name*="[title]"], textarea[name*="[text]"], input[name*="[text]"], [data-sortable-title-input]') || target.matches('.sortable-item[data-type="banner"] input[name*="[url]"]')) {
+        const item = target.closest(".sortable-item.content-block, .sortable-item[data-collapsible]");
         if (item) {
           syncHeaderTitle(item);
         }
@@ -334,7 +342,7 @@ export function sortableContent() {
       if (!target) return;
 
       if (target.matches('.banner-size-radio')) {
-        const item = target.closest(".sortable-item.content-block");
+        const item = target.closest(".sortable-item.content-block, .sortable-item[data-collapsible]");
         if (item) {
           const cropInput = item.querySelector('.banner-crop-input');
           if (cropInput) {
@@ -373,7 +381,7 @@ export function sortableContent() {
       }
 
       if (target.matches('.separator-icon-radio') || target.matches('input[name*="[space_size]"]') || target.matches('.separator-size-radio')) {
-        const item = target.closest(".sortable-item.content-block");
+        const item = target.closest(".sortable-item.content-block, .sortable-item[data-collapsible]");
         if (item) {
           if (target.matches('.separator-icon-radio')) {
             const spaceOptions = item.querySelector('.separator-space-options');
@@ -411,7 +419,7 @@ export function sortableContent() {
     // Gestión de apertura/cierre exclusivamente manual al hacer clic en bloques
     document.addEventListener("click", (e) => {
       // 1. Detectar clic en botones de añadir nuevo elemento
-      const addBtn = e.target.closest('button[name="add_content_type"]');
+      const addBtn = e.target.closest('button[name="add_content_type"], [data-sortable-add-btn]');
       if (addBtn) {
         sessionStorage.setItem("open_new_block_on_load", "true");
         return;
@@ -423,7 +431,7 @@ export function sortableContent() {
       if (!target) return;
 
       // 2. Clic dentro de un bloque de contenido
-      const contentItem = target.closest("#sortable-content-list .sortable-item.content-block");
+      const contentItem = target.closest(".sortable-item.content-block, .sortable-item[data-collapsible]");
 
       if (contentItem) {
         // Si el clic es en un control interactivo interno (switch, botón eliminar, modal, input, select, etc.), no colapsar/expandir
@@ -432,7 +440,7 @@ export function sortableContent() {
         }
 
         // Si se hizo clic en la cabecera / nombre del bloque
-        const header = target.closest(".content-item-header");
+        const header = target.closest(".content-item-header, [data-sortable-header]");
         if (header) {
           if (contentItem.classList.contains("is-open")) {
             collapseContentBlock(contentItem, true, true);
@@ -480,7 +488,7 @@ export function sortableContent() {
 
     // Solo habilitar draggable cuando mousedown ocurra sobre .drag-handle
     container.addEventListener("mousedown", (e) => {
-      const handle = e.target.closest(".drag-handle");
+      const handle = e.target.closest(".drag-handle, [data-drag-handle]");
       if (handle && !e.target.closest("input, textarea, select, button, label, .modal-btn, .checkbox-switch, a")) {
         const item = handle.closest(".sortable-item");
         if (item) {
@@ -795,9 +803,6 @@ export function sortableContent() {
       cleanUpTouch();
     };
 
-    /**
-     * Limpia listeners táctiles de window y resetea variables.
-     */
     function cleanUpTouch() {
       stopAutoScroll();
       window.removeEventListener("touchmove", onTouchMove, { passive: false });
@@ -811,7 +816,7 @@ export function sortableContent() {
     container.addEventListener("touchstart", (e) => {
       if (!e.touches || e.touches.length !== 1) return;
 
-      const handle = e.target.closest(".drag-handle");
+      const handle = e.target.closest(".drag-handle, [data-drag-handle]");
       if (!handle) return;
 
       // No iniciar arrastre si el toque ocurre en controles interactivos internos
@@ -912,7 +917,7 @@ export function sortableContent() {
         badge.style.transform = "translateY(-6px)";
         setTimeout(() => {
           if (badge.parentNode) badge.parentNode.removeChild(badge);
-        }, 300);
+        }, 1500);
       }, 1500);
     }
   }
@@ -992,7 +997,6 @@ export function sortableContent() {
     });
 
     // 2. Notificar INMEDIATAMENTE (0ms) a saveButtonController y designDraftManager
-    //    para que el botón Guardar aparezca al instante sin esperar la respuesta del servidor
     if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
       window.__saveButtonController.enableSaveButton();
     }
@@ -1024,59 +1028,70 @@ export function sortableContent() {
       // Actualizar la etiqueta visible
       syncHeaderTitle(item);
 
-      // Re-indexar los campos input dentro de la tarjeta
-      const inputs = item.querySelectorAll("input, select, textarea, label");
-      inputs.forEach((element) => {
+      // Re-indexar los campos dentro de la tarjeta
+      const elements = item.querySelectorAll("*");
+      elements.forEach((element) => {
+        // 1. Re-indexar atributos name
         const oldName = element.getAttribute("name");
-        if (oldName && oldName.startsWith("content[")) {
-          const newName = oldName.replace(/^content\[\d+\]/, `content[${index}]`);
-          element.setAttribute("name", newName);
-        }
-        if (oldName && oldName.startsWith("rrss[")) {
-          const newName = oldName.replace(/^rrss\[\d+\]/, `rrss[${index}]`);
-          element.setAttribute("name", newName);
-        }
-        if (oldName && oldName.startsWith("content_img_")) {
-          const matchSub = oldName.match(/^content_img_\d+_(\d+)$/);
-          if (matchSub) {
-            element.setAttribute("name", `content_img_${index}_${matchSub[1]}`);
-          } else {
-            element.setAttribute("name", `content_img_${index}`);
+        if (oldName) {
+          if (oldName.startsWith("content[")) {
+            element.setAttribute("name", oldName.replace(/^content\[\d+\]/, `content[${index}]`));
+          } else if (oldName.startsWith("rrss[")) {
+            element.setAttribute("name", oldName.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
+          } else if (oldName.startsWith("content_img_")) {
+            const matchSub = oldName.match(/^content_img_\d+_(\d+)$/);
+            if (matchSub) {
+              element.setAttribute("name", `content_img_${index}_${matchSub[1]}`);
+            } else {
+              element.setAttribute("name", `content_img_${index}`);
+            }
           }
         }
 
-        // Re-indexar IDs y atributos for de eliminación y switches para modales
+        // 2. Re-indexar IDs
         const oldId = element.getAttribute("id");
-        if (oldId && oldId.startsWith("delete-link-")) {
-          element.setAttribute("id", `delete-link-${index}`);
-        }
-        if (oldId && oldId.startsWith("delete-rrss-")) {
-          element.setAttribute("id", `delete-rrss-${index}`);
-        }
-        if (oldId && oldId.startsWith("offer-switch-")) {
-          element.setAttribute("id", `offer-switch-${index}`);
-        }
-        if (oldId && (oldId.startsWith("title-size-") || oldId.startsWith("title-weight-") || oldId.startsWith("text-weight-") || oldId.startsWith("text-align-") || oldId.startsWith("sep-mode-") || oldId.startsWith("space-size-") || oldId.startsWith("sep-ico-") || oldId.startsWith("sep-size-") || oldId.startsWith("banner-") || oldId.startsWith("content_img_banner_"))) {
-          element.setAttribute("id", oldId.replace(/-\d+$/, `-${index}`));
+        if (oldId) {
+          if (/^offer-switch-\d+-\d+$/.test(oldId)) {
+            element.setAttribute("id", oldId.replace(/^offer-switch-\d+-/, `offer-switch-${index}-`));
+          } else if (/-\d+$/.test(oldId)) {
+            element.setAttribute("id", oldId.replace(/-\d+$/, `-${index}`));
+          }
         }
 
+        // 3. Re-indexar atributos for
         const oldFor = element.getAttribute("for");
-        if (oldFor && oldFor.startsWith("delete-link-")) {
-          element.setAttribute("for", `delete-link-${index}`);
+        if (oldFor) {
+          if (/^offer-switch-\d+-\d+$/.test(oldFor)) {
+            element.setAttribute("for", oldFor.replace(/^offer-switch-\d+-/, `offer-switch-${index}-`));
+          } else if (/-\d+$/.test(oldFor)) {
+            element.setAttribute("for", oldFor.replace(/-\d+$/, `-${index}`));
+          }
         }
-        if (oldFor && oldFor.startsWith("delete-rrss-")) {
-          element.setAttribute("for", `delete-rrss-${index}`);
+
+        // 4. Re-indexar data-target
+        const oldDataTarget = element.getAttribute("data-target");
+        if (oldDataTarget && /-\d+$/.test(oldDataTarget)) {
+          element.setAttribute("data-target", oldDataTarget.replace(/-\d+$/, `-${index}`));
         }
-        if (oldFor && oldFor.startsWith("offer-switch-")) {
-          element.setAttribute("for", `offer-switch-${index}`);
+
+        // 5. Re-indexar data-val-target
+        const oldValTarget = element.getAttribute("data-val-target");
+        if (oldValTarget && /-\d+$/.test(oldValTarget)) {
+          element.setAttribute("data-val-target", oldValTarget.replace(/-\d+$/, `-${index}`));
         }
-        if (oldFor && (oldFor.startsWith("title-size-") || oldFor.startsWith("title-weight-") || oldFor.startsWith("text-weight-") || oldFor.startsWith("text-align-") || oldFor.startsWith("sep-mode-") || oldFor.startsWith("space-size-") || oldFor.startsWith("sep-ico-") || oldFor.startsWith("sep-size-") || oldFor.startsWith("banner-"))) {
-          element.setAttribute("for", oldFor.replace(/-\d+$/, `-${index}`));
+
+        // 6. Re-indexar data-index
+        if (element.hasAttribute("data-index")) {
+          element.setAttribute("data-index", String(index));
         }
       });
     });
 
-    // 6. Disparar actualización asíncrona mediante submitRemoteFormAjax pasando is_reorder
+    // 6. Disparar eventos nativos de ordenamiento
+    container.dispatchEvent(new CustomEvent("sortableChange", { bubbles: true, detail: { item: draggedItem, container } }));
+    document.dispatchEvent(new CustomEvent("sortableUpdated", { bubbles: true, detail: { item: draggedItem, container } }));
+
+    // 7. Disparar actualización asíncrona mediante submitRemoteFormAjax pasando is_reorder
     const form = container.closest("form.auto-submit") || container.closest("form");
     if (form) {
       if (window.__designDraftManager && typeof window.__designDraftManager.submitRemoteFormAjax === "function") {
@@ -1093,11 +1108,18 @@ export function sortableContent() {
           });
       } else if (typeof form.requestSubmit === "function") {
         form.requestSubmit();
+        showSyncIndicator(container, draggedItem, "success", "✓ Orden guardado");
       } else {
         form.submit();
       }
     }
   }
+
+  // API pública global
+  window.SortableContent = {
+    init: sortableContent,
+    initContainer: initSortable,
+    expand: expandContentBlock,
+    collapse: collapseContentBlock
+  };
 }
-
-

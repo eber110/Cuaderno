@@ -2,13 +2,14 @@
  * Componente scrollMemory.
  * 
  * Gestiona la persistencia y restauración automática de la posición de scroll
- * para contenedores internos (`.overflow-y-scroll` o elementos con `[data-scroll-memory]`).
+ * para contenedores internos (`.overflow-y-scroll` o elementos con `[data-scroll-memory]`, `.scroll-memory`).
  * 
  * Soluciona la pérdida de posición de scroll en:
- * 1. Perfil público (/:user): restaura el scroll al recargar (F5) o navegar y volver (BFCache / pageshow).
- * 2. Vista previa en Dashboard (.user-profile-preview): recuerda el scroll entre recargas y actualizaciones.
- * 3. Estabilización de scroll ante carga asíncrona de imágenes y videos.
+ * 1. Páginas con contenedores scrolleables internos: restaura el scroll al recargar (F5) o navegar y volver (BFCache / pageshow).
+ * 2. Vistas previas en paneles de control y dashboards: recuerda el scroll entre recargas y actualizaciones asíncronas.
+ * 3. Redirección de scroll (rueda del ratón, trackpad, táctil y teclado) desde fondos o contenedores padre hacia el scroll interno activo.
  * 
+ * @module scrollMemory
  * @function scrollMemory
  * @returns {void}
  */
@@ -34,9 +35,10 @@ export function scrollMemory() {
    */
   function getStorageKey(el) {
     const memoryId = el.getAttribute('data-scroll-memory') || 
+      el.getAttribute('id') ||
       (el.closest('.user-profile-preview') ? 'user-preview' : 
       (el.closest('.preview-profile') || el.closest('.back-card') ? 'user-profile' : 'content'));
-    return `cuaderno_scroll_${memoryId}_${window.location.pathname}`;
+    return `fme_scroll_${memoryId}_${window.location.pathname}`;
   }
 
   /**
@@ -47,14 +49,14 @@ export function scrollMemory() {
   function getTrackedElements() {
     const elements = [];
 
-    // 1. Elementos explícitos con data-scroll-memory
-    document.querySelectorAll('[data-scroll-memory]').forEach((el) => {
+    // 1. Elementos explícitos con data-scroll-memory o clase .scroll-memory
+    document.querySelectorAll('[data-scroll-memory], .scroll-memory').forEach((el) => {
       elements.push(el);
     });
 
-    // 2. Contenedor de scroll del perfil público si no tiene atributo
+    // 2. Contenedor de scroll del perfil si no tiene atributo explícito
     if (!elements.some(el => el.getAttribute('data-scroll-memory') === 'user-profile')) {
-      const profileScroll = document.querySelector('.back-card-container .overflow-y-scroll, .preview-profile .overflow-y-scroll');
+      const profileScroll = document.querySelector('.back-card-container .overflow-y-scroll, .preview-profile .overflow-y-scroll, [data-scroll-forward-target]');
       if (profileScroll && !elements.includes(profileScroll)) {
         elements.push(profileScroll);
       }
@@ -115,13 +117,23 @@ export function scrollMemory() {
     if (userInteractedSet.has(el)) return;
 
     const key = getStorageKey(el);
-    const savedStr = sessionStorage.getItem(key);
+    let savedStr = sessionStorage.getItem(key);
+
+    // Fallback de compatibilidad con proyectos que usaban el prefijo legacy
+    if (!savedStr) {
+      const memoryId = el.getAttribute('data-scroll-memory') || 
+        el.getAttribute('id') ||
+        (el.closest('.user-profile-preview') ? 'user-preview' : 
+        (el.closest('.preview-profile') || el.closest('.back-card') ? 'user-profile' : 'content'));
+      savedStr = sessionStorage.getItem(`cuaderno_scroll_${memoryId}_${window.location.pathname}`);
+    }
+
     if (!savedStr) return;
 
     const targetTop = parseInt(savedStr, 10);
     if (isNaN(targetTop) || targetTop <= 0) return;
 
-    // Si ya está en la posición objetivo (por el script anti-FOUC o asignación previa), no tocar nada
+    // Si ya está en la posición objetivo (por el script inline o asignación previa), no tocar nada
     if (Math.abs(el.scrollTop - targetTop) <= 2) return;
 
     // Asignación síncrona e instantánea asegurando scroll-behavior: auto !important
@@ -184,40 +196,47 @@ export function scrollMemory() {
   bindScrollListeners();
 
   // 2. Re-vincular cuando el contenido se actualiza en el cliente
-  document.addEventListener('DOMContentLoaded', () => {
-    bindScrollListeners();
-  });
+  if (!window.__scrollMemoryGlobalEventsBound) {
+    window.__scrollMemoryGlobalEventsBound = true;
 
-  window.addEventListener('load', () => {
-    bindScrollListeners();
-  });
+    document.addEventListener('DOMContentLoaded', () => {
+      bindScrollListeners();
+    });
 
-  // 3. Soporte para BFCache (navegación atrás y adelante)
-  window.addEventListener('pageshow', (e) => {
-    bindScrollListeners();
-    restoreAllTracked();
-  });
+    window.addEventListener('load', () => {
+      bindScrollListeners();
+    });
 
-  // 4. Actualizaciones de la vista previa en el dashboard (evento previewUpdated)
-  document.addEventListener('previewUpdated', () => {
-    bindScrollListeners();
-  });
+    // 3. Soporte para BFCache (navegación atrás y adelante)
+    window.addEventListener('pageshow', () => {
+      bindScrollListeners();
+      restoreAllTracked();
+    });
 
-  // 5. Guardado síncrono al salir de la página o pulsar enlaces
-  window.addEventListener('beforeunload', saveAllTracked);
-  window.addEventListener('pagehide', saveAllTracked);
+    // 4. Actualizaciones asíncronas de contenido o vista previa
+    document.addEventListener('previewUpdated', () => {
+      bindScrollListeners();
+    });
+    document.addEventListener('remoteContentUpdated', () => {
+      bindScrollListeners();
+    });
 
-  document.addEventListener('click', (e) => {
-    const link = e.target.closest('a');
-    if (link) {
-      saveAllTracked();
-    }
-  });
+    // 5. Guardado síncrono al salir de la página o pulsar enlaces
+    window.addEventListener('beforeunload', saveAllTracked);
+    window.addEventListener('pagehide', saveAllTracked);
+
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (link) {
+        saveAllTracked();
+      }
+    });
+  }
 
   /**
    * Redirige el scroll (rueda del ratón, trackpad, táctil y teclado) desde el fondo
-   * (.back-card-container) hacia el contenedor interno del perfil público cuando
-   * el usuario interactúa fuera de la tarjeta del perfil, con interpolación fluida (easing).
+   * (.back-card-container o [data-scroll-forward-container]) hacia el contenedor interno
+   * cuando el usuario interactúa fuera de la tarjeta con interpolación fluida (easing).
    */
   function initBackgroundScrollForwarding() {
     let targetScrollTop = null;
@@ -258,7 +277,6 @@ export function scrollMemory() {
         lastAnimTime = now;
 
         // Decaimiento exponencial independiente de los Hz del monitor (60Hz / 120Hz / 144Hz)
-        // Lambda = 15 produce una curva de desaceleración idéntica a la física nativa del navegador
         const alpha = 1 - Math.exp(-15 * dt);
         const diff = targetScrollTop - currentScrollTop;
 
@@ -280,10 +298,10 @@ export function scrollMemory() {
 
     // 1. Redirección de scroll por rueda del ratón y trackpad con interpolación suave
     window.addEventListener('wheel', (e) => {
-      const profileContainer = document.querySelector('.back-card-container');
+      const profileContainer = document.querySelector('.back-card-container, [data-scroll-forward-container]');
       if (!profileContainer) return;
 
-      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], .overflow-y-scroll');
+      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], [data-scroll-forward-target], .overflow-y-scroll');
       if (!profileScroll) return;
 
       // Si el cursor está dentro del contenedor interno, cancelar la animación del fondo y dejar el scroll nativo
@@ -341,10 +359,10 @@ export function scrollMemory() {
     let isForwardingTouch = false;
 
     window.addEventListener('touchstart', (e) => {
-      const profileContainer = document.querySelector('.back-card-container');
+      const profileContainer = document.querySelector('.back-card-container, [data-scroll-forward-container]');
       if (!profileContainer) return;
 
-      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], .overflow-y-scroll');
+      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], [data-scroll-forward-target], .overflow-y-scroll');
       if (!profileScroll) return;
 
       if (profileScroll.contains(e.target) || (e.target.closest && e.target.closest('.modal-overlay, .modal-content, [role="dialog"]'))) {
@@ -362,10 +380,10 @@ export function scrollMemory() {
 
     window.addEventListener('touchmove', (e) => {
       if (!isForwardingTouch) return;
-      const profileContainer = document.querySelector('.back-card-container');
+      const profileContainer = document.querySelector('.back-card-container, [data-scroll-forward-container]');
       if (!profileContainer) return;
 
-      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], .overflow-y-scroll');
+      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], [data-scroll-forward-target], .overflow-y-scroll');
       if (!profileScroll) return;
 
       if (e.touches && e.touches.length === 1) {
@@ -393,10 +411,10 @@ export function scrollMemory() {
 
     // 3. Soporte de navegación por teclado cuando el foco está en el fondo con easing
     window.addEventListener('keydown', (e) => {
-      const profileContainer = document.querySelector('.back-card-container');
+      const profileContainer = document.querySelector('.back-card-container, [data-scroll-forward-container]');
       if (!profileContainer) return;
 
-      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], .overflow-y-scroll');
+      const profileScroll = profileContainer.querySelector('[data-scroll-memory="user-profile"], [data-scroll-forward-target], .overflow-y-scroll');
       if (!profileScroll) return;
 
       const active = document.activeElement;
@@ -451,7 +469,15 @@ export function scrollMemory() {
     initBackgroundScrollForwarding();
   }
 
-  // API global para que autoSubmitForm y otros controladores sincronicen directamente
+  // API pública global
+  window.ScrollMemory = {
+    saveAll: saveAllTracked,
+    restoreAll: restoreAllTracked,
+    saveElement: saveScrollImmediate,
+    restoreElement: restoreScrollForElement,
+    init: scrollMemory
+  };
+
   window.__saveScrollMemory = saveAllTracked;
   window.__restoreScrollMemory = restoreAllTracked;
   window.__saveElementScroll = saveScrollImmediate;

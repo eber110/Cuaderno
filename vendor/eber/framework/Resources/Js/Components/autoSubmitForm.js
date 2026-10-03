@@ -66,6 +66,7 @@ export function autoSubmitForm() {
   document.addEventListener('change', (e) => {
     const target = e.target;
     if (!target) return;
+    if (target.closest('.remote-container')) return;
 
     // Sincronizar UI condicional de inmediato
     syncConditionalUI(target);
@@ -106,6 +107,7 @@ export function autoSubmitForm() {
   document.addEventListener('input', (e) => {
     const target = e.target;
     if (!target) return;
+    if (target.closest('.remote-container')) return;
     if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
     if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio' || target.type === 'color' || target.type === 'range' || target.classList.contains('color-picker') || target.closest('.custom-color-picker-popover')) return;
 
@@ -129,6 +131,7 @@ export function autoSubmitForm() {
   document.addEventListener('submit', async (e) => {
     const form = e.target;
     if (!form || !form.matches('form.auto-submit, form[data-fetch-preview]')) return;
+    if (form.closest('.remote-container')) return;
 
     // Evitar la recarga normal de la página
     e.preventDefault();
