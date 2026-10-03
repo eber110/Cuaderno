@@ -10,26 +10,34 @@ Guía técnica, plan de implementación y bitácora de avance para la creación 
 
 ## 1. Reglas Obligatorias para el Agente IA
 
-1. **Secuencia estricta:** No iniciar la codificación final de los gráficos SVG hasta que el usuario haya aprobado y cerrado las animaciones de texto.
-2. **Cero dependencias:** Todo SVG debe generarse de forma vectorial nativa (`<svg>`, `<path>`, `<rect>`, `<circle>`, `<g>`).
-3. **Ejecución de compilador obligatoria:** Tras modificar CSS o JS relacionados con los gráficos, ejecutar:
+1. **Tiempo de animación normalizado (400 ms):** TODOS los gráficos deben cumplir con una duración estricta de animación de **400 ms**, tanto en su ciclo de entrada como en su ciclo de salida (`.is-exiting`).
+2. **Animación simultánea (Sin retardos escalonados):** Todos los elementos que componen el gráfico (todas las barras, todas las cajas treemap, el arco de velocímetro, la línea de spline Bézier, los puntos de vértice y los contadores numéricos) **deben mostrarse y animarse al mismo tiempo**, con `delay: 0` (cero retardos secuenciales o *stagger*).
+3. **Curva de suavizado obligatoria:** Utilizar siempre la curva matemática **`easeInOutCubic`** (en CSS: `cubic-bezier(0.42, 0, 0.58, 1)`), garantizando un movimiento suave, reactivo y pulido sin cortes bruscos.
+4. **Arquitectura modular (Una librería para cada gráfico):** Cada tipo de gráfico se empaquetará como una **librería independiente y autocontenida**. Cada módulo dispondrá de sus propios métodos de inicialización (`init`), animación de entrada (`entry`), actualización de valores dinámicos (`updateValue`), animación de salida (`exit`) y eventos de interacción (tooltips, toggles), permitiendo utilizarlos de forma aislada sin acoplamientos innecesarios.
+5. **Cero dependencias externas:** Todo SVG debe generarse de forma vectorial nativa (`<svg>`, `<path>`, `<rect>`, `<circle>`, `<g>`). Prohibido terminantemente el uso de D3, Chart.js o librerías pesadas.
+6. **Ejecución de compilador obligatoria:** Tras modificar CSS o JS relacionados con los gráficos, ejecutar:
    ```bash
    composer min-script
    ```
-4. **Registro continuo de avance:** Al validar y aprobar cada tipo de gráfico (Arc Meter, Stacked Tones, Tile Treemap) con sus respectivas animaciones de salida, el Agente IA **debe registrar el avance en la tabla de este documento**.
-5. **Estética y Paleta monocromática:**
-   - Fondo de tarjeta oscuro (`#18181b` / `#1e1e1e`).
-   - Escala tonal: Blanco puro (`#ffffff`), Gris medio (`#888888` - `#9ca3af`), Gris oscuro (`#3f3f46` - `#52525b`) y Pista/Borde (`#27272a`).
+7. **Registro continuo de avance:** Al validar y aprobar cada tipo de gráfico con sus respectivas animaciones, el Agente IA **debe registrar el avance en la tabla de bitácora de este documento**.
+8. **Estética y Paleta monocromática:**
+   - Fondo de tarjeta oscuro (`#18181b` / `#1e1e1e` / `#0c0c0e`).
+   - Escala tonal: Blanco puro (`#ffffff`), Gris claro (`#a1a1aa`), Gris medio (`#888888` - `#939398`), Gris oscuro (`#52525b` - `#3f3f46`) y Pista/Borde (`#27272a`).
 
 ---
 
-## 2. Archivos a Crear y Modificar
+## 2. Arquitectura de Librerías Independientes por Gráfico
 
-| Tipo | Archivo | Propósito |
+Cada gráfico se estructurará como un módulo Vanilla JS (ES Modules) independiente con API estandarizada:
+
+| Librería / Módulo | Archivo previsto | Responsabilidad |
 |---|---|---|
-| **CSS** | `App/Public/Css/minimal-charts.css` | Estilos para contenedores de gráficos, tracks, rejillas punteadas, keyframes y clases de salida (`.is-exiting`, `.arc-collapse`, etc.). |
-| **JS** | `App/Public/Js/svgChartAnimator.js` | Funciones para generar o animar dinámicamente los gráficos SVG (interpolación de arcos, alturas de barras apiladas y escalado de tiles). |
-| **Vistas / Componentes** | `App/Views/Test/test2.php` | Maquetación visual de las 3 tarjetas de referencia idénticas a las imágenes del usuario. |
+| **1. ArcMeter** | `App/Public/Js/Charts/arcMeter.js` | Semicírculo de 180° con recorrido dinámico (0% a N%), extremos redondeados, contador sincronizado y selector de porcentajes. |
+| **2. StackedTones** | `App/Public/Js/Charts/stackedTones.js` | Columnas multicapa en cápsula con máscara clipPath, rejilla Y punteada y crecimiento simultáneo desde la línea base. |
+| **3. TileTreemap** | `App/Public/Js/Charts/tileTreemap.js` | Partición de mosaicos asimétricos con fade in simultáneo y tooltips glassmorphic. |
+| **4. HybridSpline** | `App/Public/Js/Charts/hybridSpline.js` | Barras translúcidas + cálculo matemático de Spline Bézier continuo passing-through + botón toggle Spline On/Off. |
+| **5. PillPillars** | `App/Public/Js/Charts/pillPillars.js` | Columnas emparejadas en cápsula con conmutador bidireccional Col / Row y animación simultánea. |
+| **Orquestador (Opcional)** | `App/Public/Js/svgChartAnimator.js` | Suite completa unificada para inicializar todos los gráficos o ejecutar salidas en bloque. |
 
 ---
 
@@ -62,8 +70,26 @@ Guía técnica, plan de implementación y bitácora de avance para la creación 
     - Cache (10%, Gris carbón).
   - Tipografías y porcentajes posicionados limpiamente en cada bloque.
 - **Animaciones:**
-  - **Entrada:** Escala desde `scale(0.85)` y revelado por opacidad en cascada.
-  - **Salida:** Implosión suave (`scale(0.92)` y `opacity: 0`) o deslizamiento lateral coordinado.
+### Gráfico 4: Hybrid Spline + Bar (Barras Translúcidas con Curva Spline Continua)
+- **Estructura SVG:**
+  - 5 barras redondeadas en cápsula con fondo translúcido (`rgba(255, 255, 255, 0.1)`) y borde tenue.
+  - Curva Spline Bézier cúbica continua passing-through calculada matemáticamente sin librerías externas.
+  - Puntos circulares (`<circle>`) en cada cúspide o vértice.
+  - Botón interactivo en cabecera: "Spline On / Off" para encender/apagar la curva con animación suave.
+- **Animaciones:**
+  - **Entrada:** Barras crecen desde la base; la curva spline se dibuja de izquierda a derecha con `stroke-dashoffset`; los puntos de cúspide emergen con escala.
+  - **Salida:** Repliegue de la curva a 0, implosión de puntos a escala 0 y colapso descendente de barras.
+
+### Gráfico 5: Rounded Pill Pillars (Columnas Emparejadas con Conmutador Col / Row)
+- **Estructura SVG:**
+  - 4 grupos de columnas con cápsulas totalmente redondeadas (`rx="8" ry="8"`).
+  - Pares de contraste: Barra Principal (Blanco puro) y Barra Secundaria (Gris oscuro `#424246`).
+  - Conmutador interactivo Segmented Pill: "Col | Row".
+    - Modo Col: Columnas verticales con etiquetas X y rejilla horizontal.
+    - Modo Row: Columnas horizontales con etiquetas Y y rejilla vertical.
+- **Animaciones:**
+  - **Entrada:** Crecimiento en escala desde la base según orientación activa.
+  - **Salida:** Colapso a escala 0 con desvanecimiento.
 
 ---
 
@@ -74,3 +100,10 @@ Guía técnica, plan de implementación y bitácora de avance para la creación 
 | Fecha | Componente de Gráfico | Estado | Observaciones y Detalles Aprobados |
 |---|---|---|---|
 | 2026-10-02 | Definición de especificación | 📋 Planificado | En espera de la finalización de las animaciones de texto/números. |
+| 2026-10-03 | Arc Meter Gauge | ✅ Implementado | Arco semicircular de 180° (`R=80`), `stroke-linecap="round"`, lectura central y animación coordinada. |
+| 2026-10-03 | Stacked Tones Bar | ✅ Implementado | 4 columnas con clipPath en cápsula redondeada (`rx="16"`), 3 capas monocromáticas (blanco, gris claro, gris oscuro) y rejilla Y punteada. |
+| 2026-10-03 | Tile Treemap | ✅ Implementado | Partición asimétrica 2x2 redondeada (Storage 45%, Compute 30%, Network 15%, Cache 10%) con tooltips glassmorphic. |
+| 2026-10-03 | Hybrid Spline + Bar | ✅ Implementado | 5 barras en cápsula translúcida + curva spline cúbica matemática continua Bézier + botón interactivo Spline On/Off. |
+| 2026-10-03 | Rounded Pill Pillars | ✅ Implementado | Columnas agrupadas en parejas monocromáticas (blanco / gris) con conmutador funcional interactivo Col / Row. |
+| 2026-10-03 | Utilidades Transversales | ✅ Implementado | Botón "Copiar SVG" en cada tarjeta, tooltips dinámicos flotantes y ciclo completo `.is-exiting`. |
+| 2026-10-03 | Normalización 400 ms & Modularización | ✅ Aprobado | Duración unificada a **400 ms** para todos los gráficos sin retardos escalonados (todo simultáneo). Se acuerda empaquetar cada gráfico en una **librería independiente**. |

@@ -44,7 +44,8 @@
       "productSlider": [],
       "productInfiniteCarousel": [],
       "scrollMemory": [],
-      "textAnimator": []
+      "textAnimator": [],
+      "svgChartAnimator": []
     },
     "async": {}
   }

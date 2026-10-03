@@ -1,0 +1,650 @@
+/**
+ * minimal-charts.css
+ *
+ * Sistema de estilos para gráficos SVG minimalistas monocromáticos nativos.
+ * Paleta monocromática estricta (blanco, escala de grises y carbón),
+ * contenedores con bordes redondeados suaves, rejillas punteadas y animaciones fluidas.
+ */
+
+:root {
+  --mono-chart-bg: #161618;
+  --mono-chart-inner-bg: #101012;
+  --mono-chart-border: rgba(255, 255, 255, 0.07);
+  --mono-chart-border-hover: rgba(255, 255, 255, 0.16);
+  --mono-chart-text-primary: #ffffff;
+  --mono-chart-text-secondary: #a1a1aa;
+  --mono-chart-text-muted: #71717a;
+  --mono-chart-grid: rgba(255, 255, 255, 0.08);
+  --mono-chart-track: #26262a;
+
+  /* Escala tonal monocromática */
+  --mono-tone-white: #ffffff;
+  --mono-tone-light-gray: #a1a1aa;
+  --mono-tone-mid-gray: #71717a;
+  --mono-tone-dark-gray: #3f3f46;
+  --mono-tone-charcoal: #27272a;
+}
+
+/* =========================================================================
+   1. CONTENEDOR DE TARJETA DE GRÁFICO (.mono-chart-card)
+   ========================================================================= */
+
+.mono-chart-card {
+  background: var(--mono-chart-bg);
+  border: 1px solid var(--mono-chart-border);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.mono-chart-card:hover {
+  border-color: var(--mono-chart-border-hover);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Cabecera de la tarjeta */
+.mono-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mono-chart-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.mono-chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mono-chart-text-secondary);
+  margin: 0;
+}
+
+.mono-chart-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--mono-chart-text-primary);
+}
+
+.mono-chart-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.mono-chart-value-big {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--mono-chart-text-primary);
+  line-height: 1;
+}
+
+.mono-chart-label-big {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mono-chart-text-muted);
+}
+
+/* Botón conmutador / Segmented Switch en cabecera */
+.mono-chart-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #111113;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mono-chart-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.mono-chart-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.mono-chart-switch-btn.active {
+  background: #ffffff;
+  color: #09090b;
+  border-color: #ffffff;
+}
+
+/* Segmented Pill (Col / Row) */
+.mono-segmented-pill {
+  display: inline-flex;
+  background: #111113;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mono-segmented-opt {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mono-chart-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.mono-segmented-opt.active {
+  background: #ffffff;
+  color: #09090b;
+}
+
+/* =========================================================================
+   2. ÁREA DE VISUALIZACIÓN DEL GRÁFICO (.mono-chart-viewport)
+   ========================================================================= */
+
+.mono-chart-viewport {
+  background: var(--mono-chart-inner-bg);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.mono-chart-viewport svg {
+  width: 100%;
+  height: 100%;
+  max-height: 240px;
+  display: block;
+  overflow: visible;
+}
+
+/* =========================================================================
+   3. ESTILOS VECTORIALES SVG PARA CADA TIPO DE GRÁFICO
+   ========================================================================= */
+
+/* Garantizar que las transformaciones SVG se calculen sobre el cuadro local de cada elemento (fill-box) */
+.mono-chart-viewport svg rect,
+.mono-chart-viewport svg g,
+.mono-chart-viewport svg circle,
+.mono-chart-viewport svg path {
+  transform-box: fill-box;
+}
+
+/* Rejilla de fondo punteada (Líneas horizontales Y) */
+.mono-svg-grid-line {
+  stroke: var(--mono-chart-grid);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+/* Texto de ejes X e Y */
+.mono-svg-axis-text {
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  fill: var(--mono-chart-text-muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+  user-select: none;
+}
+
+.mono-svg-axis-text-y {
+  text-anchor: end;
+  fill: #52525b;
+}
+
+/* --- GRÁFICO 1: ARC METER GAUGE --- */
+.mono-arc-track {
+  fill: none;
+  stroke: var(--mono-chart-track);
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+
+.mono-arc-track-remaining {
+  fill: none;
+  stroke: #2e2e34;
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+
+.mono-arc-meter-val {
+  fill: none;
+  stroke: var(--mono-tone-white);
+  stroke-width: 18;
+  stroke-linecap: round;
+  stroke-dasharray: 251.33 251.33;
+  stroke-dashoffset: 251.33;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.mono-arc-center-number {
+  font-size: 32px;
+  font-weight: 800;
+  fill: var(--mono-tone-white);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.mono-arc-center-label {
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--mono-chart-text-muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* --- GRÁFICO 2: STACKED TONES BAR --- */
+.mono-stacked-bar-item {
+  cursor: pointer;
+  transition: filter 0.25s ease, opacity 0.45s ease-in-out;
+}
+
+.mono-stacked-bar-item:hover {
+  filter: brightness(1.15);
+}
+
+.mono-layer-base {
+  fill: var(--mono-tone-white);
+}
+
+.mono-layer-mid {
+  fill: var(--mono-tone-light-gray);
+}
+
+.mono-layer-top {
+  fill: var(--mono-tone-dark-gray);
+}
+
+/* --- GRÁFICO 3: TILE TREEMAP --- */
+.mono-treemap-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  grid-template-rows: 1.45fr 1fr;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.mono-treemap-tile {
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  opacity: 0;
+  transition: filter 0.25s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.mono-treemap-tile:hover {
+  transform: translateY(-2px) scale(1.015);
+  filter: brightness(1.08);
+}
+
+.mono-treemap-tile.tile-storage {
+  background: #ffffff;
+  color: #09090b;
+}
+
+.mono-treemap-tile.tile-compute {
+  background: #939398;
+  color: #09090b;
+}
+
+.mono-treemap-tile.tile-network {
+  background: #545458;
+  color: #ffffff;
+}
+
+.mono-treemap-tile.tile-cache {
+  background: #323235;
+  color: #ffffff;
+}
+
+.mono-treemap-tile-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.mono-treemap-tile-pct {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin: 0;
+}
+
+/* --- GRÁFICO 4: HYBRID SPLINE + BAR --- */
+.mono-hybrid-bar {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.5;
+  rx: 15;
+  ry: 15;
+  cursor: pointer;
+  transition: fill 0.25s ease, stroke 0.25s ease, opacity 0.45s ease-in-out;
+}
+
+.mono-hybrid-bar:hover {
+  fill: rgba(255, 255, 255, 0.18);
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.mono-spline-path {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-dashoffset 400ms cubic-bezier(0.42, 0, 0.58, 1), opacity 400ms ease-in-out;
+}
+
+.mono-spline-point {
+  fill: #ffffff;
+  stroke: #101012;
+  stroke-width: 2.5;
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: transform 400ms cubic-bezier(0.42, 0, 0.58, 1), opacity 400ms ease-in-out, r 0.2s ease;
+}
+
+.mono-spline-point:hover {
+  r: 6;
+  stroke-width: 3;
+}
+
+/* --- GRÁFICO 5: ROUNDED PILL PILLARS (GROUPED BARS) --- */
+.mono-pillar-primary {
+  fill: #ffffff;
+  rx: 8;
+  ry: 8;
+  cursor: pointer;
+  transition: opacity 0.45s ease-in-out, filter 0.2s ease;
+}
+
+.mono-pillar-primary:hover {
+  filter: brightness(0.9);
+}
+
+.mono-pillar-secondary {
+  fill: #424246;
+  rx: 8;
+  ry: 8;
+  cursor: pointer;
+  transition: opacity 0.45s ease-in-out, filter 0.2s ease;
+}
+
+.mono-pillar-secondary:hover {
+  fill: #55555a;
+}
+
+.pillar-horizontal-group .mono-pillar-primary,
+.pillar-horizontal-group .mono-pillar-secondary {
+  transform-origin: left center;
+}
+
+/* =========================================================================
+   4. FILA DE METADATOS Y PIE DE TARJETA
+   ========================================================================= */
+
+.mono-chart-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--mono-chart-text-muted);
+  padding: 0 4px;
+}
+
+.mono-chart-info-row .info-right {
+  color: var(--mono-chart-text-primary);
+  font-weight: 600;
+}
+
+.mono-chart-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.mono-chart-footer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mono-chart-footer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mono-chart-footer-desc {
+  font-size: 12px;
+  color: var(--mono-chart-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mono-chart-copy-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mono-chart-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.mono-chart-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.mono-chart-copy-btn.copied {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+/* =========================================================================
+   5. TOOLTIP FLOTANTE MONOCROMÁTICO GLASSMORPHIC (.mono-chart-tooltip)
+   ========================================================================= */
+
+.mono-chart-tooltip {
+  position: absolute;
+  background: rgba(18, 18, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #ffffff;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -100%) translateY(-8px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.mono-chart-tooltip.visible {
+  opacity: 1;
+  transform: translate(-50%, -100%) translateY(-12px);
+}
+
+/* =========================================================================
+   6. ANIMACIONES DE ENTRADA Y SALIDA (.is-exiting)
+   ========================================================================= */
+
+/* Animación de entrada de barras por crecimiento vertical */
+@keyframes barGrowUp {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.bar-anim-grow {
+  transform-origin: bottom;
+  animation: barGrowUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Estado de salida: colapso y repliegue sincronizado */
+.mono-chart-card.is-exiting .mono-arc-meter-val {
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+.mono-chart-card.is-exiting .mono-spline-path {
+  opacity: 0;
+  stroke-dashoffset: 600 !important;
+  transition: stroke-dashoffset 400ms cubic-bezier(0.42, 0, 0.58, 1), opacity 400ms ease-in-out !important;
+}
+
+.mono-chart-card.is-exiting .mono-spline-point {
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 400ms cubic-bezier(0.42, 0, 0.58, 1), opacity 400ms ease-in-out !important;
+}
+
+.mono-chart-card.is-exiting .mono-pillar-primary,
+.mono-chart-card.is-exiting .mono-pillar-secondary,
+.mono-chart-card.is-exiting .mono-hybrid-bar,
+.mono-chart-card.is-exiting .mono-stacked-bar-item {
+  opacity: 0 !important;
+  transition: opacity 400ms cubic-bezier(0.42, 0, 0.58, 1) !important;
+}
+
+
+
+/* =========================================================================
+   7. ESTILOS DE APOYO PARA LABORATORIO DE TEXTOS (.sandbox-*)
+   ========================================================================= */
+
+.sandbox-card {
+  background: #161618;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.sandbox-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sandbox-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sandbox-btn {
+  background: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f4f4f5;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.sandbox-btn:hover {
+  background: #3f3f46;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.sandbox-btn:active {
+  transform: translateY(0);
+}
+
+.sandbox-btn-primary {
+  background: #ffffff;
+  color: #09090b;
+  border-color: #ffffff;
+}
+
+.sandbox-btn-primary:hover {
+  background: #e4e4e7;
+  color: #09090b;
+}
+
+.sandbox-btn-danger {
+  background: #7f1d1d;
+  color: #fecaca;
+  border-color: #b91c1c;
+}
+
+.sandbox-btn-danger:hover {
+  background: #991b1b;
+}
