@@ -36,10 +36,11 @@ class TestControllers extends Control {
         "footerTitle" => "Mono Stacked Tones",
         "footerDesc"  => "Multi-layer rounded capsule bars",
         "quarters"    => [
-          ["label" => "Q1", "total" => 80,  "white" => 35, "mid" => 25, "dark" => 20],
-          ["label" => "Q2", "total" => 110, "white" => 48, "mid" => 37, "dark" => 25],
-          ["label" => "Q3", "total" => 155, "white" => 65, "mid" => 52, "dark" => 38],
-          ["label" => "Q4", "total" => 125, "white" => 50, "mid" => 45, "dark" => 30]
+          ["label" => "Lunes", "total" => 80,  "white" => 35, "mid" => 25, "dark" => 20],
+          ["label" => "Martes", "total" => 110, "white" => 48, "mid" => 37, "dark" => 25],
+          ["label" => "Miércoles", "total" => 155, "white" => 65, "mid" => 52, "dark" => 38],
+          ["label" => "Jueves", "total" => 125, "white" => 50, "mid" => 45, "dark" => 30],
+          ["label" => "Viernes", "total" => 125, "white" => 50, "mid" => 45, "dark" => 30],
         ]
       ],
       "treemap" => [
@@ -56,7 +57,7 @@ class TestControllers extends Control {
           ["name" => "Storage", "pct" => "45%", "class" => "tile-storage", "info" => "450 GB asignados"],
           ["name" => "Compute", "pct" => "30%", "class" => "tile-compute", "info" => "300 vCPU asignados"],
           ["name" => "Network", "pct" => "15%", "class" => "tile-network", "info" => "150 Gbps balanceados"],
-          ["name" => "Cache",   "pct" => "10%", "class" => "tile-cache",   "info" => "100 GB en memoria rápida"]
+          ["name" => "Cache",   "pct" => "10%", "class" => "tile-cache",   "info" => "100 GB en memoria rápida"],
         ]
       ],
       "hybridSpline" => [
@@ -81,7 +82,7 @@ class TestControllers extends Control {
         "title"       => "ROUNDED PILL",
         "tag"         => "Pillars",
         "value"       => "42.8",
-        "suffix"      => "",
+        "suffix"      => "row",
         "label"       => "Index score",
         "metaKey"     => "Dominant set",
         "metaVal"     => "Alpha series",

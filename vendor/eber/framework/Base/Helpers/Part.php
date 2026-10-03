@@ -543,6 +543,44 @@ function _componentToString(string $component, mixed $params = []): string
 }
 
   // ╔════════════════════════════════════════════╗
+  // ║  4.1 GRÁFICOS SVG (GraphicsModule)         ║
+  // ╚════════════════════════════════════════════╝
+
+/**
+ * Renderiza e imprime directamente un gráfico SVG vectorial minimalista.
+ *
+ * @param string $type Tipo de gráfico: 'arcMeter', 'stackedTones', 'tileTreemap', 'hybridSpline', 'pillPillars'
+ * @param array $params Parámetros de configuración (color, transition, datos, etc.)
+ * @return void
+ * @example <?php _chart('arcMeter', ['value' => 90, 'label' => 'Optimal Load']); ?>
+ */
+function _chart(string $type, array $params = []): void
+{
+  echo _chartToString($type, $params);
+}
+
+/**
+ * Renderiza y retorna el string SVG de un gráfico vectorial minimalista.
+ *
+ * @param string $type Tipo de gráfico: 'arcMeter', 'stackedTones', 'tileTreemap', 'hybridSpline', 'pillPillars'
+ * @param array $params Parámetros de configuración
+ * @return string Código SVG puro
+ * @example $svg = _chartToString('arcMeter', ['value' => 90]);
+ */
+function _chartToString(string $type, array $params = []): string
+{
+  if (!class_exists('\\Base\\Module\\GraphicsModule')) {
+    return "<!-- GraphicsModule not found -->";
+  }
+
+  if (!method_exists('\\Base\\Module\\GraphicsModule', $type)) {
+    return "<!-- GraphicsModule: Chart type '{$type}' not supported -->";
+  }
+
+  return \Base\Module\GraphicsModule::$type($params);
+}
+
+  // ╔════════════════════════════════════════════╗
   // ║ 5. UTILIDADES HTML ║
   // ╚════════════════════════════════════════════╝
 

@@ -198,6 +198,8 @@ Mantener la documentación actualizada cuando cambies módulos.
 
 - ❌ Añadir frameworks/libs frontend sin avisar (mantener vanilla JS).
 - ❌ Escribir `$_GET`/`$_POST` temporales directamente — usar `HttpPostModule`.
+- ❌ Usar `extract()` sobre datos de usuario o parámetros de peticiones.
+- ❌ Salidas dinámicas en vistas sin escapar (`e()`, `eUrl()`).
 - ❌ Duplicar funcionalidades entre módulos — extender módulo existente.
 - ❌ Comitear `.env` o artefactos generados (`Min/`, mmdb, logs).
 - ❌ Usar `echo` fuera de vistas/`ResponseModule`.

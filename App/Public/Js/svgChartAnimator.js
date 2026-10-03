@@ -132,7 +132,8 @@ export async function copyChartSvg(buttonElement) {
  * @returns {number} Progreso con curva ease-in-out.
  */
 export function easeInOutCubic(t) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const clamped = Math.max(0, Math.min(1, t));
+  return clamped < 0.5 ? 4 * clamped * clamped * clamped : 1 - Math.pow(-2 * clamped + 2, 3) / 2;
 }
 
 /**
@@ -151,8 +152,8 @@ function animateLocalCounter(el, start, end, duration = 400, suffix = "") {
   }
   const startTime = performance.now();
   function step(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
+    const elapsed = Math.max(0, now - startTime);
+    const progress = Math.max(0, Math.min(elapsed / duration, 1));
     const ease = easeInOutCubic(progress);
     const current = Math.round(start + (end - start) * ease);
     el.textContent = `${current}${suffix}`;
@@ -205,10 +206,10 @@ function animateSvgRectGeometry(rect, { dimension = "height", baseline, targetVa
 
     function step(now) {
       if (isCancelled) return;
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const elapsed = Math.max(0, now - startTime);
+      const progress = Math.max(0, Math.min(elapsed / duration, 1));
       const ease = easeInOutCubic(progress);
-      const currentVal = targetVal * ease;
+      const currentVal = Math.max(0, targetVal * ease);
 
       if (dimension === "height") {
         const currentY = baseline - currentVal;
@@ -221,11 +222,12 @@ function animateSvgRectGeometry(rect, { dimension = "height", baseline, targetVa
       if (progress < 1) {
         rafId = requestAnimationFrame(step);
       } else {
+        const finalVal = Math.max(0, targetVal);
         if (dimension === "height") {
-          rect.setAttribute("height", targetVal.toFixed(1));
-          rect.setAttribute("y", (baseline - targetVal).toFixed(1));
+          rect.setAttribute("height", finalVal.toFixed(1));
+          rect.setAttribute("y", (baseline - finalVal).toFixed(1));
         } else {
-          rect.setAttribute("width", targetVal.toFixed(1));
+          rect.setAttribute("width", finalVal.toFixed(1));
         }
         rect._geoAnim = null;
       }
@@ -281,17 +283,17 @@ function animateTileFade(tile, { delay = 0, duration = 400, fromOpacity = 0, toO
 
     function step(now) {
       if (isCancelled) return;
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const elapsed = Math.max(0, now - startTime);
+      const progress = Math.max(0, Math.min(elapsed / duration, 1));
       const ease = easeInOutCubic(progress);
 
-      const currentOpacity = fromOpacity + (toOpacity - fromOpacity) * ease;
+      const currentOpacity = Math.max(0, Math.min(1, fromOpacity + (toOpacity - fromOpacity) * ease));
       tile.style.opacity = currentOpacity.toFixed(4);
 
       if (progress < 1) {
         rafId = requestAnimationFrame(step);
       } else {
-        tile.style.opacity = toOpacity.toString();
+        tile.style.opacity = Math.max(0, Math.min(1, toOpacity)).toString();
         tile._fadeAnim = null;
       }
     }
@@ -371,12 +373,12 @@ export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurr
     const startTime = performance.now();
 
     function step(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const elapsed = Math.max(0, now - startTime);
+      const progress = Math.max(0, Math.min(elapsed / duration, 1));
       const ease = easeInOutCubic(progress);
 
-      const currentPct = startPct + (targetPct - startPct) * ease;
-      const currentOffset = perimeter * (1 - currentPct / 100);
+      const currentPct = Math.max(0, Math.min(100, startPct + (targetPct - startPct) * ease));
+      const currentOffset = Math.max(0, perimeter * (1 - currentPct / 100));
 
       meterVal.style.strokeDashoffset = currentOffset.toFixed(2);
       meterVal.setAttribute("stroke-dashoffset", currentOffset.toFixed(2));
@@ -951,11 +953,11 @@ export function playAllSvgChartExits(context = document) {
       const exitDuration = 400;
 
       function exitStep(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / exitDuration, 1);
+        const elapsed = Math.max(0, now - startTime);
+        const progress = Math.max(0, Math.min(elapsed / exitDuration, 1));
         const ease = easeInOutCubic(progress);
         const currentPct = Math.max(0, startPct * (1 - ease));
-        const currentOffset = perimeter * (1 - currentPct / 100);
+        const currentOffset = Math.max(0, perimeter * (1 - currentPct / 100));
 
         meterVal.style.strokeDashoffset = currentOffset.toFixed(2);
         meterVal.setAttribute("stroke-dashoffset", currentOffset.toFixed(2));

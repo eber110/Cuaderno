@@ -3,3 +3,5 @@
 [2026-09-27 14:31:46] INTRUSION DETECTED | IP: ::1 | Method: GET | URI: /registrar/check-username?username=eber | Reason: HTTP Error 405 (Método no permitido) | UserAgent: Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CL) WindowsPowerShell/5.1.26100.9444
 [2026-09-27 14:31:46] INTRUSION DETECTED | IP: ::1 | Method: GET | URI: /op/track-click | Reason: HTTP Error 405 (Método no permitido) | UserAgent: Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CL) WindowsPowerShell/5.1.26100.9444
 [2026-10-03 00:09:36] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown
+[2026-10-03 22:05:43] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown
+[2026-10-03 22:16:43] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown

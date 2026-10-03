@@ -48,6 +48,7 @@ class InitAppStructure
     'App/Rsc/Helper',
     'App/Rsc/Ico',
     'App/Rsc/Library',
+    'App/Rsc/Library/Charts',
     // Vistas de error (independientes de App/Views)
     'App/errorViews',
     // Directorios de sistema (Caché, Database, Logs y Uploads en la raíz)
@@ -617,7 +618,24 @@ PHP;
     $libConfigPath = $this->basePath . '/App/Config/loadLibraryJsConfiguration.php';
 
     if (file_exists($libConfigPath)) {
-      echo "⏭️  Saltado: App/Config/loadLibraryJsConfiguration.php (ya existe)\n";
+      $content = file_get_contents($libConfigPath);
+      // Migración automática: registrar la librería 'Charts' si aún no está presente
+      if (!str_contains($content, "'Charts'") && !str_contains($content, '"Charts"')) {
+        if (str_contains($content, "'Gsap',")) {
+          $content = str_replace("'Gsap',", "'Gsap',\n    'Charts',", $content);
+          if (file_put_contents($libConfigPath, $content)) {
+            echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts' de GraphicsModule)\n";
+            return;
+          }
+        } elseif (str_contains($content, "'Gsap'")) {
+          $content = str_replace("'Gsap'", "'Gsap',\n    'Charts'", $content);
+          if (file_put_contents($libConfigPath, $content)) {
+            echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts' de GraphicsModule)\n";
+            return;
+          }
+        }
+      }
+      echo "⏭️  Saltado: App/Config/loadLibraryJsConfiguration.php (ya existe y está actualizado)\n";
       return;
     }
 
@@ -634,17 +652,19 @@ PHP;
  * Ejemplo:
  * return [
  *     'Gsap',
+ *     'Charts',     // Gráficos SVG vectoriales minimalistas (GraphicsModule)
  *     'ApexCharts',
  * ];
  */
 
 return [
     'Gsap',
+    'Charts',
 ];
 PHP;
 
     if (file_put_contents($libConfigPath, $content)) {
-      echo "✅ Creado: App/Config/loadLibraryJsConfiguration.php\n";
+      echo "✅ Creado: App/Config/loadLibraryJsConfiguration.php (con Gsap y Charts activos)\n";
     } else {
       echo "❌ Error: No se pudo crear App/Config/loadLibraryJsConfiguration.php\n";
     }

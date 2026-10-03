@@ -38,7 +38,8 @@
       "protectedMenuImage": [],
       "cropImage": [],
       "cutPhrase": [],
-      "textLimiter": []
+      "textLimiter": [],
+      "scrollObserver": []
     },
     "async": {}
   }

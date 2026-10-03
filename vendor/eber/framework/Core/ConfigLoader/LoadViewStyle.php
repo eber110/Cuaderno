@@ -40,6 +40,42 @@ class LoadViewStyle
   }
 
   /**
+   * Verifica si un archivo JavaScript contiene sintaxis de módulos ES (import / export).
+   *
+   * @param string $filePath Ruta absoluta al archivo.
+   * @return bool True si es un módulo ES.
+   */
+  private function isEsModuleFile(string $filePath): bool
+  {
+    if (!file_exists($filePath) || !is_file($filePath)) {
+      return false;
+    }
+    $chunk = file_get_contents($filePath, false, null, 0, 8192);
+    if ($chunk === false) {
+      return false;
+    }
+    return (bool) preg_match('/^\s*(import\s+[\w*{}\s,]+from\s+[\x22\x27]|import\s+[\x22\x27]|import\s*\(|export\s+(default|function|const|let|var|class|async|\{))/m', $chunk);
+  }
+
+  /**
+   * Verifica si un archivo JavaScript importa dependencias relativas locales (./ o ../).
+   *
+   * @param string $filePath Ruta absoluta al archivo.
+   * @return bool True si importa módulos locales relativos.
+   */
+  private function hasRelativeImports(string $filePath): bool
+  {
+    if (!file_exists($filePath) || !is_file($filePath)) {
+      return false;
+    }
+    $chunk = file_get_contents($filePath, false, null, 0, 8192);
+    if ($chunk === false) {
+      return false;
+    }
+    return (bool) preg_match('/^\s*import\s+.*[\x22\x27]\.\.?\//m', $chunk);
+  }
+
+  /**
    * Precarga automáticamente las fuentes personalizadas activas detectadas por JIT
    * desde App/Config/preloadFonts.json.
    * Si no hay fuentes en uso, no inyecta nada (usando tipografía del sistema a máxima velocidad).
@@ -176,29 +212,75 @@ class LoadViewStyle
         $cssFiles = [];
       }
 
-      // Ordenar JS: archivo principal (que coincide con el nombre de la librería o core) primero
-      usort($jsFiles, function($a, $b) use ($ruteClean) {
-        $aLower = strtolower($a);
-        $bLower = strtolower($b);
-        $ruteLower = strtolower($ruteClean);
-
-        $aIsCore = (strpos($aLower, $ruteLower) !== false || strpos($aLower, 'core') !== false || strpos($aLower, 'main') !== false);
-        $bIsCore = (strpos($bLower, $ruteLower) !== false || strpos($bLower, 'core') !== false || strpos($bLower, 'main') !== false);
-
-        if ($aIsCore && !$bIsCore) return -1;
-        if (!$aIsCore && $bIsCore) return 1;
-        return strcmp($aLower, $bLower);
-      });
-
       // 1. Inyección de CSS (sin preloads duplicados; el parser del navegador los procesa de inmediato en el <head>)
       foreach ($cssFiles as $css) {
-        print '<link rel="stylesheet" href="' . $urlBase . $css . '"' . ($param ? ' ' . $param : '') . ' fetchpriority="high">';
+        $cssAttr = '';
+        if ($param) {
+          $cleanCssParam = trim(preg_replace('/\b(defer|async|type=[\x22\x27][^\x22\x27]*[\x22\x27])\b/i', '', $param));
+          if ($cleanCssParam !== '') {
+            $cssAttr = ' ' . $cleanCssParam;
+          }
+        }
+        $cssFullPath = $libDir . '/' . $css;
+        $vCss = file_exists($cssFullPath) ? '?v=' . filemtime($cssFullPath) : '';
+        print '<link rel="stylesheet" href="' . $urlBase . $css . $vCss . '"' . $cssAttr . ' fetchpriority="high">';
       }
 
-      // 2. Inyección de JS (con defer)
-      $jsParam = $param ?? 'defer';
+      // Identificar si existe un archivo de entrada principal (homónimo de la carpeta, index o main)
+      $entryFile = null;
+      $ruteLower = strtolower($ruteClean);
       foreach ($jsFiles as $js) {
-        print '<script src="' . $urlBase . $js . '" ' . $jsParam . '></script>';
+        $fileBase = strtolower(pathinfo($js, PATHINFO_FILENAME));
+        if ($fileBase === $ruteLower || $fileBase === 'index' || $fileBase === 'main' || str_starts_with($fileBase, $ruteLower . '.')) {
+          $entryFile = $js;
+          break;
+        }
+      }
+
+      // Si existe un entry file que usa sintaxis ES y tiene imports relativos,
+      // solo inyectamos el orquestador principal; el navegador resuelve sus submódulos nativamente.
+      $isEntryModule = ($entryFile !== null) ? $this->isEsModuleFile($libDir . '/' . $entryFile) : false;
+      $hasRelativeImports = $isEntryModule && $this->hasRelativeImports($libDir . '/' . $entryFile);
+
+      if ($hasRelativeImports && $entryFile !== null) {
+        $jsFilesToInject = [$entryFile];
+      } else {
+        // Ordenar JS: archivo principal (que coincide con el nombre de la librería o core) primero
+        usort($jsFiles, function($a, $b) use ($ruteClean) {
+          $aLower = strtolower($a);
+          $bLower = strtolower($b);
+          $ruteLower = strtolower($ruteClean);
+
+          $aIsCore = (strpos($aLower, $ruteLower) !== false || strpos($aLower, 'core') !== false || strpos($aLower, 'main') !== false || strpos($aLower, 'index') !== false);
+          $bIsCore = (strpos($bLower, $ruteLower) !== false || strpos($bLower, 'core') !== false || strpos($bLower, 'main') !== false || strpos($bLower, 'index') !== false);
+
+          if ($aIsCore && !$bIsCore) return -1;
+          if (!$aIsCore && $bIsCore) return 1;
+          return strcmp($aLower, $bLower);
+        });
+        $jsFilesToInject = $jsFiles;
+      }
+
+      // 2. Inyección de JS (con soporte nativo para type="module" en módulos ES o defer en scripts clásicos)
+      foreach ($jsFilesToInject as $js) {
+        $isModule = $this->isEsModuleFile($libDir . '/' . $js);
+        $hasExplicitModule = ($param !== null && stripos($param, 'type="module"') !== false);
+
+        if ($isModule || $hasExplicitModule) {
+          if ($param !== null) {
+            $cleanParam = trim(preg_replace('/\bdefer\b/i', '', $param));
+            $jsParam = (stripos($cleanParam, 'type=') === false) ? ($cleanParam . ' type="module"') : $cleanParam;
+            $jsParam = trim($jsParam);
+          } else {
+            $jsParam = 'type="module"';
+          }
+        } else {
+          $jsParam = $param ?? 'defer';
+        }
+
+        $jsFullPath = $libDir . '/' . $js;
+        $vJs = file_exists($jsFullPath) ? '?v=' . filemtime($jsFullPath) : '';
+        print '<script src="' . $urlBase . $js . $vJs . '" ' . $jsParam . '></script>';
       }
 
       return;
@@ -206,8 +288,36 @@ class LoadViewStyle
 
     // Caso 2: Es un archivo directo o compatibilidad anterior
     $fileName = pathinfo($ruteClean, PATHINFO_EXTENSION) ? $ruteClean : $ruteClean . '.js';
-    $jsParam = $param ?? 'defer';
-    $js = '<script src="' . DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $fileName . '" ' . $jsParam . '></script>';
+    $searchFiles = [
+      ROOT_PATH . '/App/Rsc/Library/' . $fileName,
+      ROOT_PATH . '/App/Rcs/Library/' . $fileName,
+      ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $fileName,
+    ];
+    $filePath = null;
+    foreach ($searchFiles as $sf) {
+      if (file_exists($sf)) {
+        $filePath = $sf;
+        break;
+      }
+    }
+
+    $isModule = ($filePath !== null) ? $this->isEsModuleFile($filePath) : false;
+    $hasExplicitModule = ($param !== null && stripos($param, 'type="module"') !== false);
+
+    if ($isModule || $hasExplicitModule) {
+      if ($param !== null) {
+        $cleanParam = trim(preg_replace('/\bdefer\b/i', '', $param));
+        $jsParam = (stripos($cleanParam, 'type=') === false) ? ($cleanParam . ' type="module"') : $cleanParam;
+        $jsParam = trim($jsParam);
+      } else {
+        $jsParam = 'type="module"';
+      }
+    } else {
+      $jsParam = $param ?? 'defer';
+    }
+
+    $v = ($filePath !== null && file_exists($filePath)) ? '?v=' . filemtime($filePath) : '';
+    $js = '<script src="' . DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $fileName . $v . '" ' . $jsParam . '></script>';
     print $js;
   }
 

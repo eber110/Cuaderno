@@ -1,6 +1,16 @@
 <?php
+  use Base\Module\GraphicsModule;
+
+  // Configuración global de estilos para todos los gráficos (color base 'texto', etiquetas 'textw', ejes 'color1' y 400ms unificados)
+  GraphicsModule::configStyle([
+    "colorLabel" => "textw",
+    "axisLabel"  => "#cfcfcf",
+    "color"      => "color3",
+    "transition" => 500
+  ]);
+
   /** @var array $demo */
-  $arc = $demo["arcMeter"] ?? [];
+  $arc = $demo["arcMeter"];
   $stacked = $demo["stackedTones"] ?? [];
   $treemap = $demo["treemap"] ?? [];
   $spline = $demo["hybridSpline"] ?? [];
@@ -47,59 +57,14 @@
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 24px;" class="w100">
     
     <!-- 1. GRÁFICO: ARC METER GAUGE (SPEEDOMETER 180°) -->
-    <div class="mono-chart-card" data-chart-type="arc-meter">
-      <div class="mono-chart-header">
-        <div class="mono-chart-top-row">
-          <h3 class="mono-chart-title"><?= e($arc["title"] ?? "ARC METER") ?></h3>
-          <div class="flex-row align-center gap8">
-            <span class="mono-chart-badge"><?= e($arc["tag"] ?? "Speedometer") ?></span>
-            <div class="mono-segmented-pill mono-arc-val-pills" title="Cambiar valor dinámico">
-              <button type="button" class="mono-segmented-opt <?= ($arc["value"] ?? 20) == 20 ? 'active' : '' ?>" data-arc-target="20">20%</button>
-              <button type="button" class="mono-segmented-opt <?= ($arc["value"] ?? 20) == 70 ? 'active' : '' ?>" data-arc-target="70">70%</button>
-              <button type="button" class="mono-segmented-opt <?= ($arc["value"] ?? 20) == 100 ? 'active' : '' ?>" data-arc-target="100">100%</button>
-            </div>
-          </div>
-        </div>
-        <div class="mono-chart-headline">
-          <span class="mono-chart-value-big" data-target="<?= e($arc["value"] ?? 20) ?>" data-suffix="%">
-            0%
-          </span>
-          <span class="mono-chart-label-big"><?= e($arc["label"] ?? "Optimal Load") ?></span>
-        </div>
-      </div>
-
-      <div class="mono-chart-viewport">
-        <svg viewBox="0 0 300 160" preserveAspectRatio="xMidYMid meet">
-          <!-- Pista base completa semicircular de radio 80 -->
-          <path d="M 70 135 A 80 80 0 0 1 230 135" class="mono-arc-track" />
-          <!-- Arco activo blanco con stroke-dashoffset animado -->
-          <path d="M 70 135 A 80 80 0 0 1 230 135" class="mono-arc-meter-val"
-                data-value="<?= e($arc["value"] ?? 20) ?>"
-                stroke-dasharray="251.33 251.33"
-                stroke-dashoffset="251.33"
-                style="stroke-dasharray: 251.33 251.33; stroke-dashoffset: 251.33; opacity: 0;" />
-          <!-- Lecturas centrales del velocímetro -->
-          <text x="150" y="112" class="mono-arc-center-number">0%</text>
-          <text x="150" y="136" class="mono-arc-center-label"><?= e($arc["status"] ?? "Optimal Load") ?></text>
-        </svg>
-      </div>
-
-      <div class="mono-chart-info-row">
-        <span><?= e($arc["metaKey"] ?? "Active nodes") ?></span>
-        <span class="info-right"><?= e($arc["metaVal"] ?? "12 / 16") ?></span>
-      </div>
-
-      <div class="mono-chart-footer">
-        <div class="mono-chart-footer-text">
-          <h4 class="mono-chart-footer-title"><?= e($arc["footerTitle"] ?? "Mono Arc Meter") ?></h4>
-          <p class="mono-chart-footer-desc"><?= e($arc["footerDesc"] ?? "Semi-circular track with linecap") ?></p>
-        </div>
-        <button type="button" class="mono-chart-copy-btn" title="Copiar SVG" aria-label="Copiar SVG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px;">
+      <p>ARC METER</p>
+      <p class="x40 bold900 text-animation text-counter p0 m0"><?= $arc["value"]."%";?></p>
+      <div class="br15 back8 p20">
+        <?php _chart("arcMeter", [
+          "value" => $arc["value"]."%" ?? 90,
+          "label" => $arc["label"] ?? "Optimal Load",
+        ]); ?>
       </div>
     </div>
 
@@ -117,64 +82,10 @@
       </div>
 
       <div class="mono-chart-viewport">
-        <svg viewBox="0 0 320 190" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <?php 
-              $quarters = $stacked["quarters"] ?? [];
-              $qCoords = [
-                0 => ["x" => 55, "w" => 32],
-                1 => ["x" => 120, "w" => 32],
-                2 => ["x" => 185, "w" => 32],
-                3 => ["x" => 250, "w" => 32]
-              ];
-              foreach ($quarters as $idx => $q):
-                $scale = 135 / 160;
-                $totalH = $q["total"] * $scale;
-                $yBase = 155 - $totalH;
-                $qx = $qCoords[$idx]["x"];
-            ?>
-            <clipPath id="stacked-clip-<?= $idx ?>">
-              <rect class="mono-stacked-clip-rect" x="<?= $qx ?>" y="<?= $yBase ?>" width="32" height="<?= $totalH ?>" rx="16" ry="16" data-target-y="<?= $yBase ?>" data-target-h="<?= $totalH ?>" />
-            </clipPath>
-            <?php endforeach; ?>
-          </defs>
-
-          <!-- Rejilla punteada horizontal Y -->
-          <line x1="36" y1="20" x2="300" y2="20" class="mono-svg-grid-line" />
-          <line x1="36" y1="54" x2="300" y2="54" class="mono-svg-grid-line" />
-          <line x1="36" y1="88" x2="300" y2="88" class="mono-svg-grid-line" />
-          <line x1="36" y1="122" x2="300" y2="122" class="mono-svg-grid-line" />
-          <line x1="36" y1="155" x2="300" y2="155" class="mono-svg-grid-line" />
-
-          <!-- Etiquetas del eje Y -->
-          <text x="28" y="20" class="mono-svg-axis-text mono-svg-axis-text-y">160</text>
-          <text x="28" y="54" class="mono-svg-axis-text mono-svg-axis-text-y">120</text>
-          <text x="28" y="88" class="mono-svg-axis-text mono-svg-axis-text-y">80</text>
-          <text x="28" y="122" class="mono-svg-axis-text mono-svg-axis-text-y">40</text>
-          <text x="28" y="155" class="mono-svg-axis-text mono-svg-axis-text-y">0</text>
-
-          <!-- Columnas multicapa apiladas protegidas por el clipPath de cápsula redondeada -->
-          <?php foreach ($quarters as $idx => $q): 
-            $qx = $qCoords[$idx]["x"];
-            $scale = 135 / 160;
-            $hDark = $q["dark"] * $scale;
-            $hMid = $q["mid"] * $scale;
-            $hWhite = $q["white"] * $scale;
-            $totalH = $hDark + $hMid + $hWhite;
-            $yDark = 155 - $totalH;
-            $yMid = $yDark + $hDark;
-            $yWhite = $yMid + $hMid;
-          ?>
-          <g class="mono-stacked-bar-item" clip-path="url(#stacked-clip-<?= $idx ?>)"
-             data-label="<?= e($q["label"]) ?>" data-total="<?= e($q["total"]) ?>"
-             data-white="<?= e($q["white"]) ?>" data-mid="<?= e($q["mid"]) ?>" data-dark="<?= e($q["dark"]) ?>">
-            <rect x="<?= $qx ?>" y="<?= $yDark ?>" width="32" height="<?= $hDark + 1 ?>" class="mono-layer-top" />
-            <rect x="<?= $qx ?>" y="<?= $yMid ?>" width="32" height="<?= $hMid + 1 ?>" class="mono-layer-mid" />
-            <rect x="<?= $qx ?>" y="<?= $yWhite ?>" width="32" height="<?= $hWhite + 2 ?>" class="mono-layer-base" />
-          </g>
-          <text x="<?= $qx + 16 ?>" y="174" class="mono-svg-axis-text"><?= e($q["label"]) ?></text>
-          <?php endforeach; ?>
-        </svg>
+        <?php _chart("stackedTones", [
+          "quarters" => $stacked["quarters"] ?? [],
+          "maxVal"   => 160
+        ]); ?>
       </div>
 
       <div class="mono-chart-info-row">
@@ -209,18 +120,10 @@
         </div>
       </div>
 
-      <div class="mono-chart-viewport" style="padding: 12px;">
-        <div class="mono-treemap-grid">
-          <?php 
-            $tiles = $treemap["tiles"] ?? [];
-            foreach ($tiles as $tile):
-          ?>
-          <div class="mono-treemap-tile <?= e($tile["class"]) ?>" style="opacity: 0;" data-name="<?= e($tile["name"]) ?>" data-pct="<?= e($tile["pct"]) ?>" data-info="<?= e($tile["info"]) ?>">
-            <p class="mono-treemap-tile-name"><?= e($tile["name"]) ?></p>
-            <p class="mono-treemap-tile-pct"><?= e($tile["pct"]) ?></p>
-          </div>
-          <?php endforeach; ?>
-        </div>
+      <div class="mono-chart-viewport" style="padding: 6px;">
+        <?php _chart("tileTreemap", [
+          "tiles" => $treemap["tiles"] ?? []
+        ]); ?>
       </div>
 
       <div class="mono-chart-info-row">
@@ -256,37 +159,7 @@
       </div>
 
       <div class="mono-chart-viewport">
-        <svg viewBox="0 0 340 190" preserveAspectRatio="xMidYMid meet">
-          <!-- Rejilla horizontal punteada -->
-          <line x1="20" y1="30" x2="320" y2="30" class="mono-svg-grid-line" />
-          <line x1="20" y1="70" x2="320" y2="70" class="mono-svg-grid-line" />
-          <line x1="20" y1="110" x2="320" y2="110" class="mono-svg-grid-line" />
-          <line x1="20" y1="150" x2="320" y2="150" class="mono-svg-grid-line" />
-
-          <!-- 5 Barras translúcidas de cápsula redondeada -->
-          <rect x="28" y="92" width="32" height="68" class="mono-hybrid-bar" data-month="Jan" data-val="4.2" />
-          <rect x="92" y="45" width="32" height="115" class="mono-hybrid-bar" data-month="Feb" data-val="7.1" />
-          <rect x="156" y="66" width="32" height="94" class="mono-hybrid-bar" data-month="Mar" data-val="5.8" />
-          <rect x="220" y="24" width="32" height="136" class="mono-hybrid-bar" data-month="Apr" data-val="8.4" />
-          <rect x="284" y="50" width="32" height="110" class="mono-hybrid-bar" data-month="May" data-val="6.9" />
-
-          <!-- Curva Spline Bézier matemática continua -->
-          <path class="mono-spline-path" />
-
-          <!-- Puntos circulares en las cúspides -->
-          <circle cx="44" cy="92" r="4.5" class="mono-spline-point" data-month="Jan" data-val="4.2" />
-          <circle cx="108" cy="45" r="4.5" class="mono-spline-point" data-month="Feb" data-val="7.1" />
-          <circle cx="172" cy="66" r="4.5" class="mono-spline-point" data-month="Mar" data-val="5.8" />
-          <circle cx="236" cy="24" r="4.5" class="mono-spline-point" data-month="Apr" data-val="8.4" />
-          <circle cx="300" cy="50" r="4.5" class="mono-spline-point" data-month="May" data-val="6.9" />
-
-          <!-- Etiquetas X -->
-          <text x="44" y="175" class="mono-svg-axis-text">Jan</text>
-          <text x="108" y="175" class="mono-svg-axis-text">Feb</text>
-          <text x="172" y="175" class="mono-svg-axis-text">Mar</text>
-          <text x="236" y="175" class="mono-svg-axis-text">Apr</text>
-          <text x="300" y="175" class="mono-svg-axis-text">May</text>
-        </svg>
+        <?php _chart("hybridSpline"); ?>
       </div>
 
       <div class="mono-chart-info-row">
@@ -325,63 +198,7 @@
       </div>
 
       <div class="mono-chart-viewport">
-        <svg viewBox="0 0 340 190" preserveAspectRatio="xMidYMid meet">
-          <!-- Modo Columna (Vertical) -->
-          <g class="pillar-vertical-group">
-            <line x1="25" y1="35" x2="315" y2="35" class="mono-svg-grid-line" />
-            <line x1="25" y1="75" x2="315" y2="75" class="mono-svg-grid-line" />
-            <line x1="25" y1="115" x2="315" y2="115" class="mono-svg-grid-line" />
-            <line x1="25" y1="155" x2="315" y2="155" class="mono-svg-grid-line" />
-
-            <!-- Grupo A -->
-            <rect x="42" y="55" width="16" height="100" class="mono-pillar-primary" data-label="Grp A (Principal)" data-val="85" />
-            <rect x="62" y="93" width="16" height="62" class="mono-pillar-secondary" data-label="Grp A (Secundario)" data-val="52" />
-            <text x="60" y="174" class="mono-svg-axis-text">Grp A</text>
-
-            <!-- Grupo B -->
-            <rect x="114" y="81" width="16" height="74" class="mono-pillar-primary" data-label="Grp B (Principal)" data-val="62" />
-            <rect x="134" y="50" width="16" height="105" class="mono-pillar-secondary" data-label="Grp B (Secundario)" data-val="88" />
-            <text x="132" y="174" class="mono-svg-axis-text">Grp B</text>
-
-            <!-- Grupo C -->
-            <rect x="186" y="44" width="16" height="111" class="mono-pillar-primary" data-label="Grp C (Principal)" data-val="94" />
-            <rect x="206" y="107" width="16" height="48" class="mono-pillar-secondary" data-label="Grp C (Secundario)" data-val="40" />
-            <text x="204" y="174" class="mono-svg-axis-text">Grp C</text>
-
-            <!-- Grupo D -->
-            <rect x="258" y="66" width="16" height="89" class="mono-pillar-primary" data-label="Grp D (Principal)" data-val="75" />
-            <rect x="278" y="78" width="16" height="77" class="mono-pillar-secondary" data-label="Grp D (Secundario)" data-val="65" />
-            <text x="276" y="174" class="mono-svg-axis-text">Grp D</text>
-          </g>
-
-          <!-- Modo Fila (Horizontal) -->
-          <g class="pillar-horizontal-group" style="display: none; opacity: 0;">
-            <line x1="75" y1="20" x2="75" y2="160" class="mono-svg-grid-line" />
-            <line x1="135" y1="20" x2="135" y2="160" class="mono-svg-grid-line" />
-            <line x1="195" y1="20" x2="195" y2="160" class="mono-svg-grid-line" />
-            <line x1="255" y1="20" x2="255" y2="160" class="mono-svg-grid-line" />
-
-            <!-- Fila A -->
-            <text x="65" y="38" class="mono-svg-axis-text mono-svg-axis-text-y">Grp A</text>
-            <rect x="75" y="26" width="180" height="10" class="mono-pillar-primary" data-label="Grp A (Principal)" data-val="85" />
-            <rect x="75" y="39" width="110" height="10" class="mono-pillar-secondary" data-label="Grp A (Secundario)" data-val="52" />
-
-            <!-- Fila B -->
-            <text x="65" y="73" class="mono-svg-axis-text mono-svg-axis-text-y">Grp B</text>
-            <rect x="75" y="61" width="130" height="10" class="mono-pillar-primary" data-label="Grp B (Principal)" data-val="62" />
-            <rect x="75" y="74" width="185" height="10" class="mono-pillar-secondary" data-label="Grp B (Secundario)" data-val="88" />
-
-            <!-- Fila C -->
-            <text x="65" y="108" class="mono-svg-axis-text mono-svg-axis-text-y">Grp C</text>
-            <rect x="75" y="96" width="200" height="10" class="mono-pillar-primary" data-label="Grp C (Principal)" data-val="94" />
-            <rect x="75" y="109" width="85" height="10" class="mono-pillar-secondary" data-label="Grp C (Secundario)" data-val="40" />
-
-            <!-- Fila D -->
-            <text x="65" y="143" class="mono-svg-axis-text mono-svg-axis-text-y">Grp D</text>
-            <rect x="75" y="131" width="160" height="10" class="mono-pillar-primary" data-label="Grp D (Principal)" data-val="75" />
-            <rect x="75" y="144" width="138" height="10" class="mono-pillar-secondary" data-label="Grp D (Secundario)" data-val="65" />
-          </g>
-        </svg>
+        <?php _chart(""); ?>
       </div>
 
       <div class="mono-chart-info-row">
@@ -403,6 +220,98 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- =========================================================================
+       DEMOSTRACIÓN DE VARIACIONES DE COLOR MONOCROMÁTICAS (OKLCH) Y PHP API
+       ========================================================================= -->
+  <div class="flex-column gap20 w100" style="background: #141417; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; margin-top: 10px;">
+    <div class="flex-row justify-between align-center flex-wrap gap15">
+      <div>
+        <span class="mono-chart-badge" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18);">
+          API PHP • Base\Module\GraphicsModule
+        </span>
+        <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin: 8px 0 0 0;">
+          Demostración de Paleta Monocromática (Un solo color base con OKLCH)
+        </h2>
+      </div>
+      <p style="font-size: 13px; color: #a1a1aa; max-width: 620px; margin: 0; line-height: 1.5;">
+        Cada gráfico recibe únicamente <strong>un solo color base</strong> (vía clase <code style="color: #67e8f9;">.texto</code>, variable CSS <code style="color: #67e8f9;">var(--back-color5)</code> o HEX). Todas las partes secundarias (pistas de fondo, capas apiladas, rejillas y números) se calculan automáticamente mediante <strong>CSS OKLCH Relative Colors</strong>.
+      </p>
+    </div>
+
+    <!-- Muestra de 3 llamadas personalizadas con colores distintos -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+      <!-- Variante 1: Clase texto (sin punto, color heredado) -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">1. Clase texto (sin punto)</span>
+          <span style="font-size: 11px; color: #38bdf8; font-family: monospace;">color: "texto"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("arcMeter", ["color" => "texto", "value" => 88, "label" => "Core System"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("arcMeter", ["color" => "texto", "value" => 88]);
+        </code>
+      </div>
+
+      <!-- Variante 2: Variable Coral var(--back-color5) -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">2. Variable --back-color5</span>
+          <span style="font-size: 11px; color: #fb7185; font-family: monospace;">color: "var(--back-color5)"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("arcMeter", ["color" => "var(--back-color5)", "value" => 72, "label" => "Coral Engine"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("arcMeter", ["color" => "var(--back-color5)", "value" => 72]);
+        </code>
+      </div>
+
+      <!-- Variante 3: Variable Azul var(--back-color6) en Stacked Tones -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">3. Variable --back-color6</span>
+          <span style="font-size: 11px; color: #818cf8; font-family: monospace;">color: "var(--back-color6)"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("stackedTones", ["color" => "var(--back-color6)"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("stackedTones", ["color" => "var(--back-color6)"]);
+        </code>
+      </div>
+
+      <!-- Variante 4: HEX directo con # (#10b981 Verde Esmeralda) -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">4. HEX con # (#10b981)</span>
+          <span style="font-size: 11px; color: #10b981; font-family: monospace;">color: "#10b981"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("arcMeter", ["color" => "#10b981", "colorLabel" => "#ffffff", "value" => 94, "label" => "Emerald Matrix"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("arcMeter", ["color" => "#10b981", "colorLabel" => "#ffffff"]);
+        </code>
+      </div>
+
+      <!-- Variante 5: HEX directo sin # (f59e0b Ámbar) -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">5. HEX sin # (f59e0b)</span>
+          <span style="font-size: 11px; color: #f59e0b; font-family: monospace;">color: "f59e0b"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("stackedTones", ["color" => "f59e0b", "axisLabel" => "a1a1aa"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("stackedTones", ["color" => "f59e0b", "axisLabel" => "a1a1aa"]);
+        </code>
+      </div>
+    </div>
   </div>
 
   <!-- =========================================================================
@@ -784,13 +693,13 @@
 
 <!-- SCRIPT DE CONTROL PARA AMBAS LIBRERÍAS (GRÁFICOS SVG Y TEXTANIMATOR) -->
 <script type="module">
-  // 1. Instancias de los dos módulos (globales o import dinámico seguro)
-  let SvgChart = window.SvgChartAnimator;
-  if (!SvgChart) {
+  // 1. Instancias de los módulos (globales o import dinámico seguro)
+  let Charts = window.Charts;
+  if (!Charts) {
     try {
-      SvgChart = await import('/App/Public/Js/svgChartAnimator.js');
+      Charts = await import('/App/Rsc/Library/Charts/charts.js');
     } catch (e) {
-      console.warn('Importando svgChartAnimator vía ruta alternativa:', e);
+      console.warn('Importando Charts vía ruta alternativa:', e);
     }
   }
 
@@ -803,25 +712,90 @@
     }
   }
 
-  // 2. Control de la Librería de Gráficos SVG
+  // 2. Control de la Librería de Gráficos SVG (GraphicsModule)
   document.getElementById('btnPlayChartsEntry')?.addEventListener('click', () => {
-    if (SvgChart && typeof SvgChart.initAllSvgCharts === 'function') {
-      SvgChart.initAllSvgCharts(document, true);
+    document.querySelectorAll('.mono-chart-svg').forEach(svg => svg.classList.remove('is-exiting'));
+    if (Charts && typeof Charts.initCharts === 'function') {
+      Charts.initCharts(document);
     }
   });
 
   document.getElementById('btnPlayChartsExit')?.addEventListener('click', () => {
-    if (SvgChart && typeof SvgChart.playAllSvgChartExits === 'function') {
-      SvgChart.playAllSvgChartExits(document);
-    }
+    document.querySelectorAll('.mono-chart-svg').forEach(svg => svg.classList.add('is-exiting'));
   });
 
   document.getElementById('btnResetCharts')?.addEventListener('click', () => {
-    const cards = document.querySelectorAll('.mono-chart-card');
-    cards.forEach(card => card.classList.remove('is-exiting'));
-    if (SvgChart && typeof SvgChart.initAllSvgCharts === 'function') {
-      SvgChart.initAllSvgCharts(document, true);
+    document.querySelectorAll('.mono-chart-svg').forEach(svg => svg.classList.remove('is-exiting'));
+    if (Charts && typeof Charts.initCharts === 'function') {
+      Charts.initCharts(document);
     }
+  });
+
+  // Selector interactivo de porcentajes en Arc Meter (20% / 70% / 100%)
+  document.querySelectorAll('.mono-arc-val-pills button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetPct = parseFloat(btn.dataset.arcTarget);
+      document.querySelectorAll('.mono-arc-val-pills button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const card = btn.closest('.mono-chart-card');
+      const arcSvg = card ? card.querySelector('.mono-arc-svg') : document.querySelector('.mono-arc-svg');
+      const headlineNum = card ? card.querySelector('.mono-chart-value-big') : null;
+
+      if (headlineNum) {
+        headlineNum.textContent = `${targetPct}%`;
+      }
+
+      if (arcSvg && Charts && typeof Charts.animateArcMeterValue === 'function') {
+        Charts.animateArcMeterValue(arcSvg, targetPct, { duration: 400, fromCurrent: true });
+      }
+    });
+  });
+
+  // Toggle interactivo Spline On / Off
+  document.getElementById('btnToggleSpline')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const card = btn.closest('.mono-chart-card');
+    if (!card) return;
+    const path = card.querySelector('.mono-spline-path');
+    const area = card.querySelector('.mono-spline-area');
+    const dots = card.querySelectorAll('.mono-spline-dot');
+
+    const isActive = btn.classList.contains('active');
+    if (isActive) {
+      btn.classList.remove('active');
+      btn.textContent = 'Spline Off';
+      if (path) path.style.opacity = '0';
+      if (area) area.style.opacity = '0';
+      dots.forEach(d => d.style.opacity = '0');
+    } else {
+      btn.classList.add('active');
+      btn.textContent = 'Spline On';
+      if (path) path.style.opacity = '1';
+      if (area) area.style.opacity = '1';
+      dots.forEach(d => d.style.opacity = '1');
+    }
+  });
+
+  // Botón Copiar SVG al portapapeles
+  document.querySelectorAll('.mono-chart-copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const card = btn.closest('.mono-chart-card') || btn.parentElement;
+      const svg = card ? card.querySelector('svg') : null;
+      if (!svg) return;
+      try {
+        await navigator.clipboard.writeText(svg.outerHTML);
+        btn.classList.add('copied');
+        const origTitle = btn.getAttribute('title');
+        btn.setAttribute('title', '¡SVG Copiado!');
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          if (origTitle) btn.setAttribute('title', origTitle);
+        }, 1800);
+      } catch (err) {
+        console.error('Error al copiar SVG:', err);
+      }
+    });
   });
 
   // 3. Control de la Librería de Textos y Contadores (Sandbox)
@@ -849,5 +823,8 @@
     }
   });
 
-  // 4. Los módulos gestionan su ciclo de vida al cargar el DOM de forma autónoma
+  // 4. Inicializar gráficos al cargar
+  if (Charts && typeof Charts.initCharts === 'function') {
+    Charts.initCharts(document);
+  }
 </script>

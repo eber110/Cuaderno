@@ -172,6 +172,7 @@ App/Views/
 | `_menu("Home.menuHome")` | Incluye un menú de `App/Segment/Menu/` |
 | `_template("Footer.footerUser")` | Incluye un template de `App/Segment/Template/` |
 | `_component("Menu.menuHome")` | Renderiza un componente autocontenido |
+| `_chart("arcMeter", $params)` | Renderiza un gráfico SVG puro de GraphicsModule |
 | `_each("Home.postCard", $posts, "post")` | Repite la parte por cada item (da `$post`, `$index`, `$first`, `$last`…) |
 | `_if($condicion, "Home.banner")` | Incluye la parte solo si se cumple la condición |
 | `_partToString(...)` / `_componentToString(...)` | Version que retorna string en vez de imprimir |
@@ -290,6 +291,7 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 | `ValidatorModule` | Validación de datos |
 | `DateTimeModule` | Fechas y "time ago" |
 | `TextModule` | Utilidades de texto |
+| `GraphicsModule` | `configStyle()`, `arcMeter()`, `stackedTones()`, `tileTreemap()`, `hybridSpline()`, `pillPillars()` — gráficos SVG puros con OKLCH y 400ms |
 
 ---
 
@@ -326,6 +328,9 @@ composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
 7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder ya escapa; NO concatenar SQL.
 8. **Tablas nuevas (Zero-Config):** por defecto no requiere registrar tablas en listas fijas; valida sintaxis de identificador SQL seguro contra inyección. Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 9. **Escribir en español** (código, docblocks, commits y docs).
+10. **Seguridad contra IDOR e inyección:** Prohibido terminantemente usar `extract()` sobre datos de usuario o arrays de parámetros de peticiones. Leer explícitamente cada campo.
+11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`.
+12. **Protección CSRF y métodos seguros:** Todas las operaciones con cambio de estado o mutación (guardar, editar, eliminar, salir/logout) deben ejecutarse por `POST` y validar token CSRF (`_token`, `csrf_token` o header `X-CSRF-TOKEN`).
 
 ---
 
@@ -384,6 +389,9 @@ Ejemplo: `feat(home): agregar hero con datos de HomeModels`, `fix(middleware): r
 ## 10. Antipatrones a evitar
 
 - ❌ SQL directo o `$_GET`/`$_POST` crudos en controladores — usar modelos y `HttpPostModule`.
+- ❌ Usar `extract()` sobre inputs o arrays de parámetros provenientes del usuario.
+- ❌ Salidas dinámicas en vistas sin escapar (`e()`, `eUrl()`).
+- ❌ Operaciones mutables o logout mediante `GET` sin token CSRF.
 - ❌ Lógica de negocio o consultas dentro de vistas o componentes — van a modelos.
 - ❌ Duplicar piezas entre vistas — mover a `App/Segment/` o componente.
 - ❌ Añadir frameworks/libs frontend sin avisar.
