@@ -1,4 +1,6 @@
 <?php
+  use Base\Module\GraphicsModule;
+
   /**
    * @var array $cto Array con datos de CTO, promedio de enlaces/visitas y distribución de clics Enlaces vs RRSS.
    */
@@ -36,6 +38,18 @@
   $hasCurrentClicks = $monthlyClicks > 0;
   $barPctEnlaces    = $hasCurrentClicks ? $pctEnlacesMonth : $pctEnlacesAllTime;
   $barPctRrss       = $hasCurrentClicks ? $pctRrssMonth : $pctRrssAllTime;
+
+  $arcMeterConfig   = is_array($cto["arc_meter"] ?? null) ? $cto["arc_meter"] : [
+    "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
+    "displayValue" => $monthlyCtoRate . "%",
+    "label"        => "Tasa de conversión",
+    "color"        => "texto",
+    "colorLabel"   => "texto",
+    "unit"         => "Tasa de conversión",
+    "transition"   => 500,
+    "showNumber"   => true,
+    "showLabel"    => true
+  ];
 ?>
 
 <div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap20 w100">
@@ -62,20 +76,33 @@
   <!-- Fila de 3 tarjetas de métricas -->
   <div class="flex-row wrap gap15 w100">
 
-    <!-- 1. Tasa de CTO del Mes -->
-    <div class="flex-column gap8 back-card-graphic shadow-card-graphic hover-scale-soft p15 br10 w100">
+    <!-- 1. Tasa de CTO del Mes con Gráfico Arc Meter -->
+    <div class="flex-column gap12 back-card-graphic shadow-card-graphic hover-scale-soft p20 br15 w100">
       <div class="flex-row center-between">
-        <span class="x13 color-secondary bold500">CTO del Mes (Clics / Visitas)</span>
-        <span class="color-success x16"><?= svg("chart", "x16"); ?></span>
+        <div class="flex-row center-start gap8">
+          <span class="color-success x16"><?= svg("chart", "x16 color-success"); ?></span>
+          <span class="x13 color-secondary bold600 uppercase">CTO del Mes (Clics / Visitas)</span>
+        </div>
       </div>
-      <div class="flex-row center-start gap10 my5">
-        <span class="x36 bold700 texto leading-none"><?= e((string)$monthlyCtoRate); ?>%</span>
-      </div>
-      <p class="m0 x13 color-secondary">
-        Promedio: <strong class="texto bold600"><?= e((string)$monthlyClicksPerVisit); ?></strong> clics por visita en el mes actual.
-      </p>
-      <div class="x12 color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
-        <?= e((string)$monthlyClicks); ?> clics / <?= e((string)$monthlyViews); ?> visitas del mes
+
+      <div class="flex-row-desk flex-column-mid bottom-center center-center-mid gap20 w100">
+        <!-- Columna con el Gráfico vectorial Arc Meter -->
+        <div class="w50 w-mid-70 w-sml-100">
+          <?= GraphicsModule::arcMeter($arcMeterConfig); ?>
+        </div>
+
+        <!-- Columna de métricas numéricas -->
+        <div class="flex-column gap8 flex-1 w50 w-mid-100 w-sml-100">
+          <!-- <div class="flex-row center-start gap10 my5">
+            <span class="x42 bold700 texto leading-none"><?= e((string)$monthlyCtoRate); ?>%</span>
+          </div> -->
+          <p class="m0 texto">
+            Promedio: <strong class="texto bold600"><?= e((string)$monthlyClicksPerVisit); ?></strong> clics por visita en el mes actual.
+          </p>
+          <div class="texto">
+            <strong class="texto bold600"><?= e((string)$monthlyClicks); ?></strong> clics registrados de un total de <strong class="texto bold600"><?= e((string)$monthlyViews); ?></strong> visitas este mes.
+          </div>
+        </div>
       </div>
     </div>
 

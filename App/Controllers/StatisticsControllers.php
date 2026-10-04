@@ -200,6 +200,19 @@ class StatisticsControllers extends Control {
       }
     }
 
+    // Configuración para el gráfico semicircular Arc Meter del CTO mensual
+    $arcMeterData = [
+      "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
+      "displayValue" => $monthlyCtoRate . "%",
+      "label"        => "Tasa de conversión",
+      "color"        => "texto",
+      "colorLabel"   => "texto",
+      "unit"         => "Tasa CTO",
+      "transition"   => 450,
+      "showNumber"   => true,
+      "showLabel"    => true
+    ];
+
     return array_merge($rawCto, [
       "monthly_cto_rate"          => $monthlyCtoRate,
       "monthly_clicks_per_visit"  => $monthlyClicksPerVisit,
@@ -210,7 +223,8 @@ class StatisticsControllers extends Control {
       "all_time_cto_rate"         => $allTimeCtoRate,
       "pct_enlaces_all_time"      => $pctEnlacesAllTime,
       "pct_rrss_all_time"         => $pctRrssAllTime,
-      "predominant_channel"       => $predominantChannel
+      "predominant_channel"       => $predominantChannel,
+      "arc_meter"                 => $arcMeterData
     ]);
   }
 

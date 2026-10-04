@@ -131,7 +131,8 @@ class StatisticsModels extends BuilderSqlite {
   }
 
   /**
-   * Obtiene el total de enlaces y redes sociales activos configurados en el perfil del usuario.
+   * Obtiene el total de enlaces configurados que realmente existen por este usuario en su tarjeta de diseño
+   * sumando los bloques de contenido ($card["content"]) y redes sociales ($card["rrss"]).
    *
    * @param string $indexUser Identificador único index_user del usuario.
    * @return array Conteo de content_links, rrss_links y total_links.
@@ -140,36 +141,62 @@ class StatisticsModels extends BuilderSqlite {
     try {
       $userRecord = UserModels::getUserByIndex($indexUser);
       $username   = $userRecord["username"] ?? "";
-      $dataUser   = !empty($username) ? DesignModels::dataUser($username) : [];
-      $card       = $dataUser["card"] ?? [];
 
-      $contentLinks = 0;
-      if (!empty($card["content"]) && is_array($card["content"])) {
-        foreach ($card["content"] as $block) {
-          if (!empty($block["url"])) {
-            $contentLinks++;
-          }
+      $card = [];
+      if (!empty($username)) {
+        $dataUser = DesignModels::dataUser($username);
+        if (is_array($dataUser) && isset($dataUser["card"]) && is_array($dataUser["card"])) {
+          $card = $dataUser["card"];
         }
       }
 
-      $rrssLinks = 0;
-      if (!empty($card["rrss"]) && is_array($card["rrss"])) {
-        foreach ($card["rrss"] as $network) {
-          if (!empty($network[1])) {
-            $rrssLinks++;
-          }
+      // Si no se obtuvo mediante dataUser, consultar directamente por index_user en user_designs
+      if (empty($card)) {
+        $designRow = (new self("user_designs"))
+          ->where("index_user", $indexUser)
+          ->where("is_draft", 0)
+          ->get_one();
+
+        if ($designRow && !empty($designRow[0])) {
+          $rawContent = $designRow[0]["content"] ?? [];
+          $rawRrss    = $designRow[0]["rrss"] ?? [];
+          $content    = is_string($rawContent) ? json_decode($rawContent, true) : $rawContent;
+          $rrss       = is_string($rawRrss) ? json_decode($rawRrss, true) : $rawRrss;
+
+          $card = [
+            "content" => is_array($content) ? $content : [],
+            "rrss"    => is_array($rrss) ? $rrss : []
+          ];
         }
       }
+
+      $content = is_array($card["content"] ?? null) ? $card["content"] : [];
+      $rrss    = is_array($card["rrss"] ?? null) ? $card["rrss"] : [];
+
+      $contentLinks = count($content);
+      $rrssLinks    = count($rrss);
+      $totalLinks   = $contentLinks + $rrssLinks;
 
       return [
         "content_links" => $contentLinks,
         "rrss_links"    => $rrssLinks,
-        "total_links"   => $contentLinks + $rrssLinks
+        "total_links"   => $totalLinks
       ];
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getUserConfiguredLinksCount: " . $e->getMessage());
       return ["content_links" => 0, "rrss_links" => 0, "total_links" => 0];
     }
+  }
+
+  /**
+   * Obtiene la cantidad total de enlaces que realmente existen configurados por el usuario ($card["rrss"] + $card["content"]).
+   *
+   * @param string $indexUser Identificador único index_user del usuario.
+   * @return int Total de enlaces existentes.
+   */
+  public static function getTotalUserLinks(string $indexUser): int {
+    $links = self::getUserConfiguredLinksCount($indexUser);
+    return (int)($links["total_links"] ?? 0);
   }
 
   /**

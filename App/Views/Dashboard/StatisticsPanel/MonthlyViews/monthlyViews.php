@@ -95,19 +95,22 @@
       </div>
 
       <!-- Renderizado SVG del gráfico vectorial Hybrid Spline -->
-      <div class="w100 flex-row center-center br15 overflow-hidden" style="min-height: 180px;">
+      <div class="flex-row center-center br15 w100">
+        <div class="overflow-hidden wpx600 w-mid-100 w-sml-100">
         <?= GraphicsModule::hybridSpline([
-          "values"        => $spline["values"],
-          "labels"        => $spline["labels"],
-          "displayLabels" => $spline["displayLabels"] ?? [],
-          "displayValues" => $spline["displayValues"] ?? [],
-          "unit"          => $spline["unit"] ?? "Visitas",
-          "autoScale"     => $spline["autoScale"] ?? true,
-          "color"         => $spline["color"] ?? "texto",
-          "axisLabel"     => $spline["axisLabel"] ?? "color-secondary",
-          "transition"    => $spline["transition"] ?? 450,
-          "tooltip"       => true
-        ]); ?>
+            "values"        => $spline["values"],
+            "labels"        => $spline["labels"],
+            "displayLabels" => $spline["displayLabels"] ?? [],
+            "displayValues" => $spline["displayValues"] ?? [],
+            "unit"          => $spline["unit"] ?? "Visitas",
+            "autoScale"     => $spline["autoScale"] ?? true,
+            "color"         => $spline["color"] ?? "texto",
+            "axisLabel"     => $spline["axisLabel"] ?? "color-secondary",
+            "transition"    => $spline["transition"] ?? 450,
+            "tooltip"       => true
+          ]); 
+        ?>
+        </div>
       </div>
 
       <!-- Desglose numérico accesible de los meses anteriores evaluados -->

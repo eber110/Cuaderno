@@ -323,6 +323,10 @@ class GraphicsModule
     $label = isset($params['label']) ? htmlspecialchars((string) $params['label'], ENT_QUOTES, 'UTF-8') : 'Optimal Load';
     $showNumber = $params['showNumber'] ?? true;
     $showLabel = $params['showLabel'] ?? true;
+    $unit = !empty($params['unit']) ? htmlspecialchars((string) $params['unit'], ENT_QUOTES, 'UTF-8') : '';
+    $displayValue = isset($params['displayValue']) 
+      ? htmlspecialchars((string) $params['displayValue'], ENT_QUOTES, 'UTF-8') 
+      : $value . '%';
 
     $classNames = 'mono-chart-svg mono-arc-svg';
     if (!empty($style['svgClass'])) {
@@ -341,7 +345,7 @@ class GraphicsModule
       <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="16" stroke-linecap="round" />
       
       <!-- Arco dinámico activo con datos para tooltip -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $value ?>%" fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
+      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $displayValue ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
       
       <!-- Lecturas centrales con clase de color para etiquetas (colorLabel) -->
       <?php if ($showNumber): ?>

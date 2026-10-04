@@ -66,6 +66,16 @@ try {
     'StatisticsModels clasifica con precisión clics entre Enlaces de contenido y Redes Sociales',
     $ctoData['all_time_clicks'] === 420 && $ctoData['all_time_enlaces'] === 207 && $ctoData['all_time_rrss'] === 213
   );
+
+  $configuredLinks = \App\Models\StatisticsModels::getUserConfiguredLinksCount('c21d908d5f1e92f7fdc5b3b3cbc0b5');
+  $totalLinksCount = \App\Models\StatisticsModels::getTotalUserLinks('c21d908d5f1e92f7fdc5b3b3cbc0b5');
+  assertTest(
+    'StatisticsModels::getUserConfiguredLinksCount cuenta exactamente enlaces de contenido y rrss ($card["rrss"] + $card["content"])',
+    $configuredLinks['content_links'] === 11 &&
+    $configuredLinks['rrss_links'] === 3 &&
+    $configuredLinks['total_links'] === 14 &&
+    $totalLinksCount === 14
+  );
 } catch (\Throwable $e) {
   assertTest('StatisticsModels no lanza excepciones', false, $e->getMessage());
 }
@@ -166,6 +176,13 @@ try {
   assertTest(
     'Parte Dashboard.cto se renderiza con métricas de conversión y desglose Enlaces vs RRSS',
     !empty($ctoPart) && str_contains($ctoPart, 'Métricas de CTO') && str_contains($ctoPart, 'Redes Sociales')
+  );
+  assertTest(
+    'Parte Dashboard.cto integra gráfico vectorial Arc Meter nativo en la tarjeta de CTO mensual',
+    str_contains($ctoPart, 'data-chart="arc-meter"') &&
+    str_contains($ctoPart, 'mono-arc-track') &&
+    str_contains($ctoPart, 'mono-arc-meter-val') &&
+    str_contains($ctoPart, 'mono-arc-center-number')
   );
 
 } catch (\Throwable $e) {
@@ -282,6 +299,13 @@ try {
   assertTest(
     'Regla de negocio: evaluateCtoMetrics calcula índice porcentual Enlaces vs RRSS',
     $evalCtoSample['pct_enlaces_month'] === 60.0 && $evalCtoSample['pct_rrss_month'] === 40.0 && $evalCtoSample['predominant_channel'] === 'enlaces'
+  );
+  assertTest(
+    'Regla de negocio: evaluateCtoMetrics estructura configuración completa para Arc Meter nativo',
+    isset($evalCtoSample['arc_meter']) &&
+    (float)$evalCtoSample['arc_meter']['value'] === 25.0 &&
+    str_starts_with($evalCtoSample['arc_meter']['displayValue'], '25') &&
+    !empty($evalCtoSample['arc_meter']['color'])
   );
 } catch (\Throwable $e) {
   assertTest('StatisticsControllers no lanza excepciones', false, $e->getMessage());

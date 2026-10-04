@@ -399,6 +399,7 @@
 .wpx520 { width: 520px; }
 .wpx580 { width: 580px; }
 .wpx60 { width: 60px; }
+.wpx600 { width: 600px; }
 .wpx610 { width: 610px; }
 .wpx630 { width: 630px; }
 .wpx65 { width: 65px; }
@@ -434,6 +435,7 @@
 .x36 { font-size: 36px; }
 .x4 { font-size: 4px; }
 .x40 { font-size: 40px; }
+.x42 { font-size: 42px; }
 .x45 { font-size: 45px; }
 .x50 { font-size: 50px; }
 .x64 { font-size: 64px; }
@@ -538,6 +540,20 @@
   .flex-column-sml.between-stretch { justify-content: space-between; align-items: stretch; }
   .flex-row-sml.between-stretch { align-items: space-between; justify-content: stretch; }
 }
+.flex-column.bottom-center { justify-content: flex-end; align-items: center; }
+.flex-row.bottom-center { align-items: flex-end; justify-content: center; }
+@media screen and (min-width: 993px) {
+  .flex-column-desk.bottom-center { justify-content: flex-end; align-items: center; }
+  .flex-row-desk.bottom-center { align-items: flex-end; justify-content: center; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .flex-column-mid.bottom-center { justify-content: flex-end; align-items: center; }
+  .flex-row-mid.bottom-center { align-items: flex-end; justify-content: center; }
+}
+@media screen and (max-width: 576px) {
+  .flex-column-sml.bottom-center { justify-content: flex-end; align-items: center; }
+  .flex-row-sml.bottom-center { align-items: flex-end; justify-content: center; }
+}
 .flex-column.center-between { justify-content: center; align-items: space-between; }
 .flex-row.center-between { align-items: center; justify-content: space-between; }
 @media screen and (min-width: 993px) {
@@ -565,6 +581,12 @@
 @media screen and (max-width: 576px) {
   .flex-column-sml.center-center { justify-content: center; align-items: center; }
   .flex-row-sml.center-center { align-items: center; justify-content: center; }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .flex-column.center-center-mid { justify-content: center !important; align-items: center !important; }
+.flex-row.center-center-mid { align-items: center !important; justify-content: center !important; }
+.flex-column-mid.center-center-mid { justify-content: center !important; align-items: center !important; }
+.flex-row-mid.center-center-mid { align-items: center !important; justify-content: center !important; }
 }
 @media screen and (max-width: 576px) {
   .flex-column.center-center-sml { justify-content: center !important; align-items: center !important; }
