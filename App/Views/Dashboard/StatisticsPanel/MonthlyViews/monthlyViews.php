@@ -52,7 +52,7 @@
   <div class="flex-column gap5 w100">
     <?php if ($hasHistory): ?>
       <p class="m0 color-secondary">
-        Promedio de meses anteriores: <strong class="texto bold600"><?= e((string)$previousAvg); ?></strong> visitas / mes.
+        Promedio de meses anteriores: <strong class="texto bold600"><?= e((string)$previousAvg); ?></strong> visitas por mes.
       </p>
 
       <?php if ($trend === "up"): ?>
@@ -82,7 +82,7 @@
     <div class="pt15 flex-column gap12 w100" style="border-top: 1px solid rgba(128,128,128,0.15);">
       <div class="flex-row center-between wrap gap10 w100">
         <div class="flex-column gap2">
-          <span class="bold600 uppercase color-secondary">
+          <span class="bold600 color-secondary">
             Evolución de visitas mensuales (<?= e((string)count($spline["values"])); ?> meses)
           </span>
           <span class="color-secondary">
@@ -111,12 +111,13 @@
       </div>
 
       <!-- Desglose numérico accesible de los meses anteriores evaluados -->
+      <p class="bold500">Registro de meses anteriores</p>
       <?php if (!empty($previousList)): ?>
         <div class="flex-row wrap gap10 pt10">
           <?php foreach ($previousList as $prev): ?>
             <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10">
               <span class="color-secondary"><?= e((string)($prev["mes"] ?? "")); ?></span>
-              <strong class="texto bold600"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
+              <strong class="texto bold500"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
             </div>
           <?php endforeach; ?>
         </div>

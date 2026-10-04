@@ -56,13 +56,13 @@
 
   <!-- Encabezado de la tarjeta -->
   <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row center-start gap10">
+    <div class="flex-row top-start gap10">
       <span class="flex-row center-center color-secondary x20">
         <?= svg("chart-column-solid", "x20"); ?>
       </span>
       <div class="flex-column gap2">
-        <h3 class="m0 x18 bold600 texto">Métricas de CTO y Rendimiento de Enlaces</h3>
-        <p class="m0 x13 color-secondary">Promedio entre enlaces activos, visitas y tasa de clics por usuario.</p>
+        <p class="m0 bold600 texto">Métricas de CTO y Rendimiento de Enlaces</p>
+        <p class="m0 color-secondary">Promedio entre enlaces activos, visitas y tasa de clics por usuario.</p>
       </div>
     </div>
 
@@ -80,8 +80,8 @@
     <div class="flex-column gap12 back-card-graphic shadow-card-graphic |hover-scale-soft p20 br15 w100">
       <div class="flex-row center-between">
         <div class="flex-row center-start gap8">
-          <span class="color-success x16"><?= svg("chart", "x16 color-success"); ?></span>
-          <span class="x13 color-secondary bold600 uppercase">CTO del Mes (Clics / Visitas)</span>
+          <span class="color-success"><?= svg("chart", "color-success"); ?></span>
+          <span class="color-secondary bold600">CTO del Mes (Clics / Visitas)</span>
         </div>
       </div>
 
@@ -224,8 +224,8 @@
     </div>
 
     <!-- Conclusión inteligente del canal de mayor interés -->
-    <div class="p10 pl15 pr15 br10 flex-row center-start gap10 x13" style="background: rgba(128,128,128,0.06);">
-      <span class="color-primary x16"><?= svg("globe", "x16"); ?></span>
+    <div class="p10 pl15 pr15 br10 flex-row top-start gap20" style="background: rgba(128,128,128,0.06);">
+      <span class="color-primary"><?= svg("globe"); ?></span>
       <p class="m0 color-secondary">
         <?php if ($predominantChannel === "rrss" || $predominantChannel === "rrss_history"): ?>
           Tus visitantes muestran mayor preferencia por conectar con tus <strong class="texto bold600">Redes Sociales</strong> (<?= e((string)$barPctRrss); ?>% de las interacciones).
