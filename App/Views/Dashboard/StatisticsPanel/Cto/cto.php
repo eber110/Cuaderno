@@ -77,7 +77,7 @@
   <div class="flex-row wrap gap15 w100">
 
     <!-- 1. Tasa de CTO del Mes con Gráfico Arc Meter -->
-    <div class="flex-column gap12 back-card-graphic shadow-card-graphic hover-scale-soft p20 br15 w100">
+    <div class="flex-column gap12 back-card-graphic shadow-card-graphic |hover-scale-soft p20 br15 w100">
       <div class="flex-row center-between">
         <div class="flex-row center-start gap8">
           <span class="color-success x16"><?= svg("chart", "x16 color-success"); ?></span>
@@ -107,7 +107,7 @@
     </div>
 
     <!-- 2. Relación Enlaces y Visitas -->
-    <div class="flex-column gap8 back-card-graphic shadow-card-graphic hover-scale-soft p15 br10 w100">
+    <div class="flex-column gap8 back-card-graphic shadow-card-graphic |hover-scale-soft p15 br10 w100">
       <div class="flex-row center-between">
         <span class="x13 color-secondary bold500">Promedio Enlaces / Visitas</span>
         <span class="color-primary x16"><?= svg("link", "x16"); ?></span>
@@ -125,7 +125,7 @@
     </div>
 
     <!-- 3. Total de Clics Acumulados -->
-    <div class="flex-column gap8 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10 w100">
+    <div class="flex-column gap8 back-card-graphic shadow-card-graphic |hover-scale-soft p5 pl10 pr10 br10 w100">
       <div class="flex-row center-between">
         <span class="x13 color-secondary bold500">Clics Acumulados Históricos</span>
         <span class="color-secondary x16"><?= svg("globe", "x16"); ?></span>
@@ -145,7 +145,7 @@
   </div>
 
   <!-- Sección: Índice de distribución Enlaces vs Redes Sociales -->
-  <div class="flex-column gap15 back-card-graphic shadow-card-graphic hover-scale-soft p15 br10 w100">
+  <div class="flex-column gap15 back-card-graphic shadow-card-graphic |hover-scale-soft p15 br10 w100">
     
     <div class="flex-row center-between wrap gap10 w100">
       <div class="flex-column gap3">
