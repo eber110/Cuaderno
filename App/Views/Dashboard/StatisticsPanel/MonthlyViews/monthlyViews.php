@@ -27,7 +27,7 @@
       <span class="flex-row center-center color-secondary x20">
         <?= svg("chart", "x20"); ?>
       </span>
-      <h3 class="m0 x18 bold600 texto">Visitas del mes actual</h3>
+      <p class="m0 bold600 texto">Visitas del mes actual</p>
     </div>
 
     <?php if (!empty($monthLabel)): ?>
@@ -51,22 +51,22 @@
   <!-- Evaluación comparativa con el promedio histórico de meses anteriores -->
   <div class="flex-column gap5 w100">
     <?php if ($hasHistory): ?>
-      <p class="m0 x14 color-secondary">
+      <p class="m0 color-secondary">
         Promedio de meses anteriores: <strong class="texto bold600"><?= e((string)$previousAvg); ?></strong> visitas / mes.
       </p>
 
       <?php if ($trend === "up"): ?>
-        <div class="flex-row center-start gap5 color-success bold600 x14">
-          <?= svg("arrow-up", "x14 color-success"); ?>
+        <div class="flex-row center-start gap5 color-success bold600">
+          <?= svg("arrow-up", "color-success"); ?>
           <span>Subió un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
         </div>
       <?php elseif ($trend === "down"): ?>
-        <div class="flex-row center-start gap5 color-danger bold600 x14">
-          <?= svg("arrow-down", "x14 color-danger"); ?>
+        <div class="flex-row center-start gap5 color-danger bold600">
+          <?= svg("arrow-down", "color-danger"); ?>
           <span>Bajó un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
         </div>
       <?php else: ?>
-        <div class="flex-row center-start gap5 color-secondary bold500 x14">
+        <div class="flex-row center-start gap5 color-secondary bold500">
           <span>Se mantuvo igual al promedio de meses anteriores</span>
         </div>
       <?php endif; ?>
@@ -82,16 +82,13 @@
     <div class="pt15 flex-column gap12 w100" style="border-top: 1px solid rgba(128,128,128,0.15);">
       <div class="flex-row center-between wrap gap10 w100">
         <div class="flex-column gap2">
-          <span class="x12 bold600 uppercase color-secondary">
+          <span class="bold600 uppercase color-secondary">
             Evolución de visitas mensuales (<?= e((string)count($spline["values"])); ?> meses)
           </span>
-          <span class="x12 color-secondary">
+          <span class="color-secondary">
             Historial de meses evaluados frente al mes en curso
           </span>
         </div>
-        <span class="back-card-graphic shadow-card-graphic p5 pl10 pr10 br10 x12 bold600 color-secondary">
-          Hybrid Spline
-        </span>
       </div>
 
       <!-- Renderizado SVG del gráfico vectorial Hybrid Spline -->
@@ -115,20 +112,14 @@
 
       <!-- Desglose numérico accesible de los meses anteriores evaluados -->
       <?php if (!empty($previousList)): ?>
-        <details class="w100 mt5" style="cursor: pointer;">
-          <summary class="x12 bold600 uppercase color-secondary hover-scale-soft inline-flex items-center gap5" style="list-style: none;">
-            <span>Ver desglose de datos numéricos (<?= e((string)$previousCount); ?>)</span>
-            <span class="x10">▼</span>
-          </summary>
-          <div class="flex-row wrap gap10 pt10">
-            <?php foreach ($previousList as $prev): ?>
-              <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10 x14">
-                <span class="color-secondary"><?= e((string)($prev["mes"] ?? "")); ?></span>
-                <strong class="texto bold600"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        </details>
+        <div class="flex-row wrap gap10 pt10">
+          <?php foreach ($previousList as $prev): ?>
+            <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10">
+              <span class="color-secondary"><?= e((string)($prev["mes"] ?? "")); ?></span>
+              <strong class="texto bold600"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
+            </div>
+          <?php endforeach; ?>
+        </div>
       <?php endif; ?>
     </div>
   <?php endif; ?>

@@ -20,7 +20,7 @@
         <?= svg("chart", "x24"); ?>
         Estadísticas
       </h2>
-      <p class="m0 x14 color-secondary">Métricas de rendimiento y análisis de audiencia de tu perfil.</p>
+      <p class="m0 color-secondary">Métricas de rendimiento y análisis de audiencia de tu perfil.</p>
     </div>
   </div>
 

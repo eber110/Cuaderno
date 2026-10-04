@@ -557,32 +557,39 @@ class GraphicsModule
 
     $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
 
+    $viewW = isset($params['width']) ? max(100.0, (float)$params['width']) : 320.0;
+    $viewH = isset($params['height']) ? max(60.0, (float)$params['height']) : 190.0;
+    $gap   = isset($params['gap']) ? max(2.0, (float)$params['gap']) : 8.0;
+
     // Cálculo dinámico de rectángulos para el Treemap
-    $rects = self::computeTreemapLayout($tiles, 4.0, 4.0, 312.0, 182.0, 8.0);
+    $rects = self::computeTreemapLayout($tiles, 4.0, 4.0, $viewW - 8.0, $viewH - 8.0, $gap);
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="tile-treemap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 <?= number_format($viewW, 0, '.', '') ?> <?= number_format($viewH, 0, '.', '') ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="tile-treemap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php foreach ($rects as $r): 
         $t = $r['tile'];
-        $label = htmlspecialchars((string) ($t['label'] ?? ($t['name'] ?? '')), ENT_QUOTES, 'UTF-8');
+        $label = htmlspecialchars((string) ($t['label'] ?? ($t['title'] ?? ($t['name'] ?? ''))), ENT_QUOTES, 'UTF-8');
         $rawPct = $t['pct'] ?? ($t['value'] ?? '');
         $pct = htmlspecialchars(rtrim((string) $rawPct, '%'), ENT_QUOTES, 'UTF-8');
         $tag = htmlspecialchars((string) ($t['tag'] ?? ($t['info'] ?? ($t['desc'] ?? ''))), ENT_QUOTES, 'UTF-8');
+        $tileColor = !empty($t['color']) ? htmlspecialchars((string) $t['color'], ENT_QUOTES, 'UTF-8') : '';
+        $rectStyle = !empty($tileColor) ? ' style="fill: ' . $tileColor . ';"' : '';
+        $tileLabelClass = !empty($t['colorLabel']) ? ' ' . htmlspecialchars((string)$t['colorLabel'], ENT_QUOTES, 'UTF-8') : $labelClass;
         $isCompact = $r['h'] < 52.0;
         $showTag = !empty($tag) && $r['h'] >= 72.0 && $r['w'] >= 75.0;
       ?>
       <g class="mono-treemap-tile-group <?= $r['cls'] ?>" data-label="<?= $label ?>" data-pct="<?= $pct ?>%" data-tag="<?= $tag ?>">
-        <rect x="<?= number_format($r['x'], 1, '.', '') ?>" y="<?= number_format($r['y'], 1, '.', '') ?>" width="<?= number_format($r['w'], 1, '.', '') ?>" height="<?= number_format($r['h'], 1, '.', '') ?>" rx="12" class="mono-treemap-tile-rect" />
+        <rect x="<?= number_format($r['x'], 1, '.', '') ?>" y="<?= number_format($r['y'], 1, '.', '') ?>" width="<?= number_format($r['w'], 1, '.', '') ?>" height="<?= number_format($r['h'], 1, '.', '') ?>" rx="12" class="mono-treemap-tile-rect"<?= $rectStyle ?> />
         
         <?php if ($isCompact): ?>
           <?php if ($r['h'] >= 36.0): ?>
             <!-- Disposición compacta en 2 líneas: Título arriba y porcentaje abajo manteniendo padding estricto sin desbordar -->
-            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 17, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 11px;"><?= $label ?></text>
-            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 33, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>" style="font-size: 14px;"><?= $pct ?>%</text>
+            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 17, 1, '.', '') ?>" class="mono-treemap-title<?= $tileLabelClass ?>" style="font-size: 11px;"><?= $label ?></text>
+            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 33, 1, '.', '') ?>" class="mono-treemap-pct<?= $tileLabelClass ?>" style="font-size: 14px;"><?= $pct ?>%</text>
           <?php else: ?>
             <!-- Disposición compacta en línea para alturas muy bajas con escala protectora -->
-            <text x="<?= number_format($r['x'] + 10, 1, '.', '') ?>" y="<?= number_format($r['y'] + ($r['h'] / 2) + 4, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 10px;"><?= $label ?> <tspan class="mono-treemap-pct<?= $labelClass ?>" font-size="11" font-weight="700" dx="4"><?= $pct ?>%</tspan></text>
+            <text x="<?= number_format($r['x'] + 10, 1, '.', '') ?>" y="<?= number_format($r['y'] + ($r['h'] / 2) + 4, 1, '.', '') ?>" class="mono-treemap-title<?= $tileLabelClass ?>" style="font-size: 10px;"><?= $label ?> <tspan class="mono-treemap-pct<?= $tileLabelClass ?>" font-size="11" font-weight="700" dx="4"><?= $pct ?>%</tspan></text>
           <?php endif; ?>
         <?php else: ?>
           <!-- Disposición estándar en bloque con soporte de salto de línea si el título es largo -->
@@ -590,19 +597,19 @@ class GraphicsModule
             $titleLines = self::wrapTextLines($label, 14, 2);
             if (count($titleLines) > 1):
           ?>
-            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 18, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 11px;">
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 18, 1, '.', '') ?>" class="mono-treemap-title<?= $tileLabelClass ?>" style="font-size: 11px;">
               <tspan x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" dy="0"><?= htmlspecialchars($titleLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
               <tspan x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" dy="13"><?= htmlspecialchars($titleLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
             </text>
-            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>"><?= $pct ?>%</text>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $tileLabelClass ?>"><?= $pct ?>%</text>
             <?php if ($showTag && $r['h'] >= 84.0): ?>
-              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $labelClass ?>"><?= $tag ?></text>
+              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $tileLabelClass ?>"><?= $tag ?></text>
             <?php endif; ?>
           <?php else: ?>
-            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 22, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>"><?= $label ?></text>
-            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>"><?= $pct ?>%</text>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 22, 1, '.', '') ?>" class="mono-treemap-title<?= $tileLabelClass ?>"><?= $label ?></text>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $tileLabelClass ?>"><?= $pct ?>%</text>
             <?php if ($showTag): ?>
-              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $labelClass ?>"><?= $tag ?></text>
+              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $tileLabelClass ?>"><?= $tag ?></text>
             <?php endif; ?>
           <?php endif; ?>
         <?php endif; ?>

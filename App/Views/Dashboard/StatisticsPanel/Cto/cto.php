@@ -107,38 +107,38 @@
     </div>
 
     <!-- 2. Relación Enlaces y Visitas -->
-    <div class="flex-column gap8 back-card-graphic shadow-card-graphic |hover-scale-soft p15 br10 w100">
-      <div class="flex-row center-between">
-        <span class="x13 color-secondary bold500">Promedio Enlaces / Visitas</span>
-        <span class="color-primary x16"><?= svg("link", "x16"); ?></span>
+    <div class="flex-row-desk flex-column-mid flex-column-sml center-center gap15 w100">
+      <div class="flex-column gap8 back-card-graphic shadow-card-graphic p15 br10 w100">
+        <div class="">
+          <span class="color-secondary bold500">Promedio Enlaces / Visitas</span>
+        </div>
+        <div class="flex-row center-start gap10 my5">
+          <span class="x36 bold700 texto leading-none"><?= e((string)$totalLinks); ?></span>
+          <span class="color-secondary bold500">enlaces activos</span>
+        </div>
+        <p class="m0 color-secondary">
+          Promedio: <strong class="texto bold600"><?= e((string)$linksPerVisit); ?></strong> enlaces por cada visita recibida.
+        </p>
+        <div class="color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
+          <?= e((string)$contentLinks); ?> enlaces de contenido + <?= e((string)$rrssLinks); ?> redes sociales
+        </div>
       </div>
-      <div class="flex-row center-start gap10 my5">
-        <span class="x36 bold700 texto leading-none"><?= e((string)$totalLinks); ?></span>
-        <span class="x14 color-secondary bold500">enlaces activos</span>
-      </div>
-      <p class="m0 x13 color-secondary">
-        Promedio: <strong class="texto bold600"><?= e((string)$linksPerVisit); ?></strong> enlaces por cada visita recibida.
-      </p>
-      <div class="x12 color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
-        <?= e((string)$contentLinks); ?> enlaces de contenido + <?= e((string)$rrssLinks); ?> redes sociales
-      </div>
-    </div>
-
-    <!-- 3. Total de Clics Acumulados -->
-    <div class="flex-column gap8 back-card-graphic shadow-card-graphic |hover-scale-soft p5 pl10 pr10 br10 w100">
-      <div class="flex-row center-between">
-        <span class="x13 color-secondary bold500">Clics Acumulados Históricos</span>
-        <span class="color-secondary x16"><?= svg("globe", "x16"); ?></span>
-      </div>
-      <div class="flex-row center-start gap10 my5">
-        <span class="x36 bold700 texto leading-none"><?= e((string)$allTimeClicks); ?></span>
-        <span class="x14 color-secondary bold500">clics totales</span>
-      </div>
-      <p class="m0 x13 color-secondary">
-        CTO histórico global: <strong class="texto bold600"><?= e((string)$allTimeCtoRate); ?>%</strong> en <?= e((string)$allTimeViews); ?> visitas.
-      </p>
-      <div class="x12 color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
-        Historial integral del perfil del creador
+  
+      <!-- 3. Total de Clics Acumulados -->
+      <div class="flex-column gap8 back-card-graphic shadow-card-graphic p15 br10 w100">
+        <div class="">
+          <span class="color-secondary bold500">Clics Acumulados Históricos</span>
+        </div>
+        <div class="flex-row center-start gap10 my5">
+          <span class="x36 bold700 texto leading-none"><?= e((string)$allTimeClicks); ?></span>
+          <span class="color-secondary bold500">clics totales</span>
+        </div>
+        <p class="m0 color-secondary">
+          CTO histórico global: <strong class="texto bold600"><?= e((string)$allTimeCtoRate); ?>%</strong> en <?= e((string)$allTimeViews); ?> visitas.
+        </p>
+        <div class="color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
+          Historial integral del perfil del creador
+        </div>
       </div>
     </div>
 
@@ -149,8 +149,8 @@
     
     <div class="flex-row center-between wrap gap10 w100">
       <div class="flex-column gap3">
-        <h4 class="m0 x16 bold600 texto">Índice de Clics: Enlaces vs Redes Sociales</h4>
-        <p class="m0 x13 color-secondary">
+        <p class="m0 bold500 texto">Índice de Clics: Enlaces vs Redes Sociales</p>
+        <p class="m0 color-secondary">
           Distribución de las interacciones hacia enlaces de contenido versus perfiles de redes sociales.
           <?php if (!$hasCurrentClicks && ($allTimeClicks > 0)): ?>
             <span class="color-inactive">(Mostrando histórico acumulado por falta de clics en el mes actual)</span>
@@ -161,42 +161,41 @@
       <div class="flex-row center-end gap15 x13">
         <span class="flex-row center-start gap5">
           <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--success, #00b900);"></span>
-          <span class="color-secondary">Enlaces: <strong><?= e((string)$barPctEnlaces); ?>%</strong></span>
+          <p class="color-secondary">Enlaces: <strong><?= e((string)$barPctEnlaces); ?>%</strong></p>
         </span>
         <span class="flex-row center-start gap5">
           <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--back-color6, #003CFF);"></span>
-          <span class="color-secondary">RRSS: <strong><?= e((string)$barPctRrss); ?>%</strong></span>
+          <p class="color-secondary">RRSS: <strong><?= e((string)$barPctRrss); ?>%</strong></p>
         </span>
       </div>
     </div>
 
     <!-- Barra de proporción visual bicolor -->
     <div class="w100 hpx12 br10 flex-row overflow-hidden" style="background: rgba(128,128,128,0.15);">
-      <div style="width: <?= e((string)$barPctEnlaces); ?>%; background: var(--success, #00b900); height: 100%; transition: width 0.3s;" title="Enlaces: <?= e((string)$barPctEnlaces); ?>%"></div>
-      <div style="width: <?= e((string)$barPctRrss); ?>%; background: var(--back-color6, #003CFF); height: 100%; transition: width 0.3s;" title="RRSS: <?= e((string)$barPctRrss); ?>%"></div>
+      <div class="back-success" style="width: <?= e((string)$barPctEnlaces); ?>%; height: 100%; transition: width 0.3s;" title="Enlaces: <?= e((string)$barPctEnlaces); ?>%"></div>
+      <div class="back8" style="width: <?= e((string)$barPctRrss); ?>%; height: 100%; transition: width 0.3s;" title="RRSS: <?= e((string)$barPctRrss); ?>%"></div>
     </div>
 
     <!-- Desglose en 2 columnas -->
-    <div class="flex-row wrap gap15 w100 pt10">
+    <div class="flex-row-desk flex-column-mid flex-column-sml gap15 w100 pt10">
 
       <!-- Columna 1: Enlaces de Contenido -->
       <div class="p15 br12 flex-column gap10 flex-1 min-w220" style="background: rgba(0, 185, 0, 0.05); border: 1px solid rgba(0, 185, 0, 0.15);">
         <div class="flex-row center-between">
-          <span class="flex-row center-start gap8 color-success bold600 x14">
-            <?= svg("link", "x16 color-success"); ?>
+          <span class="flex-row center-start gap8 color-success bold500">
             Enlaces de Contenido
           </span>
-          <span class="badge p3 pl8 pr8 br8 x12 bold600" style="background: rgba(0, 185, 0, 0.15); color: var(--success, #00b900);">
+          <span class="badge p3 pl8 pr8 br8 x16 bold500 back-success textw">
             <?= e((string)$barPctEnlaces); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
           <span class="x28 bold700 texto"><?= e((string)$monthlyEnlaces); ?></span>
-          <span class="x13 color-secondary">clics este mes</span>
+          <span class="color-secondary">clics este mes</span>
         </div>
 
-        <div class="x12 color-secondary">
+        <div class="color-secondary">
           Histórico acumulado: <strong class="texto bold600"><?= e((string)$allTimeEnlaces); ?></strong> clics (<?= e((string)$pctEnlacesAllTime); ?>% del total general).
         </div>
       </div>
@@ -204,21 +203,20 @@
       <!-- Columna 2: Redes Sociales -->
       <div class="p15 br12 flex-column gap10 flex-1 min-w220" style="background: rgba(0, 60, 255, 0.05); border: 1px solid rgba(0, 60, 255, 0.15);">
         <div class="flex-row center-between">
-          <span class="flex-row center-start gap8 bold600 x14" style="color: var(--back-color6, #003CFF);">
-            <?= svg("share-node", "x16"); ?>
+          <span class="flex-row center-start gap8 bold500 texto">
             Redes Sociales (RRSS)
           </span>
-          <span class="badge p3 pl8 pr8 br8 x12 bold600" style="background: rgba(0, 60, 255, 0.15); color: var(--back-color6, #003CFF);">
+          <span class="badge p3 pl8 pr8 br8 x16 bold500 textw back8">
             <?= e((string)$barPctRrss); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
           <span class="x28 bold700 texto"><?= e((string)$monthlyRrss); ?></span>
-          <span class="x13 color-secondary">clics este mes</span>
+          <span class="color-secondary">clics este mes</span>
         </div>
 
-        <div class="x12 color-secondary">
+        <div class="color-secondary">
           Histórico acumulado: <strong class="texto bold600"><?= e((string)$allTimeRrss); ?></strong> clics (<?= e((string)$pctRrssAllTime); ?>% del total general).
         </div>
       </div>
