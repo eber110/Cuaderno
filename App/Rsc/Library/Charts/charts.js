@@ -16,6 +16,9 @@ import { initSimpleBars } from "./simpleBars.js";
 import { initHorizontalBars } from "./horizontalBars.js";
 import { initBulletTarget } from "./bulletTarget.js";
 import { initRoundedDonut, animateDonutSegment } from "./roundedDonut.js";
+import { initPyramidStack, animatePyramidTier } from "./pyramidStack.js";
+import { initSplineDynamics, animateSplineDynamics, setSplineDynamicsMode } from "./splineDynamics.js";
+import { initMatrixHeatmap, animateMatrixHeatmap } from "./matrixHeatmap.js";
 import { initChartTooltips } from "./tooltip.js";
 
 export {
@@ -31,6 +34,13 @@ export {
   initBulletTarget,
   initRoundedDonut,
   animateDonutSegment,
+  initPyramidStack,
+  animatePyramidTier,
+  initSplineDynamics,
+  animateSplineDynamics,
+  setSplineDynamicsMode,
+  initMatrixHeatmap,
+  animateMatrixHeatmap,
   initChartTooltips
 };
 
@@ -87,7 +97,22 @@ export function initCharts(container = document) {
     initRoundedDonut(el);
   });
 
-  // 10. Tooltips interactivos
+  // 10. Pyramid Stack (Pila Jerárquica Piramidal)
+  container.querySelectorAll('[data-chart="pyramid-stack"]').forEach((el) => {
+    initPyramidStack(el);
+  });
+
+  // 11. Spline Dynamics (Curva Dinámica Dual / Single)
+  container.querySelectorAll('[data-chart="spline-dynamics"]').forEach((el) => {
+    initSplineDynamics(el);
+  });
+
+  // 12. Matrix Heatmap (Mapa de Calor de Actividad 7x5)
+  container.querySelectorAll('[data-chart="matrix-heatmap"]').forEach((el) => {
+    initMatrixHeatmap(el);
+  });
+
+  // 13. Tooltips interactivos
   initChartTooltips();
 }
 
@@ -116,11 +141,23 @@ if (typeof window !== "undefined") {
     initBulletTarget,
     initRoundedDonut,
     animateDonutSegment,
+    initPyramidStack,
+    animatePyramidTier,
+    initSplineDynamics,
+    animateSplineDynamics,
+    setSplineDynamicsMode,
+    initMatrixHeatmap,
+    animateMatrixHeatmap,
     initChartTooltips,
     initCharts
   };
   window.initCharts = initCharts;
   window.animateArcMeterValue = animateArcMeterValue;
   window.initRoundedDonut = initRoundedDonut;
+  window.initPyramidStack = initPyramidStack;
+  window.initSplineDynamics = initSplineDynamics;
+  window.setSplineDynamicsMode = setSplineDynamicsMode;
+  window.initMatrixHeatmap = initMatrixHeatmap;
+  window.animateMatrixHeatmap = animateMatrixHeatmap;
 }
 

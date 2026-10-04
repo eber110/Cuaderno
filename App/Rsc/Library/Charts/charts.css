@@ -452,7 +452,123 @@
 }
 
 /* =========================================================================
-   12. TOOLTIPS FLOTANTES Y CONTROL DE ACTIVACIÓN
+   12. PYRAMID STACK (HIERARCHY ROUNDED TIERS)
+   ========================================================================= */
+
+.mono-chart-svg.mono-pyramid-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 190px;
+}
+
+.mono-chart-svg .mono-pyramid-tier {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.mono-chart-svg .mono-pyramid-rect {
+  transition: filter 0.2s ease, opacity 0.3s ease;
+}
+
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pyramid-tier:hover .mono-pyramid-rect {
+  filter: brightness(1.20);
+  cursor: pointer;
+}
+
+.mono-chart-svg .mono-pyramid-text {
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+  user-select: none;
+  fill: var(--chart-label-color, currentColor);
+}
+
+.mono-chart-svg .mono-pyramid-text.textw {
+  fill: #ffffff !important;
+}
+
+/* =========================================================================
+   13. SPLINE DYNAMICS (DUAL / SINGLE DYNAMIC SPLINE)
+   ========================================================================= */
+
+.mono-chart-svg.mono-spline-dyn-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 190px;
+}
+
+.mono-chart-svg .mono-spline-primary-path {
+  transition: opacity 0.3s ease;
+}
+
+.mono-chart-svg .mono-spline-secondary-path {
+  transition: opacity 0.25s ease;
+}
+
+.mono-chart-svg .mono-spline-dyn-dot {
+  transition: r 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+}
+
+.mono-chart-svg:not([data-tooltip="false"]) .mono-spline-dyn-node:hover .mono-spline-dyn-dot {
+  r: 6.5;
+  filter: brightness(1.25);
+  cursor: pointer;
+}
+
+.mono-chart-svg .mono-spline-dyn-hit {
+  cursor: pointer;
+}
+
+.mono-chart-svg .mono-spline-dyn-axis-text {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: var(--chart-axis-color, #71717a);
+}
+
+.mono-chart-svg .mono-spline-dyn-x-label {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--chart-label-color, #a1a1aa);
+}
+
+/* =========================================================================
+   14. MATRIX HEATMAP (ACTIVITY 7x5 DENSITY GRID - ROUNDED NODE CELLS)
+   ========================================================================= */
+
+.mono-chart-svg.mono-matrix-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+}
+
+.mono-chart-svg .mono-matrix-panel {
+  transition: stroke 0.3s ease;
+}
+
+.mono-chart-svg .mono-matrix-row-label {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--chart-axis-color, #71717a);
+  font-family: inherit;
+  transition: opacity 0.3s ease;
+}
+
+.mono-chart-svg .mono-matrix-cell {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              filter 0.2s ease,
+              opacity 0.3s ease;
+}
+
+.mono-chart-svg:not([data-tooltip="false"]) .mono-matrix-cell:hover {
+  filter: brightness(1.28);
+  transform: scale(1.10);
+  cursor: pointer;
+}
+
+/* =========================================================================
+   15. TOOLTIPS FLOTANTES Y CONTROL DE ACTIVACIÓN
    ========================================================================= */
 
 .mono-chart-tooltip {
@@ -528,7 +644,12 @@
 .mono-chart-svg:not([data-tooltip="false"]) .mono-hbar-rect,
 .mono-chart-svg:not([data-tooltip="false"]) .mono-bullet-row,
 .mono-chart-svg:not([data-tooltip="false"]) .mono-bullet-bar,
-.mono-chart-svg:not([data-tooltip="false"]) .mono-donut-segment {
+.mono-chart-svg:not([data-tooltip="false"]) .mono-donut-segment,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pyramid-tier,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pyramid-rect,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-spline-dyn-node,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-spline-dyn-hit,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-matrix-cell {
   cursor: pointer;
 }
 
@@ -546,7 +667,12 @@
 .mono-chart-svg[data-tooltip="false"] .mono-hbar-rect,
 .mono-chart-svg[data-tooltip="false"] .mono-bullet-row,
 .mono-chart-svg[data-tooltip="false"] .mono-bullet-bar,
-.mono-chart-svg[data-tooltip="false"] .mono-donut-segment {
+.mono-chart-svg[data-tooltip="false"] .mono-donut-segment,
+.mono-chart-svg[data-tooltip="false"] .mono-pyramid-tier,
+.mono-chart-svg[data-tooltip="false"] .mono-pyramid-rect,
+.mono-chart-svg[data-tooltip="false"] .mono-spline-dyn-node,
+.mono-chart-svg[data-tooltip="false"] .mono-spline-dyn-hit,
+.mono-chart-svg[data-tooltip="false"] .mono-matrix-cell {
   cursor: default !important;
 }
 

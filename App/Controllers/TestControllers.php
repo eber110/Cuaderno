@@ -169,19 +169,80 @@ class TestControllers extends Control {
       "roundedDonut" => [
         "title"       => "MONO ROUNDED DONUT",
         "tag"         => "Soft Arc Caps",
-        "value"       => "100%",
+        "value"       => "100",
         "suffix"      => " allocation",
         "label"       => "Distribución modular",
         "category"    => "Rounded Arc Caps • OKLCH",
         "metaKey"     => "Segmentos",
         "metaVal"     => "4 Capas Monocromáticas",
-        "centerValue" => "100%",
+        "centerValue" => "100",
         "centerLabel" => "Mono Arc",
         "segments"    => [
           ["label" => "Core Engine", "value" => 45, "suffix" => "%"],
           ["label" => "UI Layer",    "value" => 28, "suffix" => "%"],
           ["label" => "Assets",      "value" => 17, "suffix" => "%"],
           ["label" => "Other",       "value" => 10, "suffix" => "%"],
+        ]
+      ],
+      "pyramidStack" => [
+        "title"    => "PYRAMID STACK",
+        "tag"      => "Hierarchy",
+        "value"    => "4 Tiers",
+        "suffix"   => " structured",
+        "label"    => "Jerarquía organizacional",
+        "category" => "Rounded Tier Layers",
+        "metaKey"  => "Estructura",
+        "metaVal"  => "Pyramid Hierarchy",
+        "tiers"    => [
+          ["label" => "Executive"],
+          ["label" => "Management"],
+          ["label" => "Senior Staff"],
+          ["label" => "Core Team"],
+        ]
+      ],
+      "splineDynamics" => [
+        "title"       => "SPLINE DYNAMICS",
+        "tag"         => "Line",
+        "value"       => "84k",
+        "suffix"      => " nodes",
+        "label"       => "Tráfico de nodos",
+        "category"    => "Rounded Caps",
+        "metaKey"     => "Pico",
+        "metaVal"     => "84k Peak",
+        "primary"     => [
+          ["label" => "Jan", "value" => 25],
+          ["label" => "Feb", "value" => 45],
+          ["label" => "Mar", "value" => 38],
+          ["label" => "Apr", "value" => 65],
+          ["label" => "May", "value" => 52],
+          ["label" => "Jun", "value" => 84],
+        ],
+        "secondary"   => [
+          ["label" => "Jan", "value" => 18],
+          ["label" => "Feb", "value" => 32],
+          ["label" => "Mar", "value" => 30],
+          ["label" => "Apr", "value" => 48],
+          ["label" => "May", "value" => 41],
+          ["label" => "Jun", "value" => 60],
+        ]
+      ],
+      "matrixHeatmap" => [
+        "title"    => "MATRIX HEATMAP",
+        "tag"      => "Activity",
+        "value"    => "35 Nodes",
+        "suffix"   => " mapped",
+        "label"    => "Nodos procesados",
+        "category" => "Rounded Node Cells",
+        "metaKey"  => "Rejilla",
+        "metaVal"  => "7x5 Density Grid",
+        "rows"     => ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        "cols"     => ["Col 1", "Col 2", "Col 3", "Col 4", "Col 5", "Col 6", "Col 7"],
+        "matrix"   => [
+          [0.15, 0.42, 0.78, 0.45, 0.95, 0.35, 0.65],
+          [0.40, 0.68, 0.95, 0.65, 0.42, 0.78, 0.25],
+          [0.55, 0.72, 0.30, 0.88, 0.58, 0.95, 0.48],
+          [0.28, 0.85, 0.55, 0.38, 0.95, 0.48, 0.70],
+          [0.60, 0.95, 0.48, 0.95, 0.45, 0.30, 0.75],
         ]
       ]
     ];

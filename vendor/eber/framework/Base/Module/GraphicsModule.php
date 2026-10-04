@@ -1690,6 +1690,355 @@ class GraphicsModule
   }
 
   /**
+   * 10. PYRAMID STACK (Pila Jerárquica Piramidal con Cápsulas Redondeadas)
+   * 
+   * Muestra niveles jerárquicos o arquitectónicos organizados en forma piramidal
+   * con cápsulas redondeadas de anchura progresiva y gradación tonal monocromática.
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'items' / 'tiers' / 'layers': Lista de capas de arriba hacia abajo:
+   *                        [['label' => 'Executive', 'value' => ...], ['label' => 'Management'], ...]
+   *                      - 'minWidth': Ancho de la cápsula superior (default 84.0).
+   *                      - 'maxWidth': Ancho de la cápsula base inferior (default 254.0).
+   *                      - 'barHeight': Altura de cada cápsula (default 26.0).
+   *                      - 'gapY': Espacio vertical entre cápsulas (default 9.0).
+   *                      - 'color': Selector o clase CSS para el color base.
+   *                      - 'transition': Duración de animación en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   * @return string Código SVG puro.
+   */
+  public static function pyramidStack(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Idénticos a la especificación canónica: Executive, Management, Senior Staff, Core Team.
+    // =========================================================================
+    $previewTiers = [
+      ['label' => 'Executive'],
+      ['label' => 'Management'],
+      ['label' => 'Senior Staff'],
+      ['label' => 'Core Team'],
+    ];
+
+    $rawItems = $params['items'] ?? ($params['tiers'] ?? ($params['layers'] ?? $previewTiers));
+    if (empty($rawItems)) {
+      $rawItems = $previewTiers;
+    }
+
+    $items = [];
+    foreach ($rawItems as $it) {
+      if (is_array($it)) {
+        $lbl = (string) ($it['label'] ?? ($it['name'] ?? ($it['title'] ?? '')));
+        $val = isset($it['value']) ? (string) $it['value'] : null;
+        $desc = isset($it['desc']) ? (string) $it['desc'] : null;
+        $col = isset($it['color']) ? (string) $it['color'] : null;
+        $textCol = isset($it['textColor']) ? (string) $it['textColor'] : null;
+        $items[] = [
+          'label'     => $lbl,
+          'value'     => $val,
+          'desc'      => $desc,
+          'color'     => $col,
+          'textColor' => $textCol,
+        ];
+      }
+    }
+
+    $count = count($items);
+    if ($count === 0) {
+      $items = $previewTiers;
+      $count = 4;
+    }
+
+    $classNames = 'mono-chart-svg mono-pyramid-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    $cx = 160.0;
+    $barH = isset($params['barHeight']) && (float) $params['barHeight'] > 0 ? (float) $params['barHeight'] : 26.0;
+    $gapY = isset($params['gapY']) && (float) $params['gapY'] >= 0 ? (float) $params['gapY'] : 9.0;
+    $rx = $barH / 2.0;
+
+    $totalStackH = ($count * $barH) + (($count - 1) * $gapY);
+    $startY = round((180.0 - $totalStackH) / 2.0, 1);
+
+    $minW = isset($params['minWidth']) && (float) $params['minWidth'] > 0 ? (float) $params['minWidth'] : 84.0;
+    $maxW = isset($params['maxWidth']) && (float) $params['maxWidth'] > 0 ? (float) $params['maxWidth'] : 254.0;
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pyramid-stack" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <?php foreach ($items as $idx => $it): 
+        $ratio = $count > 1 ? ($idx / ($count - 1)) : 1.0;
+        $w = round($minW + ($ratio * ($maxW - $minW)), 1);
+        $x = round($cx - ($w / 2.0), 1);
+        $y = round($startY + ($idx * ($barH + $gapY)), 1);
+        $textY = round($y + ($barH / 2.0) + 4.5, 1);
+
+        // Determinación de color del fondo de la cápsula
+        if (!empty($it['color'])) {
+          $token = self::resolveColorToken($it['color']);
+          $tierBg = $token['cssValue'] !== 'currentColor' ? $token['cssValue'] : 'var(--chart-base-color, currentColor)';
+          $isLight = false;
+        } else {
+          if ($count === 1 || $idx === 0) {
+            $tierBg = 'var(--chart-base-color, #ffffff)';
+            $isLight = true;
+          } elseif ($idx === 1 && $count === 4) {
+            $tierBg = 'oklch(from var(--chart-base-color, #b5b5ba) 0.74 c h)';
+            $isLight = true;
+          } elseif ($idx === 2 && $count === 4) {
+            $tierBg = 'oklch(from var(--chart-base-color, #737378) 0.50 c h)';
+            $isLight = false;
+          } elseif ($idx === 3 && $count === 4) {
+            $tierBg = 'oklch(from var(--chart-base-color, #424246) 0.30 c h)';
+            $isLight = false;
+          } else {
+            $lightness = round(0.74 - (($idx - 1) * (0.46 / max(1, $count - 2))), 2);
+            $lightness = max(0.24, min(0.92, $lightness));
+            $isLight = $lightness >= 0.65;
+            $hexFallback = sprintf('#%02x%02x%02x', (int)($lightness * 255), (int)($lightness * 255), (int)($lightness * 255));
+            $tierBg = "oklch(from var(--chart-base-color, {$hexFallback}) {$lightness} c h)";
+          }
+        }
+
+        // Determinación del color del texto respetando colorLabel y textColor
+        if (!empty($it['textColor'])) {
+          $tierTextAttr = ' fill="' . htmlspecialchars($it['textColor'], ENT_QUOTES, 'UTF-8') . '"';
+          $tierTextClass = '';
+        } else {
+          $isPureWhiteMono = in_array(strtolower($style['colorRaw'] ?? ''), ['texto', 'textw', '#fff', '#ffffff', 'fff', 'white'], true);
+          if ($isPureWhiteMono && $idx < 2 && ($style['labelRaw'] ?? '') === 'textw') {
+            $tierTextAttr = ' fill="#121214"';
+            $tierTextClass = '';
+          } else {
+            $tierTextAttr = ' fill="var(--chart-label-color, currentColor)"';
+            $tierTextClass = $labelClass;
+          }
+        }
+
+        $fontWeight = ($idx === 0) ? '700' : '600';
+        $fontSize = ($idx === 0) ? '12px' : '11.5px';
+        $lbl = htmlspecialchars($it['label'], ENT_QUOTES, 'UTF-8');
+        $tierName = 'Nivel ' . ($idx + 1) . ' de ' . $count;
+        $valAttr = !empty($it['value']) ? ' data-val="' . htmlspecialchars($it['value'], ENT_QUOTES, 'UTF-8') . '"' : '';
+      ?>
+      <g class="mono-pyramid-tier" data-label="<?= $lbl ?>" data-tier="<?= $tierName ?>"<?= $valAttr ?>>
+        <!-- Cápsula redondeada de nivel jerárquico -->
+        <rect x="<?= number_format($x, 1, '.', '') ?>" y="<?= number_format($y, 1, '.', '') ?>" width="<?= number_format($w, 1, '.', '') ?>" height="<?= number_format($barH, 1, '.', '') ?>" rx="<?= number_format($rx, 1, '.', '') ?>" class="mono-pyramid-rect" data-target-w="<?= number_format($w, 1, '.', '') ?>" data-target-x="<?= number_format($x, 1, '.', '') ?>" fill="<?= $tierBg ?>" style="--tier-color: <?= $tierBg ?>;" />
+
+        <!-- Texto centrado dentro de la cápsula -->
+        <text x="<?= number_format($cx, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="middle" class="mono-pyramid-text<?= $tierTextClass ?>"<?= $tierTextAttr ?> style="font-size: <?= $fontSize ?>; font-weight: <?= $fontWeight ?>;"><?= $lbl ?></text>
+      </g>
+      <?php endforeach; ?>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
+   * 11. SPLINE DYNAMICS (Curva Dinámica Dual / Single con Extremos Redondeados)
+   * 
+   * Gráfico de línea Bézier cúbica continua (Catmull-Rom) con soporte dual
+   * (línea primaria continua con nodos circulares y línea secundaria de referencia punteada).
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'primary' / 'series1' / 'data': Puntos principales [['label' => 'Jan', 'value' => 25], ...]
+   *                      - 'secondary' / 'series2': Puntos secundarios punteados de referencia.
+   *                      - 'showSecondary': Mostrar u ocultar la serie secundaria (default true).
+   *                      - 'showPoints': Mostrar círculos de nodo en serie principal (default true).
+   *                      - 'yLabels': Etiquetas del eje Y (default ['100', '75', '50', '25', '0']).
+   *                      - 'maxVal': Valor máximo del eje Y (default 100.0).
+   *                      - 'tension': Tensión de curvatura Catmull-Rom (default 0.25).
+   *                      - 'color': Selector o clase CSS para la línea principal.
+   *                      - 'colorLabel': Selector o clase CSS para etiquetas de ejes.
+   *                      - 'axisLabel': Selector o clase CSS para cuadrícula y números.
+   *                      - 'transition': Duración de animación en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   * @return string Código SVG puro.
+   */
+  public static function splineDynamics(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Idénticos a la especificación canónica: Jan (25/18), Feb (45/32), Mar (38/30),
+    // Apr (65/48), May (52/41), Jun (84/60).
+    // =========================================================================
+    $previewPrimary = [
+      ['label' => 'Jan', 'value' => 25.0],
+      ['label' => 'Feb', 'value' => 45.0],
+      ['label' => 'Mar', 'value' => 38.0],
+      ['label' => 'Apr', 'value' => 65.0],
+      ['label' => 'May', 'value' => 52.0],
+      ['label' => 'Jun', 'value' => 84.0],
+    ];
+
+    $previewSecondary = [
+      ['label' => 'Jan', 'value' => 18.0],
+      ['label' => 'Feb', 'value' => 32.0],
+      ['label' => 'Mar', 'value' => 30.0],
+      ['label' => 'Apr', 'value' => 48.0],
+      ['label' => 'May', 'value' => 41.0],
+      ['label' => 'Jun', 'value' => 60.0],
+    ];
+
+    $rawPrimary = $params['primary'] ?? ($params['series1'] ?? ($params['data'] ?? $previewPrimary));
+    if (empty($rawPrimary)) {
+      $rawPrimary = $previewPrimary;
+    }
+
+    $rawSecondary = $params['secondary'] ?? ($params['series2'] ?? $previewSecondary);
+    if (empty($rawSecondary)) {
+      $rawSecondary = $previewSecondary;
+    }
+
+    $primaryItems = [];
+    foreach ($rawPrimary as $it) {
+      if (is_array($it)) {
+        $primaryItems[] = [
+          'label' => (string) ($it['label'] ?? ($it['name'] ?? '')),
+          'value' => (float) ($it['value'] ?? ($it['val'] ?? 0.0)),
+        ];
+      }
+    }
+
+    $secondaryItems = [];
+    foreach ($rawSecondary as $it) {
+      if (is_array($it)) {
+        $secondaryItems[] = [
+          'label' => (string) ($it['label'] ?? ($it['name'] ?? '')),
+          'value' => (float) ($it['value'] ?? ($it['val'] ?? 0.0)),
+        ];
+      }
+    }
+
+    $count = count($primaryItems);
+    if ($count === 0) {
+      $primaryItems = $previewPrimary;
+      $secondaryItems = $previewSecondary;
+      $count = 6;
+    }
+
+    $classNames = 'mono-chart-svg mono-spline-dyn-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
+    $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    $showSecondary = $params['showSecondary'] ?? true;
+    $showPoints = $params['showPoints'] ?? true;
+    $tension = isset($params['tension']) && is_numeric($params['tension']) ? (float) $params['tension'] : 0.25;
+    $maxVal = isset($params['maxVal']) && (float) $params['maxVal'] > 0 ? (float) $params['maxVal'] : 100.0;
+    $yLabels = $params['yLabels'] ?? ['100', '75', '50', '25', '0'];
+
+    // Dimensiones y área de trazado
+    $padL = 36.0;
+    $padR = 18.0;
+    $padT = 20.0;
+    $padB = 25.0;
+    $plotW = 320.0 - $padL - $padR;
+    $plotH = 180.0 - $padT - $padB;
+
+    // Puntos geométricos para ambas curvas
+    $primPoints = [];
+    $secPoints = [];
+    $stepX = $count > 1 ? ($plotW / ($count - 1)) : $plotW;
+
+    $totalPrimLen = 0.0;
+    for ($i = 0; $i < $count; $i++) {
+      $px = round($padL + ($i * $stepX), 1);
+      
+      $pVal = $primaryItems[$i]['value'];
+      $pyPrim = round($padT + ($plotH * (1.0 - max(0.0, min(1.0, $pVal / $maxVal)))), 1);
+      $primPoints[] = [
+        'x'     => $px,
+        'y'     => $pyPrim,
+        'label' => $primaryItems[$i]['label'],
+        'val'   => $pVal,
+      ];
+
+      $sVal = isset($secondaryItems[$i]['value']) ? $secondaryItems[$i]['value'] : 0.0;
+      $pySec = round($padT + ($plotH * (1.0 - max(0.0, min(1.0, $sVal / $maxVal)))), 1);
+      $secPoints[] = [
+        'x'     => $px,
+        'y'     => $pySec,
+        'label' => isset($secondaryItems[$i]['label']) ? $secondaryItems[$i]['label'] : $primaryItems[$i]['label'],
+        'val'   => $sVal,
+      ];
+
+      if ($i > 0) {
+        $dx = $px - $primPoints[$i - 1]['x'];
+        $dy = $pyPrim - $primPoints[$i - 1]['y'];
+        $totalPrimLen += sqrt(($dx * $dx) + ($dy * $dy));
+      }
+    }
+
+    $primCurveD = self::computeSplinePath($primPoints, $tension);
+    $secCurveD = self::computeSplinePath($secPoints, $tension);
+    $approxLength = round(max(300.0, $totalPrimLen * 1.08), 1);
+
+    // Líneas del eje Y
+    $yCount = count($yLabels);
+    $yStepH = $yCount > 1 ? ($plotH / ($yCount - 1)) : $plotH;
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="spline-dynamics" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <!-- Rejilla Horizontal Punteada y Marcas Eje Y -->
+      <g class="mono-spline-dyn-grid">
+        <?php for ($j = 0; $j < $yCount; $j++): 
+          $gridY = round($padT + ($j * $yStepH), 1);
+        ?>
+        <line x1="<?= number_format($padL, 1, '.', '') ?>" y1="<?= number_format($gridY, 1, '.', '') ?>" x2="<?= number_format($padL + $plotW, 1, '.', '') ?>" y2="<?= number_format($gridY, 1, '.', '') ?>" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,3" stroke-width="1" />
+        <text x="<?= number_format($padL - 8.0, 1, '.', '') ?>" y="<?= number_format($gridY + 3.5, 1, '.', '') ?>" text-anchor="end" class="mono-spline-dyn-axis-text<?= $axisClass ?>"><?= htmlspecialchars($yLabels[$j], ENT_QUOTES, 'UTF-8') ?></text>
+        <?php endfor; ?>
+      </g>
+
+      <!-- Curva Secundaria Punteada (Referencia / Dual Mode) -->
+      <?php if ($showSecondary && !empty($secCurveD)): ?>
+      <path d="<?= $secCurveD ?>" class="mono-spline-secondary-path" fill="none" stroke="currentColor" opacity="0.40" stroke-width="2" stroke-dasharray="4,4" stroke-linecap="round" />
+      <?php endif; ?>
+
+      <!-- Curva Primaria Continua Dinámica -->
+      <path d="<?= $primCurveD ?>" class="mono-spline-primary-path" fill="none" stroke="var(--chart-tone-1, #ffffff)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="<?= $approxLength ?> <?= $approxLength ?>" stroke-dashoffset="<?= $approxLength ?>" data-length="<?= $approxLength ?>" />
+
+      <!-- Puntos / Nodos Circulares y Áreas de Tooltip -->
+      <?php if ($showPoints): ?>
+      <g class="mono-spline-dyn-nodes">
+        <?php foreach ($primPoints as $k => $pt): 
+          $lbl = htmlspecialchars($pt['label'], ENT_QUOTES, 'UTF-8');
+          $val = $pt['val'] . 'k';
+          $secVal = isset($secPoints[$k]['val']) ? ($secPoints[$k]['val'] . 'k') : '';
+        ?>
+        <g class="mono-spline-dyn-node" data-label="<?= $lbl ?>" data-val="<?= $val ?>" data-ref="<?= $secVal ?>">
+          <circle cx="<?= number_format($pt['x'], 1, '.', '') ?>" cy="<?= number_format($pt['y'], 1, '.', '') ?>" r="4.5" fill="var(--chart-tone-1, #ffffff)" stroke="#0c0c0e" stroke-width="2" class="mono-spline-dyn-dot" />
+          <!-- Zona invisible de activación de tooltip -->
+          <circle cx="<?= number_format($pt['x'], 1, '.', '') ?>" cy="<?= number_format($pt['y'], 1, '.', '') ?>" r="14.0" fill="transparent" class="mono-spline-dyn-hit" />
+        </g>
+        <?php endforeach; ?>
+      </g>
+      <?php endif; ?>
+
+      <!-- Etiquetas Eje X (Meses) -->
+      <g class="mono-spline-dyn-x-axis">
+        <?php foreach ($primPoints as $pt): 
+          $lbl = htmlspecialchars($pt['label'], ENT_QUOTES, 'UTF-8');
+        ?>
+        <text x="<?= number_format($pt['x'], 1, '.', '') ?>" y="<?= number_format(180.0 - 7.0, 1, '.', '') ?>" text-anchor="middle" class="mono-spline-dyn-x-label<?= $labelClass ?>"><?= $lbl ?></text>
+        <?php endforeach; ?>
+      </g>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
    * Calcula matemáticamente los comandos SVG de una curva Spline Bézier cúbica continua (Catmull-Rom).
    *
    * @param array $points Array de puntos [['x' => float, 'y' => float], ...].
@@ -1721,6 +2070,137 @@ class GraphicsModule
     }
 
     return $d;
+  }
+
+  /**
+   * Genera el gráfico MATRIX HEATMAP (Densidad de Actividad Monocromática en Rejilla 7x5 con Nodos Redondeados).
+   *
+   * @param array $params Parámetros del gráfico:
+   *   - matrix: array 2D de filas con valores o intensidades (0.0..1.0).
+   *   - rows: array de etiquetas de filas (default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']).
+   *   - cols: array de etiquetas de columnas o nombres de slots (default: ['1', '2', '3', '4', '5', '6', '7']).
+   *   - rx: radio de curvatura de esquinas de cada nodo (default: 7.0).
+   *   - color: token de color base ('texto', 'color3', '#38bdf8', etc.).
+   *   - axisLabel: color de los textos del eje Y.
+   *   - transition: duración de la animación en ms (default: 700).
+   * @return string SVG renderizado.
+   */
+  public static function matrixHeatmap(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    $rowLabels = isset($params['rows']) && is_array($params['rows']) && !empty($params['rows'])
+      ? array_values($params['rows'])
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+    $colLabels = isset($params['cols']) && is_array($params['cols']) && !empty($params['cols'])
+      ? array_values($params['cols'])
+      : ['Col 1', 'Col 2', 'Col 3', 'Col 4', 'Col 5', 'Col 6', 'Col 7'];
+
+    $rowCount = count($rowLabels);
+    $colCount = count($colLabels);
+
+    // Matriz de intensidades predeterminada exactamente idéntica a la imagen
+    $defaultMatrix = [
+      [0.15, 0.42, 0.78, 0.45, 0.95, 0.35, 0.65], // Mon
+      [0.40, 0.68, 0.95, 0.65, 0.42, 0.78, 0.25], // Tue
+      [0.55, 0.72, 0.30, 0.88, 0.58, 0.95, 0.48], // Wed
+      [0.28, 0.85, 0.55, 0.38, 0.95, 0.48, 0.70], // Thu
+      [0.60, 0.95, 0.48, 0.95, 0.45, 0.30, 0.75], // Fri
+    ];
+
+    $rawMatrix = isset($params['matrix']) && is_array($params['matrix'])
+      ? $params['matrix']
+      : $defaultMatrix;
+
+    $rx = isset($params['rx']) ? (float)$params['rx'] : 7.0;
+
+    $classNames = 'mono-chart-svg mono-matrix-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
+    $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    // Geometría del contenedor SVG y panel interno
+    $viewBoxW = 320.0;
+    $viewBoxH = 180.0;
+
+    $panelX = 1.0;
+    $panelY = 1.0;
+    $panelW = 318.0;
+    $panelH = 178.0;
+    $panelRx = 16.0;
+
+    $cellSize = 26.0;
+    $cellGap = 7.5;
+    $rx = isset($params['rx']) ? (float)$params['rx'] : 8.0;
+
+    $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
+    $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
+
+    $padRight = 16.0;
+    $gridStartX = round($panelX + $panelW - $padRight - $gridW, 1);
+    $gridStartY = round($panelY + (($panelH - $gridH) / 2.0), 1);
+
+    $labelAnchorX = round($gridStartX - 15.0, 1);
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <!-- Panel de Fondo Oscuro con Bordes Redondeados (Fiel a la captura) -->
+      <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="#111114" stroke="rgba(255,255,255,0.08)" stroke-width="1.2" />
+
+      <!-- Eje Y: Etiquetas de Días / Filas -->
+      <g class="mono-matrix-labels">
+        <?php for ($r = 0; $r < $rowCount; $r++): 
+          $rowName = htmlspecialchars($rowLabels[$r], ENT_QUOTES, 'UTF-8');
+          $rowCenterY = round($gridStartY + ($r * ($cellSize + $cellGap)) + ($cellSize / 2.0) + 3.5, 1);
+        ?>
+        <text x="<?= number_format($labelAnchorX, 1, '.', '') ?>" y="<?= number_format($rowCenterY, 1, '.', '') ?>" text-anchor="end" class="mono-matrix-row-label<?= $axisClass ?>"><?= $rowName ?></text>
+        <?php endfor; ?>
+      </g>
+
+      <!-- Rejilla de Celdas (Rounded Node Cells) -->
+      <g class="mono-matrix-grid">
+        <?php 
+        $staggerIndex = 0;
+        for ($r = 0; $r < $rowCount; $r++): 
+          $rowLabel = $rowLabels[$r] ?? ('R' . ($r + 1));
+          for ($c = 0; $c < $colCount; $c++):
+            $colLabel = $colLabels[$c] ?? ('C' . ($c + 1));
+            $cellData = $rawMatrix[$r][$c] ?? 0.20;
+
+            if (is_array($cellData)) {
+              $intensity = isset($cellData['intensity']) ? (float)$cellData['intensity'] : 0.5;
+              $displayVal = isset($cellData['val']) ? (string)$cellData['val'] : (round($intensity * 100) . '%');
+              $cellTitle = isset($cellData['label']) ? $cellData['label'] : "{$rowLabel} • {$colLabel}";
+            } else {
+              $intensity = (float)$cellData;
+              $intensity = max(0.0, min(1.0, $intensity));
+              $displayVal = round($intensity * 100) . '%';
+              $cellTitle = "{$rowLabel} • {$colLabel}";
+            }
+
+            $intensity = max(0.0, min(1.0, $intensity));
+            $lightness = round(0.18 + ($intensity * 0.78), 2);
+            $hexFallback = sprintf('#%02x%02x%02x', (int)($lightness * 255), (int)($lightness * 255), (int)($lightness * 255));
+            $cellColor = "oklch(from var(--chart-base-color, {$hexFallback}) {$lightness} c h)";
+
+            $cx = round($gridStartX + ($c * ($cellSize + $cellGap)), 1);
+            $cy = round($gridStartY + ($r * ($cellSize + $cellGap)), 1);
+
+            $pctStr = round($intensity * 100) . '%';
+            $staggerDelay = $staggerIndex * 20; // 20ms de desfase progresivo
+            $staggerIndex++;
+        ?>
+        <rect class="mono-matrix-cell" x="<?= number_format($cx, 1, '.', '') ?>" y="<?= number_format($cy, 1, '.', '') ?>" width="<?= number_format($cellSize, 1, '.', '') ?>" height="<?= number_format($cellSize, 1, '.', '') ?>" rx="<?= number_format($rx, 1, '.', '') ?>" fill="<?= $cellColor ?>" data-label="<?= htmlspecialchars($cellTitle, ENT_QUOTES, 'UTF-8') ?>" data-val="<?= htmlspecialchars($displayVal, ENT_QUOTES, 'UTF-8') ?>" data-density="<?= $pctStr ?>" data-delay="<?= $staggerDelay ?>" style="--cell-delay: <?= $staggerDelay ?>ms;" />
+        <?php endfor; ?>
+        <?php endfor; ?>
+      </g>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
   }
 }
 

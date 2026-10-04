@@ -185,6 +185,48 @@ function buildTooltipContent(target) {
     return html;
   }
 
+  // 10. Pyramid Stack: Nivel jerárquico de pirámide
+  const pyramidTier = target.closest(".mono-pyramid-tier");
+  if (pyramidTier) {
+    const label = pyramidTier.getAttribute("data-label") || "";
+    const tier = pyramidTier.getAttribute("data-tier") || "";
+    const val = pyramidTier.getAttribute("data-val") || "";
+
+    let html = "";
+    if (label) html += `<div class="mono-tooltip-header"><strong>${escapeHtml(label)}</strong></div>`;
+    if (tier) html += `<div class="mono-tooltip-row"><span>Jerarquía:</span> <strong>${escapeHtml(tier)}</strong></div>`;
+    if (val) html += `<div class="mono-tooltip-row mono-sub"><span>Métrica:</span> <span>${escapeHtml(val)}</span></div>`;
+    return html;
+  }
+
+  // 11. Spline Dynamics: Nodo dinámico
+  const dynNode = target.closest(".mono-spline-dyn-node");
+  if (dynNode) {
+    const label = dynNode.getAttribute("data-label") || "";
+    const val = dynNode.getAttribute("data-val") || "";
+    const ref = dynNode.getAttribute("data-ref") || "";
+
+    let html = "";
+    if (label) html += `<div class="mono-tooltip-header"><strong>${escapeHtml(label)}</strong></div>`;
+    if (val) html += `<div class="mono-tooltip-row"><span>Primario:</span> <strong>${escapeHtml(val)}</strong></div>`;
+    if (ref) html += `<div class="mono-tooltip-row mono-sub"><span>Referencia:</span> <span>${escapeHtml(ref)}</span></div>`;
+    return html;
+  }
+
+  // 12. Matrix Heatmap: Celda redondeada de actividad
+  const matrixCell = target.closest(".mono-matrix-cell");
+  if (matrixCell) {
+    const label = matrixCell.getAttribute("data-label") || "";
+    const val = matrixCell.getAttribute("data-val") || "";
+    const density = matrixCell.getAttribute("data-density") || "";
+
+    let html = "";
+    if (label) html += `<div class="mono-tooltip-header"><strong>${escapeHtml(label)}</strong></div>`;
+    if (val) html += `<div class="mono-tooltip-row"><span>Actividad:</span> <strong>${escapeHtml(val)}</strong></div>`;
+    if (density && density !== val) html += `<div class="mono-tooltip-row mono-sub"><span>Densidad:</span> <span>${escapeHtml(density)}</span></div>`;
+    return html;
+  }
+
   return null;
 }
 

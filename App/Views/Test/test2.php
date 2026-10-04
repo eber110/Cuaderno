@@ -4,8 +4,8 @@
   // Configuración global de estilos para todos los gráficos (color base 'texto', etiquetas 'textw', ejes 'color1' y 400ms unificados)
   GraphicsModule::configStyle([
     "colorLabel" => "textw",
-    "axisLabel"  => "#fff",
-    "color"      => "#ff5100",
+    "axisLabel"  => "#ffffff",
+    "color"      => "#ff0000",
     "transition" => 500,
     'tooltip'    => true
   ]);
@@ -20,6 +20,9 @@
   $hbar = $demo["horizontalBars"] ?? [];
   $bullet = $demo["bulletTarget"] ?? [];
   $donut = $demo["roundedDonut"] ?? [];
+  $pyramid = $demo["pyramidStack"] ?? [];
+  $splineDyn = $demo["splineDynamics"] ?? [];
+  $matrix = $demo["matrixHeatmap"] ?? [];
 ?>
 
 <div class="container-xl container-xl-mid flex-column gap30 w100" style="padding: 40px 20px 120px 20px; min-height: 100vh; background-color: #0c0c0e; color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
@@ -230,7 +233,7 @@
       <div class="br15 back8 p20 flex-row center">
         <?php _chart("bulletTarget", [
           "targets"     => $bullet["targets"] ?? [],
-          "targetColor" => "#10b981",
+          "targetColor" => "#fffb04",
         ]); ?>
       </div>
       <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
@@ -245,20 +248,93 @@
         <p class="bold700 m0 text-fade-blur"><?= e($donut["title"] ?? "MONO ROUNDED DONUT") ?></p>
         <span class="mono-chart-badge"><?= e($donut["tag"] ?? "Soft Arc Caps") ?></span>
       </div>
-      <p class="x40 bold900 text-animation p0 m0">
-        <?= e($donut["value"] ?? "100%") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($donut["suffix"] ?? " allocation") ?></span>
-      </p>
+      <div class="x40 bold900 p0 m0">
+        <p class="x40 bold900 text-animation text-counter"><?= e($donut["value"] ?? "100") ?></p>%
+        <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($donut["suffix"] ?? " allocation") ?></span>
+      </div>
       <div class="br15 back8 p20 flex-row center">
         <?php _chart("roundedDonut", [
           "items"       => $donut["segments"] ?? [],
-          "centerValue" => $donut["centerValue"] ?? "100%",
+          "centerValue" => $donut["centerValue"] ?? "100",
           "centerLabel" => $donut["centerLabel"] ?? "Mono Arc",
-          "showLegend"  => true,
+          "showLegend"  => false,
         ]); ?>
       </div>
-      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+      <div class="flex-row center-between justify-between align-center x12 color1 w100" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
         <span><?= e($donut["category"] ?? "Rounded Arc Caps • OKLCH") ?></span>
         <span class="textw"><?= e($donut["metaVal"] ?? "4 Capas Monocromáticas") ?></span>
+      </div>
+    </div>
+
+    <!-- 11. GRÁFICO: PYRAMID STACK (JERARQUÍA PIRAMIDAL) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($pyramid["title"] ?? "PYRAMID STACK") ?></p>
+        <span class="mono-chart-badge"><?= e($pyramid["tag"] ?? "Hierarchy") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation p0 m0">
+        <?= e($pyramid["value"] ?? "4 Tiers") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($pyramid["suffix"] ?? " structured") ?></span>
+      </p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("pyramidStack", [
+          "items" => $pyramid["tiers"] ?? [],
+        ]); ?>
+      </div>
+      <div class="flex-row center-between justify-between align-center x12 color1 w100" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($pyramid["category"] ?? "Rounded Tier Layers") ?></span>
+        <span class="textw"><?= e($pyramid["metaVal"] ?? "Pyramid Hierarchy") ?></span>
+      </div>
+    </div>
+
+    <!-- 12. GRÁFICO: SPLINE DYNAMICS (CURVA DUAL / SINGLE CON ROUNDED CAPS) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <div class="flex-row align-center gap10">
+          <p class="bold700 m0 text-fade-blur"><?= e($splineDyn["title"] ?? "SPLINE DYNAMICS") ?></p>
+          <span class="mono-chart-badge"><?= e($splineDyn["tag"] ?? "Line") ?></span>
+        </div>
+        <!-- Selector interactivo Dual / Single -->
+        <div class="mono-chart-switch-pills">
+          <button type="button" class="active" data-spline-mode="dual">Dual</button>
+          <button type="button" data-spline-mode="single">Single</button>
+        </div>
+      </div>
+      <p class="x40 bold900 text-animation p0 m0">
+        <?= e($splineDyn["value"] ?? "84k") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($splineDyn["suffix"] ?? " nodes") ?></span>
+      </p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("splineDynamics", [
+          "primary"   => $splineDyn["primary"] ?? [],
+          "secondary" => $splineDyn["secondary"] ?? [],
+        ]); ?>
+      </div>
+      <div class="flex-row center-between justify-between align-center x12 color1 w100" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($splineDyn["category"] ?? "Rounded Caps") ?></span>
+        <span class="textw"><?= e($splineDyn["metaVal"] ?? "84k Peak") ?></span>
+      </div>
+    </div>
+
+    <!-- 13. GRÁFICO: MATRIX HEATMAP (REJILLA DE DENSIDAD 7x5 CON NODOS REDONDEADOS) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <div class="flex-row align-center gap10">
+          <p class="bold700 m0 text-fade-blur"><?= e($matrix["title"] ?? "MATRIX HEATMAP") ?></p>
+          <span class="mono-chart-badge"><?= e($matrix["tag"] ?? "Activity") ?></span>
+        </div>
+      </div>
+      <p class="x40 bold900 text-animation p0 m0">
+        <?= e($matrix["value"] ?? "35 Nodes") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($matrix["suffix"] ?? " mapped") ?></span>
+      </p>
+      <div class="flex-row center w100" style="padding: 4px 0;">
+        <?php _chart("matrixHeatmap", [
+          "rows"   => $matrix["rows"] ?? ["Mon", "Tue", "Wed", "Thu", "Fri"],
+          "cols"   => $matrix["cols"] ?? ["Col 1", "Col 2", "Col 3", "Col 4", "Col 5", "Col 6", "Col 7"],
+          "matrix" => $matrix["matrix"] ?? [],
+        ]); ?>
+      </div>
+      <div class="flex-row center-between justify-between align-center x12 color1 w100" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($matrix["category"] ?? "Rounded Node Cells") ?></span>
+        <span class="textw"><?= e($matrix["metaVal"] ?? "7x5 Density Grid") ?></span>
       </div>
     </div>
 
@@ -351,6 +427,20 @@
         </div>
         <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
           _chart("stackedTones", ["color" => "f59e0b", "axisLabel" => "a1a1aa"]);
+        </code>
+      </div>
+
+      <!-- Variante 6: HEX Esmeralda (#10b981) en Matrix Heatmap -->
+      <div style="background: #09090b; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px;" class="flex-column gap10">
+        <div class="flex-row justify-between align-center">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase;">6. Matrix Heatmap Esmeralda</span>
+          <span style="font-size: 11px; color: #10b981; font-family: monospace;">color: "#10b981"</span>
+        </div>
+        <div style="height: 140px;" class="flex-row center">
+          <?php _chart("matrixHeatmap", ["color" => "#10b981", "axisLabel" => "a1a1aa"]); ?>
+        </div>
+        <code style="font-size: 11px; color: #a1a1aa; background: rgba(255,255,255,0.04); padding: 6px 8px; border-radius: 6px;">
+          _chart("matrixHeatmap", ["color" => "#10b981", "axisLabel" => "a1a1aa"]);
         </code>
       </div>
     </div>
