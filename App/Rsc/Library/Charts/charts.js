@@ -12,6 +12,11 @@ import { initStackedTones } from "./stackedTones.js";
 import { initTileTreemap } from "./tileTreemap.js";
 import { initHybridSpline } from "./hybridSpline.js";
 import { initPillPillars } from "./pillPillars.js";
+import { initSimpleBars } from "./simpleBars.js";
+import { initHorizontalBars } from "./horizontalBars.js";
+import { initBulletTarget } from "./bulletTarget.js";
+import { initRoundedDonut, animateDonutSegment } from "./roundedDonut.js";
+import { initChartTooltips } from "./tooltip.js";
 
 export {
   easeInOutCubic,
@@ -20,7 +25,13 @@ export {
   initStackedTones,
   initTileTreemap,
   initHybridSpline,
-  initPillPillars
+  initPillPillars,
+  initSimpleBars,
+  initHorizontalBars,
+  initBulletTarget,
+  initRoundedDonut,
+  animateDonutSegment,
+  initChartTooltips
 };
 
 /**
@@ -55,6 +66,29 @@ export function initCharts(container = document) {
   container.querySelectorAll('[data-chart="pill-pillars"]').forEach((el) => {
     initPillPillars(el);
   });
+
+  // 6. Simple Bars (Barras verticales)
+  container.querySelectorAll('[data-chart="simple-bars"]').forEach((el) => {
+    initSimpleBars(el);
+  });
+
+  // 7. Horizontal Bars (Barras horizontales)
+  container.querySelectorAll('[data-chart="horizontal-bars"]').forEach((el) => {
+    initHorizontalBars(el);
+  });
+
+  // 8. Bullet Target (Barras de comparación con benchmark)
+  container.querySelectorAll('[data-chart="bullet-target"]').forEach((el) => {
+    initBulletTarget(el);
+  });
+
+  // 9. Rounded Donut (Rosca con Soft Arc Caps)
+  container.querySelectorAll('[data-chart="rounded-donut"]').forEach((el) => {
+    initRoundedDonut(el);
+  });
+
+  // 10. Tooltips interactivos
+  initChartTooltips();
 }
 
 // Inicialización automática al cargar el DOM
@@ -77,9 +111,16 @@ if (typeof window !== "undefined") {
     initTileTreemap,
     initHybridSpline,
     initPillPillars,
+    initSimpleBars,
+    initHorizontalBars,
+    initBulletTarget,
+    initRoundedDonut,
+    animateDonutSegment,
+    initChartTooltips,
     initCharts
   };
   window.initCharts = initCharts;
   window.animateArcMeterValue = animateArcMeterValue;
+  window.initRoundedDonut = initRoundedDonut;
 }
 

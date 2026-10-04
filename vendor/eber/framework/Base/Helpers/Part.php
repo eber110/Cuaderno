@@ -562,7 +562,7 @@ function _chart(string $type, array $params = []): void
 /**
  * Renderiza y retorna el string SVG de un gráfico vectorial minimalista.
  *
- * @param string $type Tipo de gráfico: 'arcMeter', 'stackedTones', 'tileTreemap', 'hybridSpline', 'pillPillars'
+ * @param string $type Tipo de gráfico: 'arcMeter', 'stackedTones', 'tileTreemap', 'hybridSpline', 'pillPillars', 'simpleBars', 'horizontalBars', 'bulletTarget', 'roundedDonut'
  * @param array $params Parámetros de configuración
  * @return string Código SVG puro
  * @example $svg = _chartToString('arcMeter', ['value' => 90]);

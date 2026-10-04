@@ -4,20 +4,25 @@
   // Configuración global de estilos para todos los gráficos (color base 'texto', etiquetas 'textw', ejes 'color1' y 400ms unificados)
   GraphicsModule::configStyle([
     "colorLabel" => "textw",
-    "axisLabel"  => "#cfcfcf",
-    "color"      => "color3",
-    "transition" => 500
+    "axisLabel"  => "#fff",
+    "color"      => "#ff5100",
+    "transition" => 500,
+    'tooltip'    => true
   ]);
 
   /** @var array $demo */
-  $arc = $demo["arcMeter"];
+  $arc = $demo["arcMeter"] ?? [];
   $stacked = $demo["stackedTones"] ?? [];
   $treemap = $demo["treemap"] ?? [];
   $spline = $demo["hybridSpline"] ?? [];
   $pillars = $demo["pillPillars"] ?? [];
+  $simple = $demo["simpleBars"] ?? [];
+  $hbar = $demo["horizontalBars"] ?? [];
+  $bullet = $demo["bulletTarget"] ?? [];
+  $donut = $demo["roundedDonut"] ?? [];
 ?>
 
-<div class="container container-xl-mid flex-column gap30 w100" style="padding: 40px 20px 120px 20px; min-height: 100vh; background-color: #0c0c0e; color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<div class="container-xl container-xl-mid flex-column gap30 w100" style="padding: 40px 20px 120px 20px; min-height: 100vh; background-color: #0c0c0e; color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
 
   <!-- =========================================================================
        PARTE 1: LIBRERÍA DE GRÁFICOS SVG MONOCROMÁTICOS MINIMALISTAS
@@ -53,170 +58,207 @@
     </div>
   </div>
 
-  <!-- COLECCIÓN DE LAS 5 TARJETAS DE GRÁFICOS SVG -->
+  <!-- COLECCIÓN DE GRÁFICOS SVG (RECONSTRUIDOS CON DATOS DINÁMICOS) -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 24px;" class="w100">
     
     <!-- 1. GRÁFICO: ARC METER GAUGE (SPEEDOMETER 180°) -->
-    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px;">
-      <p>ARC METER</p>
-      <p class="x40 bold900 text-animation text-counter p0 m0"><?= $arc["value"]."%";?></p>
-      <div class="br15 back8 p20">
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($arc["title"] ?? "ARC METER") ?></p>
+        <span class="mono-chart-badge"><?= e($arc["tag"] ?? "Velocímetro") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="<?= e($arc["value"] ?? 84) ?>" data-suffix="%"><?= e(($arc["value"] ?? 84) . "%") ?></p>
+      <div class="br15 back8 p20 flex-row center">
         <?php _chart("arcMeter", [
-          "value" => $arc["value"]."%" ?? 90,
-          "label" => $arc["label"] ?? "Optimal Load",
+          "value" => $arc["value"] ?? 84,
+          "label" => $arc["label"] ?? "Rendimiento del Sistema",
         ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($arc["category"] ?? "Arco Semicircular 180°") ?></span>
+        <span class="textw"><?= e($arc["status"] ?? "Carga Óptima") ?></span>
       </div>
     </div>
 
     <!-- 2. GRÁFICO: STACKED TONES (BARRAS APILADAS MONOCROMÁTICAS) -->
-    <div class="mono-chart-card" data-chart-type="stacked-tones">
-      <div class="mono-chart-header">
-        <div class="mono-chart-top-row">
-          <h3 class="mono-chart-title"><?= e($stacked["title"] ?? "STACKED TONES") ?></h3>
-          <span class="mono-chart-badge"><?= e($stacked["tag"] ?? "Bar") ?></span>
-        </div>
-        <div class="mono-chart-headline">
-          <span class="mono-chart-value-big text-animation text-counter" data-target="1248" data-duration="400">1,248</span>
-          <span class="mono-chart-label-big"><?= e($stacked["label"] ?? "Total units") ?></span>
-        </div>
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($stacked["title"] ?? "STACKED TONES") ?></p>
+        <span class="mono-chart-badge"><?= e($stacked["tag"] ?? "Barras Apiladas") ?></span>
       </div>
-
-      <div class="mono-chart-viewport">
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="<?= e($stacked["value"] ?? 735) ?>"><?= e($stacked["value"] ?? 735) ?></p>
+      <div class="br15 back8 p20 flex-row center">
         <?php _chart("stackedTones", [
           "quarters" => $stacked["quarters"] ?? [],
-          "maxVal"   => 160
+          "maxVal"   => 180,
         ]); ?>
       </div>
-
-      <div class="mono-chart-info-row">
-        <span><?= e($stacked["metaKey"] ?? "Peak period") ?></span>
-        <span class="info-right"><?= e($stacked["metaVal"] ?? "Q3 (+24%)") ?></span>
-      </div>
-
-      <div class="mono-chart-footer">
-        <div class="mono-chart-footer-text">
-          <h4 class="mono-chart-footer-title"><?= e($stacked["footerTitle"] ?? "Mono Stacked Tones") ?></h4>
-          <p class="mono-chart-footer-desc"><?= e($stacked["footerDesc"] ?? "Multi-layer rounded capsule bars") ?></p>
-        </div>
-        <button type="button" class="mono-chart-copy-btn" title="Copiar SVG" aria-label="Copiar SVG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($stacked["category"] ?? "3 Capas Monocromáticas") ?></span>
+        <span class="textw"><?= e($stacked["metaVal"] ?? "Miércoles (+38%)") ?></span>
       </div>
     </div>
 
     <!-- 3. GRÁFICO: TILE TREEMAP (PARTICIÓN DE BLOQUES) -->
-    <div class="mono-chart-card" data-chart-type="tile-treemap">
-      <div class="mono-chart-header">
-        <div class="mono-chart-top-row">
-          <h3 class="mono-chart-title"><?= e($treemap["title"] ?? "TILE TREEMAP") ?></h3>
-          <span class="mono-chart-badge"><?= e($treemap["tag"] ?? "Partition") ?></span>
-        </div>
-        <div class="mono-chart-headline">
-          <span class="mono-chart-value-big text-animation text-counter" data-target="100" data-suffix="%" data-duration="400">100%</span>
-          <span class="mono-chart-label-big"><?= e($treemap["label"] ?? "Allocation") ?></span>
-        </div>
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($treemap["title"] ?? "TILE TREEMAP") ?></p>
+        <span class="mono-chart-badge"><?= e($treemap["tag"] ?? "Mosaico") ?></span>
       </div>
-
-      <div class="mono-chart-viewport" style="padding: 6px;">
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="<?= e($treemap["value"] ?? 100) ?>" data-suffix="%"><?= e(($treemap["value"] ?? 100) . "%") ?></p>
+      <div class="br15 back8 p20 flex-row center">
         <?php _chart("tileTreemap", [
-          "tiles" => $treemap["tiles"] ?? []
+          "tiles" => $treemap["tiles"] ?? [],
         ]); ?>
       </div>
-
-      <div class="mono-chart-info-row">
-        <span><?= e($treemap["metaKey"] ?? "Primary share") ?></span>
-        <span class="info-right"><?= e($treemap["metaVal"] ?? "Storage (45%)") ?></span>
-      </div>
-
-      <div class="mono-chart-footer">
-        <div class="mono-chart-footer-text">
-          <h4 class="mono-chart-footer-title"><?= e($treemap["footerTitle"] ?? "Mono Tile Treemap") ?></h4>
-          <p class="mono-chart-footer-desc"><?= e($treemap["footerDesc"] ?? "Partition blocks with rounded corners") ?></p>
-        </div>
-        <button type="button" class="mono-chart-copy-btn" title="Copiar SVG" aria-label="Copiar SVG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($treemap["category"] ?? "Partición Dinámica") ?></span>
+        <span class="textw"><?= e($treemap["metaVal"] ?? "Almacenamiento (35%)") ?></span>
       </div>
     </div>
 
     <!-- 4. GRÁFICO: HYBRID SPLINE + BAR (BARRAS Y SPLINE INTERACTIVO) -->
-    <div class="mono-chart-card" data-chart-type="hybrid-spline">
-      <div class="mono-chart-header">
-        <div class="mono-chart-top-row">
-          <h3 class="mono-chart-title"><?= e($spline["title"] ?? "HYBRID SPLINE") ?></h3>
-          <button type="button" class="mono-chart-switch-btn active" id="btnToggleSpline">Spline On</button>
-        </div>
-        <div class="mono-chart-headline">
-          <span class="mono-chart-value-big"><?= e($spline["value"] ?? "8.4k") ?></span>
-          <span class="mono-chart-label-big"><?= e($spline["label"] ?? "Peak volume") ?></span>
-        </div>
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($spline["title"] ?? "HYBRID SPLINE") ?></p>
+        <span class="mono-chart-badge"><?= e($spline["tag"] ?? "Curva Bézier") ?></span>
       </div>
-
-      <div class="mono-chart-viewport">
-        <?php _chart("hybridSpline"); ?>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="95.0" data-suffix="k" data-decimals="1"><?= e($spline["value"] ?? "95.0k") ?></p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("hybridSpline", [
+          "values" => $spline["values"] ?? [],
+          "labels" => $spline["labels"] ?? [],
+          'tooltip'    => true
+        ]); ?>
       </div>
-
-      <div class="mono-chart-info-row">
-        <span><?= e($spline["metaKey"] ?? "Efficiency") ?></span>
-        <span class="info-right"><?= e($spline["metaVal"] ?? "94.2%") ?></span>
-      </div>
-
-      <div class="mono-chart-footer">
-        <div class="mono-chart-footer-text">
-          <h4 class="mono-chart-footer-title"><?= e($spline["footerTitle"] ?? "Mono Hybrid Spline + Bar") ?></h4>
-          <p class="mono-chart-footer-desc"><?= e($spline["footerDesc"] ?? "Overlay spline on capsule bars") ?></p>
-        </div>
-        <button type="button" class="mono-chart-copy-btn" title="Copiar SVG" aria-label="Copiar SVG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($spline["category"] ?? "Spline Bézier Continuo") ?></span>
+        <span class="textw"><?= e($spline["metaVal"] ?? "Eficiencia 96.4%") ?></span>
       </div>
     </div>
 
-    <!-- 5. GRÁFICO: ROUNDED PILL PILLARS (COLUMNAS EMPAREJADAS CON CONMUTADOR COL/ROW) -->
-    <div class="mono-chart-card" data-chart-type="pill-pillars">
-      <div class="mono-chart-header">
-        <div class="mono-chart-top-row">
-          <h3 class="mono-chart-title"><?= e($pillars["title"] ?? "ROUNDED PILL") ?></h3>
-          <div class="mono-segmented-pill">
-            <button type="button" class="mono-segmented-opt active" data-mode="col">Col</button>
-            <button type="button" class="mono-segmented-opt" data-mode="row">Row</button>
-          </div>
-        </div>
-        <div class="mono-chart-headline">
-          <span class="mono-chart-value-big"><?= e($pillars["value"] ?? "42.8") ?></span>
-          <span class="mono-chart-label-big"><?= e($pillars["label"] ?? "Index score") ?></span>
-        </div>
+    <!-- 5. GRÁFICO: ROUNDED PILL PILLARS (COLUMNAS EMPAREJADAS) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($pillars["title"] ?? "ROUNDED PILL") ?></p>
+        <span class="mono-chart-badge"><?= e($pillars["tag"] ?? "Pilares") ?></span>
       </div>
-
-      <div class="mono-chart-viewport">
-        <?php _chart(""); ?>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="84.8" data-decimals="1"><?= e($pillars["value"] ?? "84.8") ?></p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("pillPillars", [
+          "pairs" => $pillars["pairs"] ?? [],
+        ]); ?>
       </div>
-
-      <div class="mono-chart-info-row">
-        <span><?= e($pillars["metaKey"] ?? "Dominant set") ?></span>
-        <span class="info-right"><?= e($pillars["metaVal"] ?? "Alpha series") ?></span>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($pillars["category"] ?? "Columnas Emparejadas") ?></span>
+        <span class="textw"><?= e($pillars["metaVal"] ?? "Serie Alfa") ?></span>
       </div>
+    </div>
 
-      <div class="mono-chart-footer">
-        <div class="mono-chart-footer-text">
-          <h4 class="mono-chart-footer-title"><?= e($pillars["footerTitle"] ?? "Mono Rounded Pill Pillars") ?></h4>
-          <p class="mono-chart-footer-desc"><?= e($pillars["footerDesc"] ?? "Paired capsule pillars with orientation toggle") ?></p>
-        </div>
-        <button type="button" class="mono-chart-copy-btn" title="Copiar SVG" aria-label="Copiar SVG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+    <!-- 6. GRÁFICO: SIMPLE BARS (BARRAS VERTICALES: FECHAS EN X • HORARIOS EN Y) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($simple["title"] ?? "SIMPLE BARS") ?></p>
+        <span class="mono-chart-badge"><?= e($simple["tag"] ?? "Barras") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="21" data-suffix=":00"><?= e($simple["value"] ?? "21:00") ?></p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("simpleBars", [
+          "bars"      => $simple["bars"] ?? [],
+          "yLabels"   => $simple["yLabels"] ?? ["24:00", "18:00", "12:00", "06:00", "00:00"],
+          "showAxisY" => true,
+          "showAxisX" => true,
+        ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($simple["category"] ?? "Fechas en X • Horas en Y") ?></span>
+        <span class="textw"><?= e($simple["metaVal"] ?? "Viernes 21:00") ?></span>
+      </div>
+    </div>
+
+    <!-- 7. GRÁFICO: SIMPLE BARS (SOLO EJE X • DÍAS/FECHAS SIN EJE Y) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur">BARS • SOLO EJE X</p>
+        <span class="mono-chart-badge">Solo X</span>
+      </div>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="7" data-suffix=" Días">7 Días</p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("simpleBars", [
+          "bars"      => $simple["bars"] ?? [],
+          "showAxisY" => false,
+          "showAxisX" => true,
+        ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span>Eje Y Oculto • Ancho Completo</span>
+        <span class="textw">showAxisY: false</span>
+      </div>
+    </div>
+
+    <!-- 8. GRÁFICO: HORIZONTAL BARS (BARRAS HORIZONTALES: HORARIOS EN Y • HORAS EN X) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($hbar["title"] ?? "HORIZONTAL BARS") ?></p>
+        <span class="mono-chart-badge"><?= e($hbar["tag"] ?? "Horizontal") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation text-counter p0 m0" data-target="5.0" data-suffix="h" data-decimals="1"><?= e($hbar["value"] ?? "5.0h") ?></p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("horizontalBars", [
+          "bars"      => $hbar["bars"] ?? [],
+          "xLabels"   => $hbar["xLabels"] ?? ["0h", "1.5h", "3h", "4.5h", "6h"],
+          "maxVal"    => 6.0,
+          "showAxisY" => true,
+          "showAxisX" => false,
+        ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($hbar["category"] ?? "Horarios en Y • Horas en X") ?></span>
+        <span class="textw"><?= e($hbar["metaVal"] ?? "16:00 - 18:00") ?></span>
+      </div>
+    </div>
+
+    <!-- 9. GRÁFICO: BULLET TARGET (BARRAS DE BENCHMARK) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($bullet["title"] ?? "BULLET TARGET") ?></p>
+        <span class="mono-chart-badge"><?= e($bullet["tag"] ?? "Benchmark") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation p0 m0">
+        <?= e($bullet["value"] ?? "3 Targets") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($bullet["suffix"] ?? " evaluated") ?></span>
+      </p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("bulletTarget", [
+          "targets"     => $bullet["targets"] ?? [],
+          "targetColor" => "#10b981",
+        ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($bullet["category"] ?? "Rounded Bullet Bars") ?></span>
+        <span class="textw"><?= e($bullet["metaVal"] ?? "Benchmark Marker") ?></span>
+      </div>
+    </div>
+
+    <!-- 10. GRÁFICO: MONO ROUNDED DONUT (SOFT ARC CAPS) -->
+    <div class="flex-column gap15 br20 p20" style="border: #52525b solid 1px; background: rgba(255,255,255,0.02);">
+      <div class="flex-row justify-between align-center">
+        <p class="bold700 m0 text-fade-blur"><?= e($donut["title"] ?? "MONO ROUNDED DONUT") ?></p>
+        <span class="mono-chart-badge"><?= e($donut["tag"] ?? "Soft Arc Caps") ?></span>
+      </div>
+      <p class="x40 bold900 text-animation p0 m0">
+        <?= e($donut["value"] ?? "100%") ?> <span style="font-size: 16px; font-weight: 500; opacity: 0.7;"><?= e($donut["suffix"] ?? " allocation") ?></span>
+      </p>
+      <div class="br15 back8 p20 flex-row center">
+        <?php _chart("roundedDonut", [
+          "items"       => $donut["segments"] ?? [],
+          "centerValue" => $donut["centerValue"] ?? "100%",
+          "centerLabel" => $donut["centerLabel"] ?? "Mono Arc",
+          "showLegend"  => true,
+        ]); ?>
+      </div>
+      <div class="flex-row justify-between align-center x12 color1" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
+        <span><?= e($donut["category"] ?? "Rounded Arc Caps • OKLCH") ?></span>
+        <span class="textw"><?= e($donut["metaVal"] ?? "4 Capas Monocromáticas") ?></span>
       </div>
     </div>
 
@@ -669,7 +711,7 @@
         </div>
 
         <div class="sandbox-card" style="padding: 24px;">
-          <span class="sandbox-badge">Scramble con ob-20</span>
+          <span class="sandbox-badge">Scramble con ob-20</span> <br>
           <p class="text-animation text-scramble ob-20" style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 12px 0 6px 0; min-height: 24px;">
             DECENTRALIZED NETWORK
           </p>

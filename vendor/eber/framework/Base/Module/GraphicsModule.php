@@ -39,6 +39,7 @@ class GraphicsModule
     'colorLabel' => 'textw',
     'axisLabel'  => 'color1',
     'transition' => 400,
+    'tooltip'    => true,
   ];
 
   /**
@@ -56,6 +57,7 @@ class GraphicsModule
    *                      - 'colorLabel': Selector o clase CSS para etiquetas de datos y lecturas centrales (ej. 'textw', '.textw', '#ffffff').
    *                      - 'axisLabel': Selector o clase CSS para la numeración y etiquetas de ejes X e Y (ej. 'color1', '.color1', 'textc', '#a1a1aa').
    *                      - 'transition': Tiempo en milisegundos de la animación (por defecto 400).
+   *                      - 'tooltip': Habilitar o deshabilitar tooltips globalmente (bool, por defecto true).
    * @return void
    */
   public static function configStyle(array $config = []): void
@@ -74,6 +76,10 @@ class GraphicsModule
 
     if (isset($config['transition']) && is_numeric($config['transition'])) {
       self::$globalConfig['transition'] = (int) $config['transition'];
+    }
+
+    if (isset($config['tooltip'])) {
+      self::$globalConfig['tooltip'] = filter_var($config['tooltip'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $config['tooltip'];
     }
   }
 
@@ -99,6 +105,7 @@ class GraphicsModule
       'colorLabel' => 'textw',
       'axisLabel'  => 'color1',
       'transition' => 400,
+      'tooltip'    => true,
     ];
   }
 
@@ -206,15 +213,21 @@ class GraphicsModule
       $styleParts[] = "color: {$base['cssValue']};";
     }
 
+    $tooltip = isset($params['tooltip'])
+      ? (filter_var($params['tooltip'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $params['tooltip'])
+      : (self::$globalConfig['tooltip'] ?? true);
+
     return [
-      'svgClass'   => implode(' ', $svgClasses),
-      'labelClass' => $labelClass,
-      'axisClass'  => $axisClass,
-      'styleAttr'  => implode(' ', $styleParts),
-      'transition' => $transition,
-      'colorRaw'   => $colorRaw,
-      'labelRaw'   => $labelRaw,
-      'axisRaw'    => $axisRaw,
+      'svgClass'    => implode(' ', $svgClasses),
+      'labelClass'  => $labelClass,
+      'axisClass'   => $axisClass,
+      'styleAttr'   => implode(' ', $styleParts),
+      'transition'  => $transition,
+      'tooltip'     => $tooltip,
+      'tooltipAttr' => 'data-tooltip="' . ($tooltip ? 'true' : 'false') . '"',
+      'colorRaw'    => $colorRaw,
+      'labelRaw'    => $labelRaw,
+      'axisRaw'     => $axisRaw,
     ];
   }
 
@@ -228,6 +241,58 @@ class GraphicsModule
   {
     self::$instanceCounter++;
     return $prefix . '-' . self::$instanceCounter . '-' . bin2hex(random_bytes(3));
+  }
+
+  /**
+   * Divide un texto en múltiples líneas si excede una cantidad máxima de caracteres.
+   *
+   * @param string $text Texto original.
+   * @param int $maxChars Caracteres máximos por línea sugeridos.
+   * @param int $maxLines Cantidad máxima de líneas resultantes.
+   * @return array Lista de líneas.
+   */
+  public static function wrapTextLines(string $text, int $maxChars = 14, int $maxLines = 2): array
+  {
+    $text = trim($text);
+    if ($text === '') return [];
+    if (mb_strlen($text, 'UTF-8') <= $maxChars) return [$text];
+
+    $words = preg_split('/\s+/', $text);
+    if (count($words) <= 1) {
+      return [$text];
+    }
+
+    $lines = [];
+    $currentLine = '';
+
+    foreach ($words as $w) {
+      if ($currentLine === '') {
+        $currentLine = $w;
+      } elseif (mb_strlen($currentLine . ' ' . $w, 'UTF-8') <= $maxChars) {
+        $currentLine .= ' ' . $w;
+      } else {
+        $lines[] = $currentLine;
+        $currentLine = $w;
+        if (count($lines) >= $maxLines - 1) {
+          break;
+        }
+      }
+    }
+
+    if ($currentLine !== '') {
+      $lines[] = $currentLine;
+    }
+
+    $consumedWords = 0;
+    foreach ($lines as $l) {
+      $consumedWords += count(preg_split('/\s+/', $l));
+    }
+    if ($consumedWords < count($words) && !empty($lines)) {
+      $remaining = array_slice($words, $consumedWords);
+      $lines[count($lines) - 1] .= ' ' . implode(' ', $remaining);
+    }
+
+    return $lines;
   }
 
   /**
@@ -271,20 +336,29 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 240 145" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="arc-meter" data-target-pct="<?= $value ?>" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 240 145" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="arc-meter" <?= $style['tooltipAttr'] ?> data-target-pct="<?= $value ?>" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Pista de fondo (variación OKLCH suave) -->
       <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="16" stroke-linecap="round" />
       
-      <!-- Arco dinámico activo -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
+      <!-- Arco dinámico activo con datos para tooltip -->
+      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $value ?>%" fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
       
       <!-- Lecturas centrales con clase de color para etiquetas (colorLabel) -->
       <?php if ($showNumber): ?>
-        <text x="120" y="103" text-anchor="middle" class="mono-arc-center-number<?= $labelClass ?>">0%</text>
+        <text x="120" y="98" text-anchor="middle" class="mono-arc-center-number<?= $labelClass ?>">0%</text>
       <?php endif; ?>
-      <?php if ($showLabel): ?>
-        <text x="120" y="126" text-anchor="middle" class="mono-arc-center-label<?= $labelClass ?>"><?= $label ?></text>
-      <?php endif; ?>
+      <?php if ($showLabel): 
+        $labelLines = self::wrapTextLines($label, 14, 2);
+        if (count($labelLines) > 1):
+      ?>
+        <!-- Desplazamiento a dos líneas cuando el texto es largo para evitar desbordar el arco -->
+        <text x="120" y="117" text-anchor="middle" class="mono-arc-center-label<?= $labelClass ?>" style="font-size: 9px; letter-spacing: 0.04em;">
+          <tspan x="120" dy="0"><?= htmlspecialchars($labelLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+          <tspan x="120" dy="12"><?= htmlspecialchars($labelLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+        </text>
+      <?php else: ?>
+        <text x="120" y="125" text-anchor="middle" class="mono-arc-center-label<?= $labelClass ?>"><?= $label ?></text>
+      <?php endif; endif; ?>
     </svg>
     <?php
     return trim(ob_get_clean());
@@ -379,7 +453,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="stacked-tones" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="stacked-tones" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <defs>
         <?php foreach ($quarters as $idx => $q): 
           $cx = $plotX1 + ($idx + 0.5) * $slotWidth;
@@ -406,20 +480,34 @@ class GraphicsModule
       <?php foreach ($quarters as $idx => $q): 
         $cx = $plotX1 + ($idx + 0.5) * $slotWidth;
         $qx = $cx - ($barWidth / 2);
-        $hDark = (float) ($q['dark'] ?? ($q['v3'] ?? 20)) * $scale;
-        $hMid = (float) ($q['mid'] ?? ($q['v2'] ?? 30)) * $scale;
-        $hWhite = (float) ($q['white'] ?? ($q['v1'] ?? 45)) * $scale;
+        $rawDark = (float) ($q['dark'] ?? ($q['v3'] ?? 20));
+        $rawMid = (float) ($q['mid'] ?? ($q['v2'] ?? 30));
+        $rawWhite = (float) ($q['white'] ?? ($q['v1'] ?? 45));
+        $hDark = $rawDark * $scale;
+        $hMid = $rawMid * $scale;
+        $hWhite = $rawWhite * $scale;
         $totalH = $hDark + $hMid + $hWhite;
         $yDark = 155 - $totalH;
         $yMid = $yDark + $hDark;
         $yWhite = $yMid + $hMid;
+        $totVal = isset($q['total']) ? $q['total'] : round($rawDark + $rawMid + $rawWhite);
       ?>
-      <g class="mono-stacked-bar-item" clip-path="url(#<?= $uid ?>-clip-<?= $idx ?>)" data-label="<?= htmlspecialchars((string) $q['label'], ENT_QUOTES, 'UTF-8') ?>" data-total="<?= htmlspecialchars((string) ($q['total'] ?? $totalH), ENT_QUOTES, 'UTF-8') ?>">
+      <g class="mono-stacked-bar-item" clip-path="url(#<?= $uid ?>-clip-<?= $idx ?>)" data-label="<?= htmlspecialchars((string) $q['label'], ENT_QUOTES, 'UTF-8') ?>" data-total="<?= htmlspecialchars((string) $totVal, ENT_QUOTES, 'UTF-8') ?>" data-white="<?= round($rawWhite) ?>" data-mid="<?= round($rawMid) ?>" data-dark="<?= round($rawDark) ?>">
         <rect x="<?= number_format($qx, 2, '.', '') ?>" y="<?= number_format($yDark, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($hDark + 1, 2, '.', '') ?>" class="mono-layer-top" />
         <rect x="<?= number_format($qx, 2, '.', '') ?>" y="<?= number_format($yMid, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($hMid + 1, 2, '.', '') ?>" class="mono-layer-mid" />
         <rect x="<?= number_format($qx, 2, '.', '') ?>" y="<?= number_format($yWhite, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($hWhite + 2, 2, '.', '') ?>" class="mono-layer-base" />
       </g>
+      <?php 
+        $axisLines = self::wrapTextLines((string)$q['label'], max(6, (int)($slotWidth / 7)), 2);
+        if (count($axisLines) > 1):
+      ?>
+      <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+        <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+        <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+      </text>
+      <?php else: ?>
       <text x="<?= number_format($cx, 2, '.', '') ?>" y="174" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars((string) $q['label'], ENT_QUOTES, 'UTF-8') ?></text>
+      <?php endif; ?>
       <?php endforeach; ?>
     </svg>
     <?php
@@ -470,7 +558,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="tile-treemap" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="tile-treemap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php foreach ($rects as $r): 
         $t = $r['tile'];
         $label = htmlspecialchars((string) ($t['label'] ?? ($t['name'] ?? '')), ENT_QUOTES, 'UTF-8');
@@ -480,18 +568,38 @@ class GraphicsModule
         $isCompact = $r['h'] < 52.0;
         $showTag = !empty($tag) && $r['h'] >= 72.0 && $r['w'] >= 75.0;
       ?>
-      <g class="mono-treemap-tile-group <?= $r['cls'] ?>" data-label="<?= $label ?>" data-pct="<?= $pct ?>%">
+      <g class="mono-treemap-tile-group <?= $r['cls'] ?>" data-label="<?= $label ?>" data-pct="<?= $pct ?>%" data-tag="<?= $tag ?>">
         <rect x="<?= number_format($r['x'], 1, '.', '') ?>" y="<?= number_format($r['y'], 1, '.', '') ?>" width="<?= number_format($r['w'], 1, '.', '') ?>" height="<?= number_format($r['h'], 1, '.', '') ?>" rx="12" class="mono-treemap-tile-rect" />
         
         <?php if ($isCompact): ?>
-          <!-- Disposición compacta en línea para mosaicos con altura reducida -->
-          <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + ($r['h'] / 2) + 4, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>"><?= $label ?> <tspan class="mono-treemap-pct<?= $labelClass ?>" font-weight="700" dx="6"><?= $pct ?>%</tspan></text>
+          <?php if ($r['h'] >= 36.0): ?>
+            <!-- Disposición compacta en 2 líneas: Título arriba y porcentaje abajo manteniendo padding estricto sin desbordar -->
+            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 17, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 11px;"><?= $label ?></text>
+            <text x="<?= number_format($r['x'] + 12, 1, '.', '') ?>" y="<?= number_format($r['y'] + 33, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>" style="font-size: 14px;"><?= $pct ?>%</text>
+          <?php else: ?>
+            <!-- Disposición compacta en línea para alturas muy bajas con escala protectora -->
+            <text x="<?= number_format($r['x'] + 10, 1, '.', '') ?>" y="<?= number_format($r['y'] + ($r['h'] / 2) + 4, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 10px;"><?= $label ?> <tspan class="mono-treemap-pct<?= $labelClass ?>" font-size="11" font-weight="700" dx="4"><?= $pct ?>%</tspan></text>
+          <?php endif; ?>
         <?php else: ?>
-          <!-- Disposición estándar en bloque -->
-          <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 24, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>"><?= $label ?></text>
-          <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 50, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>"><?= $pct ?>%</text>
-          <?php if ($showTag): ?>
-            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 72, 1, '.', '') ?>" class="mono-treemap-tag<?= $labelClass ?>"><?= $tag ?></text>
+          <!-- Disposición estándar en bloque con soporte de salto de línea si el título es largo -->
+          <?php
+            $titleLines = self::wrapTextLines($label, 14, 2);
+            if (count($titleLines) > 1):
+          ?>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 18, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>" style="font-size: 11px;">
+              <tspan x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" dy="0"><?= htmlspecialchars($titleLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+              <tspan x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" dy="13"><?= htmlspecialchars($titleLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+            </text>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>"><?= $pct ?>%</text>
+            <?php if ($showTag && $r['h'] >= 84.0): ?>
+              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $labelClass ?>"><?= $tag ?></text>
+            <?php endif; ?>
+          <?php else: ?>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 22, 1, '.', '') ?>" class="mono-treemap-title<?= $labelClass ?>"><?= $label ?></text>
+            <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 48, 1, '.', '') ?>" class="mono-treemap-pct<?= $labelClass ?>"><?= $pct ?>%</text>
+            <?php if ($showTag): ?>
+              <text x="<?= number_format($r['x'] + 14, 1, '.', '') ?>" y="<?= number_format($r['y'] + 68, 1, '.', '') ?>" class="mono-treemap-tag<?= $labelClass ?>"><?= $tag ?></text>
+            <?php endif; ?>
           <?php endif; ?>
         <?php endif; ?>
       </g>
@@ -713,7 +821,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="hybrid-spline" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="hybrid-spline" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="<?= $uid ?>-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="var(--chart-base)" stop-opacity="0.35" />
@@ -733,8 +841,9 @@ class GraphicsModule
         $barH = ($pt['val'] / 100) * $maxH;
         $barY = $baselineY - $barH;
         $rx = min(8.0, $barWidth / 2);
+        $barLabel = htmlspecialchars((string) ($labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
       ?>
-      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
+      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-label="<?= $barLabel ?>" data-val="<?= $pt['val'] ?>" data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
       <?php endforeach; ?>
 
       <!-- Área degradada de la curva -->
@@ -744,15 +853,25 @@ class GraphicsModule
       <path d="<?= $pathD ?>" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mono-spline-path" />
 
       <!-- Vértices / Puntos circulares -->
-      <?php foreach ($points as $idx => $pt): ?>
-        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-val="<?= $pt['val'] ?>" />
+      <?php foreach ($points as $idx => $pt): 
+        $dotLabel = htmlspecialchars((string) ($labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
+      ?>
+        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-label="<?= $dotLabel ?>" data-val="<?= $pt['val'] ?>" />
       <?php endforeach; ?>
 
       <!-- Etiquetas del eje X con axisLabel distribuidas dinámicamente -->
       <?php foreach ($labels as $idx => $lbl): 
         $x = $xCoords[$idx] ?? ($plotX1 + $idx * $step);
+        $axisLines = self::wrapTextLines((string)$lbl, max(6, (int)(($step > 0 ? $step : $availableWidth) / 7)), 2);
+        if (count($axisLines) > 1):
       ?>
+      <text x="<?= number_format($x, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+        <tspan x="<?= number_format($x, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+        <tspan x="<?= number_format($x, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+      </text>
+      <?php else: ?>
       <text x="<?= number_format($x, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars((string) $lbl, ENT_QUOTES, 'UTF-8') ?></text>
+      <?php endif; ?>
       <?php endforeach; ?>
     </svg>
     <?php
@@ -814,7 +933,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pill-pillars" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pill-pillars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Rejilla punteada horizontal -->
       <line x1="28" y1="30" x2="306" y2="30" class="mono-svg-grid-line" />
       <line x1="28" y1="72" x2="306" y2="72" class="mono-svg-grid-line" />
@@ -826,21 +945,745 @@ class GraphicsModule
         $x1 = $cx - $pillarWidth - ($pillarGap / 2);
         $x2 = $cx + ($pillarGap / 2);
 
-        $h1 = (($p['v1'] ?? 50) / 100) * $maxH;
+        $v1 = (float) ($p['v1'] ?? 50);
+        $v2 = (float) ($p['v2'] ?? 30);
+
+        $h1 = ($v1 / 100) * $maxH;
         $y1 = $baselineY - $h1;
 
-        $h2 = (($p['v2'] ?? 30) / 100) * $maxH;
+        $h2 = ($v2 / 100) * $maxH;
         $y2 = $baselineY - $h2;
+        $pLabel = htmlspecialchars((string) ($p['label'] ?? ''), ENT_QUOTES, 'UTF-8');
       ?>
-      <g class="mono-pillar-pair-group" data-label="<?= htmlspecialchars((string) $p['label'], ENT_QUOTES, 'UTF-8') ?>">
+      <g class="mono-pillar-pair-group" data-label="<?= $pLabel ?>" data-v1="<?= $v1 ?>" data-v2="<?= $v2 ?>">
         <!-- Pilar primario (color base) -->
-        <rect x="<?= number_format($x1, 2, '.', '') ?>" y="<?= number_format($y1, 2, '.', '') ?>" width="<?= number_format($pillarWidth, 2, '.', '') ?>" height="<?= number_format($h1, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-pillar-primary" data-target-h="<?= number_format($h1, 2, '.', '') ?>" data-target-y="<?= number_format($y1, 2, '.', '') ?>" />
+        <rect x="<?= number_format($x1, 2, '.', '') ?>" y="<?= number_format($y1, 2, '.', '') ?>" width="<?= number_format($pillarWidth, 2, '.', '') ?>" height="<?= number_format($h1, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-pillar-primary" data-label="<?= $pLabel ?>" data-val="<?= $v1 ?>" data-series="1" data-target-h="<?= number_format($h1, 2, '.', '') ?>" data-target-y="<?= number_format($y1, 2, '.', '') ?>" />
         <!-- Pilar secundario (segunda variación OKLCH) -->
-        <rect x="<?= number_format($x2, 2, '.', '') ?>" y="<?= number_format($y2, 2, '.', '') ?>" width="<?= number_format($pillarWidth, 2, '.', '') ?>" height="<?= number_format($h2, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-pillar-secondary" data-target-h="<?= number_format($h2, 2, '.', '') ?>" data-target-y="<?= number_format($y2, 2, '.', '') ?>" />
+        <rect x="<?= number_format($x2, 2, '.', '') ?>" y="<?= number_format($y2, 2, '.', '') ?>" width="<?= number_format($pillarWidth, 2, '.', '') ?>" height="<?= number_format($h2, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-pillar-secondary" data-label="<?= $pLabel ?>" data-val="<?= $v2 ?>" data-series="2" data-target-h="<?= number_format($h2, 2, '.', '') ?>" data-target-y="<?= number_format($y2, 2, '.', '') ?>" />
         <!-- Etiqueta eje X con axisLabel -->
-        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars((string) $p['label'], ENT_QUOTES, 'UTF-8') ?></text>
+        <?php 
+          $axisLines = self::wrapTextLines((string)($p['label'] ?? ''), max(6, (int)($slotWidth / 7)), 2);
+          if (count($axisLines) > 1):
+        ?>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+          <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+          <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+        </text>
+        <?php else: ?>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= $pLabel ?></text>
+        <?php endif; ?>
       </g>
       <?php endforeach; ?>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
+   * 6. SIMPLE BARS (Barras Verticales en Cápsula Dinámica)
+   * 
+   * Gráfico de barras verticales simple monocromático con soporte para fechas y horarios.
+   * Permite configurar etiquetas de eje X (ej. días de la semana, fechas)
+   * y eje Y (ej. horarios del día, cantidades o porcentajes), con opción de mostrar
+   * únicamente las etiquetas del eje X ('showAxisY' => false).
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'values' / 'bars' / 'data': Lista de valores o ítems [['label' => 'Lun 12', 'value' => 14.5, 'display' => '14:30'], ...]
+   *                      - 'labels': Lista de etiquetas del eje X.
+   *                      - 'yLabels': Lista personalizada de etiquetas del eje Y (ej. ['24:00', '18:00', '12:00', '06:00', '00:00']).
+   *                      - 'showAxisY': bool (default true). Si es false, oculta las etiquetas del eje Y y aprovecha todo el ancho.
+   *                      - 'showAxisX': bool (default true). Si es false, oculta las etiquetas del eje X.
+   *                      - 'minVal': float (default 0.0).
+   *                      - 'maxVal': float (opcional, auto-calculado de los valores o 24.0 / 100.0).
+   *                      - 'valueSuffix': string (ej. 'h', '%', etc.).
+   *                      - 'color': Selector o clase CSS (ej. 'texto', '.texto', 'color', 'var(--back-color5)').
+   *                      - 'colorLabel': Selector o clase CSS para etiquetas.
+   *                      - 'axisLabel': Selector o clase CSS para etiquetas de ejes.
+   *                      - 'transition': Duración en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   *                      - 'barWidth': float (ancho fijo de barra, opcional).
+   * @return string Código SVG puro.
+   */
+  public static function simpleBars(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Se utilizan exclusivamente como preview/demostración si el usuario no
+    // suministra datos dinámicos a través de $params['bars'] / $params['values'].
+    // =========================================================================
+    $previewBars = [
+      ['label' => 'Lun 12', 'value' => 8.5,  'display' => '08:30'],
+      ['label' => 'Mar 13', 'value' => 14.0, 'display' => '14:00'],
+      ['label' => 'Mié 14', 'value' => 19.5, 'display' => '19:30'],
+      ['label' => 'Jue 15', 'value' => 11.0, 'display' => '11:00'],
+      ['label' => 'Vie 16', 'value' => 21.0, 'display' => '21:00'],
+      ['label' => 'Sáb 17', 'value' => 16.5, 'display' => '16:30'],
+      ['label' => 'Dom 18', 'value' => 13.0, 'display' => '13:00'],
+    ];
+
+    $rawItems = $params['bars'] ?? ($params['data'] ?? []);
+    $items = [];
+
+    if (!empty($rawItems)) {
+      foreach ($rawItems as $idx => $it) {
+        if (is_array($it)) {
+          $val = (float) ($it['value'] ?? ($it['val'] ?? ($it['v'] ?? 0)));
+          $lbl = (string) ($it['label'] ?? ($it['name'] ?? ($it['date'] ?? ($it['day'] ?? ''))));
+          $disp = isset($it['display']) ? (string) $it['display'] : (isset($it['formatted']) ? (string) $it['formatted'] : null);
+          $items[] = ['val' => $val, 'label' => $lbl, 'display' => $disp];
+        } else {
+          $val = (float) $it;
+          $lbl = (string) ($params['labels'][$idx] ?? '');
+          $disp = isset($params['displays'][$idx]) ? (string) $params['displays'][$idx] : null;
+          $items[] = ['val' => $val, 'label' => $lbl, 'display' => $disp];
+        }
+      }
+    } elseif (!empty($params['values'])) {
+      foreach ($params['values'] as $idx => $val) {
+        $lbl = (string) ($params['labels'][$idx] ?? '');
+        $disp = isset($params['displays'][$idx]) ? (string) $params['displays'][$idx] : null;
+        $items[] = ['val' => (float) $val, 'label' => $lbl, 'display' => $disp];
+      }
+    } else {
+      $items = $previewBars;
+    }
+
+    $count = count($items);
+    if ($count === 0) {
+      $items = $previewBars;
+      $count = count($items);
+    }
+
+    $showAxisY = isset($params['showAxisY']) ? (bool) $params['showAxisY'] : (isset($params['showY']) ? (bool) $params['showY'] : true);
+    $showAxisX = isset($params['showAxisX']) ? (bool) $params['showAxisX'] : (isset($params['showX']) ? (bool) $params['showX'] : true);
+    $valueSuffix = (string) ($params['valueSuffix'] ?? '');
+
+    $classNames = 'mono-chart-svg mono-simple-bars-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    // Geometría y límites del área de trazado
+    $topY = 32.0;
+    $baselineY = 155.0;
+    $maxH = $baselineY - $topY;
+
+    if ($showAxisY) {
+      $plotX1 = 44.0;
+      $plotX2 = 304.0;
+      $gridX1 = 36.0;
+      $gridX2 = 306.0;
+    } else {
+      $plotX1 = 16.0;
+      $plotX2 = 304.0;
+      $gridX1 = 16.0;
+      $gridX2 = 304.0;
+    }
+
+    $availableWidth = $plotX2 - $plotX1;
+    $slotWidth = $availableWidth / $count;
+    $barWidth = isset($params['barWidth']) && (float) $params['barWidth'] > 0
+      ? (float) $params['barWidth']
+      : min(32.0, max(8.0, $slotWidth * 0.54));
+    $rx = min(8.0, $barWidth / 2);
+
+    // Escala del eje Y
+    $maxInData = 0.0;
+    foreach ($items as $it) {
+      if ($it['val'] > $maxInData) $maxInData = $it['val'];
+    }
+
+    if (isset($params['maxVal']) && (float) $params['maxVal'] > 0) {
+      $maxVal = (float) $params['maxVal'];
+    } elseif (!empty($params['yLabels']) && is_array($params['yLabels'])) {
+      $firstLabel = reset($params['yLabels']);
+      if (preg_match('/^(\d+)(?::\d+)?/', (string) $firstLabel, $m) && (float) $m[1] > 0) {
+        $maxVal = (float) $m[1];
+      } else {
+        $maxVal = $maxInData > 0 ? (float) ceil(($maxInData * 1.1) / 5) * 5 : 24.0;
+      }
+    } elseif ($maxInData <= 24.0 && !empty($params['isTime'])) {
+      $maxVal = 24.0;
+    } else {
+      $maxVal = $maxInData > 0 ? (float) ceil(($maxInData * 1.1) / 5) * 5 : 24.0;
+      if ($maxVal <= 0) $maxVal = 24.0;
+    }
+
+    // Ticks para el eje Y
+    $yTicks = [];
+    if (!empty($params['yLabels']) && is_array($params['yLabels'])) {
+      $customTicks = array_values($params['yLabels']);
+      $nTicks = count($customTicks);
+      foreach ($customTicks as $tIdx => $tLbl) {
+        $ty = $nTicks > 1 ? $topY + ($tIdx * $maxH / ($nTicks - 1)) : $baselineY;
+        $yTicks[] = ['y' => $ty, 'label' => (string) $tLbl];
+      }
+    } else {
+      // 5 ticks por defecto
+      for ($t = 0; $t <= 4; $t++) {
+        $ratio = $t / 4.0;
+        $ty = $topY + ($ratio * $maxH);
+        $valAtTick = $maxVal * (1.0 - $ratio);
+        if ($maxVal == 24.0) {
+          $hours = (int) round($valAtTick);
+          $lblTick = sprintf('%02d:00', $hours);
+        } else {
+          $lblTick = round($valAtTick) . $valueSuffix;
+        }
+        $yTicks[] = ['y' => $ty, 'label' => $lblTick];
+      }
+    }
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="simple-bars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <!-- Rejilla punteada horizontal -->
+      <?php foreach ($yTicks as $tick): ?>
+      <line x1="<?= $gridX1 ?>" y1="<?= number_format($tick['y'], 2, '.', '') ?>" x2="<?= $gridX2 ?>" y2="<?= number_format($tick['y'], 2, '.', '') ?>" class="mono-svg-grid-line" />
+      <?php if ($showAxisY): ?>
+      <text x="28" y="<?= number_format($tick['y'], 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>"><?= htmlspecialchars($tick['label'], ENT_QUOTES, 'UTF-8') ?></text>
+      <?php endif; ?>
+      <?php endforeach; ?>
+
+      <!-- Barras de cápsula verticales (pista de fondo + barra animada) -->
+      <?php foreach ($items as $idx => $it): 
+        $cx = $plotX1 + ($idx + 0.5) * $slotWidth;
+        $barX = $cx - ($barWidth / 2);
+        $barH = $maxVal > 0 ? (min($it['val'], $maxVal) / $maxVal) * $maxH : 0.0;
+        $barY = $baselineY - $barH;
+        $lbl = htmlspecialchars((string) ($it['label'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $displayVal = htmlspecialchars((string) ($it['display'] ?? ($it['val'] . $valueSuffix)), ENT_QUOTES, 'UTF-8');
+      ?>
+      <g class="mono-simple-bar-item" data-label="<?= $lbl ?>" data-val="<?= $displayVal ?>">
+        <!-- Pista translúcida suave de fondo en cápsula -->
+        <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($topY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($maxH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-simple-bar-track" />
+        <!-- Barra dinámica activa -->
+        <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-simple-bar-rect" data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
+        <!-- Etiqueta eje X con axisLabel y salto de línea protector -->
+        <?php if ($showAxisX): 
+          $axisLines = self::wrapTextLines((string)($it['label'] ?? ''), max(6, (int)($slotWidth / 7)), 2);
+          if (count($axisLines) > 1):
+        ?>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+          <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+          <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+        </text>
+        <?php else: ?>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= $lbl ?></text>
+        <?php endif; endif; ?>
+      </g>
+      <?php endforeach; ?>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
+   * 7. HORIZONTAL BARS (Barras Horizontales en Cápsula Dinámica)
+   * 
+   * Gráfico de barras horizontal monocromático con soporte para fechas y horarios.
+   * Permite configurar etiquetas de eje Y a la izquierda (ej. días o franjas horarias)
+   * y eje X en la base (ej. horas, duración o valores), con opción de mostrar
+   * únicamente las etiquetas del eje X ('showAxisY' => false).
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'values' / 'bars' / 'data': Lista de valores o ítems [['label' => '08:00', 'value' => 6.5, 'display' => '6.5 hrs'], ...]
+   *                      - 'labels' / 'yLabels': Lista de etiquetas del eje Y (a la izquierda de cada barra).
+   *                      - 'xLabels': Lista personalizada de etiquetas del eje X (en la base del gráfico).
+   *                      - 'showAxisY': bool (default true). Si es false, oculta las etiquetas de la izquierda y aprovecha todo el ancho.
+   *                      - 'showAxisX': bool (default true). Si es false, oculta las etiquetas del eje X.
+   *                      - 'minVal': float (default 0.0).
+   *                      - 'maxVal': float (opcional, auto-calculado).
+   *                      - 'valueSuffix': string (ej. 'h', '%', etc.).
+   *                      - 'color': Selector o clase CSS (ej. 'texto', '.texto', 'color', 'var(--back-color5)').
+   *                      - 'colorLabel': Selector o clase CSS para etiquetas.
+   *                      - 'axisLabel': Selector o clase CSS para etiquetas de ejes.
+   *                      - 'transition': Duración de animación en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   *                      - 'barHeight': float (alto fijo de barra, opcional).
+   * @return string Código SVG puro.
+   */
+  public static function horizontalBars(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Se utilizan exclusivamente como preview/demostración si el usuario no
+    // suministra datos dinámicos a través de $params['bars'] / $params['values'].
+    // =========================================================================
+    $previewBars = [
+      ['label' => '08:00', 'value' => 4.5, 'display' => '4.5 hrs'],
+      ['label' => '11:00', 'value' => 7.2, 'display' => '7.2 hrs'],
+      ['label' => '14:00', 'value' => 8.0, 'display' => '8.0 hrs'],
+      ['label' => '17:00', 'value' => 6.0, 'display' => '6.0 hrs'],
+      ['label' => '20:00', 'value' => 3.5, 'display' => '3.5 hrs'],
+    ];
+
+    $rawItems = $params['bars'] ?? ($params['data'] ?? []);
+    $items = [];
+
+    if (!empty($rawItems)) {
+      foreach ($rawItems as $idx => $it) {
+        if (is_array($it)) {
+          $val = (float) ($it['value'] ?? ($it['val'] ?? ($it['v'] ?? 0)));
+          $lbl = (string) ($it['label'] ?? ($it['name'] ?? ($it['date'] ?? ($it['day'] ?? ''))));
+          $disp = isset($it['display']) ? (string) $it['display'] : (isset($it['formatted']) ? (string) $it['formatted'] : null);
+          $items[] = ['val' => $val, 'label' => $lbl, 'display' => $disp];
+        } else {
+          $val = (float) $it;
+          $lbl = (string) ($params['labels'][$idx] ?? ($params['yLabels'][$idx] ?? ''));
+          $disp = isset($params['displays'][$idx]) ? (string) $params['displays'][$idx] : null;
+          $items[] = ['val' => $val, 'label' => $lbl, 'display' => $disp];
+        }
+      }
+    } elseif (!empty($params['values'])) {
+      foreach ($params['values'] as $idx => $val) {
+        $lbl = (string) ($params['labels'][$idx] ?? ($params['yLabels'][$idx] ?? ''));
+        $disp = isset($params['displays'][$idx]) ? (string) $params['displays'][$idx] : null;
+        $items[] = ['val' => (float) $val, 'label' => $lbl, 'display' => $disp];
+      }
+    } else {
+      $items = $previewBars;
+    }
+
+    $count = count($items);
+    if ($count === 0) {
+      $items = $previewBars;
+      $count = count($items);
+    }
+
+    $showAxisY = isset($params['showAxisY']) ? (bool) $params['showAxisY'] : (isset($params['showY']) ? (bool) $params['showY'] : true);
+    $showAxisX = isset($params['showAxisX']) ? (bool) $params['showAxisX'] : (isset($params['showX']) ? (bool) $params['showX'] : true);
+    $valueSuffix = (string) ($params['valueSuffix'] ?? '');
+
+    $classNames = 'mono-chart-svg mono-hbar-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    // Geometría del área horizontal
+    $topY = 20.0;
+    $bottomY = 155.0;
+    $availableH = $bottomY - $topY;
+
+    if ($showAxisY) {
+      $plotX1 = 64.0;
+      $plotX2 = 304.0;
+    } else {
+      $plotX1 = 16.0;
+      $plotX2 = 304.0;
+    }
+
+    $availableW = $plotX2 - $plotX1;
+    $slotH = $availableH / $count;
+    $barHeight = isset($params['barHeight']) && (float) $params['barHeight'] > 0
+      ? (float) $params['barHeight']
+      : min(22.0, max(8.0, $slotH * 0.54));
+    $ry = min(8.0, $barHeight / 2);
+
+    // Escala del eje X
+    $maxInData = 0.0;
+    foreach ($items as $it) {
+      if ($it['val'] > $maxInData) $maxInData = $it['val'];
+    }
+
+    if (isset($params['maxVal']) && (float) $params['maxVal'] > 0) {
+      $maxVal = (float) $params['maxVal'];
+    } elseif (!empty($params['xLabels']) && is_array($params['xLabels'])) {
+      $lastLabel = end($params['xLabels']);
+      if (preg_match('/^(\d+(?:\.\d+)?)/', (string) $lastLabel, $m) && (float) $m[1] > 0) {
+        $maxVal = (float) $m[1];
+      } else {
+        $maxVal = $maxInData > 0 ? (float) ceil(($maxInData * 1.1) / 2) * 2 : 10.0;
+      }
+    } else {
+      $maxVal = $maxInData > 0 ? (float) ceil(($maxInData * 1.1) / 2) * 2 : 10.0;
+      if ($maxVal <= 0) $maxVal = 10.0;
+    }
+
+    // Ticks para el eje X
+    $xTicks = [];
+    if (!empty($params['xLabels']) && is_array($params['xLabels'])) {
+      $customTicks = array_values($params['xLabels']);
+      $nTicks = count($customTicks);
+      foreach ($customTicks as $tIdx => $tLbl) {
+        $tx = $nTicks > 1 ? $plotX1 + ($tIdx * $availableW / ($nTicks - 1)) : $plotX2;
+        $xTicks[] = ['x' => $tx, 'label' => (string) $tLbl];
+      }
+    } else {
+      for ($t = 0; $t <= 4; $t++) {
+        $ratio = $t / 4.0;
+        $tx = $plotX1 + ($ratio * $availableW);
+        $valAtTick = $maxVal * $ratio;
+        $xTicks[] = ['x' => $tx, 'label' => round($valAtTick, 1) . $valueSuffix];
+      }
+    }
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="horizontal-bars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <!-- Rejilla vertical punteada -->
+      <?php foreach ($xTicks as $tick): ?>
+      <line x1="<?= number_format($tick['x'], 2, '.', '') ?>" y1="<?= number_format($topY - 4, 2, '.', '') ?>" x2="<?= number_format($tick['x'], 2, '.', '') ?>" y2="<?= number_format($bottomY, 2, '.', '') ?>" class="mono-svg-grid-line" />
+      <?php if ($showAxisX): ?>
+      <text x="<?= number_format($tick['x'], 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars($tick['label'], ENT_QUOTES, 'UTF-8') ?></text>
+      <?php endif; ?>
+      <?php endforeach; ?>
+
+      <!-- Barras horizontales en cápsula (pista + barra activa) -->
+      <?php foreach ($items as $idx => $it): 
+        $cy = $topY + ($idx + 0.5) * $slotH;
+        $barY = $cy - ($barHeight / 2);
+        $barW = $maxVal > 0 ? (min($it['val'], $maxVal) / $maxVal) * $availableW : 0.0;
+        $lbl = htmlspecialchars((string) ($it['label'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $displayVal = htmlspecialchars((string) ($it['display'] ?? ($it['val'] . $valueSuffix)), ENT_QUOTES, 'UTF-8');
+      ?>
+      <g class="mono-hbar-item" data-label="<?= $lbl ?>" data-val="<?= $displayVal ?>">
+        <!-- Pista horizontal translúcida de fondo -->
+        <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($availableW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-track" />
+        <!-- Barra dinámica activa -->
+        <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-rect" data-target-w="<?= number_format($barW, 2, '.', '') ?>" />
+        <!-- Etiqueta eje Y a la izquierda de la barra -->
+        <?php if ($showAxisY): ?>
+        <text x="<?= number_format($plotX1 - 8, 2, '.', '') ?>" y="<?= number_format($cy + 3.5, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="end"><?= $lbl ?></text>
+        <?php endif; ?>
+      </g>
+      <?php endforeach; ?>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
+   * 8. BULLET TARGET (Barras de Comparación con Marcador de Benchmark)
+   * 
+   * Gráfico de barras horizontales con indicador de meta o benchmark (Bullet Chart).
+   * Muestra el progreso del valor actual frente al valor objetivo para múltiples métricas.
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'targets' / 'items' / 'bars': Lista de objetivos [['label' => 'Throughput', 'value' => 82, 'target' => 75], ...]
+   *                      - 'targetColor': Color o clase CSS para el marcador de benchmark (default '#10b981').
+   *                      - 'color': Selector o clase CSS para las barras (ej. 'texto', 'textw', 'color', etc.).
+   *                      - 'colorLabel': Selector o clase CSS para etiquetas de texto.
+   *                      - 'transition': Duración de animación en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   * @return string Código SVG puro.
+   */
+  public static function bulletTarget(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Se utilizan exclusivamente como preview si no se suministran datos.
+    // Idénticos a la especificación canónica: Throughput, Latency, Uptime.
+    // =========================================================================
+    $previewTargets = [
+      ['label' => 'Throughput', 'value' => 82, 'target' => 75, 'suffix' => '%'],
+      ['label' => 'Latency',    'value' => 65, 'target' => 80, 'suffix' => '%'],
+      ['label' => 'Uptime',     'value' => 95, 'target' => 90, 'suffix' => '%'],
+    ];
+
+    $rawItems = $params['targets'] ?? ($params['items'] ?? ($params['bars'] ?? $previewTargets));
+    if (empty($rawItems)) {
+      $rawItems = $previewTargets;
+    }
+
+    $items = [];
+    foreach ($rawItems as $it) {
+      if (is_array($it)) {
+        $val = (float) ($it['value'] ?? ($it['val'] ?? 0));
+        $tgt = (float) ($it['target'] ?? ($it['goal'] ?? ($it['benchmark'] ?? 0)));
+        $lbl = (string) ($it['label'] ?? ($it['title'] ?? ($it['name'] ?? '')));
+        $suf = (string) ($it['suffix'] ?? '%');
+        $max = isset($it['max']) && (float) $it['max'] > 0 ? (float) $it['max'] : 100.0;
+        $items[] = [
+          'label'  => $lbl,
+          'val'    => $val,
+          'target' => $tgt,
+          'suffix' => $suf,
+          'max'    => $max,
+        ];
+      }
+    }
+
+    $count = count($items);
+    if ($count === 0) {
+      $items = [
+        ['label' => 'Throughput', 'val' => 82.0, 'target' => 75.0, 'suffix' => '%', 'max' => 100.0],
+        ['label' => 'Latency',    'val' => 65.0, 'target' => 80.0, 'suffix' => '%', 'max' => 100.0],
+        ['label' => 'Uptime',     'val' => 95.0, 'target' => 90.0, 'suffix' => '%', 'max' => 100.0],
+      ];
+      $count = 3;
+    }
+
+    $classNames = 'mono-chart-svg mono-bullet-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    // Color del marcador de benchmark (default esmeralda #10b981)
+    $targetColorRaw = (string) ($params['targetColor'] ?? '#10b981');
+    $targetToken = self::resolveColorToken($targetColorRaw);
+    $targetColorCss = $targetToken['cssValue'] !== 'currentColor' ? $targetToken['cssValue'] : '#10b981';
+
+    // Dimensiones y distribución de las filas
+    $trackX = 14.0;
+    $trackW = 292.0;
+    $barH = 14.0;
+    $rx = 7.0;
+
+    $totalH = 180.0;
+    $paddingTop = 14.0;
+    $paddingBottom = 16.0;
+    $availableH = $totalH - $paddingTop - $paddingBottom;
+    $slotH = $availableH / $count;
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>; --chart-bullet-target: <?= $targetColorCss ?>;" data-chart="bullet-target" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <?php foreach ($items as $idx => $it): 
+        $slotY = $paddingTop + ($idx * $slotH);
+        $textY = $slotY + 12.0;
+        $barY = $slotY + 20.0;
+
+        $maxVal = $it['max'] > 0 ? $it['max'] : 100.0;
+        $ratioVal = max(0.0, min(1.0, $it['val'] / $maxVal));
+        $ratioTgt = max(0.0, min(1.0, $it['target'] / $maxVal));
+
+        $valW = round($ratioVal * $trackW, 2);
+        $tgtX = round($trackX + ($ratioTgt * $trackW), 2);
+
+        $valStr = round($it['val']) . $it['suffix'];
+        $tgtStr = round($it['target']) . $it['suffix'];
+        $diff = round($it['val'] - $it['target']);
+        $diffStr = ($diff >= 0 ? '+' : '') . $diff . $it['suffix'];
+
+        $lbl = htmlspecialchars($it['label'], ENT_QUOTES, 'UTF-8');
+      ?>
+      <g class="mono-bullet-row" data-label="<?= $lbl ?>" data-val="<?= $valStr ?>" data-target="<?= $tgtStr ?>" data-diff="<?= $diffStr ?>">
+        <!-- Textos superiores: Etiqueta a la izquierda y Valor/Benchmark a la derecha -->
+        <text x="<?= number_format($trackX, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" class="mono-bullet-label<?= $labelClass ?>"><?= $lbl ?></text>
+        <text x="<?= number_format($trackX + $trackW, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="end" class="mono-bullet-val<?= $labelClass ?>">
+          <tspan font-weight="700"><?= $valStr ?></tspan>
+          <tspan font-weight="400" opacity="0.65"> / <?= $tgtStr ?></tspan>
+        </text>
+
+        <!-- Pista de fondo horizontal en cápsula (dark charcoal) -->
+        <rect x="<?= number_format($trackX, 1, '.', '') ?>" y="<?= number_format($barY, 1, '.', '') ?>" width="<?= number_format($trackW, 1, '.', '') ?>" height="<?= number_format($barH, 1, '.', '') ?>" rx="<?= number_format($rx, 1, '.', '') ?>" class="mono-bullet-track" />
+
+        <!-- Barra activa en cápsula (color base o tono principal) -->
+        <rect x="<?= number_format($trackX, 1, '.', '') ?>" y="<?= number_format($barY, 1, '.', '') ?>" width="<?= number_format($valW, 1, '.', '') ?>" height="<?= number_format($barH, 1, '.', '') ?>" rx="<?= number_format($rx, 1, '.', '') ?>" class="mono-bullet-bar" data-target-w="<?= number_format($valW, 1, '.', '') ?>" />
+
+        <!-- Marcador vertical de benchmark objetivo -->
+        <rect x="<?= number_format($tgtX - 1.5, 1, '.', '') ?>" y="<?= number_format($barY - 1.0, 1, '.', '') ?>" width="3" height="<?= number_format($barH + 2.0, 1, '.', '') ?>" rx="1.5" class="mono-bullet-marker" />
+      </g>
+      <?php endforeach; ?>
+    </svg>
+    <?php
+    return trim(ob_get_clean());
+  }
+
+  /**
+   * 9. ROUNDED DONUT (Rosca Monocromática con Extremos de Arco Suaves - Soft Arc Caps)
+   * 
+   * Gráfico de donut con segmentos circulares de extremos redondeados y separaciones definidas.
+   *
+   * @param array $params Opciones de configuración:
+   *                      - 'items' / 'segments' / 'data': Lista de segmentos:
+   *                        [['label' => 'Core Engine', 'value' => 45, 'color' => '...'], ...]
+   *                      - 'centerValue': Texto del centro (ej. '100%'). Si no se define, suma los valores.
+   *                      - 'centerLabel': Subtítulo central (default 'Mono Arc').
+   *                      - 'showCenter': Mostrar lecturas en el centro del donut (default true).
+   *                      - 'showLegend': Mostrar leyenda inferior en el SVG (default true).
+   *                      - 'startAngle': Ángulo inicial en grados (default -135.0).
+   *                      - 'color': Selector o clase CSS para el color base.
+   *                      - 'colorLabel': Selector o clase CSS para etiquetas de texto.
+   *                      - 'axisLabel': Selector o clase CSS para subtítulos y leyenda.
+   *                      - 'transition': Duración de animación en ms (default 400).
+   *                      - 'tooltip': bool (default true).
+   * @return string Código SVG puro.
+   */
+  public static function roundedDonut(array $params = []): string
+  {
+    $style = self::resolveStyle($params);
+
+    // =========================================================================
+    // DATOS DE VISTA PREVIA (FALLBACK):
+    // Se utilizan exclusivamente como preview si no se suministran datos.
+    // Idénticos a la especificación canónica: Core Engine, UI Layer, Assets, Other.
+    // =========================================================================
+    $previewItems = [
+      ['label' => 'Core Engine', 'value' => 45.0, 'suffix' => '%'],
+      ['label' => 'UI Layer',    'value' => 28.0, 'suffix' => '%'],
+      ['label' => 'Assets',      'value' => 17.0, 'suffix' => '%'],
+      ['label' => 'Other',       'value' => 10.0, 'suffix' => '%'],
+    ];
+
+    $rawItems = $params['items'] ?? ($params['segments'] ?? ($params['data'] ?? $previewItems));
+    if (empty($rawItems)) {
+      $rawItems = $previewItems;
+    }
+
+    $items = [];
+    $totalVal = 0.0;
+    foreach ($rawItems as $it) {
+      if (is_array($it)) {
+        $val = (float) ($it['value'] ?? ($it['val'] ?? 0.0));
+        $lbl = (string) ($it['label'] ?? ($it['name'] ?? ($it['title'] ?? '')));
+        $suf = (string) ($it['suffix'] ?? '%');
+        $col = isset($it['color']) ? (string) $it['color'] : null;
+        $totalVal += $val;
+        $items[] = [
+          'label'  => $lbl,
+          'value'  => $val,
+          'suffix' => $suf,
+          'color'  => $col,
+        ];
+      }
+    }
+
+    if ($totalVal <= 0.0) {
+      $totalVal = 100.0;
+    }
+    $count = count($items);
+    if ($count === 0) {
+      $items = [
+        ['label' => 'Core Engine', 'value' => 45.0, 'suffix' => '%', 'color' => null],
+        ['label' => 'UI Layer',    'value' => 28.0, 'suffix' => '%', 'color' => null],
+        ['label' => 'Assets',      'value' => 17.0, 'suffix' => '%', 'color' => null],
+        ['label' => 'Other',       'value' => 10.0, 'suffix' => '%', 'color' => null],
+      ];
+      $count = 4;
+      $totalVal = 100.0;
+    }
+
+    $classNames = 'mono-chart-svg mono-donut-svg';
+    if (!empty($style['svgClass'])) {
+      $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
+    }
+    $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
+    $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
+
+    $centerValue = isset($params['centerValue']) ? (string) $params['centerValue'] : (round($totalVal) . '%');
+    $centerLabel = isset($params['centerLabel']) ? (string) $params['centerLabel'] : 'Mono Arc';
+    $showCenter = $params['showCenter'] ?? true;
+    $showLegend = $params['showLegend'] ?? true;
+
+    // Dimensiones geométricas del donut
+    $cx = 160.0;
+    $cy = 92.0;
+    $r = 58.0;
+    $strokeWidth = 20.0;
+    $startAngle = isset($params['startAngle']) ? (float) $params['startAngle'] : -135.0;
+
+    // Cálculo dinámico de separaciones angulares (gaps) para Soft Arc Caps
+    $gapPerSegment = $count > 1 ? min(28.0, max(14.0, 96.0 / $count)) : 0.0;
+    $totalGapDeg = $count * $gapPerSegment;
+    $availableDeg = 360.0 - $totalGapDeg;
+
+    // Generación de segmentos
+    $currentAngle = $startAngle;
+    $renderedSegments = [];
+
+    foreach ($items as $idx => $it) {
+      $ratio = max(0.01, $it['value'] / $totalVal);
+      $arcDeg = max(1.0, $ratio * $availableDeg);
+
+      $startDeg = $currentAngle;
+      $endDeg = $currentAngle + $arcDeg;
+
+      $startRad = deg2rad($startDeg);
+      $endRad = deg2rad($endDeg);
+
+      $x1 = $cx + ($r * cos($startRad));
+      $y1 = $cy + ($r * sin($startRad));
+      $x2 = $cx + ($r * cos($endRad));
+      $y2 = $cy + ($r * sin($endRad));
+
+      $largeArc = ($arcDeg > 180.0) ? 1 : 0;
+      $d = sprintf("M %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f", $x1, $y1, $r, $r, $largeArc, $x2, $y2);
+      $arcLength = round(deg2rad($arcDeg) * $r, 2);
+
+      // Color monocromático con gradación tonal decreciente idéntica a la imagen
+      if (!empty($it['color'])) {
+        $token = self::resolveColorToken($it['color']);
+        $segColor = $token['cssValue'] !== 'currentColor' ? $token['cssValue'] : 'var(--chart-base-color, currentColor)';
+      } else {
+        if ($count === 1) {
+          $segColor = "var(--chart-base-color, #ffffff)";
+        } elseif ($idx === 0) {
+          $segColor = "var(--chart-base-color, #ffffff)";
+        } else {
+          $lightness = round(0.76 - (($idx - 1) * (0.48 / max(1, $count - 2))), 2);
+          $lightness = max(0.25, min(0.90, $lightness));
+          $hexFallback = match ($idx) {
+            1 => '#b8b8be',
+            2 => '#76767c',
+            3 => '#404046',
+            default => sprintf('#%02x%02x%02x', (int)($lightness * 255), (int)($lightness * 255), (int)($lightness * 255)),
+          };
+          $segColor = "oklch(from var(--chart-base-color, {$hexFallback}) {$lightness} c h)";
+        }
+      }
+
+      $pctStr = round(($it['value'] / $totalVal) * 100) . '%';
+      $valStr = round($it['value']) . $it['suffix'];
+
+      $renderedSegments[] = [
+        'd'         => $d,
+        'length'    => $arcLength,
+        'color'     => $segColor,
+        'label'     => $it['label'],
+        'valStr'    => $valStr,
+        'pctStr'    => $pctStr,
+      ];
+
+      $currentAngle += $arcDeg + $gapPerSegment;
+    }
+
+    ob_start();
+    ?>
+    <svg viewBox="0 0 320 210" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="rounded-donut" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <!-- Segmentos de Donut con Soft Arc Caps -->
+      <g class="mono-donut-ring">
+        <?php foreach ($renderedSegments as $seg): 
+          $lbl = htmlspecialchars($seg['label'], ENT_QUOTES, 'UTF-8');
+        ?>
+        <path d="<?= $seg['d'] ?>" class="mono-donut-segment" fill="none" stroke="<?= $seg['color'] ?>" stroke-width="<?= $strokeWidth ?>" stroke-linecap="round" stroke-dasharray="<?= $seg['length'] ?> <?= $seg['length'] ?>" stroke-dashoffset="<?= $seg['length'] ?>" data-length="<?= $seg['length'] ?>" data-label="<?= $lbl ?>" data-val="<?= $seg['valStr'] ?>" data-pct="<?= $seg['pctStr'] ?>" style="--seg-color: <?= $seg['color'] ?>;" />
+        <?php endforeach; ?>
+      </g>
+
+      <!-- Lectura Central -->
+      <?php if ($showCenter): ?>
+      <g class="mono-donut-center">
+        <text x="160.0" y="89.0" text-anchor="middle" class="mono-donut-center-val<?= $labelClass ?>"><?= htmlspecialchars($centerValue, ENT_QUOTES, 'UTF-8') ?></text>
+        <text x="160.0" y="105.0" text-anchor="middle" class="mono-donut-center-lbl<?= $axisClass ?>"><?= htmlspecialchars($centerLabel, ENT_QUOTES, 'UTF-8') ?></text>
+      </g>
+      <?php endif; ?>
+
+      <!-- Leyenda Horizontal Inferior -->
+      <?php if ($showLegend && $count > 0): 
+        $legendPaddingX = 20.0;
+        $legendW = 320.0 - ($legendPaddingX * 2);
+        $blockW = $legendW / $count;
+      ?>
+      <g class="mono-donut-legend">
+        <?php foreach ($renderedSegments as $idx => $seg): 
+          $itemX = $legendPaddingX + ($idx * $blockW) + 4.0;
+          $lbl = htmlspecialchars($seg['label'], ENT_QUOTES, 'UTF-8');
+        ?>
+        <circle cx="<?= number_format($itemX, 1, '.', '') ?>" cy="191.0" r="3.5" fill="<?= $seg['color'] ?>" />
+        <text x="<?= number_format($itemX + 8.0, 1, '.', '') ?>" y="194.0" class="mono-donut-legend-text<?= $axisClass ?>"><?= $lbl ?></text>
+        <?php endforeach; ?>
+      </g>
+      <?php endif; ?>
     </svg>
     <?php
     return trim(ob_get_clean());
@@ -880,3 +1723,4 @@ class GraphicsModule
     return $d;
   }
 }
+

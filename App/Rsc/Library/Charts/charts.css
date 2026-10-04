@@ -321,32 +321,233 @@
 }
 
 /* =========================================================================
-   8. TOOLTIPS FLOTANTES Y SALIDAS SINCRONIZADAS
+   8. GRÁFICO 6: SIMPLE BARS (Barras Verticales en Cápsula)
+   ========================================================================= */
+
+.mono-chart-svg .mono-simple-bar-item {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.mono-chart-svg .mono-simple-bar-item:hover {
+  filter: brightness(1.18);
+}
+
+.mono-chart-svg .mono-simple-bar-track {
+  fill: var(--chart-grid-color);
+  opacity: 0.85;
+}
+
+.mono-chart-svg .mono-simple-bar-rect {
+  fill: var(--chart-tone-1);
+  transition: fill 0.3s ease;
+}
+
+/* =========================================================================
+   9. GRÁFICO 7: HORIZONTAL BARS (Barras Horizontales en Cápsula)
+   ========================================================================= */
+
+.mono-chart-svg .mono-hbar-item {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.mono-chart-svg .mono-hbar-item:hover {
+  filter: brightness(1.18);
+}
+
+.mono-chart-svg .mono-hbar-track {
+  fill: var(--chart-grid-color);
+  opacity: 0.85;
+}
+
+.mono-chart-svg .mono-hbar-rect {
+  fill: var(--chart-tone-1);
+  transition: fill 0.3s ease;
+}
+
+/* =========================================================================
+   10. GRÁFICO 8: BULLET TARGET (Barras con Marcador de Benchmark)
+   ========================================================================= */
+
+.mono-chart-svg .mono-bullet-row {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.mono-chart-svg .mono-bullet-row:hover {
+  filter: brightness(1.15);
+}
+
+.mono-chart-svg .mono-bullet-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--chart-label-color, currentColor);
+  font-family: inherit;
+}
+
+.mono-chart-svg .mono-bullet-val {
+  font-size: 11px;
+  fill: var(--chart-label-color, currentColor);
+  font-family: inherit;
+}
+
+.mono-chart-svg .mono-bullet-track {
+  fill: #26262a;
+  fill: color-mix(in srgb, var(--chart-base-color) 16%, #1a1a1e);
+  transition: fill 0.3s ease;
+}
+
+.mono-chart-svg .mono-bullet-bar {
+  fill: var(--chart-tone-1, #ffffff);
+  transition: fill 0.3s ease;
+}
+
+.mono-chart-svg .mono-bullet-marker {
+  fill: var(--chart-bullet-target, #10b981);
+  transition: fill 0.3s ease;
+}
+
+/* =========================================================================
+   11. ROUNDED DONUT (MONO ROUNDED DONUT - SOFT ARC CAPS)
+   ========================================================================= */
+
+.mono-chart-svg.mono-donut-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+}
+
+.mono-chart-svg .mono-donut-segment {
+  fill: none;
+  stroke-linecap: round;
+  transition: filter 0.2s ease, opacity 0.3s ease;
+}
+
+.mono-chart-svg:not([data-tooltip="false"]) .mono-donut-segment:hover {
+  filter: brightness(1.25);
+  cursor: pointer;
+}
+
+.mono-chart-svg .mono-donut-center-val {
+  font-size: 21px;
+  font-weight: 800;
+  fill: var(--chart-label-color, currentColor);
+  letter-spacing: -0.02em;
+}
+
+.mono-chart-svg .mono-donut-center-lbl {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--chart-axis-color, rgba(255, 255, 255, 0.65));
+  letter-spacing: -0.01em;
+}
+
+.mono-chart-svg .mono-donut-legend-text {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--chart-axis-color, #a1a1aa);
+  letter-spacing: -0.01em;
+}
+
+/* =========================================================================
+   12. TOOLTIPS FLOTANTES Y CONTROL DE ACTIVACIÓN
    ========================================================================= */
 
 .mono-chart-tooltip {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
-  background: rgba(18, 18, 20, 0.90);
-  color: #ffffff;
-  padding: 6px 10px;
-  border-radius: 6px;
+  background: rgba(18, 18, 20, 0.94);
+  color: #f4f4f5;
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 500;
-  line-height: 1.3;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  transform: translate(-50%, -125%);
+  line-height: 1.35;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, -100%);
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 100;
+  visibility: hidden;
+  transition: opacity 0.12s cubic-bezier(0.42, 0, 0.58, 1), transform 0.12s cubic-bezier(0.42, 0, 0.58, 1);
+  z-index: 99999;
 }
 
 .mono-chart-tooltip.visible {
   opacity: 1;
-  transform: translate(-50%, -135%);
+  visibility: visible;
+}
+
+.mono-chart-tooltip .mono-tooltip-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.mono-chart-tooltip .mono-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.mono-chart-tooltip .mono-tooltip-row.mono-sub {
+  font-size: 10px;
+  opacity: 0.80;
+}
+
+.mono-chart-tooltip .mono-tooltip-tag {
+  font-size: 9px;
+  opacity: 0.85;
+  margin-top: 4px;
+  padding-top: 2px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.10);
+  font-style: italic;
+}
+
+/* Reglas de cursor según activación local/global [data-tooltip] */
+.mono-chart-svg:not([data-tooltip="false"]) .mono-stacked-bar-item,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-treemap-tile-group,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-spline-bar-rect,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-spline-dot,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pillar-pair-group,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pillar-primary,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-pillar-secondary,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-arc-meter-val,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-simple-bar-item,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-simple-bar-rect,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-hbar-item,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-hbar-rect,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-bullet-row,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-bullet-bar,
+.mono-chart-svg:not([data-tooltip="false"]) .mono-donut-segment {
+  cursor: pointer;
+}
+
+.mono-chart-svg[data-tooltip="false"] .mono-stacked-bar-item,
+.mono-chart-svg[data-tooltip="false"] .mono-treemap-tile-group,
+.mono-chart-svg[data-tooltip="false"] .mono-spline-bar-rect,
+.mono-chart-svg[data-tooltip="false"] .mono-spline-dot,
+.mono-chart-svg[data-tooltip="false"] .mono-pillar-pair-group,
+.mono-chart-svg[data-tooltip="false"] .mono-pillar-primary,
+.mono-chart-svg[data-tooltip="false"] .mono-pillar-secondary,
+.mono-chart-svg[data-tooltip="false"] .mono-arc-meter-val,
+.mono-chart-svg[data-tooltip="false"] .mono-simple-bar-item,
+.mono-chart-svg[data-tooltip="false"] .mono-simple-bar-rect,
+.mono-chart-svg[data-tooltip="false"] .mono-hbar-item,
+.mono-chart-svg[data-tooltip="false"] .mono-hbar-rect,
+.mono-chart-svg[data-tooltip="false"] .mono-bullet-row,
+.mono-chart-svg[data-tooltip="false"] .mono-bullet-bar,
+.mono-chart-svg[data-tooltip="false"] .mono-donut-segment {
+  cursor: default !important;
 }
 
 .mono-chart-svg.is-exiting {
