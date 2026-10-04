@@ -128,6 +128,12 @@ class VisitModels extends Builder {
       return false;
     }
 
+    // 0. Obtener el index_user del perfil visitado. Si el usuario no existe, rechazar para evitar huérfanos
+    $indexUser = UserModels::getIndexUserByUsername($visitedUserClean);
+    if (empty($indexUser)) {
+      return false;
+    }
+
     // 1. Filtrar bots, crawlers, previsualizadores y herramientas de scraping
     if (BotDetectorModule::isBot()) {
       return false;
@@ -135,14 +141,16 @@ class VisitModels extends Builder {
 
     // 2. Omitir registro si el usuario está logueado y visita su propio perfil
     if (Session::session_active()) {
-      $sessionUser = Session::session_data("username");
-      if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean) {
+      $sessionIndex = Session::session_data("index_user");
+      $sessionUser  = Session::session_data("username");
+      if ((!empty($sessionIndex) && $sessionIndex === $indexUser) ||
+          (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean)) {
         return false;
       }
     }
 
-    // 3. Control en sesión (1 vez cada 24 horas)
-    $sessionKey = "visit_registered_" . $visitedUserClean;
+    // 3. Control en sesión (1 vez cada 24 horas por index_user)
+    $sessionKey = "visit_registered_" . $indexUser;
     $lastVisitTime = $_SESSION[$sessionKey] ?? 0;
     if ((time() - (int)$lastVisitTime) <= 86400) {
       return false;
@@ -151,7 +159,7 @@ class VisitModels extends Builder {
     $ip = self::getClientIp();
 
     // 4. Deduplicación en base de datos (evita inflación por bots o clientes que descartan cookies)
-    if (AnalyticsModule::hasRecentProfileView($visitedUserClean, $ip, 86400)) {
+    if (AnalyticsModule::hasRecentProfileView($indexUser, $ip, 86400) || AnalyticsModule::hasRecentProfileView($visitedUserClean, $ip, 86400)) {
       return false;
     }
 
@@ -181,16 +189,28 @@ class VisitModels extends Builder {
         session_write_close();
       }
 
-      // Registrar la visita orgánica en SQLite (profile_views)
-      return AnalyticsModule::logProfileView($visitedUserClean, [
-        "ip_address"   => $ip,
-        "country_code" => $geo["country_code"],
-        "country_name" => $geo["country_name"],
-        "city_name"    => $geo["city_name"],
-        "device_type"  => $deviceType,
-        "os"           => $os,
-        "browser"      => $browser,
-        "referrer"     => $cleanReferrer
+      // Registrar la visita orgánica en SQLite (profile_views) referenciando con index_user
+      $pdo = AnalyticsModule::getPdo();
+      $stmt = $pdo->prepare("
+        INSERT INTO profile_views 
+        (profile_id, index_user, ip_address, country_code, country_name, city_name, device_type, os, browser, referrer, created_at)
+        VALUES 
+        (:profile_id, :index_user, :ip_address, :country_code, :country_name, :city_name, :device_type, :os, :browser, :referrer, :created_at)
+      ");
+
+      $nowUtc = gmdate('Y-m-d H:i:s');
+      return $stmt->execute([
+        ':profile_id'   => $indexUser,
+        ':index_user'   => $indexUser,
+        ':ip_address'   => $ip,
+        ':country_code' => $geo["country_code"],
+        ':country_name' => $geo["country_name"],
+        ':city_name'    => $geo["city_name"],
+        ':device_type'  => $deviceType,
+        ':os'           => $os,
+        ':browser'      => $browser,
+        ':referrer'     => $cleanReferrer,
+        ':created_at'   => $nowUtc
       ]);
     } catch (Exception $e) {
       error_log("Error en VisitModels::processVisit: " . $e->getMessage());
@@ -211,6 +231,12 @@ class VisitModels extends Builder {
     $linkIdClean      = mb_strtolower(trim($linkId), "UTF-8");
 
     if (empty($visitedUserClean) || empty($linkIdClean)) {
+      return false;
+    }
+
+    // 0. Obtener el index_user del perfil. Si el usuario no existe, rechazar para evitar huérfanos
+    $indexUser = UserModels::getIndexUserByUsername($visitedUserClean);
+    if (empty($indexUser)) {
       return false;
     }
 
@@ -235,14 +261,16 @@ class VisitModels extends Builder {
 
     // 4. Omitir registro si el usuario está logueado y hace clic en su propio perfil
     if (Session::session_active()) {
-      $sessionUser = Session::session_data("username");
-      if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean) {
+      $sessionIndex = Session::session_data("index_user");
+      $sessionUser  = Session::session_data("username");
+      if ((!empty($sessionIndex) && $sessionIndex === $indexUser) ||
+          (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean)) {
         return false;
       }
     }
 
-    // 5. Control en sesión por enlace individual (1 clic por link cada 24 horas)
-    $sessionKey = "click_registered_" . $visitedUserClean . "_" . $linkIdClean;
+    // 5. Control en sesión por enlace individual (1 clic por link cada 24 horas por index_user)
+    $sessionKey = "click_registered_" . $indexUser . "_" . $linkIdClean;
     $lastClickTime = $_SESSION[$sessionKey] ?? 0;
     if ((time() - (int)$lastClickTime) <= 86400) {
       return false;
@@ -251,7 +279,7 @@ class VisitModels extends Builder {
     $ip = self::getClientIp();
 
     // 6. Deduplicación por IP y enlace en la base de datos (24 horas)
-    if (AnalyticsModule::hasRecentLinkClick($visitedUserClean, $linkIdClean, $ip, 86400)) {
+    if (AnalyticsModule::hasRecentLinkClick($indexUser, $linkIdClean, $ip, 86400) || AnalyticsModule::hasRecentLinkClick($visitedUserClean, $linkIdClean, $ip, 86400)) {
       return false;
     }
 
@@ -264,10 +292,23 @@ class VisitModels extends Builder {
       $geo        = self::getGeoData($ip);
       $deviceType = MovilDetectorModule::getDeviceType();
 
-      return AnalyticsModule::logLinkClick($visitedUserClean, $linkIdClean, [
-        "ip_address"   => $ip,
-        "country_code" => $geo["country_code"],
-        "device_type"  => $deviceType
+      $pdo = AnalyticsModule::getPdo();
+      $stmt = $pdo->prepare("
+        INSERT INTO link_clicks 
+        (link_id, profile_id, index_user, ip_address, country_code, device_type, created_at)
+        VALUES 
+        (:link_id, :profile_id, :index_user, :ip_address, :country_code, :device_type, :created_at)
+      ");
+
+      $nowUtc = gmdate('Y-m-d H:i:s');
+      return $stmt->execute([
+        ':link_id'      => (string)$linkIdClean,
+        ':profile_id'   => $indexUser,
+        ':index_user'   => $indexUser,
+        ':ip_address'   => $ip,
+        ':country_code' => $geo["country_code"],
+        ':device_type'  => $deviceType,
+        ':created_at'   => $nowUtc
       ]);
     } catch (Exception $e) {
       error_log("Error en VisitModels::processClick: " . $e->getMessage());

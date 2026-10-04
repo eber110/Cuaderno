@@ -1,3 +1,12 @@
+:root {
+  --hover-scale-soft: 1.02;
+  --hover-shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+  --hover-shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
 .back-container-graphic{
   background-color: #f0f0f0;
 }

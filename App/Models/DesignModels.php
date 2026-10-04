@@ -155,8 +155,12 @@ class DesignModels extends Builder {
     $userClean = mb_strtolower($username, "UTF-8");
     $builder   = new Builder("user_designs");
 
+    // Resolver index_user asociado al usuario
+    $indexUser = UserModels::getIndexUserByUsername($userClean) ?? (Session::session_active() ? Session::session_data("index_user") : null);
+
     $payload = [
       "username"             => $userClean,
+      "index_user"           => $indexUser,
       "is_draft"             => $isDraft,
       "active"               => !empty($card["active"]) ? 1 : 0,
       "hide"                 => !empty($card["hide"]) ? 1 : 0,

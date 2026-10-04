@@ -334,9 +334,16 @@ class LemonSqueezyModels extends Builder
     $pdo = self::getSqlitePdo();
     if ($pdo !== null) {
       try {
-        $sql = "INSERT INTO user_subscriptions_cache (user_id, username, is_premium, status, renews_at, ends_at, updated_at)
-                VALUES (:user_id, :username, :is_premium, :status, :renews_at, :ends_at, CURRENT_TIMESTAMP)
+        $indexUser = null;
+        if (class_exists('\App\Models\UserModels')) {
+          $indexUser = \App\Models\UserModels::getIndexUserByUsername($username ?? $userIdStr) 
+            ?? (\App\Models\UserModels::userExistsByIndex($userIdStr) ? $userIdStr : null);
+        }
+
+        $sql = "INSERT INTO user_subscriptions_cache (user_id, index_user, username, is_premium, status, renews_at, ends_at, updated_at)
+                VALUES (:user_id, :index_user, :username, :is_premium, :status, :renews_at, :ends_at, CURRENT_TIMESTAMP)
                 ON CONFLICT(user_id) DO UPDATE SET
+                  index_user = COALESCE(EXCLUDED.index_user, user_subscriptions_cache.index_user),
                   username = EXCLUDED.username,
                   is_premium = EXCLUDED.is_premium,
                   status = EXCLUDED.status,
@@ -346,6 +353,7 @@ class LemonSqueezyModels extends Builder
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
           ":user_id"    => $userIdStr,
+          ":index_user" => $indexUser,
           ":username"   => (string)($username ?? ""),
           ":is_premium" => $isPremium,
           ":status"     => $status,
@@ -397,7 +405,7 @@ class LemonSqueezyModels extends Builder
     $pdo = self::getSqlitePdo();
     if ($pdo !== null) {
       try {
-        $stmt = $pdo->prepare("SELECT is_premium, status, renews_at, ends_at FROM user_subscriptions_cache WHERE user_id = :user_id OR username = :user_id LIMIT 1");
+        $stmt = $pdo->prepare("SELECT is_premium, status, renews_at, ends_at FROM user_subscriptions_cache WHERE index_user = :user_id OR user_id = :user_id OR username = :user_id LIMIT 1");
         $stmt->execute([":user_id" => $userIdStr]);
         $row = $stmt->fetch();
 

@@ -26,7 +26,7 @@ class SQLiteSetup
     // 1. Tabla users
     $sqlUsers = "CREATE TABLE IF NOT EXISTS users (
       user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      index_user INT NULL,
+      index_user VARCHAR(64) NULL UNIQUE,
       username VARCHAR(100) NOT NULL UNIQUE,
       email VARCHAR(255) NOT NULL UNIQUE,
       password_hash VARCHAR(255) NOT NULL,
@@ -57,6 +57,7 @@ class SQLiteSetup
     // 3. Tabla userroles
     $sqlUserRoles = "CREATE TABLE IF NOT EXISTS userroles (
       user_role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      index_user VARCHAR(64) NULL,
       user_id INTEGER NOT NULL,
       id_role INTEGER NOT NULL,
       assigned_at_user_role DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -65,6 +66,7 @@ class SQLiteSetup
     // 4. Tabla user_designs (Sustituye Cache/UserData/*.json)
     $sqlUserDesigns = "CREATE TABLE IF NOT EXISTS user_designs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      index_user VARCHAR(64) NULL,
       username VARCHAR(100) NOT NULL,
       is_draft INTEGER DEFAULT 0,
       active INTEGER DEFAULT 0,
@@ -101,6 +103,7 @@ class SQLiteSetup
     $sqlLemonOrders = "CREATE TABLE IF NOT EXISTS lemon_squeezy_orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       lemon_order_id VARCHAR(100) NOT NULL UNIQUE,
+      index_user VARCHAR(64) NULL,
       store_id VARCHAR(100) NULL,
       customer_id VARCHAR(100) NULL,
       user_id VARCHAR(100) NULL,
@@ -121,6 +124,7 @@ class SQLiteSetup
     $sqlLemonSubscriptions = "CREATE TABLE IF NOT EXISTS lemon_squeezy_subscriptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       lemon_subscription_id VARCHAR(100) NOT NULL UNIQUE,
+      index_user VARCHAR(64) NULL,
       store_id VARCHAR(100) NULL,
       customer_id VARCHAR(100) NULL,
       order_id VARCHAR(100) NULL,
@@ -151,6 +155,7 @@ class SQLiteSetup
     // 8. Tabla user_subscriptions_cache
     $sqlUserSubscriptionsCache = "CREATE TABLE IF NOT EXISTS user_subscriptions_cache (
       user_id TEXT PRIMARY KEY,
+      index_user VARCHAR(64) NULL,
       username TEXT,
       is_premium INTEGER DEFAULT 0,
       status TEXT,
@@ -162,6 +167,7 @@ class SQLiteSetup
     // 9. Tabla profile_views
     $sqlProfileViews = "CREATE TABLE IF NOT EXISTS profile_views (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      index_user VARCHAR(64) NULL,
       profile_id TEXT NOT NULL,
       ip_address TEXT,
       country_code TEXT,
@@ -177,6 +183,7 @@ class SQLiteSetup
     // 10. Tabla link_clicks
     $sqlLinkClicks = "CREATE TABLE IF NOT EXISTS link_clicks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      index_user VARCHAR(64) NULL,
       link_id TEXT,
       profile_id TEXT NOT NULL,
       ip_address TEXT,
@@ -188,6 +195,7 @@ class SQLiteSetup
     // 11. Tabla active_sessions
     $sqlActiveSessions = "CREATE TABLE IF NOT EXISTS active_sessions (
       session_token TEXT PRIMARY KEY,
+      index_user VARCHAR(64) NULL,
       profile_id TEXT NOT NULL,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );";
@@ -213,6 +221,16 @@ class SQLiteSetup
       } catch (\Throwable $e) {
         $log[] = "Error al crear la tabla '{$tableName}': " . $e->getMessage();
       }
+    }
+
+    // Asegurar columnas index_user, índices y triggers mediante DatabaseMaintenance
+    try {
+      $maint = DatabaseMaintenance::ensureSchema();
+      if (!empty($maint["log"])) {
+        $log = array_merge($log, $maint["log"]);
+      }
+    } catch (\Throwable $e) {
+      $log[] = "Aviso DatabaseMaintenance: " . $e->getMessage();
     }
 
     // Migraciones automáticas para columnas nuevas en user_designs

@@ -401,6 +401,9 @@ export function autoSubmitForm() {
             const wrapper = document.getElementById('statistics-remote-wrapper') || statsRemote;
             wrapper.innerHTML = data.statsHtml;
             statsRemote.dataset.loaded = 'true';
+            if (typeof window.initCharts === 'function') {
+              window.initCharts(wrapper);
+            }
           }
         }
 

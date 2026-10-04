@@ -58,7 +58,7 @@ class DashboardControllers extends Control {
         "estadisticas"  => "/panel/{$userClean}/estadisticas"
       ],
       "session" => \Base\Module\Session::user_session_show() ?: false,
-      "premium" => LemonSqueezyModels::isUserSubscribedFast(Session::session_data("user_id") ?? Session::session_data("id") ?? $userClean)
+      "premium" => LemonSqueezyModels::isUserSubscribedFast(Session::session_data("index_user") ?? Session::session_data("user_id") ?? $userClean)
     ];
 
 

@@ -17,15 +17,69 @@ class UserModels extends BuilderSqlite {
   protected $table = "users";
 
   /**
-   * Verifica si un usuario existe en la base de datos SQLite (tabla users).
+   * Verifica si un usuario existe en la base de datos SQLite (tabla users) por username o index_user.
    *
-   * @param string $user Nombre de usuario.
+   * @param string $user Nombre de usuario o index_user.
    * @return bool True si el usuario existe, false en caso contrario.
    */
   public static function userExists(string $user): bool {
-    $userClean = mb_strtolower($user, "UTF-8");
+    $userClean = mb_strtolower(trim($user), "UTF-8");
     $dbUser = (new self())->where("username", $userClean)->get_one();
 
+    if (!empty($dbUser[0])) {
+      return true;
+    }
+
+    $byIndex = (new self())->where("index_user", trim($user))->get_one();
+    return !empty($byIndex[0]);
+  }
+
+  /**
+   * Obtiene el identificador index_user a partir de un nombre de usuario.
+   *
+   * @param string $user Nombre de usuario.
+   * @return string|null El index_user o null si el usuario no existe.
+   */
+  public static function getIndexUserByUsername(string $user): ?string {
+    $userClean = mb_strtolower(trim($user), "UTF-8");
+    $dbUser = (new self())->where("username", $userClean)->get_one();
+
+    if (!empty($dbUser[0]["index_user"])) {
+      return (string)$dbUser[0]["index_user"];
+    }
+
+    return null;
+  }
+
+  /**
+   * Obtiene los datos del registro de un usuario a partir de su index_user.
+   *
+   * @param string $indexUser Identificador único index_user.
+   * @return array|null Array con los datos del usuario o null si no existe.
+   */
+  public static function getUserByIndex(string $indexUser): ?array {
+    $cleanIndex = trim($indexUser);
+    if (empty($cleanIndex)) {
+      return null;
+    }
+
+    $dbUser = (new self())->where("index_user", $cleanIndex)->get_one();
+    return !empty($dbUser[0]) ? $dbUser[0] : null;
+  }
+
+  /**
+   * Verifica si existe un usuario con el index_user especificado.
+   *
+   * @param string $indexUser Identificador index_user.
+   * @return bool True si existe, false de lo contrario.
+   */
+  public static function userExistsByIndex(string $indexUser): bool {
+    $cleanIndex = trim($indexUser);
+    if (empty($cleanIndex)) {
+      return false;
+    }
+
+    $dbUser = (new self())->where("index_user", $cleanIndex)->get_one();
     return !empty($dbUser[0]);
   }
 

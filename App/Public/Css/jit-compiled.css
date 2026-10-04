@@ -35,6 +35,7 @@
 .gap2 { gap: 2px; }
 .gap20 { gap: 20px; }
 .gap25 { gap: 25px; }
+.gap3 { gap: 3px; }
 .gap30 { gap: 30px; }
 .gap4 { gap: 4px; }
 .gap5 { gap: 5px; }
@@ -281,6 +282,7 @@
 .hem20 { min-height: 20em; }
 .hem5 { min-height: 5em; }
 .hpx100 { height: 100px; }
+.hpx12 { height: 12px; }
 .hpx120 { height: 120px; }
 .hpx140 { height: 140px; }
 .hpx22 { height: 22px; }
@@ -363,10 +365,12 @@
 .pt0 { padding-top: 0px !important; }
 .pt10 { padding-top: 10px !important; }
 .pt100 { padding-top: 100px !important; }
+.pt15 { padding-top: 15px !important; }
 .pt150 { padding-top: 150px !important; }
 .pt20 { padding-top: 20px !important; }
 .pt30 { padding-top: 30px !important; }
 .pt40 { padding-top: 40px !important; }
+.pt5 { padding-top: 5px !important; }
 .pt8 { padding-top: 8px !important; }
 .pt80 { padding-top: 80px !important; }
 .w100 { width: 100%; }
@@ -408,6 +412,7 @@
 .x03 { font-size: 03px; }
 .x04 { font-size: 04px; }
 .x1 { font-size: 1px; }
+.x10 { font-size: 10px; }
 .x11 { font-size: 11px; }
 .x12 { font-size: 12px; }
 .x13 { font-size: 13px; }
@@ -426,8 +431,10 @@
 .x28 { font-size: 28px; }
 .x30 { font-size: 30px; }
 .x32 { font-size: 32px; }
+.x36 { font-size: 36px; }
 .x4 { font-size: 4px; }
 .x40 { font-size: 40px; }
+.x45 { font-size: 45px; }
 .x50 { font-size: 50px; }
 .x64 { font-size: 64px; }
 .x80 { font-size: 80px; }

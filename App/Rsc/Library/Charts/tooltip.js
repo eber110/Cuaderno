@@ -99,9 +99,10 @@ function buildTooltipContent(target) {
     const el = splineBar || splineDot;
     const label = el.getAttribute("data-label") || "";
     const val = el.getAttribute("data-val") || "";
+    const unit = el.getAttribute("data-unit") || "Valor";
     let html = "";
     if (label) html += `<div class="mono-tooltip-header"><strong>${escapeHtml(label)}</strong></div>`;
-    html += `<div class="mono-tooltip-row"><span>Valor:</span> <strong>${escapeHtml(val)}</strong></div>`;
+    html += `<div class="mono-tooltip-row"><span>${escapeHtml(unit)}:</span> <strong>${escapeHtml(val)}</strong></div>`;
     return html;
   }
 

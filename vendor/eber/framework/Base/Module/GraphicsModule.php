@@ -780,6 +780,10 @@ class GraphicsModule
 
     $values = !empty($params['values']) ? $params['values'] : $previewValues;
     $labels = !empty($params['labels']) ? $params['labels'] : $previewLabels;
+    $displayLabels = !empty($params['displayLabels']) && is_array($params['displayLabels']) ? $params['displayLabels'] : [];
+    $displayValues = !empty($params['displayValues']) && is_array($params['displayValues']) ? $params['displayValues'] : [];
+    $unit = !empty($params['unit']) ? htmlspecialchars((string) $params['unit'], ENT_QUOTES, 'UTF-8') : '';
+
     $count = count($values);
     if ($count === 0) {
       $values = $previewValues;
@@ -796,6 +800,22 @@ class GraphicsModule
 
     $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
 
+    // Escala del eje Y y límites máximos
+    $maxInData = 0.0;
+    foreach ($values as $v) {
+      if ((float)$v > $maxInData) $maxInData = (float)$v;
+    }
+
+    if (isset($params['maxVal']) && (float) $params['maxVal'] > 0) {
+      $maxVal = (float) $params['maxVal'];
+    } elseif ($maxInData > 100.0) {
+      $maxVal = ceil($maxInData * 1.15);
+    } elseif (!empty($params['autoScale']) && $maxInData > 0) {
+      $maxVal = ceil($maxInData * 1.15);
+    } else {
+      $maxVal = 100.0;
+    }
+
     // Distribución geométrica dinámica en el área de trazado
     $plotX1 = 44.0;
     $plotX2 = 280.0;
@@ -810,9 +830,15 @@ class GraphicsModule
     foreach ($values as $idx => $val) {
       $x = $count > 1 ? ($plotX1 + $idx * $step) : ($plotX1 + $availableWidth / 2);
       $xCoords[] = $x;
-      $h = (max(0, min(100, (float) $val)) / 100.0) * $maxH;
+      $ratio = $maxVal > 0 ? max(0.0, min(1.0, (float) $val / $maxVal)) : 0.0;
+      $h = $ratio * $maxH;
       $y = $baselineY - $h;
-      $points[] = ['x' => $x, 'y' => $y, 'val' => $val];
+      $points[] = [
+        'x'   => $x,
+        'y'   => $y,
+        'val' => $val,
+        'h'   => $h
+      ];
     }
 
     // Cálculo matemático de Spline Bézier Catmull-Rom a Cúbica
@@ -838,12 +864,13 @@ class GraphicsModule
       <!-- Barras translúcidas de fondo en cápsula distribuidas dinámicamente -->
       <?php foreach ($points as $idx => $pt): 
         $barX = $pt['x'] - ($barWidth / 2);
-        $barH = ($pt['val'] / 100) * $maxH;
+        $barH = $pt['h'];
         $barY = $baselineY - $barH;
         $rx = min(8.0, $barWidth / 2);
-        $barLabel = htmlspecialchars((string) ($labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
+        $barLabel = htmlspecialchars((string) ($displayLabels[$idx] ?? $labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
+        $dataVal = htmlspecialchars((string) ($displayValues[$idx] ?? (isset($params['valueSuffix']) ? $pt['val'] . ' ' . $params['valueSuffix'] : $pt['val'])), ENT_QUOTES, 'UTF-8');
       ?>
-      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-label="<?= $barLabel ?>" data-val="<?= $pt['val'] ?>" data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
+      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-label="<?= $barLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
       <?php endforeach; ?>
 
       <!-- Área degradada de la curva -->
@@ -854,9 +881,10 @@ class GraphicsModule
 
       <!-- Vértices / Puntos circulares -->
       <?php foreach ($points as $idx => $pt): 
-        $dotLabel = htmlspecialchars((string) ($labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
+        $dotLabel = htmlspecialchars((string) ($displayLabels[$idx] ?? $labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
+        $dataVal = htmlspecialchars((string) ($displayValues[$idx] ?? (isset($params['valueSuffix']) ? $pt['val'] . ' ' . $params['valueSuffix'] : $pt['val'])), ENT_QUOTES, 'UTF-8');
       ?>
-        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-label="<?= $dotLabel ?>" data-val="<?= $pt['val'] ?>" />
+        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-label="<?= $dotLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> />
       <?php endforeach; ?>
 
       <!-- Etiquetas del eje X con axisLabel distribuidas dinámicamente -->

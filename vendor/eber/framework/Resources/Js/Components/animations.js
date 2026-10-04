@@ -322,179 +322,209 @@ window.animate = animate;
  * Vincula de forma inteligente las animaciones de interacción con el mouse (hover, active) usando GSAP
  * si está disponible, permitiendo una personalización transparente con variables CSS.
  */
+function handleGsapHoverIn(el) {
+  if (!el || typeof gsap === 'undefined') return;
+  const style = getComputedStyle(el);
+  const durationIn = parseFloat(style.getPropertyValue('--hover-duration-in')) / 1000 || 0.25;
+
+  if (el.classList.contains('hover-scale')) {
+    const scale = parseFloat(style.getPropertyValue('--hover-scale')) || 1.05;
+    gsap.to(el, { scale: scale, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-scale-soft')) {
+    const scaleVal = parseFloat(style.getPropertyValue('--hover-scale-soft'));
+    const scale = (!isNaN(scaleVal) && scaleVal > 1.005) ? scaleVal : 1.02;
+    const shadow = style.getPropertyValue('--hover-shadow-soft').trim() || '0 6px 12px rgba(0, 0, 0, 0.12)';
+    const duration = parseFloat(style.getPropertyValue('--hover-duration-soft')) / 1000 || 0.35;
+    gsap.to(el, { scale: scale, boxShadow: shadow, duration: duration, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-shrink')) {
+    const scaleShrink = parseFloat(style.getPropertyValue('--hover-scale-shrink')) || 0.95;
+    gsap.to(el, { scale: scaleShrink, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-lift')) {
+    const yVal = style.getPropertyValue('--hover-y').trim() || '-6px';
+    const shadow = style.getPropertyValue('--hover-shadow').trim() || '0 10px 20px rgba(0, 0, 0, 0.15)';
+    gsap.to(el, { y: yVal, boxShadow: shadow, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow')) {
+    const yVal = style.getPropertyValue('--hover-y').trim() || '-6px';
+    gsap.to(el, { y: yVal, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-slide-right')) {
+    const xVal = style.getPropertyValue('--hover-x').trim() || '6px';
+    gsap.to(el, { x: xVal, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-tilt')) {
+    const rotateVal = style.getPropertyValue('--hover-rotate-tilt').trim() || '-3deg';
+    const scale = parseFloat(style.getPropertyValue('--hover-scale')) || 1.05;
+    gsap.to(el, { rotation: rotateVal, scale: scale, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-spin')) {
+    gsap.to(el, { rotation: 360, duration: 0.6, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-glow')) {
+    const glowColor = style.getPropertyValue('--hover-glow-color').trim() || 'rgba(255, 255, 255, 0.4)';
+    gsap.to(el, { filter: `drop-shadow(0px 0px 8px ${glowColor})`, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-arrow')) {
+    const arrow = el.querySelector('svg, i');
+    if (arrow) {
+      gsap.to(arrow, { x: 5, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
+    }
+  }
+}
+
+function handleGsapHoverOut(el) {
+  if (!el || typeof gsap === 'undefined') return;
+  const style = getComputedStyle(el);
+  const durationOut = parseFloat(style.getPropertyValue('--hover-duration-out')) / 1000 || 0.35;
+
+  if (el.classList.contains('hover-scale') || el.classList.contains('hover-shrink') || el.classList.contains('hover-tilt')) {
+    gsap.to(el, { scale: 1, rotation: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-scale-soft')) {
+    const duration = parseFloat(style.getPropertyValue('--hover-duration-soft')) / 1000 || 0.35;
+    gsap.to(el, { 
+      scale: 1, 
+      boxShadow: '0px 0px 0px rgba(0,0,0,0)', 
+      duration: duration, 
+      ease: 'power2.out', 
+      overwrite: 'auto',
+      clearProps: 'boxShadow,scale'
+    });
+  }
+
+  if (el.classList.contains('hover-lift')) {
+    gsap.to(el, { 
+      y: 0, 
+      boxShadow: '0px 0px 0px rgba(0,0,0,0)', 
+      duration: durationOut, 
+      ease: 'power2.out', 
+      overwrite: 'auto',
+      clearProps: 'boxShadow,y'
+    });
+  }
+
+  if (el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow')) {
+    gsap.to(el, { y: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-slide-right')) {
+    gsap.to(el, { x: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-spin')) {
+    gsap.to(el, { rotation: 0, duration: 0.6, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-glow')) {
+    gsap.to(el, { filter: 'drop-shadow(0px 0px 0px rgba(0,0,0,0))', duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  if (el.classList.contains('hover-arrow')) {
+    const arrow = el.querySelector('svg, i');
+    if (arrow) {
+      gsap.to(arrow, { x: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
+    }
+  }
+}
+
+function handleGsapPressIn(el) {
+  if (!el || typeof gsap === 'undefined') return;
+  const style = getComputedStyle(el);
+  const config = { scale: 0.97, y: 2, duration: 0.1, ease: 'power2.out', overwrite: 'auto' };
+  if (el.classList.contains('hover-lift')) {
+    config.boxShadow = style.getPropertyValue('--hover-shadow-active').trim() || '0 4px 8px rgba(0, 0, 0, 0.1)';
+  }
+  gsap.to(el, config);
+}
+
+function handleGsapPressOut(el) {
+  if (!el || typeof gsap === 'undefined') return;
+  const style = getComputedStyle(el);
+  const durationOut = parseFloat(style.getPropertyValue('--hover-duration-out')) / 1000 || 0.35;
+  const hasLift = el.classList.contains('hover-lift') || el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow');
+  const yVal = hasLift ? (style.getPropertyValue('--hover-y').trim() || '-6px') : 0;
+  const scaleVal = el.classList.contains('hover-scale') ? (parseFloat(style.getPropertyValue('--hover-scale')) || 1.05) : 1;
+  const shadowVal = el.classList.contains('hover-lift') ? (style.getPropertyValue('--hover-shadow').trim() || '0 10px 20px rgba(0, 0, 0, 0.15)') : 'none';
+
+  gsap.to(el, {
+    scale: scaleVal,
+    y: yVal,
+    boxShadow: shadowVal,
+    duration: durationOut,
+    ease: 'power2.out',
+    overwrite: 'auto'
+  });
+}
+
+/**
+ * Vincula de forma inteligente las animaciones de interacción con el mouse (hover, active) usando GSAP
+ * si está disponible, permitiendo una personalización transparente con variables CSS.
+ * Utiliza delegación de eventos en el documento para garantizar soporte reactivo automático tanto
+ * para elementos estáticos como dinámicos (cargados por fetch, innerHTML, pestañas o modales).
+ */
 export function initGsapHoverAnimations() {
   if (!hasGsap()) return;
 
-  const hoverSelectors = [
-    '.hover-scale',
-    '.hover-scale-soft',
-    '.hover-shrink',
-    '.hover-lift',
-    '.hover-lift-ns',
-    '.hover-lift-no-shadow',
-    '.hover-slide-right',
-    '.hover-tilt',
-    '.hover-spin',
-    '.hover-glow',
-    '.hover-press',
-    '.hover-arrow'
-  ];
+  if (typeof window !== 'undefined' && !window.__gsapHoverDelegated) {
+    window.__gsapHoverDelegated = true;
 
-  const elements = document.querySelectorAll(hoverSelectors.join(', '));
+    const hoverSelectors = [
+      '.hover-scale',
+      '.hover-scale-soft',
+      '.hover-shrink',
+      '.hover-lift',
+      '.hover-lift-ns',
+      '.hover-lift-no-shadow',
+      '.hover-slide-right',
+      '.hover-tilt',
+      '.hover-spin',
+      '.hover-glow',
+      '.hover-press',
+      '.hover-arrow'
+    ];
+    const selectorStr = hoverSelectors.join(', ');
 
-  elements.forEach(el => {
-    if (el.dataset.gsapHoverBound) return;
-    el.dataset.gsapHoverBound = "true";
+    document.addEventListener('mouseover', (e) => {
+      const el = e.target.closest(selectorStr);
+      if (!el) return;
+      if (e.relatedTarget && el.contains(e.relatedTarget)) return;
+      handleGsapHoverIn(el);
+    }, true);
 
-    // Registrar eventos
-    el.addEventListener('mouseenter', () => {
-      const style = getComputedStyle(el);
-      const durationIn = parseFloat(style.getPropertyValue('--hover-duration-in')) / 1000 || 0.25;
+    document.addEventListener('mouseout', (e) => {
+      const el = e.target.closest(selectorStr);
+      if (!el) return;
+      if (e.relatedTarget && el.contains(e.relatedTarget)) return;
+      handleGsapHoverOut(el);
+    }, true);
 
-      if (el.classList.contains('hover-scale')) {
-        const scale = parseFloat(style.getPropertyValue('--hover-scale')) || 1.05;
-        gsap.to(el, { scale: scale, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
-      }
+    document.addEventListener('mousedown', (e) => {
+      const el = e.target.closest('.hover-press');
+      if (!el) return;
+      handleGsapPressIn(el);
+    }, true);
 
-      if (el.classList.contains('hover-scale-soft')) {
-        const scale = parseFloat(style.getPropertyValue('--hover-scale-soft')) || 1.005;
-        const shadow = style.getPropertyValue('--hover-shadow-soft').trim() || '0 6px 12px rgba(0, 0, 0, 0.12)';
-        const duration = parseFloat(style.getPropertyValue('--hover-duration-soft')) / 1000 || 0.35;
-        gsap.to(el, { scale: scale, boxShadow: shadow, duration: duration, ease: 'power2.out', overwrite: 'auto' });
-      }
+    const releaseHandler = (e) => {
+      const el = e.target.closest('.hover-press');
+      if (!el) return;
+      handleGsapPressOut(el);
+    };
 
-      if (el.classList.contains('hover-shrink')) {
-        const scaleShrink = parseFloat(style.getPropertyValue('--hover-scale-shrink')) || 0.95;
-        gsap.to(el, { scale: scaleShrink, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-lift')) {
-        const yVal = style.getPropertyValue('--hover-y').trim() || '-6px';
-        const shadow = style.getPropertyValue('--hover-shadow').trim() || '0 10px 20px rgba(0, 0, 0, 0.15)';
-        gsap.to(el, { y: yVal, boxShadow: shadow, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow')) {
-        const yVal = style.getPropertyValue('--hover-y').trim() || '-6px';
-        gsap.to(el, { y: yVal, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-slide-right')) {
-        const xVal = style.getPropertyValue('--hover-x').trim() || '6px';
-        gsap.to(el, { x: xVal, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-tilt')) {
-        const rotateVal = style.getPropertyValue('--hover-rotate-tilt').trim() || '-3deg';
-        const scale = parseFloat(style.getPropertyValue('--hover-scale')) || 1.05;
-        gsap.to(el, { rotation: rotateVal, scale: scale, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-spin')) {
-        gsap.to(el, { rotation: 360, duration: 0.6, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-glow')) {
-        const glowColor = style.getPropertyValue('--hover-glow-color').trim() || 'rgba(255, 255, 255, 0.4)';
-        gsap.to(el, { filter: `drop-shadow(0px 0px 8px ${glowColor})`, duration: durationIn, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-arrow')) {
-        const arrow = el.querySelector('svg, i');
-        if (arrow) {
-          gsap.to(arrow, { x: 5, duration: durationIn, ease: 'back.out(1.5)', overwrite: 'auto' });
-        }
-      }
-    });
-
-    el.addEventListener('mouseleave', () => {
-      const style = getComputedStyle(el);
-      const durationOut = parseFloat(style.getPropertyValue('--hover-duration-out')) / 1000 || 0.35;
-
-      if (el.classList.contains('hover-scale') || el.classList.contains('hover-shrink') || el.classList.contains('hover-tilt')) {
-        gsap.to(el, { scale: 1, rotation: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-scale-soft')) {
-        const duration = parseFloat(style.getPropertyValue('--hover-duration-soft')) / 1000 || 0.35;
-        gsap.to(el, { 
-          scale: 1, 
-          boxShadow: '0px 0px 0px rgba(0,0,0,0)', 
-          duration: duration, 
-          ease: 'power2.out', 
-          overwrite: 'auto',
-          clearProps: 'boxShadow,scale'
-        });
-      }
-
-      if (el.classList.contains('hover-lift')) {
-        gsap.to(el, { 
-          y: 0, 
-          boxShadow: '0px 0px 0px rgba(0,0,0,0)', 
-          duration: durationOut, 
-          ease: 'power2.out', 
-          overwrite: 'auto',
-          clearProps: 'boxShadow,y'
-        });
-      }
-
-      if (el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow')) {
-        gsap.to(el, { y: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-slide-right')) {
-        gsap.to(el, { x: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-spin')) {
-        gsap.to(el, { rotation: 0, duration: 0.6, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-glow')) {
-        gsap.to(el, { filter: 'drop-shadow(0px 0px 0px rgba(0,0,0,0))', duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
-      }
-
-      if (el.classList.contains('hover-arrow')) {
-        const arrow = el.querySelector('svg, i');
-        if (arrow) {
-          gsap.to(arrow, { x: 0, duration: durationOut, ease: 'power2.out', overwrite: 'auto' });
-        }
-      }
-    });
-
-    if (el.classList.contains('hover-press')) {
-      el.addEventListener('mousedown', () => {
-        const style = getComputedStyle(el);
-        const config = { scale: 0.97, y: 2, duration: 0.1, ease: 'power2.out', overwrite: 'auto' };
-        if (el.classList.contains('hover-lift')) {
-          config.boxShadow = style.getPropertyValue('--hover-shadow-active').trim() || '0 4px 8px rgba(0, 0, 0, 0.1)';
-        }
-        gsap.to(el, config);
-      });
-
-      const handleRelease = () => {
-        const style = getComputedStyle(el);
-        const durationOut = parseFloat(style.getPropertyValue('--hover-duration-out')) / 1000 || 0.35;
-        const hasLift = el.classList.contains('hover-lift') || el.classList.contains('hover-lift-ns') || el.classList.contains('hover-lift-no-shadow');
-        const yVal = hasLift ? (style.getPropertyValue('--hover-y').trim() || '-6px') : 0;
-        const scaleVal = el.classList.contains('hover-scale') ? (parseFloat(style.getPropertyValue('--hover-scale')) || 1.05) : 1;
-        const shadowVal = el.classList.contains('hover-lift') ? (style.getPropertyValue('--hover-shadow').trim() || '0 10px 20px rgba(0, 0, 0, 0.15)') : 'none';
-
-        gsap.to(el, {
-          scale: scaleVal,
-          y: yVal,
-          boxShadow: shadowVal,
-          duration: durationOut,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      };
-
-      el.addEventListener('mouseup', handleRelease);
-      el.addEventListener('mouseleave', handleRelease);
-    }
-  });
-
+    document.addEventListener('mouseup', releaseHandler, true);
+  }
 }
 
 /**
