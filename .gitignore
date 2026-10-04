@@ -57,6 +57,7 @@
 *.xlsx
 *.ppt
 *.pptx
+*.md
 
 # Ejecutables & Binarios
 *.exe
