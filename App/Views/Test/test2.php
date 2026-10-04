@@ -5,9 +5,9 @@
   GraphicsModule::configStyle([
     "colorLabel" => "textw",
     "axisLabel"  => "#ffffff",
-    "color"      => "#ff0000",
+    "color"      => "#797979",
     "transition" => 500,
-    'tooltip'    => true
+    'tooltip'    => false
   ]);
 
   /** @var array $demo */
