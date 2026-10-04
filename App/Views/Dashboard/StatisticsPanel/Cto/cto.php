@@ -160,11 +160,11 @@
 
       <div class="flex-row center-end gap15 x13">
         <span class="flex-row center-start gap5">
-          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--success, #00b900);"></span>
+          <span class="back-success" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
           <p class="color-secondary">Enlaces: <strong><?= e((string)$barPctEnlaces); ?>%</strong></p>
         </span>
         <span class="flex-row center-start gap5">
-          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--back-color6, #003CFF);"></span>
+          <span class="back8" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
           <p class="color-secondary">RRSS: <strong><?= e((string)$barPctRrss); ?>%</strong></p>
         </span>
       </div>
