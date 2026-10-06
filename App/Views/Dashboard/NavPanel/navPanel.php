@@ -31,21 +31,24 @@
         </div>
       </div>
   
-      <div class="no-desk no-tablet hamburger-toggle pointer border-none flex-row center-center" aria-label="Menú">
-         <?= svg("bars", "x30");?>
-      </div>
-      <nav class="hamburger-menu from-left with-overlay animated hidden back-menu-sidebar shadow-card">
-        <div class="hamburger-content flex-column wpx280 h-dvh p0 overflow-y-auto before-menu">
-          <div class="flex-row center-end w100 p5 top3">
-            <div class="closed-hamburger closed-modal-preview flex-row center-center back-transparent border-none" aria-label="Cerrar menú">
-              <?= svg("xmark", "x20") ?>
+      <div class="no-desk no-tablet flex-row center-start gap10 w100">
+        <a href="/<?= e($username) ?>" class="back-card-graphic shadow-card-graphic hover-scale-soft p5 pl15 pr15 br50 texto pointer flex-row center-center gap5"><?= svg("arrow-l-l") ?> Ver perfil</a>
+        <!-- <div class="modal-btn animated pointer back-card-graphic shadow-card-graphic hover-scale-soft p5 pl12 pr12 br50 texto flex-row center-center gap5" aria-label="Cerrar sesión">
+          <?= svg("out") ?>
+        </div> -->
+        <div class="hidden">
+          <div class="w100 flex-column center-center h-dvh">
+            <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
+              <p class="x24 bold500 texto">¿Desea cerrar sesión?</p>
+
+              <div class="flex-row center-between gap10">
+                <a href="/salir" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500">Salir</a>
+                <p class="btn-card-graphic-red shadow-card-graphic hover-scale-soft text-c textc w100 pointer bold500 modal-close-button">Cancelar</p>
+              </div>
             </div>
           </div>
-          <div class="">
-            <?php _part("Dashboard.SideMenu.sideMenuPhone")?>
-          </div>
         </div>
-      </nav>
+      </div>
   
       <!-- Botones de Acción (Sección derecha) -->
       <div class="flex-row center-end gap10 w100">
@@ -70,10 +73,8 @@
         </div>
       </div>
   </nav>
+</div>
 
-  <div class="no-desk no-tablet flex-row center-start">
-
-    <a href="/<?= e($username) ?>" class="back-card-graphic shadow-card-graphic hover-scale-soft w-auto p5 pl15 pr15 br50 ml20 mt10 texto pointer"><?= svg("arrow-l-l") ?> Ver perfil</a>
-
-  </div>
+<div class="bottom-nav-bar no-desk no-tablet hpx80 back-body fixed bottom w100 z-index-20">
+  <?php _part("Dashboard.SideMenu.sideMenuPhone"); ?>
 </div>

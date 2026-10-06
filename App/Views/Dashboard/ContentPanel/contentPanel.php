@@ -7,7 +7,7 @@
    * @var mixed $session
    */
 ?>
-<div class="remote-container animated p40 p-sml-20">
+<div class="remote-container animated p40 p-sml-20 pb-sml-100">
 
   <div id="header-remote" class="remote-content flex-row top-center active">
     <div class="wpx630 w-mid-100 w-sml-100">
@@ -16,7 +16,7 @@
       ?>
     </div>
   </div>
-<!-- button-remote -->
+  <!-- button-remote -->
   <div id="background-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php
@@ -103,22 +103,41 @@
 
 </div>
 
-<!-- Script Anti-FOUT / Anti-Parpadeo Síncrono: Restaura el estado guardado del menú y panel antes del primer pintado del navegador -->
+<!-- Script Anti-FOUT / Anti-Parpadeo Síncrono: Restaura el estado guardado del menú y panel antes del primer pintado con expiración de 1 hora -->
 <script>
   (function() {
     try {
-      var key = 'vertical_menu_active_' + window.location.pathname + '_default';
-      var saved = localStorage.getItem(key);
-      if (!saved) return;
-      
-      var parsed = JSON.parse(saved);
-      if (!parsed || !parsed.remote) return;
-      
-      var targetId = parsed.remote;
+      var baseKey = 'vertical_menu_active_' + window.location.pathname;
+      var saved = localStorage.getItem(baseKey) || localStorage.getItem(baseKey + '_default');
+      var now = Date.now();
+      var ONE_HOUR = 60 * 60 * 1000; // 1 hora
+      var targetId = 'header-remote'; // Panel inicial por defecto: Diseño -> Cabecera
+      var hasValidMemory = false;
+
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && parsed.remote && typeof parsed.timestamp === 'number' && (now - parsed.timestamp < ONE_HOUR)) {
+          if (document.getElementById(parsed.remote)) {
+            targetId = parsed.remote;
+            hasValidMemory = true;
+            // Refrescar timestamp ante actividad/navegación dentro de la hora
+            var freshData = JSON.stringify({ remote: targetId, timestamp: now });
+            localStorage.setItem(baseKey, freshData);
+            localStorage.setItem(baseKey + '_default', freshData);
+          }
+        }
+      }
+
+      if (!hasValidMemory) {
+        // Expirado (> 1 hora) o sin timestamp: limpiar memoria
+        localStorage.removeItem(baseKey);
+        localStorage.removeItem(baseKey + '_default');
+      }
+
       var container = document.querySelector('.remote-container');
       var menu = document.querySelector('.vertical-menu');
 
-      // 1. Activar de inmediato el panel de contenido remoto correspondiente
+      // 1. Activar de inmediato el panel de contenido remoto correspondiente (Cabecera por defecto)
       if (container && document.getElementById(targetId)) {
         var contents = container.querySelectorAll('.remote-content');
         contents.forEach(function(c) {

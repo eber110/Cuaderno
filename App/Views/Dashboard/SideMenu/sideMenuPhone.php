@@ -1,73 +1,99 @@
 <?php
   /** 
-   * @var mixed $card 
-   * @var mixed $session
+   * Barra de navegación inferior móvil para el Dashboard.
+   * Navegación por niveles:
+   * 1. Menú Raíz: Diseño, Contenido, Estadísticas (proporción equitativa de 3 columnas).
+   * 2. Submenús: Botón House (volver al inicio) + sub-enlaces remotos con scroll horizontal
+   *    y tamaño mínimo de 80px por cuadro (touch targets óptimos).
    */
-  $item = "p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-start gap5 pointer";
 ?>
-<div class="flex-column between-start h-dvh back-menu-sidebar panel-sidebar pt-sml-35">
-  <div class="flex-column top-start gap20 w100 p15 bold500 x17 sticky top">
-  
-    <!-- <div class="sidebar-profile-status w100">
-      <?php _part("Dashboard.SideMenu.statusBanner", ["card" => $card, "session" => $session]); ?>
-    </div> -->
-    
-    <div id="side-menu-phone" class="vertical-menu animated w100" active-item="back-item-active" active-principal="back-item-active">
-      <div class="flex-column top-start gap10 w100">
-  
-        <!-- Grupo colapsable: Diseño -->
-        <div class="vertical-menu-item flex-column top-start gap10 w100">
-          <div class="vertical-menu-header w100 br10">
-            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
-              <p class="flex-row center-start gap5 texto"><?= svg("palette")?>Diseño</p>
-              <p class="color-icon-accordion"><?= svg("angle-d")?></p>
-            </div>
-          </div>
-          <div class="vertical-menu-content flex-column gap5 w100 hidden">
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20 active" data-remote="header-remote" data-savable="true"><?= svg("angle-r")?>Cabecera</a>
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote" data-savable="true"><?= svg("angle-r")?>Fondo</a>
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote" data-savable="true"><?= svg("angle-r")?>Botones</a>
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="color-remote" data-savable="true"><?= svg("angle-r")?>Colores</a>
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="hide-profile-remote" data-savable="true"><?= svg("angle-r")?>Visibilidad</a>
-          </div>
-        </div>
-  
-        <!-- Grupo colapsable: Contenido -->
-        <div class="vertical-menu-item flex-column top-start gap10 w100">
-          <div class="vertical-menu-header w100 br10">
-            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
-              <p class="flex-row center-start gap5 texto"><?= svg("file-pen")?>Contenido</p>
-              <p class="color-icon-accordion"><?= svg("angle-d")?></p>
-            </div>
-          </div>
-          <div class="vertical-menu-content flex-column gap5 w100 hidden">
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-button" data-savable="true"><?= svg("angle-r")?>Enlaces</a>
-            <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="Content-rrss" data-savable="true"><?= svg("angle-r")?>Redes sociales</a>
-          </div>
-        </div>
-        
-        <!-- Enlaces raíz (no editables) -->
-        <a href="javascript:void(0);" class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote" data-savable="false"><?= svg("chart")?>Estadísticas</a>
-  
-      </div>
-    </div>
+
+<div id="bottom-nav-phone" class="bottom-nav-container h100 w100 relative">
+
+  <!-- ========================================================
+       NIVEL 1: Menú Raíz (Diseño, Contenido, Estadísticas)
+       Mantiene la proporción exacta dividida entre los 3 (1/3 cada uno)
+       ======================================================== -->
+  <div id="bottom-nav-root" class="bottom-nav-track bottom-nav-root flex-row center-center h100 w100">
+    <button type="button" class="bottom-nav-btn flex-column center-center gap4 pointer" data-bottom-target="submenu-design" data-root-group="design" aria-label="Diseño">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("palette") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Diseño</span>
+    </button>
+
+    <button type="button" class="bottom-nav-btn flex-column center-center gap4 pointer" data-bottom-target="submenu-content" data-root-group="content" aria-label="Contenido">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("file-pen") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Contenido</span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="statistics-remote" data-savable="false" aria-label="Estadísticas">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("chart") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Estadísticas</span>
+    </button>
   </div>
 
-  <div class="flex-column top-start gap10 p20 w100">
-    <a href="javascript:void(0);" class="modal-btn animated darken <?= $item?>"><?= svg("out")?>Cerrar sesión</a>
+  <!-- ========================================================
+       NIVEL 2: Submenú Diseño
+       Primer cuadro: house.svg para volver al menú raíz
+       Siguientes: Cabecera, Fondo, Botones, Colores, Visibilidad
+       Mínimo 80px por cuadro con scroll horizontal fluido sin scrollbar
+       ======================================================== -->
+  <div id="submenu-design" class="bottom-nav-track flex-row center-start h100 w100 hidden" data-submenu-group="design">
+    <!-- Botón Inicio / Volver -->
+    <button type="button" class="bottom-nav-btn bottom-nav-btn-home flex-column center-center gap4 pointer" data-bottom-back="true" aria-label="Volver al menú principal">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("house") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Inicio</span>
+    </button>
 
-    <div class="hidden">
-      <div class="w100 flex-column center-center h-dvh">
-        <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-          <p class="x24 bold500 texto">¿Desea cerrar sesión?</p>
+    <!-- Sub-enlaces remotos de Diseño -->
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="header-remote" data-savable="true" aria-label="Cabecera">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("user") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Cabecera</span>
+    </button>
 
-          <div class="flex-row center-between gap10">
-            <a href="/salir" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500">Salir</a>
-            <p class="btn-card-graphic-red shadow-card-graphic hover-scale-soft text-c textc w100 pointer bold500 modal-close-button">Cancelar</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="background-remote" data-savable="true" aria-label="Fondo">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("images") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Fondo</span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="button-remote" data-savable="true" aria-label="Botones">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("sliders") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Botones</span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="color-remote" data-savable="true" aria-label="Colores">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("palette") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Colores</span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="hide-profile-remote" data-savable="true" aria-label="Visibilidad">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("eye") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Visibilidad</span>
+    </button>
   </div>
+
+  <!-- ========================================================
+       NIVEL 2: Submenú Contenido
+       Primer cuadro: house.svg para volver al menú raíz
+       Siguientes: Enlaces, Redes sociales
+       Mantiene la proporción con mínimo 80px
+       ======================================================== -->
+  <div id="submenu-content" class="bottom-nav-track flex-row center-start h100 w100 hidden" data-submenu-group="content">
+    <!-- Botón Inicio / Volver -->
+    <button type="button" class="bottom-nav-btn bottom-nav-btn-home flex-column center-center gap4 pointer" data-bottom-back="true" aria-label="Volver al menú principal">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("house") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Inicio</span>
+    </button>
+
+    <!-- Sub-enlaces remotos de Contenido -->
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="Content-button" data-savable="true" aria-label="Enlaces">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("link") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Enlaces</span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center gap4 pointer" data-remote="Content-rrss" data-savable="true" aria-label="Redes sociales">
+      <span class="bottom-nav-icon flex-row center-center"><?= svg("share-node") ?></span>
+      <span class="bottom-nav-label x12 bold500 texto">Redes</span>
+    </button>
+  </div>
+
 </div>

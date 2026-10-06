@@ -1092,4 +1092,145 @@ label:focus-within > .input-note.animated,
   hyphens: none !important;
 }
 
+/* ==========================================================================
+   Menú Inferior para Móviles (Bottom Navigation Phone)
+   ========================================================================== */
+
+.bottom-nav-bar {
+  height: 80px;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--back-body-theme, #ffffff);
+  border-top: solid 0.5px rgba(0, 0, 0, 0.08);
+  z-index: 30;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .bottom-nav-bar {
+  border-top: solid 0.5px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.bottom-nav-container {
+  height: 80px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.bottom-nav-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.bottom-nav-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* En el menú raíz, los 3 botones se dividen equitativamente */
+.bottom-nav-root .bottom-nav-btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* En submenús, cada botón mantiene la proporción pero con un mínimo de 80px */
+.bottom-nav-track:not(.bottom-nav-root) .bottom-nav-btn {
+  flex: 1 0 80px;
+  min-width: 80px;
+}
+
+.bottom-nav-btn {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.18s ease, transform 0.12s ease, color 0.18s ease;
+}
+
+.bottom-nav-btn:active {
+  transform: scale(0.94);
+}
+
+.bottom-nav-btn .bottom-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.bottom-nav-btn .bottom-nav-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.bottom-nav-btn .bottom-nav-label {
+  font-size: 11px;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botón activo */
+.bottom-nav-btn.active {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.bottom-nav-btn.active .bottom-nav-icon {
+  background-color: var(--back-color8, #00124D);
+  color: var(--text-secondary, #ffffff);
+}
+
+.bottom-nav-btn.active .bottom-nav-label {
+  font-weight: 700;
+}
+
+[data-theme="dark"] .bottom-nav-btn.active {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .bottom-nav-btn.active .bottom-nav-icon {
+  background-color: var(--back-color8, #F6D8BC);
+  color: var(--text-secondary, #051c31);
+}
+
+/* Divisor sutil para el botón House */
+.bottom-nav-btn-home {
+  border-right: solid 0.5px rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="dark"] .bottom-nav-btn-home {
+  border-right: solid 0.5px rgba(255, 255, 255, 0.1);
+}
+
+
 

@@ -36,20 +36,24 @@ export function saveButtonController() {
    * Obtiene el botón remoto activo actual soportando estado guardado en localStorage y clases de estado activo
    */
   function getActiveRemoteBtn() {
-    // 1. Priorizar búsqueda según estado guardado en localStorage
-    const storageKey = `vertical_menu_active_${window.location.pathname}_default`;
-    const savedStateStr = localStorage.getItem(storageKey);
-    if (savedStateStr) {
-      try {
-        const savedState = JSON.parse(savedStateStr);
-        if (savedState.remote) {
-          const targetBtn = document.querySelector(`.remote-btn[data-remote="${savedState.remote}"]`);
-          if (targetBtn) return targetBtn;
-        }
-      } catch (e) {}
+    // 1. Priorizar búsqueda según estado guardado en memoria con TTL de 1 hora
+    const activeRemoteId = (typeof window !== "undefined" && window.__menuMemory?.get)
+      ? window.__menuMemory.get()
+      : (typeof getMenuMemory === "function" ? getMenuMemory() : null);
+
+    if (activeRemoteId) {
+      const targetBtn = document.querySelector(`.remote-btn[data-remote="${activeRemoteId}"]`);
+      if (targetBtn) return targetBtn;
     }
 
-    // 2. Fallback a clases activas en el DOM
+    // 2. Fallback al panel de contenido remoto activo en el DOM
+    const activeContent = document.querySelector(".remote-container .remote-content.active");
+    if (activeContent && activeContent.id) {
+      const matchBtn = document.querySelector(`.remote-btn[data-remote="${activeContent.id}"]`);
+      if (matchBtn) return matchBtn;
+    }
+
+    // 3. Fallback a clases activas en el DOM
     return document.querySelector(".remote-btn.back-item-active, .remote-btn.active, .remote-btn[class*='active']");
   }
 

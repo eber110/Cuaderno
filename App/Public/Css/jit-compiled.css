@@ -251,7 +251,6 @@
 .sticky-top { position: sticky !important; top: 0%; }
 .top { top: 0%; }
 .top2 { top: 2%; }
-.top3 { top: 3%; }
 .br0 { border-radius: 0px !important; overflow: clip; }
 .br10 { border-radius: 10px !important; overflow: clip; }
 .br100 { border-radius: 100px !important; overflow: clip; }
@@ -387,7 +386,6 @@
 .wpx200 { width: 200px; }
 .wpx22 { width: 22px; }
 .wpx25 { width: 25px; }
-.wpx280 { width: 280px; }
 .wpx30 { width: 30px; }
 .wpx320 { width: 320px; }
 .wpx35 { width: 35px; }
@@ -802,6 +800,9 @@
 }
 @media screen and (max-width: 576px) {
   .pb-sml-10 { padding-bottom: 10px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pb-sml-100 { padding-bottom: 100px !important; }
 }
 @media screen and (max-width: 576px) {
   .pb-sml-50 { padding-bottom: 50px !important; }

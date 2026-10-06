@@ -4,7 +4,8 @@
     "component.js",
     "config.js",
     "querys.js",
-    "scrollObserver.js"
+    "scrollObserver.js",
+    "menuMemory.js"
   ],
   "exclude": [],
   "functions": {
@@ -45,7 +46,9 @@
       "productInfiniteCarousel": [],
       "scrollMemory": [],
       "textAnimator": [],
-      "svgChartAnimator": []
+      "svgChartAnimator": [],
+      "bottomNavPhone": [],
+      "menuMemory": []
     },
     "async": {}
   }
