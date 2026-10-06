@@ -206,7 +206,7 @@
           <span class="flex-row center-start gap8 bold500 texto">
             Redes Sociales (RRSS)
           </span>
-          <span class="badge p3 pl8 pr8 br8 x16 bold500 textw back8">
+          <span class="badge p3 pl8 pr8 br8 x16 bold500 textc back8">
             <?= e((string)$barPctRrss); ?>%
           </span>
         </div>
