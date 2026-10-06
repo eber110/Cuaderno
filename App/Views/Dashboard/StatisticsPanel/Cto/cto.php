@@ -225,7 +225,7 @@
 
     <!-- Conclusión inteligente del canal de mayor interés -->
     <div class="p10 pl15 pr15 br10 flex-row top-start gap20" style="background: rgba(128,128,128,0.06);">
-      <span class="color-primary"><?= svg("globe"); ?></span>
+      <!-- <span class="color-primary"><?= svg("globe"); ?></span> -->
       <p class="m0 color-secondary">
         <?php if ($predominantChannel === "rrss" || $predominantChannel === "rrss_history"): ?>
           Tus visitantes muestran mayor preferencia por conectar con tus <strong class="texto bold600">Redes Sociales</strong> (<?= e((string)$barPctRrss); ?>% de las interacciones).
