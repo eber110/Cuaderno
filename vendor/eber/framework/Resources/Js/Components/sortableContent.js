@@ -1096,8 +1096,8 @@ export function sortableContent() {
     });
 
     // 6. Disparar eventos nativos de ordenamiento
-    container.dispatchEvent(new CustomEvent("sortableChange", { bubbles: true, detail: { item: draggedItem, container } }));
-    document.dispatchEvent(new CustomEvent("sortableUpdated", { bubbles: true, detail: { item: draggedItem, container } }));
+    container.dispatchEvent(new CustomEvent("sortableChange", { bubbles: true, detail: { item: draggedItem, container, oldIndices: oldIndices } }));
+    document.dispatchEvent(new CustomEvent("sortableUpdated", { bubbles: true, detail: { item: draggedItem, container, oldIndices: oldIndices } }));
 
     // 7. Bloquear actualización asíncrona al backend (Local-First)
     // El orden ya fue modificado en el DOM y reflejado en el JSON local mediante eventos.

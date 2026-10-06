@@ -3531,8 +3531,13 @@ export function designDraftManager() {
         const newContentOrder = [];
         
         items.forEach((item, index) => {
-          const oldIndexStr = item.getAttribute("data-index");
-          const oldIndex = parseInt(oldIndexStr, 10);
+          let oldIndex = NaN;
+          if (e.detail && e.detail.oldIndices && e.detail.oldIndices[index] !== null && e.detail.oldIndices[index] !== undefined) {
+             oldIndex = e.detail.oldIndices[index];
+          } else {
+             const oldIndexStr = item.getAttribute("data-index");
+             oldIndex = parseInt(oldIndexStr, 10);
+          }
           
           if (!isNaN(oldIndex) && state.content[oldIndex]) {
              newContentOrder.push(state.content[oldIndex]);
