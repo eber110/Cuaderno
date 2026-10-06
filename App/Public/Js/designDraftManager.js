@@ -47,6 +47,7 @@ export function designDraftManager() {
                localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(serverState));
              } else {
                console.log("Borrador JSON restaurado desde localStorage. Listo para modificar directamente.");
+               rebuildDOMFromJsonDraft();
              }
           }
         }
@@ -57,6 +58,68 @@ export function designDraftManager() {
   }
   
   initJsonState();
+
+  // =========================================================================
+  // FASE 5: REDIBUJADO ABSOLUTO (SPA)
+  // =========================================================================
+  function rebuildDOMFromJsonDraft() {
+    const stateStr = localStorage.getItem(JSON_DRAFT_KEY);
+    if (!stateStr) return;
+    let state;
+    try {
+      state = JSON.parse(stateStr);
+    } catch(e) { return; }
+
+    if (!state || !Array.isArray(state.content)) return;
+
+    const listLeft = document.getElementById("sortable-content-list");
+    const listRight = document.getElementById("preview-widget-container");
+    if (!listLeft || !listRight) return;
+
+    listLeft.innerHTML = "";
+    listRight.innerHTML = "";
+
+    state.content.forEach((block, i) => {
+      const type = block.type || "link";
+      
+      const tplForm = document.getElementById("tpl_block_" + type);
+      if (tplForm) {
+        let htmlForm = tplForm.innerHTML.replace(/{{INDEX}}/g, i);
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlForm;
+        const newNode = tempDiv.firstElementChild;
+        if (newNode) {
+          listLeft.appendChild(newNode);
+          
+          Object.keys(block).forEach(key => {
+            const val = block[key];
+            const inputs = newNode.querySelectorAll(`[name="content[${i}][${key}]"]`);
+            inputs.forEach(input => {
+              if (input.type === "checkbox" || input.type === "radio") {
+                 input.checked = (val === true || val === "true" || val === 1 || val === "1" || input.value == val);
+              } else {
+                 input.value = val;
+              }
+            });
+          });
+          newNode.classList.add("is-collapsed");
+        }
+      }
+
+      const tplPreview = document.getElementById("tpl_preview_" + type);
+      if (tplPreview) {
+        let htmlPreview = tplPreview.innerHTML.replace(/{{INDEX}}/g, i);
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlPreview;
+        const newNodePreview = tempDiv.firstElementChild;
+        if (newNodePreview) {
+          listRight.appendChild(newNodePreview);
+        }
+      }
+    });
+
+    if (typeof window.initColorPickers === "function") window.initColorPickers();
+  }
 
   window.updateJsonDraft = function(modifierFunction) {
     try {
