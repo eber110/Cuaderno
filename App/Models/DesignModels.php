@@ -406,6 +406,23 @@ class DesignModels extends Builder {
    * @param array|string $param Parámetros POST recibidos del formulario.
    * @return bool True tras guardar el borrador en SQLite.
    */
+  /**
+   * Retorna el registro centralizado de tipos de bloques disponibles.
+   */
+  public static function getBlockTypes(): array {
+    return [
+      "link"          => ["name" => "Enlace", "icon" => "add", "viewBase" => "User."],
+      "video"         => ["name" => "Enlace de video", "icon" => "add", "viewBase" => "User.video"],
+      "product"       => ["name" => "Producto", "icon" => "add", "viewBase" => "User.productRegular"],
+      "product_group" => ["name" => "Grupo de productos", "icon" => "add", "viewBase" => "User.productGroup"],
+      "campaign"      => ["name" => "Campaña", "icon" => "add", "viewBase" => "User.campaign"],
+      "banner"        => ["name" => "Banner", "icon" => "add", "viewBase" => "User.banner"],
+      "title"         => ["name" => "Título", "icon" => "add", "viewBase" => "User.title"],
+      "text"          => ["name" => "Texto", "icon" => "add", "viewBase" => "User.text"],
+      "separator"     => ["name" => "Separador", "icon" => "add", "viewBase" => "User.separator"],
+    ];
+  }
+
   public static function updateCustomDesign(string $user, array|string $param): bool {
     // Si hay sesión activa, el usuario objetivo es obligatoriamente el usuario autenticado (anti-IDOR)
     $sessionUser = (class_exists('\Base\Module\Session') && \Base\Module\Session::session_active()) 

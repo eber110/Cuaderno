@@ -17,38 +17,15 @@
     <div class="flex-column top-start gap10 w100">
       <p class="bold500 x16 texto">Añadir nuevo elemento</p>
       <div class="flex-row center-start gap10 w100 wrap">
-        <button type="button" data-action="add-block-template" data-type="link" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Enlace
-        </button>
-        <button type="button" data-action="add-block-template" data-type="video" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Enlace de video
-        </button>
-        <button type="button" data-action="add-block-template" data-type="product" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Producto
-        </button>
-        <button type="button" data-action="add-block-template" data-type="product_group" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Grupo de productos
-        </button>
-        <button type="button" data-action="add-block-template" data-type="campaign" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Campaña
-        </button>
-        <button type="button" data-action="add-block-template" data-type="banner" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Banner
-        </button>
-        <button type="button" data-action="add-block-template" data-type="title" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Título
-        </button>
-        <button type="button" data-action="add-block-template" data-type="text" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Texto
-        </button>
-        <button type="button" data-action="add-block-template" data-type="separator" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
-          <?= svg("add") ?> Separador
-        </button>
-      </div>
+        <?php foreach (\App\Models\DesignModels::getBlockTypes() as $type => $config): ?>
+          <button type="button" data-action="add-block-template" data-type="<?= $type ?>" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
+            <?= svg($config["icon"]) ?> <?= $config["name"] ?>
+          </button>
+        <?php endforeach; ?>
+</div>
     </div>
 
     <!-- Lista de elementos existentes (Sortable Drag & Drop) -->
-    <div id="sortable-content-list" class="flex-column gap20 w100">
     <div id="sortable-content-list" class="flex-column gap20 w100">
       <?php for ($i=0; $i < $cant; $i++) {
         $item = $card["content"][$i];
@@ -61,7 +38,7 @@
 <!-- TEMPLATES PARA FASE 3 -->
 <div id="editor-templates" style="display:none;">
   <?php
-    $templateTypes = ["link", "video", "product", "product_group", "campaign", "banner", "title", "text", "separator"];
+    $templateTypes = array_keys(\App\Models\DesignModels::getBlockTypes());
     foreach ($templateTypes as $tType) {
       $i = "{{INDEX}}";
       $item = ["type" => $tType];

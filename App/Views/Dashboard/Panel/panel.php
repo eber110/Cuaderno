@@ -43,21 +43,14 @@
   <!-- TEMPLATES PREVIEW FASE 3 -->
   <div id="preview-templates" style="display:none;">
     <?php
-      $previewTypes = [
-        "link"          => "User." . ($card["style"] ?? "buttonRegular"),
-        "product"       => "User.productRegular",
-        "product_group" => "User.productGroup",
-        "campaign"      => "User.campaign",
-        "banner"        => "User.banner",
-        "title"         => "User.title",
-        "text"          => "User.text",
-        "separator"     => "User.separator",
-        "video"         => "User.video"
-      ];
       $dummyCard = $card;
       if (!isset($dummyCard["content"])) $dummyCard["content"] = [];
       
-      foreach ($previewTypes as $type => $partName) {
+      foreach (\App\Models\DesignModels::getBlockTypes() as $type => $config) {
+        $partName = $config["viewBase"];
+        if ($type === 'link') {
+          $partName .= ($card["style"] ?? "buttonRegular");
+        }
         $dummyCard["content"]['{{INDEX}}'] = [
           "type" => $type,
           "active" => true

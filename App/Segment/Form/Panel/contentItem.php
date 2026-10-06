@@ -1,3 +1,4 @@
+<?php
         $itemType   = $item["type"] ?? 'link';
         $itemImg    = $item["img"] ?? '';
         $itemTitle  = $item["title"] ?? '';
