@@ -38,6 +38,25 @@ export function designDraftManager() {
   // =========================================================================
 
   /**
+   * Valida si el borrador actual está desincronizado con la base de datos.
+   */
+  function validateDraftTimestamp() {
+    const tsMeta = document.querySelector('meta[name="last-updated-at"]');
+    if (tsMeta) {
+      const timestampBd = parseInt(tsMeta.getAttribute('content'), 10);
+      if (!isNaN(timestampBd)) {
+        const draft = getDraft();
+        if (draft._last_updated_at && timestampBd > draft._last_updated_at) {
+          console.warn("El borrador local es obsoleto respecto a la BD. Purgando...");
+          localStorage.removeItem(DRAFT_KEY);
+        }
+      }
+    }
+  }
+
+  validateDraftTimestamp();
+
+  /**
    * Obtiene los cambios acumulados en el borrador local.
    * @returns {Object} Diccionario con los campos modificados.
    */
@@ -56,7 +75,7 @@ export function designDraftManager() {
    */
   function saveDraftToStorage(draft) {
     try {
-      if (!draft || Object.keys(draft).length === 0) {
+      if (!draft || Object.keys(draft).length === 0 || (Object.keys(draft).length === 1 && draft._last_updated_at)) {
         localStorage.removeItem(DRAFT_KEY);
       } else {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -76,6 +95,18 @@ export function designDraftManager() {
     if (!name) return;
     const draft = getDraft();
     draft[name] = value;
+    
+    // Almacenar el timestamp actual de la BD como base de este borrador
+    if (!draft._last_updated_at) {
+      const tsMeta = document.querySelector('meta[name="last-updated-at"]');
+      if (tsMeta) {
+        const timestampBd = parseInt(tsMeta.getAttribute('content'), 10);
+        if (!isNaN(timestampBd)) {
+          draft._last_updated_at = timestampBd;
+        }
+      }
+    }
+    
     saveDraftToStorage(draft);
   }
 
@@ -3297,6 +3328,70 @@ export function designDraftManager() {
   } else {
     initRestoration();
   }
+
+
+  // Lógica para añadir nuevos bloques usando <template> en lugar de submit
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest("button[data-action=\"add-block-template\"]");
+    if (btn) {
+      e.preventDefault();
+      const type = btn.getAttribute("data-type");
+      if (!type) return;
+
+      const list = document.getElementById("sortable-content-list");
+      if (!list) return;
+
+      // Calcular nuevo índice (usando la cantidad actual + timestamp para evitar colisiones)
+      const items = list.querySelectorAll(".sortable-item");
+      const newIndex = items.length + "_" + Date.now();
+
+      // 1. Obtener el template del formulario (Left side)
+      const tplForm = document.getElementById("tpl_block_" + type);
+      if (tplForm) {
+        let htmlForm = tplForm.innerHTML.replace(/{{INDEX}}/g, newIndex);
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlForm;
+        const newNode = tempDiv.firstElementChild;
+        if (newNode) {
+          list.insertBefore(newNode, list.firstChild);
+          newNode.classList.remove("is-collapsed");
+          newNode.classList.add("is-open");
+        }
+      }
+
+      // 2. Obtener el template del Preview (Right side)
+      const tplPreview = document.getElementById("tpl_preview_" + type);
+      const widgetContainer = document.getElementById("preview-widget-container");
+      if (tplPreview && widgetContainer) {
+        let htmlPreview = tplPreview.innerHTML.replace(/{{INDEX}}/g, newIndex);
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlPreview;
+        const newNodePreview = tempDiv.firstElementChild;
+        if (newNodePreview) {
+          widgetContainer.insertBefore(newNodePreview, widgetContainer.firstChild);
+        }
+      }
+
+      // Disparar eventos para que el sistema sepa que hubo cambios
+      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      
+      // Forzamos un "setDraftField" virtual para el botón de guardar y el manager
+      setDraftField("added_blocks_" + newIndex, type);
+      
+      setTimeout(() => {
+        if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+          window.__saveButtonController.enableSaveButton();
+        }
+        // Inicializar plugins si existen (ej. colorpicker)
+        if (typeof initColorPickers === "function") initColorPickers();
+      }, 50);
+    }
+  });
+  document.addEventListener("sortableUpdated", e => {
+    if(e.detail && e.detail.container && e.detail.container.id === "sortable-content-list") {
+      setDraftField("is_reorder", "true");
+    }
+  });
 
   window.addEventListener("pageshow", initRestoration);
 }

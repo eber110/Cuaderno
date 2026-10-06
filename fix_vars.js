@@ -1,0 +1,1 @@
+const fs = require('fs'); let code = fs.readFileSync('App/Segment/Form/Panel/contentItem.php', 'utf8'); code = code.replace(/\\\\[\"content\"\\]\\[\\\\]/g, '\\'); fs.writeFileSync('App/Segment/Form/Panel/contentItem.php', code);

@@ -138,7 +138,8 @@ class DesignModels extends Builder {
         "color"        => $row["color"] ?? "#494949",
         "colorShadow3" => $row["color_shadow3"] ?? "#000000",
         "rrss"         => is_array($rrss) ? $rrss : [],
-        "content"      => is_array($content) ? $content : []
+        "content"      => is_array($content) ? $content : [],
+        "last_updated_at" => !empty($row["updated_at"]) ? strtotime($row["updated_at"]) : (!empty($row["created_at"]) ? strtotime($row["created_at"]) : time())
       ]
     ];
   }

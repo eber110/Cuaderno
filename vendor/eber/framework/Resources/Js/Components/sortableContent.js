@@ -1099,28 +1099,11 @@ export function sortableContent() {
     container.dispatchEvent(new CustomEvent("sortableChange", { bubbles: true, detail: { item: draggedItem, container } }));
     document.dispatchEvent(new CustomEvent("sortableUpdated", { bubbles: true, detail: { item: draggedItem, container } }));
 
-    // 7. Disparar actualización asíncrona mediante submitRemoteFormAjax pasando is_reorder
-    const form = container.closest("form.auto-submit") || container.closest("form");
-    if (form) {
-      if (window.__designDraftManager && typeof window.__designDraftManager.submitRemoteFormAjax === "function") {
-        window.__designDraftManager.submitRemoteFormAjax(form, { name: "is_reorder", value: "true" })
-          .then((success) => {
-            if (success !== false) {
-              showSyncIndicator(container, draggedItem, "success", "✓ Orden guardado");
-            } else {
-              showSyncIndicator(container, draggedItem, "error", "⚠ Error al guardar");
-            }
-          })
-          .catch(() => {
-            showSyncIndicator(container, draggedItem, "error", "⚠ Error al guardar");
-          });
-      } else if (typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-        showSyncIndicator(container, draggedItem, "success", "✓ Orden guardado");
-      } else {
-        form.submit();
-      }
-    }
+    // 7. Bloquear actualización asíncrona al backend (Local-First)
+    // El orden ya fue modificado en el DOM y reflejado en el JSON local mediante eventos.
+    setTimeout(() => {
+      showSyncIndicator(container, draggedItem, "success", "✓ Orden guardado localmente");
+    }, 50);
   }
 
   // API pública global
