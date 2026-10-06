@@ -24,6 +24,53 @@ export function designDraftManager() {
   const DRAFT_KEY = `cuaderno_design_draft_${user}`;
   const INITIAL_KEY = `cuaderno_design_initial_${user}`;
 
+  const JSON_DRAFT_KEY = `cuaderno_design_json_draft_${user}`;
+
+  function initJsonState() {
+    const jsonTag = document.getElementById("initial-design-state");
+    if (jsonTag) {
+      try {
+        const serverState = JSON.parse(jsonTag.textContent);
+        const existingDraft = localStorage.getItem(JSON_DRAFT_KEY);
+        
+        if (!existingDraft) {
+          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(serverState));
+          console.log("JSON Inicial cargado en localStorage.");
+        } else {
+          const draftState = JSON.parse(existingDraft);
+          const tsMeta = document.querySelector('meta[name="last-updated-at"]');
+          if (tsMeta) {
+             const ts = parseInt(tsMeta.getAttribute("content"), 10);
+             if (!isNaN(ts) && ts > (draftState.last_updated_at || 0)) {
+               console.warn("Borrador JSON obsoleto, reemplazando con versión del servidor...");
+               serverState.last_updated_at = ts;
+               localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(serverState));
+             } else {
+               console.log("Borrador JSON restaurado desde localStorage. Listo para modificar directamente.");
+             }
+          }
+        }
+      } catch(e) {
+        console.error("Error inicializando estado JSON", e);
+      }
+    }
+  }
+  
+  initJsonState();
+
+  window.updateJsonDraft = function(modifierFunction) {
+    try {
+      const stateStr = localStorage.getItem(JSON_DRAFT_KEY);
+      if (stateStr) {
+        let state = JSON.parse(stateStr);
+        state = modifierFunction(state) || state;
+        localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+      }
+    } catch(e) {
+      console.error("Error actualizando JSON draft", e);
+    }
+  };
+
   function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     if (meta && meta.getAttribute('content')) {
@@ -91,8 +138,25 @@ export function designDraftManager() {
    * @param {string} name Nombre del campo
    * @param {*} value Valor del campo
    */
+  function updateJsonDraftFromPath(path, value) {
+    window.updateJsonDraft(state => {
+      // Regex para encontrar arrays como content[0][title] o variables directas como title
+      const parts = path.split(/\[|\]\[|\]/).filter(Boolean);
+      let current = state;
+      for (let i = 0; i < parts.length - 1; i++) {
+        let part = parts[i];
+        if (current[part] === undefined) {
+           current[part] = (isNaN(parseInt(parts[i+1], 10))) ? {} : [];
+        }
+        current = current[part];
+      }
+      current[parts[parts.length - 1]] = value;
+      return state;
+    });
+  }
   function setDraftField(name, value) {
     if (!name) return;
+    updateJsonDraftFromPath(name, value);
     const draft = getDraft();
     draft[name] = value;
     
@@ -3378,6 +3442,12 @@ export function designDraftManager() {
       // Forzamos un "setDraftField" virtual para el botón de guardar y el manager
       setDraftField("added_blocks_" + newIndex, type);
       
+      window.updateJsonDraft(state => {
+        if (!state.content) state.content = [];
+        state.content.unshift({ type: type, active: true });
+        return state;
+      });
+      
       setTimeout(() => {
         if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
           window.__saveButtonController.enableSaveButton();
@@ -3390,6 +3460,27 @@ export function designDraftManager() {
   document.addEventListener("sortableUpdated", e => {
     if(e.detail && e.detail.container && e.detail.container.id === "sortable-content-list") {
       setDraftField("is_reorder", "true");
+      
+      window.updateJsonDraft(state => {
+        if (!state.content) return state;
+        
+        const items = Array.from(e.detail.container.querySelectorAll(".sortable-item"));
+        const newContentOrder = [];
+        
+        items.forEach((item, index) => {
+          const oldIndexStr = item.getAttribute("data-index");
+          const oldIndex = parseInt(oldIndexStr, 10);
+          
+          if (!isNaN(oldIndex) && state.content[oldIndex]) {
+             newContentOrder.push(state.content[oldIndex]);
+          } else {
+             newContentOrder.push({ type: "link", active: true });
+          }
+        });
+        
+        state.content = newContentOrder;
+        return state;
+      });
     }
   });
 
