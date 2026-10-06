@@ -612,6 +612,7 @@ export function sortableContent() {
     let touchInitialIndex = null;
     let isTouchDragging = false;
     let autoScrollRaf = null;
+    let touchDelayTimeout = null;
 
     /**
      * Obtiene el contenedor desplazable más cercano o window.
@@ -711,22 +712,11 @@ export function sortableContent() {
       const deltaY = Math.abs(touch.clientY - touchStartY);
 
       if (!isTouchDragging) {
-        // Si el usuario desliza horizontalmente de forma marcada, cancelar arrastre para permitir gestos del navegador
-        if (deltaX > 12 && deltaX > deltaY) {
+        // Si se mueve más de 10px antes de que se active el drag (por el delay), 
+        // asumimos que el usuario está haciendo scroll y cancelamos el drag
+        if (deltaX > 10 || deltaY > 10) {
           cleanUpTouch();
           return;
-        }
-
-        // Superar umbral para confirmar arrastre
-        if (deltaY > 6 && deltaY >= deltaX) {
-          isTouchDragging = true;
-          isDragging = true;
-          touchItem.classList.add("dragging");
-          touchItem.style.opacity = "0.4";
-
-          if (window.getSelection) {
-            window.getSelection().removeAllRanges();
-          }
         }
       }
 
@@ -804,6 +794,10 @@ export function sortableContent() {
     };
 
     function cleanUpTouch() {
+      if (touchDelayTimeout) {
+        clearTimeout(touchDelayTimeout);
+        touchDelayTimeout = null;
+      }
       stopAutoScroll();
       window.removeEventListener("touchmove", onTouchMove, { passive: false });
       window.removeEventListener("touchend", onTouchEnd);
@@ -834,6 +828,20 @@ export function sortableContent() {
       const allItems = [...container.querySelectorAll(".sortable-item")];
       touchInitialIndex = allItems.indexOf(item);
       isTouchDragging = false;
+      
+      // Delay de 500ms (medio segundo) para arrastrar en táctil
+      touchDelayTimeout = setTimeout(() => {
+        isTouchDragging = true;
+        isDragging = true;
+        touchItem.classList.add("dragging");
+        touchItem.style.opacity = "0.4";
+        
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        if (window.getSelection) {
+          window.getSelection().removeAllRanges();
+        }
+      }, 500);
 
       window.addEventListener("touchmove", onTouchMove, { passive: false });
       window.addEventListener("touchend", onTouchEnd);
