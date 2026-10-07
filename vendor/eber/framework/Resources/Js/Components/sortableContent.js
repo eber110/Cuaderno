@@ -978,8 +978,10 @@ export function sortableContent() {
         const allItems = Array.from(container.querySelectorAll(".sortable-item"));
 
         allItems.forEach((item) => {
-          const nameInput = item.querySelector('input[name*="[0]"]');
-          const name = nameInput ? nameInput.value.trim().toLowerCase() : "";
+          const name = item.getAttribute("data-rrss-name") 
+            || item.querySelector('input[name$="[0]"]')?.value?.trim()?.toLowerCase()
+            || item.querySelector('input[type="hidden"][name*="[0]"]')?.value?.trim()?.toLowerCase()
+            || "";
           if (name) {
             const previewLink = rrssWrapper.querySelector(`[data-link-id="rrss_${name}"]`);
             if (previewLink) {

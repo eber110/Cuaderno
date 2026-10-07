@@ -118,7 +118,7 @@
           $isOpen = (trim($itemTitle) === '' && trim($itemUrl) === '');
         }
       ?>
-        <div id="content-item-<?= $i?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">
+        <div id="content-item-<?= $i?>" data-block-id="<?= e($item['id'] ?? '') ?>" data-index="<?= $i ?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">
           
           <!-- Cabecera del bloque (Siempre visible) -->
           <div class="content-item-header flex-row center-between gap10 w100 pointer">

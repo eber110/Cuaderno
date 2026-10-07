@@ -51,7 +51,7 @@
           $socialUrl = "https://" . $socialUrl;
         }
       ?>
-        <div id="rrss-item-<?= $i?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15" draggable="false">
+        <div id="rrss-item-<?= $i?>" data-rrss-name="<?= e($socialName) ?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15" draggable="false">
           <div class="flex-row center-between">
             <div class="flex-row center-start gap10 pointer drag-handle">
               <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>

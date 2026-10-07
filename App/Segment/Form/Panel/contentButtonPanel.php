@@ -39,12 +39,59 @@
 <div id="editor-templates" style="display:none;">
   <?php
     $templateTypes = array_keys(\App\Models\DesignModels::getBlockTypes());
+    $allowedStyles = ["buttonRegular"];
+    $rawStyle  = $card["style"] ?? "buttonRegular";
+    $cardStyle = in_array($rawStyle, $allowedStyles, true) ? $rawStyle : "buttonRegular";
+
     foreach ($templateTypes as $tType) {
       $i = "{{INDEX}}";
       $item = ["type" => $tType];
+      
       echo "<template id=\"tpl_block_{$tType}\">";
       include __DIR__ . "/contentItem.php";
       echo "</template>";
+
+      $partName = match ($tType) {
+        "link"          => "User." . $cardStyle,
+        "product"       => "User.productRegular",
+        "product_group" => "User.productGroup",
+        "campaign"      => "User.campaign",
+        "banner"        => "User.banner",
+        "title"         => "User.title",
+        "text"          => "User.text",
+        "separator"     => "User.separator",
+        "video"         => "User.video",
+        default         => null,
+      };
+
+      if ($partName) {
+         $mockCard = $card;
+         $mockCard["content"]["{{INDEX}}"] = [
+            "type"        => $tType,
+            "title"       => "",
+            "url"         => "",
+            "metaTitle"   => "",
+            "metaDesc"    => "",
+            "metaImg"     => "",
+            "img"         => "no-image.webp",
+            "imgSrc"      => "",
+            "imgShow"     => false,
+            "active"      => true,
+            "price"       => "",
+            "offer"       => false,
+            "discount"    => "",
+            "porcentage"  => 0,
+            "products"    => []
+         ];
+         echo "<template id=\"tpl_preview_{$tType}\">";
+         _part($partName, [
+            "dataContent" => "{{INDEX}}",
+            "card"        => $mockCard,
+            "isActive"    => true,
+            "isPreview"   => true
+         ]);
+         echo "</template>";
+      }
     }
   ?>
 </div>

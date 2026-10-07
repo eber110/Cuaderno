@@ -7,7 +7,10 @@
 
 <div class="container-xl h-dvh back-body overflow-y-scroll text-protected">
   
-  <meta name="last-updated-at" content="<?= $card['last_updated_at'] ?? time() ?>">
+  <meta name="last-updated-at" content="<?= (int)($card['last_updated_at'] ?? 0) ?>">
+  <script>
+    window.INITIAL_PROFILE_JSON = <?= json_encode($card, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+  </script>
 
   <div class="flex-row top-start">
 

@@ -106,6 +106,16 @@ class DesignModels extends Builder {
     $borders = is_string($row["borders"] ?? null) ? json_decode($row["borders"], true) : ($row["borders"] ?? ["br0", "br0"]);
     $rrss    = is_string($row["rrss"] ?? null) ? json_decode($row["rrss"], true) : ($row["rrss"] ?? []);
     $content = is_string($row["content"] ?? null) ? json_decode($row["content"], true) : ($row["content"] ?? []);
+    if (is_array($content)) {
+      foreach ($content as $idx => &$cItem) {
+        if (!is_array($cItem)) continue;
+        if (empty($cItem["id"])) {
+          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "") . "_" . $idx;
+          $cItem["id"] = "blk_" . substr(md5($seed), 0, 8);
+        }
+      }
+      unset($cItem);
+    }
 
     return [
       "card" => [
@@ -139,7 +149,7 @@ class DesignModels extends Builder {
         "colorShadow3" => $row["color_shadow3"] ?? "#000000",
         "rrss"         => is_array($rrss) ? $rrss : [],
         "content"      => is_array($content) ? $content : [],
-        "last_updated_at" => !empty($row["updated_at"]) ? strtotime($row["updated_at"]) : (!empty($row["created_at"]) ? strtotime($row["created_at"]) : time())
+        "last_updated_at" => !empty($row["updated_at"]) ? strtotime($row["updated_at"]) : (!empty($row["created_at"]) ? strtotime($row["created_at"]) : 0)
       ]
     ];
   }
@@ -376,7 +386,8 @@ class DesignModels extends Builder {
       "color"        => "#494949",
       "colorShadow3" => "#000000",
       "rrss"         => [],
-      "content"      => []
+      "content"      => [],
+      "last_updated_at" => 0
     ];
   }
 
@@ -613,11 +624,13 @@ class DesignModels extends Builder {
       }
 
       foreach ($param["content"] as $index => $item) {
-        $existingItem = $existingContentList[$index] ?? [];
-        if (!empty($existingItem) && is_array($existingItem)) {
-          $item = array_merge($existingItem, $item);
+        if (!$isExplicitListAction) {
+          $existingItem = $existingContentList[$index] ?? [];
+          if (!empty($existingItem) && is_array($existingItem)) {
+            $item = array_merge($existingItem, $item);
+          }
         }
-        $oldImg = $existingContentList[$index]["img"] ?? "no-image.webp";
+        $oldImg = $item["img"] ?? ($existingContentList[$index]["img"] ?? "no-image.webp");
 
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
           if (($item["type"] ?? "") === "product_group" && isset($existingContentList[$index]["products"]) && is_array($existingContentList[$index]["products"])) {

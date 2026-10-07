@@ -26,30 +26,50 @@ export function designDraftManager() {
 
   const JSON_DRAFT_KEY = `cuaderno_design_json_draft_${user}`;
 
+  function appendFormDataRecursive(fd, data, parentKey = '') {
+    if (data && typeof data === 'object' && !(data instanceof File) && !(data instanceof Blob)) {
+      Object.keys(data).forEach(key => {
+        const fieldKey = parentKey ? `${parentKey}[${key}]` : key;
+        appendFormDataRecursive(fd, data[key], fieldKey);
+      });
+    } else {
+      if (parentKey && !parentKey.includes('[')) {
+         fd.delete(parentKey);
+      }
+      fd.append(parentKey, data === null ? '' : data);
+    }
+  }
+
   function initJsonState() {
-    const jsonTag = document.getElementById("initial-design-state");
-    if (jsonTag) {
+    if (window.INITIAL_PROFILE_JSON) {
       try {
-        const serverState = JSON.parse(jsonTag.textContent);
-        const existingDraft = localStorage.getItem(JSON_DRAFT_KEY);
+        const serverState = window.INITIAL_PROFILE_JSON;
+        const existingDraftStr = localStorage.getItem(JSON_DRAFT_KEY);
         
-        if (!existingDraft) {
-          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(serverState));
-          console.log("JSON Inicial cargado en localStorage.");
+        let shouldWipe = false;
+        let ts = 0;
+        const tsMeta = document.querySelector('meta[name="last-updated-at"]');
+        if (tsMeta) {
+           ts = parseInt(tsMeta.getAttribute("content"), 10);
+        }
+
+        if (!existingDraftStr) {
+          shouldWipe = true;
         } else {
-          const draftState = JSON.parse(existingDraft);
-          const tsMeta = document.querySelector('meta[name="last-updated-at"]');
-          if (tsMeta) {
-             const ts = parseInt(tsMeta.getAttribute("content"), 10);
-             if (!isNaN(ts) && ts > (draftState.last_updated_at || 0)) {
-               console.warn("Borrador JSON obsoleto, reemplazando con versión del servidor...");
-               serverState.last_updated_at = ts;
-               localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(serverState));
-             } else {
-               console.log("Borrador JSON restaurado desde localStorage. Listo para modificar directamente.");
-               rebuildDOMFromJsonDraft();
-             }
+          const draftState = JSON.parse(existingDraftStr);
+          const localTs = draftState.draft?.last_updated_at || draftState.last_updated_at || 0;
+          if (!isNaN(ts) && ts > 0 && localTs > 0 && ts > localTs) {
+            shouldWipe = true;
+            console.warn("Borrador JSON obsoleto, reemplazando con versión del servidor...");
           }
+        }
+
+        if (shouldWipe) {
+           const newState = { ...serverState, last_updated_at: ts || serverState.last_updated_at || 0 };
+           localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(newState));
+           console.log("JSON Inicial (completo) cargado en localStorage.");
+        } else {
+           console.log("Borrador JSON restaurado desde localStorage. Listo para modificar directamente.");
         }
       } catch(e) {
         console.error("Error inicializando estado JSON", e);
@@ -59,66 +79,103 @@ export function designDraftManager() {
   
   initJsonState();
 
-  // =========================================================================
-  // FASE 5: REDIBUJADO ABSOLUTO (SPA)
-  // =========================================================================
-  function rebuildDOMFromJsonDraft() {
-    const stateStr = localStorage.getItem(JSON_DRAFT_KEY);
-    if (!stateStr) return;
-    let state;
-    try {
-      state = JSON.parse(stateStr);
-    } catch(e) { return; }
-
-    if (!state || !Array.isArray(state.content)) return;
-
-    const listLeft = document.getElementById("sortable-content-list");
-    const listRight = document.getElementById("preview-widget-container");
-    if (!listLeft || !listRight) return;
-
-    listLeft.innerHTML = "";
-    listRight.innerHTML = "";
-
-    state.content.forEach((block, i) => {
-      const type = block.type || "link";
-      
-      const tplForm = document.getElementById("tpl_block_" + type);
-      if (tplForm) {
-        let htmlForm = tplForm.innerHTML.replace(/{{INDEX}}/g, i);
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = htmlForm;
-        const newNode = tempDiv.firstElementChild;
-        if (newNode) {
-          listLeft.appendChild(newNode);
-          
-          Object.keys(block).forEach(key => {
-            const val = block[key];
-            const inputs = newNode.querySelectorAll(`[name="content[${i}][${key}]"]`);
-            inputs.forEach(input => {
-              if (input.type === "checkbox" || input.type === "radio") {
-                 input.checked = (val === true || val === "true" || val === 1 || val === "1" || input.value == val);
-              } else {
-                 input.value = val;
-              }
-            });
-          });
-          newNode.classList.add("is-collapsed");
-        }
-      }
-
-      const tplPreview = document.getElementById("tpl_preview_" + type);
-      if (tplPreview) {
-        let htmlPreview = tplPreview.innerHTML.replace(/{{INDEX}}/g, i);
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = htmlPreview;
-        const newNodePreview = tempDiv.firstElementChild;
-        if (newNodePreview) {
-          listRight.appendChild(newNodePreview);
-        }
+  function linkPreviewBlockIds() {
+    const preview = document.getElementById("preview-widget-container");
+    if (!preview) return;
+    preview.querySelectorAll("[data-content-index]").forEach((el) => {
+      const idx = el.getAttribute("data-content-index");
+      const editorItem = document.getElementById("content-item-" + idx);
+      if (editorItem) {
+        const blkId = editorItem.getAttribute("data-block-id");
+        if (blkId) el.setAttribute("data-block-id", blkId);
       }
     });
+  }
 
-    if (typeof window.initColorPickers === "function") window.initColorPickers();
+  function reindexEditorDOM(container) {
+    if (!container) return;
+    const items = Array.from(container.querySelectorAll(".sortable-item"));
+    items.forEach((item, index) => {
+      item.id = `content-item-${index}`;
+      item.setAttribute("data-index", String(index));
+      const elements = item.querySelectorAll("*");
+      elements.forEach((el) => {
+        const name = el.getAttribute("name");
+        if (name && name.startsWith("content[")) {
+          el.setAttribute("name", name.replace(/^content\[\d+\]/, `content[${index}]`));
+        }
+      });
+    });
+  }
+
+  function restoreOrderFromDraft() {
+    const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
+    if (!storedStr) return;
+    let state;
+    try { state = JSON.parse(storedStr); } catch (e) { return; }
+    const draft = state.draft || state;
+
+    // 1. Restaurar orden de Bloques de Contenido
+    if (draft && Array.isArray(draft.content)) {
+      const editorList = document.getElementById("sortable-content-list");
+      const preview = document.getElementById("preview-widget-container");
+      if (editorList) {
+        linkPreviewBlockIds();
+        let changed = false;
+        draft.content.forEach((block) => {
+          if (!block || !block.id) return;
+          const editorEl = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
+          if (editorEl) {
+            editorList.appendChild(editorEl);
+            changed = true;
+          }
+          if (preview) {
+            const prevEl = preview.querySelector(`[data-block-id="${block.id}"]`);
+            if (prevEl) {
+              preview.appendChild(prevEl);
+            }
+          }
+        });
+        if (changed) {
+          reindexEditorDOM(editorList);
+        }
+      }
+    }
+
+    // 2. Restaurar orden de Redes Sociales
+    if (draft && Array.isArray(draft.rrss)) {
+      const rrssList = document.getElementById("sortable-rrss-list");
+      const previewLinks = document.querySelectorAll(".user-profile-preview [data-link-id^=\"rrss_\"]");
+      const rrssPreviewWrapper = previewLinks[0]?.parentElement;
+      if (rrssList) {
+        draft.rrss.forEach((r) => {
+          const name = (Array.isArray(r) ? r[0] : r?.name || "").toLowerCase();
+          if (!name) return;
+          const rrssEl = rrssList.querySelector(`.sortable-item[data-rrss-name="${name}"]`);
+          if (rrssEl) {
+            rrssList.appendChild(rrssEl);
+          }
+          if (rrssPreviewWrapper) {
+            const prevLink = rrssPreviewWrapper.querySelector(`[data-link-id="rrss_${name}"]`);
+            if (prevLink) {
+              rrssPreviewWrapper.appendChild(prevLink);
+            }
+          }
+        });
+
+        // Re-indexar rrss inputs
+        const items = rrssList.querySelectorAll(".sortable-item");
+        items.forEach((item, index) => {
+          item.id = `rrss-item-${index}`;
+          item.querySelectorAll("input").forEach((input) => {
+            const n = input.getAttribute("name");
+            if (n && n.startsWith("rrss[")) {
+              input.setAttribute("name", n.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
+            }
+          });
+        });
+      }
+    }
   }
 
   window.updateJsonDraft = function(modifierFunction) {
@@ -126,8 +183,14 @@ export function designDraftManager() {
       const stateStr = localStorage.getItem(JSON_DRAFT_KEY);
       if (stateStr) {
         let state = JSON.parse(stateStr);
-        state = modifierFunction(state) || state;
-        localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+        let actual = state.draft || state;
+        actual = modifierFunction(actual) || actual;
+        if (state.draft) {
+          state.draft = actual;
+          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+        } else {
+          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(actual));
+        }
       }
     } catch(e) {
       console.error("Error actualizando JSON draft", e);
@@ -2482,7 +2545,7 @@ export function designDraftManager() {
         if (isReorderAction && (key.startsWith("content[") || key.startsWith("rrss["))) {
           return; // En reordenamiento, los inputs del formulario en el DOM ya reflejan el orden y valores exactos reindexados
         }
-        formData.set(key, draft[key]);
+        if (draft[key] && typeof draft[key] === "object" && !(draft[key] instanceof File) && !(draft[key] instanceof Blob)) { appendFormDataRecursive(formData, draft[key], key); } else { formData.set(key, draft[key]); }
       });
 
       // 6. Si es una acción de añadir nuevo elemento, marcar sessionStorage para expandirlo al renderizar
@@ -3180,9 +3243,7 @@ export function designDraftManager() {
       });
 
       // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad)
-      Object.keys(draft).forEach((key) => {
-        formData.set(key, draft[key]);
-      });
+      appendFormDataRecursive(formData, draft);
 
       const csrf = getCsrfToken();
       if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
@@ -3436,6 +3497,7 @@ export function designDraftManager() {
 
   // Restauración inmediata al cargar la página
   function initRestoration() {
+    restoreOrderFromDraft();
     const draft = getDraft();
     if (Object.keys(draft).length > 0) {
       applyDraftToPreview(draft);
@@ -3520,37 +3582,95 @@ export function designDraftManager() {
       }, 50);
     }
   });
-  document.addEventListener("sortableUpdated", e => {
-    if(e.detail && e.detail.container && e.detail.container.id === "sortable-content-list") {
+  document.addEventListener("sortableUpdated", (e) => {
+    if (!e.detail || !e.detail.container) return;
+    const container = e.detail.container;
+
+    // 1. Reordenamiento de bloques de contenido
+    if (container.id === "sortable-content-list") {
       setDraftField("is_reorder", "true");
       
-      window.updateJsonDraft(state => {
-        if (!state.content) return state;
-        
-        const items = Array.from(e.detail.container.querySelectorAll(".sortable-item"));
-        const newContentOrder = [];
-        
-        items.forEach((item, index) => {
-          let oldIndex = NaN;
-          if (e.detail && e.detail.oldIndices && e.detail.oldIndices[index] !== null && e.detail.oldIndices[index] !== undefined) {
-             oldIndex = e.detail.oldIndices[index];
-          } else {
-             const oldIndexStr = item.getAttribute("data-index");
-             oldIndex = parseInt(oldIndexStr, 10);
+      const items = Array.from(container.querySelectorAll(".sortable-item"));
+      const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
+      if (!storedStr) return;
+      let state = JSON.parse(storedStr);
+      let draft = state.draft || state;
+      if (!Array.isArray(draft.content)) return;
+
+      const newContent = [];
+      items.forEach((item, index) => {
+        const blkId = item.getAttribute("data-block-id");
+        let found = blkId ? draft.content.find((b) => b && b.id === blkId) : null;
+        if (!found) {
+          const oldIdx = (e.detail.oldIndices && e.detail.oldIndices[index] !== null) 
+            ? e.detail.oldIndices[index] 
+            : parseInt(item.getAttribute("data-index"), 10);
+          if (!isNaN(oldIdx) && draft.content[oldIdx]) {
+            found = draft.content[oldIdx];
           }
-          
-          if (!isNaN(oldIndex) && state.content[oldIndex]) {
-             newContentOrder.push(state.content[oldIndex]);
-          } else {
-             newContentOrder.push({ type: "link", active: true });
-          }
-        });
-        
-        state.content = newContentOrder;
-        return state;
+        }
+        if (found) newContent.push(found);
       });
+
+      if (newContent.length === draft.content.length) {
+        draft.content = newContent;
+      }
+      localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+
+      // Sincronizar en flat draft
+      newContent.forEach((cItem, idx) => {
+        Object.keys(cItem).forEach((field) => {
+          setDraftField(`content[${idx}][${field}]`, cItem[field]);
+        });
+      });
+
+      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+        window.__saveButtonController.enableSaveButton();
+      }
+      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+    }
+
+    // 2. Reordenamiento de redes sociales
+    if (container.id === "sortable-rrss-list") {
+      setDraftField("is_reorder", "true");
+
+      const items = Array.from(container.querySelectorAll(".sortable-item"));
+      const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
+      if (!storedStr) return;
+      let state = JSON.parse(storedStr);
+      let draft = state.draft || state;
+      if (!Array.isArray(draft.rrss)) return;
+
+      const newRrss = [];
+      items.forEach((item) => {
+        const name = item.getAttribute("data-rrss-name") 
+          || item.querySelector('input[name$="[0]"]')?.value?.trim()?.toLowerCase()
+          || "";
+        const found = draft.rrss.find((r) => (Array.isArray(r) ? r[0] : r?.name || "").toLowerCase() === name);
+        if (found) newRrss.push(found);
+      });
+
+      if (newRrss.length === draft.rrss.length) {
+        draft.rrss = newRrss;
+      }
+      localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+
+      newRrss.forEach((rItem, idx) => {
+        const sName = Array.isArray(rItem) ? rItem[0] : rItem.name;
+        const sUrl  = Array.isArray(rItem) ? rItem[1] : rItem.url;
+        setDraftField(`rrss[${idx}][0]`, sName);
+        setDraftField(`rrss[${idx}][1]`, sUrl);
+      });
+
+      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+        window.__saveButtonController.enableSaveButton();
+      }
+      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
     }
   });
 
   window.addEventListener("pageshow", initRestoration);
 }
+
+
+
