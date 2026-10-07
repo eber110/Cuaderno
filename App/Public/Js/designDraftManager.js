@@ -154,7 +154,6 @@ export function designDraftManager() {
         if (!storedDraft) {
           storedDraft = storedInitial;
           localStorage.setItem(DRAFT_KEY, JSON.stringify(storedDraft));
-          console.log("Dos JSONs inicializados en localStorage (initial y draft).");
         } else {
           // Si ambos existían y son idénticos (no hay cambios pendientes), y el servidor cambió, sincronizar ambos
           if (storedInitial && JSON.stringify(storedInitial) === JSON.stringify(storedDraft)) {
@@ -163,7 +162,6 @@ export function designDraftManager() {
               localStorage.setItem(DRAFT_KEY, JSON.stringify(serverState));
             }
           }
-          console.log("Borrador JSON de trabajo listo en localStorage.");
         }
       } catch (e) {
         console.error("Error inicializando estado Two-JSON", e);

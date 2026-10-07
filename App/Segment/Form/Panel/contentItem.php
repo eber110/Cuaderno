@@ -431,7 +431,7 @@
               <div class="flex-row center-between gap10">
                 <div class="flex-row center-center gap10 relative">
                   <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
-                    <img src="<?= e($displayImgSrc) ?>" alt="Imagen de la campaña" class="cover">
+                    <img src="<?= e($displayImgSrc) ?>" alt="Imagen de la campaña" class="cover" referrerpolicy="no-referrer">
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
@@ -880,7 +880,7 @@
                 <div class="flex-row center-between gap10">
                   <div class="flex-row center-center gap10 relative">
                     <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
-                      <img src="<?= e($displayImgSrc) ?>" alt="Imagen del banner" class="cover">
+                      <img src="<?= e($displayImgSrc) ?>" alt="Imagen del banner" class="cover" referrerpolicy="no-referrer">
                     </figure>
 
                     <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
@@ -1182,7 +1182,7 @@
               <div class="flex-row center-between gap10">
                 <div class="flex-row center-center gap10 relative">
                   <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
-                    <img src="<?= e($displayImgSrc) ?>" alt="Carátula del video" class="cover">
+                    <img src="<?= e($displayImgSrc) ?>" alt="Carátula del video" class="cover" referrerpolicy="no-referrer">
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
@@ -1231,7 +1231,7 @@
                 ?>
                 <div class="flex-row center-center gap10 relative">
                   <figure class="wpx50 hpx50 ar-square back-card-graphic shadow-card-graphic hover-scale-soft br10">
-                    <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover">
+                    <img src="<?= e($displayImgSrc) ?>" alt="Imagen del enlace" class="cover" referrerpolicy="no-referrer">
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">

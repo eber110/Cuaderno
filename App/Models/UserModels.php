@@ -170,9 +170,10 @@ class UserModels extends BuilderSqlite {
             $item["metaImg"] = $resolvedImg;
           }
         } elseif (!empty($metaImgVal) && $metaImgVal !== "no-image.webp" && (str_starts_with($metaImgVal, "http://") || str_starts_with($metaImgVal, "https://"))) {
-          // Prioridad 2: Imagen rescatada de OpenGraph (metaImg)
-          $item["imgSrc"] = $metaImgVal;
-          $item["metaImg"] = $metaImgVal;
+          // Prioridad 2: Imagen rescatada de OpenGraph (metaImg), almacenar/servir localmente si es posible
+          $cachedImg = \App\Models\DesignModels::cacheRemoteImageLocally($metaImgVal);
+          $item["imgSrc"] = $cachedImg;
+          $item["metaImg"] = $cachedImg;
         } elseif (!empty($metaImgVal) && str_starts_with($metaImgVal, "/") && file_exists(ROOT_PATH . $metaImgVal)) {
           // Imagen local válida en metaImg
           $item["imgSrc"] = $metaImgVal;
@@ -291,8 +292,9 @@ class UserModels extends BuilderSqlite {
                 $subProd["metaImg"] = $subResolvedImg;
               }
             } elseif (!empty($subMetaImgVal) && $subMetaImgVal !== "no-image.webp" && (str_starts_with($subMetaImgVal, "http://") || str_starts_with($subMetaImgVal, "https://"))) {
-              $subProd["imgSrc"] = $subMetaImgVal;
-              $subProd["metaImg"] = $subMetaImgVal;
+              $cachedSubImg = \App\Models\DesignModels::cacheRemoteImageLocally($subMetaImgVal);
+              $subProd["imgSrc"] = $cachedSubImg;
+              $subProd["metaImg"] = $cachedSubImg;
             } elseif (!empty($subMetaImgVal) && str_starts_with($subMetaImgVal, "/") && file_exists(ROOT_PATH . $subMetaImgVal)) {
               $subProd["imgSrc"] = $subMetaImgVal;
               $subProd["metaImg"] = $subMetaImgVal;

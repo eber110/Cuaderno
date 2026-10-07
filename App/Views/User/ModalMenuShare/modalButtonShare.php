@@ -58,7 +58,7 @@
   <a href="<?= eUrl($data["url"] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= safeCssColor($card["colorText"] ?? '#ffffff', '#ffffff') ?> !important;">
     <?php if (!empty($modalImg)) : ?>
       <figure class="ar-square wpx200 |wpx-sml-160 br15">
-        <img src="<?= eUrl($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover">
+        <img src="<?= eUrl($modalImg) ?>" alt="<?= e($displayDesc) ?>" class="cover" referrerpolicy="no-referrer">
       </figure>
     <?php endif; ?>
 

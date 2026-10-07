@@ -24,7 +24,7 @@
     <div class="wpx65 flex-row center-center">
       <?php if ($imgShow && $hasImg) :?>
         <figure class="ar-square p7">
-          <img src="<?= eUrl($imgSrc) ?>" alt="" class="cover <?= e($card["borders"][1] ?? '')?>">
+          <img src="<?= eUrl($imgSrc) ?>" alt="" class="cover <?= e($card["borders"][1] ?? '')?>" referrerpolicy="no-referrer">
         </figure>
       <?php else :?>
         <div class=""></div>

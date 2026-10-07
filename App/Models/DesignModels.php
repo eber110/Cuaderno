@@ -2137,6 +2137,13 @@ class DesignModels extends Builder {
               ? $metaData["og"]["logo"]
               : ""));
 
+        if (!empty($image) && (str_starts_with($image, "http://") || str_starts_with($image, "https://"))) {
+          $localImage = self::cacheRemoteImageLocally($image);
+          if (!empty($localImage)) {
+            $image = $localImage;
+          }
+        }
+
         if (!empty($title) || !empty($desc) || !empty($image)) {
           $result = [
             "title"       => $title,
@@ -2153,6 +2160,77 @@ class DesignModels extends Builder {
     }
 
     return $result;
+  }
+
+  /**
+   * Descarga y almacena en caché local (formato WebP) una imagen remota obtenida por scraping.
+   * Evita problemas de CORS, hotlinking y advertencias de Tracking Prevention de los navegadores.
+   *
+   * @param string $url URL de la imagen remota.
+   * @return string Ruta relativa local (ej: "/Uploads/hash.webp") o la URL original si falla.
+   */
+  public static function cacheRemoteImageLocally(string $url): string {
+    $url = trim($url);
+    if (empty($url) || !preg_match('#^https?://#i', $url)) {
+      return $url;
+    }
+
+    $hash = md5($url);
+    $filename = $hash . ".webp";
+    $uploadsDir = ROOT_PATH . "/Uploads";
+    $targetPath = $uploadsDir . "/" . $filename;
+    $relativeUrl = "/Uploads/" . $filename;
+
+    // Si ya fue descargada y convertida previamente, reutilizarla inmediatamente
+    if (file_exists($targetPath) && filesize($targetPath) > 0) {
+      return $relativeUrl;
+    }
+
+    try {
+      if (!is_dir($uploadsDir)) {
+        @mkdir($uploadsDir, 0755, true);
+      }
+
+      $ctx = stream_context_create([
+        "http" => [
+          "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\n",
+          "timeout" => 4,
+          "follow_location" => 1
+        ],
+        "ssl" => [
+          "verify_peer" => false,
+          "verify_peer_name" => false
+        ]
+      ]);
+
+      $data = @file_get_contents($url, false, $ctx);
+      if ($data === false || strlen($data) < 10) {
+        return $url;
+      }
+
+      if (function_exists("imagecreatefromstring") && function_exists("imagewebp")) {
+        $im = @imagecreatefromstring($data);
+        if ($im !== false) {
+          imagepalettetotruecolor($im);
+          imagealphablending($im, true);
+          imagesavealpha($im, true);
+          @imagewebp($im, $targetPath, 85);
+          @imagedestroy($im);
+          if (file_exists($targetPath) && filesize($targetPath) > 0) {
+            return $relativeUrl;
+          }
+        }
+      }
+
+      @file_put_contents($targetPath, $data);
+      if (file_exists($targetPath) && filesize($targetPath) > 0) {
+        return $relativeUrl;
+      }
+    } catch (\Throwable $e) {
+      // Si falla la descarga, continuar con la URL remota sin romper el sistema
+    }
+
+    return $url;
   }
 
   /**
