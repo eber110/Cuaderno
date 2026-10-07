@@ -30,7 +30,7 @@
   $showBanner = ($imgShow && $hasImg && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= (int)$dataContent ?>" class="banner-block-wrapper w100 position-relative <?= $borderCard ?> <?= $shadowCard ?> overflow-hidden" style="aspect-ratio: <?= $aspectRatio ?>; background-color: <?= $bgColor ?>;<?= $showBanner ? '' : ' display: none;' ?>">
+<div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="banner-block-wrapper w100 position-relative <?= $borderCard ?> <?= $shadowCard ?> overflow-hidden" style="aspect-ratio: <?= $aspectRatio ?>; background-color: <?= $bgColor ?>;<?= $showBanner ? '' : ' display: none;' ?>">
   <a href="<?= eUrl($url ?: '#') ?>" <?= !empty($url) ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="w100 h100 flex-row center-center track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; display: block; width: 100%; height: 100%; position: relative;">
     <img src="<?= eUrl($imgSrc) ?>" alt="Banner" class="cover w100 h100" style="object-fit: cover; width: 100%; height: 100%; display: block; border: none; opacity: <?= $imgOpacity ?>;" fetchpriority="high">
   </a>

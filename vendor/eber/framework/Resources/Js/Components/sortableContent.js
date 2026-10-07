@@ -844,8 +844,8 @@ export function sortableContent() {
       }, 500);
 
       window.addEventListener("touchmove", onTouchMove, { passive: false });
-      window.addEventListener("touchend", onTouchEnd);
-      window.addEventListener("touchcancel", onTouchCancel);
+      window.addEventListener("touchend", onTouchEnd, { passive: true });
+      window.addEventListener("touchcancel", onTouchCancel, { passive: true });
     }, { passive: true });
   }
 
@@ -943,30 +943,27 @@ export function sortableContent() {
     const isContent = container.id === "sortable-content-list";
     const isRRSS = container.id === "sortable-rrss-list";
 
-    if (isContent && oldIndices && oldIndices.length) {
-      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const sampleBlock = preview.querySelector("[data-content-index]");
-        if (!sampleBlock || !sampleBlock.parentElement) return;
-
-        const widgetWrapper = sampleBlock.parentElement;
-        const previewMap = new Map();
-
-        widgetWrapper.querySelectorAll("[data-content-index]").forEach((el) => {
-          const idx = parseInt(el.getAttribute("data-content-index"), 10);
-          if (!isNaN(idx)) {
-            if (!previewMap.has(idx)) previewMap.set(idx, []);
-            previewMap.get(idx).push(el);
+    if (isContent) {
+      const items = Array.from(container.querySelectorAll(".sortable-item"));
+      document.querySelectorAll(".preview-widget-container, #preview-widget-container").forEach((widgetWrapper) => {
+        items.forEach((item, newIdx) => {
+          const blkId = item.getAttribute("data-block-id");
+          if (blkId) {
+            const elements = widgetWrapper.querySelectorAll(`[data-block-id="${blkId}"]`);
+            if (elements.length > 0) {
+              elements.forEach((el) => {
+                widgetWrapper.appendChild(el);
+                el.setAttribute("data-content-index", String(newIdx));
+              });
+              return;
+            }
           }
-        });
-
-        oldIndices.forEach((oldIdx, newIdx) => {
-          const elements = previewMap.get(oldIdx);
-          if (elements && elements.length) {
-            elements.forEach((el) => {
-              widgetWrapper.appendChild(el);
-              el.setAttribute("data-content-index", String(newIdx));
-            });
-          }
+          const oldIdx = (oldIndices && oldIndices[newIdx] !== null) ? oldIndices[newIdx] : newIdx;
+          const fallbackEls = widgetWrapper.querySelectorAll(`[data-content-index="${oldIdx}"]`);
+          fallbackEls.forEach((el) => {
+            widgetWrapper.appendChild(el);
+            el.setAttribute("data-content-index", String(newIdx));
+          });
         });
       });
     } else if (isRRSS) {
@@ -975,15 +972,19 @@ export function sortableContent() {
         if (!sampleLink || !sampleLink.parentElement) return;
 
         const rrssWrapper = sampleLink.parentElement;
+        const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
         const allItems = Array.from(container.querySelectorAll(".sortable-item"));
 
         allItems.forEach((item) => {
-          const name = item.getAttribute("data-rrss-name") 
-            || item.querySelector('input[name$="[0]"]')?.value?.trim()?.toLowerCase()
-            || item.querySelector('input[type="hidden"][name*="[0]"]')?.value?.trim()?.toLowerCase()
-            || "";
+          const name = (item.getAttribute("data-rrss-name") 
+            || item.querySelector('input[name$="[0]"]')?.value 
+            || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
+            || "").trim().toLowerCase();
           if (name) {
-            const previewLink = rrssWrapper.querySelector(`[data-link-id="rrss_${name}"]`);
+            const previewLink = previewLinks.find((link) => {
+              const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+              return linkId === `rrss_${name}`;
+            });
             if (previewLink) {
               rrssWrapper.appendChild(previewLink);
             }

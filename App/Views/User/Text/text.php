@@ -19,7 +19,7 @@
   $showText = ($textContent !== "" && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= $dataContent ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= $showText ? '' : ' display: none;' ?>">
+<div data-content-index="<?= $dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= $showText ? '' : ' display: none;' ?>">
   <p class="<?= $weightClass ?> color-text-card capitalize-p">
     <?= nl2br(e($textContent)) ?>
   </p>

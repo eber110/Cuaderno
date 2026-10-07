@@ -22,7 +22,7 @@
   $imgShow = ($rawImgShow === true || $rawImgShow === 'true' || $rawImgShow === 1 || $rawImgShow === '1');
   $hasImg = !empty($imgSrc) && strpos($imgSrc, 'no-image.webp') === false;
 ?>
-<div data-content-index="<?= (int)$dataContent ?>" class="product-item-wrapper product-regular-wrapper flex-row center-between wrap w100 theme-button pointer <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0]?> <?= $card["shadow"]?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+<div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="product-item-wrapper product-regular-wrapper flex-row center-between wrap w100 theme-button pointer <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0]?> <?= $card["shadow"]?>"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
 
   <a href="<?= eUrl($url ?: '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-row center-start wrap track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; flex-grow: 1; width: calc(65px - 100%);">
     <div class="w50 h50 flex-row center-center">

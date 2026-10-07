@@ -110,8 +110,11 @@ class DesignModels extends Builder {
       foreach ($content as $idx => &$cItem) {
         if (!is_array($cItem)) continue;
         if (empty($cItem["id"])) {
-          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "") . "_" . $idx;
-          $cItem["id"] = "blk_" . substr(md5($seed), 0, 8);
+          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "");
+          if ($seed === "__") {
+            $seed = "block_" . $idx . "_" . uniqid();
+          }
+          $cItem["id"] = "blk_" . substr(md5($seed), 0, 10);
         }
       }
       unset($cItem);
@@ -287,6 +290,7 @@ class DesignModels extends Builder {
     if (class_exists(CacheModule::class)) {
       $cached = CacheModule::get($cacheKey);
       if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        self::ensureBlockIds($cached["card"]);
         return $cached;
       }
     }
@@ -309,6 +313,28 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Asegura que todos los bloques de contenido dentro de una tarjeta tengan un identificador único determinista.
+   *
+   * @param array $card Referencia a la tarjeta de diseño.
+   * @return void
+   */
+  public static function ensureBlockIds(array &$card): void {
+    if (!empty($card["content"]) && is_array($card["content"])) {
+      foreach ($card["content"] as $idx => &$cItem) {
+        if (!is_array($cItem)) continue;
+        if (empty($cItem["id"])) {
+          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "");
+          if ($seed === "__") {
+            $seed = "block_" . $idx;
+          }
+          $cItem["id"] = "blk_" . substr(md5($seed), 0, 10);
+        }
+      }
+      unset($cItem);
+    }
+  }
+
+  /**
    * Lee el diseño oficial (publicado) del usuario desde la caché o SQLite.
    *
    * @param string $user Nombre de usuario.
@@ -322,6 +348,7 @@ class DesignModels extends Builder {
     if (class_exists(CacheModule::class)) {
       $cached = CacheModule::get($cacheKey);
       if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        self::ensureBlockIds($cached["card"]);
         return $cached;
       }
     }
@@ -647,6 +674,7 @@ class DesignModels extends Builder {
         }
 
         $type = $item["type"] ?? "link";
+        $blockId = !empty($item["id"]) ? trim((string)$item["id"]) : (!empty($existingItem["id"]) ? trim((string)$existingItem["id"]) : ("blk_" . substr(md5(($item["type"] ?? "") . "_" . ($item["title"] ?? "") . "_" . ($item["url"] ?? "") . "_" . $index), 0, 10)));
 
         // Procesamiento específico para Grupo de Productos (product_group)
         if ($type === "product_group") {
@@ -1712,6 +1740,41 @@ class DesignModels extends Builder {
     if ($filePath !== false && str_starts_with($filePath, $bgDir . DIRECTORY_SEPARATOR) && is_file($filePath)) {
       @unlink($filePath);
     }
+  }
+
+  /**
+   * Guarda directamente la tarjeta recibida como diseño oficial publicado (is_draft = 0),
+   * eliminando cualquier borrador previo en SQLite y sincronizando la caché.
+   *
+   * @param string $user Nombre de usuario.
+   * @param array $card Estructura de la tarjeta.
+   * @return bool True tras guardar con éxito.
+   */
+  public static function saveOfficialDesignFromCard(string $user, array $card): bool {
+    $userClean = mb_strtolower($user, "UTF-8");
+    self::ensureBlockIds($card);
+    $card["active"] = true;
+
+    // 1. Guardar como versión oficial publicada (is_draft = 0)
+    self::saveDesignToDb($userClean, 0, $card);
+
+    // 2. Eliminar el registro borrador (is_draft = 1) si existiera
+    $draftRow = (new Builder("user_designs"))
+      ->where("username", $userClean)
+      ->where("is_draft", 1)
+      ->get_one();
+
+    if (!empty($draftRow[0]["id"])) {
+      (new Builder("user_designs"))->delete("id", $draftRow[0]["id"]);
+    }
+
+    // 3. Sincronizar la caché oficial y limpiar el borrador
+    if (class_exists(CacheModule::class)) {
+      CacheModule::set("design_official_" . $userClean, ["card" => $card], 86400 * 30);
+      CacheModule::forget("design_draft_" . $userClean);
+    }
+
+    return true;
   }
 
   /**

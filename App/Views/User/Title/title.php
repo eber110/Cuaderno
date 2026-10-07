@@ -24,7 +24,7 @@
   $showTitle = ($titleText !== "" && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= $dataContent ?>" class="title-block-wrapper w100 flex-row center-center text-center p0" style="<?= $showTitle ? '' : 'display: none;' ?>">
+<div data-content-index="<?= $dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="title-block-wrapper w100 flex-row center-center text-center p0" style="<?= $showTitle ? '' : 'display: none;' ?>">
   <h2 class="<?= $sizeClass ?> <?= $weightClass ?> title-color" style="margin: 0;">
     <?= e($titleText) ?>
   </h2>

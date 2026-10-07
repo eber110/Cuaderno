@@ -44,7 +44,7 @@
   <!-- ==================== VISTA PREVIA (EDITOR): AMBOS MODOS CONMUTABLES EN VIVO ==================== -->
 
   <!-- MODO REPRODUCTOR: Solo el reproductor con el tamaño del video (16:9) -->
-  <div data-content-index="<?= (int)$dataContent ?>" data-video-variant="player" class="video-block-wrapper video-player-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden <?= ($videoMode === 'player') ? '' : 'hidden' ?>" style="aspect-ratio: 16 / 9; background-color: #000000;<?= ($showBlock && $videoMode === 'player') ? '' : ' display: none;' ?>">
+  <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-video-variant="player" class="video-block-wrapper video-player-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden <?= ($videoMode === 'player') ? '' : 'hidden' ?>" style="aspect-ratio: 16 / 9; background-color: #000000;<?= ($showBlock && $videoMode === 'player') ? '' : ' display: none;' ?>">
     <?php if (!empty($youtubeId)) : ?>
       <iframe class="w100 h100" style="border: 0; width: 100%; height: 100%; display: block;" src="https://www.youtube-nocookie.com/embed/<?= e($youtubeId) ?>?rel=0" title="<?= e($title ?: "Video de YouTube") ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
     <?php elseif (!empty($vimeoId)) : ?>
@@ -64,7 +64,7 @@
   </div>
 
   <!-- MODO ENLACE: Banner con carátula (16:9), ícono de reproducción y espacio inferior para la descripción -->
-  <div data-content-index="<?= (int)$dataContent ?>" data-video-variant="link" class="video-block-wrapper video-link-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden theme-button pointer <?= ($videoMode !== 'player') ? '' : 'hidden' ?>" style="<?= ($showBlock && $videoMode !== 'player') ? '' : ' display: none;' ?> padding: 0; text-decoration: none;">
+  <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-video-variant="link" class="video-block-wrapper video-link-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden theme-button pointer <?= ($videoMode !== 'player') ? '' : 'hidden' ?>" style="<?= ($showBlock && $videoMode !== 'player') ? '' : ' display: none;' ?> padding: 0; text-decoration: none;">
     <a href="<?= eUrl($url ?: "#") ?>" target="_blank" rel="noopener noreferrer" class="w100 flex-column track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; display: flex; width: 100%;">
       
       <!-- Carátula del video (16:9) con botón de reproducción superpuesto -->
@@ -95,7 +95,7 @@
   <!-- ==================== PERFIL PÚBLICO (PRODUCCIÓN): SOLO EL MODO SELECCIONADO ==================== -->
   <?php if ($videoMode === "player") : ?>
     <!-- MODO REPRODUCTOR: Solo el reproductor con el tamaño del video (16:9) -->
-    <div data-content-index="<?= (int)$dataContent ?>" class="video-block-wrapper video-player-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden" style="aspect-ratio: 16 / 9; background-color: #000000;<?= $showBlock ? "" : " display: none;" ?>">
+    <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="video-block-wrapper video-player-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden" style="aspect-ratio: 16 / 9; background-color: #000000;<?= $showBlock ? "" : " display: none;" ?>">
       <?php if (!empty($youtubeId)) : ?>
         <iframe class="w100 h100" style="border: 0; width: 100%; height: 100%; display: block;" src="https://www.youtube-nocookie.com/embed/<?= e($youtubeId) ?>?rel=0" title="<?= e($title ?: "Video de YouTube") ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
       <?php elseif (!empty($vimeoId)) : ?>
@@ -115,7 +115,7 @@
     </div>
   <?php else : ?>
     <!-- MODO ENLACE: Banner con carátula (16:9), ícono de reproducción y espacio inferior para la descripción -->
-    <div data-content-index="<?= (int)$dataContent ?>" class="video-block-wrapper video-link-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden theme-button pointer" style="<?= $showBlock ? "" : " display: none;" ?> padding: 0; text-decoration: none;">
+    <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="video-block-wrapper video-link-mode w100 position-relative <?= e($borderCard) ?> <?= e($shadowCard) ?> overflow-hidden theme-button pointer" style="<?= $showBlock ? "" : " display: none;" ?> padding: 0; text-decoration: none;">
       <a href="<?= eUrl($url ?: "#") ?>" target="_blank" rel="noopener noreferrer" class="w100 flex-column track-link-click" data-user="<?= e($profile) ?>" data-link-id="<?= e($url) ?>" style="text-decoration: none; color: inherit; display: flex; width: 100%;">
         <div class="w100 position-relative overflow-hidden" style="aspect-ratio: 16 / 9; background-color: #1a1a1a;">
           <img src="<?= eUrl(($hasImg && $imgShow) ? $imgSrc : DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp") ?>" alt="<?= e($title ?: "Video") ?>" class="cover w100 h100" style="object-fit: cover; display: block; width: 100%; height: 100%; border: none;" fetchpriority="high">

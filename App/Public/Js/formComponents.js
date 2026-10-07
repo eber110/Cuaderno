@@ -388,7 +388,7 @@ export function formComponents() {
         if (!isDragging) return;
         isDragging = false;
         slider.dispatchEvent(new Event('change', { bubbles: true }));
-      });
+      }, { passive: true });
 
       // Sincronizar --range-progress en cambios por teclado o interacción nativa
       slider.addEventListener('input', () => {

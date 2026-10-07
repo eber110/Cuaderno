@@ -21,10 +21,102 @@ export function designDraftManager() {
   }
 
   const user = pathParts[1].toLowerCase();
-  const DRAFT_KEY = `cuaderno_design_draft_${user}`;
   const INITIAL_KEY = `cuaderno_design_initial_${user}`;
+  const DRAFT_KEY = `cuaderno_design_draft_${user}`;
 
-  const JSON_DRAFT_KEY = `cuaderno_design_json_draft_${user}`;
+  /**
+   * Obtiene el estado inicial (oficial) de la tarjeta desde localStorage.
+   * @returns {Object|null}
+   */
+  function getInitialState() {
+    try {
+      const data = localStorage.getItem(INITIAL_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene el estado de trabajo actual (borrador estructurado) desde localStorage.
+   * @returns {Object|null}
+   */
+  function getDraftState() {
+    try {
+      const data = localStorage.getItem(DRAFT_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Persiste el estado de trabajo estructurado en localStorage y notifica cambios.
+   * @param {Object} draft
+   */
+  function saveDraftState(draft) {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {
+      console.warn("Error al escribir en localStorage:", e);
+    }
+    notifyDraftState();
+  }
+
+  /**
+   * Comprueba si el borrador de trabajo difiere del estado inicial oficial.
+   * Cero consultas a la base de datos, cero dependencia de marcas de tiempo.
+   * @returns {boolean}
+   */
+  function hasDraft() {
+    const initStr = localStorage.getItem(INITIAL_KEY);
+    const draftStr = localStorage.getItem(DRAFT_KEY);
+    if (!initStr || !draftStr) return false;
+    return initStr !== draftStr;
+  }
+
+  /**
+   * Aplana un objeto jerárquico a un diccionario de claves planas para retrocompatibilidad
+   * con funciones que esperan paths como 'content[0][title]' o 'back_perfil'.
+   * @param {Object} obj
+   * @param {string} prefix
+   * @returns {Object}
+   */
+  function flattenObject(obj, prefix = '') {
+    if (!obj || typeof obj !== 'object') return {};
+    let result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const newKey = prefix ? `${prefix}[${key}]` : key;
+      if (value && typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
+        if (Array.isArray(value)) {
+          value.forEach((item, idx) => {
+            if (item && typeof item === 'object') {
+              Object.assign(result, flattenObject(item, `${newKey}[${idx}]`));
+            } else {
+              result[`${newKey}[${idx}]`] = item;
+            }
+          });
+        } else {
+          Object.assign(result, flattenObject(value, newKey));
+          if (key === 'back_perfil' || key === 'style_back' || key === 'back_image' || key === 'back_video') {
+            result[key] = value;
+          }
+        }
+      } else {
+        result[newKey] = value;
+        if (!prefix) {
+          result[key] = value;
+        }
+      }
+    }
+    if (obj.titleColor && !result.title_color) result.title_color = obj.titleColor;
+    if (obj.colorText && !result.color_text) result.color_text = obj.colorText;
+    if (obj.backCard) {
+      if (obj.backCard.back_perfil && !result.back_perfil) result.back_perfil = obj.backCard.back_perfil;
+      if (obj.backCard.style_back && !result.style_back) result.style_back = obj.backCard.style_back;
+    }
+    return result;
+  }
 
   function appendFormDataRecursive(fd, data, parentKey = '') {
     if (data && typeof data === 'object' && !(data instanceof File) && !(data instanceof Blob)) {
@@ -40,39 +132,41 @@ export function designDraftManager() {
     }
   }
 
+  /**
+   * Inicializa la arquitectura de Dos JSONs en localStorage:
+   * 1. INITIAL_KEY: versión inicial/oficial de referencia.
+   * 2. DRAFT_KEY: versión de trabajo viva donde se acumulan cambios locales.
+   */
   function initJsonState() {
     if (window.INITIAL_PROFILE_JSON) {
       try {
         const serverState = window.INITIAL_PROFILE_JSON;
-        const existingDraftStr = localStorage.getItem(JSON_DRAFT_KEY);
-        
-        let shouldWipe = false;
-        let ts = 0;
-        const tsMeta = document.querySelector('meta[name="last-updated-at"]');
-        if (tsMeta) {
-           ts = parseInt(tsMeta.getAttribute("content"), 10);
+        let storedInitial = getInitialState();
+        let storedDraft = getDraftState();
+
+        // Si no existe INITIAL_KEY, registrar versión oficial del servidor
+        if (!storedInitial) {
+          storedInitial = serverState;
+          localStorage.setItem(INITIAL_KEY, JSON.stringify(storedInitial));
         }
 
-        if (!existingDraftStr) {
-          shouldWipe = true;
+        // Si no existe DRAFT_KEY, clonar idéntico al estado inicial
+        if (!storedDraft) {
+          storedDraft = storedInitial;
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(storedDraft));
+          console.log("Dos JSONs inicializados en localStorage (initial y draft).");
         } else {
-          const draftState = JSON.parse(existingDraftStr);
-          const localTs = draftState.draft?.last_updated_at || draftState.last_updated_at || 0;
-          if (!isNaN(ts) && ts > 0 && localTs > 0 && ts > localTs) {
-            shouldWipe = true;
-            console.warn("Borrador JSON obsoleto, reemplazando con versión del servidor...");
+          // Si ambos existían y son idénticos (no hay cambios pendientes), y el servidor cambió, sincronizar ambos
+          if (storedInitial && JSON.stringify(storedInitial) === JSON.stringify(storedDraft)) {
+            if (JSON.stringify(storedInitial) !== JSON.stringify(serverState)) {
+              localStorage.setItem(INITIAL_KEY, JSON.stringify(serverState));
+              localStorage.setItem(DRAFT_KEY, JSON.stringify(serverState));
+            }
           }
+          console.log("Borrador JSON de trabajo listo en localStorage.");
         }
-
-        if (shouldWipe) {
-           const newState = { ...serverState, last_updated_at: ts || serverState.last_updated_at || 0 };
-           localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(newState));
-           console.log("JSON Inicial (completo) cargado en localStorage.");
-        } else {
-           console.log("Borrador JSON restaurado desde localStorage. Listo para modificar directamente.");
-        }
-      } catch(e) {
-        console.error("Error inicializando estado JSON", e);
+      } catch (e) {
+        console.error("Error inicializando estado Two-JSON", e);
       }
     }
   }
@@ -109,57 +203,65 @@ export function designDraftManager() {
   }
 
   function restoreOrderFromDraft() {
-    const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
-    if (!storedStr) return;
-    let state;
-    try { state = JSON.parse(storedStr); } catch (e) { return; }
-    const draft = state.draft || state;
+    const draft = getDraftState();
+    if (!draft) return;
 
     // 1. Restaurar orden de Bloques de Contenido
-    if (draft && Array.isArray(draft.content)) {
+    if (draft && Array.isArray(draft.content) && draft.content.length > 0) {
       const editorList = document.getElementById("sortable-content-list");
-      const preview = document.getElementById("preview-widget-container");
+      const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+
       if (editorList) {
-        linkPreviewBlockIds();
         let changed = false;
         draft.content.forEach((block) => {
-          if (!block || !block.id) return;
-          const editorEl = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
+          if (!block) return;
+          const editorEl = block.id ? editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`) : null;
           if (editorEl) {
             editorList.appendChild(editorEl);
             changed = true;
-          }
-          if (preview) {
-            const prevEl = preview.querySelector(`[data-block-id="${block.id}"]`);
-            if (prevEl) {
-              preview.appendChild(prevEl);
-            }
           }
         });
         if (changed) {
           reindexEditorDOM(editorList);
         }
       }
+
+      if (previewContainers.length > 0) {
+        previewContainers.forEach((pContainer) => {
+          draft.content.forEach((block, newIdx) => {
+            if (!block) return;
+            let prevEls = block.id ? pContainer.querySelectorAll(`[data-block-id="${block.id}"]`) : [];
+            if (!prevEls || prevEls.length === 0) {
+              prevEls = pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`);
+            }
+            prevEls.forEach((el) => {
+              pContainer.appendChild(el);
+              el.setAttribute("data-content-index", String(newIdx));
+            });
+          });
+        });
+      }
     }
 
     // 2. Restaurar orden de Redes Sociales
-    if (draft && Array.isArray(draft.rrss)) {
+    if (draft && Array.isArray(draft.rrss) && draft.rrss.length > 0) {
       const rrssList = document.getElementById("sortable-rrss-list");
-      const previewLinks = document.querySelectorAll(".user-profile-preview [data-link-id^=\"rrss_\"]");
-      const rrssPreviewWrapper = previewLinks[0]?.parentElement;
+      const allPreviews = document.querySelectorAll(".user-profile-preview");
+
       if (rrssList) {
         draft.rrss.forEach((r) => {
-          const name = (Array.isArray(r) ? r[0] : r?.name || "").toLowerCase();
+          const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
           if (!name) return;
-          const rrssEl = rrssList.querySelector(`.sortable-item[data-rrss-name="${name}"]`);
+          const items = Array.from(rrssList.querySelectorAll(".sortable-item"));
+          const rrssEl = items.find((item) => {
+            const itemName = (item.getAttribute("data-rrss-name") 
+              || item.querySelector('input[name$="[0]"]')?.value 
+              || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
+              || "").trim().toLowerCase();
+            return itemName === name;
+          });
           if (rrssEl) {
             rrssList.appendChild(rrssEl);
-          }
-          if (rrssPreviewWrapper) {
-            const prevLink = rrssPreviewWrapper.querySelector(`[data-link-id="rrss_${name}"]`);
-            if (prevLink) {
-              rrssPreviewWrapper.appendChild(prevLink);
-            }
           }
         });
 
@@ -167,10 +269,32 @@ export function designDraftManager() {
         const items = rrssList.querySelectorAll(".sortable-item");
         items.forEach((item, index) => {
           item.id = `rrss-item-${index}`;
+          item.setAttribute("data-index", String(index));
           item.querySelectorAll("input").forEach((input) => {
             const n = input.getAttribute("name");
             if (n && n.startsWith("rrss[")) {
               input.setAttribute("name", n.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
+            }
+          });
+        });
+      }
+
+      if (allPreviews.length > 0) {
+        allPreviews.forEach((preview) => {
+          const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
+          if (!sampleLink || !sampleLink.parentElement) return;
+          const rrssWrapper = sampleLink.parentElement;
+          const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+
+          draft.rrss.forEach((r) => {
+            const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+            if (!name) return;
+            const match = previewLinks.find((link) => {
+              const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+              return linkId === `rrss_${name}`;
+            });
+            if (match) {
+              rrssWrapper.appendChild(match);
             }
           });
         });
@@ -180,17 +304,10 @@ export function designDraftManager() {
 
   window.updateJsonDraft = function(modifierFunction) {
     try {
-      const stateStr = localStorage.getItem(JSON_DRAFT_KEY);
-      if (stateStr) {
-        let state = JSON.parse(stateStr);
-        let actual = state.draft || state;
-        actual = modifierFunction(actual) || actual;
-        if (state.draft) {
-          state.draft = actual;
-          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
-        } else {
-          localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(actual));
-        }
+      let draft = getDraftState();
+      if (draft) {
+        draft = modifierFunction(draft) || draft;
+        saveDraftState(draft);
       }
     } catch(e) {
       console.error("Error actualizando JSON draft", e);
@@ -207,39 +324,15 @@ export function designDraftManager() {
   }
 
   // =========================================================================
-  // 1. GESTIÓN DEL ALMACENAMIENTO LOCAL (localStorage)
+  // 1. GESTIÓN DEL ALMACENAMIENTO LOCAL (Two-JSON Architecture)
   // =========================================================================
 
   /**
-   * Valida si el borrador actual está desincronizado con la base de datos.
-   */
-  function validateDraftTimestamp() {
-    const tsMeta = document.querySelector('meta[name="last-updated-at"]');
-    if (tsMeta) {
-      const timestampBd = parseInt(tsMeta.getAttribute('content'), 10);
-      if (!isNaN(timestampBd)) {
-        const draft = getDraft();
-        if (draft._last_updated_at && timestampBd > draft._last_updated_at) {
-          console.warn("El borrador local es obsoleto respecto a la BD. Purgando...");
-          localStorage.removeItem(DRAFT_KEY);
-        }
-      }
-    }
-  }
-
-  validateDraftTimestamp();
-
-  /**
-   * Obtiene los cambios acumulados en el borrador local.
+   * Obtiene los cambios acumulados en el borrador local como diccionario plano.
    * @returns {Object} Diccionario con los campos modificados.
    */
   function getDraft() {
-    try {
-      const data = localStorage.getItem(DRAFT_KEY);
-      return data ? JSON.parse(data) : {};
-    } catch (e) {
-      return {};
-    }
+    return flattenObject(getDraftState());
   }
 
   /**
@@ -247,73 +340,71 @@ export function designDraftManager() {
    * @param {Object} draft
    */
   function saveDraftToStorage(draft) {
-    try {
-      if (!draft || Object.keys(draft).length === 0 || (Object.keys(draft).length === 1 && draft._last_updated_at)) {
-        localStorage.removeItem(DRAFT_KEY);
+    if (draft && typeof draft === 'object') {
+      if (draft.content !== undefined || draft.profile !== undefined || draft.backCard !== undefined) {
+        saveDraftState(draft);
       } else {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        Object.keys(draft).forEach(path => {
+          updateJsonDraftFromPath(path, draft[path]);
+        });
       }
-    } catch (e) {
-      console.warn("Error al escribir en localStorage:", e);
     }
+  }
+
+  /**
+   * Guarda un campo en el borrador estructurado de trabajo navegando su path.
+   * @param {string} path Nombre o ruta del campo (ej: 'title' o 'content[0][title]')
+   * @param {*} value Valor del campo
+   */
+  function updateJsonDraftFromPath(path, value) {
+    const draft = getDraftState();
+    if (!draft) return;
+    const parts = path.split(/\[|\]\[|\]/).filter(Boolean);
+    let current = draft;
+    for (let i = 0; i < parts.length - 1; i++) {
+      let part = parts[i];
+      if (current[part] === undefined) {
+        current[part] = (isNaN(parseInt(parts[i+1], 10))) ? {} : [];
+      }
+      current = current[part];
+    }
+    if (parts.length > 0) {
+      current[parts[parts.length - 1]] = value;
+    }
+    if (path === "back_perfil") {
+      if (!draft.backCard) draft.backCard = {};
+      draft.backCard.back_perfil = value;
+    }
+    if (path === "style_back") {
+      if (!draft.backCard) draft.backCard = {};
+      draft.backCard.style_back = value;
+    }
+    if (path === "title_color") draft.titleColor = value;
+    if (path === "color_text") draft.colorText = value;
+
+    saveDraftState(draft);
+  }
+
+  /**
+   * Registra la modificación de un campo y notifica a la interfaz.
+   * @param {string} name
+   * @param {*} value
+   */
+  function setDraftField(name, value) {
+    if (!name) return;
+    updateJsonDraftFromPath(name, value);
     notifyDraftState();
   }
 
   /**
-   * Guarda un campo en el borrador local.
-   * @param {string} name Nombre del campo
-   * @param {*} value Valor del campo
-   */
-  function updateJsonDraftFromPath(path, value) {
-    window.updateJsonDraft(state => {
-      // Regex para encontrar arrays como content[0][title] o variables directas como title
-      const parts = path.split(/\[|\]\[|\]/).filter(Boolean);
-      let current = state;
-      for (let i = 0; i < parts.length - 1; i++) {
-        let part = parts[i];
-        if (current[part] === undefined) {
-           current[part] = (isNaN(parseInt(parts[i+1], 10))) ? {} : [];
-        }
-        current = current[part];
-      }
-      current[parts[parts.length - 1]] = value;
-      return state;
-    });
-  }
-  function setDraftField(name, value) {
-    if (!name) return;
-    updateJsonDraftFromPath(name, value);
-    const draft = getDraft();
-    draft[name] = value;
-    
-    // Almacenar el timestamp actual de la BD como base de este borrador
-    if (!draft._last_updated_at) {
-      const tsMeta = document.querySelector('meta[name="last-updated-at"]');
-      if (tsMeta) {
-        const timestampBd = parseInt(tsMeta.getAttribute('content'), 10);
-        if (!isNaN(timestampBd)) {
-          draft._last_updated_at = timestampBd;
-        }
-      }
-    }
-    
-    saveDraftToStorage(draft);
-  }
-
-  /**
-   * Limpia el borrador local.
+   * Limpia el borrador local igualándolo al estado oficial.
    */
   function clearDraft() {
-    saveDraftToStorage({});
-  }
-
-  /**
-   * Comprueba si existen cambios acumulados pendientes de guardar.
-   * @returns {boolean}
-   */
-  function hasDraft() {
-    const draft = getDraft();
-    return Object.keys(draft).length > 0;
+    const initial = getInitialState();
+    if (initial) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(initial));
+    }
+    notifyDraftState();
   }
 
   /**
@@ -321,6 +412,17 @@ export function designDraftManager() {
    */
   function notifyDraftState() {
     const pending = hasDraft();
+    if (window.__saveButtonController) {
+      if (pending) {
+        window.__saveButtonController.enableSaveButton?.();
+      } else {
+        window.__saveButtonController.disableSaveButton?.();
+      }
+    }
+    const saveContainer = document.getElementById("save-btn-container");
+    if (saveContainer) {
+      saveContainer.dataset.hasCustom = pending ? "true" : "false";
+    }
     document.dispatchEvent(new CustomEvent("designDraftStateChanged", {
       detail: { hasDraft: pending, draft: getDraft() }
     }));
@@ -2583,33 +2685,9 @@ export function designDraftManager() {
       const data = await parseSafeJson(response);
 
       if (data && data.success) {
-        // 9. En reordenamiento, purgar únicamente las claves de content/rrss del borrador local
-        // ya que el servidor consolidó el nuevo orden y el DOM tiene los valores actualizados.
-        // NUNCA borrar el resto del borrador (colores, fondo, estilos, etc.)
-        if (isReorderAction) {
-          const currentDraft = getDraft();
-          let draftModified = false;
-          Object.keys(currentDraft).forEach((k) => {
-            if (k.startsWith("content[") || k.startsWith("rrss[")) {
-              delete currentDraft[k];
-              draftModified = true;
-            }
-          });
-          if (draftModified) {
-            saveDraftToStorage(currentDraft);
-          }
-        } else if (isDeleteAction && deletedPrefix) {
-          const currentDraft = getDraft();
-          let draftModified = false;
-          Object.keys(currentDraft).forEach((k) => {
-            if (k.startsWith(deletedPrefix)) {
-              delete currentDraft[k];
-              draftModified = true;
-            }
-          });
-          if (draftModified) {
-            saveDraftToStorage(currentDraft);
-          }
+        if (data.card) {
+          localStorage.setItem(INITIAL_KEY, JSON.stringify(data.card));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data.card));
         }
 
         // 10. Actualizar vista previa oficial (.user-profile-preview)
@@ -3245,6 +3323,12 @@ export function designDraftManager() {
       // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad)
       appendFormDataRecursive(formData, draft);
 
+      // 2. Incluir el JSON estructurado completo como draft_json para guardado directo en backend
+      const draftState = getDraftState();
+      if (draftState) {
+        formData.set("draft_json", JSON.stringify(draftState));
+      }
+
       const csrf = getCsrfToken();
       if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
         formData.append("_token", csrf);
@@ -3268,8 +3352,12 @@ export function designDraftManager() {
       const data = await parseSafeJson(response);
 
       if (data && data.success) {
-        // Limpiar la caché local tras guardar con éxito oficial
-        clearDraft();
+        // En Two-JSON: sincronizar ambos JSONs (initial y draft) con la versión oficial guardada
+        const savedCard = data.card || draftState;
+        if (savedCard) {
+          localStorage.setItem(INITIAL_KEY, JSON.stringify(savedCard));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(savedCard));
+        }
 
         // Eliminar sobreescrituras dinámicas temporales ya que el preview oficial las reemplazará
         if (dynamicStyleEl) {
@@ -3375,6 +3463,14 @@ export function designDraftManager() {
       await new Promise((resolve) => setTimeout(resolve, 80));
     }
 
+    // 1. Revertir localmente en 0ms igualando el borrador al estado inicial oficial
+    const initial = getInitialState();
+    if (initial) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(initial));
+      restoreOrderFromDraft();
+      applyDraftToPreview(flattenObject(initial));
+      syncFormControls(flattenObject(initial));
+    }
     clearDraft();
 
     // Eliminar sobreescrituras dinámicas
@@ -3400,6 +3496,11 @@ export function designDraftManager() {
     const data = await parseSafeJson(response);
 
     if (data && data.success) {
+      if (data.card) {
+        localStorage.setItem(INITIAL_KEY, JSON.stringify(data.card));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(data.card));
+      }
+
       // 1. Restaurar HTML oficial de la vista previa
       if (data.html) {
         document.querySelectorAll(".user-profile-preview").forEach((container) => {
@@ -3496,7 +3597,9 @@ export function designDraftManager() {
   };
 
   // Restauración inmediata al cargar la página
+  // Restauración inmediata al cargar la página
   function initRestoration() {
+    linkPreviewBlockIds();
     restoreOrderFromDraft();
     const draft = getDraft();
     if (Object.keys(draft).length > 0) {
@@ -3505,11 +3608,6 @@ export function designDraftManager() {
       notifyDraftState();
     }
     refreshAllBannersState();
-
-    // Comprobación no intrusiva de metadatos pendientes en segundo plano
-    setTimeout(() => {
-      triggerPendingMetadataCheck();
-    }, 1000);
   }
 
   if (document.readyState === "loading") {
@@ -3517,7 +3615,6 @@ export function designDraftManager() {
   } else {
     initRestoration();
   }
-
 
   // Lógica para añadir nuevos bloques usando <template> en lugar de submit
   document.addEventListener("click", function(e) {
@@ -3582,29 +3679,23 @@ export function designDraftManager() {
       }, 50);
     }
   });
+
   document.addEventListener("sortableUpdated", (e) => {
     if (!e.detail || !e.detail.container) return;
     const container = e.detail.container;
 
     // 1. Reordenamiento de bloques de contenido
     if (container.id === "sortable-content-list") {
-      setDraftField("is_reorder", "true");
-      
-      const items = Array.from(container.querySelectorAll(".sortable-item"));
-      const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
-      if (!storedStr) return;
-      let state = JSON.parse(storedStr);
-      let draft = state.draft || state;
-      if (!Array.isArray(draft.content)) return;
+      let draft = getDraftState();
+      if (!draft || !Array.isArray(draft.content)) return;
 
+      const items = Array.from(container.querySelectorAll(".sortable-item"));
       const newContent = [];
-      items.forEach((item, index) => {
+      items.forEach((item) => {
         const blkId = item.getAttribute("data-block-id");
         let found = blkId ? draft.content.find((b) => b && b.id === blkId) : null;
         if (!found) {
-          const oldIdx = (e.detail.oldIndices && e.detail.oldIndices[index] !== null) 
-            ? e.detail.oldIndices[index] 
-            : parseInt(item.getAttribute("data-index"), 10);
+          const oldIdx = parseInt(item.getAttribute("data-index"), 10);
           if (!isNaN(oldIdx) && draft.content[oldIdx]) {
             found = draft.content[oldIdx];
           }
@@ -3615,57 +3706,90 @@ export function designDraftManager() {
       if (newContent.length === draft.content.length) {
         draft.content = newContent;
       }
-      localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+      saveDraftState(draft);
 
-      // Sincronizar en flat draft
-      newContent.forEach((cItem, idx) => {
-        Object.keys(cItem).forEach((field) => {
-          setDraftField(`content[${idx}][${field}]`, cItem[field]);
+      // Reindexar DOM del editor para mantener sincronía de índices y atributos name
+      reindexEditorDOM(container);
+
+      // ¡Reordenar inmediatamente el DOM de la vista previa en 0ms!
+      const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+      previewContainers.forEach((pContainer) => {
+        draft.content.forEach((block, newIdx) => {
+          if (!block) return;
+          let prevEls = block.id ? pContainer.querySelectorAll(`[data-block-id="${block.id}"]`) : [];
+          if (!prevEls || prevEls.length === 0) {
+            prevEls = pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`);
+          }
+          prevEls.forEach((el) => {
+            pContainer.appendChild(el);
+            el.setAttribute("data-content-index", String(newIdx));
+          });
         });
       });
 
-      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
-        window.__saveButtonController.enableSaveButton();
-      }
-      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      setDraftField("is_reorder", "true");
+      notifyDraftState();
     }
 
     // 2. Reordenamiento de redes sociales
     if (container.id === "sortable-rrss-list") {
-      setDraftField("is_reorder", "true");
+      let draft = getDraftState();
+      if (!draft || !Array.isArray(draft.rrss)) return;
 
       const items = Array.from(container.querySelectorAll(".sortable-item"));
-      const storedStr = localStorage.getItem(JSON_DRAFT_KEY);
-      if (!storedStr) return;
-      let state = JSON.parse(storedStr);
-      let draft = state.draft || state;
-      if (!Array.isArray(draft.rrss)) return;
-
       const newRrss = [];
       items.forEach((item) => {
-        const name = item.getAttribute("data-rrss-name") 
-          || item.querySelector('input[name$="[0]"]')?.value?.trim()?.toLowerCase()
-          || "";
-        const found = draft.rrss.find((r) => (Array.isArray(r) ? r[0] : r?.name || "").toLowerCase() === name);
+        const name = (item.getAttribute("data-rrss-name") 
+          || item.querySelector('input[name$="[0]"]')?.value 
+          || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
+          || "").trim().toLowerCase();
+        const found = draft.rrss.find((r) => {
+          const rName = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+          return rName === name;
+        });
         if (found) newRrss.push(found);
       });
 
       if (newRrss.length === draft.rrss.length) {
         draft.rrss = newRrss;
       }
-      localStorage.setItem(JSON_DRAFT_KEY, JSON.stringify(state));
+      saveDraftState(draft);
 
-      newRrss.forEach((rItem, idx) => {
-        const sName = Array.isArray(rItem) ? rItem[0] : rItem.name;
-        const sUrl  = Array.isArray(rItem) ? rItem[1] : rItem.url;
-        setDraftField(`rrss[${idx}][0]`, sName);
-        setDraftField(`rrss[${idx}][1]`, sUrl);
+      // Reindexar inputs del formulario de RRSS
+      items.forEach((item, index) => {
+        item.id = `rrss-item-${index}`;
+        item.setAttribute("data-index", String(index));
+        item.querySelectorAll("input").forEach((input) => {
+          const n = input.getAttribute("name");
+          if (n && n.startsWith("rrss[")) {
+            input.setAttribute("name", n.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
+          }
+        });
       });
 
-      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
-        window.__saveButtonController.enableSaveButton();
-      }
-      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      // ¡Reordenar inmediatamente el DOM de redes sociales en la vista previa en 0ms!
+      const allPreviews = document.querySelectorAll(".user-profile-preview");
+      allPreviews.forEach((preview) => {
+        const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
+        if (!sampleLink || !sampleLink.parentElement) return;
+        const rrssWrapper = sampleLink.parentElement;
+        const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+
+        draft.rrss.forEach((r) => {
+          const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+          if (!name) return;
+          const match = previewLinks.find((link) => {
+            const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+            return linkId === `rrss_${name}`;
+          });
+          if (match) {
+            rrssWrapper.appendChild(match);
+          }
+        });
+      });
+
+      setDraftField("is_reorder", "true");
+      notifyDraftState();
     }
   });
 

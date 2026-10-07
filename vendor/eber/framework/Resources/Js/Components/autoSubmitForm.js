@@ -18,6 +18,11 @@
  * @returns {void}
  */
 export function autoSubmitForm() {
+  // Ignorar completamente dentro del panel de usuario para evitar colisiones con el gestor de diseño local
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/panel/')) {
+    return;
+  }
+
   /**
    * Sincroniza dinámicamente la visibilidad de elementos condicionales en el cliente
    * de forma inmediata al cambiar valores de radios/selects.

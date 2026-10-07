@@ -42,7 +42,7 @@
   <!-- ==================== VISTA PREVIA (EDITOR): AMBOS FORMATOS CONMUTABLES EN VIVO ==================== -->
 
   <!-- Formato Cuadrícula (Grid 2 Columnas) -->
-  <div data-content-index="<?= (int)$dataContent ?>" data-layout-variant="grid" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100 <?= ($layout === 'grid') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'grid') ? '' : 'display: none;') ?>">
+  <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-layout-variant="grid" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100 <?= ($layout === 'grid') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'grid') ? '' : 'display: none;') ?>">
     <?php if (!empty($groupTitle)) : ?>
       <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>
@@ -122,7 +122,7 @@
   </div>
 
   <!-- Formato Carrusel Deslizante (Slide Horizontal) -->
-  <div data-content-index="<?= (int)$dataContent ?>" data-layout-variant="slide" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100 <?= ($layout === 'slide') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'slide') ? '' : 'display: none;') ?>">
+  <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-layout-variant="slide" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100 <?= ($layout === 'slide') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'slide') ? '' : 'display: none;') ?>">
     <?php if (!empty($groupTitle)) : ?>
       <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
     <?php endif; ?>
@@ -215,7 +215,7 @@
 
   <?php if ($layout === "grid") : ?>
     <!-- Formato Cuadricula (Grid 2 Columnas) -->
-    <div data-content-index="<?= (int)$dataContent ?>" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+    <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
       <?php if (!empty($groupTitle)) : ?>
         <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
       <?php endif; ?>
@@ -298,7 +298,7 @@
 
   <?php else : ?>
     <!-- Formato Carrusel Deslizante (Slide Horizontal) -->
-    <div data-content-index="<?= (int)$dataContent ?>" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
+    <div data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100"<?= (isset($isActive) && !$isActive) ? ' style="display: none;"' : '' ?>>
       <?php if (!empty($groupTitle)) : ?>
         <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
       <?php endif; ?>

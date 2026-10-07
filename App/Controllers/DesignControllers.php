@@ -110,13 +110,20 @@ class DesignControllers extends Control {
   public function saveDesign(string $user, array|string $param = []): void {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    // Si recibimos parámetros POST con cambios acumulados del borrador, persistirlos en el modelo
-    if (!empty($param) && is_array($param)) {
+    // Si recibimos draft_json completo desde localStorage, guardar directamente como oficial
+    if (!empty($param["draft_json"])) {
+      $draftCard = is_string($param["draft_json"]) ? json_decode($param["draft_json"], true) : $param["draft_json"];
+      if (is_array($draftCard)) {
+        DesignModels::saveOfficialDesignFromCard($userClean, $draftCard);
+      } else {
+        DesignModels::publishDesign($userClean);
+      }
+    } elseif (!empty($param) && is_array($param)) {
       DesignModels::updateCustomDesign($userClean, $param);
+      DesignModels::publishDesign($userClean);
+    } else {
+      DesignModels::publishDesign($userClean);
     }
-
-    // Delegar la publicación oficial del diseño al modelo DesignModels
-    DesignModels::publishDesign($userClean);
 
     // Detectar solicitudes AJAX / Fetch
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')

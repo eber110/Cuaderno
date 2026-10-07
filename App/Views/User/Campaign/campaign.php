@@ -82,7 +82,7 @@
   $campaignId   = "campaign-block-" . (int)$dataContent;
 ?>
 
-<div id="<?= e($campaignId) ?>" data-content-index="<?= (int)$dataContent ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor ?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
+<div id="<?= e($campaignId) ?>" data-content-index="<?= (int)$dataContent ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor ?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
 
   <?php if ($imgShow && $hasImg) : ?>
     <!-- Imagen de fondo y capa de opacidad/color -->
