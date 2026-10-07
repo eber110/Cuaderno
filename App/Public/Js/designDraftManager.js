@@ -228,16 +228,23 @@ export function designDraftManager() {
 
       if (previewContainers.length > 0) {
         previewContainers.forEach((pContainer) => {
+          const targetNodes = [];
           draft.content.forEach((block, newIdx) => {
             if (!block) return;
-            let prevEls = block.id ? pContainer.querySelectorAll(`[data-block-id="${block.id}"]`) : [];
+            let prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
             if (!prevEls || prevEls.length === 0) {
-              prevEls = pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`);
+              prevEls = Array.from(pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`));
             }
             prevEls.forEach((el) => {
-              pContainer.appendChild(el);
               el.setAttribute("data-content-index", String(newIdx));
+              targetNodes.push(el);
             });
+          });
+
+          targetNodes.forEach((node, i) => {
+            if (pContainer.children[i] !== node) {
+              pContainer.insertBefore(node, pContainer.children[i] || null);
+            }
           });
         });
       }
@@ -281,21 +288,27 @@ export function designDraftManager() {
 
       if (allPreviews.length > 0) {
         allPreviews.forEach((preview) => {
-          const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
-          if (!sampleLink || !sampleLink.parentElement) return;
-          const rrssWrapper = sampleLink.parentElement;
-          const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+          const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
+          const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
 
-          draft.rrss.forEach((r) => {
-            const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
-            if (!name) return;
-            const match = previewLinks.find((link) => {
-              const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
-              return linkId === `rrss_${name}`;
+          wrappers.forEach((rrssWrapper) => {
+            const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+            const targetNodes = [];
+            draft.rrss.forEach((r) => {
+              const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+              if (!name) return;
+              const match = previewLinks.find((link) => {
+                const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+                return linkId === `rrss_${name}`;
+              });
+              if (match) targetNodes.push(match);
             });
-            if (match) {
-              rrssWrapper.appendChild(match);
-            }
+
+            targetNodes.forEach((node, i) => {
+              if (rrssWrapper.children[i] !== node) {
+                rrssWrapper.insertBefore(node, rrssWrapper.children[i] || null);
+              }
+            });
           });
         });
       }
@@ -3711,19 +3724,26 @@ export function designDraftManager() {
       // Reindexar DOM del editor para mantener sincronía de índices y atributos name
       reindexEditorDOM(container);
 
-      // ¡Reordenar inmediatamente el DOM de la vista previa en 0ms!
+      // ¡Reordenar quirúrgicamente el DOM de la vista previa en 0ms sin destruir iframes ni causar reflow!
       const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
       previewContainers.forEach((pContainer) => {
+        const targetNodes = [];
         draft.content.forEach((block, newIdx) => {
           if (!block) return;
-          let prevEls = block.id ? pContainer.querySelectorAll(`[data-block-id="${block.id}"]`) : [];
+          let prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
           if (!prevEls || prevEls.length === 0) {
-            prevEls = pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`);
+            prevEls = Array.from(pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`));
           }
           prevEls.forEach((el) => {
-            pContainer.appendChild(el);
             el.setAttribute("data-content-index", String(newIdx));
+            targetNodes.push(el);
           });
+        });
+
+        targetNodes.forEach((node, i) => {
+          if (pContainer.children[i] !== node) {
+            pContainer.insertBefore(node, pContainer.children[i] || null);
+          }
         });
       });
 
@@ -3750,8 +3770,9 @@ export function designDraftManager() {
         if (found) newRrss.push(found);
       });
 
-      if (newRrss.length === draft.rrss.length) {
-        draft.rrss = newRrss;
+      if (newRrss.length > 0) {
+        const remaining = draft.rrss.filter((r) => !newRrss.includes(r));
+        draft.rrss = [...newRrss, ...remaining];
       }
       saveDraftState(draft);
 
@@ -3767,24 +3788,30 @@ export function designDraftManager() {
         });
       });
 
-      // ¡Reordenar inmediatamente el DOM de redes sociales en la vista previa en 0ms!
+      // ¡Reordenar quirúrgicamente el DOM de redes sociales en TODAS las cabeceras de la vista previa en 0ms!
       const allPreviews = document.querySelectorAll(".user-profile-preview");
       allPreviews.forEach((preview) => {
-        const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
-        if (!sampleLink || !sampleLink.parentElement) return;
-        const rrssWrapper = sampleLink.parentElement;
-        const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+        const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
+        const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
 
-        draft.rrss.forEach((r) => {
-          const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
-          if (!name) return;
-          const match = previewLinks.find((link) => {
-            const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
-            return linkId === `rrss_${name}`;
+        wrappers.forEach((rrssWrapper) => {
+          const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+          const targetNodes = [];
+          draft.rrss.forEach((r) => {
+            const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+            if (!name) return;
+            const match = previewLinks.find((link) => {
+              const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+              return linkId === `rrss_${name}`;
+            });
+            if (match) targetNodes.push(match);
           });
-          if (match) {
-            rrssWrapper.appendChild(match);
-          }
+
+          targetNodes.forEach((node, i) => {
+            if (rrssWrapper.children[i] !== node) {
+              rrssWrapper.insertBefore(node, rrssWrapper.children[i] || null);
+            }
+          });
         });
       });
 

@@ -946,49 +946,59 @@ export function sortableContent() {
     if (isContent) {
       const items = Array.from(container.querySelectorAll(".sortable-item"));
       document.querySelectorAll(".preview-widget-container, #preview-widget-container").forEach((widgetWrapper) => {
+        const targetNodes = [];
         items.forEach((item, newIdx) => {
           const blkId = item.getAttribute("data-block-id");
-          if (blkId) {
-            const elements = widgetWrapper.querySelectorAll(`[data-block-id="${blkId}"]`);
-            if (elements.length > 0) {
-              elements.forEach((el) => {
-                widgetWrapper.appendChild(el);
-                el.setAttribute("data-content-index", String(newIdx));
-              });
-              return;
-            }
+          let elements = blkId ? Array.from(widgetWrapper.querySelectorAll(`[data-block-id="${blkId}"]`)) : [];
+          if (!elements.length) {
+            const oldIdx = (oldIndices && oldIndices[newIdx] !== null) ? oldIndices[newIdx] : newIdx;
+            elements = Array.from(widgetWrapper.querySelectorAll(`[data-content-index="${oldIdx}"]`));
           }
-          const oldIdx = (oldIndices && oldIndices[newIdx] !== null) ? oldIndices[newIdx] : newIdx;
-          const fallbackEls = widgetWrapper.querySelectorAll(`[data-content-index="${oldIdx}"]`);
-          fallbackEls.forEach((el) => {
-            widgetWrapper.appendChild(el);
+          elements.forEach((el) => {
             el.setAttribute("data-content-index", String(newIdx));
+            targetNodes.push(el);
           });
+        });
+
+        // Reordenamiento quirúrgico en el DOM: solo mover nodos que no estén en su posición correcta
+        targetNodes.forEach((node, i) => {
+          if (widgetWrapper.children[i] !== node) {
+            widgetWrapper.insertBefore(node, widgetWrapper.children[i] || null);
+          }
         });
       });
     } else if (isRRSS) {
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const sampleLink = preview.querySelector('[data-link-id^="rrss_"]');
-        if (!sampleLink || !sampleLink.parentElement) return;
-
-        const rrssWrapper = sampleLink.parentElement;
-        const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+        // Encontrar TODOS los contenedores de redes sociales en todas las variantes de cabecera
+        const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
+        const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
         const allItems = Array.from(container.querySelectorAll(".sortable-item"));
 
-        allItems.forEach((item) => {
-          const name = (item.getAttribute("data-rrss-name") 
-            || item.querySelector('input[name$="[0]"]')?.value 
-            || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
-            || "").trim().toLowerCase();
-          if (name) {
-            const previewLink = previewLinks.find((link) => {
-              const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
-              return linkId === `rrss_${name}`;
-            });
-            if (previewLink) {
-              rrssWrapper.appendChild(previewLink);
+        wrappers.forEach((rrssWrapper) => {
+          const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+          const targetNodes = [];
+          allItems.forEach((item) => {
+            const name = (item.getAttribute("data-rrss-name") 
+              || item.querySelector('input[name$="[0]"]')?.value 
+              || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
+              || "").trim().toLowerCase();
+            if (name) {
+              const previewLink = previewLinks.find((link) => {
+                const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
+                return linkId === `rrss_${name}`;
+              });
+              if (previewLink) {
+                targetNodes.push(previewLink);
+              }
             }
-          }
+          });
+
+          // Reordenamiento quirúrgico: solo mover los que cambiaron de posición
+          targetNodes.forEach((node, i) => {
+            if (rrssWrapper.children[i] !== node) {
+              rrssWrapper.insertBefore(node, rrssWrapper.children[i] || null);
+            }
+          });
         });
       });
     }
