@@ -946,6 +946,10 @@ export function sortableContent() {
     if (isContent) {
       const items = Array.from(container.querySelectorAll(".sortable-item"));
       document.querySelectorAll(".preview-widget-container, #preview-widget-container").forEach((widgetWrapper) => {
+        const scroller = widgetWrapper.closest(".overflow-y-scroll") ||
+          document.querySelector(".user-profile-preview [data-scroll-memory='user-preview'], .user-profile-preview .overflow-y-scroll");
+        const prevScroll = scroller ? scroller.scrollTop : 0;
+
         const targetNodes = [];
         items.forEach((item, newIdx) => {
           const blkId = item.getAttribute("data-block-id");
@@ -966,9 +970,17 @@ export function sortableContent() {
             widgetWrapper.insertBefore(node, widgetWrapper.children[i] || null);
           }
         });
+
+        // Preservar la posición exacta de scroll en el preview sin saltos al top
+        if (scroller && prevScroll > 0) {
+          scroller.scrollTop = prevScroll;
+        }
       });
     } else if (isRRSS) {
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        const scroller = preview.querySelector("[data-scroll-memory='user-preview'], .overflow-y-scroll");
+        const prevScroll = scroller ? scroller.scrollTop : 0;
+
         // Encontrar TODOS los contenedores de redes sociales en todas las variantes de cabecera
         const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
         const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
@@ -1000,6 +1012,11 @@ export function sortableContent() {
             }
           });
         });
+
+        // Preservar la posición de scroll
+        if (scroller && prevScroll > 0) {
+          scroller.scrollTop = prevScroll;
+        }
       });
     }
   }

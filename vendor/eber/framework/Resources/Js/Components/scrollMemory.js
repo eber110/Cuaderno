@@ -94,8 +94,13 @@ export function scrollMemory() {
     if (!el) return;
     const key = getStorageKey(el);
     const top = el.scrollTop;
+    const memoryId = el.getAttribute('data-scroll-memory') || 
+      el.getAttribute('id') ||
+      (el.closest('.user-profile-preview') ? 'user-preview' : 
+      (el.closest('.preview-profile') || el.closest('.back-card') ? 'user-profile' : 'content'));
     try {
       sessionStorage.setItem(key, String(top));
+      sessionStorage.setItem(`cuaderno_scroll_${memoryId}_${window.location.pathname}`, String(top));
     } catch (e) {}
   }
 

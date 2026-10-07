@@ -58,14 +58,35 @@
       <script>
         (function() {
           try {
-            // 1. Restauración instantánea de scroll
-            var k = 'cuaderno_scroll_user-preview_' + window.location.pathname;
-            var s = sessionStorage.getItem(k);
-            if (s) {
-              var p = document.currentScript ? document.currentScript.parentElement : null;
-              if (p) {
-                p.style.setProperty('scroll-behavior', 'auto', 'important');
-                p.scrollTop = parseInt(s, 10) || 0;
+            // 1. Restauración instantánea de scroll sin salto visual (Anti-FOUC de scroll)
+            var p = document.currentScript ? document.currentScript.parentElement : null;
+            if (p) {
+              p.style.setProperty('scroll-behavior', 'auto', 'important');
+              var path = window.location.pathname;
+              var s = sessionStorage.getItem('fme_scroll_user-preview_' + path) ||
+                      sessionStorage.getItem('cuaderno_scroll_user-preview_' + path);
+              if (s) {
+                var targetTop = parseInt(s, 10);
+                if (!isNaN(targetTop) && targetTop > 0) {
+                  p.scrollTop = targetTop;
+
+                  if (Math.abs(p.scrollTop - targetTop) > 2) {
+                    var prevVis = p.style.visibility;
+                    p.style.visibility = 'hidden';
+
+                    var attempts = 0;
+                    var stabilizeScroll = function() {
+                      attempts++;
+                      p.scrollTop = targetTop;
+                      if (Math.abs(p.scrollTop - targetTop) <= 2 || attempts >= 8) {
+                        p.style.visibility = prevVis;
+                      } else {
+                        requestAnimationFrame(stabilizeScroll);
+                      }
+                    };
+                    requestAnimationFrame(stabilizeScroll);
+                  }
+                }
               }
             }
 

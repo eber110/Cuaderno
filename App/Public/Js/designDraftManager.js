@@ -3725,6 +3725,10 @@ export function designDraftManager() {
       // ¡Reordenar quirúrgicamente el DOM de la vista previa en 0ms sin destruir iframes ni causar reflow!
       const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
       previewContainers.forEach((pContainer) => {
+        const scroller = pContainer.closest(".overflow-y-scroll") ||
+          document.querySelector(".user-profile-preview [data-scroll-memory='user-preview'], .user-profile-preview .overflow-y-scroll");
+        const prevScroll = scroller ? scroller.scrollTop : 0;
+
         const targetNodes = [];
         draft.content.forEach((block, newIdx) => {
           if (!block) return;
@@ -3743,6 +3747,10 @@ export function designDraftManager() {
             pContainer.insertBefore(node, pContainer.children[i] || null);
           }
         });
+
+        if (scroller && prevScroll > 0) {
+          scroller.scrollTop = prevScroll;
+        }
       });
 
       setDraftField("is_reorder", "true");
@@ -3789,6 +3797,9 @@ export function designDraftManager() {
       // ¡Reordenar quirúrgicamente el DOM de redes sociales en TODAS las cabeceras de la vista previa en 0ms!
       const allPreviews = document.querySelectorAll(".user-profile-preview");
       allPreviews.forEach((preview) => {
+        const scroller = preview.querySelector("[data-scroll-memory='user-preview'], .overflow-y-scroll");
+        const prevScroll = scroller ? scroller.scrollTop : 0;
+
         const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
         const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
 
@@ -3811,6 +3822,10 @@ export function designDraftManager() {
             }
           });
         });
+
+        if (scroller && prevScroll > 0) {
+          scroller.scrollTop = prevScroll;
+        }
       });
 
       setDraftField("is_reorder", "true");
