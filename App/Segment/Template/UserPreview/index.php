@@ -54,43 +54,13 @@
         ?>
       </footer>
 
-      <!-- Script Anti-FOUC síncrono: Restaura el orden de bloques, redes sociales, estilos y scroll del preview de forma instantánea antes del primer renderizado visual -->
+      <?php _scrollMemoryAntiFouc("user-preview"); ?>
+
+      <!-- Script Anti-FOUC síncrono: Restaura el orden de bloques, redes sociales y estilos del preview de forma instantánea antes del primer renderizado visual -->
       <script>
         (function() {
           try {
-            // 1. Restauración instantánea de scroll sin salto visual (Anti-FOUC de scroll)
-            var p = document.currentScript ? document.currentScript.parentElement : null;
-            if (p) {
-              p.style.setProperty('scroll-behavior', 'auto', 'important');
-              var path = window.location.pathname;
-              var s = sessionStorage.getItem('fme_scroll_user-preview_' + path) ||
-                      sessionStorage.getItem('cuaderno_scroll_user-preview_' + path);
-              if (s) {
-                var targetTop = parseInt(s, 10);
-                if (!isNaN(targetTop) && targetTop > 0) {
-                  p.scrollTop = targetTop;
-
-                  if (Math.abs(p.scrollTop - targetTop) > 2) {
-                    var prevVis = p.style.visibility;
-                    p.style.visibility = 'hidden';
-
-                    var attempts = 0;
-                    var stabilizeScroll = function() {
-                      attempts++;
-                      p.scrollTop = targetTop;
-                      if (Math.abs(p.scrollTop - targetTop) <= 2 || attempts >= 8) {
-                        p.style.visibility = prevVis;
-                      } else {
-                        requestAnimationFrame(stabilizeScroll);
-                      }
-                    };
-                    requestAnimationFrame(stabilizeScroll);
-                  }
-                }
-              }
-            }
-
-            // 2. Obtener borrador de diseño local (Local-First)
+            // Obtener borrador de diseño local (Local-First)
             var user = <?= json_encode($card['profile'] ?? '') ?>;
             if (!user) {
               var parts = window.location.pathname.split('/').filter(Boolean);

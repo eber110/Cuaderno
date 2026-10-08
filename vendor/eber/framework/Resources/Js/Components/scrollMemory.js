@@ -148,6 +148,20 @@ export function scrollMemory() {
     setTimeout(() => {
       isProgrammaticScroll = false;
     }, 50);
+
+    // Si el contenedor aún está calculando altura por fuentes o imágenes, estabilizar en cuadros siguientes
+    if (Math.abs(el.scrollTop - targetTop) > 2) {
+      let attempts = 0;
+      const stabilize = () => {
+        attempts++;
+        if (userInteractedSet.has(el)) return;
+        el.scrollTop = targetTop;
+        if (Math.abs(el.scrollTop - targetTop) > 2 && attempts < 8) {
+          requestAnimationFrame(stabilize);
+        }
+      };
+      requestAnimationFrame(stabilize);
+    }
   }
 
   /**

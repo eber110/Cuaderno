@@ -939,3 +939,33 @@ function debugComment(mixed $var, string $label = 'Debug'): void
 {
   echo "\n<!-- {$label}: " . e(print_r($var, true)) . " -->\n";
 }
+
+// ╔════════════════════════════════════════════╗
+// ║  8. SCROLL MEMORY ANTI-FOUC                ║
+// ╚════════════════════════════════════════════╝
+
+/**
+ * Renderiza el script Anti-FOUC síncrono para contenedores con scrollMemory.
+ * Restaura instantáneamente la posición de scroll antes del primer renderizado
+ * visual del navegador, eliminando cualquier pestañeo o salto visual hacia la cabecera.
+ *
+ * @param string $memoryId Identificador opcional del contenedor ('user-preview', 'user-profile', etc.)
+ * @return void Imprime el bloque <script> directamente en el DOM.
+ */
+function _scrollMemoryAntiFouc(string $memoryId = ''): void
+{
+  echo _scrollMemoryAntiFoucToString($memoryId);
+}
+
+/**
+ * Retorna el string del script Anti-FOUC síncrono para scrollMemory.
+ *
+ * @param string $memoryId Identificador opcional
+ * @return string Bloque HTML del script
+ */
+function _scrollMemoryAntiFoucToString(string $memoryId = ''): string
+{
+  $safeId = htmlspecialchars($memoryId, ENT_QUOTES, 'UTF-8');
+  return '<script>(function(){try{var p=document.currentScript?document.currentScript.parentElement:null;if(!p)return;p.style.setProperty("scroll-behavior","auto","important");var path=window.location.pathname;var m="' . $safeId . '";var s=null;if(m){s=sessionStorage.getItem("fme_scroll_"+m+"_"+path)||sessionStorage.getItem("cuaderno_scroll_"+m+"_"+path);}else{var mid=p.getAttribute("data-scroll-memory")||p.getAttribute("id")||"content";s=sessionStorage.getItem("fme_scroll_"+mid+"_"+path)||sessionStorage.getItem("cuaderno_scroll_"+mid+"_"+path);}if(!s)return;var targetTop=parseInt(s,10);if(isNaN(targetTop)||targetTop<=0)return;p.scrollTop=targetTop;if(Math.abs(p.scrollTop-targetTop)>2){var prevVis=p.style.visibility;p.style.visibility="hidden";var attempts=0;var stabilizeScroll=function(){attempts++;p.scrollTop=targetTop;if(Math.abs(p.scrollTop-targetTop)<=2||attempts>=8){p.style.visibility=prevVis;}else{requestAnimationFrame(stabilizeScroll);}};requestAnimationFrame(stabilizeScroll);}}catch(e){}})();</script>';
+}
+

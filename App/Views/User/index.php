@@ -50,45 +50,7 @@
           ?>
         </footer>
 
-        <!-- Script Anti-FOUC síncrono: Restaura el scroll de forma instantánea sin salto visual antes del primer pintado -->
-        <script>
-          (function() {
-            try {
-              var p = document.currentScript ? document.currentScript.parentElement : null;
-              if (!p) return;
-              p.style.setProperty('scroll-behavior', 'auto', 'important');
-
-              var path = window.location.pathname;
-              var s = sessionStorage.getItem('fme_scroll_user-profile_' + path) ||
-                      sessionStorage.getItem('cuaderno_scroll_user-profile_' + path);
-              if (!s) return;
-
-              var targetTop = parseInt(s, 10);
-              if (isNaN(targetTop) || targetTop <= 0) return;
-
-              // Asignación síncrona inmediata previa al pintado
-              p.scrollTop = targetTop;
-
-              // Estabilización en caso de que las dimensiones del layout aún se estén calculando
-              if (Math.abs(p.scrollTop - targetTop) > 2) {
-                var prevVis = p.style.visibility;
-                p.style.visibility = 'hidden';
-
-                var attempts = 0;
-                var stabilizeScroll = function() {
-                  attempts++;
-                  p.scrollTop = targetTop;
-                  if (Math.abs(p.scrollTop - targetTop) <= 2 || attempts >= 8) {
-                    p.style.visibility = prevVis;
-                  } else {
-                    requestAnimationFrame(stabilizeScroll);
-                  }
-                };
-                requestAnimationFrame(stabilizeScroll);
-              }
-            } catch(e) {}
-          })();
-        </script>
+        <?php _scrollMemoryAntiFouc("user-profile"); ?>
       </div>
       
     </div>
