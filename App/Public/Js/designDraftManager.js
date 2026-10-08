@@ -1851,20 +1851,37 @@ export function designDraftManager() {
               if (pPlayerTitle) {
                 pPlayerTitle.textContent = cData.title;
               }
+              const facade = block.querySelector(".video-facade");
+              if (facade) {
+                facade.setAttribute("data-title", cData.title);
+              }
             }
             if (cData.url !== undefined) {
               const aEls = block.querySelectorAll("a");
               aEls.forEach((aEl) => { aEl.href = cData.url || "#"; });
+
+              const ytMatch = (cData.url || "").match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+              const vmMatch = (cData.url || "").match(/vimeo\.com\/(?:video\/)?([0-9]+)/i);
+
+              const facade = block.querySelector(".video-facade");
+              if (facade && cData.url) {
+                if (ytMatch && ytMatch[1]) {
+                  facade.setAttribute("data-embed-url", `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0&autoplay=1`);
+                  const img = facade.querySelector("img");
+                  if (img && (!cData.imgSrc || cData.imgSrc.includes("no-image.webp"))) {
+                    img.src = `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                  }
+                } else if (vmMatch && vmMatch[1]) {
+                  facade.setAttribute("data-embed-url", `https://player.vimeo.com/video/${vmMatch[1]}?autoplay=1`);
+                }
+              }
+
               const iframe = block.querySelector("iframe");
               if (iframe && cData.url) {
-                const ytMatch = cData.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
                 if (ytMatch && ytMatch[1]) {
                   iframe.src = `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0`;
-                } else {
-                  const vmMatch = cData.url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/i);
-                  if (vmMatch && vmMatch[1]) {
-                    iframe.src = `https://player.vimeo.com/video/${vmMatch[1]}`;
-                  }
+                } else if (vmMatch && vmMatch[1]) {
+                  iframe.src = `https://player.vimeo.com/video/${vmMatch[1]}`;
                 }
               }
               const video = block.querySelector("video");
@@ -1874,6 +1891,12 @@ export function designDraftManager() {
                   source.src = cData.url;
                   video.load();
                 }
+              }
+            }
+            if (cData.imgSrc !== undefined) {
+              const facadeImg = block.querySelector(".video-facade img");
+              if (facadeImg && cData.imgSrc) {
+                facadeImg.src = cData.imgSrc;
               }
             }
             // Cambio instantáneo de modo de video (link vs player)
