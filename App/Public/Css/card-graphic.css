@@ -92,7 +92,17 @@ input[type="checkbox"].checkbox-switch {
 
 /* Los estilos de .sortable-item, drag & drop y bloques colapsables ahora viven en el framework (sortable.css) */
 
+/* Optimización táctil para Sortable Items y Drag Handles
+ * Permite desplazamiento vertical nativo (pan-y) instantáneo en pantallas táctiles
+ */
+.sortable-item,
+.drag-handle,
+.drag-icon,
+.content-item-header {
+  touch-action: pan-y !important;
+}
 
-
-
-
+.sortable-item.dragging,
+.sortable-item.dragging * {
+  touch-action: none !important;
+}

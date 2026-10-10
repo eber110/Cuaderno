@@ -712,9 +712,9 @@ export function sortableContent() {
       const deltaY = Math.abs(touch.clientY - touchStartY);
 
       if (!isTouchDragging) {
-        // Si se mueve más de 10px antes de que se active el drag (por el delay), 
+        // Si se mueve más de 8px antes de que se active el drag (por el delay), 
         // asumimos que el usuario está haciendo scroll y cancelamos el drag
-        if (deltaX > 10 || deltaY > 10) {
+        if (deltaX > 8 || deltaY > 8) {
           cleanUpTouch();
           return;
         }
