@@ -49,8 +49,7 @@
 
 <style>
   .video-facade { cursor: pointer; background-color: #000000; }
-  .video-facade img { transition: transform 0.3s ease, filter 0.2s ease; }
-  .video-facade:hover img { transform: scale(1.02); filter: brightness(1) !important; }
+  .video-facade img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .video-facade:hover .video-play-button { transform: scale(1.12); background: rgba(230, 33, 23, 0.95) !important; }
 </style>
 
@@ -67,9 +66,9 @@
            tabindex="0"
            aria-label="Reproducir video: <?= e($title ?: "Video de YouTube") ?>"
            onclick="var f=this;var u=f.getAttribute('data-embed-url');if(!u)return;var ifr=document.createElement('iframe');ifr.className='w100 h100';ifr.style.cssText='border:0;width:100%;height:100%;display:block;';ifr.src=u;ifr.title=f.getAttribute('data-title')||'Video';ifr.frameBorder='0';ifr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';ifr.allowFullscreen=true;f.replaceWith(ifr);">
-        <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de YouTube") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block; filter: brightness(0.9); transition: filter 0.2s ease, transform 0.3s ease;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
+        <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de YouTube") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
         <div class="video-play-overlay flex-row center-center" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-          <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background-color 0.2s ease;">
+          <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background 0.2s ease, background-color 0.2s ease;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" style="margin-left: 2px;" aria-hidden="true">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -84,9 +83,9 @@
            tabindex="0"
            aria-label="Reproducir video: <?= e($title ?: "Video de Vimeo") ?>"
            onclick="var f=this;var u=f.getAttribute('data-embed-url');if(!u)return;var ifr=document.createElement('iframe');ifr.className='w100 h100';ifr.style.cssText='border:0;width:100%;height:100%;display:block;';ifr.src=u;ifr.title=f.getAttribute('data-title')||'Video';ifr.frameBorder='0';ifr.allow='autoplay; fullscreen; picture-in-picture';ifr.allowFullscreen=true;f.replaceWith(ifr);">
-        <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de Vimeo") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block; filter: brightness(0.9); transition: filter 0.2s ease, transform 0.3s ease;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
+        <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de Vimeo") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
         <div class="video-play-overlay flex-row center-center" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-          <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background-color 0.2s ease;">
+          <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background 0.2s ease, background-color 0.2s ease;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" style="margin-left: 2px;" aria-hidden="true">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -148,9 +147,9 @@
              tabindex="0"
              aria-label="Reproducir video: <?= e($title ?: "Video de YouTube") ?>"
              onclick="var f=this;var u=f.getAttribute('data-embed-url');if(!u)return;var ifr=document.createElement('iframe');ifr.className='w100 h100';ifr.style.cssText='border:0;width:100%;height:100%;display:block;';ifr.src=u;ifr.title=f.getAttribute('data-title')||'Video';ifr.frameBorder='0';ifr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';ifr.allowFullscreen=true;f.replaceWith(ifr);">
-          <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de YouTube") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block; filter: brightness(0.9); transition: filter 0.2s ease, transform 0.3s ease;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
+          <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de YouTube") ?>" class="cover w100 h100" loading="lazy" style="border: none;object-fit: cover; width: 100%; height: 100%; display: block;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
           <div class="video-play-overlay flex-row center-center" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-            <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background-color 0.2s ease;">
+            <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background 0.2s ease, background-color 0.2s ease;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" style="margin-left: 2px;" aria-hidden="true">
                 <path d="M8 5v14l11-7z"/>
               </svg>
@@ -165,9 +164,9 @@
              tabindex="0"
              aria-label="Reproducir video: <?= e($title ?: "Video de Vimeo") ?>"
              onclick="var f=this;var u=f.getAttribute('data-embed-url');if(!u)return;var ifr=document.createElement('iframe');ifr.className='w100 h100';ifr.style.cssText='border:0;width:100%;height:100%;display:block;';ifr.src=u;ifr.title=f.getAttribute('data-title')||'Video';ifr.frameBorder='0';ifr.allow='autoplay; fullscreen; picture-in-picture';ifr.allowFullscreen=true;f.replaceWith(ifr);">
-          <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de Vimeo") ?>" class="cover w100 h100" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; display: block; filter: brightness(0.9); transition: filter 0.2s ease, transform 0.3s ease;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
+          <img src="<?= eUrl($thumbnailUrl) ?>" alt="<?= e($title ?: "Video de Vimeo") ?>" class="cover w100 h100" loading="lazy" style="border: none;object-fit: cover; width: 100%; height: 100%; display: block;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
           <div class="video-play-overlay flex-row center-center" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-            <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background-color 0.2s ease;">
+            <div class="video-play-button flex-row center-center br50" style="width: 58px; height: 58px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, background 0.2s ease, background-color 0.2s ease;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" style="margin-left: 2px;" aria-hidden="true">
                 <path d="M8 5v14l11-7z"/>
               </svg>
