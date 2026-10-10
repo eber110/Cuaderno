@@ -78,6 +78,11 @@ Route::prefix("/panel/:user")->middleware([DashboardMiddleware::class])->group(f
   Route::post("/cloudinary-sign", [DesignControllers::class, "getCloudinarySignature"]);
   Route::get("/guardar", [DesignControllers::class, "saveDesign"]);
   Route::post("/guardar", [DesignControllers::class, "saveDesign"]);
+  Route::get("/csrf-token", function(string $user) {
+    return \Base\Module\ResponseModule::json([
+      "csrf_token" => class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::getCsrfToken() : ''
+    ]);
+  });
   Route::get("/descartar", [DesignControllers::class, "discardDesign"]);
   Route::post("/descartar", [DesignControllers::class, "discardDesign"]);
   Route::get("/simular-datos", [\App\Controllers\StatisticsControllers::class, "generateTestData"]);

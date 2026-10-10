@@ -104,6 +104,16 @@ class DesignModels extends Builder {
    */
   private static function formatRowToData(array $row): array {
     $borders = is_string($row["borders"] ?? null) ? json_decode($row["borders"], true) : ($row["borders"] ?? ["br0", "br0"]);
+    if (is_string($borders)) {
+      $borders = str_contains($borders, ",") ? explode(",", $borders) : [$borders, $borders];
+    }
+    if (!is_array($borders) || empty($borders)) {
+      $borders = ["br0", "br0"];
+    }
+    $borders = array_values($borders);
+    if (count($borders) === 1) {
+      $borders[1] = $borders[0];
+    }
     $rrss    = is_string($row["rrss"] ?? null) ? json_decode($row["rrss"], true) : ($row["rrss"] ?? []);
     $content = is_string($row["content"] ?? null) ? json_decode($row["content"], true) : ($row["content"] ?? []);
     if (is_array($content)) {
@@ -193,7 +203,18 @@ class DesignModels extends Builder {
       "back_video_opacity"   => isset($card["backCard"]["back_video_opacity"]) ? max(0, min(95, intval($card["backCard"]["back_video_opacity"]))) : 45,
       "color_text"           => $card["colorText"] ?? "#383838",
       "style"                => $card["style"] ?? "buttonRegular",
-      "borders"              => json_encode($card["borders"] ?? ["br0", "br0"]),
+      "borders"              => (function() use ($card) {
+        $b = $card["borders"] ?? ["br0", "br0"];
+        if (is_string($b)) {
+          $b = str_contains($b, ",") ? explode(",", $b) : [$b, $b];
+        }
+        if (!is_array($b) || empty($b)) {
+          $b = ["br0", "br0"];
+        }
+        $b = array_values($b);
+        if (count($b) === 1) $b[1] = $b[0];
+        return json_encode($b);
+      })(),
       "shadow"               => $card["shadow"] ?? "shadow-1",
       "back"                 => $card["back"] ?? "#d6d6d6",
       "hover"                => !empty($card["hover"]) ? 1 : 0,
@@ -290,6 +311,11 @@ class DesignModels extends Builder {
     if (class_exists(CacheModule::class)) {
       $cached = CacheModule::get($cacheKey);
       if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        if (isset($cached["card"]["borders"]) && is_string($cached["card"]["borders"])) {
+          $cached["card"]["borders"] = str_contains($cached["card"]["borders"], ",") 
+            ? explode(",", $cached["card"]["borders"]) 
+            : [$cached["card"]["borders"], $cached["card"]["borders"]];
+        }
         self::ensureBlockIds($cached["card"]);
         return $cached;
       }
@@ -348,6 +374,11 @@ class DesignModels extends Builder {
     if (class_exists(CacheModule::class)) {
       $cached = CacheModule::get($cacheKey);
       if ($cached !== null && is_array($cached) && isset($cached["card"])) {
+        if (isset($cached["card"]["borders"]) && is_string($cached["card"]["borders"])) {
+          $cached["card"]["borders"] = str_contains($cached["card"]["borders"], ",") 
+            ? explode(",", $cached["card"]["borders"]) 
+            : [$cached["card"]["borders"], $cached["card"]["borders"]];
+        }
         self::ensureBlockIds($cached["card"]);
         return $cached;
       }
@@ -1754,6 +1785,18 @@ class DesignModels extends Builder {
     $userClean = mb_strtolower($user, "UTF-8");
     self::ensureBlockIds($card);
     $card["active"] = true;
+
+    if (isset($card["borders"])) {
+      if (is_string($card["borders"])) {
+        $card["borders"] = str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]];
+      }
+      if (is_array($card["borders"])) {
+        $card["borders"] = array_values($card["borders"]);
+        if (count($card["borders"]) === 1) {
+          $card["borders"][1] = $card["borders"][0];
+        }
+      }
+    }
 
     // 1. Guardar como versión oficial publicada (is_draft = 0)
     self::saveDesignToDb($userClean, 0, $card);

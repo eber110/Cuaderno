@@ -4,7 +4,10 @@
    * @var mixed $uri
    */
   $buttonStyle = $card["style"] ?? 'buttonRegular';
-  $borderVal   = $card["borders"][0] ?? 'br0';
+  $borders     = is_array($card["borders"] ?? null) 
+    ? $card["borders"] 
+    : (is_string($card["borders"] ?? null) ? (str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]]) : ["br0", "br0"]);
+  $borderVal   = $borders[0] ?? 'br0';
   $shadowVal   = $card["shadow"] ?? 'shadow-0';
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">

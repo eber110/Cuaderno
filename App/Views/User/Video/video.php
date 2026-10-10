@@ -25,7 +25,10 @@
   $imgShow     = ($rawImgShow === true || $rawImgShow === "true" || $rawImgShow === 1 || $rawImgShow === "1");
   $hasImg      = !empty($imgSrc) && strpos($imgSrc, "no-image.webp") === false;
 
-  $borderCard  = ($card["borders"][0] == "br50") ? "br20" : ($card["borders"][0] ?? "br15");
+  $borders     = is_array($card["borders"] ?? null) 
+    ? $card["borders"] 
+    : (is_string($card["borders"] ?? null) ? (str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]]) : ["br0", "br0"]);
+  $borderCard  = ($borders[0] == "br50") ? "br20" : ($borders[0] ?? "br15");
   $shadowCard  = $card["shadow"] ?? "shadow-card";
   $profile     = $card["profile"] ?? "";
   $isPreview   = !empty($isPreview) || !empty($card["isPreview"]);

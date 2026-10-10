@@ -392,6 +392,9 @@ export function designDraftManager() {
     }
     if (path === "title_color") draft.titleColor = value;
     if (path === "color_text") draft.colorText = value;
+    if (path === "borders") {
+      draft.borders = Array.isArray(value) ? value : (typeof value === "string" ? value.split(",") : ["br0", "br0"]);
+    }
 
     saveDraftState(draft);
   }
@@ -1187,7 +1190,7 @@ export function designDraftManager() {
 
     // --- B. BORDES Y SOMBRAS EN BOTONES (CLASES DIRECTAS) ---
     if (fields.borders) {
-      const borderParts = String(fields.borders).split(",");
+      const borderParts = Array.isArray(fields.borders) ? fields.borders : String(fields.borders).split(",");
       const btnBorder = borderParts[0] || "br0";
       const imgBorder = borderParts[1] || "br0";
       const validBorders = ["br0", "br5", "br10", "br12", "br15", "br20", "br30", "br50"];
@@ -3363,14 +3366,16 @@ export function designDraftManager() {
         formData.set("draft_json", JSON.stringify(draftState));
       }
 
-      const csrf = getCsrfToken();
-      if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
-        formData.append("_token", csrf);
+      let csrf = getCsrfToken();
+      formData.delete("_token");
+      formData.delete("csrf_token");
+      if (csrf) {
+        formData.set("_token", csrf);
       }
 
       const saveUrl = `/panel/${user}/guardar`;
 
-      const response = await fetch(saveUrl, {
+      let response = await fetch(saveUrl, {
         method: "POST",
         body: formData,
         headers: {
@@ -3378,6 +3383,33 @@ export function designDraftManager() {
           ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
         }
       });
+
+      // Si el servidor indica 403 (token expirado), intentar refrescar el token CSRF y reintentar una vez
+      if (response.status === 403) {
+        try {
+          const refreshRes = await fetch(`/panel/${user}/csrf-token`);
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            if (refreshData && refreshData.csrf_token) {
+              csrf = refreshData.csrf_token;
+              const meta = document.querySelector('meta[name="csrf-token"]');
+              if (meta) meta.setAttribute('content', csrf);
+              document.querySelectorAll('input[name="_token"], input[name="csrf_token"]').forEach((inp) => {
+                inp.value = csrf;
+              });
+              formData.set("_token", csrf);
+              response = await fetch(saveUrl, {
+                method: "POST",
+                body: formData,
+                headers: {
+                  "X-Requested-With": "XMLHttpRequest",
+                  "X-CSRF-TOKEN": csrf
+                }
+              });
+            }
+          }
+        } catch (_) {}
+      }
 
       if (!response.ok) {
         throw new Error(`Error en el servidor al guardar el diseño: ${response.statusText}`);
