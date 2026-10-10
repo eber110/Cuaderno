@@ -69,7 +69,7 @@
     </div>
 
     <!-- Separaciones superiores de voidHero (solo visible cuando header == voidHero) -->
-    <div id="void-space-container" class="flex-column top-start gap10 w100" style="<?php if ($headerVal !== 'voidHero') echo 'display: none;'; ?>">
+    <div id="void-space-container" class="flex-column top-start gap10 w100 <?= ($headerVal === 'voidHero') ? '' : 'hidden' ?>" style="display: <?= ($headerVal === 'voidHero') ? 'flex' : 'none !important' ?>;">
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
         <p class="texto">Separación superior</p>
 

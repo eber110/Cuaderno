@@ -11,6 +11,17 @@ export function saveButtonController() {
   const discardBtn = document.getElementById("discard-btn");
   if (!saveContainer || !saveBtn) return;
 
+  const initialDiscardContent = discardBtn ? discardBtn.innerHTML : "Descartar";
+
+  /**
+   * Restaura el contenido visual del botón Descartar respetando su diseño responsive (texto en PC, icono en móvil)
+   */
+  function resetDiscardBtnContent() {
+    if (discardBtn) {
+      discardBtn.innerHTML = initialDiscardContent;
+    }
+  }
+
   /**
    * Actualiza la visibilidad del contenedor de acciones según el botón remoto activo del menú
    */
@@ -87,7 +98,7 @@ export function saveButtonController() {
       discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
       discardBtn.removeAttribute("tabindex");
       discardBtn.removeAttribute("aria-disabled");
-      discardBtn.textContent = "Descartar";
+      resetDiscardBtnContent();
     }
   }
 
@@ -120,7 +131,7 @@ export function saveButtonController() {
       discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");
       discardBtn.removeAttribute("tabindex");
       discardBtn.removeAttribute("aria-disabled");
-      discardBtn.textContent = "Descartar";
+      resetDiscardBtnContent();
     }
   }
 
@@ -141,7 +152,7 @@ export function saveButtonController() {
       discardBtn.classList.add("hidden", "back-card-graphic", "shadow-card-graphic", "border-none", "texto");
       discardBtn.setAttribute("tabindex", "-1");
       discardBtn.setAttribute("aria-disabled", "true");
-      discardBtn.textContent = "Descartar";
+      resetDiscardBtnContent();
     }
   }
 
@@ -432,7 +443,7 @@ export function saveButtonController() {
       discardBtn.setAttribute("aria-disabled", "true");
       discardBtn.classList.add("disabled-save-btn");
       discardBtn.classList.remove("pointer");
-      discardBtn.innerHTML = '<span class="save-btn-spinner save-btn-spinner-dark"></span><span class="save-btn-text">Descartando...</span>';
+      discardBtn.innerHTML = '<span class="save-btn-spinner save-btn-spinner-dark"></span><span class="save-btn-text no-phone">Descartando...</span>';
 
       try {
         if (window.__designDraftManager && typeof window.__designDraftManager.discardDraft === "function") {
@@ -458,7 +469,7 @@ export function saveButtonController() {
         disableSaveButton();
       } catch (err) {
         console.error("Error al descartar el diseño con fetch:", err);
-        discardBtn.textContent = "Descartar";
+        resetDiscardBtnContent();
         discardBtn.removeAttribute("aria-disabled");
         discardBtn.classList.remove("disabled-save-btn");
         discardBtn.classList.add("pointer", "bold500", "texto", "back-card-graphic", "shadow-card-graphic", "hover-scale-soft", "border-none");

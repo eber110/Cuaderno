@@ -148,6 +148,12 @@ body,
     font-weight: bold;
 }
 
+/* Evitar compresión no deseada en flexbox */
+.flex-shrink-0,
+.no-shrink {
+  flex-shrink: 0 !important;
+}
+
 /*Card share de perfil de usuario*/
 .opacity-slide-circle{
   opacity: 0.5;
@@ -1357,6 +1363,53 @@ label:focus-within > .input-note.animated,
   background-color: var(--back-color8, #F6D8BC);
   color: var(--text-secondary, #051c31);
 }
+
+/* =========================================================================
+ * REGLAS DE ALTA ESPECIFICIDAD PARA OCULTAR ELEMENTOS CONDICIONALES
+ * Anula cualquier clase responsive (!important) como .flex-column-sml,
+ * .flex-row-sml, .flex-column, etc., cuando un elemento está oculto por
+ * inline style (display: none), por clase .hidden/.d-none o atributo hidden.
+ * Esto garantiza que en resoluciones móviles (<= 576px) ningún elemento
+ * condicional permanezca visible si debe estar oculto.
+ * ========================================================================= */
+.hidden,
+.d-none,
+[hidden],
+[style*="display: none"],
+[style*="display:none"],
+[style*="display: none !important"],
+[style*="display:none !important"],
+.flex-column-sml.hidden,
+.flex-row-sml.hidden,
+.flex-column-mid.hidden,
+.flex-row-mid.hidden,
+.flex-column-desk.hidden,
+.flex-row-desk.hidden,
+.flex-column.hidden,
+.flex-row.hidden,
+div.hidden,
+div.d-none,
+div[style*="display: none"],
+div[style*="display:none"],
+.flex-column-sml[style*="display: none"],
+.flex-row-sml[style*="display: none"],
+.flex-column-sml[style*="display:none"],
+.flex-row-sml[style*="display:none"],
+.flex-column-mid[style*="display: none"],
+.flex-row-mid[style*="display: none"],
+.flex-column-mid[style*="display:none"],
+.flex-row-mid[style*="display:none"],
+.flex-column-desk[style*="display: none"],
+.flex-row-desk[style*="display: none"],
+.flex-column-desk[style*="display:none"],
+.flex-row-desk[style*="display:none"],
+.flex-column[style*="display: none"],
+.flex-row[style*="display: none"],
+.flex-column[style*="display:none"],
+.flex-row[style*="display:none"] {
+  display: none !important;
+}
+
 
 
 

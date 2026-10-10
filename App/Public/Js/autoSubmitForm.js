@@ -17,6 +17,25 @@ export function autoSubmitForm() {
   }
 
   /**
+   * Alterna la visibilidad de un elemento de interfaz asegurando que venza
+   * reglas CSS responsivas con !important (como .flex-column-sml en teléfonos).
+   *
+   * @param {HTMLElement|null} element Elemento a mostrar u ocultar.
+   * @param {boolean} visible True para mostrar, false para ocultar.
+   * @param {string} [displayType="flex"] Tipo de display al mostrar.
+   */
+  function setElementVisibility(element, visible, displayType = "flex") {
+    if (!element) return;
+    if (visible) {
+      element.classList.remove("hidden");
+      element.style.setProperty("display", displayType, "important");
+    } else {
+      element.classList.add("hidden");
+      element.style.setProperty("display", "none", "important");
+    }
+  }
+
+  /**
    * Sincroniza dinámicamente la visibilidad de elementos condicionales en el cliente
    * de forma inmediata al cambiar valores de radios/selects.
    *
@@ -29,17 +48,11 @@ export function autoSubmitForm() {
     if (target.name === 'style_back') {
       const gradientWrapper = document.getElementById('gradient-direction-wrapper');
       const videoWrapper = document.getElementById('video-controls-wrapper');
+      const isGrad = target.value === 'gradientUp' || target.value === 'gradientDown';
+      const isVid = target.value === 'video';
 
-      if (target.value === 'gradientUp' || target.value === 'gradientDown') {
-        if (gradientWrapper) gradientWrapper.style.display = 'flex';
-        if (videoWrapper) videoWrapper.style.display = 'none';
-      } else if (target.value === 'solid') {
-        if (gradientWrapper) gradientWrapper.style.display = 'none';
-        if (videoWrapper) videoWrapper.style.display = 'none';
-      } else if (target.value === 'video') {
-        if (gradientWrapper) gradientWrapper.style.display = 'none';
-        if (videoWrapper) videoWrapper.style.display = 'flex';
-      }
+      setElementVisibility(gradientWrapper, isGrad);
+      setElementVisibility(videoWrapper, isVid);
     }
 
     // 2. Alternancia del selector de color de sombra 3
@@ -48,16 +61,14 @@ export function autoSubmitForm() {
       const colorShadow3Row = document.getElementById('color-shadow3-color-row');
       const isShadow3 = target.value === 'shadow-3';
 
-      if (shadow3Row) shadow3Row.style.display = isShadow3 ? 'flex' : 'none';
-      if (colorShadow3Row) colorShadow3Row.style.display = isShadow3 ? 'flex' : 'none';
+      setElementVisibility(shadow3Row, isShadow3);
+      setElementVisibility(colorShadow3Row, isShadow3);
     }
 
     // 3. Alternancia de separación superior en cabecera voidHero
     if (target.name === 'header') {
       const voidSpaceContainer = document.getElementById('void-space-container');
-      if (voidSpaceContainer) {
-        voidSpaceContainer.style.display = target.value === 'voidHero' ? 'flex' : 'none';
-      }
+      setElementVisibility(voidSpaceContainer, target.value === 'voidHero');
     }
   }
 

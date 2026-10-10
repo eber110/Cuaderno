@@ -651,38 +651,43 @@ export function designDraftManager() {
   }
 
   /**
+   * Alterna la visibilidad de un elemento de interfaz asegurando que venza
+   * reglas CSS responsivas con !important (como .flex-column-sml en teléfonos).
+   *
+   * @param {HTMLElement|null} element Elemento a mostrar u ocultar.
+   * @param {boolean} visible True para mostrar, false para ocultar.
+   * @param {string} [displayType="flex"] Tipo de display al mostrar.
+   */
+  function setElementVisibility(element, visible, displayType = "flex") {
+    if (!element) return;
+    if (visible) {
+      element.classList.remove("hidden");
+      element.style.setProperty("display", displayType, "important");
+    } else {
+      element.classList.add("hidden");
+      element.style.setProperty("display", "none", "important");
+    }
+  }
+
+  /**
    * Sincroniza la visibilidad de elementos dependientes en el formulario de edición.
    * @param {HTMLElement} target Elemento modificado
    */
   function syncConditionalUI(target) {
     if (!target) return;
 
-    // 1. Estilo de fondo (Sólido, Degradado, Video)
+    // 1. Estilo de fondo (Sólido, Degradado, Video, Imagen)
     if (target.name === "style_back" || target.name === "background_mode") {
       const gradientWrapper = document.getElementById("gradient-direction-wrapper");
       const videoWrapper = document.getElementById("video-controls-wrapper");
+      const imageWrapper = document.getElementById("image-controls-wrapper");
       const isGradient = target.value === "gradient" || target.value === "gradientUp" || target.value === "gradientDown";
-      const isSolid = target.value === "solid";
       const isVideo = target.value === "video";
       const isImage = target.value === "image";
-      const imageWrapper = document.getElementById("image-controls-wrapper");
-      if (isGradient) {
-        if (gradientWrapper) gradientWrapper.style.display = "flex";
-        if (videoWrapper) videoWrapper.style.display = "none";
-        if (imageWrapper) imageWrapper.style.display = "none";
-      } else if (isSolid) {
-        if (gradientWrapper) gradientWrapper.style.display = "none";
-        if (videoWrapper) videoWrapper.style.display = "none";
-        if (imageWrapper) imageWrapper.style.display = "none";
-      } else if (isVideo) {
-        if (gradientWrapper) gradientWrapper.style.display = "none";
-        if (videoWrapper) videoWrapper.style.display = "flex";
-        if (imageWrapper) imageWrapper.style.display = "none";
-      } else if (isImage) {
-        if (gradientWrapper) gradientWrapper.style.display = "none";
-        if (videoWrapper) videoWrapper.style.display = "none";
-        if (imageWrapper) imageWrapper.style.display = "flex";
-      }
+
+      setElementVisibility(gradientWrapper, isGradient);
+      setElementVisibility(videoWrapper, isVideo);
+      setElementVisibility(imageWrapper, isImage);
     }
 
     // 2. Selector de color de sombra 3
@@ -690,25 +695,23 @@ export function designDraftManager() {
       const shadow3Row = document.getElementById("shadow3-color-row");
       const colorShadow3Row = document.getElementById("color-shadow3-color-row");
       const isShadow3 = target.value === "shadow-3";
-      if (shadow3Row) shadow3Row.style.display = isShadow3 ? "flex" : "none";
-      if (colorShadow3Row) colorShadow3Row.style.display = isShadow3 ? "flex" : "none";
+      setElementVisibility(shadow3Row, isShadow3);
+      setElementVisibility(colorShadow3Row, isShadow3);
     }
 
     // 3. Separación superior en voidHero
     if (target.name === "header") {
       const voidSpaceContainer = document.getElementById("void-space-container");
-      if (voidSpaceContainer) {
-        voidSpaceContainer.style.display = target.value === "voidHero" ? "flex" : "none";
-      }
+      setElementVisibility(voidSpaceContainer, target.value === "voidHero");
     }
 
     // 4. Bloques de campaña: posición de imagen
     if (target.classList && target.classList.contains("campaign-pos-radio")) {
       const idx = target.dataset.index;
       const opacityOpt = document.getElementById(`campaign-opacity-option-${idx}`);
-      if (opacityOpt) opacityOpt.style.display = target.value === "background" ? "flex" : "none";
+      setElementVisibility(opacityOpt, target.value === "background");
       const sizeWrap = document.getElementById(`campaign-size-wrap-${idx}`);
-      if (sizeWrap) sizeWrap.style.display = target.value === "background" ? "flex" : "none";
+      setElementVisibility(sizeWrap, target.value === "background");
       if (target.value === "header") {
         const horizRadio = document.getElementById(`campaign-size-horiz-${idx}`);
         if (horizRadio) {
@@ -716,11 +719,11 @@ export function designDraftManager() {
           setDraftField(horizRadio.name, "horizontal");
         }
         const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
-        if (textPosWrap) textPosWrap.style.display = "none";
+        setElementVisibility(textPosWrap, false);
       } else {
         const checkedSize = document.querySelector(`input[name="content[${idx}][size]"]:checked`);
         const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
-        if (textPosWrap) textPosWrap.style.display = (checkedSize && checkedSize.value !== "horizontal") ? "flex" : "none";
+        setElementVisibility(textPosWrap, checkedSize && checkedSize.value !== "horizontal");
       }
     }
 
@@ -728,7 +731,7 @@ export function designDraftManager() {
     if (target.classList && target.classList.contains("campaign-size-radio")) {
       const idx = target.dataset.index;
       const textPosWrap = document.getElementById(`campaign-text-pos-wrap-${idx}`);
-      if (textPosWrap) textPosWrap.style.display = target.value === "horizontal" ? "none" : "flex";
+      setElementVisibility(textPosWrap, target.value !== "horizontal");
     }
 
     // 6. Bloques de campaña: switch de contador regresivo
@@ -736,7 +739,7 @@ export function designDraftManager() {
       const targetId = target.dataset.target;
       if (targetId) {
         const dateWrap = document.getElementById(targetId);
-        if (dateWrap) dateWrap.style.display = target.checked ? "flex" : "none";
+        setElementVisibility(dateWrap, target.checked);
       }
     }
 
@@ -745,7 +748,7 @@ export function designDraftManager() {
       const targetId = target.dataset.target;
       if (targetId) {
         const fieldWrap = document.getElementById(targetId);
-        if (fieldWrap) fieldWrap.style.display = target.checked ? "flex" : "none";
+        setElementVisibility(fieldWrap, target.checked);
       }
     }
 
@@ -756,8 +759,8 @@ export function designDraftManager() {
         const isSpace = (target.value === "none" || target.value === "ban");
         const spaceOpts = block.querySelector(".separator-space-options");
         const sizeOpts = block.querySelector(".separator-size-options");
-        if (spaceOpts) spaceOpts.style.display = isSpace ? "flex" : "none";
-        if (sizeOpts) sizeOpts.style.display = isSpace ? "none" : "flex";
+        setElementVisibility(spaceOpts, isSpace);
+        setElementVisibility(sizeOpts, !isSpace);
       }
     }
 
@@ -798,7 +801,7 @@ export function designDraftManager() {
       const block = target.closest(".sub-product-item, .content-item-body");
       if (block) {
         const discountWrap = block.querySelector(".product-discount-wrapper");
-        if (discountWrap) discountWrap.style.display = target.checked ? "flex" : "none";
+        setElementVisibility(discountWrap, target.checked);
       }
     }
 
@@ -809,10 +812,8 @@ export function designDraftManager() {
         activeFilterName.textContent = target.dataset.filterName || target.value;
       }
       const intensityRow = document.getElementById("image-filter-intensity-row");
-      if (intensityRow) {
-        const isNone = target.value === "none" || target.value === "0";
-        intensityRow.style.display = isNone ? "none" : "flex";
-      }
+      const isNone = target.value === "none" || target.value === "0";
+      setElementVisibility(intensityRow, !isNone);
     }
   }
 
@@ -2050,9 +2051,9 @@ export function designDraftManager() {
         const gradientWrapper = document.getElementById("gradient-direction-wrapper");
         const videoWrapper = document.getElementById("video-controls-wrapper");
         const imageWrapper = document.getElementById("image-controls-wrapper");
-        if (gradientWrapper) gradientWrapper.style.display = isGrad ? "flex" : "none";
-        if (videoWrapper) videoWrapper.style.display = (styleVal === "video") ? "flex" : "none";
-        if (imageWrapper) imageWrapper.style.display = (styleVal === "image") ? "flex" : "none";
+        setElementVisibility(gradientWrapper, isGrad);
+        setElementVisibility(videoWrapper, styleVal === "video");
+        setElementVisibility(imageWrapper, styleVal === "image");
       }
 
       // Manejo específico para filtro de imagen

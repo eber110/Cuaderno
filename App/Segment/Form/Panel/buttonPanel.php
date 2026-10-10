@@ -151,7 +151,7 @@
     </div>
 
     <!-- Estilo de color de la sombra shadow-3 -->
-    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="display: <?= ($shadowVal === 'shadow-3') ? 'flex' : 'none' ?>;">
+    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= ($shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">

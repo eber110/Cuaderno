@@ -344,7 +344,7 @@
                     </div>
 
                     <!-- Campos de oferta / descuento -->
-                    <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml" style="display: <?= $pOffer ? 'flex' : 'none' ?>;">
+                    <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $pOffer ? '' : 'hidden' ?>" style="display: <?= $pOffer ? 'flex' : 'none !important' ?>;">
                       <div class="flex-column gap5 w50 w-sml-100">
                         <p class="x11 bold500 texto">Precio rebajado</p>
                         <input type="number" step="any" min="0" name="content[<?= $i?>][products][<?= $pIdx?>][discount]" class="product-discount-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($pDiscount) ?>" placeholder="Precio rebajado">
@@ -382,7 +382,7 @@
               ?>
 
               <!-- 1. Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
-              <div id="campaign-size-wrap-<?= $i ?>" class="flex-column gap8 w100" style="<?= ($itemImgPosition === 'header') ? 'display: none;' : '' ?>">
+              <div id="campaign-size-wrap-<?= $i ?>" class="flex-column gap8 w100 <?= ($itemImgPosition === 'header') ? 'hidden' : '' ?>" style="<?= ($itemImgPosition === 'header') ? 'display: none !important;' : 'display: flex;' ?>">
                 <div class="flex-column gap2">
                   <p class="x13 bold600 texto">Tamaño del bloque</p>
                   <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
@@ -510,7 +510,7 @@
                 </div>
 
                 <!-- Alineación vertical del texto (Arriba / Centro / Abajo - solo cuadrado y vertical) -->
-                <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100" style="<?= ($itemSize === 'horizontal') ? 'display: none;' : '' ?>">
+                <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100 <?= ($itemSize === 'horizontal') ? 'hidden' : '' ?>" style="<?= ($itemSize === 'horizontal') ? 'display: none !important;' : 'display: flex;' ?>">
                   <div class="flex-column gap2">
                     <p class="x13 bold500 texto">Alineación vertical</p>
                     <span class="x11 text-muted">Posición vertical del texto en el bloque</span>
@@ -608,7 +608,7 @@
                 </div>
 
                 <!-- 2. Opacidad de la capa (dentro de la card de colores, visible solo en modo Fondo) -->
-                <div id="campaign-opacity-option-<?= $i?>" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="<?= ($itemImgPosition === 'background') ? '' : 'display: none;' ?>">
+                <div id="campaign-opacity-option-<?= $i?>" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($itemImgPosition === 'background') ? '' : 'hidden' ?>" style="<?= ($itemImgPosition === 'background') ? 'display: flex;' : 'display: none !important;' ?>">
                   <div class="flex-column">
                     <p class="x13 bold500 texto">Opacidad de la capa</p>
                     <span class="x11 text-muted">Ajusta la intensidad del color sobre la imagen</span>
@@ -701,7 +701,7 @@
                     </div>
                     <input type="checkbox" id="ask-name-switch-<?= $i?>" name="content[<?= $i?>][ask_name]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-name-field-<?= $i?>" active="<?= $askName ? '1' : '2' ?>" <?= $askName ? 'checked' : '' ?>>
                   </div>
-                  <div id="campaign-name-field-<?= $i?>" class="flex-column gap5 w100" style="<?= $askName ? '' : 'display: none;' ?>">
+                  <div id="campaign-name-field-<?= $i?>" class="flex-column gap5 w100 <?= $askName ? '' : 'hidden' ?>" style="<?= $askName ? 'display: flex;' : 'display: none !important;' ?>">
                     <input type="text" name="content[<?= $i?>][name]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemName) ?>" placeholder="Nombre o remitente de la campaña (opcional)">
                   </div>
                 </div>
@@ -715,7 +715,7 @@
                     </div>
                     <input type="checkbox" id="ask-whatsapp-switch-<?= $i?>" name="content[<?= $i?>][ask_whatsapp]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-whatsapp-field-<?= $i?>" active="<?= $askWhatsapp ? '1' : '2' ?>" <?= $askWhatsapp ? 'checked' : '' ?>>
                   </div>
-                  <div id="campaign-whatsapp-field-<?= $i?>" class="flex-column gap5 w100" style="<?= $askWhatsapp ? '' : 'display: none;' ?>">
+                  <div id="campaign-whatsapp-field-<?= $i?>" class="flex-column gap5 w100 <?= $askWhatsapp ? '' : 'hidden' ?>" style="<?= $askWhatsapp ? 'display: flex;' : 'display: none !important;' ?>">
                     <input type="tel" name="content[<?= $i?>][whatsapp]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemWhatsapp) ?>" placeholder="Número de WhatsApp de contacto (opcional, ej: +54911...)">
                   </div>
                 </div>
@@ -730,7 +730,7 @@
                 <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
               </div>
 
-              <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap12 w100 p10 br10 back-card-graphic shadow-card-graphic" style="<?= $hasCountdown ? '' : 'display: none;' ?>">
+              <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap12 w100 p10 br10 back-card-graphic shadow-card-graphic <?= $hasCountdown ? '' : 'hidden' ?>" style="<?= $hasCountdown ? 'display: flex;' : 'display: none !important;' ?>">
                 <div class="flex-row center-between w100">
                   <p class="x12 bold500 texto">Fecha y hora límite del contador</p>
                   <?php if ($isCountdownExpired) : ?>
@@ -1093,7 +1093,7 @@
                 </div>
 
                 <!-- Opciones de Espacio (Altura del espacio en px, visible cuando se elige ban / solo espacio) -->
-                <div class="separator-space-options flex-column gap8 w100" style="<?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'display: flex;' : 'display: none;' ?>">
+                <div class="separator-space-options flex-column gap8 w100 <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? '' : 'hidden' ?>" style="display: <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'flex' : 'none !important' ?>;">
                   <div class="flex-column gap2">
                     <p class="x13 bold500 texto">Tamaño del espacio</p>
                     <span class="x11 text-muted">Altura del espacio vertical entre bloques</span>
@@ -1117,7 +1117,7 @@
                 </div>
 
                 <!-- Opciones de Tamaño del Separador de Figuras (Grande Completo, Mediano 60%, Pequeño 1 figura) -->
-                <div class="separator-size-options flex-column gap8 w100" style="<?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? 'display: flex;' : 'display: none;' ?>">
+                <div class="separator-size-options flex-column gap8 w100 <?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? '' : 'hidden' ?>" style="display: <?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? 'flex' : 'none !important' ?>;">
                   <div class="flex-column gap2">
                     <p class="x13 bold500 texto">Ancho del separador</p>
                     <span class="x11 text-muted">Elige el ancho o cantidad de figuras del separador</span>
@@ -1273,7 +1273,7 @@
                 </div>
 
                 <!-- Campos de Oferta / Descuento (Valor rebajado o Porcentaje) -->
-                <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml" style="display: <?= $itemOffer ? 'flex' : 'none' ?>;">
+                <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $itemOffer ? '' : 'hidden' ?>" style="display: <?= $itemOffer ? 'flex' : 'none !important' ?>;">
                   <div class="flex-column gap5 w50 w-sml-100">
                     <p class="x12 bold500 texto">Precio rebajado</p>
                     <input type="number" step="any" min="0" name="content[<?= $i?>][discount]" class="product-discount-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemDiscount) ?>" placeholder="Precio rebajado">

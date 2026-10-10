@@ -88,7 +88,7 @@
     </div>
 
     <!-- Contenedor de configuración de imagen -->
-    <div id="image-controls-wrapper" class="flex-column gap15 w100" style="<?php if ($styleBack !== 'image') echo 'display: none;'; ?>">
+    <div id="image-controls-wrapper" class="flex-column gap15 w100 <?= ($styleBack === 'image') ? '' : 'hidden' ?>" style="display: <?= ($styleBack === 'image') ? 'flex' : 'none !important' ?>;">
       <!-- Panel de subida / visor de imagen -->
       <p class="texto">Imagen de fondo</p>
       <div class="flex-column top-start gap5 w100 p10 br20 back-card-graphic shadow-card-graphic" id="image-background-config">
@@ -194,7 +194,7 @@
       </div>
 
       <!-- Control de Intensidad del Filtro -->
-      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-filter-intensity-row" style="<?= ($currentFilter === 'none') ? 'display: none;' : '' ?>">
+      <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($currentFilter === 'none') ? 'hidden' : '' ?>" id="image-filter-intensity-row" style="display: <?= ($currentFilter === 'none') ? 'none !important' : 'flex' ?>;">
         <p class="texto">Intensidad del filtro</p>
         <div class="flex-row center-end gap10 w-sml-100">
           <input type="range" id="select-filter-intensity" min="0" max="100" step="1" value="<?= $filterIntensity ?>" class="pointer custom-range-slider" style="--range-progress: <?= $filterIntensity ?>%;">
@@ -205,7 +205,7 @@
 
     <?php if ($isVideoEnabled) : ?>
       <!-- Contenedor de configuración de video (visible solo cuando el estilo es video) -->
-      <div id="video-controls-wrapper" class="flex-column gap15 w100" style="<?php if ($styleBack !== 'video') echo 'display: none;'; ?>">
+      <div id="video-controls-wrapper" class="flex-column gap15 w100 <?= ($styleBack === 'video') ? '' : 'hidden' ?>" style="display: <?= ($styleBack === 'video') ? 'flex' : 'none !important' ?>;">
         
         <!-- Panel de subida / visor de video -->
         <div class="flex-column top-start gap10 w100 p15 br20 back-card-graphic shadow-card-graphic" id="video-background-config">
@@ -297,7 +297,7 @@
     </div>
   
     <!-- Dirección del degradado -->
-    <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100" style="display: <?= $isGradient ? 'flex' : 'none' ?>;">
+    <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isGradient ? '' : 'hidden' ?>" style="display: <?= $isGradient ? 'flex' : 'none !important' ?>;">
 
       <p class="texto">Dirección del degradado</p>
 
