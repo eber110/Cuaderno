@@ -47,8 +47,8 @@
     <!-- Botón Inicio / Volver -->
     <button type="button" class="bottom-nav-btn bottom-nav-btn-home flex-column center-center pointer" data-bottom-back="true" aria-label="Volver al menú principal">
       <span class="bottom-nav-box flex-column center-center gap4">
-        <span class="bottom-nav-icon flex-row center-center"><?= svg("angle-l") ?></span>
-        <span class="bottom-nav-label x12 bold500">Volver</span>
+        <span class="bottom-nav-icon flex-row center-center x30"><?= svg("angle-l") ?></span>
+        <!-- <span class="bottom-nav-label x12 bold500">Volver</span> -->
       </span>
     </button>
 
@@ -99,8 +99,8 @@
     <!-- Botón Inicio / Volver -->
     <button type="button" class="bottom-nav-btn bottom-nav-btn-home flex-column center-center pointer" data-bottom-back="true" aria-label="Volver al menú principal">
       <span class="bottom-nav-box flex-column center-center gap4">
-        <span class="bottom-nav-icon flex-row center-center"><?= svg("angle-l") ?></span>
-        <span class="bottom-nav-label x12 bold500">Volver</span>
+        <span class="bottom-nav-icon flex-row center-center x30"><?= svg("angle-l") ?></span>
+        <!-- <span class="bottom-nav-label x12 bold500">Volver</span> -->
       </span>
     </button>
 
