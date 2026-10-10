@@ -1,5 +1,5 @@
 :root{
-  --back-body-theme: #ffffff;
+  --back-body-theme: rgba(255, 255, 255, 0.85);
   --back-item : #e4e4e4;
   --back-sidebar : #e6e6e6;
   --text-item-sidebar : #353535;
@@ -9,7 +9,7 @@
 }
 
 [data-theme="dark"] {
-  --back-body-theme: #353535;
+  --back-body-theme: rgba(53, 53, 53, 0.85);
   --back-item : #2e2e2e;
   --back-sidebar : #1b1b1b;
   --text-item-sidebar : #e6e6e6;
@@ -1103,14 +1103,18 @@ label:focus-within > .input-note.animated,
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: var(--back-body-theme, #ffffff);
+  background-color: var(--back-body-theme, rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-top: solid 0.5px rgba(0, 0, 0, 0.08);
   z-index: 30;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 [data-theme="dark"] .bottom-nav-bar {
-  border-top: solid 0.5px rgba(255, 255, 255, 0.1);
+  background-color: var(--back-body-theme, rgba(53, 53, 53, 0.85));
+  border-top: solid 0.5px rgba(255, 255, 255, 0.08);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
 }
 
@@ -1157,8 +1161,7 @@ label:focus-within > .input-note.animated,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 4px;
+  padding: 0;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1167,10 +1170,29 @@ label:focus-within > .input-note.animated,
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.18s ease, transform 0.12s ease, color 0.18s ease;
+  color: #71717a;
+  transition: transform 0.12s ease, color 0.2s ease;
 }
 
-.bottom-nav-btn:active {
+/* Contenedor squircle / tarjeta redondeada para el item */
+.bottom-nav-btn .bottom-nav-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: auto;
+  min-width: 60px;
+  max-width: 78px;
+  height: 60px;
+  padding: 6px 8px;
+  border-radius: 18px;
+  box-sizing: border-box;
+  background-color: transparent;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s ease, color 0.2s ease;
+}
+
+.bottom-nav-btn:active .bottom-nav-box {
   transform: scale(0.94);
 }
 
@@ -1178,10 +1200,11 @@ label:focus-within > .input-note.animated,
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  transition: background-color 0.18s ease, transform 0.18s ease;
+  width: 24px;
+  height: 24px;
+  color: #71717a;
+  background-color: transparent;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .bottom-nav-btn .bottom-nav-icon svg {
@@ -1195,41 +1218,144 @@ label:focus-within > .input-note.animated,
   line-height: 1.1;
   text-align: center;
   white-space: nowrap;
-  max-width: 76px;
+  max-width: 72px;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #71717a;
+  font-weight: 500;
+  transition: color 0.2s ease, font-weight 0.2s ease;
 }
 
-/* Botón activo */
+/* Estado inactivo en modo oscuro */
+[data-theme="dark"] .bottom-nav-btn,
+[data-theme="dark"] .bottom-nav-btn .bottom-nav-icon,
+[data-theme="dark"] .bottom-nav-btn .bottom-nav-label {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Hover suave en botones inactivos */
+.bottom-nav-btn:hover:not(.active) .bottom-nav-box {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .bottom-nav-btn:hover:not(.active) .bottom-nav-box {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Botón ACTIVO — Aspecto squircle translúcido con los colores del proyecto */
 .bottom-nav-btn.active {
-  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--back-color8, #00124D);
+}
+
+.bottom-nav-btn.active .bottom-nav-box {
+  background-color: rgba(0, 18, 77, 0.08);
+  background-color: color-mix(in srgb, var(--back-color8, #00124D) 9%, transparent);
 }
 
 .bottom-nav-btn.active .bottom-nav-icon {
-  background-color: var(--back-color8, #00124D);
-  color: var(--text-secondary, #ffffff);
+  color: var(--back-color8, #00124D);
+  background-color: transparent;
+  transform: scale(1.04);
 }
 
 .bottom-nav-btn.active .bottom-nav-label {
+  color: var(--back-color8, #00124D);
   font-weight: 700;
 }
 
+/* Botón ACTIVO en modo oscuro */
 [data-theme="dark"] .bottom-nav-btn.active {
-  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--back-color8, #F6D8BC);
+}
+
+[data-theme="dark"] .bottom-nav-btn.active .bottom-nav-box {
+  background-color: rgba(246, 216, 188, 0.15);
+  background-color: color-mix(in srgb, var(--back-color8, #F6D8BC) 15%, transparent);
 }
 
 [data-theme="dark"] .bottom-nav-btn.active .bottom-nav-icon {
-  background-color: var(--back-color8, #F6D8BC);
-  color: var(--text-secondary, #051c31);
+  color: var(--back-color8, #F6D8BC);
+  background-color: transparent;
 }
 
-/* Divisor sutil para el botón House */
-.bottom-nav-btn-home {
+[data-theme="dark"] .bottom-nav-btn.active .bottom-nav-label {
+  color: var(--back-color8, #F6D8BC);
+  font-weight: 700;
+}
+
+/* Fallback si no existe .bottom-nav-box */
+.bottom-nav-btn.active:not(:has(.bottom-nav-box)) {
+  background-color: rgba(0, 18, 77, 0.08);
+  background-color: color-mix(in srgb, var(--back-color8, #00124D) 9%, transparent);
+  border-radius: 18px;
+}
+
+[data-theme="dark"] .bottom-nav-btn.active:not(:has(.bottom-nav-box)) {
+  background-color: rgba(246, 216, 188, 0.15);
+  background-color: color-mix(in srgb, var(--back-color8, #F6D8BC) 15%, transparent);
+  border-radius: 18px;
+}
+
+/* Botón Inicio / Volver (Destacado e invertido para llamar la atención) */
+.bottom-nav-btn.bottom-nav-btn-home {
   border-right: solid 0.5px rgba(0, 0, 0, 0.07);
 }
 
-[data-theme="dark"] .bottom-nav-btn-home {
+.bottom-nav-btn.bottom-nav-btn-home .bottom-nav-box {
+  background-color: var(--back-color8, #00124D);
+  color: var(--text-secondary, #FFF9E5);
+  box-shadow: 0 2px 8px rgba(0, 18, 77, 0.2);
+}
+
+.bottom-nav-btn.bottom-nav-btn-home .bottom-nav-icon {
+  color: var(--text-secondary, #FFF9E5);
+}
+
+.bottom-nav-btn.bottom-nav-btn-home .bottom-nav-label {
+  color: var(--text-secondary, #FFF9E5);
+  font-weight: 600;
+}
+
+.bottom-nav-btn.bottom-nav-btn-home:hover .bottom-nav-box {
+  background-color: var(--back-color8, #00124D);
+  filter: brightness(1.15);
+}
+
+.bottom-nav-btn.bottom-nav-btn-home:active .bottom-nav-box {
+  transform: scale(0.93);
+  filter: brightness(0.95);
+}
+
+/* En modo oscuro */
+[data-theme="dark"] .bottom-nav-btn.bottom-nav-btn-home {
   border-right: solid 0.5px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .bottom-nav-btn.bottom-nav-btn-home .bottom-nav-box {
+  background-color: var(--back-color8, #F6D8BC);
+  color: var(--text-secondary, #051c31);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .bottom-nav-btn.bottom-nav-btn-home .bottom-nav-icon,
+[data-theme="dark"] .bottom-nav-btn.bottom-nav-btn-home .bottom-nav-label {
+  color: var(--text-secondary, #051c31);
+}
+
+[data-theme="dark"] .bottom-nav-btn.bottom-nav-btn-home:hover .bottom-nav-box {
+  background-color: var(--back-color8, #F6D8BC);
+  filter: brightness(1.06);
+}
+
+/* Fallback si no tiene .bottom-nav-box */
+.bottom-nav-btn-home:not(:has(.bottom-nav-box)) {
+  background-color: var(--back-color8, #00124D);
+  color: var(--text-secondary, #FFF9E5);
+}
+
+[data-theme="dark"] .bottom-nav-btn-home:not(:has(.bottom-nav-box)) {
+  background-color: var(--back-color8, #F6D8BC);
+  color: var(--text-secondary, #051c31);
 }
 
 
