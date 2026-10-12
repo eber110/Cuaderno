@@ -120,11 +120,8 @@ class DesignModels extends Builder {
       foreach ($content as $idx => &$cItem) {
         if (!is_array($cItem)) continue;
         if (empty($cItem["id"])) {
-          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "");
-          if ($seed === "__") {
-            $seed = "block_" . $idx . "_" . uniqid();
-          }
-          $cItem["id"] = "blk_" . substr(md5($seed), 0, 10);
+          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "") . "_" . $idx;
+          $cItem["id"] = "blk_" . substr(md5($seed . "_" . uniqid()), 0, 10);
         }
       }
       unset($cItem);
@@ -359,11 +356,8 @@ class DesignModels extends Builder {
       foreach ($card["content"] as $idx => &$cItem) {
         if (!is_array($cItem)) continue;
         if (empty($cItem["id"])) {
-          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "");
-          if ($seed === "__") {
-            $seed = "block_" . $idx;
-          }
-          $cItem["id"] = "blk_" . substr(md5($seed), 0, 10);
+          $seed = ($cItem["type"] ?? "") . "_" . ($cItem["title"] ?? "") . "_" . ($cItem["url"] ?? "") . "_" . $idx;
+          $cItem["id"] = "blk_" . substr(md5($seed . "_" . uniqid()), 0, 10);
         }
       }
       unset($cItem);
@@ -722,6 +716,14 @@ class DesignModels extends Builder {
         }
       }
 
+      // Mapear elementos existentes por ID para evitar colisiones por índice
+      $existingById = [];
+      foreach ($existingContentList as $exIdx => $exIt) {
+        if (!empty($exIt["id"])) {
+          $existingById[$exIt["id"]] = $exIt;
+        }
+      }
+
       $isExplicitListAction = isset($param["is_reorder"]) || !empty($param["add_content_type"]);
       if (!$isExplicitListAction) {
         foreach ($param["content"] as $idx => $it) {
@@ -733,13 +735,21 @@ class DesignModels extends Builder {
       }
 
       foreach ($param["content"] as $index => $item) {
-        if (!$isExplicitListAction) {
-          $existingItem = $existingContentList[$index] ?? [];
-          if (!empty($existingItem) && is_array($existingItem)) {
-            $item = array_merge($existingItem, $item);
+        $targetBlockId = !empty($item["id"]) ? trim((string)$item["id"]) : null;
+        $existingItem = null;
+        if ($targetBlockId !== null && isset($existingById[$targetBlockId])) {
+          $existingItem = $existingById[$targetBlockId];
+        } elseif (!$isExplicitListAction && isset($existingContentList[$index])) {
+          $candidate = $existingContentList[$index];
+          if (empty($targetBlockId) && empty($candidate["id"])) {
+            $existingItem = $candidate;
           }
         }
-        $oldImg = $item["img"] ?? ($existingContentList[$index]["img"] ?? "no-image.webp");
+
+        if (!$isExplicitListAction && !empty($existingItem) && is_array($existingItem)) {
+          $item = array_merge($existingItem, $item);
+        }
+        $oldImg = $item["img"] ?? ($existingItem["img"] ?? ($existingContentList[$index]["img"] ?? "no-image.webp"));
 
         if (isset($item["delete"]) && ($item["delete"] === "true" || $item["delete"] === true)) {
           if (($item["type"] ?? "") === "product_group" && isset($existingContentList[$index]["products"]) && is_array($existingContentList[$index]["products"])) {
@@ -756,7 +766,11 @@ class DesignModels extends Builder {
         }
 
         $type = $item["type"] ?? "link";
-        $blockId = !empty($item["id"]) ? trim((string)$item["id"]) : (!empty($existingItem["id"]) ? trim((string)$existingItem["id"]) : ("blk_" . substr(md5(($item["type"] ?? "") . "_" . ($item["title"] ?? "") . "_" . ($item["url"] ?? "") . "_" . $index), 0, 10)));
+        $blockId = !empty($item["id"]) 
+          ? trim((string)$item["id"]) 
+          : (!empty($existingItem["id"]) 
+            ? trim((string)$existingItem["id"]) 
+            : ("blk_" . substr(md5(($item["type"] ?? "") . "_" . ($item["title"] ?? "") . "_" . ($item["url"] ?? "") . "_" . $index . "_" . uniqid()), 0, 10)));
 
         // Procesamiento específico para Grupo de Productos (product_group)
         if ($type === "product_group") {
@@ -850,7 +864,7 @@ class DesignModels extends Builder {
             $subMetaScraped = false;
 
             $existingSubItem = $existingSubList[$pIndex] ?? null;
-            if ($existingSubItem !== null && ($existingSubItem["url"] ?? "") === $subUrl && !empty($existingSubItem["metaTitle"])) {
+            if ($existingSubItem !== null && $subUrl !== "" && ($existingSubItem["url"] ?? "") === $subUrl && !empty($existingSubItem["metaTitle"])) {
               $subMetaTitle   = $existingSubItem["metaTitle"];
               $subMetaDesc    = !empty($existingSubItem["metaDesc"]) ? $existingSubItem["metaDesc"] : $subMetaDesc;
               $subMetaImg     = !empty($existingSubItem["metaImg"]) ? $existingSubItem["metaImg"] : $subMetaImg;
@@ -980,6 +994,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"       => $blockId,
             "type"     => "product_group",
             "layout"   => $layout,
             "title"    => $groupTitle,
@@ -1085,6 +1100,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"                    => $blockId,
             "type"                  => "campaign",
             "title"                 => $campaignTitle,
             "desc"                  => $campaignDesc,
@@ -1172,6 +1188,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"          => $blockId,
             "type"        => "banner",
             "img"         => $img,
             "url"         => $bannerUrl,
@@ -1200,6 +1217,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"           => $blockId,
             "type"         => "title",
             "title"        => $titleText,
             "title_size"   => $titleSize,
@@ -1221,6 +1239,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"          => $blockId,
             "type"        => "text",
             "text"        => $textContent,
             "text_weight" => $textWeight,
@@ -1246,6 +1265,7 @@ class DesignModels extends Builder {
           $active    = ($rawActive === "true" || $rawActive === true || $rawActive === 1 || $rawActive === "1");
 
           $content[] = [
+            "id"             => $blockId,
             "type"           => "separator",
             "separator_mode" => $sepMode,
             "separator_icon" => $sepIcon,
@@ -1294,14 +1314,16 @@ class DesignModels extends Builder {
             $active = false;
           }
 
-          $existingItem = null;
-          if (isset($existingContentList[$index]) && ($existingContentList[$index]["url"] ?? "") === $url) {
-            $existingItem = $existingContentList[$index];
-          } else {
-            foreach ($existingContentList as $prevItem) {
-              if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
-                $existingItem = $prevItem;
-                break;
+          $existingItemMeta = null;
+          if ($url !== "") {
+            if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
+              $existingItemMeta = $existingItem;
+            } else {
+              foreach ($existingContentList as $prevItem) {
+                if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
+                  $existingItemMeta = $prevItem;
+                  break;
+                }
               }
             }
           }
@@ -1311,11 +1333,11 @@ class DesignModels extends Builder {
           $metaImg     = trim((string)($item["metaImg"] ?? ""));
           $metaScraped = false;
 
-          if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
-            $metaTitle   = $existingItem["metaTitle"];
-            $metaDesc    = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
-            $metaImg     = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
-            $metaScraped = !empty($existingItem["metaScraped"]);
+          if ($existingItemMeta !== null && !empty($existingItemMeta["metaTitle"])) {
+            $metaTitle   = $existingItemMeta["metaTitle"];
+            $metaDesc    = !empty($existingItemMeta["metaDesc"]) ? $existingItemMeta["metaDesc"] : $metaDesc;
+            $metaImg     = !empty($existingItemMeta["metaImg"]) ? $existingItemMeta["metaImg"] : $metaImg;
+            $metaScraped = !empty($existingItemMeta["metaScraped"]);
           }
 
           // Consultar metadatos en caché de URLs si aún no han sido scrapeados
@@ -1361,6 +1383,7 @@ class DesignModels extends Builder {
           }
 
           $content[] = [
+            "id"          => $blockId,
             "type"        => "video",
             "video_mode"  => $videoMode,
             "img"         => $img,
@@ -1414,14 +1437,16 @@ class DesignModels extends Builder {
         $cardDesc   = $param["desc"] ?? $dataRequest["desc"] ?? "";
         $cardAvatar = $avatar ?? $dataRequest["avatar"] ?? "no-user.webp";
 
-        $existingItem = null;
-        if (isset($existingContentList[$index]) && ($existingContentList[$index]["url"] ?? "") === $url) {
-          $existingItem = $existingContentList[$index];
-        } else {
-          foreach ($existingContentList as $prevItem) {
-            if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
-              $existingItem = $prevItem;
-              break;
+        $existingItemMeta = null;
+        if ($url !== "") {
+          if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
+            $existingItemMeta = $existingItem;
+          } else {
+            foreach ($existingContentList as $prevItem) {
+              if (($prevItem["url"] ?? "") === $url && !empty($prevItem["metaTitle"])) {
+                $existingItemMeta = $prevItem;
+                break;
+              }
             }
           }
         }
@@ -1431,11 +1456,11 @@ class DesignModels extends Builder {
         $metaImg     = trim((string)($item["metaImg"] ?? ""));
         $metaScraped = false;
 
-        if ($existingItem !== null && ($existingItem["url"] ?? "") === $url && !empty($existingItem["metaTitle"])) {
-          $metaTitle   = $existingItem["metaTitle"];
-          $metaDesc    = !empty($existingItem["metaDesc"]) ? $existingItem["metaDesc"] : $metaDesc;
-          $metaImg     = !empty($existingItem["metaImg"]) ? $existingItem["metaImg"] : $metaImg;
-          $metaScraped = !empty($existingItem["metaScraped"]);
+        if ($existingItemMeta !== null && !empty($existingItemMeta["metaTitle"])) {
+          $metaTitle   = $existingItemMeta["metaTitle"];
+          $metaDesc    = !empty($existingItemMeta["metaDesc"]) ? $existingItemMeta["metaDesc"] : $metaDesc;
+          $metaImg     = !empty($existingItemMeta["metaImg"]) ? $existingItemMeta["metaImg"] : $metaImg;
+          $metaScraped = !empty($existingItemMeta["metaScraped"]);
         } elseif (!empty($titleBtn)) {
           $metaTitle = $titleBtn;
         } else {
@@ -1488,6 +1513,7 @@ class DesignModels extends Builder {
         }
 
         $contentItem = [
+          "id"          => $blockId,
           "type"        => $type,
           "img"         => $img,
           "title"       => $titleBtn,
@@ -1683,6 +1709,7 @@ class DesignModels extends Builder {
       ];
 
       $newItem = $typeTemplates[$newType] ?? ["type" => "link", "img" => "no-image.webp", "title" => "", "url" => "", "active" => false, "imgDefault" => false, "imgShow" => true];
+      $newItem["id"] = "blk_" . substr(md5($newType . "_" . uniqid()), 0, 10);
 
       if (!isset($content)) {
         $content = $dataRequest["content"] ?? [];

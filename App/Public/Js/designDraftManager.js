@@ -199,6 +199,8 @@ export function designDraftManager() {
   function reindexEditorDOM(container) {
     if (!container) return;
     const items = Array.from(container.querySelectorAll(".sortable-item"));
+    const idxSuffixRegex = /-(?:\{\{INDEX\}\}|\d+(?:_\d+)?)$/;
+
     items.forEach((item, index) => {
       item.id = `content-item-${index}`;
       item.setAttribute("data-index", String(index));
@@ -206,17 +208,48 @@ export function designDraftManager() {
       elements.forEach((el) => {
         const name = el.getAttribute("name");
         if (name && name.startsWith("content[")) {
-          el.setAttribute("name", name.replace(/^content\[\d+\]/, `content[${index}]`));
+          el.setAttribute("name", name.replace(/^content\[[^\]]+\]/, `content[${index}]`));
         }
         if (name && name.startsWith("content_img_")) {
-          el.setAttribute("name", name.replace(/^content_img_\d+/, `content_img_${index}`));
+          el.setAttribute("name", name.replace(/^content_img_(\d+|[a-zA-Z0-9_{}]+)(_\d+)?$/, (match, p1, p2) => `content_img_${index}${p2 || ""}`));
         }
         const id = el.getAttribute("id");
-        if (id && id.startsWith("content_img_banner_")) {
-          el.setAttribute("id", id.replace(/^content_img_banner_\d+/, `content_img_banner_${index}`));
+        if (id) {
+          if (id.startsWith("content_img_banner_")) {
+            el.setAttribute("id", id.replace(/^content_img_banner_[^_\s]+/, `content_img_banner_${index}`));
+          } else if (id.startsWith("banner-crop-btn-wrap-")) {
+            el.setAttribute("id", id.replace(/^banner-crop-btn-wrap-[^_\s]+/, `banner-crop-btn-wrap-${index}`));
+          } else if (idxSuffixRegex.test(id) && !id.startsWith("content-item-")) {
+            el.setAttribute("id", id.replace(idxSuffixRegex, `-${index}`));
+          }
         }
-        if (id && id.startsWith("banner-crop-btn-wrap-")) {
-          el.setAttribute("id", id.replace(/^banner-crop-btn-wrap-\d+/, `banner-crop-btn-wrap-${index}`));
+        const forAttr = el.getAttribute("for");
+        if (forAttr && idxSuffixRegex.test(forAttr)) {
+          el.setAttribute("for", forAttr.replace(idxSuffixRegex, `-${index}`));
+        }
+      });
+
+      // Sincronizar data-content-index en el preview según data-block-id
+      const blkId = item.getAttribute("data-block-id");
+      if (blkId) {
+        const previewEls = document.querySelectorAll(
+          `#preview-widget-container [data-block-id="${blkId}"], .preview-widget-container [data-block-id="${blkId}"]`
+        );
+        previewEls.forEach((pEl) => {
+          pEl.setAttribute("data-content-index", String(index));
+        });
+      }
+    });
+
+    // Alinear el orden del DOM en el preview con el orden del editor
+    const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+    previewContainers.forEach((pContainer) => {
+      items.forEach((editorItem, i) => {
+        const blkId = editorItem.getAttribute("data-block-id");
+        if (!blkId) return;
+        const pNode = pContainer.querySelector(`[data-block-id="${blkId}"]`);
+        if (pNode && pContainer.children[i] !== pNode) {
+          pContainer.insertBefore(pNode, pContainer.children[i] || null);
         }
       });
     });
@@ -3732,18 +3765,21 @@ export function designDraftManager() {
       const list = document.getElementById("sortable-content-list");
       if (!list) return;
 
-      // Calcular nuevo índice (usando la cantidad actual + timestamp para evitar colisiones)
-      const items = list.querySelectorAll(".sortable-item");
-      const newIndex = items.length + "_" + Date.now();
+      // Generar un ID de bloque persistente y único
+      const newBlockId = "blk_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 
       // 1. Obtener el template del formulario (Left side)
+      let newNode = null;
       const tplForm = document.getElementById("tpl_block_" + type);
       if (tplForm) {
-        let htmlForm = tplForm.innerHTML.replace(/{{INDEX}}/g, newIndex);
+        let htmlForm = tplForm.innerHTML
+          .replace(/\{\{INDEX\}\}/g, "0")
+          .replace(/\{\{BLOCK_ID\}\}/g, newBlockId);
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = htmlForm;
-        const newNode = tempDiv.firstElementChild;
+        newNode = tempDiv.firstElementChild;
         if (newNode) {
+          newNode.setAttribute("data-block-id", newBlockId);
           list.insertBefore(newNode, list.firstChild);
           newNode.classList.remove("is-collapsed");
           newNode.classList.add("is-open");
@@ -3754,33 +3790,155 @@ export function designDraftManager() {
       const tplPreview = document.getElementById("tpl_preview_" + type);
       const widgetContainer = document.getElementById("preview-widget-container");
       if (tplPreview && widgetContainer) {
-        let htmlPreview = tplPreview.innerHTML.replace(/{{INDEX}}/g, newIndex);
+        let htmlPreview = tplPreview.innerHTML
+          .replace(/\{\{INDEX\}\}/g, "0")
+          .replace(/\{\{BLOCK_ID\}\}/g, newBlockId);
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = htmlPreview;
         const newNodePreview = tempDiv.firstElementChild;
         if (newNodePreview) {
+          newNodePreview.setAttribute("data-block-id", newBlockId);
+          newNodePreview.setAttribute("data-content-index", "0");
+          newNodePreview.style.display = "none";
           widgetContainer.insertBefore(newNodePreview, widgetContainer.firstChild);
         }
       }
 
-      // Disparar eventos para que el sistema sepa que hubo cambios
-      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
-      
-      // Forzamos un "setDraftField" virtual para el botón de guardar y el manager
-      setDraftField("added_blocks_" + newIndex, type);
-      
+      // 3. Reindexar todo el DOM del editor y sincronizar preview inmediatamente
+      reindexEditorDOM(list);
+
+      // 4. Crear el objeto por defecto limpio e inactivo para el borrador JSON
+      let defaultBlock = {
+        id: newBlockId,
+        type: type,
+        active: false
+      };
+
+      if (type === "link") {
+        defaultBlock.title = "";
+        defaultBlock.url = "";
+        defaultBlock.img = "no-image.webp";
+        defaultBlock.imgSrc = "";
+        defaultBlock.imgShow = false;
+        defaultBlock.imgDefault = false;
+        defaultBlock.metaTitle = "";
+        defaultBlock.metaDesc = "";
+        defaultBlock.metaImg = "";
+      } else if (type === "product") {
+        defaultBlock.title = "";
+        defaultBlock.url = "";
+        defaultBlock.price = "";
+        defaultBlock.offer = false;
+        defaultBlock.discount = "";
+        defaultBlock.porcentage = 0;
+        defaultBlock.img = "no-image.webp";
+        defaultBlock.imgSrc = "";
+        defaultBlock.imgShow = false;
+        defaultBlock.imgDefault = false;
+        defaultBlock.metaTitle = "";
+        defaultBlock.metaDesc = "";
+        defaultBlock.metaImg = "";
+      } else if (type === "product_group") {
+        defaultBlock.title = "";
+        defaultBlock.layout = "grid";
+        defaultBlock.products = [
+          { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" },
+          { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" }
+        ];
+      } else if (type === "campaign") {
+        defaultBlock.title = "";
+        defaultBlock.desc = "";
+        defaultBlock.button_text = "Suscribirme";
+        defaultBlock.name = "";
+        defaultBlock.email = "";
+        defaultBlock.whatsapp = "";
+        defaultBlock.ask_name = true;
+        defaultBlock.ask_whatsapp = false;
+        defaultBlock.size = "horizontal";
+        defaultBlock.text_position = "center";
+        defaultBlock.text_align = "center";
+        defaultBlock.title_size = "large";
+        defaultBlock.desc_size = "medium";
+        defaultBlock.title_color = "#ffffff";
+        defaultBlock.desc_color = "#ffffff";
+        defaultBlock.btn_bg_color = "";
+        defaultBlock.btn_text_color = "";
+        defaultBlock.has_countdown = false;
+        defaultBlock.countdown_date = "";
+        defaultBlock.countdown_bg_color = "#24252a";
+        defaultBlock.countdown_text_color = "#ffffff";
+        defaultBlock.countdown_text_size = "medium";
+        defaultBlock.countdown_widget_size = "medium";
+        defaultBlock.img = "no-image.webp";
+        defaultBlock.img_position = "background";
+        defaultBlock.bg_opacity = 80;
+        defaultBlock.bg_color = "#1e1e1e";
+        defaultBlock.imgDefault = false;
+        defaultBlock.imgShow = true;
+        defaultBlock.metaTitle = "";
+        defaultBlock.metaDesc = "";
+        defaultBlock.metaImg = "";
+      } else if (type === "banner") {
+        defaultBlock.img = "no-image.webp";
+        defaultBlock.url = "";
+        defaultBlock.size = "";
+        defaultBlock.bg_color = "#f2e5ff";
+        defaultBlock.bg_opacity = 100;
+        defaultBlock.imgDefault = false;
+        defaultBlock.imgShow = true;
+        defaultBlock.metaTitle = "";
+        defaultBlock.metaDesc = "";
+        defaultBlock.metaImg = "";
+      } else if (type === "title") {
+        defaultBlock.title = "";
+        defaultBlock.title_size = "small";
+        defaultBlock.title_weight = "500";
+      } else if (type === "text") {
+        defaultBlock.text = "";
+        defaultBlock.text_weight = "400";
+        defaultBlock.text_align = "left";
+      } else if (type === "separator") {
+        defaultBlock.separator_mode = "space";
+        defaultBlock.separator_icon = "none";
+        defaultBlock.separator_size = "large";
+        defaultBlock.space_size = "40";
+        defaultBlock.active = true;
+      } else if (type === "video") {
+        defaultBlock.video_mode = "link";
+        defaultBlock.img = "no-image.webp";
+        defaultBlock.title = "";
+        defaultBlock.url = "";
+        defaultBlock.imgDefault = false;
+        defaultBlock.imgShow = false;
+        defaultBlock.metaTitle = "";
+        defaultBlock.metaDesc = "";
+        defaultBlock.metaImg = "";
+      }
+
       window.updateJsonDraft(state => {
         if (!state.content) state.content = [];
-        state.content.unshift({ type: type, active: true });
+        state.content.unshift(defaultBlock);
         return state;
       });
-      
+
+      if (newNode) {
+        syncBlockActiveState(newNode, 0);
+      }
+
+      // Disparar eventos para que el sistema sepa que hubo cambios
+      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      notifyDraftState();
+
       setTimeout(() => {
         if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
           window.__saveButtonController.enableSaveButton();
         }
-        // Inicializar plugins si existen (ej. colorpicker)
         if (typeof initColorPickers === "function") initColorPickers();
+        if (window.__formComponents) {
+          window.__formComponents.initCheckboxSwitches?.();
+          window.__formComponents.styleColorPickers?.();
+          window.__formComponents.initCustomRangeSliders?.();
+        }
       }, 50);
     }
   });
@@ -3884,6 +4042,15 @@ export function designDraftManager() {
           const n = input.getAttribute("name");
           if (n && n.startsWith("rrss[")) {
             input.setAttribute("name", n.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
+          }
+          if (input.id && input.id.startsWith("delete-rrss-")) {
+            input.id = `delete-rrss-${index}`;
+          }
+        });
+        item.querySelectorAll("label").forEach((label) => {
+          const f = label.getAttribute("for");
+          if (f && f.startsWith("delete-rrss-")) {
+            label.setAttribute("for", `delete-rrss-${index}`);
           }
         });
       });

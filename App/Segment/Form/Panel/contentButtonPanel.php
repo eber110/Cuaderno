@@ -45,7 +45,26 @@
 
     foreach ($templateTypes as $tType) {
       $i = "{{INDEX}}";
-      $item = ["type" => $tType];
+      $item = [
+        "id"         => "{{BLOCK_ID}}",
+        "type"       => $tType,
+        "title"      => "",
+        "url"        => "",
+        "img"        => "no-image.webp",
+        "imgSrc"     => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+        "imgDefault" => false,
+        "imgShow"    => false,
+        "active"     => false,
+        "metaTitle"  => "",
+        "metaDesc"   => "",
+        "metaImg"    => "",
+        "price"      => "",
+        "offer"      => false,
+        "discount"   => "",
+        "porcentage" => 0,
+        "desc"       => "",
+        "products"   => []
+      ];
       
       echo "<template id=\"tpl_block_{$tType}\">";
       include __DIR__ . "/contentItem.php";
@@ -67,6 +86,7 @@
       if ($partName) {
          $mockCard = $card;
          $mockCard["content"]["{{INDEX}}"] = [
+            "id"          => "{{BLOCK_ID}}",
             "type"        => $tType,
             "title"       => "",
             "url"         => "",
@@ -74,9 +94,9 @@
             "metaDesc"    => "",
             "metaImg"     => "",
             "img"         => "no-image.webp",
-            "imgSrc"      => "",
+            "imgSrc"      => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
             "imgShow"     => false,
-            "active"      => true,
+            "active"      => false,
             "price"       => "",
             "offer"       => false,
             "discount"    => "",
@@ -87,8 +107,9 @@
          _part($partName, [
             "dataContent" => "{{INDEX}}",
             "card"        => $mockCard,
-            "isActive"    => true,
-            "isPreview"   => true
+            "isActive"    => false,
+            "isPreview"   => true,
+            "blockId"     => "{{BLOCK_ID}}"
          ]);
          echo "</template>";
       }
