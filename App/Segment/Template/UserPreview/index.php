@@ -5,6 +5,42 @@
 ?>
 <div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview">
   <?php _part("User.style.css", ["card" => $card]); ?>
+  <?php
+    $previewBtnBack  = safeCssColor($card["back"] ?? "#d6d6d6", "#d6d6d6");
+    $previewBtnColor = safeCssColor($card["color"] ?? "#494949", "#494949");
+    $previewTxtColor = safeCssColor($card["colorText"] ?? "#383838", "#383838");
+    $previewTtlColor = safeCssColor($card["titleColor"] ?? "#383838", "#383838");
+  ?>
+  <style>
+    /* Blindaje de fidelidad para el preview: garantiza paridad 1:1 de colores con el perfil público */
+    .user-profile-preview .theme-button {
+      background-color: <?= $previewBtnBack ?> !important;
+      color: <?= $previewBtnColor ?> !important;
+    }
+    .user-profile-preview .theme-button,
+    .user-profile-preview .theme-button a,
+    .user-profile-preview .theme-button p,
+    .user-profile-preview .theme-button span:not(.theme-icon),
+    .user-profile-preview .theme-button .cut-phrase {
+      color: <?= $previewBtnColor ?> !important;
+    }
+    .user-profile-preview .theme-icon,
+    .user-profile-preview .theme-button-menu svg {
+      color: <?= $previewBtnColor ?> !important;
+    }
+    .user-profile-preview .color-text-card {
+      color: <?= $previewTxtColor ?> !important;
+    }
+    .user-profile-preview .desc-hero-regular,
+    .user-profile-preview .desc-hero-big,
+    .user-profile-preview .desc-hero-mini,
+    .user-profile-preview .color-text-card a.color-text-card {
+      color: <?= $previewTxtColor ?> !important;
+    }
+    .user-profile-preview .title-color {
+      color: <?= $previewTtlColor ?> !important;
+    }
+  </style>
   <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative">
     <?php if (\App\Models\DesignModels::isVideoEnabled() && !empty($backVideo)) : ?>
       <video class="back-video-bg" preload="metadata" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" style="<?= ($styleBack === 'video') ? '' : 'display: none;' ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">
@@ -211,14 +247,17 @@
               cssRules.push('.user-profile-preview .title-color { color: ' + draft.titleColor + ' !important; }');
             }
             if (draft.colorText) {
-              cssRules.push('.user-profile-preview .color-text-card { color: ' + draft.colorText + ' !important; }');
+              cssRules.push('.user-profile-preview .color-text-card, .user-profile-preview .desc-hero-regular, .user-profile-preview .desc-hero-big, .user-profile-preview .desc-hero-mini, .user-profile-preview .color-text-card a.color-text-card { color: ' + draft.colorText + ' !important; }');
             }
-            if (draft.back) {
-              cssRules.push('.user-profile-preview .theme-button { background-color: ' + draft.back + ' !important; }');
+            var syncBtnBack = draft.back || <?= json_encode($previewBtnBack) ?>;
+            if (syncBtnBack) {
+              cssRules.push('.user-profile-preview .theme-button { background-color: ' + syncBtnBack + ' !important; }');
             }
-            if (draft.color) {
-              cssRules.push('.user-profile-preview .theme-button { color: ' + draft.color + ' !important; }');
-              cssRules.push('.user-profile-preview .theme-icon { color: ' + draft.color + ' !important; }');
+            var syncBtnColor = draft.color || <?= json_encode($previewBtnColor) ?>;
+            if (syncBtnColor) {
+              cssRules.push('.user-profile-preview .theme-button, .user-profile-preview .theme-button a, .user-profile-preview .theme-button p, .user-profile-preview .theme-button span:not(.theme-icon), .user-profile-preview .theme-button .cut-phrase { color: ' + syncBtnColor + ' !important; }');
+              cssRules.push('.user-profile-preview .theme-icon { color: ' + syncBtnColor + ' !important; }');
+              cssRules.push('.user-profile-preview .theme-button-menu svg { color: ' + syncBtnColor + ' !important; }');
             }
 
             if (cssRules.length > 0) {

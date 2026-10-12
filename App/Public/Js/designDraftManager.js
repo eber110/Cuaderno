@@ -1128,15 +1128,14 @@ export function designDraftManager() {
       }
     `);
 
-    // Color de texto general
+    // Color de texto general (excluyendo el interior de botones .theme-button para preservar su diseño independiente)
     if (fields.colorText) {
       cssRules.push(`
         .user-profile-preview .color-text-card,
         .user-profile-preview .desc-hero-regular,
         .user-profile-preview .desc-hero-big,
         .user-profile-preview .desc-hero-mini,
-        .user-profile-preview .color-text-card p,
-        .user-profile-preview .color-text-card span:not(.theme-icon) {
+        .user-profile-preview .color-text-card a.color-text-card {
           color: ${fields.colorText} !important;
         }
       `);
@@ -1156,21 +1155,29 @@ export function designDraftManager() {
     }
 
     // Color de botones generales
-    if (fields.back) {
+    const btnBackVal = fields.back || document.getElementById("button-select-color")?.value || document.getElementById("select-color-button")?.value;
+    if (btnBackVal) {
       cssRules.push(`
         .user-profile-preview .theme-button {
-          background-color: ${fields.back} !important;
+          background-color: ${btnBackVal} !important;
         }
       `);
     }
 
-    // Color de texto de botones generales
-    if (fields.color) {
+    // Color de texto de botones generales (con selectores directos de alta especificidad para p, a, span)
+    const btnColorVal = fields.color || document.getElementById("button-select-color-text")?.value || document.getElementById("select-color-text")?.value;
+    if (btnColorVal) {
       cssRules.push(`
         .user-profile-preview .theme-button,
-        .user-profile-preview .theme-button *,
-        .user-profile-preview .theme-icon {
-          color: ${fields.color} !important;
+        .user-profile-preview .theme-button a,
+        .user-profile-preview .theme-button p,
+        .user-profile-preview .theme-button span:not(.theme-icon),
+        .user-profile-preview .theme-button .cut-phrase {
+          color: ${btnColorVal} !important;
+        }
+        .user-profile-preview .theme-icon,
+        .user-profile-preview .theme-button-menu svg {
+          color: ${btnColorVal} !important;
         }
       `);
     }
