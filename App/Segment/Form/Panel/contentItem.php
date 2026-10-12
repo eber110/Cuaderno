@@ -1,9 +1,16 @@
 <?php
-        $item           = is_array($item ?? null) ? $item : [];
-        $i              = $i ?? '{{INDEX}}';
-        $selected       = $selected ?? '';
-        $card           = is_array($card ?? null) ? $card : [];
-        $separatorIcons = is_array($separatorIcons ?? null) ? $separatorIcons : (\class_exists(\App\Models\DesignModels::class) ? \App\Models\DesignModels::getSeparatorIcons() : []);
+  /**
+   * @var array $item
+   * @var string|int $i
+   * @var string $selected
+   * @var array $card
+   * @var array $separatorIcons
+   */
+  $item           = (isset($item) && is_array($item)) ? $item : [];
+  $i              = $i ?? '{{INDEX}}';
+  $selected       = $selected ?? '';
+  $card           = (isset($card) && is_array($card)) ? $card : [];
+  $separatorIcons = (isset($separatorIcons) && is_array($separatorIcons)) ? $separatorIcons : (\class_exists(\App\Models\DesignModels::class) ? \App\Models\DesignModels::getSeparatorIcons() : []);
 
         $itemType   = $item["type"] ?? 'link';
         $itemImg    = $item["img"] ?? '';
