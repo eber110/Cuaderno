@@ -9,8 +9,9 @@
         <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-right ob-40 dl-200 animate-slow m0 p0">Tu perfil con tu estilo, en segundos.</h2>
         <p class="bold400 x20 x-sml-18 slide-in-right ob-40 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Olvídate de configuraciones complicadas. Elige tus colores favoritos, adapta tus fotos y dale vida a tu página sin perder tiempo en menús pesados.</p>
       </div>
-      <a href="/registrar" class="slide-in-right ob-40 dl-600 p10 pr30 pl30 br50 w-auto back4-hover texto x20 x-sml-18 bold600 pointer">
-        <p>Crear mi hub</p>
+      <a href="/registrar" class="slide-in-right ob-40 dl-600 p14 pr35 pl35 br50 w-auto back4 back4-hover texto x20 x-sml-18 bold600 pointer shadow hover-scale-soft flex-row center-center gap10 text-none">
+        <span>Crear mi hub</span>
+        <?= svg("arrow-r-l", "x18 texto") ?>
       </a>
     </div>
   </div>

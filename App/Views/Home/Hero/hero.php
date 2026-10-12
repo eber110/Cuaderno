@@ -5,9 +5,15 @@
       <h1 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 color8 slide-in-bottom ob-0 dl-200 animate-slow m0 p0">Todo lo que haces. En un solo link instantáneo.</h1>
       <p class="bold500 x20 x-sml-18 slide-in-bottom ob-0 dl-400 animate-slow pt20 pb25 pt-mid-10 pb-mid-20 pt-sml-5">Conecta tus productos, redes, eventos y campañas en una página limpia que carga en milisegundos.</p>
     </div>
-    <a href="/registrar" class="slide-in-bottom ob-0 dl-600 p10 pr30 pl30 br50 w-auto back5-hover textc x20 x-sml-18 bold500 pointer">
-      <p>Crea tu Clikhub gratis</p>
-    </a>
+    <div class="flex-column gap10 pt10">
+      <a href="/registrar" class="slide-in-bottom ob-0 dl-600 p14 pr35 pl35 br50 w-auto back5 back5-hover textw textc x20 x-sml-18 bold600 pointer shadow hover-scale-soft flex-row center-center gap10 text-none">
+        <span>Crea tu Clikhub gratis</span>
+        <?= svg("arrow-r-l", "x18 textw") ?>
+      </a>
+      <span class="x18 text-muted bold500 flex-row center-start gap8 slide-in-bottom ob-0 dl-700 animate-slow">
+        <span class="color5"><?= svg("check", "x18") ?></span> Gratis para siempre • Sin tarjeta de crédito
+      </span>
+    </div>
   </div>
 
   <div class="w100 flex-column center-center |m-mid-15">
