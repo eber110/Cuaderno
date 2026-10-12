@@ -1,17 +1,17 @@
 <section class="container-xl back-body observer pt100 pt-mid-80 pt-sml-50 pb100 pb-mid-80 pb-sml-50">
-  <div class="container container-xl-mid container-sml pl-mid-30 pr-mid-30 pl-sml-20 pr-sml-20 flex-column center-center gap50 gap-mid-40 gap-sml-30 w100">
+  <div class="container container-xl-mid container-sml pl-mid-30 pr-mid-30 pl-sml-20 pr-sml-20 flex-column center-center gap50 gap-mid-40 gap-sml-30 |w100">
     
     <div class="flex-column center-center textc gap10 max-w700">
       <p class="oswald bold600 x24 color5 slide-in-bottom ob-20 dl-100 animate-slow m0">POTENCIA Y VERSATILIDAD</p>
       <h2 class="oswald bold700 x60 x-mid-46 x-sml-36 color8 slide-in-bottom ob-20 dl-200 animate-slow m0 line-h11 text-center">
         Todo lo que necesitas para tu biografía profesional
       </h2>
-      <p class="bold400 x20 x-sml-18 text-muted slide-in-bottom ob-20 dl-300 animate-slow pt10 m0 text-center">
+      <p class="bold400 x20 x-sml-18 texto slide-in-bottom ob-20 dl-300 animate-slow pt10 m0 text-center">
         Diseñado para creadores, marcas, freelancers y emprendedores que buscan impacto sin complicaciones.
       </p>
     </div>
 
-    <div class="w100" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+    <div class="grid col3 col-mid-2 col-sml-1 gap20 w100">
       
       <!-- Card 1: Enlaces & Redes -->
       <div class="p25 p-mid-20 p-sml-20 br20 back-card-graphic shadow-card-graphic hover-scale-soft flex-column gap15 slide-in-bottom ob-20 dl-100 animate-slow">

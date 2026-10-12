@@ -237,6 +237,7 @@
 .col-7 { grid-template-columns: repeat(7, 1fr); }
 .col1 { grid-template-columns: repeat(1, 1fr); }
 .col2 { grid-template-columns: repeat(2, 1fr); }
+.col3 { grid-template-columns: repeat(3, 1fr); }
 .grid { display: grid; }
 .grid-center { display: grid; height: 95vh; align-content: center; justify-content: center; }
 .span-1 { grid-column: span 1; }
@@ -761,6 +762,9 @@
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .col-mid-1 { grid-template-columns: repeat(1, 1fr); }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .col-mid-2 { grid-template-columns: repeat(2, 1fr); }
 }
 @media screen and (max-width: 576px) {
   .col-sml-1 { grid-template-columns: repeat(1, 1fr); }
