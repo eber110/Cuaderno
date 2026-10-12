@@ -71,6 +71,14 @@ export function designDraftManager() {
   function hasDraft() {
     const initStr = localStorage.getItem(INITIAL_KEY);
     const draftStr = localStorage.getItem(DRAFT_KEY);
+    try {
+      const inputs = document.querySelectorAll("input[type='file']");
+      for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i].files && inputs[i].files.length > 0 && inputs[i].files[0].size > 0) {
+          return true;
+        }
+      }
+    } catch (_) {}
     if (!initStr || !draftStr) return false;
     return initStr !== draftStr;
   }
@@ -125,8 +133,12 @@ export function designDraftManager() {
         appendFormDataRecursive(fd, data[key], fieldKey);
       });
     } else {
+      const existing = parentKey ? fd.get(parentKey) : null;
+      if (existing instanceof File && existing.size > 0) {
+        return;
+      }
       if (parentKey && !parentKey.includes('[')) {
-         fd.delete(parentKey);
+        fd.delete(parentKey);
       }
       fd.append(parentKey, data === null ? '' : data);
     }
@@ -195,6 +207,16 @@ export function designDraftManager() {
         const name = el.getAttribute("name");
         if (name && name.startsWith("content[")) {
           el.setAttribute("name", name.replace(/^content\[\d+\]/, `content[${index}]`));
+        }
+        if (name && name.startsWith("content_img_")) {
+          el.setAttribute("name", name.replace(/^content_img_\d+/, `content_img_${index}`));
+        }
+        const id = el.getAttribute("id");
+        if (id && id.startsWith("content_img_banner_")) {
+          el.setAttribute("id", id.replace(/^content_img_banner_\d+/, `content_img_banner_${index}`));
+        }
+        if (id && id.startsWith("banner-crop-btn-wrap-")) {
+          el.setAttribute("id", id.replace(/^banner-crop-btn-wrap-\d+/, `banner-crop-btn-wrap-${index}`));
         }
       });
     });
@@ -3345,23 +3367,32 @@ export function designDraftManager() {
         }
       }
 
-      // Incluir cualquier archivo pendiente en inputs file de todo .remote-container
-      document.querySelectorAll(".remote-container input[type='file']").forEach((fileInput) => {
-        if (fileInput.files && fileInput.files.length > 0) {
-          const existing = formData.get(fileInput.name);
-          if (!existing || (existing instanceof File && existing.size === 0)) {
+      // Incluir cualquier archivo pendiente en inputs file de todo el documento o panel
+      const fileInputs = document.querySelectorAll("input[type='file']");
+      fileInputs.forEach((fileInput) => {
+        if (fileInput.name && fileInput.files && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          if (file && file.size > 0) {
             formData.delete(fileInput.name);
-            for (let i = 0; i < fileInput.files.length; i++) {
-              formData.append(fileInput.name, fileInput.files[i]);
-            }
+            formData.append(fileInput.name, file);
           }
         }
       });
 
-      // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad)
+      // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad para textos/opciones)
       appendFormDataRecursive(formData, draft);
 
-      // 2. Incluir el JSON estructurado completo como draft_json para guardado directo en backend
+      // 2. Garantizar que los archivos reales en inputs file mantengan máxima prioridad y no hayan sido sobreescritos
+      fileInputs.forEach((fileInput) => {
+        if (fileInput.name && fileInput.files && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          if (file && file.size > 0) {
+            formData.set(fileInput.name, file);
+          }
+        }
+      });
+
+      // 3. Incluir el JSON estructurado completo como draft_json para sincronización en backend
       const draftState = getDraftState();
       if (draftState) {
         formData.set("draft_json", JSON.stringify(draftState));

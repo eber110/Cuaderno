@@ -145,12 +145,17 @@ class DesignModels extends Builder {
         ],
         "void_space"   => isset($row["void_space"]) ? intval($row["void_space"]) : 450,
         "backCard"     => [
-          "back_perfil"          => $row["back_perfil"] ?? "#a0a0a0",
-          "style_back"           => $row["style_back"] ?? "solid",
-          "back_video"           => $row["back_video"] ?? "",
-          "back_video_public_id" => $row["back_video_public_id"] ?? "",
-          "back_video_overlay"   => $row["back_video_overlay"] ?? "#000000",
-          "back_video_opacity"   => isset($row["back_video_opacity"]) ? max(0, min(95, intval($row["back_video_opacity"]))) : 45
+          "back_perfil"                 => $row["back_perfil"] ?? "#a0a0a0",
+          "style_back"                  => $row["style_back"] ?? "solid",
+          "back_video"                  => $row["back_video"] ?? "",
+          "back_video_public_id"        => $row["back_video_public_id"] ?? "",
+          "back_video_overlay"          => $row["back_video_overlay"] ?? "#000000",
+          "back_video_opacity"          => isset($row["back_video_opacity"]) ? max(0, min(95, intval($row["back_video_opacity"]))) : 45,
+          "back_image"                  => $row["back_image"] ?? "",
+          "back_image_overlay"          => $row["back_image_overlay"] ?? "#000000",
+          "back_image_opacity"          => isset($row["back_image_opacity"]) ? max(0, min(95, intval($row["back_image_opacity"]))) : 45,
+          "back_image_filter"           => $row["back_image_filter"] ?? "none",
+          "back_image_filter_intensity" => isset($row["back_image_filter_intensity"]) ? intval($row["back_image_filter_intensity"]) : 80
         ],
         "colorText"    => $row["color_text"] ?? "#383838",
         "style"        => $row["style"] ?? "buttonRegular",
@@ -183,25 +188,30 @@ class DesignModels extends Builder {
     $indexUser = UserModels::getIndexUserByUsername($userClean) ?? (Session::session_active() ? Session::session_data("index_user") : null);
 
     $payload = [
-      "username"             => $userClean,
-      "index_user"           => $indexUser,
-      "is_draft"             => $isDraft,
-      "active"               => !empty($card["active"]) ? 1 : 0,
-      "hide"                 => !empty($card["hide"]) ? 1 : 0,
-      "profile"              => $card["profile"] ?? $userClean,
-      "avatar"               => $card["avatar"] ?? "no-user.webp",
-      "title"                => $card["title"] ?? "Titulo",
-      "title_color"          => $card["titleColor"] ?? "#383838",
-      "desc"                 => $card["desc"] ?? "",
-      "header"               => $card["header"] ?? "regularHero",
-      "void_space"           => isset($card["voidHero"]["space"]) ? intval($card["voidHero"]["space"]) : (isset($card["void_space"]) ? intval($card["void_space"]) : 450),
-      "back_perfil"          => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
-      "style_back"           => $card["backCard"]["style_back"] ?? "solid",
-      "back_video"           => $card["backCard"]["back_video"] ?? null,
-      "back_video_public_id" => $card["backCard"]["back_video_public_id"] ?? null,
-      "back_video_overlay"   => $card["backCard"]["back_video_overlay"] ?? "#000000",
-      "back_video_opacity"   => isset($card["backCard"]["back_video_opacity"]) ? max(0, min(95, intval($card["backCard"]["back_video_opacity"]))) : 45,
-      "color_text"           => $card["colorText"] ?? "#383838",
+      "username"                    => $userClean,
+      "index_user"                  => $indexUser,
+      "is_draft"                    => $isDraft,
+      "active"                      => !empty($card["active"]) ? 1 : 0,
+      "hide"                        => !empty($card["hide"]) ? 1 : 0,
+      "profile"                     => $card["profile"] ?? $userClean,
+      "avatar"                      => $card["avatar"] ?? "no-user.webp",
+      "title"                       => $card["title"] ?? "Titulo",
+      "title_color"                 => $card["titleColor"] ?? "#383838",
+      "desc"                        => $card["desc"] ?? "",
+      "header"                      => $card["header"] ?? "regularHero",
+      "void_space"                  => isset($card["voidHero"]["space"]) ? intval($card["voidHero"]["space"]) : (isset($card["void_space"]) ? intval($card["void_space"]) : 450),
+      "back_perfil"                 => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
+      "style_back"                  => $card["backCard"]["style_back"] ?? "solid",
+      "back_video"                  => $card["backCard"]["back_video"] ?? null,
+      "back_video_public_id"        => $card["backCard"]["back_video_public_id"] ?? null,
+      "back_video_overlay"          => $card["backCard"]["back_video_overlay"] ?? "#000000",
+      "back_video_opacity"          => isset($card["backCard"]["back_video_opacity"]) ? max(0, min(95, intval($card["backCard"]["back_video_opacity"]))) : 45,
+      "back_image"                  => $card["backCard"]["back_image"] ?? null,
+      "back_image_overlay"          => $card["backCard"]["back_image_overlay"] ?? "#000000",
+      "back_image_opacity"          => isset($card["backCard"]["back_image_opacity"]) ? max(0, min(95, intval($card["backCard"]["back_image_opacity"]))) : 45,
+      "back_image_filter"           => $card["backCard"]["back_image_filter"] ?? "none",
+      "back_image_filter_intensity" => isset($card["backCard"]["back_image_filter_intensity"]) ? intval($card["backCard"]["back_image_filter_intensity"]) : 80,
+      "color_text"                  => $card["colorText"] ?? "#383838",
       "style"                => $card["style"] ?? "buttonRegular",
       "borders"              => (function() use ($card) {
         $b = $card["borders"] ?? ["br0", "br0"];
@@ -511,7 +521,42 @@ class DesignModels extends Builder {
 
     $dataRequest = $currentData["card"] ?? self::getDefaultCard($userClean);
 
-    // VULNERABILIDAD CRÍTICA C-1 CORREGIDA: Eliminado extract($param) para prevenir IDOR y sobrescritura de variables internas
+    if (is_string($param)) {
+      $param = [];
+    }
+
+    // Si se envía draft_json desde el frontend, extraer y combinar datos en $dataRequest y $param
+    if (!empty($param["draft_json"])) {
+      $draftCard = is_string($param["draft_json"]) ? json_decode($param["draft_json"], true) : $param["draft_json"];
+      if (is_array($draftCard)) {
+        if (isset($draftCard["backCard"]) && is_array($draftCard["backCard"])) {
+          $dataRequest["backCard"] = array_merge($dataRequest["backCard"] ?? [], $draftCard["backCard"]);
+        }
+        foreach ($draftCard as $dKey => $dVal) {
+          if ($dKey !== "avatar" && $dKey !== "backCard" && $dKey !== "content" && $dKey !== "profile") {
+            $dataRequest[$dKey] = $dVal;
+            if (!isset($param[$dKey])) {
+              $param[$dKey] = $dVal;
+            }
+          }
+        }
+        if (!isset($param["content"]) && isset($draftCard["content"]) && is_array($draftCard["content"])) {
+          $param["content"] = $draftCard["content"];
+        }
+        if (!isset($param["rrss"]) && isset($draftCard["rrss"]) && is_array($draftCard["rrss"])) {
+          $param["rrss"] = $draftCard["rrss"];
+        }
+        if (!isset($param["borders"]) && isset($draftCard["borders"])) {
+          $param["borders"] = is_array($draftCard["borders"]) ? implode(",", $draftCard["borders"]) : (string)$draftCard["borders"];
+        }
+        if (!isset($param["style_back"]) && isset($draftCard["backCard"]["style_back"])) {
+          $param["style_back"] = $draftCard["backCard"]["style_back"];
+        }
+        if (!isset($param["background_mode"]) && isset($draftCard["backCard"]["style_back"])) {
+          $param["background_mode"] = $draftCard["backCard"]["style_back"];
+        }
+      }
+    }
 
     // 1. Procesar imágenes subidas (Avatar e ítems de contenido)
     $uploadedContentImgs = [];
@@ -546,6 +591,7 @@ class DesignModels extends Builder {
           }
           $backImage = $nombres[0];
           $styleBack = "image";
+          $newBgUploaded = true;
         }
       }
 
@@ -566,6 +612,9 @@ class DesignModels extends Builder {
 
     // Procesar eliminación de imagen de fondo si se solicita
     $backImage = $backImage ?? ($dataRequest["backCard"]["back_image"] ?? "");
+    if (!empty($backImage) && (str_starts_with($backImage, "blob:") || str_starts_with($backImage, "data:"))) {
+      $backImage = $officialCard["backCard"]["back_image"] ?? "";
+    }
     if (isset($param["delete_back_image"]) && ($param["delete_back_image"] === "true" || $param["delete_back_image"] === true)) {
       $officialBackImage = $officialCard["backCard"]["back_image"] ?? "";
       if (!empty($backImage) && $backImage !== $officialBackImage) {
@@ -582,7 +631,9 @@ class DesignModels extends Builder {
     $backVideoPublicId = $dataRequest["backCard"]["back_video_public_id"] ?? "";
     $officialVideoPublicId = $officialCard["backCard"]["back_video_public_id"] ?? "";
 
-    if (isset($param["background_mode"])) {
+    if (!empty($newBgUploaded)) {
+      $styleBack = "image";
+    } elseif (isset($param["background_mode"])) {
       if ($param["background_mode"] === "gradient") {
         $dir = $param["gradient_direction"] ?? ($param["style_back"] ?? ($dataRequest["backCard"]["style_back"] ?? "gradientDown"));
         $styleBack = ($dir === "gradientUp") ? "gradientUp" : "gradientDown";
@@ -780,6 +831,9 @@ class DesignModels extends Builder {
               $subImgDefault = true;
             } else {
               $subImg = $prod["img"] ?? "no-image.webp";
+              if (str_starts_with($subImg, "blob:") || str_starts_with($subImg, "data:")) {
+                $subImg = $existingSubList[$pIndex]["img"] ?? "no-image.webp";
+              }
               $isDefaultSubImg = (empty($subImg) || strpos($subImg, "Custom/") !== false || strpos($subImg, "Origin/") !== false || $subImg === "no-image.webp" || $subImg === "no-user.webp");
               $subImgDefault = !$isDefaultSubImg;
             }
@@ -1011,6 +1065,9 @@ class DesignModels extends Builder {
             $imgDefault = true;
           } else {
             $img = $item["img"] ?? "no-image.webp";
+            if (str_starts_with($img, "blob:") || str_starts_with($img, "data:")) {
+              $img = $existingContentList[$index]["img"] ?? "no-image.webp";
+            }
             $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
             $imgDefault = !$isDefaultImg;
           }
@@ -1095,6 +1152,9 @@ class DesignModels extends Builder {
             $imgDefault = true;
           } else {
             $img = $item["img"] ?? "no-image.webp";
+            if (str_starts_with($img, "blob:") || str_starts_with($img, "data:")) {
+              $img = $existingContentList[$index]["img"] ?? "no-image.webp";
+            }
             $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
             $imgDefault = !$isDefaultImg;
           }
@@ -1221,6 +1281,9 @@ class DesignModels extends Builder {
             $imgDefault = true;
           } else {
             $img = $item["img"] ?? "no-image.webp";
+            if (str_starts_with($img, "blob:") || str_starts_with($img, "data:")) {
+              $img = $existingContentList[$index]["img"] ?? "no-image.webp";
+            }
             $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
             $imgDefault = !$isDefaultImg;
           }
@@ -1335,6 +1398,9 @@ class DesignModels extends Builder {
           $imgDefault = true;
         } else {
           $img = $item["img"] ?? "no-image.webp";
+          if (str_starts_with($img, "blob:") || str_starts_with($img, "data:")) {
+            $img = $existingContentList[$index]["img"] ?? "no-image.webp";
+          }
           $isDefaultImg = (empty($img) || strpos($img, "Custom/") !== false || strpos($img, "Origin/") !== false || $img === "no-image.webp" || $img === "no-user.webp");
           $imgDefault = !$isDefaultImg;
         }
@@ -1658,7 +1724,7 @@ class DesignModels extends Builder {
         ? (isset($param["hide"]) && ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1"))
         : (isset($param["hide"]) ? ($param["hide"] === "true" || $param["hide"] === true || $param["hide"] === 1 || $param["hide"] === "1") : ($dataRequest["hide"] ?? false)),
       "profile"      => $userClean,
-      "avatar"       => $avatar ?? (isset($param["avatar"]) && is_string($param["avatar"]) ? basename($param["avatar"]) : ($dataRequest["avatar"] ?? "no-user.webp")),
+      "avatar"       => $avatar ?? (isset($param["avatar"]) && is_string($param["avatar"]) && !empty($param["avatar"]) && !str_starts_with($param["avatar"], "blob:") && !str_starts_with($param["avatar"], "data:") ? basename($param["avatar"]) : ((!empty($dataRequest["avatar"]) && !str_starts_with($dataRequest["avatar"], "blob:") && !str_starts_with($dataRequest["avatar"], "data:")) ? $dataRequest["avatar"] : "no-user.webp")),
       "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
       "titleColor"   => $param["titleColor"] ?? ($param["colorText"] ?? ($dataRequest["titleColor"] ?? "#383838")),
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
@@ -1674,7 +1740,7 @@ class DesignModels extends Builder {
         "back_video_public_id" => $backVideoPublicId ?? $dataRequest["backCard"]["back_video_public_id"] ?? "",
         "back_video_overlay"   => $param["back_video_overlay"] ?? $dataRequest["backCard"]["back_video_overlay"] ?? "#000000",
         "back_video_opacity"   => isset($param["back_video_opacity"]) ? max(0, min(95, intval($param["back_video_opacity"]))) : ($dataRequest["backCard"]["back_video_opacity"] ?? 45),
-        "back_image"           => $backImage ?? $dataRequest["backCard"]["back_image"] ?? "",
+        "back_image"           => $backImage ?? ((!empty($dataRequest["backCard"]["back_image"]) && !str_starts_with($dataRequest["backCard"]["back_image"], "blob:") && !str_starts_with($dataRequest["backCard"]["back_image"], "data:")) ? $dataRequest["backCard"]["back_image"] : ""),
         "back_image_overlay"   => $param["back_image_overlay"] ?? $dataRequest["backCard"]["back_image_overlay"] ?? "#000000",
         "back_image_opacity"   => isset($param["back_image_opacity"]) ? max(0, min(95, intval($param["back_image_opacity"]))) : ($dataRequest["backCard"]["back_image_opacity"] ?? 45),
         "back_image_filter"    => (function() use ($param, $dataRequest) {

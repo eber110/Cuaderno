@@ -84,6 +84,11 @@ class SQLiteSetup
       back_video_public_id VARCHAR(150) NULL,
       back_video_overlay VARCHAR(50) DEFAULT '#000000',
       back_video_opacity INTEGER DEFAULT 45,
+      back_image TEXT NULL,
+      back_image_overlay VARCHAR(50) DEFAULT '#000000',
+      back_image_opacity INTEGER DEFAULT 45,
+      back_image_filter VARCHAR(50) DEFAULT 'none',
+      back_image_filter_intensity INTEGER DEFAULT 80,
       color_text VARCHAR(50) DEFAULT '#383838',
       style VARCHAR(100) DEFAULT 'buttonRegular',
       borders TEXT DEFAULT '[\"br0\", \"br0\"]',
@@ -255,6 +260,21 @@ class SQLiteSetup
       }
       if (!in_array("back_video_opacity", $existingCols, true)) {
         $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_video_opacity INTEGER DEFAULT 45;");
+      }
+      if (!in_array("back_image", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image TEXT NULL;");
+      }
+      if (!in_array("back_image_overlay", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_overlay VARCHAR(50) DEFAULT '#000000';");
+      }
+      if (!in_array("back_image_opacity", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_opacity INTEGER DEFAULT 45;");
+      }
+      if (!in_array("back_image_filter", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_filter VARCHAR(50) DEFAULT 'none';");
+      }
+      if (!in_array("back_image_filter_intensity", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_filter_intensity INTEGER DEFAULT 80;");
       }
     } catch (\Throwable $e) {}
 

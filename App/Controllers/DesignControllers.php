@@ -109,17 +109,11 @@ class DesignControllers extends Control {
    */
   public function saveDesign(string $user, array|string $param = []): void {
     $userClean = mb_strtolower($user, "UTF-8");
+    $paramArr  = is_array($param) ? $param : [];
 
-    // Si recibimos draft_json completo desde localStorage, guardar directamente como oficial
-    if (!empty($param["draft_json"])) {
-      $draftCard = is_string($param["draft_json"]) ? json_decode($param["draft_json"], true) : $param["draft_json"];
-      if (is_array($draftCard)) {
-        DesignModels::saveOfficialDesignFromCard($userClean, $draftCard);
-      } else {
-        DesignModels::publishDesign($userClean);
-      }
-    } elseif (!empty($param) && is_array($param)) {
-      DesignModels::updateCustomDesign($userClean, $param);
+    // Siempre procesar la actualización mediante DesignModels si hay parámetros o archivos subidos
+    if (!empty($paramArr) || !empty($_FILES)) {
+      DesignModels::updateCustomDesign($userClean, $paramArr);
       DesignModels::publishDesign($userClean);
     } else {
       DesignModels::publishDesign($userClean);

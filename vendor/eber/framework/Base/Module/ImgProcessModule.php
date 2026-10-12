@@ -61,7 +61,8 @@ class ImgProcessModule
   {
 
     $this->table = $table;
-    $this->uploadImg = $uploadImg ?? (defined('DIR_UPLOAD_MEDIA') ? DIR_UPLOAD_MEDIA : '');
+    $rawUpload = $uploadImg ?? (defined('DIR_UPLOAD_MEDIA') ? DIR_UPLOAD_MEDIA : '');
+    $this->uploadImg = !empty($rawUpload) ? rtrim(str_replace('\\', '/', $rawUpload), '/') . '/' : '';
     if (!empty($this->uploadImg)) {
       $this->ensureDirectoryPermissions();
     }
@@ -124,7 +125,8 @@ class ImgProcessModule
 
         foreach ($fileData['error'] as $key => $error) {
 
-          if ($error === UPLOAD_ERR_OK && !empty($fileData['tmp_name'][$key]) && is_uploaded_file($fileData['tmp_name'][$key])) {
+          $tmp = $fileData['tmp_name'][$key] ?? '';
+          if ($error === UPLOAD_ERR_OK && !empty($tmp) && (is_uploaded_file($tmp) || (php_sapi_name() === 'cli' && file_exists($tmp)))) {
             return true;
           }
         }
@@ -132,7 +134,8 @@ class ImgProcessModule
       // Subida simple
       elseif (is_string($fileData['name'])) {
 
-        if ($fileData['error'] === UPLOAD_ERR_OK && !empty($fileData['tmp_name']) && is_uploaded_file($fileData['tmp_name'])) {
+        $tmp = $fileData['tmp_name'] ?? '';
+        if ($fileData['error'] === UPLOAD_ERR_OK && !empty($tmp) && (is_uploaded_file($tmp) || (php_sapi_name() === 'cli' && file_exists($tmp)))) {
           return true;
         }
       }
@@ -222,13 +225,22 @@ class ImgProcessModule
         continue;
       }
 
-      $current_type = $file['type'];
-      $current_format = explode('/', $current_type)[1] ?? '';
+      $current_type = strtolower(trim(explode(';', $file['type'])[0] ?? ''));
+      if (!in_array($current_type, $allow)) {
+        if (!empty($file['tmp_name']) && file_exists($file['tmp_name'])) {
+          $detectedMime = @mime_content_type($file['tmp_name']);
+          if ($detectedMime && in_array(strtolower($detectedMime), $allow)) {
+            $current_type = strtolower($detectedMime);
+          }
+        }
+      }
 
       if (!in_array($current_type, $allow)) {
         $this->valid = false;
         return;
       }
+
+      $current_format = explode('/', $current_type)[1] ?? '';
 
       $this->type[] = $current_type;
       $this->format[] = $current_format;
