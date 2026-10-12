@@ -88,7 +88,7 @@
         "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
         "imgDefault"     => false,
         "imgShow"        => false,
-        "active"         => ($tType === "separator"),
+        "active"         => false,
         "metaTitle"      => "",
         "metaDesc"       => "",
         "metaImg"        => "",
@@ -135,7 +135,7 @@
             "img"            => "no-image.webp",
             "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
             "imgShow"        => false,
-            "active"         => ($tType === "separator"),
+            "active"         => false,
             "price"          => "",
             "offer"          => false,
             "discount"       => "",
@@ -151,7 +151,7 @@
          _part($partName, [
             "dataContent" => "{{INDEX}}",
             "card"        => $mockCard,
-            "isActive"    => ($tType === "separator"),
+            "isActive"    => false,
             "isPreview"   => true,
             "blockId"     => "{{BLOCK_ID}}"
          ]);

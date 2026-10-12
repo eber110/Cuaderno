@@ -1,4 +1,10 @@
 <?php
+        $item           = is_array($item ?? null) ? $item : [];
+        $i              = $i ?? '{{INDEX}}';
+        $selected       = $selected ?? '';
+        $card           = is_array($card ?? null) ? $card : [];
+        $separatorIcons = is_array($separatorIcons ?? null) ? $separatorIcons : (\class_exists(\App\Models\DesignModels::class) ? \App\Models\DesignModels::getSeparatorIcons() : []);
+
         $itemType   = $item["type"] ?? 'link';
         $itemImg    = $item["img"] ?? '';
         $itemTitle  = $item["title"] ?? '';
@@ -22,49 +28,45 @@
         $itemName          = $item["name"] ?? '';
         $itemEmail         = $item["email"] ?? '';
         $itemWhatsapp      = $item["whatsapp"] ?? '';
-        $itemImgPosition   = $item["img_position"] ?? 'background';
-        $itemBgColor       = ($itemType === 'banner')
-          ? ($item["bg_color"] ?? '#f2e5ff')
-          : ($item["bg_color"] ?? '#1e1e1e');
-        $itemBgOpacity     = isset($item["bg_opacity"]) ? (int)$item["bg_opacity"] : (($itemType === 'banner') ? 100 : 80);
+        $itemImgPosition   = in_array($item["img_position"] ?? '', ['background', 'header'], true) ? $item["img_position"] : 'background';
+        $itemBgColor       = !empty($item["bg_color"])
+          ? $item["bg_color"]
+          : (($itemType === 'banner') ? '#f2e5ff' : '#1e1e1e');
+        $itemBgOpacity     = isset($item["bg_opacity"]) ? max(0, min(100, (int)$item["bg_opacity"])) : (($itemType === 'banner') ? 100 : 80);
         $itemSize          = ($itemType === 'banner')
           ? (in_array($item["size"] ?? '', ['720x1024', '720x720', '1024x720'], true) ? $item["size"] : '')
-          : (($itemImgPosition === 'header') ? 'horizontal' : ($item["size"] ?? 'horizontal'));
-        $itemTextPosition  = $item["text_position"] ?? 'center';
-        $itemTextAlign     = $item["text_align"] ?? 'center';
+          : (($itemImgPosition === 'header') ? 'horizontal' : (in_array($item["size"] ?? '', ['horizontal', 'square', 'vertical'], true) ? $item["size"] : 'horizontal'));
+        $itemTextPosition  = in_array($item["text_position"] ?? '', ['top', 'center', 'bottom'], true) ? $item["text_position"] : 'center';
+        $itemTextAlign     = in_array($item["text_align"] ?? '', ['left', 'center', 'right'], true) ? $item["text_align"] : 'center';
         $itemTitleSize     = ($itemType === 'campaign')
-          ? ($item["title_size"] ?? 'large')
-          : ($item["title_size"] ?? 'small');
-        $itemTitleWeight   = $item["title_weight"] ?? '500';
+          ? (in_array($item["title_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["title_size"] : 'large')
+          : (in_array($item["title_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["title_size"] : 'small');
+        $itemTitleWeight   = in_array((string)($item["title_weight"] ?? '500'), ['500', '600', '700', '900'], true) ? (string)($item["title_weight"] ?? '500') : '500';
         $itemText          = $item["text"] ?? ($item["title"] ?? '');
-        $itemTextWeight    = $item["text_weight"] ?? '400';
-        $itemTextAlignVal  = $item["text_align"] ?? 'left';
-        $itemSepMode       = $item["separator_mode"] ?? 'space';
+        $itemTextWeight    = in_array((string)($item["text_weight"] ?? '400'), ['400', '500'], true) ? (string)($item["text_weight"] ?? '400') : '400';
+        $itemTextAlignVal  = in_array($item["text_align"] ?? '', ['left', 'center', 'right'], true) ? $item["text_align"] : 'left';
         $itemSepIcon       = $item["separator_icon"] ?? 'none';
-        $itemSepSize       = $item["separator_size"] ?? 'large';
-        $itemSpaceSize     = $item["space_size"] ?? '40';
-        $itemDescSize      = $item["desc_size"] ?? 'medium';
-        $itemTitleColor    = $item["title_color"] ?? '#ffffff';
-        $itemDescColor     = $item["desc_color"] ?? '#ffffff';
-        $itemBtnBgColor    = $item["btn_bg_color"] ?? ($card["back"] ?? '#595a83');
-        $itemBtnTextColor  = $item["btn_text_color"] ?? ($card["color"] ?? '#ffffff');
+        $itemIsSpace       = ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || empty($itemSepIcon));
+        $itemSepMode       = $itemIsSpace ? 'space' : 'line';
+        $itemSepSize       = in_array($item["separator_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["separator_size"] : 'large';
+        $itemSpaceSize     = in_array((string)($item["space_size"] ?? '40'), ['20', '40', '60'], true) ? (string)($item["space_size"] ?? '40') : '40';
+        $itemDescSize      = in_array($item["desc_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["desc_size"] : 'medium';
+        $itemTitleColor    = !empty($item["title_color"]) ? $item["title_color"] : '#ffffff';
+        $itemDescColor     = !empty($item["desc_color"]) ? $item["desc_color"] : '#ffffff';
+        $itemBtnBgColor    = !empty($item["btn_bg_color"]) ? $item["btn_bg_color"] : ($card["back"] ?? '#595a83');
+        $itemBtnTextColor  = !empty($item["btn_text_color"]) ? $item["btn_text_color"] : ($card["color"] ?? '#ffffff');
         $rawAskName        = $item["ask_name"] ?? true;
         $askName           = ($rawAskName === true || $rawAskName === 'true' || $rawAskName === 1 || $rawAskName === '1');
         $rawAskWhatsapp    = $item["ask_whatsapp"] ?? (!empty($itemWhatsapp));
         $askWhatsapp       = ($rawAskWhatsapp === true || $rawAskWhatsapp === 'true' || $rawAskWhatsapp === 1 || $rawAskWhatsapp === '1');
         $rawCountdown           = $item["has_countdown"] ?? false;
         $hasCountdown           = ($rawCountdown === true || $rawCountdown === 'true' || $rawCountdown === 1 || $rawCountdown === '1');
-        $itemCountdownDate      = $item["countdown_date"] ?? '';
+        $rawCountdownDate       = (string)($item["countdown_date"] ?? '');
+        $itemCountdownDate      = !empty($rawCountdownDate) ? str_replace(' ', 'T', substr($rawCountdownDate, 0, 16)) : '';
         $itemCountdownBgColor   = !empty($item["countdown_bg_color"]) ? $item["countdown_bg_color"] : '#24252a';
         $itemCountdownTextColor = !empty($item["countdown_text_color"]) ? $item["countdown_text_color"] : '#ffffff';
-        $itemCountdownTextSize  = $item["countdown_text_size"] ?? 'medium';
-        if (!in_array($itemCountdownTextSize, ['small', 'medium', 'large'], true)) {
-          $itemCountdownTextSize = 'medium';
-        }
-        $itemCountdownWidgetSize = $item["countdown_widget_size"] ?? 'medium';
-        if (!in_array($itemCountdownWidgetSize, ['small', 'medium', 'large'], true)) {
-          $itemCountdownWidgetSize = 'medium';
-        }
+        $itemCountdownTextSize  = in_array($item["countdown_text_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["countdown_text_size"] : 'medium';
+        $itemCountdownWidgetSize = in_array($item["countdown_widget_size"] ?? '', ['small', 'medium', 'large'], true) ? $item["countdown_widget_size"] : 'medium';
         $itemButtonText         = trim($item["button_text"] ?? '');
         if ($itemButtonText === '') {
           $itemButtonText = 'Suscribirme';
@@ -72,15 +74,15 @@
         $isCountdownExpired     = ($hasCountdown && !empty($itemCountdownDate) && strtotime($itemCountdownDate) !== false && strtotime($itemCountdownDate) <= time());
 
         if ($itemType === 'product_group') {
-          $groupProducts = $item["products"] ?? [];
+          $groupProducts = is_array($item["products"] ?? null) ? $item["products"] : [];
           $prodCount     = count($groupProducts);
-          $groupLayout   = $item["layout"] ?? 'grid';
+          $groupLayout   = in_array($item["layout"] ?? '', ['grid', 'slide'], true) ? $item["layout"] : 'grid';
           if ($prodCount % 2 !== 0) {
             $groupLayout = 'slide';
           }
           $validCount = 0;
           foreach ($groupProducts as $gp) {
-            if (trim($gp["title"] ?? '') !== '' && trim($gp["url"] ?? '') !== '') {
+            if (is_array($gp) && trim($gp["title"] ?? '') !== '' && trim($gp["url"] ?? '') !== '') {
               $validCount++;
             }
           }
@@ -118,7 +120,7 @@
           $isOpen = ($i === '{{INDEX}}') || (trim($itemTitle) === '' && trim($itemUrl) === '');
         }
       ?>
-        <div id="content-item-<?= $i?>" data-block-id="<?= e($item['id'] ?? '') ?>" data-index="<?= $i ?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">
+        <div id="content-item-<?= $i?>" data-block-id="<?= e($item['id'] ?? '') ?>" data-index="<?= $i ?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?= $itemActive ? ($selected ?? '') : '' ?>" draggable="false" data-type="<?= e($itemType) ?>">
           <input type="hidden" name="content[<?= $i?>][id]" value="<?= e($item['id'] ?? '') ?>">
           
           <!-- Cabecera del bloque (Siempre visible) -->
@@ -219,30 +221,27 @@
 
             <?php if ($itemType === 'product_group') : ?>
               <!-- Formato de Visualización (Grid vs Slide) -->
-              <!-- <div class="flex-column gap8 w100 p15 br10 back-card-graphic shadow-card-graphic"> -->
-                <!-- <p class="x14 bold600 texto">Formato del grupo</p> -->
-                <div class="flex-row center-between gap10 w100">
-                  <input type="radio" id="layout-grid-<?= $i?>" name="content[<?= $i?>][layout]" value="grid" class="hidden-radio" <?= ($groupLayout === 'grid') ? 'checked' : '' ?> <?= ($prodCount % 2 !== 0) ? 'disabled' : '' ?>>
-                  <label for="layout-grid-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto <?= ($prodCount % 2 !== 0) ? 'opacity-50 pointer-events-none' : '' ?>" title="<?= ($prodCount % 2 !== 0) ? 'Modo cuadrícula requiere número par de productos (2, 4, 6 u 8)' : 'Cuadrícula' ?>">
-                    <?= svg("grid", "x16") ?>
-                    <span class="bold500 x13">Cuadrícula</span>
-                  </label>
+              <div class="flex-row center-between gap10 w100">
+                <input type="radio" id="layout-grid-<?= $i?>" name="content[<?= $i?>][layout]" value="grid" class="hidden-radio" <?= ($groupLayout === 'grid') ? 'checked' : '' ?> <?= ($prodCount % 2 !== 0) ? 'disabled' : '' ?>>
+                <label for="layout-grid-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto <?= ($prodCount % 2 !== 0) ? 'opacity-50 pointer-events-none' : '' ?>" title="<?= ($prodCount % 2 !== 0) ? 'Modo cuadrícula requiere número par de productos (2, 4, 6 u 8)' : 'Cuadrícula' ?>">
+                  <?= svg("grid", "x16") ?>
+                  <span class="bold500 x13">Cuadrícula</span>
+                </label>
 
-                  <input type="radio" id="layout-slide-<?= $i?>" name="content[<?= $i?>][layout]" value="slide" class="hidden-radio" <?= ($groupLayout === 'slide') ? 'checked' : '' ?>>
-                  <label for="layout-slide-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Carrusel">
-                    <?= svg("slide", "x16") ?>
-                    <span class="bold500 x13">Carrusel</span>
-                  </label>
-                </div>
-                <?php if ($prodCount % 2 !== 0) : ?>
-                  <span class="flex-row center-start gap5 x12 text-muted mt2">
-                    <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <?= $prodCount ?>.
-                  </span>
-                <?php endif; ?>
+                <input type="radio" id="layout-slide-<?= $i?>" name="content[<?= $i?>][layout]" value="slide" class="hidden-radio" <?= ($groupLayout === 'slide') ? 'checked' : '' ?>>
+                <label for="layout-slide-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Carrusel">
+                  <?= svg("slide", "x16") ?>
+                  <span class="bold500 x13">Carrusel</span>
+                </label>
+              </div>
+              <?php if ($prodCount % 2 !== 0) : ?>
+                <span class="flex-row center-start gap5 x12 text-muted mt2">
+                  <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <?= $prodCount ?>.
+                </span>
+              <?php endif; ?>
 
-                <!-- Título del grupo (opcional) -->
-                <input type="text" name="content[<?= $i?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título del grupo (opcional, ej: Mi Colección)">
-
+              <!-- Título del grupo (opcional) -->
+              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título del grupo (opcional, ej: Mi Colección)">
 
               <!-- Lista de Sub-productos (Mínimo 2, Máximo 8) -->
               <div class="flex-column gap15 w100 mt5">
@@ -252,6 +251,7 @@
                 </div>
 
                 <?php foreach ($groupProducts as $pIdx => $prod) :
+                  if (!is_array($prod)) continue;
                   $pImg      = $prod["img"] ?? 'no-image.webp';
                   $pTitle    = $prod["title"] ?? '';
                   $pUrl      = $prod["url"] ?? '';
@@ -273,7 +273,7 @@
                     $pMetaImg = $prod["metaImg"] ?? '';
                     if ($pImgDefault && !empty($pImg)) {
                       $pDisplayImgSrc = DIR_SHOW_MEDIA . $pImg;
-                    } elseif (!empty($pMetaImg) && $pMetaImg !== 'no-image.webp' && strpos($pMetaImg, 'http') === 0) {
+                    } elseif (!empty($pMetaImg) && $pMetaImg !== 'no-image.webp' && (strpos($pMetaImg, 'http') === 0 || strpos($pMetaImg, '/') === 0)) {
                       $pDisplayImgSrc = $pMetaImg;
                     } else {
                       $pDisplayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
@@ -373,7 +373,7 @@
                   $itemMetaImg = $item["metaImg"] ?? '';
                   if ($imgDefault && !empty($itemImg)) {
                     $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
-                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && (strpos($itemMetaImg, 'http') === 0 || strpos($itemMetaImg, '/') === 0)) {
                     $displayImgSrc = $itemMetaImg;
                   } else {
                     $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
@@ -833,7 +833,7 @@
                   $itemMetaImg = $item["metaImg"] ?? '';
                   if ($imgDefault && !empty($itemImg)) {
                     $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
-                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && (strpos($itemMetaImg, 'http') === 0 || strpos($itemMetaImg, '/') === 0)) {
                     $displayImgSrc = $itemMetaImg;
                   } else {
                     $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
@@ -1078,22 +1078,24 @@
                   </div>
                   <div class="separator-icons-grid w100" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px; box-sizing: border-box;">
                     <!-- Primer ícono: ban (solo espacio) -->
-                    <input type="radio" id="sep-ico-none-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="none" class="hidden-radio separator-icon-radio" <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'checked' : '' ?>>
+                    <input type="radio" id="sep-ico-none-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="none" class="hidden-radio separator-icon-radio" <?= $itemIsSpace ? 'checked' : '' ?>>
                     <label for="sep-ico-none-<?= $i ?>" class="flex-row center-center p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Solo espacio (sin figura)" style="aspect-ratio: 1; font-size: 18px; box-sizing: border-box;">
                       <?= svg("ban", "x18") ?>
                     </label>
 
                     <?php foreach ($separatorIcons as $icoName) : ?>
-                      <input type="radio" id="sep-ico-<?= e($icoName) ?>-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="<?= e($icoName) ?>" class="hidden-radio separator-icon-radio" <?= ($itemSepIcon === $icoName && $itemSepMode !== 'space' && $itemSepIcon !== 'none') ? 'checked' : '' ?>>
+                      <input type="radio" id="sep-ico-<?= e($icoName) ?>-<?= $i ?>" name="content[<?= $i ?>][separator_icon]" value="<?= e($icoName) ?>" class="hidden-radio separator-icon-radio" <?= (!$itemIsSpace && $itemSepIcon === $icoName) ? 'checked' : '' ?>>
                       <label for="sep-ico-<?= e($icoName) ?>-<?= $i ?>" class="flex-row center-center p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="<?= e($icoName) ?>" style="aspect-ratio: 1; font-size: 18px; box-sizing: border-box;">
-                        <?= \App\Models\DesignModels::renderSeparatorSvg($icoName, "x18") ?>
+                        <?= class_exists(\App\Models\DesignModels::class) ? \App\Models\DesignModels::renderSeparatorSvg($icoName, "x18") : '' ?>
                       </label>
                     <?php endforeach; ?>
                   </div>
                 </div>
 
+                <input type="hidden" name="content[<?= $i ?>][separator_mode]" value="<?= $itemSepMode ?>">
+
                 <!-- Opciones de Espacio (Altura del espacio en px, visible cuando se elige ban / solo espacio) -->
-                <div class="separator-space-options flex-column gap8 w100 <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? '' : 'hidden' ?>" style="display: <?= ($itemSepIcon === 'none' || $itemSepIcon === 'ban' || $itemSepMode === 'space') ? 'flex' : 'none !important' ?>;">
+                <div class="separator-space-options flex-column gap8 w100 <?= $itemIsSpace ? '' : 'hidden' ?>" style="display: <?= $itemIsSpace ? 'flex' : 'none' ?>;">
                   <div class="flex-column gap2">
                     <p class="x13 bold500 texto">Tamaño del espacio</p>
                     <span class="x11 text-muted">Altura del espacio vertical entre bloques</span>
@@ -1117,7 +1119,7 @@
                 </div>
 
                 <!-- Opciones de Tamaño del Separador de Figuras (Grande Completo, Mediano 60%, Pequeño 1 figura) -->
-                <div class="separator-size-options flex-column gap8 w100 <?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? '' : 'hidden' ?>" style="display: <?= ($itemSepIcon !== 'none' && $itemSepIcon !== 'ban' && $itemSepMode !== 'space') ? 'flex' : 'none !important' ?>;">
+                <div class="separator-size-options flex-column gap8 w100 <?= !$itemIsSpace ? '' : 'hidden' ?>" style="display: <?= !$itemIsSpace ? 'flex' : 'none' ?>;">
                   <div class="flex-column gap2">
                     <p class="x13 bold500 texto">Ancho del separador</p>
                     <span class="x11 text-muted">Elige el ancho o cantidad de figuras del separador</span>
@@ -1143,13 +1145,13 @@
 
             <?php elseif ($itemType === 'video') : ?>
               <?php 
-                $videoMode = $item["video_mode"] ?? 'link';
+                $videoMode = in_array($item["video_mode"] ?? '', ['link', 'player'], true) ? $item["video_mode"] : 'link';
                 $displayImgSrc = $item["imgSrc"] ?? '';
                 if (empty($displayImgSrc)) {
                   $itemMetaImg = $item["metaImg"] ?? '';
                   if ($imgDefault && !empty($itemImg)) {
                     $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
-                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                  } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && (strpos($itemMetaImg, 'http') === 0 || strpos($itemMetaImg, '/') === 0)) {
                     $displayImgSrc = $itemMetaImg;
                   } else {
                     $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
@@ -1222,7 +1224,7 @@
                     $itemMetaImg = $item["metaImg"] ?? '';
                     if ($imgDefault && !empty($itemImg)) {
                       $displayImgSrc = DIR_SHOW_MEDIA . $itemImg;
-                    } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && strpos($itemMetaImg, 'http') === 0) {
+                    } elseif (!empty($itemMetaImg) && $itemMetaImg !== 'no-image.webp' && (strpos($itemMetaImg, 'http') === 0 || strpos($itemMetaImg, '/') === 0)) {
                       $displayImgSrc = $itemMetaImg;
                     } else {
                       $displayImgSrc = DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp";
@@ -1287,4 +1289,4 @@
             <?php endif; ?>
 
           </div>
-        </div>
+        </div>

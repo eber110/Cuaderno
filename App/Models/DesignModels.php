@@ -1690,7 +1690,7 @@ class DesignModels extends Builder {
           "separator_icon" => "none",
           "separator_size" => "large",
           "space_size"     => "40",
-          "active"         => true
+          "active"         => false
         ],
         "video"         => [
           "type"        => "video",

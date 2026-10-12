@@ -380,11 +380,8 @@ export function designDraftManager() {
                 Array.from(tempDiv.children).forEach((node) => {
                   if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
                     node.setAttribute("data-block-id", block.id);
-                    if (blockType === "separator") {
-                      node.style.display = (block.active !== false) ? "" : "none";
-                    } else {
-                      node.style.display = (block.active === true || block.active === "true") ? "" : "none";
-                    }
+                    const isActive = (block.active === true || block.active === "true" || block.active === 1 || block.active === "1");
+                    node.style.display = isActive ? "" : "none";
                   }
                   pContainer.appendChild(node);
                 });
@@ -945,13 +942,18 @@ export function designDraftManager() {
 
     // 8. Bloques de separador: cambio entre figura (ícono) y espacio en blanco
     if (target.classList && target.classList.contains("separator-icon-radio")) {
-      const block = target.closest(".sortable-item, .content-item-body, .flex-column");
+      const block = target.closest(".sortable-item.content-block, .content-item-body");
       if (block) {
         const isSpace = (target.value === "none" || target.value === "ban");
         const spaceOpts = block.querySelector(".separator-space-options");
         const sizeOpts = block.querySelector(".separator-size-options");
-        setElementVisibility(spaceOpts, isSpace);
-        setElementVisibility(sizeOpts, !isSpace);
+        setElementVisibility(spaceOpts, isSpace, "flex");
+        setElementVisibility(sizeOpts, !isSpace, "flex");
+
+        const modeInput = block.querySelector('input[name*="[separator_mode]"]');
+        if (modeInput) {
+          modeInput.value = isSpace ? "space" : "line";
+        }
       }
     }
 
@@ -1880,7 +1882,7 @@ export function designDraftManager() {
               ? cData.space_size 
               : (document.querySelector(`input[name="content[${idx}][space_size]"]:checked`)?.value || "40");
 
-            const isSpace = (sepIcon === "none" || sepIcon === "ban" || cData.separator_mode === "space");
+            const isSpace = (!sepIcon || sepIcon === "none" || sepIcon === "ban");
 
             if (isSpace) {
               block.className = "separator-block-wrapper w100";
@@ -1890,10 +1892,20 @@ export function designDraftManager() {
               block.style.height = spaceSize + "px";
               block.innerHTML = "";
             } else {
-              const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
-              const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
-              const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
-              const svgHtml = svgEl ? svgEl.outerHTML : "";
+              const editorItem = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"]`) : document.querySelector(`#content-item-${idx}`);
+              let svgHtml = "";
+              if (editorItem) {
+                const iconInput = editorItem.querySelector(`input.separator-icon-radio[value="${sepIcon}"]`);
+                const iconLbl = iconInput ? (iconInput.nextElementSibling || editorItem.querySelector(`label[for="${iconInput.id}"]`)) : null;
+                const sEl = iconLbl ? iconLbl.querySelector("svg") : null;
+                if (sEl) svgHtml = sEl.outerHTML;
+              }
+              if (!svgHtml) {
+                const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
+                const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
+                const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
+                if (svgEl) svgHtml = svgEl.outerHTML;
+              }
 
               block.className = "separator-block-wrapper w100 flex-row center-center color-text-card p0";
               block.style.margin = "10px 0";
@@ -2770,7 +2782,9 @@ export function designDraftManager() {
 
       // Notificar cambio de borrador y habilitar botón guardar
       notifyDraftState();
-      enableSaveButton();
+      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+        window.__saveButtonController.enableSaveButton();
+      }
       return true;
     }
 
@@ -2820,7 +2834,9 @@ export function designDraftManager() {
 
       // Notificar cambio de borrador y habilitar botón guardar
       notifyDraftState();
-      enableSaveButton();
+      if (window.__saveButtonController && typeof window.__saveButtonController.enableSaveButton === "function") {
+        window.__saveButtonController.enableSaveButton();
+      }
       return true;
     }
 
@@ -3409,6 +3425,12 @@ export function designDraftManager() {
         }
         applyDraftToPreview(getDraft());
         return;
+      }
+
+      if (target.classList && target.classList.contains("separator-icon-radio")) {
+        const isSpace = (target.value === "none" || target.value === "ban");
+        const modeFieldName = target.name.replace(/\[separator_icon\]$/, "[separator_mode]");
+        setDraftField(modeFieldName, isSpace ? "space" : "line");
       }
 
       setDraftField(target.name, target.value);
@@ -4078,13 +4100,23 @@ export function designDraftManager() {
         tempDiv.innerHTML = htmlForm;
         newNode = tempDiv.firstElementChild;
         if (newNode) {
+          list.querySelectorAll(".sortable-item.content-block, .sortable-item[data-collapsible]").forEach((openItem) => {
+            openItem.classList.remove("is-open");
+            openItem.classList.add("is-collapsed");
+            const openBody = openItem.querySelector(".content-item-body, [data-sortable-body]");
+            if (openBody) {
+              openBody.style.display = "none";
+              openBody.style.height = "auto";
+            }
+          });
           newNode.setAttribute("data-block-id", newBlockId);
           list.insertBefore(newNode, list.firstChild);
           newNode.classList.remove("is-collapsed");
           newNode.classList.add("is-open");
-          const body = newNode.querySelector(".content-item-body");
+          const body = newNode.querySelector(".content-item-body, [data-sortable-body]");
           if (body) {
             body.style.display = "flex";
+            body.style.height = "auto";
           }
         }
       }
@@ -4105,11 +4137,7 @@ export function designDraftManager() {
             if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
               node.setAttribute("data-block-id", newBlockId);
               node.setAttribute("data-content-index", "0");
-              if (type === "separator") {
-                node.style.display = "";
-              } else {
-                node.style.display = "none";
-              }
+              node.style.display = "none";
             }
             fragment.appendChild(node);
           });
@@ -4215,7 +4243,7 @@ export function designDraftManager() {
         defaultBlock.separator_icon = "none";
         defaultBlock.separator_size = "large";
         defaultBlock.space_size = "40";
-        defaultBlock.active = true;
+        defaultBlock.active = false;
       } else if (type === "video") {
         defaultBlock.video_mode = "link";
         defaultBlock.img = "no-image.webp";
