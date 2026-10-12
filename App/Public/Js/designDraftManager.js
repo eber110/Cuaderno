@@ -156,10 +156,16 @@ export function designDraftManager() {
         let storedInitial = getInitialState();
         let storedDraft = getDraftState();
 
-        // Si no existe INITIAL_KEY, registrar versión oficial del servidor
-        if (!storedInitial) {
+        const serverUpdatedAt = parseInt(serverState.last_updated_at || 0, 10);
+        const storedUpdatedAt = parseInt(storedInitial?.last_updated_at || 0, 10);
+
+        // Si no existe INITIAL_KEY o el servidor tiene una versión más nueva (ej. tras guardar/publicar)
+        if (!storedInitial || (serverUpdatedAt > 0 && serverUpdatedAt > storedUpdatedAt)) {
           storedInitial = serverState;
           localStorage.setItem(INITIAL_KEY, JSON.stringify(storedInitial));
+          storedDraft = serverState;
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(storedDraft));
+          return;
         }
 
         // Si no existe DRAFT_KEY, clonar idéntico al estado inicial
@@ -184,15 +190,17 @@ export function designDraftManager() {
   initJsonState();
 
   function linkPreviewBlockIds() {
-    const preview = document.getElementById("preview-widget-container");
-    if (!preview) return;
-    preview.querySelectorAll("[data-content-index]").forEach((el) => {
-      const idx = el.getAttribute("data-content-index");
-      const editorItem = document.getElementById("content-item-" + idx);
-      if (editorItem) {
-        const blkId = editorItem.getAttribute("data-block-id");
-        if (blkId) el.setAttribute("data-block-id", blkId);
-      }
+    const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+    previewContainers.forEach((preview) => {
+      preview.querySelectorAll("[data-content-index]").forEach((el) => {
+        if (el.getAttribute("data-block-id")) return;
+        const idx = el.getAttribute("data-content-index");
+        const editorItem = document.getElementById("content-item-" + idx);
+        if (editorItem) {
+          const blkId = editorItem.getAttribute("data-block-id");
+          if (blkId) el.setAttribute("data-block-id", blkId);
+        }
+      });
     });
   }
 
@@ -284,10 +292,7 @@ export function designDraftManager() {
           const targetNodes = [];
           draft.content.forEach((block, newIdx) => {
             if (!block) return;
-            let prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
-            if (!prevEls || prevEls.length === 0) {
-              prevEls = Array.from(pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`));
-            }
+            const prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
             prevEls.forEach((el) => {
               el.setAttribute("data-content-index", String(newIdx));
               targetNodes.push(el);
@@ -628,8 +633,14 @@ export function designDraftManager() {
       }
 
       // Actualizar datos del elemento en la vista previa (imagen, proporción), respetando estrictamente el estado del switch
+      const blkId = block.getAttribute("data-block-id");
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+        let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
+        if (!items || !items.length) {
+          if (!blkId) {
+            items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+          }
+        }
         items.forEach((item) => {
           if (type === "banner") {
             if (extraData.previewUrl) {
@@ -676,8 +687,14 @@ export function designDraftManager() {
         hiddenInput.disabled = false;
       }
 
+      const blkId = block.getAttribute("data-block-id");
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+        let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
+        if (!items || !items.length) {
+          if (!blkId) {
+            items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+          }
+        }
         items.forEach((item) => {
           item.style.display = "none";
         });
@@ -840,8 +857,10 @@ export function designDraftManager() {
           "720x1024": "720 / 1024"
         };
         if (ratioMap[target.value]) {
+          const blk = target.closest(".sortable-item") || target.closest(".content-block");
+          const bId = blk?.getAttribute("data-block-id");
           document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-            const bannerEl = preview.querySelector(`[data-content-index="${idx}"]`);
+            const bannerEl = (bId ? preview.querySelector(`[data-block-id="${bId}"]`) : null) || preview.querySelector(`[data-content-index="${idx}"]`);
             if (bannerEl) bannerEl.style.aspectRatio = ratioMap[target.value];
           });
         }
@@ -1435,16 +1454,28 @@ export function designDraftManager() {
     });
 
     previews.forEach((p) => {
-      // 1. Actualización de cada bloque por su índice
+      // 1. Actualización de cada bloque por su id (o fallback a índice)
       Object.keys(contentMap).forEach((idx) => {
         const cData = contentMap[idx];
-        const blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+        const blkId = cData.id || document.querySelector(`#content-item-${idx}`)?.getAttribute("data-block-id");
+        let blocks = blkId ? p.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
+        if (!blocks || !blocks.length) {
+          if (!blkId) {
+            blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+          }
+        }
         if (!blocks.length) return;
 
         blocks.forEach((block) => {
           // Visibilidad (switch active)
-          if (cData.active !== undefined) {
-            const isAct = (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1");
+          const activeSwitch = blkId 
+            ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[type="checkbox"][name$="[active]"]`) 
+            : document.querySelector(`input[type="checkbox"][name="content[${idx}][active]"]`);
+          const isAct = (cData.active !== undefined)
+            ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
+            : (activeSwitch ? activeSwitch.checked : (block.style.display !== "none"));
+
+          if (cData.active !== undefined || activeSwitch) {
             const variant = block.dataset.layoutVariant;
             const videoVariant = block.dataset.videoVariant;
             if (variant) {
@@ -1677,7 +1708,9 @@ export function designDraftManager() {
             if (h2) {
               if (cData.title !== undefined) {
                 h2.textContent = cData.title;
-                block.style.display = (cData.title.trim() === "") ? "none" : "";
+                if (isAct) {
+                  block.style.display = (cData.title.trim() === "") ? "none" : "";
+                }
               }
               if (cData.title_size) {
                 ["x18", "x20", "x24"].forEach((s) => h2.classList.remove(s));
@@ -1697,7 +1730,9 @@ export function designDraftManager() {
             if (pEl) {
               if (cData.text !== undefined) {
                 pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
-                block.style.display = (cData.text.trim() === "") ? "none" : "";
+                if (isAct) {
+                  block.style.display = (cData.text.trim() === "") ? "none" : "";
+                }
               }
               if (cData.text_weight) {
                 ["bold400", "bold500"].forEach((w) => pEl.classList.remove(w));
@@ -1879,7 +1914,7 @@ export function designDraftManager() {
                 const isSelected = (variant === cData.layout);
                 if (isSelected) {
                   block.classList.remove("hidden");
-                  const activeSwitch = document.querySelector(`input[name="content[${idx}][active]"]`);
+                  const activeSwitch = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[name$="[active]"]`) : document.querySelector(`input[name="content[${idx}][active]"]`);
                   const isAct = (cData.active !== undefined)
                     ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
                     : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
@@ -1972,7 +2007,7 @@ export function designDraftManager() {
                 const isSelected = (variant === cData.video_mode);
                 if (isSelected) {
                   block.classList.remove("hidden");
-                  const activeSwitch = document.querySelector(`input[name="content[${idx}][active]"]`);
+                  const activeSwitch = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[name$="[active]"]`) : document.querySelector(`input[name="content[${idx}][active]"]`);
                   const isAct = (cData.active !== undefined)
                     ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
                     : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
@@ -1989,7 +2024,11 @@ export function designDraftManager() {
 
       // 2. Sub-productos de grupos de productos
       Object.keys(contentProductMap).forEach((idx) => {
-        const blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+        const blkId = document.querySelector(`#content-item-${idx}`)?.getAttribute("data-block-id");
+        let blocks = blkId ? p.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
+        if (!blocks.length) {
+          blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
+        }
         if (!blocks.length) return;
         const subMap = contentProductMap[idx];
 
@@ -2492,7 +2531,10 @@ export function designDraftManager() {
 
     if (contentIndex !== null) {
       panelElement = document.getElementById("content-item-" + contentIndex) || (triggerElement ? triggerElement.closest(".sortable-item, .content-block") : null);
-      previewElements = Array.from(document.querySelectorAll(`.user-profile-preview [data-content-index="${contentIndex}"]`));
+      const bId = panelElement?.getAttribute("data-block-id");
+      previewElements = bId 
+        ? Array.from(document.querySelectorAll(`.user-profile-preview [data-block-id="${bId}"]`))
+        : Array.from(document.querySelectorAll(`.user-profile-preview [data-content-index="${contentIndex}"]`));
       deleteNotice = "Eliminando bloque...";
     }
 
@@ -3156,8 +3198,16 @@ export function designDraftManager() {
         const match = target.name && target.name.match(/^content\[(\d+)\]\[active\]$/);
         if (match) {
           const idx = match[1];
+          const editorBlock = target.closest(".sortable-item");
+          const blkId = editorBlock?.getAttribute("data-block-id") || editorBlock?.querySelector('input[name$="[id]"]')?.value;
+
           document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-            const items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+            let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
+            if (!items || !items.length) {
+              if (!blkId) {
+                items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
+              }
+            }
             items.forEach((item) => {
               const variant = item.dataset.layoutVariant;
               const videoVariant = item.dataset.videoVariant;
@@ -3310,8 +3360,12 @@ export function designDraftManager() {
         }
 
         // 2. Actualizar imagen en la vista previa
+        const bId = block?.getAttribute("data-block-id");
         document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-          const items = preview.querySelectorAll(`[data-content-index="${itemIdx}"]`);
+          let items = bId ? preview.querySelectorAll(`[data-block-id="${bId}"]`) : [];
+          if (!items || !items.length) {
+            items = preview.querySelectorAll(`[data-content-index="${itemIdx}"]`);
+          }
           items.forEach((item) => {
             if (subIdx !== undefined) {
               const card = item.querySelector(`[data-sub-index="${subIdx}"]`) 
@@ -3514,6 +3568,7 @@ export function designDraftManager() {
               container.innerHTML = data.html;
             }
           });
+          linkPreviewBlockIds();
         }
 
         // Actualizar formularios del editor si vienen en la respuesta oficial
@@ -3788,20 +3843,26 @@ export function designDraftManager() {
 
       // 2. Obtener el template del Preview (Right side)
       const tplPreview = document.getElementById("tpl_preview_" + type);
-      const widgetContainer = document.getElementById("preview-widget-container");
-      if (tplPreview && widgetContainer) {
+      const widgetContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+      if (tplPreview && widgetContainers.length > 0) {
         let htmlPreview = tplPreview.innerHTML
           .replace(/\{\{INDEX\}\}/g, "0")
           .replace(/\{\{BLOCK_ID\}\}/g, newBlockId);
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = htmlPreview;
-        const newNodePreview = tempDiv.firstElementChild;
-        if (newNodePreview) {
-          newNodePreview.setAttribute("data-block-id", newBlockId);
-          newNodePreview.setAttribute("data-content-index", "0");
-          newNodePreview.style.display = "none";
-          widgetContainer.insertBefore(newNodePreview, widgetContainer.firstChild);
-        }
+        widgetContainers.forEach((widgetContainer) => {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = htmlPreview;
+          const nodes = Array.from(tempDiv.children);
+          const fragment = document.createDocumentFragment();
+          nodes.forEach((node) => {
+            if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
+              node.setAttribute("data-block-id", newBlockId);
+              node.setAttribute("data-content-index", "0");
+              node.style.display = "none";
+            }
+            fragment.appendChild(node);
+          });
+          widgetContainer.insertBefore(fragment, widgetContainer.firstChild);
+        });
       }
 
       // 3. Reindexar todo el DOM del editor y sincronizar preview inmediatamente
@@ -3902,7 +3963,7 @@ export function designDraftManager() {
         defaultBlock.separator_icon = "none";
         defaultBlock.separator_size = "large";
         defaultBlock.space_size = "40";
-        defaultBlock.active = true;
+        defaultBlock.active = false;
       } else if (type === "video") {
         defaultBlock.video_mode = "link";
         defaultBlock.img = "no-image.webp";
@@ -3984,10 +4045,7 @@ export function designDraftManager() {
         const targetNodes = [];
         draft.content.forEach((block, newIdx) => {
           if (!block) return;
-          let prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
-          if (!prevEls || prevEls.length === 0) {
-            prevEls = Array.from(pContainer.querySelectorAll(`[data-content-index="${newIdx}"]`));
-          }
+          const prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
           prevEls.forEach((el) => {
             el.setAttribute("data-content-index", String(newIdx));
             targetNodes.push(el);

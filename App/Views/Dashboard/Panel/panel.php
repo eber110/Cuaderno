@@ -43,30 +43,4 @@
 
   </div>
 
-  <!-- TEMPLATES PREVIEW FASE 3 -->
-  <div id="preview-templates" style="display:none;">
-    <?php
-      $dummyCard = $card;
-      if (!isset($dummyCard["content"])) $dummyCard["content"] = [];
-      
-      foreach (\App\Models\DesignModels::getBlockTypes() as $type => $config) {
-        $partName = $config["viewBase"];
-        if ($type === 'link') {
-          $partName .= ($card["style"] ?? "buttonRegular");
-        }
-        $dummyCard["content"]['{{INDEX}}'] = [
-          "type" => $type,
-          "active" => true
-        ];
-        echo "<template id=\"tpl_preview_{$type}\">";
-        _part($partName, [
-          "dataContent" => '{{INDEX}}',
-          "card"        => $dummyCard,
-          "isActive"    => true,
-          "isPreview"   => true
-        ]);
-        echo "</template>\n";
-      }
-    ?>
-  </div>
 </div>

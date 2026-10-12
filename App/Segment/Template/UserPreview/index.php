@@ -119,9 +119,6 @@
                   var block = draft.content[i];
                   if (!block) continue;
                   var prevEls = block.id ? Array.from(pContainer.querySelectorAll('[data-block-id="' + block.id + '"]')) : [];
-                  if (!prevEls || prevEls.length === 0) {
-                    prevEls = Array.from(pContainer.querySelectorAll('[data-content-index="' + i + '"]'));
-                  }
                   for (var j = 0; j < prevEls.length; j++) {
                     prevEls[j].setAttribute('data-content-index', String(i));
                     targetNodes.push(prevEls[j]);
