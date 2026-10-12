@@ -1,5 +1,5 @@
 <section class="container-xl back-body observer pt100 pt-mid-80 pt-sml-50 pb100 pb-mid-80 pb-sml-50">
-  <div class="container container-xl-mid container-sml pl-mid-30 pr-mid-30 pl-sml-20 pr-sml-20 flex-column center-center gap50 gap-mid-40 gap-sml-30 |w100">
+  <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column center-center gap50 gap-mid-40 gap-sml-30 |w100">
     
     <div class="flex-column center-center textc gap10 max-w700">
       <p class="oswald bold600 x24 color5 slide-in-bottom ob-20 dl-100 animate-slow m0">POTENCIA Y VERSATILIDAD</p>

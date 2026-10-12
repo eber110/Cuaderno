@@ -1,5 +1,5 @@
 <section class="container-xl back-body observer pt0 pb100 pb-mid-80 pb-sml-50">
-  <div class="container container-xl-mid container-sml pl-mid-30 pr-mid-30 pl-sml-20 pr-sml-20 flex-column center-center |w100">
+  <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column center-center |w100">
     <div class="w100 p60 p-mid-40 p-sml-25 br30 back8 textw flex-column center-center textc gap25 shadow relative overflow">
       
       <!-- Decoración de fondo sutil -->

@@ -1,5 +1,5 @@
 <footer class="container-xl back8 textw border-top pt80 pt-mid-60 pt-sml-40 pb80 pb-mid-60 pb-sml-40" style="border-color: rgba(255, 255, 255, 0.08);">
-  <div class="container container-xl-mid container-sml pl-mid-30 pr-mid-30 pl-sml-20 pr-sml-20 flex-column gap50 gap-mid-40 gap-sml-30 w100">
+  <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column gap50 gap-mid-40 gap-sml-30 w100">
     
     <div class="flex-row center-between flex-column-mid center-center-mid text-center-mid flex-column-sml center-center-sml text-center-sml gap30 w100">
       <div class="flex-column start-start center-center-mid center-center-sml text-center-mid text-center-sml gap12 max-w450">

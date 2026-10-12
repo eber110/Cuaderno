@@ -881,7 +881,7 @@
   .pb-sml-80 { padding-bottom: 80px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .pl-mid-30 { padding-left: 30px !important; }
+  .pl-mid-20 { padding-left: 20px !important; }
 }
 @media screen and (max-width: 576px) {
   .pl-sml-10 { padding-left: 10px !important; }
@@ -896,7 +896,7 @@
   .pl-sml-5 { padding-left: 5px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .pr-mid-30 { padding-right: 30px !important; }
+  .pr-mid-20 { padding-right: 20px !important; }
 }
 @media screen and (max-width: 576px) {
   .pr-sml-10 { padding-right: 10px !important; }
