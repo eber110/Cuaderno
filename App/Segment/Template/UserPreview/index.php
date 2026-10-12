@@ -112,8 +112,21 @@
 
             // 3. Restaurar orden de Bloques de Contenido en 0ms
             if (Array.isArray(draft.content) && draft.content.length > 0) {
+              var validBlockIds = {};
+              for (var v = 0; v < draft.content.length; v++) {
+                if (draft.content[v] && draft.content[v].id) validBlockIds[draft.content[v].id] = true;
+              }
+
               var pContainers = document.querySelectorAll('.preview-widget-container, #preview-widget-container');
               pContainers.forEach(function(pContainer) {
+                var allEls = pContainer.querySelectorAll('[data-block-id]');
+                for (var a = 0; a < allEls.length; a++) {
+                  var bId = allEls[a].getAttribute('data-block-id');
+                  if (bId && !validBlockIds[bId]) {
+                    allEls[a].style.display = 'none';
+                  }
+                }
+
                 var targetNodes = [];
                 for (var i = 0; i < draft.content.length; i++) {
                   var block = draft.content[i];

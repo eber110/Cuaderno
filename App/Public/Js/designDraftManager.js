@@ -252,12 +252,40 @@ export function designDraftManager() {
     // Alinear el orden del DOM en el preview con el orden del editor
     const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
     previewContainers.forEach((pContainer) => {
-      items.forEach((editorItem, i) => {
+      const targetNodes = [];
+      items.forEach((editorItem) => {
         const blkId = editorItem.getAttribute("data-block-id");
         if (!blkId) return;
-        const pNode = pContainer.querySelector(`[data-block-id="${blkId}"]`);
-        if (pNode && pContainer.children[i] !== pNode) {
-          pContainer.insertBefore(pNode, pContainer.children[i] || null);
+        const pNodes = Array.from(pContainer.querySelectorAll(`[data-block-id="${blkId}"]`));
+        pNodes.forEach((node) => targetNodes.push(node));
+      });
+      targetNodes.forEach((node, i) => {
+        if (pContainer.children[i] !== node) {
+          pContainer.insertBefore(node, pContainer.children[i] || null);
+        }
+      });
+    });
+  }
+
+  function reindexRrssEditorDOM(rrssList) {
+    if (!rrssList) return;
+    const items = rrssList.querySelectorAll(".sortable-item");
+    const idxSuffixRegex = /-(?:\{\{INDEX\}\}|\d+(?:_\d+)?)$/;
+    items.forEach((item, index) => {
+      item.id = `rrss-item-${index}`;
+      item.setAttribute("data-index", String(index));
+      item.querySelectorAll("*").forEach((el) => {
+        const n = el.getAttribute("name");
+        if (n && n.startsWith("rrss[")) {
+          el.setAttribute("name", n.replace(/^rrss\[[^\]]+\]/, `rrss[${index}]`));
+        }
+        const id = el.getAttribute("id");
+        if (id && idxSuffixRegex.test(id) && !id.startsWith("rrss-item-")) {
+          el.setAttribute("id", id.replace(idxSuffixRegex, `-${index}`));
+        }
+        const forAttr = el.getAttribute("for");
+        if (forAttr && idxSuffixRegex.test(forAttr)) {
+          el.setAttribute("for", forAttr.replace(idxSuffixRegex, `-${index}`));
         }
       });
     });
@@ -267,32 +295,108 @@ export function designDraftManager() {
     const draft = getDraftState();
     if (!draft) return;
 
-    // 1. Restaurar orden de Bloques de Contenido
-    if (draft && Array.isArray(draft.content) && draft.content.length > 0) {
+    // 1. Restaurar orden, adiciones y eliminaciones de Bloques de Contenido
+    if (draft && Array.isArray(draft.content)) {
       const editorList = document.getElementById("sortable-content-list");
       const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
 
       if (editorList) {
-        let changed = false;
-        draft.content.forEach((block) => {
-          if (!block) return;
-          const editorEl = block.id ? editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`) : null;
-          if (editorEl) {
-            editorList.appendChild(editorEl);
-            changed = true;
+        // A) Eliminar del editor cualquier bloque borrado en el borrador
+        const existingEditorItems = Array.from(editorList.querySelectorAll(".sortable-item"));
+        const draftBlockIds = new Set(draft.content.map((b) => b && b.id).filter(Boolean));
+        existingEditorItems.forEach((item) => {
+          const bId = item.getAttribute("data-block-id");
+          if (bId && !draftBlockIds.has(bId)) {
+            item.remove();
           }
         });
-        if (changed) {
-          reindexEditorDOM(editorList);
-        }
+
+        // B) Reconstruir bloques presentes en el borrador que no existan en el HTML del servidor
+        draft.content.forEach((block) => {
+          if (!block || !block.id) return;
+          const existingItem = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
+          if (!existingItem) {
+            const blockType = block.type || "link";
+            const tplBlock = document.getElementById("tpl_block_" + blockType);
+            if (tplBlock) {
+              const tempDiv = document.createElement("div");
+              let html = tplBlock.innerHTML
+                .replace(/\{\{INDEX\}\}/g, "0")
+                .replace(/\{\{BLOCK_ID\}\}/g, block.id);
+              tempDiv.innerHTML = html;
+              const newNode = tempDiv.firstElementChild;
+              if (newNode) {
+                newNode.setAttribute("data-block-id", block.id);
+                newNode.classList.remove("is-collapsed");
+                newNode.classList.add("is-open");
+                const body = newNode.querySelector(".content-item-body");
+                if (body) {
+                  body.style.display = "flex";
+                }
+                editorList.appendChild(newNode);
+              }
+            }
+          }
+        });
+
+        // C) Reordenar en el editor para que coincidan con draft.content
+        draft.content.forEach((block) => {
+          if (!block || !block.id) return;
+          const editorEl = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
+          if (editorEl) {
+            editorList.appendChild(editorEl);
+          }
+        });
+
+        // D) Re-indexar el editor
+        reindexEditorDOM(editorList);
       }
 
       if (previewContainers.length > 0) {
         previewContainers.forEach((pContainer) => {
+          // A) Eliminar de la vista previa los bloques borrados en el borrador
+          const existingPreviewItems = Array.from(pContainer.querySelectorAll("[data-block-id]"));
+          const draftBlockIds = new Set(draft.content.map((b) => b && b.id).filter(Boolean));
+          existingPreviewItems.forEach((item) => {
+            const bId = item.getAttribute("data-block-id");
+            if (bId && !draftBlockIds.has(bId)) {
+              item.remove();
+            }
+          });
+
+          // B) Reconstruir en vista previa los bloques del borrador que no existan en el DOM
+          draft.content.forEach((block) => {
+            if (!block || !block.id) return;
+            const existingPrevEl = pContainer.querySelector(`[data-block-id="${block.id}"]`);
+            if (!existingPrevEl) {
+              const blockType = block.type || "link";
+              const tplPreview = document.getElementById("tpl_preview_" + blockType);
+              if (tplPreview) {
+                let htmlPreview = tplPreview.innerHTML
+                  .replace(/\{\{INDEX\}\}/g, "0")
+                  .replace(/\{\{BLOCK_ID\}\}/g, block.id);
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = htmlPreview;
+                Array.from(tempDiv.children).forEach((node) => {
+                  if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
+                    node.setAttribute("data-block-id", block.id);
+                    if (blockType === "separator") {
+                      node.style.display = (block.active !== false) ? "" : "none";
+                    } else {
+                      node.style.display = (block.active === true || block.active === "true") ? "" : "none";
+                    }
+                  }
+                  pContainer.appendChild(node);
+                });
+              }
+            }
+          });
+
+          // C) Reordenar y alinear la vista previa
           const targetNodes = [];
           draft.content.forEach((block, newIdx) => {
-            if (!block) return;
-            const prevEls = block.id ? Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)) : [];
+            if (!block || !block.id) return;
+            const prevEls = Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`));
             prevEls.forEach((el) => {
               el.setAttribute("data-content-index", String(newIdx));
               targetNodes.push(el);
@@ -308,12 +412,28 @@ export function designDraftManager() {
       }
     }
 
-    // 2. Restaurar orden de Redes Sociales
-    if (draft && Array.isArray(draft.rrss) && draft.rrss.length > 0) {
+    // 2. Restaurar orden, adiciones y eliminaciones de Redes Sociales
+    if (draft && Array.isArray(draft.rrss)) {
       const rrssList = document.getElementById("sortable-rrss-list");
       const allPreviews = document.querySelectorAll(".user-profile-preview");
+      const draftRrssNames = new Set(
+        draft.rrss.map((r) => (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase()).filter(Boolean)
+      );
 
       if (rrssList) {
+        // A) Eliminar redes sociales borradas en el borrador
+        const existingRrssItems = Array.from(rrssList.querySelectorAll(".sortable-item"));
+        existingRrssItems.forEach((item) => {
+          const itemName = (item.getAttribute("data-rrss-name") 
+            || item.querySelector('input[name$="[0]"]')?.value 
+            || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
+            || "").trim().toLowerCase();
+          if (itemName && !draftRrssNames.has(itemName)) {
+            item.remove();
+          }
+        });
+
+        // B) Reordenar según el borrador
         draft.rrss.forEach((r) => {
           const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
           if (!name) return;
@@ -330,24 +450,23 @@ export function designDraftManager() {
           }
         });
 
-        // Re-indexar rrss inputs
-        const items = rrssList.querySelectorAll(".sortable-item");
-        items.forEach((item, index) => {
-          item.id = `rrss-item-${index}`;
-          item.setAttribute("data-index", String(index));
-          item.querySelectorAll("input").forEach((input) => {
-            const n = input.getAttribute("name");
-            if (n && n.startsWith("rrss[")) {
-              input.setAttribute("name", n.replace(/^rrss\[\d+\]/, `rrss[${index}]`));
-            }
-          });
-        });
+        // C) Re-indexar rrss inputs
+        reindexRrssEditorDOM(rrssList);
       }
 
       if (allPreviews.length > 0) {
         allPreviews.forEach((preview) => {
+          // Eliminar de vista previa redes borradas en el borrador
           const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
-          const wrappers = new Set(allRrssLinks.map((l) => l.parentElement).filter(Boolean));
+          allRrssLinks.forEach((link) => {
+            const linkName = (link.getAttribute("data-link-id") || "").replace(/^rrss_/, "").toLowerCase();
+            if (linkName && !draftRrssNames.has(linkName)) {
+              link.remove();
+            }
+          });
+
+          const remainingLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
+          const wrappers = new Set(remainingLinks.map((l) => l.parentElement).filter(Boolean));
 
           wrappers.forEach((rrssWrapper) => {
             const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
@@ -1710,6 +1829,8 @@ export function designDraftManager() {
                 h2.textContent = cData.title;
                 if (isAct) {
                   block.style.display = (cData.title.trim() === "") ? "none" : "";
+                } else {
+                  block.style.display = "none";
                 }
               }
               if (cData.title_size) {
@@ -1732,6 +1853,8 @@ export function designDraftManager() {
                 pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
                 if (isAct) {
                   block.style.display = (cData.text.trim() === "") ? "none" : "";
+                } else {
+                  block.style.display = "none";
                 }
               }
               if (cData.text_weight) {
@@ -2582,6 +2705,129 @@ export function designDraftManager() {
   }
 
   /**
+   * Gestiona la eliminación de un bloque o red social localmente en el borrador,
+   * actualizando la interfaz y la vista previa de inmediato sin persistir a la base
+   * de datos hasta que el usuario pulse explícitamente el botón Guardar.
+   *
+   * @param {HTMLElement} [triggerElement] Elemento disparador (checkbox, botón)
+   * @param {string} [targetId] ID del checkbox objetivo si vino de un label
+   * @returns {boolean} True si se procesó la eliminación localmente.
+   */
+  function handleLocalBlockDelete(triggerElement = null, targetId = null) {
+    const idStr = targetId || (triggerElement && triggerElement.id ? triggerElement.id : "");
+    const nameStr = triggerElement && triggerElement.name ? triggerElement.name : "";
+
+    // 1. Caso: delete-link-X o content[X][delete]
+    let contentIndex = null;
+    if (idStr.startsWith("delete-link-")) {
+      contentIndex = idStr.replace("delete-link-", "");
+    } else if (nameStr) {
+      const match = nameStr.match(/content\[(\d+)\]\[delete\]/);
+      if (match) contentIndex = match[1];
+    }
+
+    if (contentIndex !== null) {
+      const panelElement = document.getElementById("content-item-" + contentIndex) 
+        || (triggerElement ? triggerElement.closest(".sortable-item, .content-block") : null);
+      const bId = panelElement ? panelElement.getAttribute("data-block-id") : null;
+
+      // Remover inmediatamente del preview
+      const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
+      previewContainers.forEach((pContainer) => {
+        let prevEls = bId 
+          ? Array.from(pContainer.querySelectorAll(`[data-block-id="${bId}"]`))
+          : Array.from(pContainer.querySelectorAll(`[data-content-index="${contentIndex}"]`));
+        prevEls.forEach((el) => {
+          el.remove();
+        });
+      });
+
+      // Remover del editor
+      if (panelElement) {
+        panelElement.remove();
+      }
+
+      // Re-indexar el editor
+      const list = document.getElementById("sortable-content-list");
+      if (list) {
+        reindexEditorDOM(list);
+      }
+
+      // Actualizar el borrador JSON eliminando el bloque
+      window.updateJsonDraft((state) => {
+        if (state && state.content && Array.isArray(state.content)) {
+          if (bId) {
+            state.content = state.content.filter((b) => b && b.id !== bId);
+          } else {
+            const idxNum = parseInt(contentIndex, 10);
+            if (!isNaN(idxNum) && idxNum >= 0 && idxNum < state.content.length) {
+              state.content.splice(idxNum, 1);
+            }
+          }
+        }
+        return state;
+      });
+
+      // Notificar cambio de borrador y habilitar botón guardar
+      notifyDraftState();
+      enableSaveButton();
+      return true;
+    }
+
+    // 2. Caso: delete-rrss-X o rrss[X][delete]
+    let rrssIndex = null;
+    if (idStr.startsWith("delete-rrss-")) {
+      rrssIndex = idStr.replace("delete-rrss-", "");
+    } else if (nameStr) {
+      const match = nameStr.match(/rrss\[(\d+)\]\[delete\]/);
+      if (match) rrssIndex = match[1];
+    }
+
+    if (rrssIndex !== null) {
+      const panelElement = document.getElementById("rrss-item-" + rrssIndex) 
+        || (triggerElement ? triggerElement.closest(".sortable-item, .rrss-item") : null);
+      const rrssNameInput = panelElement ? panelElement.querySelector(`input[name="rrss[${rrssIndex}][0]"]`) : null;
+      const socialName = (rrssNameInput ? rrssNameInput.value : panelElement?.getAttribute("data-rrss-name") || "").trim().toLowerCase();
+
+      // Remover del preview
+      if (socialName) {
+        document.querySelectorAll(`.user-profile-preview [data-link-id="rrss_${socialName}"], .user-profile-preview [aria-label="${socialName}"]`).forEach((el) => {
+          el.remove();
+        });
+      }
+
+      // Remover del editor
+      if (panelElement) {
+        panelElement.remove();
+      }
+
+      // Re-indexar lista de redes sociales
+      const rrssList = document.getElementById("sortable-rrss-list");
+      if (rrssList) {
+        reindexRrssEditorDOM(rrssList);
+      }
+
+      // Actualizar el borrador JSON eliminando la red social
+      window.updateJsonDraft((state) => {
+        if (state && state.rrss && Array.isArray(state.rrss)) {
+          state.rrss = state.rrss.filter((r) => {
+            const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+            return name !== socialName;
+          });
+        }
+        return state;
+      });
+
+      // Notificar cambio de borrador y habilitar botón guardar
+      notifyDraftState();
+      enableSaveButton();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Parsea de manera segura respuestas que deben ser JSON, limpiando
    * cualquier salida previa o posterior (como warnings o notices de depuración).
    *
@@ -2978,18 +3224,12 @@ export function designDraftManager() {
       e.preventDefault();
       const targetId = deleteLabel.getAttribute("for");
       const checkbox = document.getElementById(targetId);
-      if (checkbox) {
-        checkbox.checked = true;
-        const form = checkbox.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
-        
-        // Cerrar modal inmediatamente
-        document.querySelectorAll(".modal-overlay, .custom-modal-overlay").forEach((m) => m.remove());
-        
-        // Aplicar eliminación optimista inmediata en panel y preview
-        performOptimisticDelete(checkbox, targetId);
-
-        submitRemoteFormAjax(form, checkbox);
-      }
+      
+      // Cerrar modal inmediatamente
+      document.querySelectorAll(".modal-overlay, .custom-modal-overlay").forEach((m) => m.remove());
+      deleteLabel.closest(".content-modal-menu, .modal-menu, .hidden")?.classList.add("hidden");
+      
+      handleLocalBlockDelete(checkbox, targetId);
       return;
     }
 
@@ -3124,6 +3364,9 @@ export function designDraftManager() {
 
     // Checkbox de borrado directo
     if (target.type === "checkbox" && target.name.includes("[delete]") && target.checked) {
+      if (handleLocalBlockDelete(target)) {
+        return;
+      }
       const form = target.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
       submitRemoteFormAjax(form, target);
       return;
@@ -3490,6 +3733,7 @@ export function designDraftManager() {
       const draftState = getDraftState();
       if (draftState) {
         formData.set("draft_json", JSON.stringify(draftState));
+        formData.set("is_full_content", "1");
       }
 
       let csrf = getCsrfToken();
@@ -3838,6 +4082,10 @@ export function designDraftManager() {
           list.insertBefore(newNode, list.firstChild);
           newNode.classList.remove("is-collapsed");
           newNode.classList.add("is-open");
+          const body = newNode.querySelector(".content-item-body");
+          if (body) {
+            body.style.display = "flex";
+          }
         }
       }
 
@@ -3857,7 +4105,11 @@ export function designDraftManager() {
             if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
               node.setAttribute("data-block-id", newBlockId);
               node.setAttribute("data-content-index", "0");
-              node.style.display = "none";
+              if (type === "separator") {
+                node.style.display = "";
+              } else {
+                node.style.display = "none";
+              }
             }
             fragment.appendChild(node);
           });
@@ -3963,7 +4215,7 @@ export function designDraftManager() {
         defaultBlock.separator_icon = "none";
         defaultBlock.separator_size = "large";
         defaultBlock.space_size = "40";
-        defaultBlock.active = false;
+        defaultBlock.active = true;
       } else if (type === "video") {
         defaultBlock.video_mode = "link";
         defaultBlock.img = "no-image.webp";

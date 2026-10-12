@@ -86,36 +86,36 @@
           }
           $isEmpty = ($validCount < 2);
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = ($validCount === 0);
+          $isOpen = ($i === '{{INDEX}}') || ($validCount === 0);
         } elseif ($itemType === 'campaign') {
           $isEmpty = (trim($itemTitle) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (trim($itemTitle) === '');
+          $isOpen = ($i === '{{INDEX}}') || (trim($itemTitle) === '');
         } elseif ($itemType === 'banner') {
           $isEmpty = (empty($itemSize) || empty($itemImg) || $itemImg === 'no-image.webp');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (empty($itemSize) || empty($itemImg) || $itemImg === 'no-image.webp');
+          $isOpen = ($i === '{{INDEX}}') || (empty($itemSize) || empty($itemImg) || $itemImg === 'no-image.webp');
         } elseif ($itemType === 'title') {
           $isEmpty = (trim($itemTitle) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (trim($itemTitle) === '');
+          $isOpen = ($i === '{{INDEX}}') || (trim($itemTitle) === '');
         } elseif ($itemType === 'text') {
           $isEmpty = (trim($itemText) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (trim($itemText) === '');
+          $isOpen = ($i === '{{INDEX}}') || (trim($itemText) === '');
         } elseif ($itemType === 'separator') {
           $isEmpty = false;
           $itemActive = ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = false;
+          $isOpen = ($i === '{{INDEX}}');
         } elseif ($itemType === 'video') {
           $isEmpty = (trim($itemUrl) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (trim($itemTitle) === '' && trim($itemUrl) === '');
+          $isOpen = ($i === '{{INDEX}}') || (trim($itemTitle) === '' && trim($itemUrl) === '');
         } else {
           // Si el título o la URL están vacíos, no se puede activar y permanece inactivo (false)
           $isEmpty = (trim($itemTitle) === '' || trim($itemUrl) === '');
           $itemActive = $isEmpty ? false : ($rawActive === true || $rawActive === 'true' || $rawActive === 1 || $rawActive === '1');
-          $isOpen = (trim($itemTitle) === '' && trim($itemUrl) === '');
+          $isOpen = ($i === '{{INDEX}}') || (trim($itemTitle) === '' && trim($itemUrl) === '');
         }
       ?>
         <div id="content-item-<?= $i?>" data-block-id="<?= e($item['id'] ?? '') ?>" data-index="<?= $i ?>" class="sortable-item content-block link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15 <?= $isOpen ? 'is-open' : 'is-collapsed' ?> <?php if ($itemActive) echo $selected; ?>" draggable="false" data-type="<?= e($itemType) ?>">

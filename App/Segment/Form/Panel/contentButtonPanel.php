@@ -45,25 +45,64 @@
 
     foreach ($templateTypes as $tType) {
       $i = "{{INDEX}}";
+
+      $defaultSubProducts = [
+        [
+          "img"        => "no-image.webp",
+          "imgSrc"     => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+          "title"      => "",
+          "url"        => "",
+          "price"      => "",
+          "offer"      => false,
+          "discount"   => "",
+          "porcentage" => 0,
+          "imgDefault" => false,
+          "imgShow"    => true,
+          "metaTitle"  => "",
+          "metaDesc"   => "",
+          "metaImg"    => ""
+        ],
+        [
+          "img"        => "no-image.webp",
+          "imgSrc"     => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+          "title"      => "",
+          "url"        => "",
+          "price"      => "",
+          "offer"      => false,
+          "discount"   => "",
+          "porcentage" => 0,
+          "imgDefault" => false,
+          "imgShow"    => true,
+          "metaTitle"  => "",
+          "metaDesc"   => "",
+          "metaImg"    => ""
+        ]
+      ];
+
       $item = [
-        "id"         => "{{BLOCK_ID}}",
-        "type"       => $tType,
-        "title"      => "",
-        "url"        => "",
-        "img"        => "no-image.webp",
-        "imgSrc"     => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
-        "imgDefault" => false,
-        "imgShow"    => false,
-        "active"     => false,
-        "metaTitle"  => "",
-        "metaDesc"   => "",
-        "metaImg"    => "",
-        "price"      => "",
-        "offer"      => false,
-        "discount"   => "",
-        "porcentage" => 0,
-        "desc"       => "",
-        "products"   => []
+        "id"             => "{{BLOCK_ID}}",
+        "type"           => $tType,
+        "title"          => "",
+        "url"            => "",
+        "img"            => "no-image.webp",
+        "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+        "imgDefault"     => false,
+        "imgShow"        => false,
+        "active"         => ($tType === "separator"),
+        "metaTitle"      => "",
+        "metaDesc"       => "",
+        "metaImg"        => "",
+        "price"          => "",
+        "offer"          => false,
+        "discount"       => "",
+        "porcentage"     => 0,
+        "desc"           => "",
+        "separator_mode" => "space",
+        "separator_icon" => "none",
+        "separator_size" => "large",
+        "space_size"     => "40",
+        "layout"         => "grid",
+        "products"       => ($tType === "product_group") ? $defaultSubProducts : []
       ];
       
       echo "<template id=\"tpl_block_{$tType}\">";
@@ -86,28 +125,33 @@
       if ($partName) {
          $mockCard = $card;
          $mockCard["content"]["{{INDEX}}"] = [
-            "id"          => "{{BLOCK_ID}}",
-            "type"        => $tType,
-            "title"       => "",
-            "url"         => "",
-            "metaTitle"   => "",
-            "metaDesc"    => "",
-            "metaImg"     => "",
-            "img"         => "no-image.webp",
-            "imgSrc"      => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
-            "imgShow"     => false,
-            "active"      => false,
-            "price"       => "",
-            "offer"       => false,
-            "discount"    => "",
-            "porcentage"  => 0,
-            "products"    => []
+            "id"             => "{{BLOCK_ID}}",
+            "type"           => $tType,
+            "title"          => "",
+            "url"            => "",
+            "metaTitle"      => "",
+            "metaDesc"       => "",
+            "metaImg"        => "",
+            "img"            => "no-image.webp",
+            "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+            "imgShow"        => false,
+            "active"         => ($tType === "separator"),
+            "price"          => "",
+            "offer"          => false,
+            "discount"       => "",
+            "porcentage"     => 0,
+            "separator_mode" => "space",
+            "separator_icon" => "none",
+            "separator_size" => "large",
+            "space_size"     => "40",
+            "layout"         => "grid",
+            "products"       => ($tType === "product_group") ? $defaultSubProducts : []
          ];
          echo "<template id=\"tpl_preview_{$tType}\">";
          _part($partName, [
             "dataContent" => "{{INDEX}}",
             "card"        => $mockCard,
-            "isActive"    => false,
+            "isActive"    => ($tType === "separator"),
             "isPreview"   => true,
             "blockId"     => "{{BLOCK_ID}}"
          ]);

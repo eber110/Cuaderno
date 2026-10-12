@@ -724,7 +724,7 @@ class DesignModels extends Builder {
         }
       }
 
-      $isExplicitListAction = isset($param["is_reorder"]) || !empty($param["add_content_type"]);
+      $isExplicitListAction = isset($param["is_reorder"]) || !empty($param["add_content_type"]) || !empty($param["draft_json"]) || isset($param["is_full_content"]);
       if (!$isExplicitListAction) {
         foreach ($param["content"] as $idx => $it) {
           if (isset($it["delete"]) && ($it["delete"] === "true" || $it["delete"] === true)) {
