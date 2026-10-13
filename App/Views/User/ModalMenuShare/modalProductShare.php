@@ -47,7 +47,7 @@
 
   <a href="<?= eUrl($data["url"] ?? '#') ?>" target="_blank" rel="noopener noreferrer" class="flex-column center-center gap5 wpx320 p20 |p-sml-10 br20 border-card-modal pointer" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.40) calc(c - 0.04) h /85%); color: <?= safeCssColor($card["colorText"] ?? '#ffffff', '#ffffff') ?> !important;">
     <?php if (!empty($modalImg)) : ?>
-      <figure class="ar-square wpx200 |wpx-sml-160 br15">
+      <figure class="ar-square wpx200 |wpx-sml-160 br15 hover-scale-soft">
         <img src="<?= eUrl($modalImg) ?>" alt="<?= e($title) ?>" class="cover">
       </figure>
     <?php endif; ?>
@@ -63,11 +63,12 @@
         <span class="bold500 text-c x16 textw">precio oferta!!!</span>
       </div>
     <?php endif; ?>
-    <p class="x16 text-c cut-phrase textw" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
+    <p class="x16 text-c cut-phrase textw w100" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="w100 p0 flex-row center-center wrap inline-carousel mt10" data-loop="false" data-gap="25px">
+    <p class="w100 text-l bold700 mt10">Compártelo en tus redes.</p>
+    <div class="w100 p0 flex-row center-center wrap inline-carousel" data-loop="false" data-gap="25px">
       
       <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         <?= svg("angle-l", "x30 opacity-slide-circle");?>

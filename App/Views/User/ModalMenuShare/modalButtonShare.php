@@ -69,7 +69,8 @@
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>
-    <div class="w100 p0 flex-row center-center wrap inline-carousel mt10" data-loop="false" data-gap="25px">
+    <p class="w100 text-l bold700 mt10">Compártelo en tus redes.</p>
+    <div class="w100 p0 flex-row center-center wrap inline-carousel" data-loop="false" data-gap="25px">
       
       <div class="ic-prev border-card-modal back-body br100 ar-square wpx40 hpx40 flex-row center-center text pointer border-none absolute left" style="flex-shrink: 0; top: 50%; transform: translateY(-50%); z-index: 10; margin-left: 5px; transition: opacity 0.3s;">
         <?= svg("angle-l", "x30 opacity-slide-circle");?>
