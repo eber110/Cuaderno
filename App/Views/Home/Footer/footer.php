@@ -3,9 +3,13 @@
     
     <div class="flex-row center-between flex-column-mid center-center-mid text-center-mid flex-column-sml center-center-sml text-center-sml gap30 w100">
       <div class="flex-column start-start center-center-mid center-center-sml text-center-mid text-center-sml gap12 max-w450">
-        <a href="/" class="bold700 x30 textw text-none flex-row center-start center-center-mid center-center-sml gap10">
-          <span class="wpx44 hpx44 br12 back5 flex-row center-center shadow"><?= svg("link", "x24 textw") ?></span>
-          <span><?= defined('NAME_SITE') ? e(NAME_SITE) : 'Clikhub' ?></span>
+        <a href="/" class="bold700 x30 textw text-none flex-row center-start center-center-mid center-center-sml gap0 shine-hover">
+          <figure class="hpx44 hpx-sml-35">
+            <img src="<?= URL_IMG_PUBLIC?>/Custom/logo-cursor.webp" alt="" class="cover">
+          </figure>
+          <figure class="hpx44 hpx-sml-35">
+            <img src="<?= URL_IMG_PUBLIC?>/Custom/logo-white.webp" alt="" class="cover">
+          </figure>
         </a>
         <p class="x18 textc m0 max-w450">
           Tu bio link ultraligero y personalizable. Conecta todos tus contenidos en una sola página rápida y profesional.

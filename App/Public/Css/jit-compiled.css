@@ -409,7 +409,6 @@
 .wpx35 { width: 35px; }
 .wpx40 { width: 40px; }
 .wpx400 { width: 400px; }
-.wpx44 { width: 44px; }
 .wpx45 { width: 45px; }
 .wpx460 { width: 460px; }
 .wpx50 { width: 50px; }
@@ -819,6 +818,12 @@
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .hpx-mid-800 { height: 800px; }
+}
+@media screen and (max-width: 576px) {
+  .hpx-sml-30 { height: 30px; }
+}
+@media screen and (max-width: 576px) {
+  .hpx-sml-35 { height: 35px; }
 }
 @media screen and (max-width: 576px) {
   .hpx-sml-40 { height: 40px; }

@@ -1,7 +1,8 @@
 <nav class="container container-mid container-sml sticky top2 flex-column center-center before">
   <div class="w100 p15 pl30 pr30 br100 back-body border1 shadow-menu flex-row center-between gap10">
-    <figure>
-      <img src="<?= LOGOPAG?>" alt="" class="hpx40">
+    <figure class="hpx40">
+      <img src="<?= LOGOPAG?>" alt="" class="cover no-phone">
+      <img src="<?= URL_IMG_PUBLIC?>/Custom/logo-pag-short.webp" alt="" class="cover no-desk no-tablet">
     </figure>
     <!-- <p class="bold700 x30"><?= NAME_SITE;?></p> -->
     <div class="flex-row center-center gap5">
