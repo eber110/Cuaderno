@@ -138,9 +138,9 @@ if (!defined('URL_ICON')) define('URL_ICON', '/App/Rsc/Ico/');
 // ==================== SITE INFO (desde .env) ====================
 if (!defined('NAME_SITE')) define('NAME_SITE', $_ENV['APP_NAME'] ?? 'Mi Sitio');
 if (!defined('DESCRIPTION')) define('DESCRIPTION', $_ENV['APP_DESCRIPTION'] ?? '');
-if (!defined('LOGO')) define('LOGO', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo.png');
-if (!defined('LOGOPAG')) define('LOGOPAG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo-pag.png');
-if (!defined('IMG_OG')) define('IMG_OG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'img-og.png');
+if (!defined('LOGO')) define('LOGO', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo.webp');
+if (!defined('LOGOPAG')) define('LOGOPAG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo-pag.webp');
+if (!defined('IMG_OG')) define('IMG_OG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'img-og.webp');
 if (!defined('DIR_IMG_APP')) define('DIR_IMG_APP', URL_IMG);
 
 // ==================== GEOLOCATION (desde .env) ====================
