@@ -55,7 +55,7 @@
   </div>
 
   <div class="flex-column top-start gap10 p20 w100">
-    <p><?= ($premium) ? "Es vip": "No suscrito"?></p>
+    <!-- <p><?= ($premium) ? "Es vip": "No suscrito"?></p> -->
     <p class="modal-btn animated darken <?= $item?>"><?= svg("out")?>Cerrar sesión</p>
 
     <div class="hidden">
