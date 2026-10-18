@@ -1080,10 +1080,33 @@ class StatisticsModels extends BuilderSqlite {
         $ctrMonth = $monthViews > 0 ? round(($mClicks / $monthViews) * 100, 1) : 0.0;
         $ctrTotal = $allTimeViews > 0 ? round(($aClicks / $allTimeViews) * 100, 1) : 0.0;
 
+        $networkClean = mb_strtolower(trim($network), "UTF-8");
+        $namesMap = [
+          "x"          => "X (Twitter)",
+          "twitter"    => "X (Twitter)",
+          "youtube"    => "YouTube",
+          "tiktok"     => "TikTok",
+          "whatsapp"   => "WhatsApp",
+          "linkedin"   => "LinkedIn",
+          "github"     => "GitHub",
+          "facebook"   => "Facebook",
+          "instagram"  => "Instagram",
+          "discord"    => "Discord",
+          "telegram"   => "Telegram",
+          "spotify"    => "Spotify",
+          "twitch"     => "Twitch",
+          "threads"    => "Threads",
+          "pinterest"  => "Pinterest",
+          "reddit"     => "Reddit"
+        ];
+        $displayName = $namesMap[$networkClean] ?? ucfirst($networkClean);
+
         $processedRrss[] = [
-          "network"          => $network,
+          "name"             => $displayName,
+          "key"              => $networkClean,
+          "network"          => $networkClean,
           "url"              => $rUrl,
-          "icon"             => $network,
+          "icon"             => $networkClean,
           "month_clicks"     => $mClicks,
           "all_time_clicks"  => $aClicks,
           "ctr_month"        => $ctrMonth,
@@ -1104,6 +1127,8 @@ class StatisticsModels extends BuilderSqlite {
         "total_all_time_clicks"  => $totalAllTimeClicks,
         "global_mobile_pct"      => $totalMobilePct,
         "global_desktop_pct"     => $totalDesktopPct,
+        "mobile_percentage"      => $totalMobilePct,
+        "desktop_percentage"     => $totalDesktopPct,
         "star_link"              => $starLink,
         "items"                  => $processedItems,
         "rrss"                   => $processedRrss

@@ -483,10 +483,22 @@ export function saveButtonController() {
    * Carga bajo demanda el panel de estadísticas si aún no ha sido cargado
    */
   async function loadStatisticsIfNeeded() {
-    const statsRemote = document.getElementById("statistics-remote");
-    if (!statsRemote || statsRemote.dataset.loaded === "true" || statsRemote.dataset.loading === "true") return;
+    const generalRemote = document.getElementById("stats-general-remote");
+    const linksRemote   = document.getElementById("stats-links-remote");
+    const legacyRemote  = document.getElementById("statistics-remote");
 
-    statsRemote.dataset.loading = "true";
+    const isLoaded = (generalRemote && generalRemote.dataset.loaded === "true") ||
+                     (legacyRemote && legacyRemote.dataset.loaded === "true");
+    const isLoading = (generalRemote && generalRemote.dataset.loading === "true") ||
+                      (linksRemote && linksRemote.dataset.loading === "true") ||
+                      (legacyRemote && legacyRemote.dataset.loading === "true");
+
+    if (isLoaded || isLoading) return;
+
+    if (generalRemote) generalRemote.dataset.loading = "true";
+    if (linksRemote) linksRemote.dataset.loading = "true";
+    if (legacyRemote) legacyRemote.dataset.loading = "true";
+
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const user = pathParts[1] || "";
 
@@ -498,32 +510,56 @@ export function saveButtonController() {
         }
       });
       const data = await res.json();
-      if (data.success && data.statsHtml) {
-        const wrapper = document.getElementById("statistics-remote-wrapper") || statsRemote;
-        wrapper.innerHTML = data.statsHtml;
-        statsRemote.dataset.loaded = "true";
+      if (data.success) {
+        // 1. Contenedor Estadísticas Generales
+        const generalWrapper = document.getElementById("stats-general-remote-wrapper") || generalRemote;
+        if (generalWrapper && (data.generalHtml || data.statsHtml)) {
+          generalWrapper.innerHTML = data.generalHtml || data.statsHtml;
+          if (generalRemote) generalRemote.dataset.loaded = "true";
+        }
+
+        // 2. Contenedor Estadísticas por Enlace
+        const linksWrapper = document.getElementById("stats-links-remote-wrapper") || linksRemote;
+        if (linksWrapper && data.linksHtml) {
+          linksWrapper.innerHTML = data.linksHtml;
+          if (linksRemote) linksRemote.dataset.loaded = "true";
+        }
+
+        // 3. Contenedor de compatibilidad
+        if (legacyRemote) {
+          const legWrapper = document.getElementById("statistics-remote-wrapper") || legacyRemote;
+          if (legWrapper && (data.generalHtml || data.statsHtml)) {
+            legWrapper.innerHTML = data.generalHtml || data.statsHtml;
+            legacyRemote.dataset.loaded = "true";
+          }
+        }
+
         if (typeof window.initCharts === "function") {
-          window.initCharts(wrapper);
+          if (generalWrapper) window.initCharts(generalWrapper);
+          if (linksWrapper) window.initCharts(linksWrapper);
         }
       }
     } catch (err) {
       console.error("Error al cargar estadísticas bajo demanda:", err);
     } finally {
-      statsRemote.dataset.loading = "false";
+      if (generalRemote) generalRemote.dataset.loading = "false";
+      if (linksRemote) linksRemote.dataset.loading = "false";
+      if (legacyRemote) legacyRemote.dataset.loading = "false";
     }
   }
 
-  // Detectar clic en el botón de estadísticas para carga bajo demanda
+  // Detectar clic en cualquier botón de estadísticas para carga bajo demanda
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest('.remote-btn[data-remote="statistics-remote"]');
+    const btn = e.target.closest('.remote-btn[data-remote="stats-general-remote"], .remote-btn[data-remote="stats-links-remote"], .remote-btn[data-remote="statistics-remote"]');
     if (btn) {
       loadStatisticsIfNeeded();
     }
   });
 
-  // Si la pestaña activa al cargar es estadísticas, solicitar los datos
+  // Si la pestaña activa al cargar es de estadísticas, solicitar los datos
   const currentActiveBtn = getActiveRemoteBtn();
-  if (currentActiveBtn && currentActiveBtn.dataset.remote === "statistics-remote") {
+  const statsRemoteIds = ["stats-general-remote", "stats-links-remote", "statistics-remote"];
+  if (currentActiveBtn && statsRemoteIds.includes(currentActiveBtn.dataset.remote)) {
     loadStatisticsIfNeeded();
   }
 

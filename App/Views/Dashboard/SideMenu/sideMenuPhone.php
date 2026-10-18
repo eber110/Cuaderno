@@ -29,7 +29,7 @@
       </span>
     </button>
 
-    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center pointer" data-remote="statistics-remote" data-savable="false" aria-label="Estadísticas">
+    <button type="button" class="bottom-nav-btn flex-column center-center pointer" data-bottom-target="submenu-stats" data-root-group="stats" aria-label="Estadísticas">
       <span class="bottom-nav-box flex-column center-center gap4">
         <span class="bottom-nav-icon flex-row center-center"><?= svg("chart") ?></span>
         <span class="bottom-nav-label x12 bold500">Estadísticas</span>
@@ -116,6 +116,35 @@
       <span class="bottom-nav-box flex-column center-center gap4">
         <span class="bottom-nav-icon flex-row center-center"><?= svg("menu-phone-rrss") ?></span>
         <span class="bottom-nav-label x12 bold500">Redes</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- ========================================================
+       NIVEL 2: Submenú Estadísticas
+       Primer cuadro: Volver al menú raíz
+       Siguientes: General, Enlaces
+       ======================================================== -->
+  <div id="submenu-stats" class="bottom-nav-track flex-row center-start h100 w100 hidden" data-submenu-group="stats">
+    <!-- Botón Inicio / Volver -->
+    <button type="button" class="bottom-nav-btn bottom-nav-btn-home flex-column center-center pointer" data-bottom-back="true" aria-label="Volver al menú principal">
+      <span class="bottom-nav-box flex-column center-center gap4">
+        <span class="bottom-nav-icon flex-row center-center x30"><?= svg("angle-l") ?></span>
+      </span>
+    </button>
+
+    <!-- Sub-enlaces remotos de Estadísticas -->
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center pointer" data-remote="stats-general-remote" data-savable="false" aria-label="General">
+      <span class="bottom-nav-box flex-column center-center gap4">
+        <span class="bottom-nav-icon flex-row center-center"><?= svg("chart") ?></span>
+        <span class="bottom-nav-label x12 bold500">General</span>
+      </span>
+    </button>
+
+    <button type="button" class="remote-btn bottom-nav-btn flex-column center-center pointer" data-remote="stats-links-remote" data-savable="false" aria-label="Enlaces">
+      <span class="bottom-nav-box flex-column center-center gap4">
+        <span class="bottom-nav-icon flex-row center-center"><?= svg("link") ?></span>
+        <span class="bottom-nav-label x12 bold500">Enlaces</span>
       </span>
     </button>
   </div>

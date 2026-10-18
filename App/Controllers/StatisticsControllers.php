@@ -260,9 +260,17 @@ class StatisticsControllers extends Control {
       "estadisticas"  => "/panel/{$userClean}/estadisticas"
     ];
 
-    $statsHtml = _partToString("Dashboard.statisticsPanel", [
+    $generalHtml = _partToString("Dashboard.StatisticsPanel.General.general", [
       "stats"        => $statsRaw,
       "monthlyViews" => $monthlyEval,
+      "isPremium"    => $isPremium,
+      "card"         => $cardData,
+      "user"         => $userClean,
+      "uri"          => $uri
+    ]);
+
+    $linksHtml = _partToString("Dashboard.StatisticsPanel.Links.links", [
+      "stats"        => $statsRaw,
       "cto"          => $ctoEval,
       "isPremium"    => $isPremium,
       "card"         => $cardData,
@@ -271,8 +279,10 @@ class StatisticsControllers extends Control {
     ]);
 
     ResponseModule::json([
-      "success"   => true,
-      "statsHtml" => $statsHtml
+      "success"     => true,
+      "statsHtml"   => $generalHtml,
+      "generalHtml" => $generalHtml,
+      "linksHtml"   => $linksHtml
     ]);
   }
 

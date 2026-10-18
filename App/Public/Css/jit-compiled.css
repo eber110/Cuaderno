@@ -303,6 +303,7 @@
 .hpx50 { height: 50px; }
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
+.hpx8 { height: 8px; }
 .hpx80 { height: 80px; }
 .hpx800 { height: 800px; }
 .m-1 { margin: 1px; }
@@ -311,9 +312,14 @@
 .m20 { margin: 20px; }
 .m5 { margin: 5px; }
 .mb10 { margin-bottom: 10px; }
+.mb12 { margin-bottom: 12px; }
+.mb15 { margin-bottom: 15px; }
 .mb20 { margin-bottom: 20px; }
 .mb25 { margin-bottom: 25px; }
+.mb4 { margin-bottom: 4px; }
 .mb5 { margin-bottom: 5px; }
+.mb6 { margin-bottom: 6px; }
+.mb8 { margin-bottom: 8px; }
 .ml10 { margin-left: 10px; }
 .ml20 { margin-left: 20px; }
 .ml5 { margin-left: 5px; }
@@ -343,6 +349,7 @@
 .p25 { padding: 25px !important; }
 .p3 { padding: 3px !important; }
 .p30 { padding: 30px !important; }
+.p4 { padding: 4px !important; }
 .p40 { padding: 40px !important; }
 .p5 { padding: 5px !important; }
 .p60 { padding: 60px !important; }
@@ -429,6 +436,7 @@
 .x03 { font-size: 03px; }
 .x04 { font-size: 04px; }
 .x1 { font-size: 1px; }
+.x10 { font-size: 10px; }
 .x11 { font-size: 11px; }
 .x12 { font-size: 12px; }
 .x13 { font-size: 13px; }
@@ -456,6 +464,7 @@
 .x60 { font-size: 60px; }
 .x64 { font-size: 64px; }
 .x80 { font-size: 80px; }
+.x9 { font-size: 9px; }
 .block { display: block !important; }
 .grid-row-center { justify-items: center; }
 .hidden { display: none !important; }
@@ -974,6 +983,9 @@
 }
 @media screen and (max-width: 576px) {
   .w-sml-95 { width: 95%; }
+}
+@media screen and (min-width: 993px) {
+  .wpx-desk-550 { width: 550px; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .wpx-mid-350 { width: 350px; }

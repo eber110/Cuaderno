@@ -50,7 +50,7 @@ export function bottomNavPhone() {
 
     const designBtn = rootTrack.querySelector('[data-root-group="design"]');
     const contentBtn = rootTrack.querySelector('[data-root-group="content"]');
-    const statsBtn = rootTrack.querySelector('[data-remote="statistics-remote"]');
+    const statsBtn = rootTrack.querySelector('[data-root-group="stats"]') || rootTrack.querySelector('[data-remote="statistics-remote"]');
 
     // Limpiar clases active
     if (designBtn) designBtn.classList.remove("active");
@@ -68,12 +68,17 @@ export function bottomNavPhone() {
       "Content-button",
       "Content-rrss"
     ];
+    const statsRemotes = [
+      "stats-general-remote",
+      "stats-links-remote",
+      "statistics-remote"
+    ];
 
     if (designRemotes.includes(remoteId)) {
       if (designBtn) designBtn.classList.add("active");
     } else if (contentRemotes.includes(remoteId)) {
       if (contentBtn) contentBtn.classList.add("active");
-    } else if (remoteId === "statistics-remote") {
+    } else if (statsRemotes.includes(remoteId)) {
       if (statsBtn) statsBtn.classList.add("active");
     } else {
       // Fallback a Diseño

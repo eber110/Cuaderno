@@ -47,8 +47,19 @@
           </div>
         </div>
         
-        <!-- Enlaces raíz (no editables) -->
-        <p class="remote-btn vertical-menu-link <?= $item?>" data-remote="statistics-remote" data-savable="false"><?= svg("chart")?>Estadísticas</p>
+        <!-- Grupo colapsable: Estadísticas -->
+        <div class="vertical-menu-item flex-column top-start gap10 w100">
+          <div class="vertical-menu-header w100 br10">
+            <div class="p5 pl10 pr10 br10 back-item-sidebar-hover texto w100 flex-row center-between gap5 pointer">
+              <p class="flex-row center-start gap5 texto"><?= svg("chart")?>Estadísticas</p>
+              <p class="color-icon-accordion"><?= svg("angle-d")?></p>
+            </div>
+          </div>
+          <div class="vertical-menu-content flex-column gap5 w100 hidden">
+            <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="stats-general-remote" data-savable="false"><?= svg("angle-r")?>General</p>
+            <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="stats-links-remote" data-savable="false"><?= svg("angle-r")?>Enlaces</p>
+          </div>
+        </div>
   
       </div>
     </div>
