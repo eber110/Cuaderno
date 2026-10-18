@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Base\Builder\Builder;
-use PDO;
 use Exception;
 
 /**
@@ -11,67 +10,13 @@ use Exception;
  * 
  * Suministro y gestión de datos de transacciones, órdenes y suscripciones
  * provenientes de la pasarela Lemon Squeezy.
- * Utiliza una base de datos SQLite aislada (Database/clikhub.sqlite) para
- * verificar vencimientos y estado Premium sin impactar el límite de conexiones a MySQL.
+ * Utiliza el modelo estandarizado SubscriptionModels (user_subscriptions_cache en SQLite)
+ * para verificar vencimientos y estado Premium sin impactar el límite de conexiones a MySQL.
  */
 class LemonSqueezyModels extends Builder
 {
   /** @var string Tabla principal del modelo */
   protected $table = "lemon_squeezy_orders";
-
-  /** @var PDO|null Conexión Singleton a SQLite local */
-  private static ?PDO $sqlitePdo = null;
-
-  /**
-   * Obtiene o inicializa la conexión PDO a la BD local SQLite (Database/clikhub.sqlite).
-   * Configurada en modo WAL (Write-Ahead Logging) y sin afectar el consumo de inodos.
-   * 
-   * @return PDO|null Instancia PDO de SQLite o null en caso de error.
-   */
-  public static function getSqlitePdo(): ?PDO
-  {
-    if (self::$sqlitePdo === null) {
-      $baseDir = defined('ROUTE_DATABASE') ? rtrim(ROUTE_DATABASE, '/\\') : (defined('ROOT_PATH') ? ROOT_PATH . '/Database' : getcwd() . '/Database');
-      if (!is_dir($baseDir)) {
-        @mkdir($baseDir, 0755, true);
-      }
-
-      $dbFile = $baseDir . '/clikhub.sqlite';
-
-      try {
-        self::$sqlitePdo = new PDO("sqlite:" . $dbFile, null, null, [
-          PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-          PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-          PDO::ATTR_TIMEOUT            => 5
-        ]);
-
-        self::$sqlitePdo->exec("PRAGMA journal_mode = WAL;");
-        self::$sqlitePdo->exec("PRAGMA synchronous = NORMAL;");
-        self::$sqlitePdo->exec("PRAGMA busy_timeout = 5000;");
-        self::$sqlitePdo->exec("PRAGMA cache_size = -64000;");
-        self::$sqlitePdo->exec("PRAGMA mmap_size = 268435456;");
-        self::$sqlitePdo->exec("PRAGMA temp_store = MEMORY;");
-
-        $sql = "CREATE TABLE IF NOT EXISTS user_subscriptions_cache (
-          user_id TEXT PRIMARY KEY,
-          username TEXT,
-          is_premium INTEGER DEFAULT 0,
-          status TEXT,
-          renews_at TEXT,
-          ends_at TEXT,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_sub_cache_username ON user_subscriptions_cache(username);";
-
-        self::$sqlitePdo->exec($sql);
-      } catch (\Throwable $e) {
-        error_log("SQLite Subscriptions PDO Error: " . $e->getMessage());
-        return null;
-      }
-    }
-
-    return self::$sqlitePdo;
-  }
 
   /**
    * Guarda o actualiza el registro de una orden enviada por Lemon Squeezy.
@@ -330,43 +275,40 @@ class LemonSqueezyModels extends Builder
       }
     }
 
-    // 2. Persistir en la BD local SQLite (1 único archivo sin generar nuevos inodos)
-    $pdo = self::getSqlitePdo();
-    if ($pdo !== null) {
-      try {
-        $indexUser = null;
-        if (class_exists('\App\Models\UserModels')) {
-          $indexUser = \App\Models\UserModels::getIndexUserByUsername($username ?? $userIdStr) 
-            ?? (\App\Models\UserModels::userExistsByIndex($userIdStr) ? $userIdStr : null);
-        }
-
-        $services = ($isPremium === 1) ? '1,2' : '1';
-        $sql = "INSERT INTO user_subscriptions_cache (user_id, index_user, username, is_premium, services, status, renews_at, ends_at, updated_at)
-                VALUES (:user_id, :index_user, :username, :is_premium, :services, :status, :renews_at, :ends_at, CURRENT_TIMESTAMP)
-                ON CONFLICT(user_id) DO UPDATE SET
-                  index_user = COALESCE(EXCLUDED.index_user, user_subscriptions_cache.index_user),
-                  username = EXCLUDED.username,
-                  is_premium = EXCLUDED.is_premium,
-                  services = EXCLUDED.services,
-                  status = EXCLUDED.status,
-                  renews_at = EXCLUDED.renews_at,
-                  ends_at = EXCLUDED.ends_at,
-                  updated_at = CURRENT_TIMESTAMP;";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-          ":user_id"    => $userIdStr,
-          ":index_user" => $indexUser,
-          ":username"   => (string)($username ?? ""),
-          ":is_premium" => $isPremium,
-          ":services"   => $services,
-          ":status"     => $status,
-          ":renews_at"  => (string)($renewsAt ?? ""),
-          ":ends_at"    => (string)($endsAt ?? "")
-        ]);
-        return true;
-      } catch (\Throwable $e) {
-        error_log("SQLite Save Error: " . $e->getMessage());
+    // 2. Persistir en la BD local SQLite usando el Builder de SubscriptionModels
+    try {
+      $indexUser = null;
+      if (class_exists('\App\Models\UserModels')) {
+        $indexUser = \App\Models\UserModels::getIndexUserByUsername($username ?? $userIdStr) 
+          ?? (\App\Models\UserModels::userExistsByIndex($userIdStr) ? $userIdStr : null);
       }
+
+      $services = ($isPremium === 1) ? '1,2' : '1';
+      $sql = "INSERT INTO user_subscriptions_cache (user_id, index_user, username, is_premium, services, status, renews_at, ends_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+              ON CONFLICT(user_id) DO UPDATE SET
+                index_user = COALESCE(EXCLUDED.index_user, user_subscriptions_cache.index_user),
+                username = EXCLUDED.username,
+                is_premium = EXCLUDED.is_premium,
+                services = EXCLUDED.services,
+                status = EXCLUDED.status,
+                renews_at = EXCLUDED.renews_at,
+                ends_at = EXCLUDED.ends_at,
+                updated_at = CURRENT_TIMESTAMP";
+
+      (new SubscriptionModels())->rawQuery($sql, [
+        $userIdStr,
+        $indexUser,
+        (string)($username ?? ""),
+        $isPremium,
+        $services,
+        $status,
+        (string)($renewsAt ?? ""),
+        (string)($endsAt ?? "")
+      ]);
+      return true;
+    } catch (\Throwable $e) {
+      error_log("SQLite Save Error in LemonSqueezyModels::updateUserPremiumCache: " . $e->getMessage());
     }
 
     return false;
@@ -374,7 +316,7 @@ class LemonSqueezyModels extends Builder
 
   /**
    * Consulta el estado de suscripción de forma ultra-rápida (0 consultas MySQL)
-   * verificando primero en la Sesión o en la BD local SQLite (Database/clikhub.sqlite).
+   * verificando primero en la Sesión o en la BD local SQLite mediante SubscriptionModels.
    * Si la fecha de expiración ya pasó o no existe en SQLite, realiza el fallback a MySQL y guarda en SQLite.
    * 
    * @param string|int $userId ID o username del usuario.
@@ -404,28 +346,22 @@ class LemonSqueezyModels extends Builder
       }
     }
 
-    // 2. Verificación en la BD local SQLite (Database/clikhub.sqlite) — 0 conexiones MySQL
-    $pdo = self::getSqlitePdo();
-    if ($pdo !== null) {
-      try {
-        $stmt = $pdo->prepare("SELECT is_premium, status, renews_at, ends_at FROM user_subscriptions_cache WHERE index_user = :user_id OR user_id = :user_id OR username = :user_id LIMIT 1");
-        $stmt->execute([":user_id" => $userIdStr]);
-        $row = $stmt->fetch();
+    // 2. Verificación en la BD local SQLite mediante SubscriptionModels — 0 conexiones MySQL
+    try {
+      $row = SubscriptionModels::findSubscriptionRow($userIdStr);
+      if ($row) {
+        $isPrem    = (int)($row["is_premium"] ?? 0) === 1;
+        $expiresAt = !empty($row["renews_at"]) ? $row["renews_at"] : ($row["ends_at"] ?? null);
 
-        if ($row) {
-          $isPrem    = (int)($row["is_premium"] ?? 0) === 1;
-          $expiresAt = !empty($row["renews_at"]) ? $row["renews_at"] : ($row["ends_at"] ?? null);
-
-          if ($isPrem && (empty($expiresAt) || strtotime($expiresAt) >= $now)) {
-            return true;
-          }
-          if (!$isPrem || (!empty($expiresAt) && strtotime($expiresAt) < $now)) {
-            return false;
-          }
+        if ($isPrem && (empty($expiresAt) || strtotime($expiresAt) >= $now)) {
+          return true;
         }
-      } catch (\Throwable $e) {
-        error_log("SQLite Query Error: " . $e->getMessage());
+        if (!$isPrem || (!empty($expiresAt) && strtotime($expiresAt) < $now)) {
+          return false;
+        }
       }
+    } catch (\Throwable $e) {
+      error_log("SubscriptionModels Query Error in isUserSubscribedFast: " . $e->getMessage());
     }
 
     // 3. Fallback a MySQL (solo si SQLite aún no conoce a este usuario)

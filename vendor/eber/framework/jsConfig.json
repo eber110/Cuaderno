@@ -39,7 +39,15 @@
       "cropImage": [],
       "cutPhrase": [],
       "textLimiter": [],
-      "scrollObserver": []
+      "scrollObserver": [],
+      "scrollMemory": [],
+      "sortableContent": [],
+      "autoSubmitForm": [],
+      "formComponents": [],
+      "textAnimator": [],
+      "verticalMenu": [],
+      "remoteContent": [],
+      "inlineCarousel": []
     },
     "async": {}
   }

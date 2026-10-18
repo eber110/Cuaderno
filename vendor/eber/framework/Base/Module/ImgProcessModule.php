@@ -240,8 +240,6 @@ class ImgProcessModule
         return;
       }
 
-      $current_format = explode('/', $current_type)[1] ?? '';
-
       $this->type[] = $current_type;
       $this->format[] = $current_format;
 

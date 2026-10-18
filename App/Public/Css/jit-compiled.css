@@ -820,9 +820,6 @@
   .hpx-mid-800 { height: 800px; }
 }
 @media screen and (max-width: 576px) {
-  .hpx-sml-30 { height: 30px; }
-}
-@media screen and (max-width: 576px) {
   .hpx-sml-35 { height: 35px; }
 }
 @media screen and (max-width: 576px) {

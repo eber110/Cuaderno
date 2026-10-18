@@ -4,8 +4,7 @@ namespace App\Models;
 
 use App\Models\SubscriptionModels;
 use App\Models\UserModels;
-use Base\Builder\Builder;
-use Base\Module\AnalyticsModule;
+use Base\Builder\BuilderSqlite;
 use Base\Module\BotDetectorModule;
 use Base\Module\GeoIpModule;
 use Base\Module\MovilDetectorModule;
@@ -19,7 +18,7 @@ use Exception;
  * filtrado estricto de bots y rastreadores, deduplicación por IP en base de datos y sesión (24h),
  * y extracción de geolocalización exclusivamente mediante MaxMind MMDB local (GeoIpModule).
  */
-class VisitModels extends Builder {
+class VisitModels extends BuilderSqlite {
 
   protected $table = "profile_views";
 
@@ -179,7 +178,7 @@ class VisitModels extends Builder {
     $ip = self::getClientIp();
 
     // 4. Deduplicación en base de datos (evita inflación por bots o clientes que descartan cookies)
-    if (AnalyticsModule::hasRecentProfileView($indexUser, $ip, 86400) || AnalyticsModule::hasRecentProfileView($visitedUserClean, $ip, 86400)) {
+    if (self::hasRecentProfileView($indexUser, $ip, 86400) || self::hasRecentProfileView($visitedUserClean, $ip, 86400)) {
       return false;
     }
 
@@ -209,30 +208,24 @@ class VisitModels extends Builder {
         session_write_close();
       }
 
-      // Registrar la visita orgánica en SQLite (profile_views) referenciando con index_user y visitor_user_id
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
-        INSERT INTO profile_views 
-        (profile_id, index_user, visitor_user_id, ip_address, country_code, country_name, city_name, device_type, os, browser, referrer, created_at)
-        VALUES 
-        (:profile_id, :index_user, :visitor_user_id, :ip_address, :country_code, :country_name, :city_name, :device_type, :os, :browser, :referrer, :created_at)
-      ");
-
+      // Registrar la visita orgánica en SQLite (profile_views) usando el Builder del framework
       $nowUtc = gmdate('Y-m-d H:i:s');
-      return $stmt->execute([
-        ':profile_id'      => $indexUser,
-        ':index_user'      => $indexUser,
-        ':visitor_user_id' => $visitorUserId,
-        ':ip_address'      => $ip,
-        ':country_code'    => $geo["country_code"],
-        ':country_name'    => $geo["country_name"],
-        ':city_name'       => $geo["city_name"],
-        ':device_type'     => $deviceType,
-        ':os'              => $os,
-        ':browser'         => $browser,
-        ':referrer'        => $cleanReferrer,
-        ':created_at'      => $nowUtc
+      $insertedId = (new self("profile_views"))->create([
+        "profile_id"      => $indexUser,
+        "index_user"      => $indexUser,
+        "visitor_user_id" => $visitorUserId,
+        "ip_address"      => $ip,
+        "country_code"    => $geo["country_code"],
+        "country_name"    => $geo["country_name"],
+        "city_name"       => $geo["city_name"],
+        "device_type"     => $deviceType,
+        "os"              => $os,
+        "browser"         => $browser,
+        "referrer"        => $cleanReferrer,
+        "created_at"      => $nowUtc
       ]);
+
+      return (bool)$insertedId;
     } catch (Exception $e) {
       error_log("Error en VisitModels::processVisit: " . $e->getMessage());
       return false;
@@ -300,7 +293,7 @@ class VisitModels extends Builder {
     $ip = self::getClientIp();
 
     // 6. Deduplicación por IP y enlace en la base de datos (24 horas)
-    if (AnalyticsModule::hasRecentLinkClick($indexUser, $linkIdClean, $ip, 86400) || AnalyticsModule::hasRecentLinkClick($visitedUserClean, $linkIdClean, $ip, 86400)) {
+    if (self::hasRecentLinkClick($indexUser, $linkIdClean, $ip, 86400) || self::hasRecentLinkClick($visitedUserClean, $linkIdClean, $ip, 86400)) {
       return false;
     }
 
@@ -313,26 +306,71 @@ class VisitModels extends Builder {
       $geo        = self::getGeoData($ip);
       $deviceType = MovilDetectorModule::getDeviceType();
 
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
-        INSERT INTO link_clicks 
-        (link_id, profile_id, index_user, ip_address, country_code, device_type, created_at)
-        VALUES 
-        (:link_id, :profile_id, :index_user, :ip_address, :country_code, :device_type, :created_at)
-      ");
-
+      // Registrar el clic en SQLite (link_clicks) usando el Builder del framework
       $nowUtc = gmdate('Y-m-d H:i:s');
-      return $stmt->execute([
-        ':link_id'      => (string)$linkIdClean,
-        ':profile_id'   => $indexUser,
-        ':index_user'   => $indexUser,
-        ':ip_address'   => $ip,
-        ':country_code' => $geo["country_code"],
-        ':device_type'  => $deviceType,
-        ':created_at'   => $nowUtc
+      $insertedId = (new self("link_clicks"))->create([
+        "link_id"      => (string)$linkIdClean,
+        "profile_id"   => $indexUser,
+        "index_user"   => $indexUser,
+        "ip_address"   => $ip,
+        "country_code" => $geo["country_code"],
+        "device_type"  => $deviceType,
+        "created_at"   => $nowUtc
       ]);
+
+      return (bool)$insertedId;
     } catch (Exception $e) {
       error_log("Error en VisitModels::processClick: " . $e->getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Comprueba si ya existe una visita reciente para el mismo perfil e IP dentro de la ventana de tiempo especificada.
+   *
+   * @param string $indexUserOrProfile Identificador del perfil (index_user o username).
+   * @param string $ip Dirección IP del cliente.
+   * @param int $seconds Ventana en segundos (por defecto 86400 = 24 horas).
+   * @return bool True si ya fue registrada recientemente.
+   */
+  public static function hasRecentProfileView(string $indexUserOrProfile, string $ip, int $seconds = 86400): bool {
+    try {
+      $cutoff = date('Y-m-d H:i:s', time() - $seconds);
+      return (new self("profile_views"))
+        ->where(function ($q) use ($indexUserOrProfile) {
+          $q->where("index_user", $indexUserOrProfile)->orWhere("profile_id", $indexUserOrProfile);
+        })
+        ->where("ip_address", $ip)
+        ->where("created_at", ">=", $cutoff)
+        ->exists();
+    } catch (\Throwable $e) {
+      error_log("Error en VisitModels::hasRecentProfileView: " . $e->getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Comprueba si ya existe un clic reciente para el mismo perfil, enlace e IP dentro de la ventana de tiempo especificada.
+   *
+   * @param string $indexUserOrProfile Identificador del perfil (index_user o username).
+   * @param string $linkId Identificador del enlace.
+   * @param string $ip Dirección IP del cliente.
+   * @param int $seconds Ventana en segundos (por defecto 86400 = 24 horas).
+   * @return bool True si ya fue registrado recientemente.
+   */
+  public static function hasRecentLinkClick(string $indexUserOrProfile, string $linkId, string $ip, int $seconds = 86400): bool {
+    try {
+      $cutoff = date('Y-m-d H:i:s', time() - $seconds);
+      return (new self("link_clicks"))
+        ->where(function ($q) use ($indexUserOrProfile) {
+          $q->where("index_user", $indexUserOrProfile)->orWhere("profile_id", $indexUserOrProfile);
+        })
+        ->where("link_id", $linkId)
+        ->where("ip_address", $ip)
+        ->where("created_at", ">=", $cutoff)
+        ->exists();
+    } catch (\Throwable $e) {
+      error_log("Error en VisitModels::hasRecentLinkClick: " . $e->getMessage());
       return false;
     }
   }

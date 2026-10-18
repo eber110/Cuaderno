@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use Base\Builder\BuilderSqlite;
-use Base\Module\AnalyticsModule;
 use Base\Module\DateTimeModule;
-use PDO;
 
 /**
  * Clase StatisticsModels
@@ -357,23 +355,18 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getViewsTimeline(string $indexUser, int $days = 30): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           strftime('%Y-%m-%d', created_at) as date,
           COUNT(*) as views,
           COUNT(DISTINCT ip_address) as unique_views
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
-          AND created_at >= datetime('now', '-' || :days || ' days')
+        WHERE (index_user = ? OR profile_id = ?)
+          AND created_at >= datetime('now', '-' || ? || ' days')
         GROUP BY date
         ORDER BY date ASC
-      ");
-      $stmt->bindValue(':idx', $indexUser);
-      $stmt->bindValue(':days', $days, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser, $days]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getViewsTimeline: " . $e->getMessage());
       return [];
@@ -389,22 +382,17 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getClicksTimeline(string $indexUser, int $days = 30): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           strftime('%Y-%m-%d', created_at) as date,
           COUNT(*) as clicks
         FROM link_clicks
-        WHERE (index_user = :idx OR profile_id = :idx)
-          AND created_at >= datetime('now', '-' || :days || ' days')
+        WHERE (index_user = ? OR profile_id = ?)
+          AND created_at >= datetime('now', '-' || ? || ' days')
         GROUP BY date
         ORDER BY date ASC
-      ");
-      $stmt->bindValue(':idx', $indexUser);
-      $stmt->bindValue(':days', $days, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser, $days]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getClicksTimeline: " . $e->getMessage());
       return [];
@@ -419,19 +407,16 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getClicksByLink(string $indexUser): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           link_id,
           COUNT(*) as total_clicks
         FROM link_clicks
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY link_id
         ORDER BY total_clicks DESC
-      ");
-      $stmt->execute([':idx' => $indexUser]);
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getClicksByLink: " . $e->getMessage());
       return [];
@@ -446,19 +431,16 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getDeviceBreakdown(string $indexUser): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           COALESCE(NULLIF(device_type, ''), 'desktop') as device,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY device
         ORDER BY count DESC
-      ");
-      $stmt->execute([':idx' => $indexUser]);
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getDeviceBreakdown: " . $e->getMessage());
       return [];
@@ -474,24 +456,19 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getCountryBreakdown(string $indexUser, int $limit = 10): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           country_code,
           country_name,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
           AND country_code != 'DEV'
         GROUP BY country_code, country_name
         ORDER BY count DESC
-        LIMIT :limit
-      ");
-      $stmt->bindValue(':idx', $indexUser);
-      $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        LIMIT ?
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser, $limit]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getCountryBreakdown: " . $e->getMessage());
       return [];
@@ -507,22 +484,17 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getReferrerBreakdown(string $indexUser, int $limit = 10): array {
     try {
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           COALESCE(NULLIF(referrer, ''), 'Directo') as referrer_source,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY referrer_source
         ORDER BY count DESC
-        LIMIT :limit
-      ");
-      $stmt->bindValue(':idx', $indexUser);
-      $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        LIMIT ?
+      ";
+      return (new self())->rawQuery($sql, [$indexUser, $indexUser, $limit]);
     } catch (\Throwable $e) {
       error_log("Error en StatisticsModels::getReferrerBreakdown: " . $e->getMessage());
       return [];
@@ -545,8 +517,7 @@ class StatisticsModels extends BuilderSqlite {
         return [];
       }
 
-      $pdo = AnalyticsModule::getPdo();
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           pv.visitor_user_id,
           MAX(pv.created_at) as last_visit,
@@ -558,19 +529,15 @@ class StatisticsModels extends BuilderSqlite {
         FROM profile_views pv
         INNER JOIN users u ON u.index_user = pv.visitor_user_id
         LEFT JOIN user_designs ud ON ud.index_user = pv.visitor_user_id AND ud.is_draft = 0
-        WHERE (pv.index_user = :idx OR pv.profile_id = :idx)
+        WHERE (pv.index_user = ? OR pv.profile_id = ?)
           AND pv.visitor_user_id IS NOT NULL
           AND pv.visitor_user_id != ''
-          AND pv.visitor_user_id != :idx
+          AND pv.visitor_user_id != ?
         GROUP BY pv.visitor_user_id
         ORDER BY last_visit DESC
-        LIMIT :limit
-      ");
-      $stmt->bindValue(':idx', $cleanIndex);
-      $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-      $stmt->execute();
-
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        LIMIT ?
+      ";
+      $rows = (new self())->rawQuery($sql, [$cleanIndex, $cleanIndex, $cleanIndex, $limit]);
       $visitors = [];
 
       $defaultAvatar = defined("DIR_UPLOAD_MEDIA_STATIC") 
@@ -622,39 +589,33 @@ class StatisticsModels extends BuilderSqlite {
   public static function getGeoRanking(string $indexUser, int $limit = 10): array {
     try {
       $cleanIndex = trim($indexUser);
-      $pdo = AnalyticsModule::getPdo();
 
       // 1. Total de visitas con país detectado
-      $stmtTotal = $pdo->prepare("
-        SELECT COUNT(*) as total_geo
-        FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
-          AND country_code IS NOT NULL
-          AND country_code != ''
-          AND country_code != 'DEV'
-      ");
-      $stmtTotal->execute([':idx' => $cleanIndex]);
-      $totalGeo = (int)($stmtTotal->fetchColumn() ?: 0);
+      $totalGeo = (int)(new self("profile_views"))
+        ->where(function ($q) use ($cleanIndex) {
+          $q->where("index_user", $cleanIndex)->orWhere("profile_id", $cleanIndex);
+        })
+        ->whereNotNull("country_code")
+        ->where("country_code", "!=", "")
+        ->where("country_code", "!=", "DEV")
+        ->count();
 
       // 2. Ranking de Países
-      $stmtCountries = $pdo->prepare("
+      $sqlCountries = "
         SELECT 
           country_code,
           country_name,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
           AND country_code IS NOT NULL
           AND country_code != ''
           AND country_code != 'DEV'
         GROUP BY country_code, country_name
         ORDER BY count DESC
-        LIMIT :limit
-      ");
-      $stmtCountries->bindValue(':idx', $cleanIndex);
-      $stmtCountries->bindValue(':limit', $limit, PDO::PARAM_INT);
-      $stmtCountries->execute();
-      $countryRows = $stmtCountries->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        LIMIT ?
+      ";
+      $countryRows = (new self())->rawQuery($sqlCountries, [$cleanIndex, $cleanIndex, $limit]);
 
       $countries = [];
       foreach ($countryRows as $row) {
@@ -673,26 +634,23 @@ class StatisticsModels extends BuilderSqlite {
       }
 
       // 3. Ranking de Ciudades
-      $stmtCities = $pdo->prepare("
+      $sqlCities = "
         SELECT 
           city_name,
           country_code,
           country_name,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
           AND city_name IS NOT NULL
           AND city_name != ''
           AND city_name != 'Local'
           AND city_name != 'Desconocida'
         GROUP BY city_name, country_code
         ORDER BY count DESC
-        LIMIT :limit
-      ");
-      $stmtCities->bindValue(':idx', $cleanIndex);
-      $stmtCities->bindValue(':limit', $limit, PDO::PARAM_INT);
-      $stmtCities->execute();
-      $cityRows = $stmtCities->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        LIMIT ?
+      ";
+      $cityRows = (new self())->rawQuery($sqlCities, [$cleanIndex, $cleanIndex, $limit]);
 
       $cities = [];
       foreach ($cityRows as $row) {
@@ -736,19 +694,16 @@ class StatisticsModels extends BuilderSqlite {
   public static function getReferrersSummary(string $indexUser): array {
     try {
       $cleanIndex = trim($indexUser);
-      $pdo = AnalyticsModule::getPdo();
-
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           COALESCE(NULLIF(referrer, ''), 'direct') as ref,
           COUNT(*) as count
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY ref
         ORDER BY count DESC
-      ");
-      $stmt->execute([':idx' => $cleanIndex]);
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      $rows = (new self())->rawQuery($sql, [$cleanIndex, $cleanIndex]);
 
       // Plataformas estándar con sus definiciones de matching e icono
       $categories = [
@@ -840,19 +795,16 @@ class StatisticsModels extends BuilderSqlite {
   public static function getHeatmapData(string $indexUser): array {
     try {
       $cleanIndex = trim($indexUser);
-      $pdo = AnalyticsModule::getPdo();
-
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           CAST(strftime('%w', created_at) AS INTEGER) as day_of_week,
           CAST(strftime('%H', created_at) AS INTEGER) as hour_of_day,
           COUNT(*) as visits
         FROM profile_views
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY day_of_week, hour_of_day
-      ");
-      $stmt->execute([':idx' => $cleanIndex]);
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      $rows = (new self())->rawQuery($sql, [$cleanIndex, $cleanIndex]);
 
       $daysMap = [
         1 => "Lunes",
@@ -994,27 +946,21 @@ class StatisticsModels extends BuilderSqlite {
       $allTimeViews = (int)(new self("profile_views"))->where("index_user", $cleanIndex)->count();
 
       // 3. Consultar todos los clics agregados en SQLite por link_id
-      $pdo = AnalyticsModule::getPdo();
       $startOfMonth = date("Y-m-01 00:00:00");
       $endOfMonth   = date("Y-m-t 23:59:59");
 
-      $stmt = $pdo->prepare("
+      $sql = "
         SELECT 
           link_id,
           COUNT(*) as all_time_clicks,
-          SUM(CASE WHEN created_at >= :start_m AND created_at <= :end_m THEN 1 ELSE 0 END) as month_clicks,
+          SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 ELSE 0 END) as month_clicks,
           SUM(CASE WHEN device_type = 'mobile' THEN 1 ELSE 0 END) as mobile_clicks,
           SUM(CASE WHEN device_type != 'mobile' THEN 1 ELSE 0 END) as desktop_clicks
         FROM link_clicks
-        WHERE (index_user = :idx OR profile_id = :idx)
+        WHERE (index_user = ? OR profile_id = ?)
         GROUP BY link_id
-      ");
-      $stmt->execute([
-        ':idx'     => $cleanIndex,
-        ':start_m' => $startOfMonth,
-        ':end_m'   => $endOfMonth
-      ]);
-      $clickRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+      ";
+      $clickRows = (new self())->rawQuery($sql, [$startOfMonth, $endOfMonth, $cleanIndex, $cleanIndex]);
 
       // Mapear los datos de clics indexados en minúsculas
       $clicksMap = [];

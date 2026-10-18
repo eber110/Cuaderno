@@ -157,14 +157,13 @@ class Builder
       }
     }
 
-    $tableName = defined('DB_DRIVER') && DB_DRIVER === 'pgsql' ? 'ratelimits' : 'RateLimits';
-
-    // Usamos una instancia limpia para no alterar el estado de esta consulta
-    $db = new self($tableName);
-    if (!$db->table_exist($tableName)) {
+    $tableName = $this->resolveRateLimitsTable();
+    if ($tableName === false) {
       return true;
     }
 
+    // Usamos una instancia limpia para no alterar el estado de esta consulta
+    $db = new self($tableName);
     $record = $db->where('ip', $ip)->where('action_key', $actionKey)->get_one();
 
     if ($record && !empty($record[0])) {
@@ -220,13 +219,12 @@ class Builder
       }
     }
 
-    $tableName = defined('DB_DRIVER') && DB_DRIVER === 'pgsql' ? 'ratelimits' : 'RateLimits';
-
-    $db = new self($tableName);
-    if (!$db->table_exist($tableName)) {
+    $tableName = $this->resolveRateLimitsTable();
+    if ($tableName === false) {
       return;
     }
 
+    $db = new self($tableName);
     $record = $db->where('ip', $ip)->where('action_key', $actionKey)->get_one();
 
     if ($record && !empty($record[0])) {
@@ -278,15 +276,33 @@ class Builder
   public function clearRateLimit(string $actionKey, ?string $ip = null): void
   {
     $ip = $ip ?? ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
-    $tableName = defined('DB_DRIVER') && DB_DRIVER === 'pgsql' ? 'ratelimits' : 'RateLimits';
-
-    $db = new self($tableName);
-    if (!$db->table_exist($tableName)) {
+    $tableName = $this->resolveRateLimitsTable();
+    if ($tableName === false) {
       return;
     }
 
+    $db = new self($tableName);
     $sql = "DELETE FROM {$tableName} WHERE ip = ? AND action_key = ?";
     $db->query_foreign($sql, [$ip, $actionKey]);
+  }
+
+  /**
+   * Resuelve dinámicamente el nombre de la tabla de rate limits evitando valores hardcodeados
+   * y garantizando compatibilidad entre SQLite, MySQL y PostgreSQL.
+   *
+   * @return string|false
+   */
+  protected function resolveRateLimitsTable(): string|false
+  {
+    $candidate = defined('RATELIMITS_TABLE') ? RATELIMITS_TABLE : 'ratelimits';
+    $db = new self($candidate);
+    if ($db->table_exist($candidate)) {
+      return $candidate;
+    }
+    if ($db->table_exist('RateLimits')) {
+      return 'RateLimits';
+    }
+    return false;
   }
 
   /**
@@ -439,6 +455,44 @@ class Builder
     $this->values = $data;
     $this->query($sql, $this->values);
     return $this;
+  }
+
+  /**
+   * Ejecuta una consulta SQL cruda (raw) con parámetros vinculados.
+   * Alias fluido y estandarizado de query_foreign().
+   *
+   * @param string $sql  La consulta SQL a ejecutar con placeholders (?).
+   * @param array  $data Los valores para los placeholders.
+   * @return self
+   */
+  public function raw($sql, $data = []): self
+  {
+    return $this->query_foreign($sql, $data);
+  }
+
+  /**
+   * Ejecuta una consulta SQL cruda y devuelve todos los registros obtenidos.
+   *
+   * @param string $sql Consulta SQL a ejecutar.
+   * @param array  $data Parámetros o bindings para la consulta.
+   * @return array Lista de registros o array vacío si no hay resultados.
+   */
+  public function rawQuery(string $sql, array $data = []): array
+  {
+    $res = $this->query_foreign($sql, $data)->get_all();
+    return is_array($res) ? $res : [];
+  }
+
+  /**
+   * Ejecuta una consulta SQL cruda y devuelve un único registro.
+   *
+   * @param string $sql Consulta SQL a ejecutar.
+   * @param array  $data Parámetros o bindings para la consulta.
+   * @return array|false Primer registro o false si no hay resultados.
+   */
+  public function rawQueryOne(string $sql, array $data = []): array|false
+  {
+    return $this->query_foreign($sql, $data)->get_one();
   }
 
   /**
@@ -847,6 +901,17 @@ class Builder
   }
 
   /**
+   * Agrega una cláusula GROUP BY a la consulta (alias fluido de group).
+   *
+   * @param string $group La columna o columnas por las que agrupar.
+   * @return self
+   */
+  public function groupBy($group): self
+  {
+    return $this->group($group);
+  }
+
+  /**
    * Unico método para añadir cláusulas WHERE.
    * Detecta la operación a realizar basado en los argumentos.
    *
@@ -886,7 +951,7 @@ class Builder
     $operator = $op;
     $value = $val;
 
-    if (func_num_args() === 2) {
+    if (func_num_args() === 2 || ($val === null && $operator !== null && !in_array(strtoupper(trim((string)$operator)), ['IS NULL', 'IS NOT NULL', '=', '!=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'ILIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'], true))) {
 
       if (is_array($op)) {
 
@@ -1043,6 +1108,18 @@ class Builder
     }
 
     return $this;
+  }
+
+  /**
+   * Agrega una cláusula ORDER BY a la consulta (alias fluido de order).
+   *
+   * @param string $col   La columna por la que ordenar.
+   * @param string $order La dirección del orden ('ASC' o 'DESC').
+   * @return self
+   */
+  public function orderBy($col, $order = 'ASC'): self
+  {
+    return $this->order($col, $order);
   }
 
   /**
@@ -1330,6 +1407,63 @@ class Builder
     $bindings[] = $camp;
     $this->query($sql, $bindings);
     $this->reset();
+  }
+
+  /**
+   * Actualiza registros en la base de datos usando las cláusulas WHERE previamente configuradas.
+   *
+   * @param array       $datas   Un array asociativo (columna => valor) con los datos a actualizar.
+   * @param string|null $encoder (Opcional) Si se proporciona, genera un nuevo ID único para esa columna.
+   * @return self
+   */
+  public function updateWhere(array $datas, $encoder = null): self
+  {
+    if (empty($this->where)) {
+      throw new \InvalidArgumentException("updateWhere() requiere al menos una condición WHERE para evitar actualizaciones masivas accidentales.");
+    }
+
+    $data_out = [];
+    foreach ($datas as $key => $value) {
+      if (gettype($value) == 'string') {
+        if (empty(TAGS_VALID_TEXT_INPUT)) {
+          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
+        } else {
+          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
+        }
+      } else {
+        $value = $value;
+      }
+
+      $data_out[$key] = $value;
+
+      if ($encoder !== null) {
+        $unique_id = random_bytes(10);
+        $unique_id = bin2hex($unique_id);
+        $data_out[$encoder] = $unique_id;
+      }
+    }
+
+    $data = array_values($data_out);
+    $keys_data = array_keys($data_out);
+    $count_datas = count($data);
+
+    $bindings = [];
+    $data_field = [];
+
+    for ($i = 0; $i < $count_datas; $i++) {
+      $data_field[] = $keys_data[$i] . " = ?";
+      $bindings[] = $data[$i];
+    }
+
+    $fields = implode(', ', $data_field);
+    $sql = "UPDATE {$this->table} SET {$fields} {$this->where}";
+
+    // Concatenar los valores del WHERE
+    $bindings = array_merge($bindings, $this->values);
+
+    $this->query($sql, $bindings);
+    $this->reset();
+    return $this;
   }
 
   /**
@@ -1712,6 +1846,15 @@ class Builder
    */
   public function orWhere($col, $op = null, $val = null)
   {
+    if (func_num_args() === 2) {
+      if (is_array($op)) {
+        return $this->where($col, 'IN', $op, 'OR');
+      }
+      if (is_string($op) && in_array(strtoupper(trim($op)), ['IS NULL', 'IS NOT NULL'], true)) {
+        return $this->where($col, $op, null, 'OR');
+      }
+      return $this->where($col, '=', $op, 'OR');
+    }
 
     return $this->where($col, $op, $val, 'OR');
   }

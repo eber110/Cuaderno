@@ -159,4 +159,41 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
    * `Links/links.php`: tabla de enlaces con badge de "Enlace Estrella", CTR individual y desglose de RRSS.
 3. Actualizar [`StatisticsControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/StatisticsControllers.php) y el contenedor de navegación del panel.
 4. Ejecutar `composer min-script` tras cualquier cambio de CSS/JS.
+---
 
+## 8. Bitácora de Estandarización a Builder del Framework (Completada previa a Fase 5)
+
+### 8.1 Auditoría y Mejoras en el Framework (`C:\Users\eber\Proyectos\frame`)
+1. **Resolución dinámica de tablas**:
+   * En `Base/Builder/Builder.php`, se reemplazó el nombre hardcodeado `'ratelimits'`/`'RateLimits'` por el método protegido `resolveRateLimitsTable()`, verificando `RATELIMITS_TABLE` o introspección de esquemas sin fallar en motores SQLite/MySQL/PostgreSQL.
+2. **Nuevos métodos fluidos y consultas raw seguras**:
+   * `orderBy($col, $order = 'ASC'): self`: alias estándar de `order()`.
+   * `groupBy($group): self`: alias estándar de `group()`.
+   * `rawQuery(string $sql, array $data = []): array`: ejecución preparada y parametrizada retornando array asociativo.
+   * `rawQueryOne(string $sql, array $data = []): array|false`: retorno del primer registro.
+   * `updateWhere(array $datas, $encoder = null): self`: actualización segura exigiendo cláusulas `where()` previas.
+3. **Corrección de resolución de argumentos en `orWhere()` y `where()`**:
+   * Se identificó y resolvió un fallo donde invocar `orWhere($col, $val)` con 2 argumentos pasaba 4 parámetros a `where()` con `$val = null`, causando que el valor fuera interpretado como operador SQL. Se mejoró la introspección de argumentos en `where()` y `orWhere()` en `frame`.
+4. **Commits en repositorio del framework y sincronización**:
+   * Commit 1: `feat(builder): agregar alias orderBy, groupBy, rawQuery, updateWhere y resolver tabla ratelimits dinamicamente` (`941efec`).
+   * Commit 2: `fix(builder): corregir resolucion de argumentos en orWhere y clausulas where con valor nulo` (`72ad124`).
+   * Actualizado en `Cuaderno` vía `composer update eber/framework`.
+
+### 8.2 Refactorización de Modelos en [`Cuaderno`](file:///c:/Users/eber/Proyectos/Cuaderno/)
+1. **[`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php)**:
+   * Los 11 métodos que utilizaban `AnalyticsModule::getPdo()` y sentencias preparadas crudas (`getViewsTimeline`, `getClicksTimeline`, `getClicksByLink`, `getDeviceBreakdown`, `getCountryBreakdown`, `getReferrerBreakdown`, `getRecentVisitors`, `getGeoRanking`, `getReferrersSummary`, `getHeatmapData`, `getLinksDetailedStats`) fueron completamente migrados a `rawQuery` y métodos fluidos de `BuilderSqlite`.
+   * Eliminadas todas las dependencias e importaciones de `AnalyticsModule` y `PDO`.
+2. **[`VisitModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/VisitModels.php)**:
+   * Migradas las inserciones de `processVisit` y `processClick` a `(new self("profile_views"))->create(...)` y `(new self("link_clicks"))->create(...)`.
+   * Creados los métodos propios `hasRecentProfileView()` y `hasRecentLinkClick()` utilizando `->where(...)->where("created_at", ">=", $cutoff)->exists()`.
+   * Eliminadas las dependencias e importaciones de `AnalyticsModule` y `PDO`.
+3. **[`LemonSqueezyModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/LemonSqueezyModels.php)**:
+   * Eliminada la conexión redundante `private static ?PDO $sqlitePdo` y el método `getSqlitePdo()`.
+   * Migradas `updateUserPremiumCache` e `isUserSubscribedFast` a utilizar `SubscriptionModels` mediante `rawQuery()` y `findSubscriptionRow()`.
+   * Eliminada la importación de `PDO`.
+
+### 8.3 Verificación y Estado
+* Escaneo total en `App/Models`, `App/Components` y `App/Middleware`: **0 referencias a `PDO` o sentencias preparadas crudas**.
+* Pruebas de integración automatizadas ejecutadas: **100% OK**.
+* Compilación de recursos: `composer min-script` ejecutado con éxito.
+* **El proyecto está 100% estandarizado y listo para avanzar con la Fase 5.**
