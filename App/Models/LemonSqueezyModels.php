@@ -340,12 +340,14 @@ class LemonSqueezyModels extends Builder
             ?? (\App\Models\UserModels::userExistsByIndex($userIdStr) ? $userIdStr : null);
         }
 
-        $sql = "INSERT INTO user_subscriptions_cache (user_id, index_user, username, is_premium, status, renews_at, ends_at, updated_at)
-                VALUES (:user_id, :index_user, :username, :is_premium, :status, :renews_at, :ends_at, CURRENT_TIMESTAMP)
+        $services = ($isPremium === 1) ? '1,2' : '1';
+        $sql = "INSERT INTO user_subscriptions_cache (user_id, index_user, username, is_premium, services, status, renews_at, ends_at, updated_at)
+                VALUES (:user_id, :index_user, :username, :is_premium, :services, :status, :renews_at, :ends_at, CURRENT_TIMESTAMP)
                 ON CONFLICT(user_id) DO UPDATE SET
                   index_user = COALESCE(EXCLUDED.index_user, user_subscriptions_cache.index_user),
                   username = EXCLUDED.username,
                   is_premium = EXCLUDED.is_premium,
+                  services = EXCLUDED.services,
                   status = EXCLUDED.status,
                   renews_at = EXCLUDED.renews_at,
                   ends_at = EXCLUDED.ends_at,
@@ -356,6 +358,7 @@ class LemonSqueezyModels extends Builder
           ":index_user" => $indexUser,
           ":username"   => (string)($username ?? ""),
           ":is_premium" => $isPremium,
+          ":services"   => $services,
           ":status"     => $status,
           ":renews_at"  => (string)($renewsAt ?? ""),
           ":ends_at"    => (string)($endsAt ?? "")

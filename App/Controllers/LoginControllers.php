@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\DesignModels;
 use App\Models\LemonSqueezyModels;
 use App\Models\LoginModels;
+use App\Models\SubscriptionModels;
+use App\Models\UserModels;
 use Base\Control\Control;
 use Base\Module\DateTimeModule;
 use Base\Module\LogModule;
@@ -259,6 +261,11 @@ class LoginControllers extends Control {
           "content" => $usernameClean
         ]);
         DesignModels::createInitialDesign($usernameClean);
+
+        // Inicializar suscripción base Free (1) para el nuevo usuario
+        $indexUser = UserModels::getIndexUserByUsername($usernameClean) ?? (string)$insertId;
+        SubscriptionModels::initializeFreeSubscription($indexUser, (string)$insertId, $usernameClean);
+
         return ResponseModule::redirect("/ingresar", "¡Registro exitoso! Ya puedes iniciar sesión.", 0);
       } else {
         return ResponseModule::redirect("/registrar", "Hubo un error al registrar al usuario. Inténtelo más tarde.", 2);

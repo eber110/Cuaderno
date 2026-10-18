@@ -58,6 +58,9 @@
 *.ppt
 *.pptx
 *.md
+!AGENTS.md
+!PLAN_ESTADISTICAS_Y_SUSCRIPCIONES.md
+!docs/PLAN_ESTADISTICAS_Y_SUSCRIPCIONES.md
 
 # Ejecutables & Binarios
 *.exe

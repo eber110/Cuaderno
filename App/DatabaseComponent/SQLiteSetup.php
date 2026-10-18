@@ -163,6 +163,7 @@ class SQLiteSetup
       index_user VARCHAR(64) NULL,
       username TEXT,
       is_premium INTEGER DEFAULT 0,
+      services TEXT DEFAULT '1',
       status TEXT,
       renews_at TEXT,
       ends_at TEXT,
@@ -174,6 +175,7 @@ class SQLiteSetup
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       index_user VARCHAR(64) NULL,
       profile_id TEXT NOT NULL,
+      visitor_user_id VARCHAR(64) NULL,
       ip_address TEXT,
       country_code TEXT,
       country_name TEXT,
@@ -277,6 +279,53 @@ class SQLiteSetup
         $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_filter_intensity INTEGER DEFAULT 80;");
       }
     } catch (\Throwable $e) {}
+
+    // Migraciones automáticas para suscripciones acumulables y estadísticas avanzadas
+    try {
+      // 1. Columna services en user_subscriptions_cache
+      $subCols = (new Builder())->query_foreign("PRAGMA table_info(user_subscriptions_cache);")->get();
+      $existingSubCols = [];
+      if (is_array($subCols)) {
+        foreach ($subCols as $col) {
+          if (!empty($col["name"])) {
+            $existingSubCols[] = $col["name"];
+          }
+        }
+      }
+      if (!in_array("services", $existingSubCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_subscriptions_cache ADD COLUMN services TEXT DEFAULT '1';");
+        $log[] = "Columna 'services' agregada a user_subscriptions_cache.";
+      }
+      // Sincronizar siempre services según is_premium para mantener consistencia
+      $builder->query_foreign("UPDATE user_subscriptions_cache SET services = '1,2' WHERE is_premium = 1 AND (services = '1' OR services IS NULL OR services = '');");
+      $builder->query_foreign("UPDATE user_subscriptions_cache SET services = '1' WHERE (is_premium = 0 OR is_premium IS NULL) AND (services IS NULL OR services = '');");
+
+      // 2. Columna visitor_user_id en profile_views
+      $viewCols = (new Builder())->query_foreign("PRAGMA table_info(profile_views);")->get();
+      $existingViewCols = [];
+      if (is_array($viewCols)) {
+        foreach ($viewCols as $col) {
+          if (!empty($col["name"])) {
+            $existingViewCols[] = $col["name"];
+          }
+        }
+      }
+      if (!in_array("visitor_user_id", $existingViewCols, true)) {
+        $builder->query_foreign("ALTER TABLE profile_views ADD COLUMN visitor_user_id VARCHAR(64) NULL;");
+        $log[] = "Columna 'visitor_user_id' agregada a profile_views.";
+      }
+
+      // 3. Índices de rendimiento para analíticas
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_views_visitor ON profile_views(index_user, visitor_user_id);");
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_views_geo ON profile_views(index_user, country_code);");
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_views_referrer ON profile_views(index_user, referrer);");
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_views_created ON profile_views(index_user, created_at);");
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_clicks_user_link ON link_clicks(index_user, link_id);");
+      $builder->query_foreign("CREATE INDEX IF NOT EXISTS idx_clicks_created ON link_clicks(index_user, created_at);");
+      $log[] = "Índices de alto rendimiento para analíticas y visitantes verificados/creados.";
+    } catch (\Throwable $e) {
+      $log[] = "Aviso en migración de suscripciones/estadísticas: " . $e->getMessage();
+    }
 
     // Insertar roles base si no existen
     try {
