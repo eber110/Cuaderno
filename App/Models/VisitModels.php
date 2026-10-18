@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\SubscriptionModels;
+use App\Models\UserModels;
 use Base\Builder\Builder;
 use Base\Module\AnalyticsModule;
 use Base\Module\BotDetectorModule;
@@ -139,13 +141,31 @@ class VisitModels extends Builder {
       return false;
     }
 
-    // 2. Omitir registro si el usuario está logueado y visita su propio perfil
-    if (Session::session_active()) {
-      $sessionIndex = Session::session_data("index_user");
-      $sessionUser  = Session::session_data("username");
+    // 2. Determinar si el visitante tiene sesión iniciada y omitir registro si visita su propio perfil
+    $visitorUserId = null;
+    $hasActiveSession = Session::session_active() || !empty($_SESSION["user"]) || !empty($_SESSION["index_user"]);
+    if ($hasActiveSession) {
+      $sessionIndex = Session::session_data("index_user") ?? ($_SESSION["user"]["index_user"] ?? ($_SESSION["index_user"] ?? null));
+      $sessionUser  = Session::session_data("username") ?? ($_SESSION["user"]["username"] ?? ($_SESSION["username"] ?? null));
+
+      if (empty($sessionIndex) && !empty($sessionUser)) {
+        $sessionIndex = UserModels::getIndexUserByUsername($sessionUser);
+      }
+
       if ((!empty($sessionIndex) && $sessionIndex === $indexUser) ||
           (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") === $visitedUserClean)) {
         return false;
+      }
+
+      // Si es un visitante autenticado que visita a otro usuario
+      if (!empty($sessionIndex)) {
+        // Verificar si tiene activo el Modo Incógnito (Servicio 4 reservado)
+        $isGhostMode = class_exists('\App\Models\SubscriptionModels') &&
+          SubscriptionModels::hasService($sessionIndex, SubscriptionModels::SERVICE_GHOST_MODE);
+
+        if (!$isGhostMode) {
+          $visitorUserId = $sessionIndex;
+        }
       }
     }
 
@@ -189,28 +209,29 @@ class VisitModels extends Builder {
         session_write_close();
       }
 
-      // Registrar la visita orgánica en SQLite (profile_views) referenciando con index_user
+      // Registrar la visita orgánica en SQLite (profile_views) referenciando con index_user y visitor_user_id
       $pdo = AnalyticsModule::getPdo();
       $stmt = $pdo->prepare("
         INSERT INTO profile_views 
-        (profile_id, index_user, ip_address, country_code, country_name, city_name, device_type, os, browser, referrer, created_at)
+        (profile_id, index_user, visitor_user_id, ip_address, country_code, country_name, city_name, device_type, os, browser, referrer, created_at)
         VALUES 
-        (:profile_id, :index_user, :ip_address, :country_code, :country_name, :city_name, :device_type, :os, :browser, :referrer, :created_at)
+        (:profile_id, :index_user, :visitor_user_id, :ip_address, :country_code, :country_name, :city_name, :device_type, :os, :browser, :referrer, :created_at)
       ");
 
       $nowUtc = gmdate('Y-m-d H:i:s');
       return $stmt->execute([
-        ':profile_id'   => $indexUser,
-        ':index_user'   => $indexUser,
-        ':ip_address'   => $ip,
-        ':country_code' => $geo["country_code"],
-        ':country_name' => $geo["country_name"],
-        ':city_name'    => $geo["city_name"],
-        ':device_type'  => $deviceType,
-        ':os'           => $os,
-        ':browser'      => $browser,
-        ':referrer'     => $cleanReferrer,
-        ':created_at'   => $nowUtc
+        ':profile_id'      => $indexUser,
+        ':index_user'      => $indexUser,
+        ':visitor_user_id' => $visitorUserId,
+        ':ip_address'      => $ip,
+        ':country_code'    => $geo["country_code"],
+        ':country_name'    => $geo["country_name"],
+        ':city_name'       => $geo["city_name"],
+        ':device_type'     => $deviceType,
+        ':os'              => $os,
+        ':browser'         => $browser,
+        ':referrer'        => $cleanReferrer,
+        ':created_at'      => $nowUtc
       ]);
     } catch (Exception $e) {
       error_log("Error en VisitModels::processVisit: " . $e->getMessage());

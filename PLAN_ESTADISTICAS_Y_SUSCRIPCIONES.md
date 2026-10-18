@@ -30,7 +30,7 @@ Se realizó una inspección física y estructural de las bases de datos SQLite e
 | **`userroles`** | 0 | **Imprescindible** | Tabla pivote que asocia a los usuarios con sus roles correspondientes. |
 | **`user_designs`** | 2 | **Imprescindible** | Guarda la personalización completa del perfil (avatar, enlaces, colores, fondo, rrss, videos). |
 | **`user_subscriptions_cache`** | 4 | **Imprescindible** | Caché de alto rendimiento para validar el estado de suscripción sin consultar APIs externas. Ahora aloja el campo `services`. |
-| **`profile_views`** | 593 | **Imprescindible** | Registro analítico de visitas a perfiles. Ahora aloja `visitor_user_id` e índices de rendimiento para estadísticas. |
+| **`profile_views`** | 596 | **Imprescindible** | Registro analítico de visitas a perfiles. Ahora aloja `visitor_user_id` e índices de rendimiento para estadísticas. |
 | **`link_clicks`** | 420 | **Imprescindible** | Registro analítico de clics por botón/enlace para el submenú de rendimiento individual. |
 | **`active_sessions`** | 0 | **Necesaria** | Control en tiempo real de usuarios activos navegando para el badge *"en línea"* del dashboard. |
 | **`ratelimits`** | 0 | **Imprescindible** | Módulo de seguridad contra ataques de fuerza bruta por IP y acción. |
@@ -72,7 +72,7 @@ Esta bitácora es el registro oficial de trabajo para los desarrolladores y agen
 | **2026-10-18** | **Fase 0: Auditoría de BD** | `Database/clikhub.sqlite`, `inspect_db.php` | Inspección de todas las tablas activas, conteo de filas, detección de tablas huérfanas y validación de archivos vacíos. | [✅ Completado] |
 | **2026-10-18** | **Fase 1: Migración Segura en SQLiteSetup** | [`SQLiteSetup.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/DatabaseComponent/SQLiteSetup.php) | Se incorporó la migración automática e idempotente: DDL actualizado, creación de columna `services` en `user_subscriptions_cache`, `visitor_user_id` en `profile_views` e índices de alto rendimiento (`idx_views_visitor`, `idx_views_geo`, `idx_views_referrer`, `idx_views_created`, `idx_clicks_user_link`, `idx_clicks_created`). Se ejecutó y verificó en BD real. | [✅ Completado] |
 | **2026-10-18** | **Fase 2: Asignación Free en Registro & SubscriptionModels** | [`SubscriptionModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/SubscriptionModels.php), [`LoginControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LoginControllers.php), [`LemonSqueezyModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/LemonSqueezyModels.php) | Se creó el modelo `SubscriptionModels` con constantes (`1`, `2`, `3`, `4`) y métodos `initializeFreeSubscription()`, `getServices()`, `hasService()`, `isPremium()`, `addService()`, `removeService()`. Se conectó el registro en `LoginControllers` para inicializar el plan Free `1`, y `LemonSqueezyModels` para sincronizar `services = '1,2'` en altas y `'1'` en cancelaciones. Pruebas unitarias de flujo completo ejecutadas con éxito. | [✅ Completado] |
-| **Pendiente** | **Fase 3: Captura de Visitas Registradas** | `VisitModels.php` | Capturar `visitor_user_id` en `profile_views` cuando el visitante tenga sesión iniciada. | [ ] Pendiente |
+| **2026-10-18** | **Fase 3: Captura de Visitas Registradas e Incógnito** | [`VisitModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/VisitModels.php) | Se actualizó `processVisit()` para capturar `visitor_user_id` en `profile_views` cuando el visitante tiene sesión iniciada. Se blindó la auto-visita (se rechaza si el dueño visita su propio perfil), se captura el `index_user` de visitantes autenticados, y se respeta el Modo Incógnito (Servicio 4 reservado) guardando `visitor_user_id` como `NULL`. Batería de pruebas automatizadas ejecutadas con 100% de éxito. | [✅ Completado] |
 | **Pendiente** | **Fase 4: Consultas de Estadísticas Avanzadas** | `StatisticsModels.php` | Desarrollar consultas de quién te visitó, geolocalización, referrers, heatmap horario y métricas por enlace. | [ ] Pendiente |
 | **Pendiente** | **Fase 5: Interfaz de Submenús en Dashboard** | `sideMenu.php`, `sideMenuPhone.php`, `StatisticsPanel/` | Convertir estadísticas en menú desplegable con submenús General y Enlaces. | [ ] Pendiente |
 | **Pendiente** | **Fase 6: Página de Pricing y Checkout** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy). | [ ] Pendiente |
@@ -140,6 +140,11 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
 
 ---
 
-## 7. Próximos Pasos (Fase 3 para mañana)
-1. Modificar [`VisitModels::processVisit()`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/VisitModels.php#L192) para capturar `visitor_user_id` cuando haya sesión activa y el visitante no sea el mismo dueño del perfil.
-2. Actualizar la bitácora con los resultados y pruebas de la Fase 3.
+## 7. Próximos Pasos (Fase 4: Consultas de Estadísticas Avanzadas)
+1. Desarrollar en [`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php):
+   * `getRecentVisitors(string $indexUser, int $limit = 10)`: Obtiene los avatares, usernames y fechas de visitantes registrados.
+   * `getGeoBreakdown(string $indexUser)`: Top países con banderas y ciudades principales vía MaxMind.
+   * `getReferrersSummary(string $indexUser)`: Tráfico agrupado por plataformas (Instagram, TikTok, WhatsApp, etc.).
+   * `getHeatmapData(string $indexUser)`: Matriz 7x24 con picos horarios de audiencia.
+   * `getLinksDetailedStats(string $indexUser)`: Rendimiento individual botón por botón y CTR.
+2. Actualizar la bitácora con los resultados de la Fase 4.
