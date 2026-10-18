@@ -73,7 +73,7 @@ Esta bitácora es el registro oficial de trabajo para los desarrolladores y agen
 | **2026-10-18** | **Fase 1: Migración Segura en SQLiteSetup** | [`SQLiteSetup.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/DatabaseComponent/SQLiteSetup.php) | Se incorporó la migración automática e idempotente: DDL actualizado, creación de columna `services` en `user_subscriptions_cache`, `visitor_user_id` en `profile_views` e índices de alto rendimiento (`idx_views_visitor`, `idx_views_geo`, `idx_views_referrer`, `idx_views_created`, `idx_clicks_user_link`, `idx_clicks_created`). Se ejecutó y verificó en BD real. | [✅ Completado] |
 | **2026-10-18** | **Fase 2: Asignación Free en Registro & SubscriptionModels** | [`SubscriptionModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/SubscriptionModels.php), [`LoginControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LoginControllers.php), [`LemonSqueezyModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/LemonSqueezyModels.php) | Se creó el modelo `SubscriptionModels` con constantes (`1`, `2`, `3`, `4`) y métodos `initializeFreeSubscription()`, `getServices()`, `hasService()`, `isPremium()`, `addService()`, `removeService()`. Se conectó el registro en `LoginControllers` para inicializar el plan Free `1`, y `LemonSqueezyModels` para sincronizar `services = '1,2'` en altas y `'1'` en cancelaciones. Pruebas unitarias de flujo completo ejecutadas con éxito. | [✅ Completado] |
 | **2026-10-18** | **Fase 3: Captura de Visitas Registradas e Incógnito** | [`VisitModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/VisitModels.php) | Se actualizó `processVisit()` para capturar `visitor_user_id` en `profile_views` cuando el visitante tiene sesión iniciada. Se blindó la auto-visita (se rechaza si el dueño visita su propio perfil), se captura el `index_user` de visitantes autenticados, y se respeta el Modo Incógnito (Servicio 4 reservado) guardando `visitor_user_id` como `NULL`. Batería de pruebas automatizadas ejecutadas con 100% de éxito. | [✅ Completado] |
-| **Pendiente** | **Fase 4: Consultas de Estadísticas Avanzadas** | `StatisticsModels.php` | Desarrollar consultas de quién te visitó, geolocalización, referrers, heatmap horario y métricas por enlace. | [ ] Pendiente |
+| **2026-10-18** | **Fase 4: Consultas de Estadísticas Avanzadas** | [`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php) | Se implementó la suite completa de analíticas avanzadas: `getRecentVisitors()` (feed de visitantes autenticados con avatar, nombre, tiempo relativo y visitas acumuladas), `getGeoRanking()` (ranking de países con flags/porcentajes y top ciudades), `getReferrersSummary()` (clasificación inteligente en plataformas: Instagram, TikTok, WhatsApp, X, Facebook, YouTube, Buscadores, Directo y Otros), `getHeatmapData()` (matriz 7x24, día y hora pico con recomendación inteligente de publicación) y `getLinksDetailedStats()` (rendimiento por botón/enlace y redes sociales, clics mes y acumulados, móvil vs desktop, CTR y badge de Enlace Estrella). Batería de 6 pruebas unitarias ejecutadas al 100%. | [✅ Completado] |
 | **Pendiente** | **Fase 5: Interfaz de Submenús en Dashboard** | `sideMenu.php`, `sideMenuPhone.php`, `StatisticsPanel/` | Convertir estadísticas en menú desplegable con submenús General y Enlaces. | [ ] Pendiente |
 | **Pendiente** | **Fase 6: Página de Pricing y Checkout** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy). | [ ] Pendiente |
 
@@ -140,11 +140,23 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
 
 ---
 
-## 7. Próximos Pasos (Fase 4: Consultas de Estadísticas Avanzadas)
-1. Desarrollar en [`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php):
-   * `getRecentVisitors(string $indexUser, int $limit = 10)`: Obtiene los avatares, usernames y fechas de visitantes registrados.
-   * `getGeoBreakdown(string $indexUser)`: Top países con banderas y ciudades principales vía MaxMind.
-   * `getReferrersSummary(string $indexUser)`: Tráfico agrupado por plataformas (Instagram, TikTok, WhatsApp, etc.).
-   * `getHeatmapData(string $indexUser)`: Matriz 7x24 con picos horarios de audiencia.
-   * `getLinksDetailedStats(string $indexUser)`: Rendimiento individual botón por botón y CTR.
-2. Actualizar la bitácora con los resultados de la Fase 4.
+## 7. Resultados de la Fase 4 y Próximos Pasos (Fase 5)
+
+### 7.1 Métodos Implementados en [`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php)
+1. **`getRecentVisitors(string $indexUser, int $limit = 10)`**: Feed de visitantes autenticados (`visitor_user_id IS NOT NULL`), agrupado por usuario para extraer la visita más reciente, avatar normalizado, URL de perfil y tiempo relativo con `DateTimeModule::timeAgo()`. Excluye auto-visitas.
+2. **`getGeoRanking(string $indexUser, int $limit = 10)`**: Ranking de países con porcentajes relativos, banderas en minúsculas y ranking de principales ciudades detectadas por MaxMind.
+3. **`getReferrersSummary(string $indexUser)`**: Clasificación algorítmica de fuentes de tráfico en categorías estándar: Instagram, TikTok, WhatsApp, X (Twitter), Facebook, YouTube, Buscadores, Tráfico Directo y Otras fuentes, con iconos atómicos SVG y porcentajes.
+4. **`getHeatmapData(string $indexUser)`**: Matriz semanal 7x24 de audiencia, cálculo de día pico, hora pico formateada y generación de texto inteligente de recomendación para publicación de contenido.
+5. **`getLinksDetailedStats(string $indexUser)`**: Métricas individuales por botón y redes sociales (clics del mes, clics acumulados, CTR individual, proporción móvil vs escritorio y distinción del "Enlace Estrella").
+6. **`getStatsData(string $userOrIndex)`**: Integración unificada de las nuevas estructuras (`visitors`, `geo`, `referrers`, `heatmap`, `links_detailed`) preservando retrocompatibilidad total con las vistas existentes.
+
+### 7.2 Próximos Pasos (Fase 5: Interfaz de Submenús en Dashboard)
+1. En [`sideMenu.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/SideMenu/sideMenu.php) y [`sideMenuPhone.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/SideMenu/sideMenuPhone.php), transformar el botón de estadísticas en un desplegable/acordeón con los dos submenús:
+   * **General** (`#stats-general-remote`)
+   * **Enlaces** (`#stats-links-remote`)
+2. Crear/estructurar las vistas en `App/Views/Dashboard/StatisticsPanel/`:
+   * `General/general.php`: métricas globales, feed «¿Quién te visitó?», geolocalización, referrers y heatmap 7x24, con candados y desenfoque (blur) para usuarios del plan Free.
+   * `Links/links.php`: tabla de enlaces con badge de "Enlace Estrella", CTR individual y desglose de RRSS.
+3. Actualizar [`StatisticsControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/StatisticsControllers.php) y el contenedor de navegación del panel.
+4. Ejecutar `composer min-script` tras cualquier cambio de CSS/JS.
+
