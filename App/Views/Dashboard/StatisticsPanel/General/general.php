@@ -118,11 +118,11 @@
   GraphicsModule::configStyle([
     "colorLabel" => "texto",
     "axisLabel"  => "texto",
-    "axisLabelSize" => "16",
-    "barWidth"       => 16,
+    "axisLabelSize" => 16,
+    "barWidth"       => 20,
     "color"      => "color8",
     "transition" => 500,
-    'tooltip'    => false
+    'tooltip'    => true
   ]);
 ?>
 
@@ -313,9 +313,10 @@
       <!-- Vista Desbloqueada (Premium): Países con GraphicsModule::horizontalBars -->
       <?php if (!empty($countryBars)): ?>
         <div class="flex-column center-center gap10 w100">
-          <div class="w-mid-90 wpx-desk-550">
+          <div class="w-mid-90 wpx-desk-650">
             <?= GraphicsModule::horizontalBars([
               'bars'        => $countryBars,
+              'width'       => 650,
               'valueSuffix' => '%',
               'showAxisY'   => true,
               'showAxisX'   => true
@@ -395,6 +396,7 @@
                 ['label' => 'Colombia', 'value' => 12.0, 'display' => '12%'],
                 ['label' => 'Chile', 'value' => 10.0, 'display' => '10%'],
               ],
+              'width'       => 650,
               'color'       => 'texto',
               'valueSuffix' => '%'
             ]); ?>
@@ -454,6 +456,7 @@
           <div class="w-mid-100 wpx-desk-550">
             <?= GraphicsModule::horizontalBars([
               'bars'        => $platformBars,
+              'width'       => 550,
               'color'       => 'texto',
               'valueSuffix' => '%',
               'showAxisY'   => true,
@@ -494,6 +497,7 @@
                 ['label' => 'WhatsApp', 'value' => 12.0, 'display' => '12%'],
                 ['label' => 'Directo', 'value' => 8.0, 'display' => '8%'],
               ],
+              'width'       => 550,
               'color'       => 'texto',
               'valueSuffix' => '%'
             ]); ?>
@@ -543,15 +547,15 @@
         <div class="p15 br15 back-card-graphic shadow-card-graphic flex-row center-start gap12">
           <span class="color-warning x24 flex-shrink-0"><?= svg("lightbulb", "x24"); ?></span>
           <div class="flex-column gap2">
-            <span class="bold700 texto x14">Recomendación inteligente</span>
-            <p class="m0 x13 color-secondary leading-normal"><?= e($recommendation); ?></p>
+            <span class="bold700 texto">Recomendación inteligente</span>
+            <p class="m0 color-secondary leading-normal"><?= e($recommendation); ?></p>
           </div>
         </div>
       <?php endif; ?>
 
       <div class="w100 flex-column center pt10">
         <div class="w100 flex-column gap5">
-          <div class="flex-row center-end gap10 pr15 x12">
+          <div class="flex-row center-end gap10 pr15">
             <span>Días: <strong>Lun — Dom</strong></span>
             <span>•</span>
             <span>Horas: <strong>00:00 — 24:00</strong></span>
@@ -572,12 +576,13 @@
       <div class="premium-blur-container w100">
         <div class="premium-blur-content flex-column gap10 w100 pt5">
           <div class="p12 br12 back-card-graphic shadow-card-graphic">
-            <p class="m0 x13">Recomendación: Tu mayor pico de audiencia ocurre los Miércoles en la tarde.</p>
+            <p class="m0">Recomendación: Tu mayor pico de audiencia ocurre los Miércoles en la tarde.</p>
           </div>
           <div class="w100">
             <?= GraphicsModule::matrixHeatmap([
               'rows'  => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
               'cols'  => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+              "axisLabelSize" => "14",
               'color' => 'texto'
             ]); ?>
           </div>

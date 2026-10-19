@@ -76,7 +76,10 @@ Esta bitácora es el registro oficial de trabajo para los desarrolladores y agen
 | **2026-10-18** | **Fase 4: Consultas de Estadísticas Avanzadas** | [`StatisticsModels.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Models/StatisticsModels.php) | Se implementó la suite completa de analíticas avanzadas: `getRecentVisitors()` (feed de visitantes autenticados con avatar, nombre, tiempo relativo y visitas acumuladas), `getGeoRanking()` (ranking de países con flags/porcentajes y top ciudades), `getReferrersSummary()` (clasificación inteligente en plataformas: Instagram, TikTok, WhatsApp, X, Facebook, YouTube, Buscadores, Directo y Otros), `getHeatmapData()` (matriz 7x24, día y hora pico con recomendación inteligente de publicación) y `getLinksDetailedStats()` (rendimiento por botón/enlace y redes sociales, clics mes y acumulados, móvil vs desktop, CTR y badge de Enlace Estrella). Batería de 6 pruebas unitarias ejecutadas al 100%. | [✅ Completado] |
 | **2026-10-18** | **Fase 5: Interfaz de Submenús en Dashboard** | `sideMenu.php`, `sideMenuPhone.php`, `StatisticsPanel/` | Convertir estadísticas en menú desplegable con submenús General y Enlaces. | [✅ Completado] |
 | **2026-10-18** | **Estandarización Gráficos Nativos (`GraphicsModule`)** | `general.php`, `links.php`, `card-graphic.css`, `StatisticsModels.php` | Sustitución total de gráficos y gradientes por `GraphicsModule::horizontalBars` y `GraphicsModule::matrixHeatmap` (`color => 'texto'`). Barras de dispositivos planas bicolores (`back-success` y `back8`) idénticas a `cto.php`. Ejecución de `composer min-script`. | [✅ Completado] |
-| **Pendiente** | **Fase 6: Página de Pricing y Checkout** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy). | [ ] Pendiente |
+| **2026-10-18** | **Ajustes de Parámetros y Ejes (`yLabelPosition`, `axisLabelSize`, `barWidth`)** | `GraphicsModule.php`, `horizontalBars.js` | Corrección a `yLabelPosition` (eje vertical para barras horizontales), soporte de medidas exactas en píxeles para `barWidth` y `axisLabelSize`, y eliminación de fondo en `matrixHeatmap`. | [✅ Completado] |
+| **2026-10-18** | **Normalización Responsiva de Escala 1.0 en `horizontalBars`** | `GraphicsModule.php`, `horizontalBars.js`, `svgChartAnimator.js`, `general.php` | Solución matemática al escalado de `viewBox`: `viewBox` coordinado con ancho del contenedor para fijar escala = 1.0 permanente. Las barras miden exactamente 20px de grosor y los textos 16px exactos en cualquier contenedor (650px, 550px o móvil). Atributos `data-*` y `ResizeObserver` dinámico. Framework actualizado a commit `04249cc` y minificado con `composer min-script`. | [✅ Completado] |
+| **Mañana** | **Fase 6: Rediseño Híbrido Responsivo de `horizontalBars` (HTML + CSS Nativo)** | `GraphicsModule.php`, `charts.css`, `card-graphic.css`, `general.php` | Rediseño estructural de `horizontalBars` hacia arquitectura híbrida HTML/CSS Flexbox. Garantiza que `barWidth: 20px` y `axisLabelSize: 16px` sean invariables y pixel-perfect en cualquier pantalla (incluyendo móviles de 348px) sin depender de matrices de transformación ni `ResizeObserver`. | [🟡 Pendiente para Mañana] |
+| **Pendiente** | **Fase 7: Página de Pricing y Checkout** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy). | [ ] Pendiente |
 
 
 ---
@@ -272,11 +275,11 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
    * Actualización en `Cuaderno` mediante `composer update eber/framework`.
    * Minificación y compilación JIT ejecutadas con éxito vía `composer min-script`.
 
-### 9.6 Motor Avanzado de Posicionamiento de Etiquetas (`yLabelPosition`) y Grosor de Barras (`barWidth`)
+### 9.6 Motor Avanzado de Posicionamiento de Etiquetas (`yLabelPosition`), Grosor de Barras (`barWidth`) y Tamaño de Fuente (`axisLabelSize`)
 1. **Configuración Global y Local en [`GraphicsModule.php`](file:///c:/Users/eber/Proyectos/Cuaderno/vendor/eber/framework/Base/Module/GraphicsModule.php)**:
-   * Los parámetros pueden definirse de forma global para toda la aplicación mediante `GraphicsModule::configStyle(['barWidth' => 16, 'yLabelPosition' => '[between],[40, 60, start]'])` o individualmente por gráfico mediante `$params['barWidth']` y `$params['yLabelPosition']`.
+   * Los parámetros pueden definirse de forma global para toda la aplicación mediante `GraphicsModule::configStyle(['barWidth' => 16, 'axisLabelSize' => 16, 'yLabelPosition' => '[between],[40, 60, start]'])` o individualmente por gráfico mediante `$params['barWidth']`, `$params['axisLabelSize']` y `$params['yLabelPosition']`.
    * Para asegurar máxima resiliencia, se mantiene soporte completo hacia atrás como alias si se provee `xLabelPosition`.
-   * El método `GraphicsModule::resetConfig()` restaura la configuración por defecto (`barWidth => null`, `yLabelPosition => 'default'`).
+   * El método `GraphicsModule::resetConfig()` restaura la configuración por defecto (`barWidth => null`, `axisLabelSize => null`, `yLabelPosition => 'default'`).
 2. **Sintaxis y Comportamiento de `yLabelPosition`**:
    * Sintaxis soportada: `"[rowAlign],[labelPct, chartPct, labelAlign]"` (ej. `"[between],[40, 60, start]"`, `"[default],[50, 50, center]"`) o formato array asociativo `['row' => ..., 'labelPct' => ..., 'chartPct' => ..., 'align' => ...]`.
    * **Alineación de fila / contenedor (`rowAlign`)**: `default`, `between`, `around`, `start`, `center`, `end`.
@@ -299,18 +302,92 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
      * Arcos y roscas circulares (`arcMeter`, `roundedDonut`): grosor de trazo radial (`strokeWidth`).
      * Pirámides jerárquicas (`pyramidStack`): altura de cápsulas por nivel (`barHeight`).
    * **Exclusión explícita por diseño**: `splineDynamic`, `matrixHeatmap` y `tileTreemap` NO utilizan `barWidth` para salvaguardar su estética e identidad gráfica.
-4. **Flujo de Trabajo del Framework**:
+4. **Control Unificado de Tamaño de Fuente de Ejes (`axisLabelSize`)**:
+   * Permite fijar el tamaño de fuente de las etiquetas de ejes numéricos y descriptivos global o localmente: `axisLabelSize => 16` (se normaliza a `16px`), o con unidades CSS (`'14px'`, `'1rem'`).
+   * Se propaga a través de variables CSS `--chart-axis-size: ...;` y estilos en línea directos (`style="font-size: 16px;"`) en los elementos `<text>` de todos los gráficos con ejes (`horizontalBars`, `simpleBars`, `stackedTones`, `hybridSpline`, `pillPillars`, `bulletTarget`, `matrixHeatmap`).
+   * En `horizontalBars`, adapta dinámicamente las métricas de cálculo de ancho de columna y salto de 2 líneas (`charWidthFactor = max(4.5, $axisSizeNum * 0.66)`), evitando solapamientos o desbordes cuando la fuente aumenta.
+5. **Flujo de Trabajo del Framework**:
    * Pruebas de integración automatizadas ejecutadas y superadas con 100% de éxito en `c:\Users\eber\Proyectos\frame`.
    * Commits en `frame`:
      * `feat(graphics): agregar soporte global y local para xLabelPosition y barWidth` (`173c72e`).
      * `fix(graphics): renombrar xLabelPosition a yLabelPosition manteniendo compatibilidad hacia atras` (`1ebc98a`).
+     * `feat(graphics): agregar soporte global y local para axisLabelSize` (`e87e280`).
+      * `fix(graphics): asegurar compatibilidad de claves val y soporte asociativo en simpleBars y horizontalBars` (`49cf924`).
    * Dependencia sincronizada en `Cuaderno` vía `composer update eber/framework`.
+   * Hojas de estilo sincronizadas en `App/Rsc/Library/Charts/charts.css`.
    * Minificación y JIT ejecutados limpiamente vía `composer min-script`.
 
-### 9.7 Próximos Pasos (Fase 6: Página de Precios / Suscripción)
+### 9.7 Estandarización de Medidas Específicas en Píxeles (ViewBox 320x180, Fuentes y Anchos de Barra Reales)
+1. **Diagnóstico del Problema**:
+   * Al configurar `axisLabelSize => '16'` y `barWidth => '20'`, se apreciaban variaciones visuales notorias entre diferentes tipos de gráficos montados en cuadrículas idénticas (como en `test2.php` y el panel general).
+   * **Causa Raíz #1 (`viewBox` Dispar)**: `horizontalBars` utilizaba `viewBox="0 0 460 180"`, mientras que la casi totalidad de la suite (`simpleBars`, `hybridSpline`, `pillPillars`, `bulletTarget`, `pyramidStack`, `splineDynamics`, `matrixHeatmap`) usaba `viewBox="0 0 320 180"`. Al insertarse en contenedores del mismo ancho, el SVG de 460 se escalaba un 30-44% más pequeño, reduciendo visualmente los textos y barras a la mitad.
+   * **Causa Raíz #2 (Alineación de Etiquetas del Eje X)**: En `simpleBars`, `hybridSpline`, `pillPillars` y `stackedTones`, las etiquetas inferiores del eje X utilizaban `$style['yLabelPosition']['align']` (que por defecto es `'start'`), provocando que los textos bajo cada columna se desplazaran hacia la derecha y se descuadraran respecto a sus barras.
+   * **Causa Raíz #3 (Estilos CSS Rígidos)**: Clases como `.mono-bullet-label`, `.mono-bullet-val`, `.mono-spline-dyn-axis-text`, `.mono-spline-dyn-x-label`, `.mono-matrix-row-label` y `.mono-donut-legend-text` tenían tamaños fijos (`11px`, `10.5px`) en `charts.css` y `minimal-charts.css`, impidiendo que `axisLabelSize` tomara el control en píxeles reales.
+2. **Solución Implementada**:
+   * **Normalización de `viewBox`**: Se estandarizó `horizontalBars` a `viewBox="0 0 320 180"`, unificando la escala de coordenadas virtuales con `simpleBars`, `hybridSpline`, `bulletTarget`, etc. Las medidas `barWidth: 20` y `axisLabelSize: 16` ahora corresponden a idénticos píxeles visuales en pantalla en toda la suite.
+   * **Centrado de Columnas en Eje X**: En las columnas verticales (`simpleBars`, `hybridSpline`, `pillPillars`, `stackedTones`), las etiquetas del eje X siempre aplican `text-anchor="middle"` estricto. `yLabelPosition` gobierna las filas horizontales y descriptivas.
+   * **Desacople en CSS**: En `charts.css` y `minimal-charts.css` se sustituyeron los valores rígidos por `var(--chart-axis-size, ...)`.
+   * **Inyección de Atributos SVG**: Se inyectaron `$axisSizeStyle` y `$axisSizeAttr` (`font-size="16px" style="font-size: 16px;"`) en todos los elementos `<text>` de la suite (`splineDynamics`, `roundedDonut`, `bulletTarget`, `pyramidStack`, `matrixHeatmap`, `horizontalBars`).
+3. **Flujo de Trabajo del Framework**:
+   * Commit en `frame`: `fix(charts): estandarizar viewBox a 320x180, centrar etiquetas X y desacoplar tamano de fuente de CSS rigido` (`e4a6a9f`).
+   * Sincronizado en `Cuaderno` vía `composer update eber/framework`.
+   * Hojas de estilo sincronizadas en `App/Rsc/Library/Charts/charts.css` y `App/Public/Css/minimal-charts.css`.
+   * Minificación y JIT ejecutados exitosamente con `composer min-script`.
+
+### 9.8 Normalización de Escala 1.0 en horizontalBars (Commit `04249cc`)
+* Se coordinó el ancho del `viewBox` con el ancho de renderizado en desktop (650px y 550px) para fijar el factor de escala en 1.0000, inyectando atributos `data-*` y un `ResizeObserver`.
+* **Identificación del Reto en Dispositivos Móviles**: En móviles (donde el contenedor se reduce a ~348px), cualquier sistema SVG cerrado con `viewBox` tiende a comprimir uniformemente tanto el ancho como la altura de las barras y el tamaño tipográfico, a menos que se abandone la matriz de escala de SVG en favor de un enfoque desacoplado.
+
+---
+
+## 10. Fase 6: Rediseño Híbrido Responsivo de Gráficos (`horizontalBars` Nativo con HTML + CSS Flexbox) — [Plan de Acción para Mañana]
+
+### 10.1 Objetivo y Fundamento Arquitectónico
+Garantizar que las barras horizontales (`horizontalBars`) respeten **de forma matemática y estricta las medidas en píxeles configuradas** (`barWidth => 20`, `axisLabelSize => 16`), sin importar si el usuario visualiza el dashboard en un monitor de 1920px (contenedor de 650px), en una laptop (550px), en una tablet o en un teléfono móvil (contenedor responsivo de 348px).
+
+### 10.2 Por qué el Enfoque Híbrido (HTML + CSS Flexbox) es Superior
+A diferencia de los gráficos 2D continuos (como curvas spline o heatmaps matriciales), las **barras horizontales son conceptualmente filas de datos discretas**:
+1. **Tipografía Invariable (Eje Y)**: Al renderizar las etiquetas descriptivas en elementos nativos HTML (`<span class="mono-hbar-label" style="font-size: 16px;">`), el tamaño de fuente es **siempre 16px exactos**, nítido y legible en cualquier densidad de pantalla (Retina, móvil o desktop), con soporte de salto de línea automático si la etiqueta excede el espacio asignado.
+2. **Grosor de Barras Invariable (Eje X)**: La pista y la barra activa se generan con contenedores HTML/CSS:
+   * Pista de fondo: `<div class="mono-hbar-track br8" style="height: 20px;">`
+   * Barra de progreso: `<div class="mono-hbar-fill br8" style="height: 20px; width: 52%; transition: width 500ms ease;">`
+   * El grosor vertical es **estrictamente de 20px físicos**, mientras que el ancho horizontal se expande o contrae fluidamente para ocupar el 100% del contenedor sobrante mediante CSS Flexbox.
+3. **Rejillas y Marcadores Numéricos**: Se dibujan como guías verticales porcentuales (`left: 0%`, `left: 25%`, `left: 50%`, `left: 75%`, `left: 100%`) o mediante un SVG liviano de rejilla de fondo, sin interferir con las dimensiones de las barras ni del texto.
+4. **Cero Dependencia de Redibujado JS**: No requiere cálculos pesados en cada evento `resize` ni `ResizeObserver`; la responsividad ocurre de forma nativa e instantánea por motor CSS (0ms).
+
+### 10.3 Procedimiento de Ejecución Paso a Paso para Mañana
+
+#### Paso 1: Trabajo en el Repositorio del Framework (`C:\Users\eber\Proyectos\frame`)
+1. **Modificar `Base/Module/GraphicsModule.php`**:
+   * En el método `horizontalBars(array $params)`:
+     * Extraer los parámetros de configuración global y local (`barWidth`, `axisLabelSize`, `yLabelPosition`, `color`, `tooltip`, `showAxisX`, `showAxisY`).
+     * Maquetar el contenedor principal con clases atómicas: `<div class="mono-hbar-container flex-column gap12 w100" ...>`.
+     * Por cada barra:
+       * Contenedor de fila: `<div class="mono-hbar-row flex-row items-center w100 gap10">`.
+       * Etiqueta Y (HTML nativo): ancho porcentual según `yLabelPosition` (ej. 40% o auto), con alineación de texto (`text-left`, `text-center`, `text-right`) y `font-size: {$axisLabelSize}px;`.
+       * Contenedor de barra (Flex 1): contenedor relativo que aloja la pista (`height: {$barWidth}px;`), la barra activa (`height: {$barWidth}px; width: {$pct}%; background-color: var(--color);`), y opcionalmente el tooltip.
+       * Eje X inferior: fila de marcas numéricas alineadas a las proporciones de cuadrícula (0%, 25%, 50%, 75%, 100%).
+2. **Actualizar CSS del Framework (`Resources/Library/Charts/charts.css`)**:
+   * Definir las clases y transiciones para `.mono-hbar-container`, `.mono-hbar-row`, `.mono-hbar-track`, `.mono-hbar-fill`, `.mono-hbar-label` y `.mono-hbar-axis-x`.
+3. **Validación y Pruebas Unitarias**:
+   * Probar con script PHP en `frame` validando que la salida HTML cumpla la estructura exacta y las clases atómicas del framework.
+4. **Commit en Git (`frame`)**:
+   * Registrar commit semántico: `feat(charts): redisenar horizontalBars con arquitectura hibrida HTML/CSS flexbox para medidas pixel-perfect invariables`.
+
+#### Paso 2: Integración y Sincronización en el Proyecto (`Cuaderno`)
+1. Ejecutar `composer update eber/framework` en `c:\Users\eber\Proyectos\Cuaderno`.
+2. Sincronizar estilos en `App/Rsc/Library/Charts/charts.css` y `App/Public/Css/minimal-charts.css`.
+3. Ejecutar `composer min-script` para compilar JIT CSS y minificar JS/CSS.
+4. Validar en las vistas reales del dashboard:
+   * Contenedor de 650px (Geolocalización en Escritorio).
+   * Contenedor de 550px (Fuentes de Tráfico en Escritorio).
+   * Contenedor de 348px (Modo Teléfono Móvil responsivo).
+5. Comprobar que en las 3 pantallas el grosor de barra sea exactamente 20px y la tipografía exactamente 16px.
+
+---
+
+## 11. Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`) — [Posterior a Fase 6]
+
 1. Actualizar [`LemonSqueezyControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LemonSqueezyControllers.php) y las vistas de planes/precios (`/planes` / `/suscripcion`).
-2. Tarjeta Free: para usuarios con sesión activa, indicar «Tu plan actual».
-3. Tarjeta Premium: desglosar todas las ventajas analíticas desbloqueables («¿Quién te visitó?», Heatmap semanal, Ranking de Países y Ciudades, Enlace Estrella, Fuentes de Tráfico) con espacio reservado para el checkout final.
-
-
-
+2. **Tarjeta Free**: Para usuarios con sesión activa, indicar «Tu plan actual» / «Plan activo».
+3. **Tarjeta Premium**: Desglosar todas las ventajas analíticas desbloqueables («¿Quién te visitó?», Heatmap semanal, Ranking de Países y Ciudades, Enlace Estrella, Fuentes de Tráfico) con espacio reservado para el checkout final de Lemon Squeezy.

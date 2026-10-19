@@ -110,7 +110,7 @@
 .mono-chart-svg text.mono-svg-axis-text,
 .mono-chart-svg .mono-svg-axis-text {
   fill: var(--chart-axis-color, currentColor) !important;
-  font-size: 10px;
+  font-size: var(--chart-axis-size, 10px);
   font-weight: 500;
   font-family: inherit;
   opacity: 0.85;
@@ -387,14 +387,14 @@
 }
 
 .mono-chart-svg .mono-bullet-label {
-  font-size: 11px;
+  font-size: var(--chart-axis-size, 11px);
   font-weight: 600;
   fill: var(--chart-label-color, currentColor);
   font-family: inherit;
 }
 
 .mono-chart-svg .mono-bullet-val {
-  font-size: 11px;
+  font-size: var(--chart-axis-size, 11px);
   fill: var(--chart-label-color, currentColor);
   font-family: inherit;
 }
@@ -452,7 +452,7 @@
 }
 
 .mono-chart-svg .mono-donut-legend-text {
-  font-size: 11px;
+  font-size: var(--chart-axis-size, 11px);
   font-weight: 500;
   fill: var(--chart-axis-color, #a1a1aa);
   letter-spacing: -0.01em;
@@ -528,13 +528,13 @@
 }
 
 .mono-chart-svg .mono-spline-dyn-axis-text {
-  font-size: 10.5px;
+  font-size: var(--chart-axis-size, 10.5px);
   font-weight: 500;
   fill: var(--chart-axis-color, #71717a);
 }
 
 .mono-chart-svg .mono-spline-dyn-x-label {
-  font-size: 11px;
+  font-size: var(--chart-axis-size, 11px);
   font-weight: 500;
   fill: var(--chart-label-color, #a1a1aa);
 }
@@ -558,7 +558,7 @@
 }
 
 .mono-chart-svg .mono-matrix-row-label {
-  font-size: 11px;
+  font-size: var(--chart-axis-size, 11px);
   font-weight: 500;
   fill: var(--chart-axis-color, #71717a);
   font-family: inherit;

@@ -874,6 +874,108 @@ export function initPillPillars(card, playEntry = true) {
 }
 
 /**
+ * Ajusta dinámicamente las coordenadas de horizontalBars para coincidir 1:1 con el contenedor.
+ * Garantiza escala 1.0 permanente: grosor de barra (barWidth) y tamaño de fuente (axisLabelSize) invariables.
+ * 
+ * @param {SVGSVGElement} svg Elemento SVG del gráfico.
+ */
+export function fitHorizontalBarsToContainer(svg) {
+  if (!svg) return;
+  const parent = svg.parentElement;
+  if (!parent) return;
+
+  const containerW = Math.round(parent.getBoundingClientRect().width);
+  if (containerW < 50) return;
+
+  const currentVb = svg.viewBox && svg.viewBox.baseVal;
+  const currentW = currentVb && currentVb.width > 0 ? currentVb.width : 320;
+  const vbH = currentVb && currentVb.height > 0 ? currentVb.height : 180;
+
+  if (Math.abs(containerW - currentW) <= 1 && svg._hasFitOnce) return;
+  svg._hasFitOnce = true;
+
+  const padLeft = parseFloat(svg.getAttribute("data-pad-left") || "14");
+  const padRight = parseFloat(svg.getAttribute("data-pad-right") || "16");
+  const gap = parseFloat(svg.getAttribute("data-gap") || "12");
+  const labelColW = parseFloat(svg.getAttribute("data-label-col-w") || "0");
+  const maxVal = parseFloat(svg.getAttribute("data-max-val") || "10");
+  const textAnchor = svg.getAttribute("data-text-anchor") || "start";
+  const showAxisY = svg.getAttribute("data-show-axis-y") !== "0";
+
+  svg.setAttribute("viewBox", `0 0 ${containerW} ${vbH}`);
+
+  const netW = Math.max(50, containerW - padLeft - padRight);
+
+  let plotX1, availableW;
+  if (!showAxisY || labelColW <= 0) {
+    plotX1 = padLeft;
+    availableW = netW;
+  } else {
+    plotX1 = padLeft + labelColW + gap;
+    availableW = Math.max(40, netW - (labelColW + gap));
+  }
+
+  let textX;
+  if (textAnchor === "start") {
+    textX = padLeft;
+  } else if (textAnchor === "middle") {
+    textX = padLeft + (labelColW / 2.0);
+  } else {
+    textX = padLeft + labelColW;
+  }
+
+  const items = svg.querySelectorAll(".mono-hbar-item");
+  items.forEach((item) => {
+    const track = item.querySelector(".mono-hbar-track");
+    const bar = item.querySelector(".mono-hbar-rect");
+    const labelText = item.querySelector(".mono-svg-axis-text-y");
+
+    if (track) {
+      track.setAttribute("x", plotX1.toFixed(2));
+      track.setAttribute("width", availableW.toFixed(2));
+    }
+
+    if (bar) {
+      const itVal = parseFloat(bar.getAttribute("data-num-val") || item.getAttribute("data-num-val") || "0");
+      let ratio = parseFloat(bar.getAttribute("data-ratio") || "0");
+      if (isNaN(ratio) || ratio <= 0) {
+        ratio = maxVal > 0 ? Math.min(itVal, maxVal) / maxVal : 0;
+      }
+      const targetW = Math.max(0, ratio * availableW);
+
+      bar.setAttribute("x", plotX1.toFixed(2));
+      bar.setAttribute("data-target-w", targetW.toFixed(2));
+      bar.setAttribute("width", targetW.toFixed(2));
+    }
+
+    if (labelText) {
+      labelText.setAttribute("x", textX.toFixed(2));
+      labelText.querySelectorAll("tspan").forEach((ts) => {
+        ts.setAttribute("x", textX.toFixed(2));
+      });
+    }
+  });
+
+  const gridLines = svg.querySelectorAll(".mono-svg-grid-line");
+  const axisXTexts = svg.querySelectorAll(".mono-svg-axis-text-x");
+
+  gridLines.forEach((line, idx) => {
+    const rawRatio = line.getAttribute("data-ratio");
+    const ratio = rawRatio !== null ? parseFloat(rawRatio) : (gridLines.length > 1 ? idx / (gridLines.length - 1) : 0);
+    const tickX = plotX1 + (ratio * availableW);
+    line.setAttribute("x1", tickX.toFixed(2));
+    line.setAttribute("x2", tickX.toFixed(2));
+  });
+
+  axisXTexts.forEach((text, idx) => {
+    const rawRatio = text.getAttribute("data-ratio");
+    const ratio = rawRatio !== null ? parseFloat(rawRatio) : (axisXTexts.length > 1 ? idx / (axisXTexts.length - 1) : 0);
+    const tickX = plotX1 + (ratio * availableW);
+    text.setAttribute("x", tickX.toFixed(2));
+  });
+}
+
+/**
  * Inicializa todos los gráficos SVG dentro de un contenedor o documento.
  * 
  * @param {Document|HTMLElement} [context=document] Ámbito de búsqueda.
@@ -915,6 +1017,17 @@ export function initAllSvgCharts(context = document, playEntry = true) {
         else if (card.querySelector(".mono-spline-path")) initHybridSpline(card, playEntry);
         else if (card.querySelector(".mono-pillar-primary")) initPillPillars(card, playEntry);
         break;
+    }
+  });
+
+  // Soporte universal para gráficos de barras horizontales fluidos
+  context.querySelectorAll('svg[data-chart="horizontal-bars"]').forEach((svg) => {
+    fitHorizontalBarsToContainer(svg);
+    if (typeof ResizeObserver !== "undefined" && svg.parentElement && !svg._hasHBarResizeObserver) {
+      svg._hasHBarResizeObserver = true;
+      const ro = new ResizeObserver(() => fitHorizontalBarsToContainer(svg));
+      ro.observe(svg.parentElement);
+      svg._hBarRo = ro;
     }
   });
 }

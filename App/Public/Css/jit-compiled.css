@@ -987,6 +987,9 @@
 @media screen and (min-width: 993px) {
   .wpx-desk-550 { width: 550px; }
 }
+@media screen and (min-width: 993px) {
+  .wpx-desk-650 { width: 650px; }
+}
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .wpx-mid-350 { width: 350px; }
 }

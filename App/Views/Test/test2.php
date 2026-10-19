@@ -5,6 +5,7 @@
   GraphicsModule::configStyle([
     "colorLabel" => "textw",
     "axisLabel"  => "#ffffff",
+    "axisLabelSize" => "16",
     "barWidth"   => "20",
     "color"      => "#ff4b4b",
     "transition" => 500,

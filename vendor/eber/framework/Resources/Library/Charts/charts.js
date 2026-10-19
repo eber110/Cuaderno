@@ -13,7 +13,7 @@ import { initTileTreemap } from "./tileTreemap.js";
 import { initHybridSpline } from "./hybridSpline.js";
 import { initPillPillars } from "./pillPillars.js";
 import { initSimpleBars } from "./simpleBars.js";
-import { initHorizontalBars } from "./horizontalBars.js";
+import { initHorizontalBars, fitHorizontalBarsToContainer } from "./horizontalBars.js";
 import { initBulletTarget } from "./bulletTarget.js";
 import { initRoundedDonut, animateDonutSegment } from "./roundedDonut.js";
 import { initPyramidStack, animatePyramidTier } from "./pyramidStack.js";
@@ -31,6 +31,7 @@ export {
   initPillPillars,
   initSimpleBars,
   initHorizontalBars,
+  fitHorizontalBarsToContainer,
   initBulletTarget,
   initRoundedDonut,
   animateDonutSegment,
