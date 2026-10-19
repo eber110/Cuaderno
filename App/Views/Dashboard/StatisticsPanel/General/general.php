@@ -118,6 +118,7 @@
   GraphicsModule::configStyle([
     "colorLabel" => "texto",
     "axisLabel"  => "texto",
+    "axisLabelSize" => "16",
     "barWidth"       => 16,
     "color"      => "color8",
     "transition" => 500,
