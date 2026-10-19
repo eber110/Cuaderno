@@ -35,11 +35,13 @@ class GraphicsModule
    * @var array
    */
   private static array $globalConfig = [
-    'color'      => 'texto',
-    'colorLabel' => 'textw',
-    'axisLabel'  => 'color1',
-    'transition' => 400,
-    'tooltip'    => true,
+    'color'          => 'texto',
+    'colorLabel'     => 'textw',
+    'axisLabel'      => 'color1',
+    'transition'     => 400,
+    'tooltip'        => true,
+    'barWidth'       => null,
+    'yLabelPosition' => 'default',
   ];
 
   /**
@@ -58,6 +60,8 @@ class GraphicsModule
    *                      - 'axisLabel': Selector o clase CSS para la numeración y etiquetas de ejes X e Y (ej. 'color1', '.color1', 'textc', '#a1a1aa').
    *                      - 'transition': Tiempo en milisegundos de la animación (por defecto 400).
    *                      - 'tooltip': Habilitar o deshabilitar tooltips globalmente (bool, por defecto true).
+   *                      - 'barWidth': Ancho/grosor de barras global (float/int, ej. 16, 20).
+   *                      - 'yLabelPosition': Alineación y distribución global de etiquetas descriptivas (eje Y) y barras (ej. '[default],[50, 50, start]').
    * @return void
    */
   public static function configStyle(array $config = []): void
@@ -81,6 +85,16 @@ class GraphicsModule
     if (isset($config['tooltip'])) {
       self::$globalConfig['tooltip'] = filter_var($config['tooltip'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $config['tooltip'];
     }
+
+    if (isset($config['barWidth']) && is_numeric($config['barWidth'])) {
+      self::$globalConfig['barWidth'] = (float) $config['barWidth'];
+    }
+
+    if (isset($config['yLabelPosition'])) {
+      self::$globalConfig['yLabelPosition'] = $config['yLabelPosition'];
+    } elseif (isset($config['xLabelPosition'])) {
+      self::$globalConfig['yLabelPosition'] = $config['xLabelPosition'];
+    }
   }
 
   /**
@@ -101,11 +115,13 @@ class GraphicsModule
   public static function resetConfig(): void
   {
     self::$globalConfig = [
-      'color'      => 'texto',
-      'colorLabel' => 'textw',
-      'axisLabel'  => 'color1',
-      'transition' => 400,
-      'tooltip'    => true,
+      'color'          => 'texto',
+      'colorLabel'     => 'textw',
+      'axisLabel'      => 'color1',
+      'transition'     => 400,
+      'tooltip'        => true,
+      'barWidth'       => null,
+      'yLabelPosition' => 'default',
     ];
   }
 
@@ -217,17 +233,27 @@ class GraphicsModule
       ? (filter_var($params['tooltip'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $params['tooltip'])
       : (self::$globalConfig['tooltip'] ?? true);
 
+    $barWidth = isset($params['barWidth']) && is_numeric($params['barWidth'])
+      ? (float) $params['barWidth']
+      : (self::$globalConfig['barWidth'] ?? null);
+
+    $yLabelPositionRaw = $params['yLabelPosition'] ?? ($params['xLabelPosition'] ?? (self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? null)));
+    $yLabelPosition = self::parseYLabelPosition($yLabelPositionRaw);
+
     return [
-      'svgClass'    => implode(' ', $svgClasses),
-      'labelClass'  => $labelClass,
-      'axisClass'   => $axisClass,
-      'styleAttr'   => implode(' ', $styleParts),
-      'transition'  => $transition,
-      'tooltip'     => $tooltip,
-      'tooltipAttr' => 'data-tooltip="' . ($tooltip ? 'true' : 'false') . '"',
-      'colorRaw'    => $colorRaw,
-      'labelRaw'    => $labelRaw,
-      'axisRaw'     => $axisRaw,
+      'svgClass'       => implode(' ', $svgClasses),
+      'labelClass'     => $labelClass,
+      'axisClass'      => $axisClass,
+      'styleAttr'      => implode(' ', $styleParts),
+      'transition'     => $transition,
+      'tooltip'        => $tooltip,
+      'tooltipAttr'    => 'data-tooltip="' . ($tooltip ? 'true' : 'false') . '"',
+      'colorRaw'       => $colorRaw,
+      'labelRaw'       => $labelRaw,
+      'axisRaw'        => $axisRaw,
+      'barWidth'       => $barWidth,
+      'yLabelPosition' => $yLabelPosition,
+      'xLabelPosition' => $yLabelPosition,
     ];
   }
 
@@ -241,6 +267,142 @@ class GraphicsModule
   {
     self::$instanceCounter++;
     return $prefix . '-' . self::$instanceCounter . '-' . bin2hex(random_bytes(3));
+  }
+
+  /**
+   * Parsea y normaliza la configuración de yLabelPosition (etiquetas descriptivas / eje Y).
+   *
+   * Formato soportado:
+   *   "[rowAlign],[labelPct, chartPct, labelAlign]"
+   *   Ejemplos:
+   *   - "[default|between|around|start|center|end],[50, 50, start|center|end]"
+   *   - "[between],[40, 60, end]"
+   *   - "between, [50, 50, start]"
+   *   - "default"
+   *   - "40, 60"
+   *   - ['row' => 'between', 'split' => [40, 60], 'align' => 'start']
+   *   - ['between', [40, 60], 'start']
+   *
+   * @param mixed $raw Parámetro provisto local o globalmente.
+   * @return array Configuración con claves:
+   *               - 'row': 'default'|'between'|'around'|'start'|'center'|'end'
+   *               - 'labelPct': float (porcentaje para etiquetas, ej. 50.0)
+   *               - 'chartPct': float (porcentaje para las barras/gráfico, ej. 50.0)
+   *               - 'align': 'start'|'center'|'end' (alineación del texto de la etiqueta)
+   *               - 'hasSplit': bool (si se suministraron porcentajes explícitos)
+   *               - 'isCustom': bool (si no es el default neutro)
+   */
+  public static function parseYLabelPosition(mixed $raw = null): array
+  {
+    $default = [
+      'row'      => 'default',
+      'labelPct' => 50.0,
+      'chartPct' => 50.0,
+      'align'    => 'start',
+      'hasSplit' => false,
+      'isCustom' => false,
+    ];
+
+    if ($raw === null || $raw === '') {
+      $raw = self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? 'default');
+    }
+
+    if ($raw === null || $raw === '' || $raw === 'default') {
+      return $default;
+    }
+
+    $result = $default;
+    $result['isCustom'] = true;
+
+    if (is_array($raw)) {
+      if (isset($raw['row'])) {
+        $result['row'] = strtolower(trim((string) $raw['row']));
+      }
+      if (isset($raw['split']) && is_array($raw['split']) && count($raw['split']) >= 2) {
+        $result['labelPct'] = (float) $raw['split'][0];
+        $result['chartPct'] = (float) $raw['split'][1];
+        $result['hasSplit'] = true;
+      } elseif (isset($raw['labelPct'], $raw['chartPct'])) {
+        $result['labelPct'] = (float) $raw['labelPct'];
+        $result['chartPct'] = (float) $raw['chartPct'];
+        $result['hasSplit'] = true;
+      }
+      if (isset($raw['align'])) {
+        $result['align'] = strtolower(trim((string) $raw['align']));
+      }
+
+      // Arrays indexados tipo ['between', [50, 50], 'start'] o ['between', 50, 50, 'start']
+      $rowAligns = ['default', 'between', 'around', 'start', 'left', 'center', 'end', 'right'];
+      $textAligns = ['start', 'left', 'center', 'middle', 'end', 'right'];
+
+      if (isset($raw[0]) && is_string($raw[0]) && in_array(strtolower(trim($raw[0])), $rowAligns)) {
+        $result['row'] = strtolower(trim($raw[0]));
+      }
+      if (isset($raw[1]) && is_array($raw[1]) && count($raw[1]) >= 2) {
+        $result['labelPct'] = (float) $raw[1][0];
+        $result['chartPct'] = (float) $raw[1][1];
+        $result['hasSplit'] = true;
+        if (isset($raw[1][2]) && is_string($raw[1][2])) {
+          $result['align'] = strtolower(trim($raw[1][2]));
+        }
+      } elseif (isset($raw[1], $raw[2]) && is_numeric($raw[1]) && is_numeric($raw[2])) {
+        $result['labelPct'] = (float) $raw[1];
+        $result['chartPct'] = (float) $raw[2];
+        $result['hasSplit'] = true;
+        if (isset($raw[3]) && is_string($raw[3])) {
+          $result['align'] = strtolower(trim($raw[3]));
+        }
+      }
+      if (isset($raw[2]) && is_string($raw[2]) && in_array(strtolower(trim($raw[2])), $textAligns)) {
+        $result['align'] = strtolower(trim($raw[2]));
+      }
+    } elseif (is_string($raw)) {
+      $str = trim($raw);
+
+      // 1. Extraer los dos números de porcentaje (ej: 50, 50 o [40, 60] o 10,90)
+      if (preg_match('/(?:\[|\b)(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\]|\b)/', $str, $pctMatch)) {
+        $result['labelPct'] = (float) $pctMatch[1];
+        $result['chartPct'] = (float) $pctMatch[2];
+        $result['hasSplit'] = true;
+        $remaining = str_replace($pctMatch[0], ' ', $str);
+      } else {
+        $remaining = $str;
+      }
+
+      // 2. Extraer tokens de palabras para alineación row y align de etiquetas
+      $tokens = preg_split('/[\[\],\s]+/', trim($remaining), -1, PREG_SPLIT_NO_EMPTY);
+      $rowAligns = ['default', 'between', 'around', 'start', 'left', 'center', 'end', 'right'];
+      $textAligns = ['start', 'left', 'center', 'middle', 'end', 'right'];
+
+      foreach ($tokens as $tk) {
+        $t = strtolower(trim($tk));
+        if (in_array($t, $rowAligns) && $result['row'] === 'default') {
+          $result['row'] = $t;
+        } elseif (in_array($t, $textAligns)) {
+          $result['align'] = $t;
+        }
+      }
+    }
+
+    // Normalizar sinónimos estándar
+    if ($result['row'] === 'left') $result['row'] = 'start';
+    if ($result['row'] === 'right') $result['row'] = 'end';
+    if ($result['align'] === 'left') $result['align'] = 'start';
+    if ($result['align'] === 'right') $result['align'] = 'end';
+    if ($result['align'] === 'middle') $result['align'] = 'center';
+
+    return $result;
+  }
+
+  /**
+   * Alias de compatibilidad hacia atrás para parseYLabelPosition.
+   *
+   * @param mixed $raw
+   * @return array
+   */
+  public static function parseXLabelPosition(mixed $raw = null): array
+  {
+    return self::parseYLabelPosition($raw);
   }
 
   /**
@@ -335,6 +497,9 @@ class GraphicsModule
 
     $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
 
+    $barWidthVal = $style['barWidth'] ?? ($params['strokeWidth'] ?? null);
+    $strokeWidth = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 16.0;
+
     $perimeter = 251.33;
     $targetOffset = $perimeter * (1 - ($value / 100));
 
@@ -342,10 +507,10 @@ class GraphicsModule
     ?>
     <svg viewBox="0 0 240 145" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="arc-meter" <?= $style['tooltipAttr'] ?> data-target-pct="<?= $value ?>" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Pista de fondo (variación OKLCH suave) -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="16" stroke-linecap="round" />
+      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" />
       
       <!-- Arco dinámico activo con datos para tooltip -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $displayValue ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
+      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $displayValue ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
       
       <!-- Lecturas centrales con clase de color para etiquetas (colorLabel) -->
       <?php if ($showNumber): ?>
@@ -434,7 +599,10 @@ class GraphicsModule
     $plotX2 = 304.0;
     $availableWidth = $plotX2 - $plotX1;
     $slotWidth = $availableWidth / $numBars;
-    $barWidth = min(36.0, max(12.0, $slotWidth * 0.58));
+    $barWidthVal = $style['barWidth'] ?? null;
+    $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
+      ? (float) $barWidthVal
+      : min(36.0, max(12.0, $slotWidth * 0.58));
     $rx = min(16.0, $barWidth / 2);
 
     $gridX1 = 36;
@@ -502,15 +670,16 @@ class GraphicsModule
         <rect x="<?= number_format($qx, 2, '.', '') ?>" y="<?= number_format($yWhite, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($hWhite + 2, 2, '.', '') ?>" class="mono-layer-base" />
       </g>
       <?php 
+        $xTextAnchor = ($style['yLabelPosition']['align'] === 'start') ? 'start' : (($style['yLabelPosition']['align'] === 'end') ? 'end' : 'middle');
         $axisLines = self::wrapTextLines((string)$q['label'], max(6, (int)($slotWidth / 7)), 2);
         if (count($axisLines) > 1):
       ?>
-      <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+      <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;">
         <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
         <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
       </text>
       <?php else: ?>
-      <text x="<?= number_format($cx, 2, '.', '') ?>" y="174" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars((string) $q['label'], ENT_QUOTES, 'UTF-8') ?></text>
+      <text x="<?= number_format($cx, 2, '.', '') ?>" y="174" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;"><?= htmlspecialchars((string) $q['label'], ENT_QUOTES, 'UTF-8') ?></text>
       <?php endif; ?>
       <?php endforeach; ?>
     </svg>
@@ -832,7 +1001,10 @@ class GraphicsModule
     $plotX2 = 280.0;
     $availableWidth = $plotX2 - $plotX1;
     $step = $count > 1 ? ($availableWidth / ($count - 1)) : 0.0;
-    $barWidth = min(28.0, max(8.0, ($availableWidth / $count) * 0.52));
+    $barWidthVal = $style['barWidth'] ?? null;
+    $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
+      ? (float) $barWidthVal
+      : min(28.0, max(8.0, ($availableWidth / $count) * 0.52));
     $baselineY = 155.0;
     $maxH = 120.0;
 
@@ -901,15 +1073,16 @@ class GraphicsModule
       <!-- Etiquetas del eje X con axisLabel distribuidas dinámicamente -->
       <?php foreach ($labels as $idx => $lbl): 
         $x = $xCoords[$idx] ?? ($plotX1 + $idx * $step);
+        $xTextAnchor = ($style['yLabelPosition']['align'] === 'start') ? 'start' : (($style['yLabelPosition']['align'] === 'end') ? 'end' : 'middle');
         $axisLines = self::wrapTextLines((string)$lbl, max(6, (int)(($step > 0 ? $step : $availableWidth) / 7)), 2);
         if (count($axisLines) > 1):
       ?>
-      <text x="<?= number_format($x, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+      <text x="<?= number_format($x, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;">
         <tspan x="<?= number_format($x, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
         <tspan x="<?= number_format($x, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
       </text>
       <?php else: ?>
-      <text x="<?= number_format($x, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= htmlspecialchars((string) $lbl, ENT_QUOTES, 'UTF-8') ?></text>
+      <text x="<?= number_format($x, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;"><?= htmlspecialchars((string) $lbl, ENT_QUOTES, 'UTF-8') ?></text>
       <?php endif; ?>
       <?php endforeach; ?>
     </svg>
@@ -966,7 +1139,10 @@ class GraphicsModule
     $plotX2 = 304.0;
     $availableWidth = $plotX2 - $plotX1;
     $slotWidth = $availableWidth / $count;
-    $pillarWidth = min(16.0, max(6.0, $slotWidth * 0.22));
+    $barWidthVal = $style['barWidth'] ?? ($params['pillarWidth'] ?? null);
+    $pillarWidth = $barWidthVal !== null && (float) $barWidthVal > 0
+      ? (float) $barWidthVal
+      : min(16.0, max(6.0, $slotWidth * 0.22));
     $pillarGap = min(4.0, max(2.0, $pillarWidth * 0.25));
     $rx = min(7.0, $pillarWidth / 2);
 
@@ -1001,15 +1177,16 @@ class GraphicsModule
         <rect x="<?= number_format($x2, 2, '.', '') ?>" y="<?= number_format($y2, 2, '.', '') ?>" width="<?= number_format($pillarWidth, 2, '.', '') ?>" height="<?= number_format($h2, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-pillar-secondary" data-label="<?= $pLabel ?>" data-val="<?= $v2 ?>" data-series="2" data-target-h="<?= number_format($h2, 2, '.', '') ?>" data-target-y="<?= number_format($y2, 2, '.', '') ?>" />
         <!-- Etiqueta eje X con axisLabel -->
         <?php 
+          $xTextAnchor = ($style['yLabelPosition']['align'] === 'start') ? 'start' : (($style['yLabelPosition']['align'] === 'end') ? 'end' : 'middle');
           $axisLines = self::wrapTextLines((string)($p['label'] ?? ''), max(6, (int)($slotWidth / 7)), 2);
           if (count($axisLines) > 1):
         ?>
-        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;">
           <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
           <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
         </text>
         <?php else: ?>
-        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= $pLabel ?></text>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;"><?= $pLabel ?></text>
         <?php endif; ?>
       </g>
       <?php endforeach; ?>
@@ -1124,8 +1301,9 @@ class GraphicsModule
 
     $availableWidth = $plotX2 - $plotX1;
     $slotWidth = $availableWidth / $count;
-    $barWidth = isset($params['barWidth']) && (float) $params['barWidth'] > 0
-      ? (float) $params['barWidth']
+    $barWidthVal = $style['barWidth'] ?? null;
+    $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
+      ? (float) $barWidthVal
       : min(32.0, max(8.0, $slotWidth * 0.54));
     $rx = min(8.0, $barWidth / 2);
 
@@ -1203,15 +1381,16 @@ class GraphicsModule
         <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-simple-bar-rect" data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
         <!-- Etiqueta eje X con axisLabel y salto de línea protector -->
         <?php if ($showAxisX): 
+          $xTextAnchor = ($style['yLabelPosition']['align'] === 'start') ? 'start' : (($style['yLabelPosition']['align'] === 'end') ? 'end' : 'middle');
           $axisLines = self::wrapTextLines((string)($it['label'] ?? ''), max(6, (int)($slotWidth / 7)), 2);
           if (count($axisLines) > 1):
         ?>
-        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>">
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="168" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;">
           <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="0"><?= htmlspecialchars($axisLines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
           <tspan x="<?= number_format($cx, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($axisLines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
         </text>
         <?php else: ?>
-        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>"><?= $lbl ?></text>
+        <text x="<?= number_format($cx, 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" text-anchor="<?= $xTextAnchor ?>" style="text-anchor: <?= $xTextAnchor ?>;"><?= $lbl ?></text>
         <?php endif; endif; ?>
       </g>
       <?php endforeach; ?>
@@ -1309,21 +1488,121 @@ class GraphicsModule
     $topY = 20.0;
     $bottomY = 155.0;
     $availableH = $bottomY - $topY;
-
-    if ($showAxisY) {
-      $plotX1 = 64.0;
-      $plotX2 = 304.0;
-    } else {
-      $plotX1 = 16.0;
-      $plotX2 = 304.0;
-    }
-
-    $availableW = $plotX2 - $plotX1;
     $slotH = $availableH / $count;
-    $barHeight = isset($params['barHeight']) && (float) $params['barHeight'] > 0
-      ? (float) $params['barHeight']
+
+    // Configuración de posición y alineación de etiquetas y barras (yLabelPosition)
+    $yPos = $style['yLabelPosition'];
+
+    // Grosor/ancho de las barras horizontales (barWidth o barHeight global/local)
+    $barThickness = $style['barWidth'] ?? ($params['barHeight'] ?? null);
+    $barHeight = $barThickness !== null && (float) $barThickness > 0
+      ? (float) $barThickness
       : min(22.0, max(8.0, $slotH * 0.54));
     $ry = min(8.0, $barHeight / 2);
+
+    // Dimensiones virtuales del SVG (460x180 para garantizar 100% de ocupación responsiva)
+    $viewBoxW = isset($params['viewBoxW']) && (float) $params['viewBoxW'] > 0
+      ? (float) $params['viewBoxW']
+      : 460.0;
+    $padLeft = 14.0;
+    $padRight = 16.0;
+    $netW = $viewBoxW - $padLeft - $padRight; // 430.0 por defecto
+
+    if (!$showAxisY) {
+      // Sin etiquetas en el eje Y (aprovecha el 100% del ancho para las barras)
+      $plotX1 = $padLeft;
+      $availableW = $netW;
+      $plotX2 = $plotX1 + $availableW;
+      $labelColW = 0.0;
+      $labelX1 = 0.0;
+      $textAnchor = 'start';
+      $wrapTo2Lines = false;
+      $maxCharsPerLine = 999;
+    } else {
+      $gap = 12.0;
+
+      if ($yPos['row'] === 'default' && !$yPos['hasSplit']) {
+        // MODO DEFAULT:
+        // Alineación automática desde left hasta right según el largo del label.
+        // Pero si el label es más largo del 50% del contenedor, el label abarca 2 líneas y se limita al 50%.
+        $maxLabelChars = 0;
+        foreach ($items as $it) {
+          $len = mb_strlen((string) ($it['label'] ?? ''), 'UTF-8');
+          if ($len > $maxLabelChars) {
+            $maxLabelChars = $len;
+          }
+        }
+
+        $naturalLabelW = max(50.0, ceil($maxLabelChars * 6.6) + 10.0);
+        $halfNet = $netW * 0.50;
+
+        if ($naturalLabelW > $halfNet) {
+          // El label supera el 50% del contenedor -> abarca 2 líneas
+          $labelColW = $halfNet - 8.0;
+          $wrapTo2Lines = true;
+          $maxCharsPerLine = max(8, (int) floor(($labelColW - 6.0) / 6.6));
+        } else {
+          // Cabe en 1 línea
+          $labelColW = $naturalLabelW;
+          $wrapTo2Lines = false;
+          $maxCharsPerLine = 999;
+        }
+
+        $labelX1 = $padLeft;
+        $plotX1 = $labelX1 + $labelColW + $gap;
+        $availableW = max(60.0, $netW - ($labelColW + $gap));
+        $plotX2 = $plotX1 + $availableW;
+        $textAnchor = ($yPos['align'] === 'start') ? 'start' : (($yPos['align'] === 'center') ? 'middle' : 'end');
+      } else {
+        // MODO PERSONALIZADO: [between|around|start|center|end],[labelPct, chartPct, labelAlign]
+        $usableNet = max(100.0, $netW - $gap);
+        $labelColW = max(40.0, round(($yPos['labelPct'] / 100.0) * $usableNet, 1));
+        $availableW = max(50.0, round(($yPos['chartPct'] / 100.0) * $usableNet, 1));
+        $maxCharsPerLine = max(8, (int) floor(($labelColW - 6.0) / 6.6));
+
+        $totalContentW = $labelColW + $gap + $availableW;
+        $freeSpace = max(0.0, $netW - $totalContentW);
+
+        switch ($yPos['row']) {
+          case 'between':
+            $labelX1 = $padLeft;
+            $plotX1 = $padLeft + $netW - $availableW;
+            break;
+          case 'around':
+            $spacing = $freeSpace / 4.0;
+            $labelX1 = $padLeft + $spacing;
+            $plotX1 = $labelX1 + $labelColW + (2 * $spacing) + $gap;
+            break;
+          case 'start':
+            $labelX1 = $padLeft;
+            $plotX1 = $labelX1 + $labelColW + $gap;
+            break;
+          case 'center':
+            $labelX1 = $padLeft + ($freeSpace / 2.0);
+            $plotX1 = $labelX1 + $labelColW + $gap;
+            break;
+          case 'end':
+            $plotX1 = $padLeft + $netW - $availableW;
+            $labelX1 = $plotX1 - $gap - $labelColW;
+            break;
+          default:
+            $labelX1 = $padLeft;
+            $plotX1 = $labelX1 + $labelColW + $gap;
+            break;
+        }
+
+        $plotX2 = $plotX1 + $availableW;
+        $textAnchor = ($yPos['align'] === 'start') ? 'start' : (($yPos['align'] === 'center') ? 'middle' : 'end');
+      }
+    }
+
+    if ($textAnchor === 'start') {
+      $textX = $labelX1;
+    } elseif ($textAnchor === 'middle') {
+      $textX = $labelX1 + ($labelColW / 2.0);
+    } else { // 'end'
+      $textX = $labelX1 + $labelColW;
+    }
 
     // Escala del eje X
     $maxInData = 0.0;
@@ -1365,7 +1644,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="horizontal-bars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 <?= number_format($viewBoxW, 1, '.', '') ?> 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" width="100%" height="auto" data-chart="horizontal-bars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Rejilla vertical punteada -->
       <?php foreach ($xTicks as $tick): ?>
       <line x1="<?= number_format($tick['x'], 2, '.', '') ?>" y1="<?= number_format($topY - 4, 2, '.', '') ?>" x2="<?= number_format($tick['x'], 2, '.', '') ?>" y2="<?= number_format($bottomY, 2, '.', '') ?>" class="mono-svg-grid-line" />
@@ -1387,9 +1666,21 @@ class GraphicsModule
         <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($availableW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-track" />
         <!-- Barra dinámica activa -->
         <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-rect" data-target-w="<?= number_format($barW, 2, '.', '') ?>" />
-        <!-- Etiqueta eje Y a la izquierda de la barra -->
-        <?php if ($showAxisY): ?>
-        <text x="<?= number_format($plotX1 - 8, 2, '.', '') ?>" y="<?= number_format($cy + 3.5, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="end"><?= $lbl ?></text>
+        <!-- Etiqueta descriptiva (eje Y) a la izquierda de la barra con yLabelPosition y soporte multilinea -->
+        <?php if ($showAxisY): 
+          $rawLabel = (string) ($it['label'] ?? '');
+          $labelLen = mb_strlen($rawLabel, 'UTF-8');
+          $needWrap = ($labelLen > $maxCharsPerLine) || (!empty($wrapTo2Lines) && $labelLen > 12);
+          $lines = $needWrap ? self::wrapTextLines($rawLabel, $maxCharsPerLine, 2) : [$rawLabel];
+        ?>
+          <?php if (count($lines) > 1): ?>
+          <text x="<?= number_format($textX, 2, '.', '') ?>" y="<?= number_format($cy, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="<?= $textAnchor ?>" style="text-anchor: <?= $textAnchor ?>;" font-size="10px">
+            <tspan x="<?= number_format($textX, 2, '.', '') ?>" dy="-5"><?= htmlspecialchars($lines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
+            <tspan x="<?= number_format($textX, 2, '.', '') ?>" dy="11"><?= htmlspecialchars($lines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
+          </text>
+          <?php else: ?>
+          <text x="<?= number_format($textX, 2, '.', '') ?>" y="<?= number_format($cy + 3.5, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="<?= $textAnchor ?>" style="text-anchor: <?= $textAnchor ?>;"><?= htmlspecialchars($rawLabel, ENT_QUOTES, 'UTF-8') ?></text>
+          <?php endif; ?>
         <?php endif; ?>
       </g>
       <?php endforeach; ?>
@@ -1475,8 +1766,13 @@ class GraphicsModule
     // Dimensiones y distribución de las filas
     $trackX = 14.0;
     $trackW = 292.0;
-    $barH = 14.0;
-    $rx = 7.0;
+    $barWidthVal = $style['barWidth'] ?? ($params['barHeight'] ?? null);
+    $barH = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 14.0;
+    $rx = min(8.0, $barH / 2.0);
+
+    $yPos = $style['yLabelPosition'];
+    $labelAnchor = ($yPos['align'] === 'center') ? 'middle' : (($yPos['align'] === 'end') ? 'end' : 'start');
+    $labelX = ($labelAnchor === 'middle') ? ($trackX + $trackW / 2.0) : (($labelAnchor === 'end') ? ($trackX + $trackW) : $trackX);
 
     $totalH = 180.0;
     $paddingTop = 14.0;
@@ -1508,7 +1804,7 @@ class GraphicsModule
       ?>
       <g class="mono-bullet-row" data-label="<?= $lbl ?>" data-val="<?= $valStr ?>" data-target="<?= $tgtStr ?>" data-diff="<?= $diffStr ?>">
         <!-- Textos superiores: Etiqueta a la izquierda y Valor/Benchmark a la derecha -->
-        <text x="<?= number_format($trackX, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" class="mono-bullet-label<?= $labelClass ?>"><?= $lbl ?></text>
+        <text x="<?= number_format($labelX, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="<?= $labelAnchor ?>" style="text-anchor: <?= $labelAnchor ?>;" class="mono-bullet-label<?= $labelClass ?>"><?= $lbl ?></text>
         <text x="<?= number_format($trackX + $trackW, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="end" class="mono-bullet-val<?= $labelClass ?>">
           <tspan font-weight="700"><?= $valStr ?></tspan>
           <tspan font-weight="400" opacity="0.65"> / <?= $tgtStr ?></tspan>
@@ -1619,7 +1915,8 @@ class GraphicsModule
     $cx = 160.0;
     $cy = 92.0;
     $r = 58.0;
-    $strokeWidth = 20.0;
+    $barWidthVal = $style['barWidth'] ?? ($params['strokeWidth'] ?? null);
+    $strokeWidth = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 20.0;
     $startAngle = isset($params['startAngle']) ? (float) $params['startAngle'] : -135.0;
 
     // Cálculo dinámico de separaciones angulares (gaps) para Soft Arc Caps
@@ -1797,7 +2094,8 @@ class GraphicsModule
     $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
 
     $cx = 160.0;
-    $barH = isset($params['barHeight']) && (float) $params['barHeight'] > 0 ? (float) $params['barHeight'] : 26.0;
+    $barWidthVal = $style['barWidth'] ?? ($params['barHeight'] ?? null);
+    $barH = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 26.0;
     $gapY = isset($params['gapY']) && (float) $params['gapY'] >= 0 ? (float) $params['gapY'] : 9.0;
     $rx = $barH / 2.0;
 
@@ -2186,9 +2484,12 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
-      <!-- Panel de Fondo Oscuro con Bordes Redondeados (Fiel a la captura) -->
-      <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="#111114" stroke="rgba(255,255,255,0.08)" stroke-width="1.2" />
+    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" width="100%" height="auto" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+      <?php if (!empty($params['showPanel'])): ?>
+      <!-- Panel de fondo opcional (desactivado por defecto para transparencia nativa) -->
+      <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="transparent" />
+      <?php endif; ?>
+
 
       <!-- Eje Y: Etiquetas de Días / Filas -->
       <g class="mono-matrix-labels">

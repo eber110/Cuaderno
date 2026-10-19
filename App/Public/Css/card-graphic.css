@@ -209,4 +209,19 @@ input[type="checkbox"].checkbox-switch {
   transition: width 0.4s ease;
 }
 
+/* Ajuste responsivo de ancho y fondo transparente para gráficos SVG */
+.mono-chart-svg.mono-hbar-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.mono-chart-svg .mono-matrix-panel {
+  display: none !important;
+  fill: transparent !important;
+  stroke: transparent !important;
+}
+
+
 

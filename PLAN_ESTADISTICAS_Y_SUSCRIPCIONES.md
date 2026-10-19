@@ -258,9 +258,59 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
    * Corregidos índices y alias (`name`, `key`, `network`, `mobile_percentage`, `desktop_percentage`) en `StatisticsModels::getLinksDetailedStats()`.
    * Compilado JIT y minificación ejecutados exitosamente con `composer min-script`.
 
-### 9.5 Próximos Pasos (Fase 6: Página de Precios / Suscripción)
+### 9.5 Corrección y Pulido de Gráficos Nativos en Framework (`frame` y `Cuaderno`)
+1. **Fondo de Matrix Heatmap**:
+   * **Causa raíz**: El fondo oscuro `#111114` no estaba en una clase CSS, sino inyectado como atributo en línea directamente en el generador PHP de [`GraphicsModule.php`](file:///c:/Users/eber/Proyectos/Cuaderno/vendor/eber/framework/Base/Module/GraphicsModule.php): `<rect ... class="mono-matrix-panel" fill="#111114" ... />`.
+   * **Solución**: Se eliminó el fondo fijo; el panel `<rect class="mono-matrix-panel">` ahora es transparente y opcional (solo si se pasa `showPanel => true`), permitiendo que el gráfico herede limpiamente el fondo de su tarjeta o contenedor tanto en modo claro como en modo oscuro.
+   * En CSS ([`charts.css`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Rsc/Library/Charts/charts.css), [`minimal-charts.css`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Public/Css/minimal-charts.css) y [`card-graphic.css`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Public/Css/card-graphic.css)), se fijó `.mono-chart-svg .mono-matrix-panel { display: none !important; fill: transparent !important; }`.
+2. **Ajuste Responsivo y Prevención de Recorte en Horizontal Bars**:
+   * **Causa raíz**: El `viewBox` estaba fijado en `0 0 320 180` y el inicio del gráfico `$plotX1` en `64.0`, otorgando apenas ~56px para etiquetas con `text-anchor="end"`. Etiquetas largas como *"Buscadores (Google/Bing)"* (24 caracteres) se posicionaban en `x < 0`, saliendo del viewport del SVG y recortándose a la izquierda.
+   * **Solución**: En `GraphicsModule::horizontalBars()`, se implementó cálculo dinámico del ancho del eje Y (`$calcLabelW = max(56.0, ceil($maxLabelChars * 6.6) + 12.0)`) y cálculo dinámico del ancho total del `viewBox` (`$viewBoxW = $plotX1 + $barAreaWidth + 16.0`), añadiendo `width="100%" height="auto"` al SVG y la regla CSS `.mono-chart-svg.mono-hbar-svg { display: block; width: 100%; max-width: 100%; height: auto; }`. Con esto el gráfico se adapta fluidamente al ancho del contenedor sin desbordar ni recortar textos.
+3. **Flujo de Trabajo del Framework**:
+   * Cambios implementados y verificados en `C:\Users\eber\Proyectos\frame`.
+   * Commit realizado en `frame`: `fix(charts): quitar fondo oscuro a matrixHeatmap y autoajustar viewBox en horizontalBars`.
+   * Actualización en `Cuaderno` mediante `composer update eber/framework`.
+   * Minificación y compilación JIT ejecutadas con éxito vía `composer min-script`.
+
+### 9.6 Motor Avanzado de Posicionamiento de Etiquetas (`yLabelPosition`) y Grosor de Barras (`barWidth`)
+1. **Configuración Global y Local en [`GraphicsModule.php`](file:///c:/Users/eber/Proyectos/Cuaderno/vendor/eber/framework/Base/Module/GraphicsModule.php)**:
+   * Los parámetros pueden definirse de forma global para toda la aplicación mediante `GraphicsModule::configStyle(['barWidth' => 16, 'yLabelPosition' => '[between],[40, 60, start]'])` o individualmente por gráfico mediante `$params['barWidth']` y `$params['yLabelPosition']`.
+   * Para asegurar máxima resiliencia, se mantiene soporte completo hacia atrás como alias si se provee `xLabelPosition`.
+   * El método `GraphicsModule::resetConfig()` restaura la configuración por defecto (`barWidth => null`, `yLabelPosition => 'default'`).
+2. **Sintaxis y Comportamiento de `yLabelPosition`**:
+   * Sintaxis soportada: `"[rowAlign],[labelPct, chartPct, labelAlign]"` (ej. `"[between],[40, 60, start]"`, `"[default],[50, 50, center]"`) o formato array asociativo `['row' => ..., 'labelPct' => ..., 'chartPct' => ..., 'align' => ...]`.
+   * **Alineación de fila / contenedor (`rowAlign`)**: `default`, `between`, `around`, `start`, `center`, `end`.
+   * **Modo `default`**:
+     * Si la longitud natural de las etiquetas es inferior al 50% del contenedor neto, ocupa 1 línea.
+     * Si la etiqueta más larga excede el 50% del contenedor neto, la columna de texto se ajusta automáticamente a 2 líneas (`<tspan>`), calculando los caracteres máximos por línea de forma responsiva para evitar cualquier solapamiento o desbordamiento.
+   * **Modos Flex (`between`, `around`, `start`, `center`, `end`)**:
+     * El porcentaje `labelPct, chartPct` (ej. `50, 50`, `40, 60`, `10, 90`) reparte el ancho neto del contenedor entre las etiquetas y el área de trazado, garantizando que el gráfico siempre ocupe el 100% del contenedor.
+   * **Alineación de Etiquetas (`labelAlign`)**:
+     * `start`: `text-anchor="start"` al inicio de la columna de etiquetas.
+     * `center`: `text-anchor="middle"` en el centro de la columna de etiquetas.
+     * `end`: `text-anchor="end"` al final de la columna de etiquetas.
+     * Se inyecta tanto el atributo SVG `text-anchor` como el estilo en línea `style="text-anchor: ...;"` para garantizar precedencia sobre clases CSS.
+3. **Control Unificado de Grosor (`barWidth`)**:
+   * Permite estandarizar el grosor de barras en toda la suite:
+     * Columnas verticales (`simpleBars`, `stackedTones`, `hybridSpline`): ancho de barra X.
+     * Columnas dobles (`pillPillars`): grosor de pilares gemelos (`pillarWidth`).
+     * Barras horizontales (`horizontalBars`): grosor/altura en Y de las barras cápsula (`barHeight`).
+     * Barras de benchmark (`bulletTarget`): grosor de cápsula en Y (`barHeight`).
+     * Arcos y roscas circulares (`arcMeter`, `roundedDonut`): grosor de trazo radial (`strokeWidth`).
+     * Pirámides jerárquicas (`pyramidStack`): altura de cápsulas por nivel (`barHeight`).
+   * **Exclusión explícita por diseño**: `splineDynamic`, `matrixHeatmap` y `tileTreemap` NO utilizan `barWidth` para salvaguardar su estética e identidad gráfica.
+4. **Flujo de Trabajo del Framework**:
+   * Pruebas de integración automatizadas ejecutadas y superadas con 100% de éxito en `c:\Users\eber\Proyectos\frame`.
+   * Commits en `frame`:
+     * `feat(graphics): agregar soporte global y local para xLabelPosition y barWidth` (`173c72e`).
+     * `fix(graphics): renombrar xLabelPosition a yLabelPosition manteniendo compatibilidad hacia atras` (`1ebc98a`).
+   * Dependencia sincronizada en `Cuaderno` vía `composer update eber/framework`.
+   * Minificación y JIT ejecutados limpiamente vía `composer min-script`.
+
+### 9.7 Próximos Pasos (Fase 6: Página de Precios / Suscripción)
 1. Actualizar [`LemonSqueezyControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LemonSqueezyControllers.php) y las vistas de planes/precios (`/planes` / `/suscripcion`).
 2. Tarjeta Free: para usuarios con sesión activa, indicar «Tu plan actual».
 3. Tarjeta Premium: desglosar todas las ventajas analíticas desbloqueables («¿Quién te visitó?», Heatmap semanal, Ranking de Países y Ciudades, Enlace Estrella, Fuentes de Tráfico) con espacio reservado para el checkout final.
+
 
 

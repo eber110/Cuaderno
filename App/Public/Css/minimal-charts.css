@@ -377,6 +377,13 @@
    5.1 ESTILOS PARA SIMPLE BARS, HORIZONTAL BARS Y BULLET TARGET
    ========================================================================= */
 
+.mono-chart-svg.mono-hbar-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
 .mono-chart-svg .mono-simple-bar-item,
 .mono-chart-svg .mono-hbar-item,
 .mono-chart-svg .mono-bullet-row {
@@ -574,6 +581,9 @@
 }
 
 .mono-chart-svg .mono-matrix-panel {
+  display: none !important;
+  fill: transparent !important;
+  stroke: transparent !important;
   transition: stroke 0.3s ease;
 }
 

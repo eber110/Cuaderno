@@ -118,6 +118,7 @@
   GraphicsModule::configStyle([
     "colorLabel" => "texto",
     "axisLabel"  => "texto",
+    "barWidth"       => 16,
     "color"      => "color8",
     "transition" => 500,
     'tooltip'    => false
@@ -449,7 +450,7 @@
         <?php endif; ?>
 
         <div class="flex-column center-center gap10 w100">
-          <div class="w-mid-90 wpx-desk-550">
+          <div class="w-mid-100 wpx-desk-550">
             <?= GraphicsModule::horizontalBars([
               'bars'        => $platformBars,
               'color'       => 'texto',
@@ -483,8 +484,8 @@
     <?php else: ?>
       <!-- Vista Bloqueada (Free Teaser) con GraphicsModule -->
       <div class="premium-blur-container w100">
-        <div class="premium-blur-content flex-column gap10 w100 pt5">
-          <div class="w100 max-wpx650 mx-auto">
+        <div class="flex-column center-center gap10 w100">
+          <div class="w-mid-100 wpx-desk-550">
             <?= GraphicsModule::horizontalBars([
               'bars' => [
                 ['label' => 'Instagram', 'value' => 55.0, 'display' => '55%'],
@@ -548,7 +549,7 @@
       <?php endif; ?>
 
       <div class="w100 flex-column center pt10">
-        <div class="w100 max-wpx650 flex-column gap5">
+        <div class="w100 flex-column gap5">
           <div class="flex-row center-end gap10 pr15 x12">
             <span>Días: <strong>Lun — Dom</strong></span>
             <span>•</span>
@@ -572,7 +573,7 @@
           <div class="p12 br12 back-card-graphic shadow-card-graphic">
             <p class="m0 x13">Recomendación: Tu mayor pico de audiencia ocurre los Miércoles en la tarde.</p>
           </div>
-          <div class="w100 max-wpx650 mx-auto">
+          <div class="w100">
             <?= GraphicsModule::matrixHeatmap([
               'rows'  => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
               'cols'  => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],

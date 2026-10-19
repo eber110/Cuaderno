@@ -347,6 +347,13 @@
    9. GRÁFICO 7: HORIZONTAL BARS (Barras Horizontales en Cápsula)
    ========================================================================= */
 
+.mono-chart-svg.mono-hbar-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
 .mono-chart-svg .mono-hbar-item {
   cursor: pointer;
   transition: filter 0.2s ease;
@@ -544,6 +551,9 @@
 }
 
 .mono-chart-svg .mono-matrix-panel {
+  display: none !important;
+  fill: transparent !important;
+  stroke: transparent !important;
   transition: stroke 0.3s ease;
 }
 
