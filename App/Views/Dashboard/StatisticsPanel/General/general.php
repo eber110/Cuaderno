@@ -200,7 +200,7 @@
           <?php foreach ($visitors as $v): ?>
             <div class="flex-row center-between wrap gap10 p10 pl15 pr15 br12 back-card-graphic shadow-card-graphic hover-scale-soft">
               <div class="flex-row center-start gap12">
-                <img src="<?= eUrl($v['avatar']); ?>" alt="<?= e($v['display_name']); ?>" class="br50 object-cover" width="40" height="40" loading="lazy">
+                <img src="<?= eUrl($v['avatar']); ?>" alt="<?= e($v['display_name']); ?>" class="br50 object-cover hpx40 wpx40" width="40" height="40" loading="lazy">
                 <div class="flex-column gap2">
                   <a href="<?= eUrl($v['profile_url']); ?>" target="_blank" rel="noopener noreferrer" class="bold600 texto hover-underline leading-none">
                     <?= e($v['display_name']); ?>
