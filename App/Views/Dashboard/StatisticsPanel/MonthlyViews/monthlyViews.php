@@ -102,7 +102,6 @@
             "unit"          => $spline["unit"] ?? "Visitas",
             "autoScale"     => $spline["autoScale"] ?? true,
             "color"         => $spline["color"] ?? "texto",
-            "axisLabel"     => $spline["axisLabel"] ?? "color-secondary",
             "transition"    => $spline["transition"] ?? 450,
             "tooltip"       => true
           ]); 

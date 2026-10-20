@@ -268,8 +268,8 @@ export function initChartTooltips() {
     const target = e.target;
     if (!target || !target.closest) return;
 
-    // Verificar si pertenece a un gráfico SVG
-    const svg = target.closest("svg.mono-chart-svg");
+    // Verificar si pertenece a un gráfico del módulo (.mono-chart-svg)
+    const svg = target.closest(".mono-chart-svg");
     if (!svg) {
       if (currentTarget) {
         tooltip.classList.remove("visible");

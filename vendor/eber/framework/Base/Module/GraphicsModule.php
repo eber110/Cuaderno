@@ -37,7 +37,7 @@ class GraphicsModule
   private static array $globalConfig = [
     'color'          => 'texto',
     'colorLabel'     => 'textw',
-    'axisLabel'      => 'color1',
+    'axisLabel'      => 'texto',
     'axisLabelSize'  => null,
     'transition'     => 400,
     'tooltip'        => true,
@@ -127,7 +127,7 @@ class GraphicsModule
     self::$globalConfig = [
       'color'          => 'texto',
       'colorLabel'     => 'textw',
-      'axisLabel'      => 'color1',
+      'axisLabel'      => 'texto',
       'axisLabelSize'  => null,
       'transition'     => 400,
       'tooltip'        => true,
@@ -206,7 +206,7 @@ class GraphicsModule
   {
     $colorRaw = $params['color'] ?? self::$globalConfig['color'];
     $labelRaw = $params['colorLabel'] ?? self::$globalConfig['colorLabel'] ?? 'textw';
-    $axisRaw = $params['axisLabel'] ?? self::$globalConfig['axisLabel'] ?? 'color1';
+    $axisRaw = $params['axisLabel'] ?? self::$globalConfig['axisLabel'] ?? 'texto';
     $transition = isset($params['transition']) && is_numeric($params['transition'])
       ? (int) $params['transition']
       : self::$globalConfig['transition'];
@@ -1065,10 +1065,17 @@ class GraphicsModule
     $plotX2 = 280.0;
     $availableWidth = $plotX2 - $plotX1;
     $step = $count > 1 ? ($availableWidth / ($count - 1)) : 0.0;
-    $barWidthVal = $style['barWidth'] ?? null;
-    $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
-      ? (float) $barWidthVal
-      : min(28.0, max(8.0, ($availableWidth / $count) * 0.52));
+    
+    // En Hybrid Spline, las barras translúcidas de fondo son indicadores bajo la curva.
+    // Para salvaguardar la estética y proporciones frente a cualquier densidad de puntos (ej. 10-12 meses),
+    // su ancho se calcula dinámicamente según el paso horizontal, respetando barWidth solo si se define localmente.
+    $localBarWidth = isset($params['barWidth']) && $params['barWidth'] !== null && $params['barWidth'] !== ''
+      ? (float) $params['barWidth']
+      : null;
+    $maxSafeBarWidth = ($availableWidth / max(1, $count)) * 0.50;
+    $barWidth = $localBarWidth !== null
+      ? min($maxSafeBarWidth, $localBarWidth)
+      : min(20.0, max(6.0, $maxSafeBarWidth));
     $baselineY = 155.0;
     $maxH = 120.0;
 
@@ -1092,8 +1099,17 @@ class GraphicsModule
     $pathD = self::computeSplinePath($points, 0.25);
     $areaD = $pathD . ' L ' . end($points)['x'] . ',' . $baselineY . ' L ' . $points[0]['x'] . ',' . $baselineY . ' Z';
 
-    $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
-    $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+    // Si se pasa axisLabelSize localmente, se respeta; si proviene de la configuración global,
+    // se calcula un tamaño adaptativo proporcional al paso entre puntos para evitar colisiones
+    // y solapamientos de texto en ejes densos con viewBox fijo.
+    if (isset($params['axisLabelSize']) && $params['axisLabelSize'] !== null && $params['axisLabelSize'] !== '') {
+      $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
+      $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+    } else {
+      $adaptiveFontSize = round(min(11.0, max(8.5, ($step > 0 ? $step * 0.40 : 10.0))), 1);
+      $axisSizeStyle = " font-size: {$adaptiveFontSize}px;";
+      $axisSizeAttr = " font-size=\"{$adaptiveFontSize}px\"";
+    }
 
     ob_start();
     ?>
@@ -1553,134 +1569,48 @@ class GraphicsModule
     $showAxisX = isset($params['showAxisX']) ? (bool) $params['showAxisX'] : (isset($params['showX']) ? (bool) $params['showX'] : true);
     $valueSuffix = (string) ($params['valueSuffix'] ?? '');
 
-    $classNames = 'mono-chart-svg mono-hbar-svg';
+    $classNames = 'mono-chart-svg mono-hbar-svg mono-hbar-container';
     if (!empty($style['svgClass'])) {
       $classNames .= ' ' . htmlspecialchars($style['svgClass'], ENT_QUOTES, 'UTF-8');
     }
     $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
-
-    // Geometría del área horizontal
-    $topY = 20.0;
-    $bottomY = 155.0;
-    $availableH = $bottomY - $topY;
-    $slotH = $availableH / $count;
+    $axisColorInline = empty($style['axisClass']) ? ' color: var(--chart-axis-color, currentColor);' : '';
 
     // Configuración de posición y alineación de etiquetas y barras (yLabelPosition)
     $yPos = $style['yLabelPosition'];
+    $textAlignCss = ($yPos['align'] === 'center') ? 'center' : (($yPos['align'] === 'end') ? 'right' : 'left');
 
-    // Tamaño de fuente de las etiquetas de ejes (axisLabelSize) y factor métrico por caracter
-    $axisSizeNum = $style['axisLabelSizeNum'] ?? 10.0;
-    $charWidthFactor = max(4.5, $axisSizeNum * 0.66);
-    $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
-    $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+    // Tamaño de fuente exacto en píxeles (axisLabelSize)
+    $axisSizeNum = $style['axisLabelSizeNum'] ?? 12.0;
+    $fontSizeCss = !empty($style['axisLabelSizeCss']) ? $style['axisLabelSizeCss'] : '12px';
 
-    // Grosor/ancho de las barras horizontales (barWidth o barHeight global/local)
+    // Grosor/altura exacta en píxeles de las barras horizontales (barWidth o barHeight global/local)
     $barThickness = $style['barWidth'] ?? ($params['barHeight'] ?? null);
     $barHeight = $barThickness !== null && (float) $barThickness > 0
       ? (float) $barThickness
-      : min(22.0, max(8.0, $slotH * 0.54));
-    $ry = min(8.0, $barHeight / 2);
+      : 18.0;
+    $ry = min(8.0, $barHeight / 2.0);
 
-    // Dimensiones virtuales del SVG estandarizadas o personalizadas por contenedor
-    $viewBoxW = $style['width'] ?? ($params['viewBoxW'] ?? ($params['width'] ?? 320.0));
-    $padLeft = 14.0;
-    $padRight = 16.0;
-    $netW = $viewBoxW - $padLeft - $padRight;
+    // Modo de distribución de columnas (Grid auto-ajustado vs Flexbox porcentual)
+    $flexJustify = 'flex-start';
+    $labelPct = 50.0;
+    $chartPct = 50.0;
 
     if (!$showAxisY) {
-      // Sin etiquetas en el eje Y (aprovecha el 100% del ancho para las barras)
-      $plotX1 = $padLeft;
-      $availableW = $netW;
-      $plotX2 = $plotX1 + $availableW;
-      $labelColW = 0.0;
-      $labelX1 = 0.0;
-      $textAnchor = 'start';
-      $wrapTo2Lines = false;
-      $maxCharsPerLine = 999;
+      $bodyModeClass = 'mono-hbar-no-axis-y';
+    } elseif ($yPos['row'] === 'default' && !$yPos['hasSplit']) {
+      $bodyModeClass = 'mono-hbar-mode-default';
     } else {
-      $gap = 12.0;
-
-      if ($yPos['row'] === 'default' && !$yPos['hasSplit']) {
-        // MODO DEFAULT:
-        // Alineación automática desde left hasta right según el largo del label.
-        // Pero si el label es más largo del 50% del contenedor, el label abarca 2 líneas y se limita al 50%.
-        $maxLabelChars = 0;
-        foreach ($items as $it) {
-          $len = mb_strlen((string) ($it['label'] ?? ''), 'UTF-8');
-          if ($len > $maxLabelChars) {
-            $maxLabelChars = $len;
-          }
-        }
-
-        $naturalLabelW = max(50.0, ceil($maxLabelChars * $charWidthFactor) + 10.0);
-        $halfNet = $netW * 0.50;
-
-        if ($naturalLabelW > $halfNet) {
-          // El label supera el 50% del contenedor -> abarca 2 líneas
-          $labelColW = $halfNet - 8.0;
-          $wrapTo2Lines = true;
-          $maxCharsPerLine = max(6, (int) floor(($labelColW - 6.0) / $charWidthFactor));
-        } else {
-          // Cabe en 1 línea
-          $labelColW = $naturalLabelW;
-          $wrapTo2Lines = false;
-          $maxCharsPerLine = 999;
-        }
-
-        $labelX1 = $padLeft;
-        $plotX1 = $labelX1 + $labelColW + $gap;
-        $availableW = max(60.0, $netW - ($labelColW + $gap));
-        $plotX2 = $plotX1 + $availableW;
-        $textAnchor = ($yPos['align'] === 'start') ? 'start' : (($yPos['align'] === 'center') ? 'middle' : 'end');
-      } else {
-        // MODO PERSONALIZADO: [between|around|start|center|end],[labelPct, chartPct, labelAlign]
-        $usableNet = max(100.0, $netW - $gap);
-        $labelColW = max(40.0, round(($yPos['labelPct'] / 100.0) * $usableNet, 1));
-        $availableW = max(50.0, round(($yPos['chartPct'] / 100.0) * $usableNet, 1));
-        $maxCharsPerLine = max(6, (int) floor(($labelColW - 6.0) / $charWidthFactor));
-
-        $totalContentW = $labelColW + $gap + $availableW;
-        $freeSpace = max(0.0, $netW - $totalContentW);
-
-        switch ($yPos['row']) {
-          case 'between':
-            $labelX1 = $padLeft;
-            $plotX1 = $padLeft + $netW - $availableW;
-            break;
-          case 'around':
-            $spacing = $freeSpace / 4.0;
-            $labelX1 = $padLeft + $spacing;
-            $plotX1 = $labelX1 + $labelColW + (2 * $spacing) + $gap;
-            break;
-          case 'start':
-            $labelX1 = $padLeft;
-            $plotX1 = $labelX1 + $labelColW + $gap;
-            break;
-          case 'center':
-            $labelX1 = $padLeft + ($freeSpace / 2.0);
-            $plotX1 = $labelX1 + $labelColW + $gap;
-            break;
-          case 'end':
-            $plotX1 = $padLeft + $netW - $availableW;
-            $labelX1 = $plotX1 - $gap - $labelColW;
-            break;
-          default:
-            $labelX1 = $padLeft;
-            $plotX1 = $labelX1 + $labelColW + $gap;
-            break;
-        }
-
-        $plotX2 = $plotX1 + $availableW;
-        $textAnchor = ($yPos['align'] === 'start') ? 'start' : (($yPos['align'] === 'center') ? 'middle' : 'end');
-      }
-    }
-
-    if ($textAnchor === 'start') {
-      $textX = $labelX1;
-    } elseif ($textAnchor === 'middle') {
-      $textX = $labelX1 + ($labelColW / 2.0);
-    } else { // 'end'
-      $textX = $labelX1 + $labelColW;
+      $bodyModeClass = 'mono-hbar-mode-custom';
+      $flexJustify = match ($yPos['row']) {
+        'between' => 'space-between',
+        'around'  => 'space-around',
+        'center'  => 'center',
+        'end'     => 'flex-end',
+        default   => 'flex-start',
+      };
+      $labelPct = max(5.0, min(90.0, (float) $yPos['labelPct']));
+      $chartPct = max(10.0, min(95.0, (float) $yPos['chartPct']));
     }
 
     // Escala del eje X
@@ -1711,84 +1641,88 @@ class GraphicsModule
       $nTicks = count($customTicks);
       foreach ($customTicks as $tIdx => $tLbl) {
         $tRatio = $nTicks > 1 ? ($tIdx / ($nTicks - 1)) : 0.0;
-        $tx = $nTicks > 1 ? $plotX1 + ($tRatio * $availableW) : $plotX2;
-        $xTicks[] = ['x' => $tx, 'label' => (string) $tLbl, 'ratio' => $tRatio];
+        $xTicks[] = ['label' => (string) $tLbl, 'ratio' => $tRatio];
       }
     } else {
       for ($t = 0; $t <= 4; $t++) {
         $ratio = $t / 4.0;
-        $tx = $plotX1 + ($ratio * $availableW);
         $valAtTick = $maxVal * $ratio;
-        $xTicks[] = ['x' => $tx, 'label' => round($valAtTick, 1) . $valueSuffix, 'ratio' => $ratio];
+        $xTicks[] = ['label' => round($valAtTick, 1) . $valueSuffix, 'ratio' => $ratio];
       }
     }
 
     ob_start();
     ?>
-    <svg viewBox="0 0 <?= (int)round($viewBoxW) ?> 180" 
-         class="<?= $classNames ?>" 
-         style="<?= $style['styleAttr'] ?>" 
-         width="100%" 
-         height="auto" 
-         data-chart="horizontal-bars" 
-         data-pad-left="<?= $padLeft ?>"
-         data-pad-right="<?= $padRight ?>"
-         data-gap="<?= $gap ?? 12 ?>"
-         data-label-col-w="<?= number_format($labelColW, 2, '.', '') ?>"
+    <div class="<?= $classNames ?>"
+         style="<?= $style['styleAttr'] ?>"
+         data-chart="horizontal-bars"
          data-max-val="<?= $maxVal ?>"
-         data-text-anchor="<?= $textAnchor ?>"
          data-show-axis-y="<?= $showAxisY ? '1' : '0' ?>"
          data-show-axis-x="<?= $showAxisX ? '1' : '0' ?>"
-         <?= $style['tooltipAttr'] ?> 
-         data-duration="<?= $style['transition'] ?>" 
-         preserveAspectRatio="xMidYMid meet">
-      <!-- Rejilla vertical punteada -->
-      <?php foreach ($xTicks as $tick): ?>
-      <line x1="<?= number_format($tick['x'], 2, '.', '') ?>" y1="<?= number_format($topY - 4, 2, '.', '') ?>" x2="<?= number_format($tick['x'], 2, '.', '') ?>" y2="<?= number_format($bottomY, 2, '.', '') ?>" class="mono-svg-grid-line" data-ratio="<?= number_format($tick['ratio'], 4, '.', '') ?>" />
-      <?php if ($showAxisX): ?>
-      <text x="<?= number_format($tick['x'], 2, '.', '') ?>" y="172" class="mono-svg-axis-text mono-svg-axis-text-x<?= $axisClass ?>" style="<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?> data-ratio="<?= number_format($tick['ratio'], 4, '.', '') ?>"><?= htmlspecialchars($tick['label'], ENT_QUOTES, 'UTF-8') ?></text>
-      <?php endif; ?>
-      <?php endforeach; ?>
-
-      <!-- Barras horizontales en cápsula (pista + barra activa) -->
-      <?php foreach ($items as $idx => $it): 
-        $itVal = (float) ($it['val'] ?? ($it['value'] ?? 0));
-        $cy = $topY + ($idx + 0.5) * $slotH;
-        $barY = $cy - ($barHeight / 2);
-        $barRatio = $maxVal > 0 ? min($itVal, $maxVal) / $maxVal : 0.0;
-        $barW = $barRatio * $availableW;
-        $lbl = htmlspecialchars((string) ($it['label'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $displayVal = htmlspecialchars((string) ($it['display'] ?? ($itVal . $valueSuffix)), ENT_QUOTES, 'UTF-8');
-      ?>
-      <g class="mono-hbar-item" data-label="<?= $lbl ?>" data-val="<?= $displayVal ?>" data-num-val="<?= $itVal ?>">
-        <!-- Pista horizontal translúcida de fondo -->
-        <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($availableW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-track" />
-        <!-- Barra dinámica activa -->
-        <rect x="<?= number_format($plotX1, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barW, 2, '.', '') ?>" height="<?= number_format($barHeight, 2, '.', '') ?>" rx="<?= number_format($ry, 2, '.', '') ?>" class="mono-hbar-rect" data-target-w="<?= number_format($barW, 2, '.', '') ?>" data-ratio="<?= number_format($barRatio, 4, '.', '') ?>" />
-        <!-- Etiqueta descriptiva (eje Y) a la izquierda de la barra con yLabelPosition y soporte multilinea -->
-        <?php if ($showAxisY): 
+         <?= $style['tooltipAttr'] ?>
+         data-duration="<?= $style['transition'] ?>">
+      <div class="mono-hbar-body <?= $bodyModeClass ?>">
+        <?php foreach ($items as $idx => $it):
+          $itVal = (float) ($it['val'] ?? ($it['value'] ?? 0));
+          $barRatio = $maxVal > 0 ? max(0.0, min(1.0, $itVal / $maxVal)) : 0.0;
+          $barPct = round($barRatio * 100.0, 2);
           $rawLabel = (string) ($it['label'] ?? '');
-          $labelLen = mb_strlen($rawLabel, 'UTF-8');
-          $needWrap = ($labelLen > $maxCharsPerLine) || (!empty($wrapTo2Lines) && $labelLen > 12);
-          $lines = $needWrap ? self::wrapTextLines($rawLabel, $maxCharsPerLine, 2) : [$rawLabel];
+          $lbl = htmlspecialchars($rawLabel, ENT_QUOTES, 'UTF-8');
+          $displayVal = htmlspecialchars((string) ($it['display'] ?? ($itVal . $valueSuffix)), ENT_QUOTES, 'UTF-8');
+          $rowClasses = 'mono-hbar-item mono-hbar-row';
+          if ($idx === 0) $rowClasses .= ' is-first-bar';
+          if ($idx === $count - 1) $rowClasses .= ' is-last-bar';
+
+          $rowStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "justify-content: {$flexJustify};" : "";
+          $labelColStyle = "font-size: {$fontSizeCss}; text-align: {$textAlignCss};{$axisColorInline}";
+          $plotColStyle = "height: " . number_format($barHeight, 2, '.', '') . "px;";
+
+          if ($bodyModeClass === 'mono-hbar-mode-custom') {
+            $labelColStyle .= " flex: 0 0 calc({$labelPct}% - 6px); width: calc({$labelPct}% - 6px); max-width: calc({$labelPct}% - 6px);";
+            $plotColStyle .= " flex: 0 0 calc({$chartPct}% - 6px); width: calc({$chartPct}% - 6px); max-width: calc({$chartPct}% - 6px);";
+          }
         ?>
-          <?php if (count($lines) > 1): 
-            $dy1 = - round($axisSizeNum * 0.48, 1);
-            $dy2 = round($axisSizeNum * 1.08, 1);
-          ?>
-          <text x="<?= number_format($textX, 2, '.', '') ?>" y="<?= number_format($cy, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="<?= $textAnchor ?>" style="text-anchor: <?= $textAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?>>
-            <tspan x="<?= number_format($textX, 2, '.', '') ?>" dy="<?= $dy1 ?>"><?= htmlspecialchars($lines[0], ENT_QUOTES, 'UTF-8') ?></tspan>
-            <tspan x="<?= number_format($textX, 2, '.', '') ?>" dy="<?= $dy2 ?>"><?= htmlspecialchars($lines[1], ENT_QUOTES, 'UTF-8') ?></tspan>
-          </text>
-          <?php else: 
-            $textYOffset = round($axisSizeNum * 0.35, 1);
-          ?>
-          <text x="<?= number_format($textX, 2, '.', '') ?>" y="<?= number_format($cy + $textYOffset, 2, '.', '') ?>" class="mono-svg-axis-text mono-svg-axis-text-y<?= $axisClass ?>" text-anchor="<?= $textAnchor ?>" style="text-anchor: <?= $textAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?>><?= htmlspecialchars($rawLabel, ENT_QUOTES, 'UTF-8') ?></text>
+        <div class="<?= $rowClasses ?>" data-label="<?= $lbl ?>" data-val="<?= $displayVal ?>" data-num-val="<?= $itVal ?>"<?= $rowStyle !== '' ? ' style="' . $rowStyle . '"' : '' ?>>
+          <?php if ($showAxisY): ?>
+          <div class="mono-svg-axis-text mono-svg-axis-text-y mono-hbar-label<?= $axisClass ?>" style="<?= $labelColStyle ?>">
+            <span class="mono-hbar-label-text"><?= $lbl ?></span>
+          </div>
           <?php endif; ?>
+          <div class="mono-hbar-plot" style="<?= $plotColStyle ?>">
+            <?php foreach ($xTicks as $tick): ?>
+            <span class="mono-hbar-grid-line" style="left: <?= number_format($tick['ratio'] * 100, 2, '.', '') ?>%;" data-ratio="<?= number_format($tick['ratio'], 4, '.', '') ?>"></span>
+            <?php endforeach; ?>
+            <div class="mono-hbar-track" style="height: <?= number_format($barHeight, 2, '.', '') ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
+            <div class="mono-hbar-rect" data-target-w="<?= number_format($barPct, 2, '.', '') ?>" data-ratio="<?= number_format($barRatio, 4, '.', '') ?>" data-num-val="<?= $itVal ?>" style="width: <?= number_format($barPct, 2, '.', '') ?>%; height: <?= number_format($barHeight, 2, '.', '') ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
+          </div>
+        </div>
+        <?php endforeach; ?>
+
+        <?php if ($showAxisX):
+          $axisRowStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "justify-content: {$flexJustify};" : "";
+          $spacerStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "flex: 0 0 calc({$labelPct}% - 6px); width: calc({$labelPct}% - 6px); max-width: calc({$labelPct}% - 6px);" : "";
+          $axisXBoxStyle = "height: " . round($axisSizeNum * 1.35) . "px;";
+          if ($bodyModeClass === 'mono-hbar-mode-custom') {
+            $axisXBoxStyle .= " flex: 0 0 calc({$chartPct}% - 6px); width: calc({$chartPct}% - 6px); max-width: calc({$chartPct}% - 6px);";
+          }
+          $lastTickIdx = count($xTicks) - 1;
+        ?>
+        <div class="mono-hbar-axis-row"<?= $axisRowStyle !== '' ? ' style="' . $axisRowStyle . '"' : '' ?>>
+          <?php if ($showAxisY): ?>
+          <div class="mono-hbar-axis-spacer" aria-hidden="true"<?= $spacerStyle !== '' ? ' style="' . $spacerStyle . '"' : '' ?>></div>
+          <?php endif; ?>
+          <div class="mono-hbar-axis-x" style="<?= $axisXBoxStyle ?>">
+            <?php foreach ($xTicks as $tIdx => $tick):
+              $edgeAttr = ($tIdx === 0) ? ' data-edge="start"' : (($tIdx === $lastTickIdx) ? ' data-edge="end"' : '');
+              $tickStyle = "left: " . number_format($tick['ratio'] * 100, 2, '.', '') . "%; font-size: {$fontSizeCss};{$axisColorInline}";
+            ?>
+            <span class="mono-svg-axis-text mono-svg-axis-text-x mono-hbar-tick-x<?= $axisClass ?>"<?= $edgeAttr ?> data-ratio="<?= number_format($tick['ratio'], 4, '.', '') ?>" style="<?= $tickStyle ?>"><?= htmlspecialchars($tick['label'], ENT_QUOTES, 'UTF-8') ?></span>
+            <?php endforeach; ?>
+          </div>
+        </div>
         <?php endif; ?>
-      </g>
-      <?php endforeach; ?>
-    </svg>
+      </div>
+    </div>
     <?php
     return trim(ob_get_clean());
   }

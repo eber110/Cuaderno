@@ -340,53 +340,36 @@ En la página de planes gestionada por [`LemonSqueezyControllers.php`](file:///c
 
 ---
 
-## 10. Fase 6: Rediseño Híbrido Responsivo de Gráficos (`horizontalBars` Nativo con HTML + CSS Flexbox) — [Plan de Acción para Mañana]
+## 10. Fase 6: Rediseño Híbrido Responsivo de Gráficos (`horizontalBars` Nativo con HTML + CSS Flexbox/Grid) — [✅ Completado]
 
 ### 10.1 Objetivo y Fundamento Arquitectónico
 Garantizar que las barras horizontales (`horizontalBars`) respeten **de forma matemática y estricta las medidas en píxeles configuradas** (`barWidth => 20`, `axisLabelSize => 16`), sin importar si el usuario visualiza el dashboard en un monitor de 1920px (contenedor de 650px), en una laptop (550px), en una tablet o en un teléfono móvil (contenedor responsivo de 348px).
 
-### 10.2 Por qué el Enfoque Híbrido (HTML + CSS Flexbox) es Superior
-A diferencia de los gráficos 2D continuos (como curvas spline o heatmaps matriciales), las **barras horizontales son conceptualmente filas de datos discretas**:
-1. **Tipografía Invariable (Eje Y)**: Al renderizar las etiquetas descriptivas en elementos nativos HTML (`<span class="mono-hbar-label" style="font-size: 16px;">`), el tamaño de fuente es **siempre 16px exactos**, nítido y legible en cualquier densidad de pantalla (Retina, móvil o desktop), con soporte de salto de línea automático si la etiqueta excede el espacio asignado.
-2. **Grosor de Barras Invariable (Eje X)**: La pista y la barra activa se generan con contenedores HTML/CSS:
-   * Pista de fondo: `<div class="mono-hbar-track br8" style="height: 20px;">`
-   * Barra de progreso: `<div class="mono-hbar-fill br8" style="height: 20px; width: 52%; transition: width 500ms ease;">`
-   * El grosor vertical es **estrictamente de 20px físicos**, mientras que el ancho horizontal se expande o contrae fluidamente para ocupar el 100% del contenedor sobrante mediante CSS Flexbox.
-3. **Rejillas y Marcadores Numéricos**: Se dibujan como guías verticales porcentuales (`left: 0%`, `left: 25%`, `left: 50%`, `left: 75%`, `left: 100%`) o mediante un SVG liviano de rejilla de fondo, sin interferir con las dimensiones de las barras ni del texto.
-4. **Cero Dependencia de Redibujado JS**: No requiere cálculos pesados en cada evento `resize` ni `ResizeObserver`; la responsividad ocurre de forma nativa e instantánea por motor CSS (0ms).
-
-### 10.3 Procedimiento de Ejecución Paso a Paso para Mañana
-
-#### Paso 1: Trabajo en el Repositorio del Framework (`C:\Users\eber\Proyectos\frame`)
-1. **Modificar `Base/Module/GraphicsModule.php`**:
-   * En el método `horizontalBars(array $params)`:
-     * Extraer los parámetros de configuración global y local (`barWidth`, `axisLabelSize`, `yLabelPosition`, `color`, `tooltip`, `showAxisX`, `showAxisY`).
-     * Maquetar el contenedor principal con clases atómicas: `<div class="mono-hbar-container flex-column gap12 w100" ...>`.
-     * Por cada barra:
-       * Contenedor de fila: `<div class="mono-hbar-row flex-row items-center w100 gap10">`.
-       * Etiqueta Y (HTML nativo): ancho porcentual según `yLabelPosition` (ej. 40% o auto), con alineación de texto (`text-left`, `text-center`, `text-right`) y `font-size: {$axisLabelSize}px;`.
-       * Contenedor de barra (Flex 1): contenedor relativo que aloja la pista (`height: {$barWidth}px;`), la barra activa (`height: {$barWidth}px; width: {$pct}%; background-color: var(--color);`), y opcionalmente el tooltip.
-       * Eje X inferior: fila de marcas numéricas alineadas a las proporciones de cuadrícula (0%, 25%, 50%, 75%, 100%).
-2. **Actualizar CSS del Framework (`Resources/Library/Charts/charts.css`)**:
-   * Definir las clases y transiciones para `.mono-hbar-container`, `.mono-hbar-row`, `.mono-hbar-track`, `.mono-hbar-fill`, `.mono-hbar-label` y `.mono-hbar-axis-x`.
-3. **Validación y Pruebas Unitarias**:
-   * Probar con script PHP en `frame` validando que la salida HTML cumpla la estructura exacta y las clases atómicas del framework.
-4. **Commit en Git (`frame`)**:
-   * Registrar commit semántico: `feat(charts): redisenar horizontalBars con arquitectura hibrida HTML/CSS flexbox para medidas pixel-perfect invariables`.
-
-#### Paso 2: Integración y Sincronización en el Proyecto (`Cuaderno`)
-1. Ejecutar `composer update eber/framework` en `c:\Users\eber\Proyectos\Cuaderno`.
-2. Sincronizar estilos en `App/Rsc/Library/Charts/charts.css` y `App/Public/Css/minimal-charts.css`.
-3. Ejecutar `composer min-script` para compilar JIT CSS y minificar JS/CSS.
-4. Validar en las vistas reales del dashboard:
-   * Contenedor de 650px (Geolocalización en Escritorio).
-   * Contenedor de 550px (Fuentes de Tráfico en Escritorio).
-   * Contenedor de 348px (Modo Teléfono Móvil responsivo).
-5. Comprobar que en las 3 pantallas el grosor de barra sea exactamente 20px y la tipografía exactamente 16px.
+### 10.2 Arquitectura Híbrida Implementada (HTML + CSS Grid / Flexbox)
+1. **Tipografía Invariable (Eje Y y Eje X)**:
+   * Las etiquetas descriptivas del eje Y se renderizan en elementos nativos HTML (`<div class="mono-svg-axis-text mono-svg-axis-text-y mono-hbar-label ..." style="font-size: 16px;">`) y las marcas del eje X en `<span class="mono-svg-axis-text mono-svg-axis-text-x mono-hbar-tick-x ..." style="font-size: 16px;">`.
+   * El tamaño tipográfico es **100% invariable en píxeles reales** (`16px`) en cualquier tamaño de contenedor o resolución móvil, eliminando por completo la deformación de `viewBox`.
+   * Cuando la etiqueta es muy larga en móvil (superando el 50% del contenedor), `.mono-hbar-label-text` aplica automáticamente salto de línea hasta un máximo de 2 líneas (`-webkit-line-clamp: 2`).
+2. **Grosor de Barras Invariable (`barWidth` / `barHeight`)**:
+   * El área de trazado `.mono-hbar-plot`, la pista `.mono-hbar-track` y la barra activa `.mono-hbar-rect` aplican `height: {$barHeight}px; border-radius: {$ry}px;` en píxeles CSS puros (`height: 20.00px;`).
+   * El largo de cada barra se expresa en porcentaje fluido (`width: {$pct}%;`, `data-target-w="{$pct}"`), expandiéndose o contrayéndose de forma instantánea según el espacio horizontal disponible sin alterar jamás los `20px` de grosor vertical.
+3. **Tres Modos de Distribución (`yLabelPosition` y `showAxisY`)**:
+   * **Modo `default` (`mono-hbar-mode-default`)**: Utiliza CSS Grid (`grid-template-columns: fit-content(calc(50% - 6px)) minmax(0, 1fr);`) con `display: contents` en las filas, de modo que la columna de etiquetas se auto-ajusta a la etiqueta más larga sin superar el 50% del contenedor y todas las barras y el eje X comparten exactamente la misma línea base vertical.
+   * **Modo personalizado (`mono-hbar-mode-custom`)**: Cuando `yLabelPosition` define alineación Flex (`between`, `around`, `start`, `center`, `end`) o porcentajes explícitos (ej. `[between],[40, 60, end]`), emplea Flexbox por fila con `justify-content` y anchos exactos `calc({$labelPct}% - 6px)` y `calc({$chartPct}% - 6px)`.
+   * **Modo sin Eje Y (`mono-hbar-no-axis-y`)**: Cuando `showAxisY => false`, las barras ocupan el 100% del contenedor (`grid-template-columns: minmax(0, 1fr)`).
+4. **Animación JS, Tooltips y Cero `ResizeObserver`**:
+   * [`horizontalBars.js`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Rsc/Library/Charts/horizontalBars.js) interpola `bar.style.width` desde `0%` hasta `${targetW}%` con curva `easeInOutCubic`.
+   * [`tooltip.js`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Rsc/Library/Charts/tooltip.js) detecta `.mono-chart-svg` tanto en `<svg>` como en contenedores híbridos `<div>`, conservando los tooltips interactivos en `.mono-hbar-item`.
+   * Se eliminó el `ResizeObserver` de [`svgChartAnimator.js`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Public/Js/svgChartAnimator.js); el navegador recalcula el layout en 0ms por CSS nativo.
+5. **Flujo de Trabajo del Framework**:
+   * Commit en `frame`: `feat(charts): redisenar horizontalBars con arquitectura hibrida HTML/CSS flexbox para medidas pixel-perfect invariables` (`735891e`).
+   * Sincronizado en `Cuaderno` vía `composer update eber/framework`.
+   * Recursos sincronizados en `App/Rsc/Library/Charts/`, `App/Public/Css/minimal-charts.css` y `App/Public/Js/svgChartAnimator.js`.
+   * Compilación JIT y minificación ejecutadas con éxito mediante `composer min-script`.
 
 ---
 
-## 11. Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`) — [Posterior a Fase 6]
+## 11. Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`) — [Pendiente]
 
 1. Actualizar [`LemonSqueezyControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LemonSqueezyControllers.php) y las vistas de planes/precios (`/planes` / `/suscripcion`).
 2. **Tarjeta Free**: Para usuarios con sesión activa, indicar «Tu plan actual» / «Plan activo».

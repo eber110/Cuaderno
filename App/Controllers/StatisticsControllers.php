@@ -260,7 +260,7 @@ class StatisticsControllers extends Control {
       "estadisticas"  => "/panel/{$userClean}/estadisticas"
     ];
 
-    $generalHtml = _partToString("Dashboard.StatisticsPanel.General.general", [
+    $generalHtml = _partToString("Dashboard.StatisticsPanel.statisticsPanel", [
       "stats"        => $statsRaw,
       "monthlyViews" => $monthlyEval,
       "isPremium"    => $isPremium,
@@ -269,7 +269,7 @@ class StatisticsControllers extends Control {
       "uri"          => $uri
     ]);
 
-    $linksHtml = _partToString("Dashboard.StatisticsPanel.Links.links", [
+    $linksHtml = _partToString("Dashboard.StatisticsPanel.statisticsLink", [
       "stats"        => $statsRaw,
       "cto"          => $ctoEval,
       "isPremium"    => $isPremium,

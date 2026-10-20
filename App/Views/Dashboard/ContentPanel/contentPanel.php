@@ -75,7 +75,7 @@
     <div class="wpx890 w-mid-100 w-sml-100" id="stats-general-remote-wrapper">
       <?php if (!empty($stats)): ?>
         <?php
-          _part("Dashboard.StatisticsPanel.General.general", [
+          _part("Dashboard.StatisticsPanel.statisticsPanel", [
             "stats"        => $stats,
             "monthlyViews" => $monthlyViews ?? ($stats["monthly_views"] ?? []),
             "isPremium"    => $premium ?? false,
@@ -97,7 +97,7 @@
     <div class="wpx890 w-mid-100 w-sml-100" id="stats-links-remote-wrapper">
       <?php if (!empty($stats)): ?>
         <?php
-          _part("Dashboard.StatisticsPanel.Links.links", [
+          _part("Dashboard.StatisticsPanel.statisticsLink", [
             "stats"        => $stats,
             "cto"          => $cto ?? ($stats["cto"] ?? []),
             "isPremium"    => $premium ?? false,
@@ -109,25 +109,6 @@
       <?php else: ?>
         <div id="stats-links-loading-placeholder" class="flex-column center p40 gap15 text-center">
           <div class="bold600 texto-sml color-secundary">Cargando estadísticas de enlaces...</div>
-        </div>
-      <?php endif; ?>
-    </div>
-  </div>
-
-  <div id="statistics-remote" class="remote-content flex-row top-center hidden" data-loaded="<?= !empty($stats) ? 'true' : 'false'; ?>">
-    <div class="wpx890 w-mid-100 w-sml-100" id="statistics-remote-wrapper">
-      <?php if (!empty($stats)): ?>
-        <?php
-          _part("Dashboard.statisticsPanel", [
-            "stats" => $stats, 
-            "card"  => $card ?? [],
-            "user"  => $user ?? $card["profile"] ?? "",
-            "uri"   => $uri ?? []
-          ]);
-        ?>
-      <?php else: ?>
-        <div id="stats-loading-placeholder" class="flex-column center p40 gap15 text-center">
-          <div class="bold600 texto-sml color-secundary">Cargando estadísticas...</div>
         </div>
       <?php endif; ?>
     </div>

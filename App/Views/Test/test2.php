@@ -5,11 +5,11 @@
   GraphicsModule::configStyle([
     "colorLabel" => "textw",
     "axisLabel"  => "#ffffff",
-    "axisLabelSize" => "16",
-    "barWidth"   => "20",
+    "axisLabelSize" => "14",
+    //"barWidth"   => "14",
     "color"      => "#ff4b4b",
     "transition" => 500,
-    'tooltip'    => false
+    'tooltip'    => true
   ]);
 
   /** @var array $demo */
