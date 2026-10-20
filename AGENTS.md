@@ -32,10 +32,10 @@ tu-proyecto/
 ├── App/                       # ⬅ TODO TU CÓDIGO VIVE AQUÍ
 │   ├── Controllers/           # Lógica de negocio (HomeControllers.php, …)
 │   ├── Models/                # Procesamiento y suministro de datos (UserModels.php, …)
-│   ├── Views/                 # Vista = carpeta por módulo + base + partes
+│   ├── Views/                 # Vista = carpeta por módulo + orquestador + subcarpetas de partes
 │   │   └── Home/
-│   │       ├── home.php       # Base/plantilla de la vista (estructura container)
-│   │       ├── Hero/hero.php  # Parte enlazada con _part("Hero.hero")
+│   │       ├── home.php       # Orquestador/base de la vista (estructura container y _part)
+│   │       ├── Hero/hero.php  # Parte desacoplada enlazada con _part("Home.hero")
 │   │       └── ...
 │   ├── Segment/               # Piezas reutilizables entre vistas
 │   │   ├── Form/              # _form("Login.login")
@@ -50,9 +50,10 @@ tu-proyecto/
 │   ├── Providers/             # Service Providers del proyecto
 │   ├── Config/                # config.php, CookieConfiguration, TokenConfiguration…
 │   ├── Public/                # Css/, Js/ (proyecto), Min/ (generado), Img/, Uploads/
-│   └── Rsc/                   # Ico/, Fonts/, Library/ (copiados del framework)
+│   └── Rsc/                   # Fonts/, Helper/, Ico/, Library/ (recursos del proyecto y framework)
 │
 ├── Bootstrap/App.php          # Ciclo de vida de providers (no tocar)
+├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
 ├── Cache/                     # Caché (gitignored)
 ├── Logs/                      # Logs de ejecución (gitignored)
 ├── Uploads/                   # Subidas (gitignored)
@@ -70,7 +71,8 @@ Request → Route (App/Route/) → Middlewares → Controlador → Modelos → V
 ### 3.1 Controladores (`App/Controllers/`) — SOLO lógica de negocio
 
 - Extienden `Base\Control\Control`.
-- Reciben la petición, orquestan el flujo, **llaman a los modelos** para obtener/procesar datos y responden (vista, JSON o redirect).
+- Reciben la petición, orquestan el flujo, **llaman a los modelos** para obtener/procesar datos y responden (vista con `$this->view()`, vista limpia para AJAX/HTMX con `$this->viewClean()`, `$this->json()` o `$this->redirect()`).
+- Soporte para layouts globales en vistas: `$this->view('Home.home', $data, 'layouts.main')`.
 - **Prohibido**: SQL directo, consultas al Builder y HTML. Eso es de Modelos y Vistas.
 - Nomenclatura: `<Vista>Controllers.php` (plural) → `HomeControllers.php`, `LoginControllers.php`.
 - Métodos: una acción por método, `camelCase`.
@@ -124,42 +126,90 @@ class HomeModels extends Builder
 }
 ```
 
-### 3.3 Vistas (`App/Views/`) — una carpeta por vista
+### 3.3 Vistas (`App/Views/`) — una carpeta por vista (Orquestador + Partes)
 
-**Estructura de una vista:**
+Toda vista del sistema se organiza dentro de su propia carpeta modular. En esta carpeta residen **el orquestador principal de la vista** y **todas las subcarpetas de partes** que la componen.
+
+**Estructura estándar de una vista:**
 
 ```
 App/Views/
-└── Home/                  # Carpeta de la vista (PascalCase)
-    ├── home.php           # ⭐ BASE: plantilla que conecta las partes
-    ├── Hero/              # Subcarpeta por parte (PascalCase)
-    │   └── hero.php       # Parte (archivo en camelCase)
-    ├── Description/
-    │   └── description.php
-    └── Product/
-        └── product.php
+└── <ModuloVista>/              # Carpeta principal de la vista (PascalCase)
+    ├── <moduloVista>.php       # ⭐ ORQUESTADOR: plantilla base que conecta las partes
+    ├── <ParteUno>/             # Subcarpeta por parte (PascalCase)
+    │   └── <parteUno>.php      # Parte autocontenida (archivo en camelCase)
+    ├── <ParteDos>/             # Subcarpeta de otra parte (PascalCase)
+    │   └── <parteDos>.php      # Parte autocontenida (archivo en camelCase)
+    └── ...
 ```
 
-**Base (`home.php`):** es la estructura/plantilla de la vista. Conecta las partes en orden y define el **`div.container`** con sus variantes responsivas (`container-xl-mid`, `container-sml`) para estandarizar el tamaño/ancho que tendrá la vista en cada breakpoint.
+#### 3.3.1 El Orquestador (`<moduloVista>.php`) — control y estructura
+- Vive en la raíz de la carpeta de la vista (ej. `home.php`, `statisticsPanel.php`, `statisticsLink.php`).
+- **Función única de orquestación**: Define la estructura envolvente (`div.container`, grids o columnas flexibles), estandariza anchos responsivos (`container-xl-mid`, `container-sml`, `wpx890`, etc.), e incluye las partes en orden mediante `_part()`.
+- **Lógica de control y visibilidad**: Si se desea mover de posición un bloque, ocultar una sección según permisos/planes o alternar variantes, **esa lógica se define exclusivamente en el orquestador**, manteniendo los archivos de partes limpios y desacoplados.
+- **Prohibido**: Escribir HTML monolítico de bloques enteros o lógica de cálculo de gráficos dentro del orquestador. Cada widget o sección debe separarse en su propia parte.
+
+#### 3.3.2 Las Partes (`<Parte>/<parte>.php`) — piezas autocontenidas y reutilizables
+- Se guardan en una **subcarpeta en PascalCase** con su **archivo en camelCase** dentro de la carpeta de la vista (ej. `Hero/hero.php`, `MonthlyViews/monthlyViews.php`, `RecentVisitors/recentVisitors.php`, `Cto/cto.php`).
+- **Autocontenidas**: Cada parte se encarga de su propia preparación de datos, lógica visual interna (ej. vista Premium vs Free teaser, estados vacíos) y su renderizado HTML/SVG.
+- **Reutilizables**: Al estar desacopladas del orquestador, cualquier parte queda disponible para utilizarse como widget en cualquier otra vista o sección del sistema (por ejemplo, invocándola con `_part("Dashboard.recentVisitors", $data)`).
+- **Inclusión con `_part()`**: Se enlazan desde el orquestador con `_part("Modulo.nombreParte", $data)`. El framework resuelve recursivamente la ruta dentro del módulo. Reciben datos explícitos pasados en el segundo parámetro y también tienen acceso a variables globales de la vista vía `ViewData`.
+
+#### 3.3.3 Ejemplo práctico: Vista General vs Dashboard Modular
+
+**Ejemplo 1: Vista de Página (`Home/`):**
+```
+App/Views/
+└── Home/
+    ├── home.php                 # Orquestador container
+    ├── Hero/
+    │   └── hero.php             # Parte con slider o titular
+    ├── Description/
+    │   └── description.php      # Parte informativa
+    └── Product/
+        └── product.php          # Parte catálogo de productos
+```
 
 ```php
 <?php
   /** @var array $posts */
 ?>
-
 <div class="container container-xl-mid container-sml flex-column gap20 w100">
-
   <?php
-    _component("Menu.menuHome");   // componente autocontenido
+    _component("Menu.menuHome");
     _part("Home.hero", ["posts" => $posts]);
     _part("Home.description");
     _part("Home.product");
   ?>
-
 </div>
 ```
 
-**Partes (`hero.php`):** se enlazan desde la base con `_part("Home.hero")`. La ruta es `Carpeta.nombre` y el framework la resuelve recursivamente. Reciben los datos de la vista vía `ViewData` (variables en `$` directas).
+**Ejemplo 2: Panel Complejo o Dashboard (`Dashboard/StatisticsPanel/`):**
+```
+App/Views/Dashboard/StatisticsPanel/
+├── statisticsPanel.php          # ⭐ Orquestador general
+├── MonthlyViews/
+│   └── monthlyViews.php         # Widget gráfico de visitas mensuales
+├── RecentVisitors/
+│   └── recentVisitors.php       # Widget lista de visitantes
+├── GeoRanking/
+│   └── geoRanking.php           # Widget gráfico de geolocalización
+├── TrafficSources/
+│   └── trafficSources.php       # Widget gráfico de fuentes de tráfico
+└── Heatmap/
+    └── heatmap.php              # Widget matriz horaria 5x7
+```
+
+```php
+<div class="flex-column gap25 w100 texto">
+  <!-- Cabecera general -->
+  <?php _part("Dashboard.monthlyViews", ["monthly" => $monthlyViews]); ?>
+  <?php _part("Dashboard.recentVisitors", ["visitors" => $visitors, "isPremium" => $isPremium]); ?>
+  <?php _part("Dashboard.geoRanking", ["geo" => $geo, "isPremium" => $isPremium]); ?>
+  <?php _part("Dashboard.trafficSources", ["referrers" => $referrers, "isPremium" => $isPremium]); ?>
+  <?php _part("Dashboard.heatmap", ["heatmap" => $heatmap, "isPremium" => $isPremium]); ?>
+</div>
+```
 
 **Helpers de vistas disponibles** (autoload de `Base/Helpers/Part.php`):
 
@@ -170,6 +220,7 @@ App/Views/
 | `_menu("Home.menuHome")` | Incluye un menú de `App/Segment/Menu/` |
 | `_template("Footer.footerUser")` | Incluye un template de `App/Segment/Template/` |
 | `_component("Menu.menuHome")` | Renderiza un componente autocontenido |
+| `_chart("arcMeter", $params)` | Renderiza un gráfico SVG puro de GraphicsModule |
 | `_each("Home.postCard", $posts, "post")` | Repite la parte por cada item (da `$post`, `$index`, `$first`, `$last`…) |
 | `_if($condicion, "Home.banner")` | Incluye la parte solo si se cumple la condición |
 | `_partToString(...)` / `_componentToString(...)` | Version que retorna string en vez de imprimir |
@@ -278,14 +329,17 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 | Módulo | Uso |
 |---|---|
 | `Session` | `session_active()`, `session_data()`, `create_user_session()`, `role()`, `admin()` |
+| `AuthModule` | `attempt()`, `login()`, `check()`, `user()`, `logout()`, `hashPassword()`, `verifyPassword()` |
+| `GeoLocation` | `resolve()`, `getCountry()`, `getCity()` — híbrido MaxMind local + fallback API |
 | `ResponseModule` | `redirect()`, respuestas JSON, `sendContent()` |
-| `SeoModule` | `setTitle()`, `setMetaDescription()`, `setOpenGraph()`, `sitemap()`, `robots()` |
+| `SeoModule` | `setTitle()`, `setMetaDescription()`, `setOpenGraph()`, `schemaJson()`, `personSchema()`, `sitemap()`, `robots()` |
 | `HttpPostModule` | Entrada de `$_GET`/`$_POST` sanitizada (nunca superglobales directas) |
 | `Builder` | `Base\Builder\Builder` — query builder fluido anti-inyección |
 | `ImgProcessModule` | Procesamiento/compresión de imágenes |
 | `ValidatorModule` | Validación de datos |
 | `DateTimeModule` | Fechas y "time ago" |
 | `TextModule` | Utilidades de texto |
+| `GraphicsModule` | `configStyle()`, `arcMeter()`, `stackedTones()`, `tileTreemap()`, `hybridSpline()`, `pillPillars()` — gráficos SVG puros con OKLCH y 400ms |
 
 ---
 
@@ -298,6 +352,13 @@ composer reset-font          # Gestor/reset de fuentes instaladas
 composer create-table-mysql   # Inicializar tablas BD MySQL
 composer create-table-pgsql   # Inicializar tablas BD PostgreSQL
 composer update-geoip        # Descargar GeoLite2 actualizado
+composer convert-image       # Conversor de imágenes
+
+# Generadores CLI rápidos:
+composer make:controller <Nombre>   # Crea controlador en App/Controllers/
+composer make:model <Nombre>        # Crea modelo en App/Models/
+composer make:component <Nombre>    # Crea componente en App/Components/
+composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`.
@@ -306,14 +367,14 @@ composer update-geoip        # Descargar GeoLite2 actualizado
 
 ## 6. Reglas críticas
 
-1. **No editar `vendor/eber/framework/`** (Core, Base, Resources, config). Si falta algo, es un cambio del framework: hacerlo ahí con su propio AGENTS.md, no en el proyecto.
+1. **NUNCA escribir código en el framework (`vendor/eber/framework/`)**: Todos los módulos, helpers, modelos y utilidades adicionales del proyecto deben residir dentro de `App/` (como en `/App/Rsc/Helper/`). Si se requiere una funcionalidad o módulo a nivel de framework, **NUNCA debes modificar `vendor/eber/framework/` directamente**; debes **SOLICITARLO AL USUARIO** para que sea escrito directamente en el repositorio del framework y luego poder utilizarlo.
 2. **MVC estricto:** controladores sin SQL ni HTML, modelos sin HTML, vistas sin lógica de negocio.
 3. **Iconos:** `svg("nombre-icono", "clases")` lee de `App/Rsc/Ico/` (copiado del framework). Para un icono nuevo: añadirlo en el framework (`Resources/Ico`) y copiarlo a `App/Rsc/Ico/`.
 4. **No editar generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `App/Config/preloadFonts.json` → se regeneran con `composer min-script`.
 5. **`.env` nunca se commitea** (gitignored). Usar `.env.example` como plantilla.
 6. **Constantes:** usar las de `config.php` del framework (`ROUTE_VIEW`, `ROUTE_ICO`, `TIME_DAY`, `URL_IMG`, `NAME_SITE`, `DOMAIN`…), nunca rutas literales.
 7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder ya escapa; NO concatenar SQL.
-8. **Tablas nuevas:** registrarlas en `ALLOWED_TABLES` (`config.php` del framework o `App/Config/config.php`).
+8. **Tablas nuevas (Zero-Config):** por defecto no requiere registrar tablas en listas fijas; valida sintaxis de identificador SQL seguro contra inyección. Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 9. **Escribir en español** (código, docblocks, commits y docs).
 10. **Seguridad contra IDOR e inyección:** Prohibido terminantemente usar `extract()` sobre datos de usuario o arrays de parámetros de peticiones. Leer explícitamente cada campo.
 11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`.
@@ -349,7 +410,7 @@ composer update-geoip        # Descargar GeoLite2 actualizado
 1. **Ruta** en `App/Route/web.php` (con middleware si aplica).
 2. **Controlador**: valida la petición, llama al modelo, decide la respuesta.
 3. **Modelo**: procesa y sirve los datos.
-4. **Vista**: carpeta en `App/Views/<Vista>/`, base `<vista>.php` con `div.container`, partes en subcarpetas enlazadas con `_part()`; piezas reutilizables a `App/Segment/` y componentes autocontenidos a `App/Components/`.
+4. **Vista**: carpeta en `App/Views/<Vista>/`, orquestador `<vista>.php` con layout/container y partes desacopladas en subcarpetas (`<Parte>/<parte>.php`) enlazadas con `_part()`; piezas reutilizables globales a `App/Segment/` y componentes autocontenidos a `App/Components/`.
 5. **SEO/Metas** con `SeoModule` en el controlador.
 6. **JS/CSS**: después de cambios, `composer min-script`.
 
@@ -380,7 +441,8 @@ Ejemplo: `feat(home): agregar hero con datos de HomeModels`, `fix(middleware): r
 - ❌ Salidas dinámicas en vistas sin escapar (`e()`, `eUrl()`).
 - ❌ Operaciones mutables o logout mediante `GET` sin token CSRF.
 - ❌ Lógica de negocio o consultas dentro de vistas o componentes — van a modelos.
+- ❌ Vistas monolíticas: incrustar múltiples gráficos, widgets o bloques HTML directamente en el orquestador en lugar de separarlos en su propia subcarpeta y archivo de parte (`_part`).
 - ❌ Duplicar piezas entre vistas — mover a `App/Segment/` o componente.
 - ❌ Añadir frameworks/libs frontend sin avisar.
 - ❌ Comitear `.env`, `Logs/`, `Cache/`, `App/Public/Min/`, mmdb.
-- ❌ Editar archivos del framework (`vendor/eber/framework/`).
+- ❌ Escribir o editar código en los archivos del framework (`vendor/eber/framework/`). Si se necesita un módulo del framework, solicitarlo al usuario para que se escriba en el repositorio del framework primero.
