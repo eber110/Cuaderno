@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "96b1a0e44681a92e75ee778161366fd6a1751f78"
+                "reference": "eda3e01f7526bea660b02ed681b11424b580bd3e"
             },
             "require": {
                 "geoip2/geoip2": "*",

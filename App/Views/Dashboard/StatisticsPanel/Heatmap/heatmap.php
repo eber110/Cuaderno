@@ -114,6 +114,7 @@
             'rows'   => array_column($timeSlots, 'label'),
             'cols'   => array_values($daysCols),
             'matrix' => $matrixHeatmapData,
+            'showAxisX' => true
           ]); ?>
         </div>
       </div>

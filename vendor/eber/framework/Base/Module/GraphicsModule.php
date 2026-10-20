@@ -2497,18 +2497,45 @@ class GraphicsModule
     $showAxisY = isset($params['showAxisY']) ? (bool)$params['showAxisY'] : (isset($params['showRows']) ? (bool)$params['showRows'] : true);
     $colPosition = isset($params['colLabelPosition']) ? strtolower((string)$params['colLabelPosition']) : (isset($params['xLabelPosition']) ? strtolower((string)$params['xLabelPosition']) : 'bottom');
 
-    // Matriz de intensidades predeterminada exactamente idéntica a la imagen
+    // Matriz de intensidades predeterminada exactamente idéntica a la imagen de referencia:
+    // Nivel 0 (0%): tono más oscuro del color base (00-06h madrugada completo, 12-15h Lun, 19-24h Jue)
+    // Niveles > 0%: repartición en tonos progresivamente más claros que el 0%
     $defaultMatrix = [
-      [0.15, 0.42, 0.78, 0.45, 0.95, 0.35, 0.65], // Mon
-      [0.40, 0.68, 0.95, 0.65, 0.42, 0.78, 0.25], // Tue
-      [0.55, 0.72, 0.30, 0.88, 0.58, 0.95, 0.48], // Wed
-      [0.28, 0.85, 0.55, 0.38, 0.95, 0.48, 0.70], // Thu
-      [0.60, 0.95, 0.48, 0.95, 0.45, 0.30, 0.75], // Fri
+      [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],  // 00-06h (inactividad completa)
+      [0.95, 0.55, 0.55, 0.80, 0.80, 0.45, 0.60], // 06-12h
+      [0.0,  0.70, 0.45, 0.45, 0.45, 0.45, 0.45], // 12-15h (Lun es 0%)
+      [0.55, 0.45, 0.45, 0.95, 0.60, 0.70, 0.70], // 15-19h
+      [0.55, 0.55, 0.70, 0.0,  0.60, 0.95, 0.70], // 19-24h (Jue es 0%)
     ];
 
     $rawMatrix = isset($params['matrix']) && is_array($params['matrix'])
       ? $params['matrix']
       : $defaultMatrix;
+
+    // Escaneo previo para detectar valores máximos si se suministran conteos brutos > 1.0
+    $maxValFound = 0.0;
+    for ($r = 0; $r < $rowCount; $r++) {
+      for ($c = 0; $c < $colCount; $c++) {
+        $cellRaw = $rawMatrix[$r][$c] ?? 0.0;
+        $numVal = 0.0;
+        if (is_array($cellRaw)) {
+          if (isset($cellRaw['intensity'])) {
+            $numVal = (float)$cellRaw['intensity'];
+          } elseif (isset($cellRaw['pct'])) {
+            $numVal = (float)$cellRaw['pct'];
+          } elseif (isset($cellRaw['value'])) {
+            $numVal = (float)$cellRaw['value'];
+          } elseif (isset($cellRaw['val']) && is_numeric($cellRaw['val'])) {
+            $numVal = (float)$cellRaw['val'];
+          }
+        } elseif (is_numeric($cellRaw)) {
+          $numVal = (float)$cellRaw;
+        }
+        if ($numVal > $maxValFound) {
+          $maxValFound = $numVal;
+        }
+      }
+    }
 
     $classNames = 'mono-chart-svg mono-matrix-svg';
     if (!empty($style['svgClass'])) {
@@ -2606,26 +2633,87 @@ class GraphicsModule
       <g class="mono-matrix-grid">
         <?php 
         $staggerIndex = 0;
+        $interpolate = isset($params['interpolate']) ? (bool)$params['interpolate'] : (isset($params['smooth']) ? (bool)$params['smooth'] : false);
+
         for ($r = 0; $r < $rowCount; $r++): 
           $rowLabel = $rowLabels[$r] ?? ('R' . ($r + 1));
           for ($c = 0; $c < $colCount; $c++):
             $colLabel = $colLabels[$c] ?? ('C' . ($c + 1));
-            $cellData = $rawMatrix[$r][$c] ?? 0.20;
+            $cellData = $rawMatrix[$r][$c] ?? 0.0;
+            $rawVal = 0.0;
+            $hasExplicitIntensity = false;
+            $displayVal = null;
+            $cellTitle = "{$rowLabel} • {$colLabel}";
 
             if (is_array($cellData)) {
-              $intensity = isset($cellData['intensity']) ? (float)$cellData['intensity'] : 0.5;
-              $displayVal = isset($cellData['val']) ? (string)$cellData['val'] : (round($intensity * 100) . '%');
-              $cellTitle = isset($cellData['label']) ? $cellData['label'] : "{$rowLabel} • {$colLabel}";
-            } else {
-              $intensity = (float)$cellData;
-              $intensity = max(0.0, min(1.0, $intensity));
-              $displayVal = round($intensity * 100) . '%';
-              $cellTitle = "{$rowLabel} • {$colLabel}";
+              if (isset($cellData['intensity'])) {
+                $rawVal = (float)$cellData['intensity'];
+                $hasExplicitIntensity = true;
+              } elseif (isset($cellData['pct'])) {
+                $rawVal = (float)$cellData['pct'];
+              } elseif (isset($cellData['value'])) {
+                $rawVal = (float)$cellData['value'];
+              } elseif (isset($cellData['val']) && is_numeric($cellData['val'])) {
+                $rawVal = (float)$cellData['val'];
+              }
+              if (isset($cellData['val'])) {
+                $displayVal = (string)$cellData['val'];
+              }
+              if (isset($cellData['label'])) {
+                $cellTitle = (string)$cellData['label'];
+              }
+            } elseif (is_numeric($cellData)) {
+              $rawVal = (float)$cellData;
             }
 
-            $intensity = max(0.0, min(1.0, $intensity));
-            $lightness = round(0.18 + ($intensity * 0.78), 2);
-            $hexFallback = sprintf('#%02x%02x%02x', (int)($lightness * 255), (int)($lightness * 255), (int)($lightness * 255));
+            // Normalización de intensidad entre 0.0 y 1.0
+            if ($hasExplicitIntensity) {
+              $intensity = max(0.0, min(1.0, $rawVal));
+            } elseif ($maxValFound > 1.0) {
+              $intensity = max(0.0, min(1.0, $rawVal / $maxValFound));
+            } else {
+              $intensity = max(0.0, min(1.0, $rawVal));
+            }
+
+            if ($displayVal === null) {
+              $displayVal = round($intensity * 100) . '%';
+            }
+
+            // =========================================================================
+            // REGLA DE COLOR Y REPARTICIÓN:
+            // 1. Todo cuadro con 0% tiene el color más oscuro del color base.
+            // 2. Todos los porcentajes > 0% se colorean según la repartición con colores
+            //    progresivamente más claros que el color en 0.
+            // =========================================================================
+            if ($intensity <= 0.0001) {
+              // 0%: color más oscuro del color base (Luminosidad 0.18)
+              $lightness = 0.18;
+              $hexFallback = '#181a24';
+            } elseif ($interpolate) {
+              // Repartición continua proporcional: desde 0.42 hasta 0.92
+              $lightness = round(0.42 + ($intensity * 0.48), 2);
+              $hexFallback = sprintf('#%02x%02x%02x', (int)($lightness * 255), (int)($lightness * 255), (int)($lightness * 255));
+            } else {
+              // Repartición por cuartiles/tramos (4 niveles claros sobre el piso oscuro de 0%):
+              // Tramo 1 (1% - 25%):   L = 0.46
+              // Tramo 2 (26% - 50%):  L = 0.60
+              // Tramo 3 (51% - 75%):  L = 0.75
+              // Tramo 4 (76% - 100%): L = 0.90
+              if ($intensity <= 0.25) {
+                $lightness = 0.46;
+                $hexFallback = '#4860a0';
+              } elseif ($intensity <= 0.50) {
+                $lightness = 0.60;
+                $hexFallback = '#6888c8';
+              } elseif ($intensity <= 0.75) {
+                $lightness = 0.75;
+                $hexFallback = '#90b4f0';
+              } else {
+                $lightness = 0.90;
+                $hexFallback = '#bfe0ff';
+              }
+            }
+
             $cellColor = "oklch(from var(--chart-base-color, {$hexFallback}) {$lightness} c h)";
 
             $cx = round($gridStartX + ($c * ($cellSize + $cellGap)), 1);
