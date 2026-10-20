@@ -78,8 +78,12 @@ Esta bitácora es el registro oficial de trabajo para los desarrolladores y agen
 | **2026-10-18** | **Estandarización Gráficos Nativos (`GraphicsModule`)** | `general.php`, `links.php`, `card-graphic.css`, `StatisticsModels.php` | Sustitución total de gráficos y gradientes por `GraphicsModule::horizontalBars` y `GraphicsModule::matrixHeatmap` (`color => 'texto'`). Barras de dispositivos planas bicolores (`back-success` y `back8`) idénticas a `cto.php`. Ejecución de `composer min-script`. | [✅ Completado] |
 | **2026-10-18** | **Ajustes de Parámetros y Ejes (`yLabelPosition`, `axisLabelSize`, `barWidth`)** | `GraphicsModule.php`, `horizontalBars.js` | Corrección a `yLabelPosition` (eje vertical para barras horizontales), soporte de medidas exactas en píxeles para `barWidth` y `axisLabelSize`, y eliminación de fondo en `matrixHeatmap`. | [✅ Completado] |
 | **2026-10-18** | **Normalización Responsiva de Escala 1.0 en `horizontalBars`** | `GraphicsModule.php`, `horizontalBars.js`, `svgChartAnimator.js`, `general.php` | Solución matemática al escalado de `viewBox`: `viewBox` coordinado con ancho del contenedor para fijar escala = 1.0 permanente. Las barras miden exactamente 20px de grosor y los textos 16px exactos en cualquier contenedor (650px, 550px o móvil). Atributos `data-*` y `ResizeObserver` dinámico. Framework actualizado a commit `04249cc` y minificado con `composer min-script`. | [✅ Completado] |
-| **Mañana** | **Fase 6: Rediseño Híbrido Responsivo de `horizontalBars` (HTML + CSS Nativo)** | `GraphicsModule.php`, `charts.css`, `card-graphic.css`, `general.php` | Rediseño estructural de `horizontalBars` hacia arquitectura híbrida HTML/CSS Flexbox. Garantiza que `barWidth: 20px` y `axisLabelSize: 16px` sean invariables y pixel-perfect en cualquier pantalla (incluyendo móviles de 348px) sin depender de matrices de transformación ni `ResizeObserver`. | [🟡 Pendiente para Mañana] |
-| **Pendiente** | **Fase 7: Página de Pricing y Checkout** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy). | [ ] Pendiente |
+| **2026-10-19** | **Fase 6: Rediseño Híbrido Responsivo de `horizontalBars` (HTML + CSS Nativo)** | `GraphicsModule.php`, `charts.css`, `card-graphic.css`, `horizontalBars.js`, `tooltip.js`, `svgChartAnimator.js` | Rediseño estructural de `horizontalBars` hacia arquitectura híbrida HTML/CSS Grid y Flexbox. Garantiza que `barWidth: 20px` y `axisLabelSize: 16px` sean invariables y pixel-perfect en cualquier pantalla (incluyendo móviles de 348px) sin depender de matrices de transformación ni `ResizeObserver`. Framework commit `735891e`. | [✅ Completado] |
+| **2026-10-19** | **Reestructuración de Vistas de Estadísticas & Eliminación de Duplicación** | `contentPanel.php`, `statisticsPanel.php`, `statisticsLink.php`, `StatisticsControllers.php` | Eliminación de `<div id="statistics-remote">` duplicado en `contentPanel.php`. Reestructuración autónoma: `statisticsPanel.php` gestiona Estadísticas Generales y `statisticsLink.php` gestiona Estadísticas por Enlace. | [✅ Completado] |
+| **2026-10-19** | **Unificación de Estilo Global & Protección de `hybridSpline`** | `GraphicsModule.php` (`frame`) | Cambio del valor por defecto de `axisLabel` de `'color1'` a `'texto'` en el framework. En `hybridSpline`, adaptación matemática de `barWidth` (~11.8px) y `axisLabelSize` (~10.5px) para evitar colisión de meses con viewBox fijo ante `configStyle` global. Framework commit `de02cfe`. | [✅ Completado] |
+| **2026-10-20** | **Corrección de Error en Consola `<svg> attribute height: Expected length, "auto"`** | `GraphicsModule.php` (`frame`) | Eliminación del atributo XML inválido `height="auto"` en la etiqueta `<svg>` de `matrixHeatmap`. El dimensionamiento responsivo fluido queda delegado al CSS nativo `.mono-chart-svg`. Framework commit `6c06eaa`. Sincronizado vía `composer update` y `composer min-script`. | [✅ Completado] |
+| **2026-10-20** | **Fase 6: Desacople Modular de Paneles de Estadísticas en Partes (`_part`)** | `statisticsPanel.php`, `statisticsLink.php`, `RecentVisitors/`, `GeoRanking/`, `TrafficSources/`, `Heatmap/`, `StarLink/`, `LinkPerformance/`, `SocialNetworks/`, `DeviceDistribution/` | Desacople de todos los paneles de gráficos incrustados a partes independientes con su propia carpeta (PascalCase) y archivo (camelCase), estandarizados con `MonthlyViews` y `Cto`. `statisticsPanel.php` y `statisticsLink.php` actúan como orquestadores declarativos limpios. Pruebas de renderizado y `composer min-script` al 100%. | [✅ Completado] |
+| **Próxima Sesión** | **Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`)** | `LemonSqueezyControllers.php`, vistas de planes | Espacios reservados para Free ("Plan actual") y Premium (checkout Lemon Squeezy con desglose de servicios). | [🟡 Pendiente para Próxima Sesión] |
 
 
 ---
@@ -367,10 +371,74 @@ Garantizar que las barras horizontales (`horizontalBars`) respeten **de forma ma
    * Recursos sincronizados en `App/Rsc/Library/Charts/`, `App/Public/Css/minimal-charts.css` y `App/Public/Js/svgChartAnimator.js`.
    * Compilación JIT y minificación ejecutadas con éxito mediante `composer min-script`.
 
+### 10.3 Reestructuración Modular de Vistas de Estadísticas (`statisticsPanel.php` y `statisticsLink.php`)
+1. **Eliminación del Renderizado Duplicado**:
+   * En [`contentPanel.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/ContentPanel/contentPanel.php), se eliminó el antiguo contenedor `#statistics-remote` que causaba que `statisticsPanel.php` se inyectara dos veces al abrir el dashboard.
+   * Ahora el contenedor `#stats-general-remote` carga exclusivamente `statisticsPanel.php` y `#stats-links-remote` carga `statisticsLink.php`.
+2. **Separación de Responsabilidades por Submenú**:
+   * [`statisticsPanel.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsPanel.php): Contiene toda la lógica de presentación y cálculo de datos para las estadísticas generales del perfil (Visitas del mes, Feed «¿Quién te visitó?», Geolocalización, Fuentes de Tráfico y Heatmap semanal 7x24).
+   * [`statisticsLink.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsLink.php): Contiene toda la lógica y presentación de estadísticas por botón (Métricas de CTO, Enlace Estrella, Tarjetas individuales por enlace, Redes Sociales y Proporción Móvil vs Escritorio).
+   * [`StatisticsControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/StatisticsControllers.php): Responde por AJAX (`/panel/{user}/estadisticas`) retornando tanto `generalHtml` (`_partToString("Dashboard.StatisticsPanel.statisticsPanel")`) como `linksHtml` (`_partToString("Dashboard.StatisticsPanel.statisticsLink")`), garantizando carga bajo demanda en una sola petición.
+
+### 10.4 Unificación de Estilos Globales, Corrección de Color Naranja y Protección de `hybridSpline`
+1. **Eliminación del Color Naranja en Ejes**:
+   * En [`GraphicsModule.php`](file:///c:/Users/eber/Proyectos/frame/Base/Module/GraphicsModule.php), la configuración por defecto de `axisLabel` estaba inicializada como `'color1'`. En el tema de la aplicación ([`_configTheme.css`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Public/Css/_configTheme.css)), `color1` corresponde a `--back-color: #FFC7B3` (naranja).
+   * Se modificó el valor por defecto en el framework a `'texto'`, unificando el aspecto sobrio y monocromático en todos los gráficos.
+2. **Protección Adaptativa en `hybridSpline` frente a `configStyle`**:
+   * Al aplicar `GraphicsModule::configStyle(["axisLabelSize" => 16, "barWidth" => 20])` en las vistas, el primer gráfico (`hybridSpline` con 10 meses evaluados en `viewBox="0 0 320 180"`) se desbordaba porque el espacio entre meses era de solo 26px: las 10 etiquetas a 16px se solapaban en un bloque ilegible y las barras de fondo a 20px formaban bloques gigantescos.
+   * Se programó en `hybridSpline` una adaptación matemática automática cuando los valores provienen de la configuración global:
+     * **Tamaño de etiquetas**: `round(min(11.0, max(8.5, $step * 0.40)), 1)` ($\approx$ `10.5px` para 10 meses), garantizando lectura limpia y sin colisiones.
+     * **Ancho de barras de fondo**: adaptado dinámicamente a la densidad horizontal ($\approx$ `11.8px`).
+     * Si se requiere sobreescribir manualmente con valores fijos, se respeta únicamente si se pasa como parámetro local explícito en `$params['axisLabelSize']` o `$params['barWidth']`.
+   * Commit en `frame`: `de02cfe`.
+
+### 10.5 Corrección del Error en Consola `<svg> attribute height: Expected length, "auto"`
+1. **Causa Raíz**:
+   * En `GraphicsModule::matrixHeatmap()`, la etiqueta SVG de apertura tenía hardcodeado `width="100%" height="auto"`.
+   * En la especificación W3C de SVG, el atributo XML `height` solo admite unidades numéricas de longitud o porcentajes (`100%`, `180px`); la palabra clave `"auto"` es exclusiva de CSS. Al inyectar el HTML mediante JavaScript (`generalWrapper.innerHTML = data.generalHtml`), el parser del navegador arrojaba `Error: <svg> attribute height: Expected length, "auto".` en consola.
+2. **Solución**:
+   * Se eliminó el atributo `width="100%" height="auto"` de la etiqueta `<svg>` de `matrixHeatmap`. El tamaño fluido y responsivo queda gestionado por la clase CSS `.mono-chart-svg` (`width: 100%; height: auto;`) y el `viewBox`.
+   * Commit en `frame`: `fix(GraphicsModule): remover atributo height auto invalido en svg matrixHeatmap` (`6c06eaa`).
+   * Sincronizado en `Cuaderno` vía `composer update eber/framework` y `composer min-script`. Consola 100% limpia sin errores.
+
+### 10.6 Desacople Modular de Paneles de Estadísticas en Partes (`_part`)
+1. **Objetivo y Arquitectura Modular**:
+   * Siguiendo el estándar del primer gráfico (`MonthlyViews/monthlyViews.php` y `Cto/cto.php`), se desacoplaron todos los paneles de gráficos incrustados hacia subcarpetas independientes con su propia vista invocada vía `_part()`.
+   * Esto permite que los archivos orquestadores (`statisticsPanel.php` y `statisticsLink.php`) mantengan la lógica de control, visibilidad y orden, mientras que cada widget/gráfico queda encapsulado, autocontenido y listo para ser reutilizado en cualquier otra vista o sección del sistema.
+2. **Estructura Creada en `App/Views/Dashboard/StatisticsPanel/`**:
+   * **Para Estadísticas Generales ([`statisticsPanel.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsPanel.php))**:
+     * [`MonthlyViews/monthlyViews.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/MonthlyViews/monthlyViews.php): Visitas del mes actual (tendencia y Hybrid Spline).
+     * [`RecentVisitors/recentVisitors.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/RecentVisitors/recentVisitors.php): Feed cronológico «¿Quién te visitó?» (Premium vs Free Teaser).
+     * [`GeoRanking/geoRanking.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/GeoRanking/geoRanking.php): Ranking de países y ciudades MaxMind con `GraphicsModule::horizontalBars`.
+     * [`TrafficSources/trafficSources.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/TrafficSources/trafficSources.php): Fuentes de tráfico y plataformas con `GraphicsModule::horizontalBars`.
+     * [`Heatmap/heatmap.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/Heatmap/heatmap.php): Matriz semanal 5x7 y recomendación inteligente con `GraphicsModule::matrixHeatmap`.
+   * **Para Estadísticas por Enlace ([`statisticsLink.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsLink.php))**:
+     * [`Cto/cto.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/Cto/cto.php): Métricas globales de CTO y proporción Enlaces vs Redes Sociales.
+     * [`StarLink/starLink.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/StarLink/starLink.php): Destacado del botón con mayor conversión («Enlace Estrella»).
+     * [`LinkPerformance/linkPerformance.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/LinkPerformance/linkPerformance.php): Métricas individuales de cada botón con barra móvil vs desktop.
+     * [`SocialNetworks/socialNetworks.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/SocialNetworks/socialNetworks.php): Clics por acceso directo a perfiles de redes sociales.
+     * [`DeviceDistribution/deviceDistribution.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/DeviceDistribution/deviceDistribution.php): Proporción general de clics móvil vs escritorio.
+3. **Validación y Verificación**:
+   * Comprobación sintáctica con `php -l` en todos los archivos.
+   * Prueba automatizada de renderizado individual y orquestado con `_partToString` (Free y Premium) con 100% de éxito.
+   * Compilación JIT y minificación ejecutadas mediante `composer min-script`.
+
 ---
 
-## 11. Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`) — [Pendiente]
+## 11. Fase 7: Página de Precios y Suscripción (`/planes` / `/suscripcion`) — [🟡 Pendiente para la Próxima Sesión]
 
-1. Actualizar [`LemonSqueezyControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LemonSqueezyControllers.php) y las vistas de planes/precios (`/planes` / `/suscripcion`).
-2. **Tarjeta Free**: Para usuarios con sesión activa, indicar «Tu plan actual» / «Plan activo».
-3. **Tarjeta Premium**: Desglosar todas las ventajas analíticas desbloqueables («¿Quién te visitó?», Heatmap semanal, Ranking de Países y Ciudades, Enlace Estrella, Fuentes de Tráfico) con espacio reservado para el checkout final de Lemon Squeezy.
+### 11.1 Objetivos de la Próxima Sesión
+1. **Controlador y Rutas**:
+   * Revisar y actualizar [`LemonSqueezyControllers.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Controllers/LemonSqueezyControllers.php) y las rutas de suscripción asociadas (`/planes`, `/suscripcion`, `/pricing`).
+2. **Tarjeta Free**:
+   * Para los usuarios con sesión iniciada, mostrar el indicador de **«Tu plan actual» / «Plan activo»** deshabilitando el botón de compra Free.
+3. **Tarjeta Premium**:
+   * Desglosar claramente todas las ventajas que se desbloquean:
+     * Feed cronológico «¿Quién te visitó?» con avatares reales y visitas acumuladas.
+     * Geolocalización completa (Top países con banderas y ranking de ciudades MaxMind).
+     * Fuentes de tráfico detalladas (Instagram, TikTok, WhatsApp, Directo, etc.).
+     * Matriz de actividad semanal 7x24 con horario recomendado de publicación.
+     * Estadísticas por enlace con distinción del «Enlace Estrella», CTR individual y redes sociales.
+   * Conectar con el checkout de Lemon Squeezy o preparar el botón de suscripción para recibir el enlace/overlay oficial.
+4. **Validaciones**:
+   * Comprobar que los usuarios que adquieran Premium vean reflejada la actualización instantánea en la caché `user_subscriptions_cache` (`services = '1,2'` e `is_premium = 1`) y desaparezcan automáticamente los candados y desenfoques en [`statisticsPanel.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsPanel.php) y [`statisticsLink.php`](file:///c:/Users/eber/Proyectos/Cuaderno/App/Views/Dashboard/StatisticsPanel/statisticsLink.php).

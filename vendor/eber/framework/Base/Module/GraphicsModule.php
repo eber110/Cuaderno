@@ -2533,7 +2533,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" width="100%" height="auto" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php if (!empty($params['showPanel'])): ?>
       <!-- Panel de fondo opcional (desactivado por defecto para transparencia nativa) -->
       <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="transparent" />
