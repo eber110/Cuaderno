@@ -682,7 +682,8 @@
   transition: stroke 0.3s ease;
 }
 
-.mono-chart-svg .mono-matrix-row-label {
+.mono-chart-svg .mono-matrix-row-label,
+.mono-chart-svg .mono-matrix-col-label {
   font-size: var(--chart-axis-size, 11px);
   font-weight: 500;
   fill: var(--chart-axis-color, #71717a);

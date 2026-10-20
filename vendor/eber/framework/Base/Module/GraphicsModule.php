@@ -2462,11 +2462,20 @@ class GraphicsModule
    * @param array $params Parámetros del gráfico:
    *   - matrix: array 2D de filas con valores o intensidades (0.0..1.0).
    *   - rows: array de etiquetas de filas (default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']).
-   *   - cols: array de etiquetas de columnas o nombres de slots (default: ['1', '2', '3', '4', '5', '6', '7']).
-   *   - rx: radio de curvatura de esquinas de cada nodo (default: 7.0).
+   * @param array $params Parámetros del gráfico:
+   *   - matrix: array 2D de filas con valores o intensidades (0.0..1.0).
+   *   - rows: array de etiquetas de filas (default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']).
+   *   - cols: array de etiquetas de columnas o nombres de slots (default: ['Col 1', 'Col 2', 'Col 3', 'Col 4', 'Col 5', 'Col 6', 'Col 7']).
+   *   - showAxisX: booleano para mostrar etiquetas de columnas del eje X (default: true).
+   *   - showAxisY: booleano para mostrar etiquetas de filas del eje Y (default: true).
+   *   - colLabelPosition: posición de etiquetas del eje X ('bottom' o 'top', default: 'bottom').
+   *   - cellSize: tamaño de cada celda en píxeles virtuales (opcional).
+   *   - cellGap: separación entre celdas en píxeles virtuales (opcional).
+   *   - rx: radio de curvatura de esquinas de cada nodo (default: 8.0 o adaptativo).
    *   - color: token de color base ('texto', 'color3', '#38bdf8', etc.).
-   *   - axisLabel: color de los textos del eje Y.
-   *   - transition: duración de la animación en ms (default: 700).
+   *   - axisLabel: color de los textos de los ejes.
+   *   - axisLabelSize: tamaño de fuente para los textos de ejes (opcional).
+   *   - transition: duración de la animación en ms (default: 500).
    * @return string SVG renderizado.
    */
   public static function matrixHeatmap(array $params = []): string
@@ -2484,6 +2493,10 @@ class GraphicsModule
     $rowCount = count($rowLabels);
     $colCount = count($colLabels);
 
+    $showAxisX = isset($params['showAxisX']) ? (bool)$params['showAxisX'] : (isset($params['showCols']) ? (bool)$params['showCols'] : true);
+    $showAxisY = isset($params['showAxisY']) ? (bool)$params['showAxisY'] : (isset($params['showRows']) ? (bool)$params['showRows'] : true);
+    $colPosition = isset($params['colLabelPosition']) ? strtolower((string)$params['colLabelPosition']) : (isset($params['xLabelPosition']) ? strtolower((string)$params['xLabelPosition']) : 'bottom');
+
     // Matriz de intensidades predeterminada exactamente idéntica a la imagen
     $defaultMatrix = [
       [0.15, 0.42, 0.78, 0.45, 0.95, 0.35, 0.65], // Mon
@@ -2496,8 +2509,6 @@ class GraphicsModule
     $rawMatrix = isset($params['matrix']) && is_array($params['matrix'])
       ? $params['matrix']
       : $defaultMatrix;
-
-    $rx = isset($params['rx']) ? (float)$params['rx'] : 7.0;
 
     $classNames = 'mono-chart-svg mono-matrix-svg';
     if (!empty($style['svgClass'])) {
@@ -2516,20 +2527,48 @@ class GraphicsModule
     $panelH = 178.0;
     $panelRx = 16.0;
 
-    $cellSize = 26.0;
-    $cellGap = 7.5;
-    $rx = isset($params['rx']) ? (float)$params['rx'] : 8.0;
+    if ($showAxisX && !empty($colLabels)) {
+      $cellSize = isset($params['cellSize']) ? (float)$params['cellSize'] : 24.0;
+      $cellGap = isset($params['cellGap']) ? (float)$params['cellGap'] : 6.0;
+      $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
+      $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
 
-    $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
-    $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
+      if ($colPosition === 'top') {
+        $gridStartY = 24.0;
+        $colLabelY = 15.0;
+      } else {
+        $gridStartY = 10.0;
+        $colLabelY = round($gridStartY + $gridH + 15.0, 1);
+      }
+    } else {
+      $cellSize = isset($params['cellSize']) ? (float)$params['cellSize'] : 26.0;
+      $cellGap = isset($params['cellGap']) ? (float)$params['cellGap'] : 7.5;
+      $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
+      $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
+      $gridStartY = round($panelY + (($panelH - $gridH) / 2.0), 1);
+      $colLabelY = 0.0;
+    }
+
+    $rx = isset($params['rx']) ? (float)$params['rx'] : min(8.0, round($cellSize * 0.32, 1));
 
     $padRight = 16.0;
     $gridStartX = round($panelX + $panelW - $padRight - $gridW, 1);
-    $gridStartY = round($panelY + (($panelH - $gridH) / 2.0), 1);
+    $labelAnchorX = round($gridStartX - 12.0, 1);
 
-    $labelAnchorX = round($gridStartX - 15.0, 1);
-    $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
-    $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+    if (isset($params['axisLabelSize']) && $params['axisLabelSize'] !== null && $params['axisLabelSize'] !== '') {
+      $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
+      $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+      $colAxisSizeStyle = $axisSizeStyle;
+      $colAxisSizeAttr = $axisSizeAttr;
+    } else {
+      $rowAdaptiveSize = round(min(12.0, max(9.5, ($cellSize * 0.50))), 1);
+      $axisSizeStyle = " font-size: {$rowAdaptiveSize}px;";
+      $axisSizeAttr = " font-size=\"{$rowAdaptiveSize}px\"";
+
+      $colAdaptiveSize = round(min(11.5, max(8.5, ($cellSize * 0.46))), 1);
+      $colAxisSizeStyle = " font-size: {$colAdaptiveSize}px;";
+      $colAxisSizeAttr = " font-size=\"{$colAdaptiveSize}px\"";
+    }
 
     ob_start();
     ?>
@@ -2539,7 +2578,7 @@ class GraphicsModule
       <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="transparent" />
       <?php endif; ?>
 
-
+      <?php if ($showAxisY && !empty($rowLabels)): ?>
       <!-- Eje Y: Etiquetas de Días / Filas -->
       <g class="mono-matrix-labels">
         <?php for ($r = 0; $r < $rowCount; $r++): 
@@ -2549,6 +2588,19 @@ class GraphicsModule
         <text x="<?= number_format($labelAnchorX, 1, '.', '') ?>" y="<?= number_format($rowCenterY, 1, '.', '') ?>" text-anchor="end" class="mono-matrix-row-label<?= $axisClass ?>" style="<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?>><?= $rowName ?></text>
         <?php endfor; ?>
       </g>
+      <?php endif; ?>
+
+      <?php if ($showAxisX && !empty($colLabels)): ?>
+      <!-- Eje X: Etiquetas de Columnas / Días -->
+      <g class="mono-matrix-col-labels">
+        <?php for ($c = 0; $c < $colCount; $c++): 
+          $colName = htmlspecialchars($colLabels[$c], ENT_QUOTES, 'UTF-8');
+          $colCenterX = round($gridStartX + ($c * ($cellSize + $cellGap)) + ($cellSize / 2.0), 1);
+        ?>
+        <text x="<?= number_format($colCenterX, 1, '.', '') ?>" y="<?= number_format($colLabelY, 1, '.', '') ?>" text-anchor="middle" class="mono-matrix-col-label<?= $axisClass ?>" style="<?= $colAxisSizeStyle ?>"<?= $colAxisSizeAttr ?>><?= $colName ?></text>
+        <?php endfor; ?>
+      </g>
+      <?php endif; ?>
 
       <!-- Rejilla de Celdas (Rounded Node Cells) -->
       <g class="mono-matrix-grid">

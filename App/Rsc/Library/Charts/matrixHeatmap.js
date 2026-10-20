@@ -23,7 +23,7 @@ export function animateMatrixHeatmap(svg, { duration = 600, isExit = false } = {
   if (!svg) return { cancel: () => {} };
 
   const cells = Array.from(svg.querySelectorAll(".mono-matrix-cell"));
-  const labels = Array.from(svg.querySelectorAll(".mono-matrix-row-label"));
+  const labels = Array.from(svg.querySelectorAll(".mono-matrix-row-label, .mono-matrix-col-label"));
   if (cells.length === 0) return { cancel: () => {} };
 
   // Guardar coordenadas de centro para transform-origin relativo en SVG
