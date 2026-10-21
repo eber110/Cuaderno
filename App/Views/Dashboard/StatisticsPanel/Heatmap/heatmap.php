@@ -12,6 +12,7 @@
    * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
    */
 
+  $stats = [];
   $heatmap        = is_array($heatmap ?? null) ? $heatmap : (is_array($stats["heatmap"] ?? null) ? $stats["heatmap"] : []);
   $matrix         = is_array($heatmap["matrix"] ?? null) ? $heatmap["matrix"] : [];
   $recommendation = (string)($heatmap["recommendation"] ?? "");
