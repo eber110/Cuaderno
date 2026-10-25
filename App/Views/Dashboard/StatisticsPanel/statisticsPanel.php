@@ -22,10 +22,12 @@
    * @var array  $uri                Rutas de navegación
    */
 
-  $userProfile        = !empty($user) ? $user : ($card["profile"] ?? "user");
+  $userProfile        = isset($user) && !empty($user) ? $user : (isset($card["profile"]) ? $card["profile"] : "user");
   $canViewDevGraphics = isset($canViewDevGraphics) ? (bool)$canViewDevGraphics : StatisticsModels::canViewDevGraphics($userProfile);
   $canViewSubs        = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
-  $isPremium          = (bool)($isPremium ?? false);
+  $isPremium          = isset($isPremium) ? (bool)$isPremium : false;
+  $stats              = isset($stats) && is_array($stats) ? $stats : [];
+  $monthlyViews       = isset($monthlyViews) && is_array($monthlyViews) ? $monthlyViews : (isset($stats["monthly_views"]) && is_array($stats["monthly_views"]) ? $stats["monthly_views"] : []);
 
   GraphicsModule::configStyle([
     "colorLabel"    => "texto",

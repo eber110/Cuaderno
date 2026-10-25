@@ -1,19 +1,27 @@
 <?php
+  use App\Models\StatisticsModels;
+
   /**
    * Vista de Destacado Enlace Estrella (Dashboard.StatisticsPanel.StarLink.starLink)
    *
-   * Destaca el enlace o botón con mayor volumen de interacción y conversión:
-   * - Plan Premium: Detalle de clics del mes, clics acumulados, CTR individual y proporción móvil/desktop.
-   * - Plan Free: Teaser desenfocado con candado de suscripción.
-   *
-   * @var array|null $starLink  Datos del enlace con mayor rendimiento
-   * @var bool       $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $starLink      Datos del enlace con mayor rendimiento
+   * @var array|null $linksDetailed Detalle completo de enlaces
+   * @var array|null $stats         Estructura analítica global
+   * @var bool|null  $isPremium     Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs   Booleano que indica si las suscripciones están publicadas
    */
 
-  $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
-  $starLink      = isset($starLink) ? $starLink : ($linksDetailed["star_link"] ?? null);
-  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium     = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList     = isset($stats) && is_array($stats) ? $stats : [];
+  $linksDetailed = isset($linksDetailed) && is_array($linksDetailed) 
+    ? $linksDetailed 
+    : (isset($statsList["links_detailed"]) && is_array($statsList["links_detailed"]) ? $statsList["links_detailed"] : []);
+  $starLink      = isset($starLink) && is_array($starLink) 
+    ? $starLink 
+    : (isset($linksDetailed["star_link"]) && is_array($linksDetailed["star_link"]) ? $linksDetailed["star_link"] : null);
+
+  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium    = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium     = !$canViewSubs ? true : $rawPremium;
 ?>
 
 <div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">

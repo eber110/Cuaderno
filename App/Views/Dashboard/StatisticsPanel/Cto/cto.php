@@ -2,13 +2,17 @@
   use Base\Module\GraphicsModule;
 
   /**
-   * @var array $cto Array con datos de CTO, promedio de enlaces/visitas y distribución de clics Enlaces vs RRSS.
+   * @var array|null $cto   Array con datos de CTO, promedio de enlaces/visitas y distribución de clics Enlaces vs RRSS.
+   * @var array|null $stats Estructura analítica global opcional
    */
   $monthlyViews          = (int)($cto["monthly_views"] ?? 0);
   $monthlyClicks         = (int)($cto["monthly_clicks"] ?? 0);
   $monthlyEnlaces        = (int)($cto["monthly_enlaces"] ?? 0);
   $monthlyRrss           = (int)($cto["monthly_rrss"] ?? 0);
-  $monthLabel            = $cto["month_label"] ?? "";
+  $statsList             = isset($stats) && is_array($stats) ? $stats : [];
+  $ctoData               = isset($cto) && is_array($cto) ? $cto : (isset($statsList["cto"]) && is_array($statsList["cto"]) ? $statsList["cto"] : []);
+  $cto                   = $ctoData;
+  $monthLabel            = isset($cto["month_label"]) ? (string)$cto["month_label"] : "";
 
   $monthlyCtoRate        = $cto["monthly_cto_rate"] ?? 0.0;
   $monthlyClicksPerVisit = $cto["monthly_clicks_per_visit"] ?? 0.0;

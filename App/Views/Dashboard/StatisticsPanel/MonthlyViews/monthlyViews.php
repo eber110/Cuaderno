@@ -2,8 +2,12 @@
   use Base\Module\GraphicsModule;
 
   /**
-   * @var array $monthly Array con datos de visitas del mes actual, meses anteriores, promedio, evaluación de tendencia y gráfico spline.
+   * @var array|null $monthly Array con datos de visitas del mes actual, meses anteriores, promedio, evaluación de tendencia y gráfico spline.
+   * @var array|null $stats   Estructura analítica global opcional
    */
+  $statsList     = isset($stats) && is_array($stats) ? $stats : [];
+  $monthlyData   = isset($monthly) && is_array($monthly) ? $monthly : (isset($statsList["monthly_views"]) && is_array($statsList["monthly_views"]) ? $statsList["monthly_views"] : []);
+  $monthly       = $monthlyData;
   $currentTotal  = (int)($monthly["current_month_total"] ?? 0);
   $monthLabel    = $monthly["current_month_label"] ?? "";
   $hasHistory    = !empty($monthly["has_history"]);

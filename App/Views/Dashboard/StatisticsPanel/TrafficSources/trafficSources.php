@@ -1,22 +1,26 @@
 <?php
   use Base\Module\GraphicsModule;
+  use App\Models\StatisticsModels;
 
   /**
    * Vista de Fuentes de Tráfico (Dashboard.StatisticsPanel.TrafficSources.trafficSources)
    *
-   * Muestra las plataformas y redes sociales desde las que llegan las visitas:
-   * - Plan Premium: Desglose completo con GraphicsModule::horizontalBars, plataforma principal y chips resumen.
-   * - Plan Free: Teaser desenfocado con candado de suscripción.
-   *
-   * @var array $referrers Array con 'platforms' y 'top_platform'
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $referrers   Array con 'platforms' y 'top_platform'
+   * @var array|null $stats       Estructura analítica global
+   * @var bool|null  $isPremium   Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs Booleano que indica si las suscripciones están publicadas
    */
 
-  $referrers   = is_array($referrers ?? null) ? $referrers : (is_array($stats["referrers"] ?? null) ? $stats["referrers"] : []);
-  $platforms   = is_array($referrers["platforms"] ?? null) ? $referrers["platforms"] : [];
-  $topPlatform = $referrers["top_platform"] ?? null;
-  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium   = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList   = isset($stats) && is_array($stats) ? $stats : [];
+  $referrers   = isset($referrers) && is_array($referrers) 
+    ? $referrers 
+    : (isset($statsList["referrers"]) && is_array($statsList["referrers"]) ? $statsList["referrers"] : []);
+  $platforms   = isset($referrers["platforms"]) && is_array($referrers["platforms"]) ? $referrers["platforms"] : [];
+  $topPlatform = isset($referrers["top_platform"]) && is_array($referrers["top_platform"]) ? $referrers["top_platform"] : null;
+
+  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium  = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium   = !$canViewSubs ? true : $rawPremium;
 
   // Preparar datos para las barras horizontales de fuentes de tráfico (Top 6)
   $platformBars = [];

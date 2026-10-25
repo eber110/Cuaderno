@@ -1,22 +1,26 @@
 <?php
   use Base\Module\GraphicsModule;
+  use App\Models\StatisticsModels;
 
   /**
    * Vista de Geolocalización de Audiencia (Dashboard.StatisticsPanel.GeoRanking.geoRanking)
    *
-   * Muestra la distribución geográfica de visitantes por países y ciudades:
-   * - Plan Premium: Ranking Top países con GraphicsModule::horizontalBars y desglose de ciudades.
-   * - Plan Free: País principal #1 visible y ranking extendido cubierto con teaser y candado.
-   *
-   * @var array $geo       Array con listas de 'countries' y 'cities' procesadas por MaxMind
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $geo         Array con listas de 'countries' y 'cities'
+   * @var array|null $stats       Estructura analítica global
+   * @var bool|null  $isPremium   Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs Booleano que indica si las suscripciones están publicadas
    */
 
-  $geo         = is_array($geo ?? null) ? $geo : (is_array($stats["geo"] ?? null) ? $stats["geo"] : []);
-  $countries   = is_array($geo["countries"] ?? null) ? $geo["countries"] : [];
-  $cities      = is_array($geo["cities"] ?? null) ? $geo["cities"] : [];
-  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium   = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList   = isset($stats) && is_array($stats) ? $stats : [];
+  $geo         = isset($geo) && is_array($geo) 
+    ? $geo 
+    : (isset($statsList["geo"]) && is_array($statsList["geo"]) ? $statsList["geo"] : []);
+  $countries   = isset($geo["countries"]) && is_array($geo["countries"]) ? $geo["countries"] : [];
+  $cities      = isset($geo["cities"]) && is_array($geo["cities"]) ? $geo["cities"] : [];
+
+  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium  = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium   = !$canViewSubs ? true : $rawPremium;
 
   // Helper local para convertir código ISO de 2 letras en emoji de bandera
   $countryFlagEmoji = function (string $code): string {

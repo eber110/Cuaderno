@@ -1,19 +1,28 @@
 <?php
+  use App\Models\StatisticsModels;
+
   /**
    * Vista de Rendimiento por Botón Individual (Dashboard.StatisticsPanel.LinkPerformance.linkPerformance)
    *
-   * Muestra las tarjetas con analíticas individuales de cada botón activo:
-   * - Plan Premium: Clics del mes, acumulados, CTR individual y proporción móvil/desktop con barras planas bicolores.
-   * - Plan Free: Teaser desenfocado con candado de suscripción.
-   *
-   * @var array $items     Lista de enlaces de contenido con métricas individuales
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $items         Lista de enlaces de contenido con métricas individuales
+   * @var array|null $linksDetailed Detalle completo de enlaces
+   * @var array|null $stats         Estructura analítica global
+   * @var bool|null  $isPremium     Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs   Booleano que indica si las suscripciones están publicadas
    */
 
-  $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
-  $items         = is_array($items ?? null) ? $items : (is_array($linksDetailed["items"] ?? null) ? $linksDetailed["items"] : []);
-  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium     = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList     = isset($stats) && is_array($stats) ? $stats : [];
+  $linksDetailed = isset($linksDetailed) && is_array($linksDetailed) 
+    ? $linksDetailed 
+    : (isset($statsList["links_detailed"]) && is_array($statsList["links_detailed"]) ? $statsList["links_detailed"] : []);
+  $itemsList     = isset($items) && is_array($items) 
+    ? $items 
+    : (isset($linksDetailed["items"]) && is_array($linksDetailed["items"]) ? $linksDetailed["items"] : []);
+  $items         = $itemsList;
+
+  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawIsPremium  = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium     = !$canViewSubs ? true : $rawIsPremium;
 ?>
 
 <div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">

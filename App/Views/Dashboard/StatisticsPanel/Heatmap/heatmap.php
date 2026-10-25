@@ -1,22 +1,26 @@
 <?php
   use Base\Module\GraphicsModule;
+  use App\Models\StatisticsModels;
 
   /**
    * Vista de Actividad Semanal Heatmap (Dashboard.StatisticsPanel.Heatmap.heatmap)
    *
-   * Muestra la matriz de densidad de visitas por días y franjas horarias:
-   * - Plan Premium: Matriz 5x7 con GraphicsModule::matrixHeatmap y recomendación inteligente de horarios de publicación.
-   * - Plan Free: Teaser desenfocado con candado de suscripción.
-   *
-   * @var array $heatmap   Array con 'matrix' (días x horas) y 'recommendation'
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null  $heatmap        Array con 'matrix' (días x horas) y 'recommendation'
+   * @var array|null  $stats          Estructura analítica global
+   * @var bool|null   $isPremium      Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null   $canViewSubs    Booleano que indica si las suscripciones están publicadas
    */
 
-  $heatmap        = is_array($heatmap ?? null) ? $heatmap : (is_array($stats["heatmap"] ?? null) ? $stats["heatmap"] : []);
-  $matrix         = is_array($heatmap["matrix"] ?? null) ? $heatmap["matrix"] : [];
-  $recommendation = (string)($heatmap["recommendation"] ?? "");
-  $canViewSubs    = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium      = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList      = isset($stats) && is_array($stats) ? $stats : [];
+  $heatmap        = isset($heatmap) && is_array($heatmap) 
+    ? $heatmap 
+    : (isset($statsList["heatmap"]) && is_array($statsList["heatmap"]) ? $statsList["heatmap"] : []);
+  $matrix         = isset($heatmap["matrix"]) && is_array($heatmap["matrix"]) ? $heatmap["matrix"] : [];
+  $recommendation = isset($heatmap["recommendation"]) ? (string)$heatmap["recommendation"] : "";
+
+  $canViewSubs    = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium     = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium      = !$canViewSubs ? true : $rawPremium;
 
   // Agrupación de las 24 horas en las 5 franjas canónicas de GraphicsModule::matrixHeatmap
   $timeSlots = [

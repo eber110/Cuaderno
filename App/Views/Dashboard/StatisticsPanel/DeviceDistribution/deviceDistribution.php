@@ -2,16 +2,18 @@
   /**
    * Vista de Distribución de Dispositivos Móvil vs Escritorio (Dashboard.StatisticsPanel.DeviceDistribution.deviceDistribution)
    *
-   * Muestra la proporción general de clics originados en smartphones versus ordenadores:
-   * Barra visual proporcional plana bicolor estandarizada con cto.php.
-   *
-   * @var float $mobilePct  Porcentaje de clics originados en smartphones
-   * @var float $desktopPct Porcentaje de clics originados en ordenadores
+   * @var float|null $mobilePct     Porcentaje de clics originados en smartphones
+   * @var float|null $desktopPct    Porcentaje de clics originados en ordenadores
+   * @var array|null $linksDetailed Detalle completo de enlaces
+   * @var array|null $stats         Estructura analítica global
    */
 
-  $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
-  $mobilePct     = isset($mobilePct) ? (float)$mobilePct : (float)($linksDetailed["global_mobile_pct"] ?? $linksDetailed["mobile_percentage"] ?? 0.0);
-  $desktopPct    = isset($desktopPct) ? (float)$desktopPct : (float)($linksDetailed["global_desktop_pct"] ?? $linksDetailed["desktop_percentage"] ?? 0.0);
+  $statsList     = isset($stats) && is_array($stats) ? $stats : [];
+  $linksDetailed = isset($linksDetailed) && is_array($linksDetailed) 
+    ? $linksDetailed 
+    : (isset($statsList["links_detailed"]) && is_array($statsList["links_detailed"]) ? $statsList["links_detailed"] : []);
+  $mobilePct     = isset($mobilePct) ? (float)$mobilePct : (float)($linksDetailed["global_mobile_pct"] ?? ($linksDetailed["mobile_percentage"] ?? 0.0));
+  $desktopPct    = isset($desktopPct) ? (float)$desktopPct : (float)($linksDetailed["global_desktop_pct"] ?? ($linksDetailed["desktop_percentage"] ?? 0.0));
 ?>
 
 <div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">

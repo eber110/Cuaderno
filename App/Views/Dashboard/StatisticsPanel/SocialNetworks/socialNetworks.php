@@ -1,19 +1,27 @@
 <?php
+  use App\Models\StatisticsModels;
+
   /**
    * Vista de Interacción en Redes Sociales (Dashboard.StatisticsPanel.SocialNetworks.socialNetworks)
    *
-   * Muestra las métricas de clics hacia redes sociales de cabecera:
-   * - Plan Premium: Clics desglosados por cada red configurada (Instagram, TikTok, WhatsApp, etc.).
-   * - Plan Free: Teaser desenfocado con candado de suscripción.
-   *
-   * @var array $rrss      Lista de redes sociales activas con métricas de clics
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $rrss          Lista de redes sociales activas con métricas de clics
+   * @var array|null $linksDetailed Detalle completo de enlaces
+   * @var array|null $stats         Estructura analítica global
+   * @var bool|null  $isPremium     Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs   Booleano que indica si las suscripciones están publicadas
    */
 
-  $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
-  $rrss          = is_array($rrss ?? null) ? $rrss : (is_array($linksDetailed["rrss"] ?? null) ? $linksDetailed["rrss"] : []);
-  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium     = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList     = isset($stats) && is_array($stats) ? $stats : [];
+  $linksDetailed = isset($linksDetailed) && is_array($linksDetailed) 
+    ? $linksDetailed 
+    : (isset($statsList["links_detailed"]) && is_array($statsList["links_detailed"]) ? $statsList["links_detailed"] : []);
+  $rrss          = isset($rrss) && is_array($rrss) 
+    ? $rrss 
+    : (isset($linksDetailed["rrss"]) && is_array($linksDetailed["rrss"]) ? $linksDetailed["rrss"] : []);
+
+  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium    = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium     = !$canViewSubs ? true : $rawPremium;
 ?>
 
 <?php if (!empty($rrss)): ?>

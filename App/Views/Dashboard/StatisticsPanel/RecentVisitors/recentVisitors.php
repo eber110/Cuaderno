@@ -1,18 +1,22 @@
 <?php
+  use App\Models\StatisticsModels;
+
   /**
    * Vista de Visitantes Recientes (Dashboard.StatisticsPanel.RecentVisitors.recentVisitors)
    *
-   * Muestra el feed cronológico «¿Quién te visitó?»:
-   * - Plan Premium: Lista de creadores y usuarios registrados con avatar, nombre, fecha relativa y visitas.
-   * - Plan Free: Teaser desenfocado con candado de suscripción y conteo real de visitantes.
-   *
-   * @var array $visitors  Lista de usuarios registrados que visitaron el perfil
-   * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
+   * @var array|null $visitors     Lista de usuarios registrados que visitaron el perfil
+   * @var array|null $stats        Estructura analítica global
+   * @var bool|null  $isPremium    Booleano que indica si el creador cuenta con suscripción activa
+   * @var bool|null  $canViewSubs  Booleano que indica si las suscripciones están publicadas
    */
 
-  $visitors     = is_array($visitors ?? null) ? $visitors : (is_array($stats["visitors"] ?? null) ? $stats["visitors"] : []);
-  $canViewSubs  = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
-  $isPremium    = !$canViewSubs ? true : (bool)($isPremium ?? false);
+  $statsList    = isset($stats) && is_array($stats) ? $stats : [];
+  $visitors     = isset($visitors) && is_array($visitors) 
+    ? $visitors 
+    : (isset($statsList["visitors"]) && is_array($statsList["visitors"]) ? $statsList["visitors"] : []);
+  $canViewSubs  = isset($canViewSubs) ? (bool)$canViewSubs : StatisticsModels::canViewSubscriptions();
+  $rawPremium   = isset($isPremium) ? (bool)$isPremium : false;
+  $isPremium    = !$canViewSubs ? true : $rawPremium;
   $visitorCount = count($visitors);
 ?>
 
