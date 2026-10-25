@@ -227,4 +227,13 @@ class SubscriptionModels extends BuilderSqlite {
     return self::findSubscriptionRow($userOrIndex);
   }
 
+  /**
+   * Determina si el sistema de suscripciones y planes premium está activo en producción.
+   *
+   * @return bool True si está publicado en producción, false si debe permanecer oculto.
+   */
+  public static function isProductionEnabled(): bool {
+    return StatisticsModels::canViewSubscriptions();
+  }
+
 }

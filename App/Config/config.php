@@ -77,7 +77,17 @@ if (!defined('ENABLE_VIDEO_UPLOAD')) {
     define('ENABLE_VIDEO_UPLOAD', filter_var($envVideo, FILTER_VALIDATE_BOOLEAN));
 }
 
+// Control global de publicación de gráficos avanzados en producción
+if (!defined('GRAPHIC_PRODUCTION')) {
+    $envGraphic = $_ENV['GRAPHIC_PRODUCTION'] ?? $_ENV['graphic_production'] ?? getenv('GRAPHIC_PRODUCTION') ?? getenv('graphic_production') ?: false;
+    define('GRAPHIC_PRODUCTION', filter_var($envGraphic, FILTER_VALIDATE_BOOLEAN));
+}
 
+// Control global de publicación de suscripciones y planes premium en producción
+if (!defined('SUSCRIPTION_PRODUCTION')) {
+    $envSuscription = $_ENV['SUSCRIPTION_PRODUCTION'] ?? $_ENV['suscription_production'] ?? getenv('SUSCRIPTION_PRODUCTION') ?? getenv('suscription_production') ?: false;
+    define('SUSCRIPTION_PRODUCTION', filter_var($envSuscription, FILTER_VALIDATE_BOOLEAN));
+}
 
 // Cargar configuración del framework
-require_once $basePath . '/vendor/eber/framework/config.php';
+require_once $basePath . '/vendor/eber/framework/config.php';

@@ -11,7 +11,8 @@
    */
 
   $visitors     = is_array($visitors ?? null) ? $visitors : (is_array($stats["visitors"] ?? null) ? $stats["visitors"] : []);
-  $isPremium    = (bool)($isPremium ?? false);
+  $canViewSubs  = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium    = !$canViewSubs ? true : (bool)($isPremium ?? false);
   $visitorCount = count($visitors);
 ?>
 
@@ -27,13 +28,13 @@
       </div>
     </div>
 
-    <?php if ($isPremium): ?>
-      <span class="back-card-graphic shadow-card-graphic p5 pl10 pr10 br10 bold500 x12 color-secondary">
-        <?= e((string)$visitorCount); ?> <?= $visitorCount === 1 ? 'visitante' : 'visitantes'; ?>
-      </span>
-    <?php else: ?>
+    <?php if ($canViewSubs && !$isPremium): ?>
       <span class="premium-lock-badge">
         <?= svg("lock", "x10"); ?> Premium
+      </span>
+    <?php else: ?>
+      <span class="back-card-graphic shadow-card-graphic p5 pl10 pr10 br10 bold500 x12 color-secondary">
+        <?= e((string)$visitorCount); ?> <?= $visitorCount === 1 ? 'visitante' : 'visitantes'; ?>
       </span>
     <?php endif; ?>
   </div>

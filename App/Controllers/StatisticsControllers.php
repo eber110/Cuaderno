@@ -246,7 +246,11 @@ class StatisticsControllers extends Control {
     $monthlyEval  = self::evaluateMonthlyTrend($monthlyRaw);
     $ctoRaw       = $statsRaw["cto"] ?? StatisticsModels::getCtoData($indexUser);
     $ctoEval      = self::evaluateCtoMetrics($ctoRaw);
-    $isPremium    = LemonSqueezyModels::isUserSubscribedFast($indexUser);
+    // Evaluar variables de entorno de producción y permisos de visualización
+    $canViewDevGraphics = StatisticsModels::canViewDevGraphics($userClean);
+    $canViewSubs        = StatisticsModels::canViewSubscriptions();
+    $isSubscribed       = LemonSqueezyModels::isUserSubscribedFast($indexUser);
+    $isPremium          = $canViewSubs ? $isSubscribed : ($canViewDevGraphics ? true : false);
 
     $dataUser  = DesignModels::dataUser($userClean);
     $cardData  = (isset($dataUser["card"]) && is_array($dataUser["card"])) 
@@ -263,7 +267,9 @@ class StatisticsControllers extends Control {
     $generalHtml = _partToString("Dashboard.StatisticsPanel.statisticsPanel", [
       "stats"        => $statsRaw,
       "monthlyViews" => $monthlyEval,
-      "isPremium"    => $isPremium,
+      "isPremium"          => $isPremium,
+      "canViewDevGraphics" => $canViewDevGraphics,
+      "canViewSubs"        => $canViewSubs,
       "card"         => $cardData,
       "user"         => $userClean,
       "uri"          => $uri
@@ -272,7 +278,9 @@ class StatisticsControllers extends Control {
     $linksHtml = _partToString("Dashboard.StatisticsPanel.statisticsLink", [
       "stats"        => $statsRaw,
       "cto"          => $ctoEval,
-      "isPremium"    => $isPremium,
+      "isPremium"          => $isPremium,
+      "canViewDevGraphics" => $canViewDevGraphics,
+      "canViewSubs"        => $canViewSubs,
       "card"         => $cardData,
       "user"         => $userClean,
       "uri"          => $uri

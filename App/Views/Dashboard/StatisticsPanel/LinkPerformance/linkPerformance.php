@@ -12,7 +12,8 @@
 
   $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
   $items         = is_array($items ?? null) ? $items : (is_array($linksDetailed["items"] ?? null) ? $linksDetailed["items"] : []);
-  $isPremium     = (bool)($isPremium ?? false);
+  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium     = !$canViewSubs ? true : (bool)($isPremium ?? false);
 ?>
 
 <div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
@@ -27,7 +28,7 @@
       </div>
     </div>
 
-    <?php if (!$isPremium): ?>
+    <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
         <?= svg("lock", "x10"); ?> Premium
       </span>

@@ -15,7 +15,8 @@
   $referrers   = is_array($referrers ?? null) ? $referrers : (is_array($stats["referrers"] ?? null) ? $stats["referrers"] : []);
   $platforms   = is_array($referrers["platforms"] ?? null) ? $referrers["platforms"] : [];
   $topPlatform = $referrers["top_platform"] ?? null;
-  $isPremium   = (bool)($isPremium ?? false);
+  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium   = !$canViewSubs ? true : (bool)($isPremium ?? false);
 
   // Preparar datos para las barras horizontales de fuentes de tráfico (Top 6)
   $platformBars = [];
@@ -40,7 +41,7 @@
       </div>
     </div>
 
-    <?php if (!$isPremium): ?>
+    <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
         <?= svg("lock", "x10"); ?> Premium
       </span>

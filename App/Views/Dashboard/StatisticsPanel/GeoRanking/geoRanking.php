@@ -12,10 +12,11 @@
    * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
    */
 
-  $geo       = is_array($geo ?? null) ? $geo : (is_array($stats["geo"] ?? null) ? $stats["geo"] : []);
-  $countries = is_array($geo["countries"] ?? null) ? $geo["countries"] : [];
-  $cities    = is_array($geo["cities"] ?? null) ? $geo["cities"] : [];
-  $isPremium = (bool)($isPremium ?? false);
+  $geo         = is_array($geo ?? null) ? $geo : (is_array($stats["geo"] ?? null) ? $stats["geo"] : []);
+  $countries   = is_array($geo["countries"] ?? null) ? $geo["countries"] : [];
+  $cities      = is_array($geo["cities"] ?? null) ? $geo["cities"] : [];
+  $canViewSubs = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium   = !$canViewSubs ? true : (bool)($isPremium ?? false);
 
   // Helper local para convertir código ISO de 2 letras en emoji de bandera
   $countryFlagEmoji = function (string $code): string {
@@ -50,7 +51,7 @@
       </div>
     </div>
 
-    <?php if (!$isPremium): ?>
+    <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
         <?= svg("lock", "x10"); ?> Premium
       </span>

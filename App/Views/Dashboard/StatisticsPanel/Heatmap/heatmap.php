@@ -12,11 +12,11 @@
    * @var bool  $isPremium Booleano que indica si el creador cuenta con suscripción activa
    */
 
-  $stats = [];
   $heatmap        = is_array($heatmap ?? null) ? $heatmap : (is_array($stats["heatmap"] ?? null) ? $stats["heatmap"] : []);
   $matrix         = is_array($heatmap["matrix"] ?? null) ? $heatmap["matrix"] : [];
   $recommendation = (string)($heatmap["recommendation"] ?? "");
-  $isPremium      = (bool)($isPremium ?? false);
+  $canViewSubs    = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium      = !$canViewSubs ? true : (bool)($isPremium ?? false);
 
   // Agrupación de las 24 horas en las 5 franjas canónicas de GraphicsModule::matrixHeatmap
   $timeSlots = [
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <?php if (!$isPremium): ?>
+    <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
         <?= svg("lock", "x10"); ?> Premium
       </span>

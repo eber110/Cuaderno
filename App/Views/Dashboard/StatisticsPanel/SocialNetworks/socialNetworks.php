@@ -12,7 +12,8 @@
 
   $linksDetailed = is_array($linksDetailed ?? null) ? $linksDetailed : (is_array($stats["links_detailed"] ?? null) ? $stats["links_detailed"] : []);
   $rrss          = is_array($rrss ?? null) ? $rrss : (is_array($linksDetailed["rrss"] ?? null) ? $linksDetailed["rrss"] : []);
-  $isPremium     = (bool)($isPremium ?? false);
+  $canViewSubs   = isset($canViewSubs) ? (bool)$canViewSubs : \App\Models\StatisticsModels::canViewSubscriptions();
+  $isPremium     = !$canViewSubs ? true : (bool)($isPremium ?? false);
 ?>
 
 <?php if (!empty($rrss)): ?>
@@ -28,7 +29,7 @@
         </div>
       </div>
 
-      <?php if (!$isPremium): ?>
+      <?php if (!$isPremium && $canViewSubs): ?>
         <span class="premium-lock-badge">
           <?= svg("lock", "x10"); ?> Premium
         </span>
