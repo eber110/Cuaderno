@@ -51,6 +51,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 	@ini_set('session.cookie_secure', '1');
 	@ini_set('session.use_strict_mode', '1');
 	@ini_set('session.use_only_cookies', '1');
+	@ini_set('session.upload_progress.enabled', '0');
+}
+
+// Límite de lectura para cuerpos crudos JSON/PUT/PATCH/DELETE en php://input (10 MB por defecto; no afecta $_FILES)
+if (!defined('MAX_INPUT_BYTES')) {
+	define('MAX_INPUT_BYTES', (int)($_ENV['MAX_INPUT_BYTES'] ?? 10485760));
 }
 
 // Whitelist de tablas SQL (Zero-Config: array vacío permite cualquier tabla con identificador SQL seguro)
@@ -216,6 +222,8 @@ if (!defined('OUTPUT_FORMAT')) define('OUTPUT_FORMAT', $_ENV['IMAGE_FORMAT'] ?? 
 if (!defined('SMART_COMPRESSION')) define('SMART_COMPRESSION', filter_var($_ENV['SMART_COMPRESSION'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('MAX_IMAGE_WIDTH')) define('MAX_IMAGE_WIDTH', (int)($_ENV['MAX_IMAGE_WIDTH'] ?? 1920));
 if (!defined('MAX_IMAGE_HEIGHT')) define('MAX_IMAGE_HEIGHT', (int)($_ENV['MAX_IMAGE_HEIGHT'] ?? 1080));
+if (!defined('MAX_IMAGE_PIXELS')) define('MAX_IMAGE_PIXELS', (int)($_ENV['MAX_IMAGE_PIXELS'] ?? 50000000));
+if (!defined('MAX_GIF_FRAMES')) define('MAX_GIF_FRAMES', (int)($_ENV['MAX_GIF_FRAMES'] ?? 600));
 if (!defined('MIN_QUALITY')) define('MIN_QUALITY', (int)($_ENV['MIN_QUALITY'] ?? 20));
 if (!defined('QUALITY_STEP')) define('QUALITY_STEP', (int)($_ENV['QUALITY_STEP'] ?? 5));
 if (!defined('LAZY_LOAD_IMAGES')) define('LAZY_LOAD_IMAGES', filter_var($_ENV['LAZY_LOAD_IMAGES'] ?? true, FILTER_VALIDATE_BOOLEAN));

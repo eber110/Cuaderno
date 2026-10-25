@@ -112,6 +112,8 @@ class AuthModule
       Session::start();
     }
 
+    Session::regenerateId(true);
+
     // Normalizar ID de usuario para Session
     $userId = $userData['id'] ?? $userData['id_user'] ?? $userData['user_id'] ?? null;
     if ($userId !== null && !isset($userData['user_id'])) {
@@ -210,7 +212,7 @@ class AuthModule
    */
   public static function logout(): void
   {
-    Session::clear();
+    Session::session_end_all();
     if (class_exists(CookieModule::class)) {
       CookieModule::delete('auth_token');
     }

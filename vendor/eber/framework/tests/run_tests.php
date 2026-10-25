@@ -14,10 +14,11 @@
  * 8. GeminiModule (cliente universal).
  * 9. GeoLocation (resolución híbrida).
  * 10. CLI MakeCli (generadores de código).
- * 11. Scaffolding en InitAppStructure y Resources/Segment.
+ * 11. Inicialización de estructura en InitAppStructure y recursos nativos.
  */
 
 define('ROOT_PATH', str_replace('\\', '/', dirname(__DIR__)));
+$appExistedBeforeTests = is_dir(ROOT_PATH . '/App');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config.php';
@@ -197,7 +198,7 @@ $runner->runTest("AnalyticsModule - SQLite desacoplado y retrocompatibilidad", f
   $eventSummary = $analytics->getEventSummary('page_view');
   $runner->assert(isset($eventSummary['total_events']) && $eventSummary['total_events'] >= 1, "getEventSummary() debe contabilizar el evento");
 
-  // Probar métodos retrocompatibles usados por Cuaderno
+  // Probar métodos retrocompatibles de analíticas de perfiles
   $loggedProfile = $analytics->logProfileView('profile_999', [
     'ip_address' => '127.0.0.1',
     'device_type' => 'Desktop',
@@ -205,10 +206,10 @@ $runner->runTest("AnalyticsModule - SQLite desacoplado y retrocompatibilidad", f
     'country_code' => 'CL',
     'referrer' => 'Direct'
   ]);
-  $runner->assert($loggedProfile === true, "logProfileView() debe funcionar para retrocompatibilidad con Cuaderno");
+  $runner->assert($loggedProfile === true, "logProfileView() debe funcionar por retrocompatibilidad");
 
   $loggedClick = $analytics->logLinkClick('profile_999', 'link_123', ['country_code' => 'CL']);
-  $runner->assert($loggedClick === true, "logLinkClick() debe funcionar para retrocompatibilidad con Cuaderno");
+  $runner->assert($loggedClick === true, "logLinkClick() debe funcionar por retrocompatibilidad");
 
   $summary = $analytics->getProfileSummary('profile_999');
   $runner->assert(isset($summary['total_views']) && $summary['total_views'] >= 1, "getProfileSummary() debe retornar vistas");
@@ -368,25 +369,48 @@ $runner->runTest("MakeCli - Generadores de código CLI", function () use ($runne
 });
 
 // =========================================================================
-// 11. SCAFFOLDING EN INITAPPSTRUCTURE & RESOURCES/SEGMENT
+// 11. INITAPPSTRUCTURE & RECURSOS NATIVOS
 // =========================================================================
-$runner->runTest("InitAppStructure & Resources/Segment - Plantillas canónicas", function () use ($runner) {
-  $resourcesDir = ROOT_PATH . '/Resources/Segment';
-  $runner->assert(is_dir($resourcesDir), "Resources/Segment debe existir en el framework");
-  $runner->assert(file_exists($resourcesDir . '/Template/header.php'), "Resources/Segment/Template/header.php debe existir");
-  $runner->assert(file_exists($resourcesDir . '/Template/footer.php'), "Resources/Segment/Template/footer.php debe existir");
-  $runner->assert(file_exists($resourcesDir . '/Template/pagination.php'), "Resources/Segment/Template/pagination.php debe existir");
-  $runner->assert(file_exists($resourcesDir . '/Form/login.php'), "Resources/Segment/Form/login.php debe existir");
-  $runner->assert(file_exists($resourcesDir . '/Form/register.php'), "Resources/Segment/Form/register.php debe existir");
-  $runner->assert(file_exists($resourcesDir . '/Menu/navbar.php'), "Resources/Segment/Menu/navbar.php debe existir");
+$runner->runTest("InitAppStructure - Reconstrucción completa de /App desde /Resources", function () use ($runner) {
+  $chartsDir = ROOT_PATH . '/Resources/Library/Charts';
+  $runner->assert(is_dir($chartsDir), "Resources/Library/Charts debe existir en el framework");
+  $runner->assert(file_exists($chartsDir . '/charts.js'), "Resources/Library/Charts/charts.js debe existir");
+  $runner->assert(file_exists($chartsDir . '/charts.css'), "Resources/Library/Charts/charts.css debe existir");
+  $runner->assert(file_exists(ROOT_PATH . '/Resources/Config/config.php'), "Resources/Config/config.php debe existir");
 
-  // Probar ejecución segura de InitAppStructure en el repo
+  // Probar ejecución segura de InitAppStructure para reconstruir /App
   $init = new \InitAppStructure();
   ob_start();
   $result = $init->create();
   ob_end_clean();
   $runner->assert($result === true, "InitAppStructure::create() debe ejecutarse sin errores");
+
+  // Verificar directorios vacíos de Segment y archivos base copiados desde Resources
+  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Form'), "App/Segment/Form debe crearse");
+  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Menu'), "App/Segment/Menu debe crearse");
+  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Template'), "App/Segment/Template debe crearse");
+  $runner->assert(file_exists(ROOT_PATH . '/App/Config/config.php'), "App/Config/config.php debe copiarse desde Resources");
+  $runner->assert(file_exists(ROOT_PATH . '/App/Config/CookieConfiguration.php'), "App/Config/CookieConfiguration.php debe copiarse desde Resources");
+  $runner->assert(file_exists(ROOT_PATH . '/App/Middleware/MiddlewareInterface/MiddlewareInterface.php'), "MiddlewareInterface.php debe copiarse desde Resources");
+  $runner->assert(file_exists(ROOT_PATH . '/App/Public/Css/_configTheme.css'), "_configTheme.css debe copiarse desde Resources");
+  $runner->assert(file_exists(ROOT_PATH . '/App/Route/web.php'), "App/Route/web.php debe copiarse desde Resources");
 });
+
+// Limpiar /App y carpetas temporales de sistema si no existían antes de ejecutar las pruebas (modo repositorio puro del framework)
+if (!$appExistedBeforeTests) {
+  $deleteDir = function (string $dirPath) use (&$deleteDir): void {
+    if (!is_dir($dirPath)) return;
+    foreach (scandir($dirPath) ?: [] as $item) {
+      if ($item === '.' || $item === '..') continue;
+      $target = $dirPath . '/' . $item;
+      is_dir($target) ? $deleteDir($target) : @unlink($target);
+    }
+    @rmdir($dirPath);
+  };
+  foreach (['App', 'Cache', 'Database', 'Logs', 'Uploads', 'Resources/Fonts', 'Resources/Helper'] as $dirToClean) {
+    $deleteDir(ROOT_PATH . '/' . $dirToClean);
+  }
+}
 
 // =========================================================================
 // FINALIZAR Y SALIDA

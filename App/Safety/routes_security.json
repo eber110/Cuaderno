@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-10-01 23:42:13",
-    "total_routes": 45,
+    "generated_at": "2026-10-25 02:44:38",
+    "total_routes": 48,
     "static_routes": [
         {
             "method": "GET",
@@ -278,6 +278,26 @@
             "middlewares": [
                 "App\\Middleware\\TestMiddleware"
             ]
+        },
+        {
+            "method": "GET",
+            "uri": "/test/2",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "App\\Controllers\\TestControllers@test2",
+            "middlewares": [
+                "App\\Middleware\\TestMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/test/login-eber",
+            "has_variables": false,
+            "variables": [],
+            "protect_at_controller": false,
+            "action": "Closure",
+            "middlewares": []
         }
     ],
     "dynamic_routes": [
@@ -382,6 +402,21 @@
             "protect_at_controller": true,
             "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
             "action": "App\\Controllers\\DesignControllers@saveDesign",
+            "middlewares": [
+                "App\\Middleware\\DashboardMiddleware"
+            ]
+        },
+        {
+            "method": "GET",
+            "uri": "/panel/:user/csrf-token",
+            "pattern": "#^/panel/(?P<user>[^/]+)/csrf-token$#u",
+            "has_variables": true,
+            "variables": [
+                "user"
+            ],
+            "protect_at_controller": true,
+            "controller_notice": "Esta ruta contiene variables dinámicas en la URL. Se debe validar y sanitizar el tipo y formato de los parámetros a nivel de controlador.",
+            "action": "Closure",
             "middlewares": [
                 "App\\Middleware\\DashboardMiddleware"
             ]
@@ -521,7 +556,7 @@
         }
     ],
     "summary_by_method": {
-        "GET": 28,
+        "GET": 31,
         "POST": 17
     }
 }

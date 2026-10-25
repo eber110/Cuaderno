@@ -379,16 +379,40 @@ class Control
       return ['error' => 'El archivo excede el tamaño máximo permitido'];
     }
 
-    if (!empty($allowed_types) && !in_array($file['type'], $allowed_types)) {
+    if (empty($file['tmp_name']) || (!is_uploaded_file($file['tmp_name']) && php_sapi_name() !== 'cli')) {
+      return ['error' => 'Archivo subido no válido'];
+    }
+
+    // Detectar MIME real del archivo en el servidor en lugar de confiar solo en la cabecera del cliente
+    $realMime = @mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
+    if (!empty($allowed_types) && !in_array($realMime, $allowed_types, true) && !in_array($file['type'], $allowed_types, true)) {
       return ['error' => 'Tipo de archivo no permitido'];
+    }
+
+    // Prohibir extensiones ejecutables en el servidor (prevención de RCE por subida de archivos)
+    $origName = basename((string)($file['name'] ?? 'archivo'));
+    $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+    $baseNameOnly = pathinfo($origName, PATHINFO_FILENAME);
+
+    $forbiddenExtensions = [
+      'php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'php8',
+      'phps', 'pht', 'pgif', 'shtml', 'htaccess', 'htpasswd', 'ini',
+      'cgi', 'pl', 'py', 'sh', 'bash', 'exe', 'bat', 'cmd', 'vbs', 'jsp', 'asp', 'aspx'
+    ];
+
+    if ($ext !== '' && in_array($ext, $forbiddenExtensions, true)) {
+      return ['error' => 'Extensión de archivo no permitida por seguridad'];
     }
 
     $upload_path = ROOT_PATH . '/' . trim($destination, '/') . '/';
     if (!is_dir($upload_path)) {
-      mkdir($upload_path, 0777, true);
+      mkdir($upload_path, 0755, true);
     }
 
-    $filename = TextModule::toSlug($file['name']);
+    $safeBase = TextModule::toSlug($baseNameOnly) ?: bin2hex(random_bytes(8));
+    $filename = ($ext !== '' && preg_match('/^[a-z0-9]{1,10}$/', $ext))
+      ? $safeBase . '.' . $ext
+      : $safeBase;
     $filepath = $upload_path . $filename;
 
     if (!move_uploaded_file($file['tmp_name'], $filepath)) {
@@ -400,7 +424,7 @@ class Control
       'filename' => $filename,
       'filepath' => $filepath,
       'filesize' => $file['size'],
-      'filetype' => $file['type'],
+      'filetype' => $realMime,
       'url' => $destination . $filename
     ];
   }

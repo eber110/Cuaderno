@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "eda3e01f7526bea660b02ed681b11424b580bd3e"
+                "reference": "26056e6a3b39771f606b71995b6871573c9f0f4b"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -112,6 +112,9 @@
                 ],
                 "post-update-cmd": [
                     "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"
+                ],
+                "init-app": [
+                    "php Base/ScriptComposer/InitAppStructure.php"
                 ],
                 "min-script": [
                     "php Base/ScriptComposer/MinJsCss.php"

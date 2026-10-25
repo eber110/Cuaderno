@@ -206,12 +206,6 @@ class LoadViewStyle
         }
       }
 
-      // Excluir CSS redundante en librerías que ya inyectan sus estilos dinámicamente vía JS (ej. ApexCharts)
-      $selfStyledLibs = ['apexcharts'];
-      if (in_array(strtolower($ruteClean), $selfStyledLibs, true)) {
-        $cssFiles = [];
-      }
-
       // 1. Inyección de CSS (sin preloads duplicados; el parser del navegador los procesa de inmediato en el <head>)
       foreach ($cssFiles as $css) {
         $cssAttr = '';
@@ -344,7 +338,7 @@ class LoadViewStyle
 
     foreach ($libraries as $key => $value) {
       if (is_string($value)) {
-        // Formato simple de lista: ['Gsap', 'ApexCharts']
+        // Formato simple de lista: ['Gsap', 'Charts']
         $this->library($value);
       } elseif (is_array($value)) {
         // Formato asociativo o con parámetros: ['Gsap' => ['param' => 'defer']]
@@ -354,7 +348,7 @@ class LoadViewStyle
           $this->library($libName, $param);
         }
       } elseif (is_string($key) && $value === true) {
-        // Formato booleano: ['Gsap' => true, 'ApexCharts' => false]
+        // Formato booleano: ['Gsap' => true, 'Charts' => false]
         $this->library($key);
       }
     }

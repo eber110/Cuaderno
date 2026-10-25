@@ -1,9 +1,5 @@
 <?php
 
-$_SERVER["POST_ID"] = null;
-//$_SERVER['REMOTE_ADDR'] = "179.60.66.196";
-//$_SERVER['REMOTE_ADDR'] = "181.42.18.176";//ejemplo de ip para pruebas 179.60.66.196
-
 // Definir la raíz del proyecto antes que nada
 define('ROOT_PATH', str_replace('\\', '/', __DIR__));
 
@@ -25,8 +21,10 @@ if ($isProd && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
   $currentHost = $_SERVER['HTTP_HOST'] ?? '';
   if ($currentHost !== FORCE_DOMAIN) {
     $protocol = $isHttps ? "https://" : "http://";
+    $safeRequestUri = str_replace(["\r", "\n", "%0d", "%0a", "%0D", "%0A"], '', (string)($_SERVER['REQUEST_URI'] ?? '/'));
+    $safeRequestUri = '/' . ltrim($safeRequestUri, '/');
     header("HTTP/1.1 301 Moved Permanently");
-    header("Location: " . $protocol . FORCE_DOMAIN . $_SERVER['REQUEST_URI']);
+    header("Location: " . $protocol . FORCE_DOMAIN . $safeRequestUri);
     exit();
   }
 }

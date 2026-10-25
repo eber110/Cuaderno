@@ -6,7 +6,6 @@
 # ===== Archivos generados por scripts =====
 # Regenerables con: composer min-script
 /App/Public/Min/*
-!/App/Public/Min/.gitkeep
 /App/Public/Css/font-project.css
 /App/Config/preloadFonts.json
 /App/Public/Css/jit-compiled.css
@@ -17,7 +16,6 @@
 /Uploads/
 /App/Public/Uploads/
 /Database/*
-!/Database/.gitkeep
 *.log
 
 # ===== Bases de datos y geolocalización (descargables / locales) =====

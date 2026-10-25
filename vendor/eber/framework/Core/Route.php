@@ -227,6 +227,23 @@ class Route
    */
   public static function run()
   {
+    // Defensa temprana contra bloqueo de IPs y vectores de inyección de progreso de sesión (CVE-2026-109619)
+    if (class_exists('\Base\Module\Security\AccessBlocker')) {
+      \Base\Module\Security\AccessBlocker::checkAndBlockRequest();
+    }
+
+    if (
+      isset($_POST['PHP_SESSION_UPLOAD_PROGRESS']) ||
+      isset($_GET['PHP_SESSION_UPLOAD_PROGRESS']) ||
+      isset($_COOKIE['PHP_SESSION_UPLOAD_PROGRESS'])
+    ) {
+      unset($_POST['PHP_SESSION_UPLOAD_PROGRESS'], $_GET['PHP_SESSION_UPLOAD_PROGRESS'], $_REQUEST['PHP_SESSION_UPLOAD_PROGRESS']);
+      if (class_exists('\Base\Module\SecurityModule')) {
+        \Base\Module\SecurityModule::logIntrusion('Intento de explotación de PHP_SESSION_UPLOAD_PROGRESS (CVE-2026-109619)');
+      }
+      ErrorHandler::handle403('Solicitud bloqueada por política de seguridad.');
+    }
+
     // Cargar rutas del proyecto si no se han registrado previamente
     if (empty(self::$routes) && defined('ROOT_PATH')) {
       $routeDir = ROOT_PATH . '/App/Route';
@@ -414,14 +431,30 @@ class Route
       return $_POST;
     }
 
-    $dataJS = file_get_contents('php://input');
+    // Limitar lectura de php://input (solo afecta JSON/PUT/PATCH/DELETE crudos, no $_FILES) para prevenir OOM (CVE-2026-109618)
+    $maxBytes = defined('MAX_INPUT_BYTES') ? (int)MAX_INPUT_BYTES : 10485760;
+    $contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($maxBytes > 0 && $contentLength > $maxBytes) {
+      ErrorHandler::handle_code(413, 413, 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
+      return null;
+    }
+
+    $dataJS = ($maxBytes > 0)
+      ? file_get_contents('php://input', false, null, 0, $maxBytes + 1)
+      : file_get_contents('php://input');
+
     if ($dataJS === false || $dataJS === '') {
+      return null;
+    }
+
+    if ($maxBytes > 0 && strlen($dataJS) > $maxBytes) {
+      ErrorHandler::handle_code(413, 413, 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
       return null;
     }
 
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (stripos($contentType, 'application/json') !== false) {
-      $decodedData = json_decode($dataJS, true);
+      $decodedData = json_decode($dataJS, true, 64);
       return is_array($decodedData) ? $decodedData : null;
     }
 

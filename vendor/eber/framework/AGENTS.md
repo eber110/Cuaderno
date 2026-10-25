@@ -67,28 +67,31 @@ frame/                         # Repositorio del framework (también es un proye
 │       ├── Ico/               # Iconos SVG runtime (svg() los lee de aquí)
 │       └── Library/           # Librerías (Gsap/…; carga config en App/Config/loadLibraryJsConfiguration.php)
 │
-├── Resources/                # FUENTE canónica de assets del framework ⚠ NO BORRAR
+├── Resources/                # FUENTE canónica de assets y configuración inicial ⚠ NO BORRAR
+│   ├── Config/                # Configuraciones base (config, Cookie, Cors, Token, loadLibraryJs) → App/Config/
+│   ├── Middleware/            # MiddlewareInterface base → App/Middleware/MiddlewareInterface/
+│   ├── Public/Css/            # Tema base (_configTheme.css, theme.css) → App/Public/Css/
+│   ├── Route/                 # Ruta inicial (web.php) → App/Route/
+│   ├── Safety/                # JSON iniciales de seguridad → App/Safety/
+│   ├── Bootstrap/             # Arranque de Service Providers (App.php) → Bootstrap/
 │   ├── Css/                   # CSS del framework (styles, components, dark-mode…)
 │   ├── Js/                    # JS del framework (12 + 27 componentes en Js/Components/)
 │   ├── Ico/                   # Iconos SVG Master (se copian a App/Rsc/Ico en cada proyecto)
-│   ├── Fonts/                 # Fuentes (se copian a App/Rsc/Fonts)
-│   ├── Library/Gsap/          # GSAP base (se copia a App/Rsc/Library)
-│   ├── Segment/               # Scaffolds canónicos de componentes (Template, Form, Menu)
+│   ├── Library/               # Librerías base como Gsap y Charts (se copian a App/Rsc/Library)
 │   └── Img/                    # Imágenes por defecto
 │
-├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
-├── Cache/Views/               # Caché de vistas
-├── Logs/                      # Logs en tiempo de ejecución (gitignored)
 ├── Docs/                      # Documentación por módulo (Route, Builder, SEO, Security…)
 └── vendor/                    # Composer (gitignored)
 ```
+
+> **Nota sobre `/App`:** En el repositorio del framework, la carpeta `/App` (junto con `/Cache`, `/Database`, `/Logs` y `/Uploads`) no se sube a Git ni requiere archivos `.gitkeep`. Toda la estructura del proyecto se construye y actualiza automáticamente mediante `Base/ScriptComposer/InitAppStructure.php` (`composer init-app` o `composer install/update`) copiando la configuración inicial desde `/Resources` sin sobrescribir archivos existentes del usuario.
 
 ---
 
 ## 3. Reglas críticas (IMPORTANTE)
 
-1. **`Resources/` es la fuente de los scaffolds.** `Base/ScriptComposer/InitAppStructure.php` inicializa la estructura de `App/` y copia recursos base (`Resources/{Ico,Fonts,Library,Segment}` y `App/Rsc/Helper`) a `App/` en cada proyecto nuevo. **No elimines ni renombres nada ahí** sin avisar.
-2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/Svg.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono: agréguelo a `Resources/Ico` y **luego** a `App/Rsc/Ico`. Uso: `svg('heart-fill', 'color2 x25')`.
+1. **`Resources/` es la fuente de los recursos y configuración base.** `Base/ScriptComposer/InitAppStructure.php` reconstruye toda la estructura de `App/` (incluyendo `App/Segment/{Form,Menu,Template}` vacíos) y copia la configuración inicial (`Resources/{Config,Middleware,Public,Route,Safety}`) y recursos (`Resources/{Ico,Fonts,Helper,Library}`) a `App/` en cada proyecto sin sobrescribir código existente. **No elimines ni renombres nada ahí** sin avisar.
+2. **Iconos:** la función global `svg($name_icon, $class, $transform)` (autoload `Base/Helpers/Svg.php`) lee de `ROUTE_ICON` (`App/Rsc/Ico/`). Para añadir un icono al framework: agréguelo únicamente a `Resources/Ico/` (`InitAppStructure` lo replicará automáticamente a `App/Rsc/Ico/` en los proyectos). Uso: `svg('heart-fill', 'color2 x25')`.
 3. **No editar archivos generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `preloadFonts.json`. Se regeneran con `composer min-script`.
 4. **`.env` nunca se commitea** (está en `.gitignore`). Usa `.env.example` como plantilla.
 5. **Constantes de ruta:** usa las definidas en `config.php` (`ROUTE_VIEW`, `ROUTE_CONTROLLER`, `ROUTE_ICO`, `TIME_DAY`, `TIME_HOUR`…) — no rutas literales.

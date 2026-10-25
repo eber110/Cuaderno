@@ -21,7 +21,8 @@ if (defined('ROOT_PATH')) {
 
 if ($localCookieConfig && file_exists($localCookieConfig)) {
     require_once $localCookieConfig;
-} else {
+} elseif (php_sapi_name() !== 'cli') {
     // Si no existe configuración en el proyecto local, se cargan las cookies por defecto del framework
-    $cookieVisit = CookieModule::set("visitReg", ["expired" => TIME_DAY]);
+    $expired = defined('TIME_DAY') ? TIME_DAY : 86400;
+    $cookieVisit = CookieModule::set("visitReg", ["expired" => $expired]);
 }

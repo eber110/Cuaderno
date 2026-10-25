@@ -44,6 +44,7 @@ class Session
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.cookie_httponly', '1');
+    @ini_set('session.upload_progress.enabled', '0');
 
     // Habilitar SameSite para protección CSRF adicional
     if (PHP_VERSION_ID >= 70300) {
@@ -69,6 +70,17 @@ class Session
 
     session_start();
     self::$started = true;
+
+    // Purgar cualquier clave residual de upload_progress en la sesión activa (mitigación CVE-2026-109619)
+    $uploadPrefix = (string)(ini_get('session.upload_progress.prefix') ?: 'upload_progress_');
+    if ($uploadPrefix !== '' && !empty($_SESSION)) {
+      foreach (array_keys($_SESSION) as $sessionKey) {
+        if (is_string($sessionKey) && str_starts_with($sessionKey, $uploadPrefix)) {
+          unset($_SESSION[$sessionKey]);
+        }
+      }
+    }
+
     self::checkJwtSession();
   }
 
@@ -257,6 +269,14 @@ class Session
     session_unset();
     session_destroy();
     self::$started = false;
+  }
+
+  /**
+   * Alias de session_end_all() para destruir completamente la sesión activa.
+   */
+  public static function clear(): void
+  {
+    self::session_end_all();
   }
 
   /**

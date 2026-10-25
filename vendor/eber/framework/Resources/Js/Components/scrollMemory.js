@@ -94,13 +94,8 @@ export function scrollMemory() {
     if (!el) return;
     const key = getStorageKey(el);
     const top = el.scrollTop;
-    const memoryId = el.getAttribute('data-scroll-memory') || 
-      el.getAttribute('id') ||
-      (el.closest('.user-profile-preview') ? 'user-preview' : 
-      (el.closest('.preview-profile') || el.closest('.back-card') ? 'user-profile' : 'content'));
     try {
       sessionStorage.setItem(key, String(top));
-      sessionStorage.setItem(`cuaderno_scroll_${memoryId}_${window.location.pathname}`, String(top));
     } catch (e) {}
   }
 
@@ -122,16 +117,7 @@ export function scrollMemory() {
     if (userInteractedSet.has(el)) return;
 
     const key = getStorageKey(el);
-    let savedStr = sessionStorage.getItem(key);
-
-    // Fallback de compatibilidad con proyectos que usaban el prefijo legacy
-    if (!savedStr) {
-      const memoryId = el.getAttribute('data-scroll-memory') || 
-        el.getAttribute('id') ||
-        (el.closest('.user-profile-preview') ? 'user-preview' : 
-        (el.closest('.preview-profile') || el.closest('.back-card') ? 'user-profile' : 'content'));
-      savedStr = sessionStorage.getItem(`cuaderno_scroll_${memoryId}_${window.location.pathname}`);
-    }
+    const savedStr = sessionStorage.getItem(key);
 
     if (!savedStr) return;
 

@@ -145,4 +145,20 @@ class HttpPostModule
   {
     self::$baseUrl = rtrim($url, '/');
   }
+
+  /**
+   * Obtiene todos los datos de $_POST sanitizados (o un campo específico).
+   *
+   * @param string|null $key Clave opcional de $_POST.
+   * @param mixed $default Valor por defecto si no existe la clave.
+   * @param bool $stripTags Si es true, elimina etiquetas HTML.
+   * @return mixed Array completo sanitizado o valor del campo.
+   */
+  public static function getPost(?string $key = null, mixed $default = null, bool $stripTags = false): mixed
+  {
+    if ($key !== null) {
+      return SecurityModule::post($key, $default, $stripTags);
+    }
+    return SecurityModule::sanitizeArray($_POST ?? [], $stripTags);
+  }
 }

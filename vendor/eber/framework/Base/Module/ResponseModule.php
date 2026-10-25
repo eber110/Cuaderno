@@ -216,6 +216,11 @@ class ResponseModule
     // Renderizamos el JSON
     $json = json_encode($data, JSON_UNESCAPED_UNICODE);
 
+    // Liberar bloqueo de sesión y limpiar estado antes de finalizar la petición (mitigación CVE-2026-109619)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
+
     // Forzamos el envío y cierre de conexión
     if (function_exists('fastcgi_finish_request')) {
       echo $json;
@@ -249,6 +254,11 @@ class ResponseModule
 
     http_response_code($status);
     header("Content-Type: $contentType; charset=utf-8");
+
+    // Liberar bloqueo de sesión y limpiar estado antes de finalizar la petición (mitigación CVE-2026-109619)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
 
     // Forzamos el envío y cierre de conexión
     if (function_exists('fastcgi_finish_request')) {

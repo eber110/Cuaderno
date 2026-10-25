@@ -1,35 +1,40 @@
 <?php
 
 /**
- * Script para crear la estructura de directorios de /App
- * Se ejecuta automáticamente después de instalar con Composer
+ * Script para crear y actualizar la estructura de directorios y archivos base de /App.
+ * Se ejecuta automáticamente después de instalar o actualizar con Composer.
  * 
  * Uso en composer.json:
  * "scripts": {
- *   "post-install-cmd": ["php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"],
- *   "post-update-cmd": ["php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"]
+ *   "post-install-cmd": ["@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"],
+ *   "post-update-cmd": ["@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"]
  * }
  */
 
 class InitAppStructure
 {
-  private $basePath;
-  private $appPath;
-  private $directories = [
+  private string $basePath;
+  private string $appPath;
+  private string $frameworkResources;
+
+  /**
+   * Estructura completa de directorios para iniciar cualquier proyecto desde cero
+   * sin depender de archivos .gitkeep en el repositorio.
+   *
+   * @var array<int, string>
+   */
+  private array $directories = [
+    // Estructura principal de /App
+    'App',
     'App/Components',
     'App/Config',
     'App/Controllers',
     'App/DatabaseComponent',
     'App/Middleware',
+    'App/Middleware/MiddlewareInterface',
     'App/Models',
     'App/Providers',
     'App/Public',
-    'App/Route',
-    'App/Safety',
-    'App/Segment',
-    'App/Views',
-    // Subdirectorios importantes
-    'App/Middleware/MiddlewareInterface',
     'App/Public/Css',
     'App/Public/Img',
     'App/Public/Img/Custom',
@@ -39,45 +44,68 @@ class InitAppStructure
     'App/Public/Min/Css',
     'App/Public/Min/Js',
     'App/Public/Uploads',
-    'App/Segment/Form',
-    'App/Segment/Menu',
-    'App/Segment/Template',
-    // Rsc (Fonts, Helper, Ico y Library)
+    'App/Route',
+    // Recursos en /App/Rsc (Fonts, Helper, Ico y Library)
     'App/Rsc',
     'App/Rsc/Fonts',
     'App/Rsc/Helper',
     'App/Rsc/Ico',
+    'App/Rsc/Ico/Custom',
+    'App/Rsc/Ico/Separator',
     'App/Rsc/Library',
     'App/Rsc/Library/Charts',
-    // Vistas de error (independientes de App/Views)
+    'App/Rsc/Library/Gsap',
+    // Seguridad de rutas e IPs
+    'App/Safety',
+    // Segmentos reutilizables del proyecto (vacíos al iniciar)
+    'App/Segment',
+    'App/Segment/Form',
+    'App/Segment/Menu',
+    'App/Segment/Template',
+    // Vistas del proyecto y vistas de error
+    'App/Views',
     'App/errorViews',
-    // Directorios de sistema (Caché, Database, Logs y Uploads en la raíz)
+    // Directorios de arranque y sistema en la raíz del proyecto
+    'Bootstrap',
     'Cache',
+    'Cache/Views',
     'Database',
     'Logs',
+    'Logs/UserLog',
     'Logs/VisitLog',
     'Uploads',
   ];
 
-  private $isFrameworkRepo = false;
+  private bool $isFrameworkRepo = false;
 
   public function __construct()
   {
-    // Obtener la ruta base del proyecto
-    $this->basePath = getcwd();
+    $this->basePath = str_replace('\\', '/', getcwd());
     $this->appPath = $this->basePath . '/App';
+    $this->frameworkResources = str_replace('\\', '/', dirname(__DIR__, 2) . '/Resources');
+
+    // Cargar autoloader de Composer si está disponible para utilidades como RouteScanner
+    if (file_exists($this->basePath . '/vendor/autoload.php')) {
+      require_once $this->basePath . '/vendor/autoload.php';
+    }
 
     // Detectar si estamos en el repositorio del framework mismo
     $composerJsonPath = $this->basePath . '/composer.json';
     if (file_exists($composerJsonPath)) {
-      $composerData = json_decode(file_get_contents($composerJsonPath), true);
+      $composerData = json_decode((string)file_get_contents($composerJsonPath), true);
       if (($composerData['name'] ?? '') === 'eber/framework') {
         $this->isFrameworkRepo = true;
       }
     }
   }
 
-  public function create()
+  /**
+   * Crea la estructura de directorios y copia los archivos iniciales desde Resources/
+   * verificando siempre su existencia previa para no sobrescribir código del usuario.
+   *
+   * @return bool
+   */
+  public function create(): bool
   {
     echo "🔧 Iniciando estructura de directorios de /App...\n\n";
 
@@ -100,41 +128,25 @@ class InitAppStructure
       }
     }
 
-    // Crear directorio Bootstrap
-    $bootstrapPath = $this->basePath . '/Bootstrap';
-    if (!is_dir($bootstrapPath)) {
-      if (@mkdir($bootstrapPath, 0755, true)) {
-        echo "✅ Creado: Bootstrap\n";
-        $created++;
-      } else {
-        echo "❌ Error: No se pudo crear Bootstrap\n";
-      }
-    } else {
-      echo "⏭️  Saltado: Bootstrap (ya existe)\n";
-      $skipped++;
-    }
-
-    // Copiar archivos de Resources del framework al proyecto
+    // 1. Copiar recursos base (Fonts, Helper, Ico, Library) de Resources/ a App/Rsc/
     $this->copyResources();
-    $this->copySegments();
 
-    // Crear archivos necesarios
+    // 2. Copiar archivos iniciales de configuración y estructura desde Resources/ a App/ y Bootstrap/
     $this->createBootstrapFiles();
     $this->createConfigFiles();
-    $this->createCookieConfig();
-    $this->createCorsConfig();
-    $this->createTokenConfig();
-    $this->createLoadLibraryJsConfig();
+    $this->createMiddlewareInterface();
+    $this->copyErrorView();
+    $this->createThemeConfig();
+    $this->createDefaultRouteFile();
+    $this->createSafetyFiles();
+
+    // 3. Crear archivos raíz del proyecto si no existen
     $this->createProvidersFiles();
     $this->createEnvFiles();
     $this->createJsConfig();
     $this->createHtaccess();
     $this->createIndexPhp();
     $this->createGitignore();
-    $this->copyErrorView();
-    $this->createThemeConfig();
-    $this->createDefaultRouteFile();
-    $this->createRoutesSecurityConfig();
     $this->copyAgentsFile();
 
     echo "\n📊 Resumen:\n";
@@ -146,103 +158,61 @@ class InitAppStructure
   }
 
   /**
-   * Copia los archivos de Resources del framework al directorio App/Resources/ del proyecto.
+   * Copia los archivos de Resources/{Fonts,Helper,Ico,Library} al directorio App/Rsc/ del proyecto.
    */
-  private function copyResources()
+  private function copyResources(): void
   {
-    $frameworkResources = __DIR__ . '/../../Resources';
     $projectRsc = $this->basePath . '/App/Rsc';
 
-    if (!is_dir($frameworkResources)) {
-      echo "⚠️  Directorio Resources del framework no encontrado: {$frameworkResources}\n";
+    if (!is_dir($this->frameworkResources)) {
+      echo "⚠️  Directorio Resources del framework no encontrado: {$this->frameworkResources}\n";
       return;
     }
 
     if (!is_dir($projectRsc)) {
-      echo "⚠️  Directorio App/Rsc no existe, creándolo...\n";
       @mkdir($projectRsc, 0755, true);
     }
 
     $copied = 0;
     $skipped = 0;
 
-    // Copiar Fonts
-    $srcFonts = $frameworkResources . '/Fonts';
-    $destFonts = $projectRsc . '/Fonts';
-    if (is_dir($srcFonts)) {
-      $this->copyDirectory($srcFonts, $destFonts, $copied, $skipped);
+    foreach (['Fonts', 'Helper', 'Ico', 'Library'] as $folder) {
+      $src = $this->frameworkResources . '/' . $folder;
+      $dest = $projectRsc . '/' . $folder;
+      if (is_dir($src)) {
+        $this->copyDirectory($src, $dest, $copied, $skipped);
+      }
     }
 
-    // Copiar Helper
-    $srcHelper = $frameworkResources . '/Helper';
-    $destHelper = $projectRsc . '/Helper';
-    if (is_dir($srcHelper)) {
-      $this->copyDirectory($srcHelper, $destHelper, $copied, $skipped);
-    }
-
-    // Copiar Ico
-    $srcIco = $frameworkResources . '/Ico';
-    $destIco = $projectRsc . '/Ico';
-    if (is_dir($srcIco)) {
-      $this->copyDirectory($srcIco, $destIco, $copied, $skipped);
-    }
-
-    // Copiar Library
-    $srcLibrary = $frameworkResources . '/Library';
-    $destLibrary = $projectRsc . '/Library';
-    if (is_dir($srcLibrary)) {
-      $this->copyDirectory($srcLibrary, $destLibrary, $copied, $skipped);
-    }
-
-    echo "\n📦 Recursos (Fonts, Helper, Ico y Library) copiados: {$copied} archivos, {$skipped} existentes\n";
+    echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico y Library): {$copied} copiados, {$skipped} existentes\n";
   }
 
   /**
-   * Copia las plantillas scaffold de Resources/Segment/ al directorio App/Segment/ del proyecto.
+   * Copia recursivamente un directorio sin sobrescribir archivos existentes del usuario
+   * e ignorando cualquier archivo .gitkeep.
    */
-  private function copySegments()
-  {
-    $frameworkSegments = __DIR__ . '/../../Resources/Segment';
-    $projectSegments = $this->basePath . '/App/Segment';
-
-    if (!is_dir($frameworkSegments)) {
-      return;
-    }
-
-    $copied = 0;
-    $skipped = 0;
-
-    $this->copyDirectory($frameworkSegments, $projectSegments, $copied, $skipped);
-
-    if ($copied > 0 || $skipped > 0) {
-      echo "🧩 Plantillas Scaffolds (Segment/): {$copied} copiadas, {$skipped} existentes\n";
-    }
-  }
-
-  /**
-   * Copia recursivamente un directorio.
-   */
-  private function copyDirectory(string $source, string $dest, int &$copied, int &$skipped)
+  private function copyDirectory(string $source, string $dest, int &$copied, int &$skipped): void
   {
     $dir = opendir($source);
     if (!$dir) {
       return;
     }
 
-    @mkdir($dest, 0755, true);
+    if (!is_dir($dest)) {
+      @mkdir($dest, 0755, true);
+    }
 
     while (($file = readdir($dir)) !== false) {
-      if ($file === '.' || $file === '..') {
+      if ($file === '.' || $file === '..' || $file === '.gitkeep') {
         continue;
       }
 
-      $srcFile = $source . DIRECTORY_SEPARATOR . $file;
-      $destFile = $dest . DIRECTORY_SEPARATOR . $file;
+      $srcFile = $source . '/' . $file;
+      $destFile = $dest . '/' . $file;
 
       if (is_dir($srcFile)) {
         $this->copyDirectory($srcFile, $destFile, $copied, $skipped);
       } else {
-        // No sobrescribir archivos existentes en el proyecto
         if (file_exists($destFile)) {
           $skipped++;
         } else {
@@ -255,12 +225,41 @@ class InitAppStructure
     closedir($dir);
   }
 
-  private function createBootstrapFiles()
+  /**
+   * Copia un archivo individual desde Resources/ hacia el proyecto solo si no existe en destino.
+   */
+  private function copyFileIfNotExists(string $srcRelativeToResources, string $destRelativeToProject): bool
+  {
+    $srcPath = $this->frameworkResources . '/' . ltrim($srcRelativeToResources, '/');
+    $destPath = $this->basePath . '/' . ltrim($destRelativeToProject, '/');
+
+    if (file_exists($destPath)) {
+      echo "⏭️  Saltado: {$destRelativeToProject} (ya existe)\n";
+      return true;
+    }
+
+    if (!is_dir(dirname($destPath))) {
+      @mkdir(dirname($destPath), 0755, true);
+    }
+
+    if (file_exists($srcPath) && @copy($srcPath, $destPath)) {
+      echo "✅ Creado: {$destRelativeToProject} (desde Resources/{$srcRelativeToResources})\n";
+      return true;
+    }
+
+    echo "❌ Error: No se pudo copiar {$destRelativeToProject} desde Resources/{$srcRelativeToResources}\n";
+    return false;
+  }
+
+  /**
+   * Inicializa o actualiza Bootstrap/App.php desde Resources/Bootstrap/App.php.
+   */
+  private function createBootstrapFiles(): void
   {
     $appPhpPath = $this->basePath . '/Bootstrap/App.php';
 
     if (file_exists($appPhpPath)) {
-      $content = file_get_contents($appPhpPath);
+      $content = (string)file_get_contents($appPhpPath);
       if (str_contains($content, "require_once __DIR__ . '/../providers.json.php';") || str_contains($content, "require_once __DIR__ . '/..//providers.json.php';")) {
         $content = str_replace(
           [
@@ -279,57 +278,25 @@ class InitAppStructure
       return;
     }
 
-    $content = <<<'PHP'
-<?php
-
-/**
- * Bootstrap de la aplicación.
- * Este archivo carga todos los Service Providers registrados.
- */
-
-$providers = \Core\ConfigLoader\ProviderLoader::load();
-$instances = [];
-
-// Fase 1: Instanciar y ejecutar register() en todos los providers
-foreach ($providers as $providerClass) {
-    if (class_exists($providerClass)) {
-        $provider = new $providerClass();
-        $instances[] = $provider;
-
-        if (method_exists($provider, 'register')) {
-            $provider->register();
-        }
-    }
-}
-
-// Fase 2: Ejecutar boot() en todos los providers (después de que todos se registraron)
-foreach ($instances as $provider) {
-    if (method_exists($provider, 'boot')) {
-        $provider->boot();
-    }
-}
-PHP;
-
-    if (file_put_contents($appPhpPath, $content)) {
-      echo "✅ Creado: Bootstrap/App.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear Bootstrap/App.php\n";
-    }
+    $this->copyFileIfNotExists('Bootstrap/App.php', 'Bootstrap/App.php');
   }
 
-  private function createConfigFiles()
+  /**
+   * Copia los archivos iniciales de configuración desde Resources/Config/ a App/Config/
+   * respetando las configuraciones ya existentes en el proyecto.
+   */
+  private function createConfigFiles(): void
   {
     $oldConfigPath = $this->basePath . '/config.php';
     $newConfigPath = $this->basePath . '/App/Config/config.php';
 
-    // Asegurar que el directorio App/Config existe
     if (!is_dir(dirname($newConfigPath))) {
       @mkdir(dirname($newConfigPath), 0755, true);
     }
 
-    // Si existe el antiguo config.php, trasladarlo y corregir su basePath
+    // Si en un proyecto derivado existe el antiguo config.php en la raíz, trasladarlo a App/Config/config.php
     if (file_exists($oldConfigPath) && !file_exists($newConfigPath) && !$this->isFrameworkRepo) {
-      $configContent = file_get_contents($oldConfigPath);
+      $configContent = (string)file_get_contents($oldConfigPath);
       $configContent = str_replace(
         ['$basePath = __DIR__;', '$basePath = __DIR__ ;'],
         '$basePath = dirname(__DIR__, 2);',
@@ -338,15 +305,12 @@ PHP;
       if (file_put_contents($newConfigPath, $configContent)) {
         @unlink($oldConfigPath);
         echo "🚚 Trasladado y corregido: config.php a App/Config/config.php\n";
-      } else {
-        echo "❌ Error: No se pudo trasladar config.php a App/Config/config.php\n";
       }
     }
 
-    // Si ya existe el nuevo config.php
+    // Si App/Config/config.php ya existe, validar su basePath y no sobrescribir
     if (file_exists($newConfigPath)) {
-      // Validar y corregir si tiene el basePath erróneo de la migración previa
-      $configContent = file_get_contents($newConfigPath);
+      $configContent = (string)file_get_contents($newConfigPath);
       if (str_contains($configContent, '$basePath = __DIR__;')) {
         $configContent = str_replace(
           ['$basePath = __DIR__;', '$basePath = __DIR__ ;'],
@@ -355,334 +319,139 @@ PHP;
         );
         file_put_contents($newConfigPath, $configContent);
         echo "🔧 Corregido: basePath en App/Config/config.php\n";
+      } else {
+        echo "⏭️  Saltado: App/Config/config.php (ya existe)\n";
       }
 
-      echo "⏭️  Saltado: App/Config/config.php (ya existe)\n";
-      // Eliminar el antiguo config.php si quedó duplicado en la raíz (excepto en el repo del framework)
       if (file_exists($oldConfigPath) && !$this->isFrameworkRepo) {
         @unlink($oldConfigPath);
       }
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-/**
- * Configuración de la aplicación.
- * Este archivo carga las variables de entorno y la configuración del framework.
- */
-
-use Dotenv\Dotenv;
-
-// Ruta base del proyecto
-$basePath = dirname(__DIR__, 2);
-
-// Intentar cargar .env desde la raíz del proyecto
-if (file_exists($basePath . '/.env')) {
-    $dotenv = Dotenv::createImmutable($basePath);
-    $dotenv->load();
-}
-// Si no existe en la raíz, intentar desde el framework
-elseif (file_exists($basePath . '/vendor/eber/framework/.env')) {
-    $dotenv = Dotenv::createImmutable($basePath . '/vendor/eber/framework');
-    $dotenv->load();
-}
-
-// Cargar configuración del framework
-if (file_exists($basePath . '/vendor/eber/framework/config.php')) {
-    require_once $basePath . '/vendor/eber/framework/config.php';
-} elseif (file_exists($basePath . '/config.php')) {
-    require_once $basePath . '/config.php';
-}
-PHP;
-
-    if (file_put_contents($newConfigPath, $content)) {
-      echo "✅ Creado: App/Config/config.php\n";
     } else {
-      echo "❌ Error: No se pudo crear App/Config/config.php\n";
+      $this->copyFileIfNotExists('Config/config.php', 'App/Config/config.php');
     }
 
-    // Eliminar el config.php residual en la raíz por si acaso (excepto en el repo del framework)
-    if (file_exists($oldConfigPath) && !$this->isFrameworkRepo) {
-      @unlink($oldConfigPath);
-    }
-  }
+    // Copiar resto de archivos de configuración desde Resources/Config/ si no existen
+    $this->copyFileIfNotExists('Config/CookieConfiguration.php', 'App/Config/CookieConfiguration.php');
+    $this->copyFileIfNotExists('Config/CorsConfiguration.php', 'App/Config/CorsConfiguration.php');
+    $this->copyFileIfNotExists('Config/TokenConfiguration.php', 'App/Config/TokenConfiguration.php');
+    $this->copyFileIfNotExists('Config/preloadFonts.json', 'App/Config/preloadFonts.json');
 
-  private function createCookieConfig()
-  {
-    $cookieConfigPath = $this->basePath . '/App/Config/CookieConfiguration.php';
-
-    if (file_exists($cookieConfigPath)) {
-      echo "⏭️  Saltado: App/Config/CookieConfiguration.php (ya existe)\n";
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-use Base\Module\CookieModule;
-
-/**
- * Creación de cookies del sitio.
- * En esta sección se configura todas las cookies del sitio 
- * para que estén disponibles al inicio de la aplicación.
- */
-//$cookie = CookieModule::set("NombreDeLaCookie", ["expired" => TIME_YEAR]);
-PHP;
-
-    if (file_put_contents($cookieConfigPath, $content)) {
-      echo "✅ Creado: App/Config/CookieConfiguration.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/Config/CookieConfiguration.php\n";
-    }
-  }
-
-  private function createCorsConfig()
-  {
-    $corsConfigPath = $this->basePath . '/App/Config/CorsConfiguration.php';
-
-    if (file_exists($corsConfigPath)) {
-      echo "⏭️  Saltado: App/Config/CorsConfiguration.php (ya existe)\n";
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-/**
- * Configuración de CORS (Cross-Origin Resource Sharing).
- * 
- * Permite definir políticas de acceso interdominio (CORS) diferenciadas
- * para múltiples endpoints o microservicios de tu aplicación.
- * 
- * =========================================================================
- * EXPLICACIÓN DE PROPIEDADES DISPONIBLES EN CADA PERFIL:
- * =========================================================================
- * - 'enabled': (bool) Habilita o deshabilita CORS para el patrón de ruta.
- * - 'allowed_origins': (array) Dominios de origen permitidos para realizar peticiones.
- *                      Ejemplo: ['https://tusitio.com', 'https://admin.tusitio.com']
- *                      Usa ['*'] para permitir peticiones desde cualquier origen.
- * - 'allowed_methods': (array) Métodos HTTP autorizados en la petición CORS.
- *                      Ejemplo: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
- * - 'allowed_headers': (array) Cabeceras HTTP permitidas en la petición.
- *                      Ejemplo: ['Content-Type', 'Authorization', 'X-Requested-With']
- * - 'exposed_headers': (array) Cabeceras que la respuesta expone y el cliente puede leer.
- * - 'supports_credentials': (bool) Establece en true si necesitas dar soporte a credenciales,
- *                           cookies de sesión o autorización HTTP. 
- *                           IMPORTANTE: Si está en true, 'allowed_origins' NO puede ser ['*'].
- *                           Debes colocar los dominios autorizados de forma explícita.
- * - 'max_age': (int) Segundos que el navegador del cliente puede cachear la respuesta
- *              de una solicitud de pre-vuelo (preflight/OPTIONS) sin repetir la consulta.
- * 
- * =========================================================================
- * EJEMPLO DE CONFIGURACIÓN DE MULTIPLES ENDPOINTS (COPIAR SI SE NECESITA):
- * =========================================================================
- * return [
- *     'enabled' => true,
- *     'paths' => [
- *         // Perfil de API interna (más seguro con credenciales)
- *         'api/v1/*' => [
- *             'allowed_origins' => ['https://mi-aplicacion.com'],
- *             'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
- *             'allowed_headers' => ['Content-Type', 'Authorization'],
- *             'supports_credentials' => true,
- *             'max_age' => 86400,
- *         ],
- *         // Perfil de API pública (solo lectura y abierto a cualquier origen)
- *         'public/*' => [
- *             'allowed_origins' => ['*'],
- *             'allowed_methods' => ['GET', 'OPTIONS'],
- *             'allowed_headers' => ['Content-Type'],
- *             'supports_credentials' => false,
- *             'max_age' => 3600,
- *         ],
- *         // Fallback general para cualquier otra ruta no especificada
- *         '*' => [
- *             'allowed_origins' => ['*'],
- *             'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
- *             'allowed_headers' => ['Content-Type', 'Authorization', 'X-Requested-With'],
- *             'supports_credentials' => false,
- *             'max_age' => 86400,
- *         ]
- *     ]
- * ];
- */
-
-return [
-    // CORS desactivado por defecto. Actívalo definiendo tus rutas y orígenes aquí.
-    'enabled' => false,
-    
-    'paths' => [
-        // Define tus patrones de ruta y configuraciones específicas
-    ]
-];
-PHP;
-
-    if (file_put_contents($corsConfigPath, $content)) {
-      echo "✅ Creado: App/Config/CorsConfiguration.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/Config/CorsConfiguration.php\n";
-    }
-  }
-
-  private function createTokenConfig()
-  {
-    $tokenConfigPath = $this->basePath . '/App/Config/TokenConfiguration.php';
-
-    if (file_exists($tokenConfigPath)) {
-      echo "⏭️  Saltado: App/Config/TokenConfiguration.php (ya existe)\n";
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-/**
- * Configuración del Módulo de Tokens y JWT.
- * 
- * Permite definir los perfiles de tokens firmados (como correos, recuperación de clave)
- * y los parámetros para JWT (JSON Web Tokens) de sesión persistente.
- * 
- * =========================================================================
- * RECORDATORIO RÁPIDO DE USO / TUTORIAL DE INTEGRACIÓN:
- * =========================================================================
- * 
- * 1. CÓMO AGREGAR UN PERFIL:
- *    Simplemente añade una clave bajo el array 'profiles'. Cada perfil define
- *    su propio tiempo de expiración ('expiration') en segundos y el algoritmo
- *    de firma ('algo').
- * 
- * 2. CÓMO USAR EN UN CONTROLADOR (CREAR Y ENVIAR):
- *    Cuando un usuario realiza una acción (ej. registrarse), creas el token:
- *    
- *    $data = ['userId' => 123, 'email' => 'user@example.com'];
- *    $token = \Base\Module\TokenModule::from('emails')->create($data);
- *    
- *    // Envías por correo el enlace:
- *    $link = DOMAIN . "verificar-cuenta?token=" . $token;
- * 
- * 3. CÓMO VALIDAR (PÁGINA DE ATERRIZAJE / CONTROLADOR):
- *    Cuando el usuario hace click en el enlace, lees el token GET y lo validas:
- * 
- *    $token = $_GET['token'] ?? '';
- *    $datos = \Base\Module\TokenModule::from('emails')->validate($token);
- *    
- *    if ($datos === false) {
- *        // Token alterado, corrupto o ya expirado. Denegar acción.
- *    } else {
- *        // Acceso permitido. Los datos son válidos e íntegros.
- *        $userId = $datos['userId'];
- *    }
- * 
- * 4. PERSISTENCIA DE SESIÓN CON JWT:
- *    - Crear en el Login (Controlador):
- *      $jwt = \Base\Module\TokenModule::configJWT(['id' => 123, 'role' => 'admin']);
- *      \Base\Module\CookieModule::set('auth_token', ['value' => $jwt, 'httponly' => true, 'secure' => true]);
- * 
- *    - Validar en el acceso (Middleware):
- *      $jwt = \Base\Module\CookieModule::get('auth_token');
- *      if ($jwt && $user = \Base\Module\TokenModule::validateJWT($jwt)) {
- *          // Sesión autorizada, pasar $user al request
- *      }
- */
-return [
-    // Perfiles personalizados de tokens firmados autocontenidos
-    'profiles' => [
-        'emails' => [
-            'expiration' => 3600, // 1 hora
-            'algo' => 'sha256',   // Algoritmo de firma hmac
-        ],
-        'recovery' => [
-            'expiration' => 900,  // 15 minutos
-            'algo' => 'sha256',
-        ],
-    ],
-
-    // Parámetros de JSON Web Tokens (JWT) para persistencia de sesión
-    'jwt' => [
-        'expiration' => 604800, // 7 días (en segundos)
-    ]
-];
-PHP;
-
-    if (file_put_contents($tokenConfigPath, $content)) {
-      echo "✅ Creado: App/Config/TokenConfiguration.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/Config/TokenConfiguration.php\n";
-    }
-  }
-
-  private function createLoadLibraryJsConfig()
-  {
+    // loadLibraryJsConfiguration.php (con migración automática a Charts si ya existe)
     $libConfigPath = $this->basePath . '/App/Config/loadLibraryJsConfiguration.php';
-
     if (file_exists($libConfigPath)) {
-      $content = file_get_contents($libConfigPath);
-      // Migración automática: registrar la librería 'Charts' si aún no está presente
+      $content = (string)file_get_contents($libConfigPath);
       if (!str_contains($content, "'Charts'") && !str_contains($content, '"Charts"')) {
         if (str_contains($content, "'Gsap',")) {
           $content = str_replace("'Gsap',", "'Gsap',\n    'Charts',", $content);
-          if (file_put_contents($libConfigPath, $content)) {
-            echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts' de GraphicsModule)\n";
-            return;
-          }
+          file_put_contents($libConfigPath, $content);
+          echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts')\n";
+          return;
         } elseif (str_contains($content, "'Gsap'")) {
           $content = str_replace("'Gsap'", "'Gsap',\n    'Charts'", $content);
-          if (file_put_contents($libConfigPath, $content)) {
-            echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts' de GraphicsModule)\n";
-            return;
-          }
+          file_put_contents($libConfigPath, $content);
+          echo "🔧 Actualizado: App/Config/loadLibraryJsConfiguration.php (agregada librería 'Charts')\n";
+          return;
         }
       }
       echo "⏭️  Saltado: App/Config/loadLibraryJsConfiguration.php (ya existe y está actualizado)\n";
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-/**
- * Configuración de librerías JS y CSS para carga automática en el <head>.
- * 
- * Define las carpetas dentro de /App/Rsc/Library/ que deben cargarse.
- * Si el nombre de la carpeta de una librería no está en este array o está comentado, no se cargará.
- * El orden en este array determina el orden de inyección en el HTML.
- * 
- * Ejemplo:
- * return [
- *     'Gsap',
- *     'Charts',     // Gráficos SVG vectoriales minimalistas (GraphicsModule)
- *     'ApexCharts',
- * ];
- */
-
-return [
-    'Gsap',
-    'Charts',
-];
-PHP;
-
-    if (file_put_contents($libConfigPath, $content)) {
-      echo "✅ Creado: App/Config/loadLibraryJsConfiguration.php (con Gsap y Charts activos)\n";
     } else {
-      echo "❌ Error: No se pudo crear App/Config/loadLibraryJsConfiguration.php\n";
+      $this->copyFileIfNotExists('Config/loadLibraryJsConfiguration.php', 'App/Config/loadLibraryJsConfiguration.php');
     }
   }
 
-  private function createProvidersFiles()
+  /**
+   * Copia MiddlewareInterface.php desde Resources/Middleware/MiddlewareInterface/ si no existe.
+   */
+  private function createMiddlewareInterface(): void
+  {
+    $this->copyFileIfNotExists(
+      'Middleware/MiddlewareInterface/MiddlewareInterface.php',
+      'App/Middleware/MiddlewareInterface/MiddlewareInterface.php'
+    );
+  }
+
+  /**
+   * Copia la plantilla de error desde Base/Error/HandlerError.php a App/errorViews/HandlerError.php.
+   */
+  private function copyErrorView(): void
+  {
+    $source = __DIR__ . '/../Error/HandlerError.php';
+    $dest = $this->basePath . '/App/errorViews/HandlerError.php';
+
+    if (file_exists($dest)) {
+      echo "⏭️  Saltado: App/errorViews/HandlerError.php (ya existe)\n";
+      return;
+    }
+
+    if (!file_exists($source)) {
+      echo "⚠️  No se encontró el template de error en: {$source}\n";
+      return;
+    }
+
+    if (@copy($source, $dest)) {
+      echo "✅ Creado: App/errorViews/HandlerError.php\n";
+    } else {
+      echo "❌ Error: No se pudo crear App/errorViews/HandlerError.php\n";
+    }
+  }
+
+  /**
+   * Copia _configTheme.css y theme.css desde Resources/Public/Css/ a App/Public/Css/ si no existen.
+   */
+  private function createThemeConfig(): void
+  {
+    $this->copyFileIfNotExists('Public/Css/_configTheme.css', 'App/Public/Css/_configTheme.css');
+    $this->copyFileIfNotExists('Public/Css/theme.css', 'App/Public/Css/theme.css');
+  }
+
+  /**
+   * Copia el archivo de rutas inicial desde Resources/Route/web.php a App/Route/web.php
+   * solo si el directorio App/Route no tiene ya archivos de rutas definidos.
+   */
+  private function createDefaultRouteFile(): void
+  {
+    $routeDir = $this->basePath . '/App/Route';
+    $existingPhpRoutes = is_dir($routeDir) ? glob($routeDir . '/*.php') : [];
+
+    if (!empty($existingPhpRoutes)) {
+      echo "⏭️  Saltado: App/Route/web.php (el proyecto ya posee archivos de rutas)\n";
+      return;
+    }
+
+    $this->copyFileIfNotExists('Route/web.php', 'App/Route/web.php');
+  }
+
+  /**
+   * Inicializa los archivos de seguridad en App/Safety/ desde Resources/Safety/
+   * y genera el mapa de rutas en App/Safety/routes_security.json.
+   */
+  private function createSafetyFiles(): void
+  {
+    $this->copyFileIfNotExists('Safety/blocked_ips.json', 'App/Safety/blocked_ips.json');
+    $this->copyFileIfNotExists('Safety/intrusions.json', 'App/Safety/intrusions.json');
+
+    $configPath = $this->basePath . '/App/Safety/routes_security.json';
+    if (class_exists('\\Base\\Module\\Security\\RouteScanner')) {
+      $routeDir = $this->basePath . '/App/Route';
+      if (is_dir($routeDir) && class_exists('\\Core\\ConfigLoader\\RouteLoader')) {
+        \Core\ConfigLoader\RouteLoader::load($routeDir);
+      }
+      \Base\Module\Security\RouteScanner::scanAndSaveRoutes($configPath);
+      echo "✅ Actualizado: App/Safety/routes_security.json (mapa de rutas del proyecto)\n";
+    }
+  }
+
+  private function createProvidersFiles(): void
   {
     $providersJsonPath = $this->basePath . '/providers.json';
     $providersJsonPhpPath = $this->basePath . '/providers.json.php';
 
-    // Eliminar providers.json.php si existe en la raíz ya que se usa la clase ProviderLoader
     if (file_exists($providersJsonPhpPath) && !$this->isFrameworkRepo) {
       if (@unlink($providersJsonPhpPath)) {
         echo "🗑️  Eliminado: providers.json.php residual de la raíz\n";
       }
     }
 
-    // providers.json
     if (!file_exists($providersJsonPath)) {
       $content = json_encode(['providers' => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
       if (file_put_contents($providersJsonPath, $content)) {
@@ -695,16 +464,13 @@ PHP;
     }
   }
 
-  private function createEnvFiles()
+  private function createEnvFiles(): void
   {
     $envPath = $this->basePath . '/.env';
     $envExamplePath = $this->basePath . '/.env.example';
-
-    // Buscar .env.example en el framework
     $frameworkEnvExample = __DIR__ . '/../../.env.example';
 
     if (!file_exists($envPath)) {
-      // Si existe un .env.example en el framework, copiarlo como base
       if (file_exists($frameworkEnvExample)) {
         if (@copy($frameworkEnvExample, $envPath)) {
           echo "✅ Creado: .env (desde plantilla del framework)\n";
@@ -718,16 +484,14 @@ PHP;
       echo "⏭️  Saltado: .env (ya existe)\n";
     }
 
-    if (file_exists($frameworkEnvExample)) {
+    if (!$this->isFrameworkRepo && file_exists($frameworkEnvExample)) {
       if (@copy($frameworkEnvExample, $envExamplePath)) {
         echo "✅ Actualizado: .env.example (con la plantilla más reciente del framework)\n";
-      } else {
-        echo "❌ Error: No se pudo actualizar .env.example\n";
       }
     }
   }
 
-  private function createJsConfig()
+  private function createJsConfig(): void
   {
     $jsConfigPath = $this->basePath . '/jsConfig.json';
 
@@ -752,7 +516,7 @@ PHP;
     }
   }
 
-  private function createHtaccess()
+  private function createHtaccess(): void
   {
     $htaccessPath = $this->basePath . '/.htaccess';
 
@@ -761,83 +525,24 @@ PHP;
       return;
     }
 
-    $content = <<<'HTACCESS'
-<IfModule mod_expires.c>
-  ExpiresActive On
-
-  # Fuentes Tipográficas (1 año de caché)
-  ExpiresByType application/font-woff2 "access plus 1 year"
-  ExpiresByType application/font-woff "access plus 1 year"
-  ExpiresByType application/font-ttf "access plus 1 year"
-  ExpiresByType application/x-font-ttf "access plus 1 year"
-  ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
-  ExpiresByType font/ttf "access plus 1 year"
-  ExpiresByType font/otf "access plus 1 year"
-  ExpiresByType font/woff2 "access plus 1 year"
-
-  # CSS y JavaScript (1 mes de caché)
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType text/javascript "access plus 1 month"
-  ExpiresByType application/javascript "access plus 1 month"
-  ExpiresByType application/x-javascript "access plus 1 month"
-
-  # Iconos e Imágenes (1 año de caché)
-  ExpiresByType image/svg+xml "access plus 1 month"
-  ExpiresByType image/jpeg "access plus 1 year"
-  ExpiresByType image/png "access plus 1 year"
-  ExpiresByType image/gif "access plus 1 year"
-  ExpiresByType image/webp "access plus 1 year"
-  ExpiresByType image/avif "access plus 1 year"
-  ExpiresByType image/x-icon "access plus 1 year"
-</IfModule>
-
-<IfModule mod_headers.c>
-  # Para asegurar que los proxies también cacheen los recursos
-  Header append Cache-Control "public"
-</IfModule>
-
-<IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
-</IfModule>
-
-Options -MultiViews
-RewriteEngine On
-
-# --- PROTECCIÓN CONTRA HOTLINKING ---
-# Evita que otros sitios web roben ancho de banda incrustando tus imágenes.
-# Descomenta las siguientes líneas si deseas habilitarlo:
-# RewriteCond %{HTTP_REFERER} !^$
-# RewriteCond %{HTTP_REFERER} !^https?://([^/]+\.)?%{HTTP_HOST} [NC]
-# RewriteCond %{HTTP_REFERER} !google\. [NC]
-# RewriteCond %{HTTP_REFERER} !bing\. [NC]
-# RewriteCond %{HTTP_REFERER} !yahoo\. [NC]
-# RewriteRule \.(jpg|jpeg|png|gif|webp|svg|avif|ico)$ - [F,NC]
-
-RewriteCond %{REQUEST_FILENAME} !-s
-RewriteCond %{REQUEST_FILENAME} !-l
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.php [QSA,L]
-HTACCESS;
-
-    if (file_put_contents($htaccessPath, $content)) {
+    $frameworkHtaccess = __DIR__ . '/../../.htaccess';
+    if (file_exists($frameworkHtaccess) && @copy($frameworkHtaccess, $htaccessPath)) {
       echo "✅ Creado: .htaccess\n";
-    } else {
-      echo "❌ Error: No se pudo crear .htaccess\n";
+      return;
     }
   }
 
-  private function createIndexPhp()
+  private function createIndexPhp(): void
   {
     $indexPath = $this->basePath . '/index.php';
 
     if (file_exists($indexPath)) {
-      // Si estamos en el repo del framework, no actualizar index.php
       if ($this->isFrameworkRepo) {
         echo "⏭️  Saltado: index.php (ya existe y estamos en el repositorio del framework)\n";
         return;
       }
 
-      $content = file_get_contents($indexPath);
+      $content = (string)file_get_contents($indexPath);
       if (str_contains($content, "require_once __DIR__ . '/config.php';")) {
         $content = str_replace(
           "require_once __DIR__ . '/config.php';",
@@ -872,8 +577,10 @@ if ($isProd && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
     $currentHost = $_SERVER['HTTP_HOST'] ?? '';
     if ($currentHost !== FORCE_DOMAIN) {
         $protocol = $isHttps ? "https://" : "http://";
+        $safeRequestUri = str_replace(["\r", "\n", "%0d", "%0a", "%0D", "%0A"], '', (string)($_SERVER['REQUEST_URI'] ?? '/'));
+        $safeRequestUri = '/' . ltrim($safeRequestUri, '/');
         header("HTTP/1.1 301 Moved Permanently");
-        header("Location: " . $protocol . FORCE_DOMAIN . $_SERVER['REQUEST_URI']);
+        header("Location: " . $protocol . FORCE_DOMAIN . $safeRequestUri);
         exit();
     }
 }
@@ -890,15 +597,9 @@ PHP;
     }
   }
 
-  private function createGitignore()
+  private function createGitignore(): void
   {
     $gitignorePath = $this->basePath . '/.gitignore';
-
-    // Asegurar que Database/.gitkeep exista para control de versiones del directorio
-    $databaseGitkeep = $this->basePath . '/Database/.gitkeep';
-    if (is_dir($this->basePath . '/Database') && !file_exists($databaseGitkeep)) {
-      @file_put_contents($databaseGitkeep, "");
-    }
 
     if (file_exists($gitignorePath)) {
       echo "⏭️  Saltado: .gitignore (ya existe)\n";
@@ -913,7 +614,6 @@ PHP;
 /Logs/
 /Uploads/
 /Database/*
-!/Database/.gitkeep
 *.mmdb
 *.sqlite
 *.sqlite-wal
@@ -927,173 +627,10 @@ GITIGNORE;
     }
   }
 
-  private function copyErrorView()
-  {
-    $source = __DIR__ . '/../Error/HandlerError.php';
-    $dest = $this->basePath . '/App/errorViews/HandlerError.php';
-
-    if (file_exists($dest)) {
-      echo "⏭️  Saltado: App/errorViews/HandlerError.php (ya existe)\n";
-      return;
-    }
-
-    if (!file_exists($source)) {
-      echo "⚠️  No se encontró el template de error en: {$source}\n";
-      return;
-    }
-
-    if (@copy($source, $dest)) {
-      echo "✅ Creado: App/errorViews/HandlerError.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/errorViews/HandlerError.php\n";
-    }
-  }
-
-  private function createThemeConfig()
-  {
-    $themeConfigPath = $this->basePath . '/App/Public/Css/_configTheme.css';
-
-    if (file_exists($themeConfigPath)) {
-      echo "⏭️  Saltado: App/Public/Css/_configTheme.css (ya existe)\n";
-      return;
-    }
-
-    $content = <<<'CSS'
-/***VAR***/
-
-:root {
-  --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font2: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font3: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font-size: 20px;
-  --width-window: 1500px;
-  --scrollbar-width: thin;
-  --scrollbar-hide: none;
-
-  --body: #FFF9E5;
-
-  --text-primary:   #00124D;
-  --text-secondary: #FFF9E5;
-  --text-inactive:   #bdbdbd;
-
-  /*Config color site*/
-  --back-color: #FFC7B3;
-  --back-color2: #B3FFED;
-  --back-color3: #B3C4FF;
-  --back-color4: #00FFC3;
-  --back-color5: #FF4400;
-  --back-color6: #003CFF;
-  --back-color7: #B3EBFF;
-  --back-color8: #00124D;
-
-  --back-color-hover: oklch(from var(--back-color) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color2-hover: oklch(from var(--back-color2) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color3-hover: oklch(from var(--back-color3) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color4-hover: oklch(from var(--back-color4) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color5-hover: oklch(from var(--back-color5) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color6-hover: oklch(from var(--back-color6) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color7-hover: oklch(from var(--back-color7) calc(l * 1.2) calc(c - 0.02) h);
-  --back-color8-hover: oklch(from var(--back-color8) calc(l * 1.2) calc(c - 0.02) h);
-
-  --success: #00b900;
-  --hover-success: #04ea04;
-
-  --caution: #ff8c00;
-  --hover-caution: #fead4b;
-
-  --danger: #ff0000;
-  --hover-danger: #fc6161;
-
-  --sepia: sepia(40%);
-
-  --transition: all 0.15s ease-in-out;
-  --transition-slow: all 0.25s ease-in-out;
-  
-}
-
-/* Modo oscuro - sobrescribe la paleta de colores */
-[data-theme="dark"] {
-
-  --body: #092743;
-
-  --text-primary:   #e6f3ff;
-  --text-secondary: #051c31;
-  --text-inactive:   #bdbdbd;
-
-  --back-color:  #0C345A;
-  --back-color2: #124E87;
-  --back-color3: #1869B4;
-  --back-color4: #4B9CE7;
-  --back-color5: #78B4ED;
-  --back-color6: #A5CDF3;
-  --back-color7: #432509;
-  --back-color8: #F6D8BC;
-
-}
-CSS;
-
-    if (file_put_contents($themeConfigPath, $content)) {
-      echo "✅ Creado: App/Public/Css/_configTheme.css\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/Public/Css/_configTheme.css\n";
-    }
-  }
-
   /**
-   * Crea un archivo de rutas inicial en App/Route/web.php si no existe.
+   * Copia el AGENTS_PROJECTS.md del framework como AGENTS.md al proyecto nuevo.
    */
-  private function createDefaultRouteFile()
-  {
-    $routeFilePath = $this->basePath . '/App/Route/web.php';
-
-    if (file_exists($routeFilePath)) {
-      echo "⏭️  Saltado: App/Route/web.php (ya existe)\n";
-      return;
-    }
-
-    $content = <<<'PHP'
-<?php
-
-use Core\Route;
-
-/**
- * Definición de rutas del proyecto.
- */
-
-Route::get('/', function () {
-    return 'Bienvenido a mi aplicación';
-});
-PHP;
-
-    if (file_put_contents($routeFilePath, $content)) {
-      echo "✅ Creado: App/Route/web.php\n";
-    } else {
-      echo "❌ Error: No se pudo crear App/Route/web.php\n";
-    }
-  }
-
-  /**
-   * Genera el mapa inicial de seguridad de rutas en App/Config/routes_security.json para el proyecto.
-   */
-  private function createRoutesSecurityConfig()
-  {
-    $configPath = $this->basePath . '/App/Safety/routes_security.json';
-
-    if (class_exists('\\Base\\Module\\Security\\RouteScanner')) {
-      $routeDir = $this->basePath . '/App/Route';
-      if (is_dir($routeDir) && class_exists('\\Core\\ConfigLoader\\RouteLoader')) {
-        \Core\ConfigLoader\RouteLoader::load($routeDir);
-      }
-      \Base\Module\Security\RouteScanner::scanAndSaveRoutes($configPath);
-      echo "✅ Creado: App/Safety/routes_security.json (mapa de rutas del proyecto)\n";
-    }
-  }
-
-  /**
-   * Copia el AGENTS.md del framework al proyecto nuevo.
-   * Así todos los agentes y desarrolladores del proyecto siguen las mismas convenciones.
-   */
-  private function copyAgentsFile()
+  private function copyAgentsFile(): void
   {
     $source = __DIR__ . '/../../AGENTS_PROJECTS.md';
     $dest = $this->basePath . '/AGENTS.md';
@@ -1120,14 +657,14 @@ PHP;
     }
   }
 
-  public static function run()
+  public static function run(): bool
   {
     $init = new self();
     return $init->create();
   }
 }
 
-// Ejecutar si se llama directamente
+// Ejecutar si se llama directamente desde CLI
 if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['argv'][0] ?? '')) {
   InitAppStructure::run();
 }

@@ -247,7 +247,7 @@ class SeoModule
    * 
    * @param array $config Configuración:
    *   - title: string - Título del contenido
-   *   - site_name: string - Nombre del sitio/marca (ej: "Cuaderno")
+   *   - site_name: string - Nombre del sitio/marca (ej: "Sitio Web")
    *   - content: string - Descripción
    *   - image: string - URL de la imagen
    *   - image_width: int|string - Ancho de la imagen (default: 400)
@@ -261,7 +261,7 @@ class SeoModule
     $logo = defined('LOGO') ? LOGO : '';
     $linkOg = defined('LINK_OG') ? LINK_OG : (defined('DOMAIN') ? DOMAIN : '');
     $imgOg = defined('IMG_OG') ? IMG_OG : '';
-    $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Cuaderno';
+    $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Sitio Web';
     $description = defined('DESCRIPTION') ? DESCRIPTION : '';
 
     $siteNameRaw = $config['site_name'] ?? $config['siteName'] ?? $nameSite;
@@ -324,7 +324,7 @@ class SeoModule
     $logo = defined('LOGO') ? LOGO : '';
     $linkOg = defined('LINK_OG') ? LINK_OG : (defined('DOMAIN') ? DOMAIN : '');
     $imgOg = defined('IMG_OG') ? IMG_OG : '';
-    $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Cuaderno';
+    $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Sitio Web';
     $description = defined('DESCRIPTION') ? DESCRIPTION : '';
 
     if ($override !== null) {

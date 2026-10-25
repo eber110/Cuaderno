@@ -226,16 +226,29 @@ class ImgProcessModule
       }
 
       $current_type = strtolower(trim(explode(';', $file['type'])[0] ?? ''));
-      if (!in_array($current_type, $allow)) {
-        if (!empty($file['tmp_name']) && file_exists($file['tmp_name'])) {
-          $detectedMime = @mime_content_type($file['tmp_name']);
-          if ($detectedMime && in_array(strtolower($detectedMime), $allow)) {
-            $current_type = strtolower($detectedMime);
-          }
+      if (!empty($file['tmp_name']) && file_exists($file['tmp_name'])) {
+        $detectedMime = @mime_content_type($file['tmp_name']);
+        if ($detectedMime) {
+          $current_type = strtolower(trim($detectedMime));
         }
       }
 
       if (!in_array($current_type, $allow)) {
+        $this->valid = false;
+        return;
+      }
+
+      $mimeParts = explode('/', $current_type);
+      $rawFormat = strtolower($mimeParts[1] ?? '');
+      $current_format = self::FORMAT_EXTENSIONS[$rawFormat] ?? $rawFormat;
+
+      // Obtener dimensiones de la imagen y validar contra bombas de descompresión (mitigación OOM CVE-2026-109618)
+      $dimensions = $this->getImageDimensions($file['tmp_name'], $current_format);
+      $maxPixels = defined('MAX_IMAGE_PIXELS') ? (int)MAX_IMAGE_PIXELS : 50000000;
+      $totalPixels = (int)$dimensions['width'] * (int)$dimensions['height'];
+
+      if ($dimensions['width'] <= 0 || $dimensions['height'] <= 0 || ($maxPixels > 0 && $totalPixels > $maxPixels)) {
+        error_log("ImgProcessModule: Imagen rechazada por dimensiones inválidas o excesivas ({$dimensions['width']}x{$dimensions['height']})");
         $this->valid = false;
         return;
       }
@@ -250,9 +263,6 @@ class ImgProcessModule
       $this->tmp[] = $file['tmp_name'];
       $this->size_b[] = $file['size'];
       $this->size_mb[] = (int) ceil($file['size'] / $mb_size);
-
-      // Obtener dimensiones de la imagen
-      $dimensions = $this->getImageDimensions($file['tmp_name'], $current_format);
       $this->gap[] = $dimensions;
 
       if ($dimensions['width'] > $dimensions['height']) {
@@ -407,6 +417,17 @@ class ImgProcessModule
    */
   private function createImageFromAny(string $tmpPath, string $format): \GdImage|false
   {
+    // Verificar dimensiones máximas antes de descomprimir en memoria RAM (mitigación OOM CVE-2026-109618)
+    $maxPixels = defined('MAX_IMAGE_PIXELS') ? (int)MAX_IMAGE_PIXELS : 50000000;
+    if ($maxPixels > 0) {
+      $dims = $this->getImageDimensions($tmpPath, $format);
+      $totalPixels = (int)$dims['width'] * (int)$dims['height'];
+      if ($dims['width'] <= 0 || $dims['height'] <= 0 || $totalPixels > $maxPixels) {
+        error_log("ImgProcessModule::createImageFromAny: Dimensiones fuera de límite ({$dims['width']}x{$dims['height']})");
+        return false;
+      }
+    }
+
     switch ($format) {
       case 'jpeg':
       case 'jpg':

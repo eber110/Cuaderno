@@ -131,9 +131,12 @@ class AnimatedGifToWebp
     $canvasW = ord($screenDesc[0]) | (ord($screenDesc[1]) << 8);
     $canvasH = ord($screenDesc[2]) | (ord($screenDesc[3]) << 8);
 
-    if ($canvasW <= 0 || $canvasH <= 0) {
+    $maxPixels = defined('MAX_IMAGE_PIXELS') ? (int)MAX_IMAGE_PIXELS : 50000000;
+    if ($canvasW <= 0 || $canvasH <= 0 || ($maxPixels > 0 && ($canvasW * $canvasH) > $maxPixels)) {
       return false;
     }
+
+    $maxGifFrames = defined('MAX_GIF_FRAMES') ? (int)MAX_GIF_FRAMES : 600;
 
     $packed = ord($screenDesc[4]);
     $hasGct = ($packed & 0x80) !== 0;
@@ -238,6 +241,11 @@ class AnimatedGifToWebp
           'disposal' => $disposal,
           'transparent' => $transparent
         ];
+
+        // Limitar cantidad máxima de fotogramas en memoria para prevenir OOM (CVE-2026-109618)
+        if ($maxGifFrames > 0 && count($frames) >= $maxGifFrames) {
+          break;
+        }
 
         $gce = '';
         $delay = 100;

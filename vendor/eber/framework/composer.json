@@ -33,6 +33,7 @@
         "post-update-cmd": [
             "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"
         ],
+        "init-app": "php Base/ScriptComposer/InitAppStructure.php",
         "min-script": "php Base/ScriptComposer/MinJsCss.php",
         "create-table-mysql": "php Base/ScriptComposer/ConfigInitBdMySql.php",
         "create-table-pgsql": "php Base/ScriptComposer/ConfigInitBdPostgreSql.php",
