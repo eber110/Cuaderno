@@ -26,73 +26,84 @@ class UserControllers extends Control {
   public function userPage(string $user) {
     $userClean = mb_strtolower($user, "UTF-8");
 
-    // Garantizar que la plantilla inicial de diseño exista si el usuario es válido
-    DesignModels::createInitialDesign($userClean);
+    try {
+      $userModels = new UserModels();
+      $userExists = UserModels::userExists($userClean);
 
-    $userModels = new UserModels();
-    $userData   = $userModels->dataOfficialUser($userClean);
-    $userExists = UserModels::userExists($userClean);
-
-    if (!$userExists) {
-      $sessionUser = Session::session_data("username");
-      if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") !== $userClean) {
-        return ResponseModule::redirect("/panel/" . mb_strtolower($sessionUser, "UTF-8"), "El usuario {$userClean}, no existe!", 2);
-      }
-      return ResponseModule::redirect("/", "El usuario {$userClean}, no existe!", 2);
-    }
-
-    if (!$userData) {
-      return ResponseModule::redirect("/", "El usuario {$userClean}, no existe!", 2);
-    }
-
-    // 1. Verificar si el perfil está activo (active == true)
-    if (!UserModels::isUserActive($userData)) {
-      $sessionUser = Session::session_data("username");
-      $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
-
-      if ($sessionUserClean && $sessionUserClean === $userClean) {
-        return ResponseModule::redirect("/panel/" . $userClean);
+      if (!$userExists) {
+        $sessionUser = Session::session_data("username");
+        if (!empty($sessionUser) && mb_strtolower($sessionUser, "UTF-8") !== $userClean) {
+          return ResponseModule::redirect("/panel/" . mb_strtolower($sessionUser, "UTF-8"), "El usuario {$userClean}, no existe!", 2);
+        }
+        return ResponseModule::redirect("/", "El usuario {$userClean}, no existe!", 2);
       }
 
-      return ResponseModule::redirect("/", "El perfil de {$userClean} aún no está activo.", 2);
-    }
+      // Obtener el diseño oficial publicado del usuario
+      $userData = $userModels->dataOfficialUser($userClean);
 
-    // 2. Verificar si el perfil está oculto por el usuario (hide == true)
-    if (UserModels::isUserHidden($userData)) {
-      $sessionUser = Session::session_data("username");
-      $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
-
-      if ($sessionUserClean && $sessionUserClean === $userClean) {
-        return ResponseModule::redirect("/panel/" . $userClean, "Tu perfil actualmente está oculto.", 1);
+      // Si el usuario existe pero aún no tiene plantilla de diseño, inicializarla
+      if (!$userData) {
+        DesignModels::createInitialDesign($userClean);
+        $userData = $userModels->dataOfficialUser($userClean);
       }
 
-      return ResponseModule::redirect("/", "El perfil de {$userClean} está oculto.", 2);
+      if (!$userData) {
+        return ResponseModule::redirect("/", "El usuario {$userClean}, no existe!", 2);
+      }
+
+      // 1. Verificar si el perfil está activo (active == true)
+      if (!UserModels::isUserActive($userData)) {
+        $sessionUser = Session::session_data("username");
+        $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
+
+        if ($sessionUserClean && $sessionUserClean === $userClean) {
+          return ResponseModule::redirect("/panel/" . $userClean);
+        }
+
+        return ResponseModule::redirect("/", "El perfil de {$userClean} aún no está activo.", 2);
+      }
+
+      // 2. Verificar si el perfil está oculto por el usuario (hide == true)
+      if (UserModels::isUserHidden($userData)) {
+        $sessionUser = Session::session_data("username");
+        $sessionUserClean = !empty($sessionUser) ? mb_strtolower($sessionUser, "UTF-8") : null;
+
+        if ($sessionUserClean && $sessionUserClean === $userClean) {
+          return ResponseModule::redirect("/panel/" . $userClean, "Tu perfil actualmente está oculto.", 1);
+        }
+
+        return ResponseModule::redirect("/", "El perfil de {$userClean} está oculto.", 2);
+      }
+
+      $data = $userData;
+      // Formatear imágenes y enlaces de compartir a través del modelo
+      $data["card"] = UserModels::formatCardImages($data["card"]);
+
+      // Configuración de metadatos SEO
+      SeoModule::setMetaDescription($data["card"]["desc"] ?? "");
+      SeoModule::setTitle("Clikhub - @" . ($data["card"]["profile"] ?? ""));
+      SeoModule::setOpenGraph([
+        "title"        => ($data["card"]["title"] ?? "") . ", revisa mi bio.",
+        "site_name"    => NAME_SITE,
+        "content"      => $data["card"]["desc"] ?? "",
+        "image"        => $data["card"]["avatarSrc"] ?? "",
+        "image_width"  => 500,
+        "image_height" => 500,
+        "link"         => DOMAIN . "/" . ltrim($data["card"]["profile"] ?? $userClean, "/"),
+        "type"         => "website"
+      ]);
+
+      // Preload de la imagen LCP en el head para PageSpeed / Lighthouse
+      if (!empty($data["card"]["avatarSrc"])) {
+        \Base\Module\ViewOptimizerModule::preload($data["card"]["avatarSrc"], "image", ["fetchpriority" => "high"]);
+      }
+
+      return $this->view("User.index", $data);
+
+    } catch (\Throwable $e) {
+      error_log("[UserControllers::userPage] Error crítico al consultar perfil '{$userClean}': " . $e->getMessage() . " en " . $e->getFile() . ":" . $e->getLine());
+      throw $e;
     }
-
-    $data = $userData;
-    // Formatear imágenes y enlaces de compartir a través del modelo
-    $data["card"] = UserModels::formatCardImages($data["card"]);
-
-    // Configuración de metadatos SEO
-    SeoModule::setMetaDescription($data["card"]["desc"] ?? "");
-    SeoModule::setTitle("Clikhub - @" . ($data["card"]["profile"] ?? ""));
-    SeoModule::setOpenGraph([
-      "title"        => ($data["card"]["title"] ?? "") . ", revisa mi bio.",
-      "site_name"    => NAME_SITE,
-      "content"      => $data["card"]["desc"] ?? "",
-      "image"        => $data["card"]["avatarSrc"] ?? "",
-      "image_width"  => 500,
-      "image_height" => 500,
-      "link"         => DOMAIN . "/" . ltrim($data["card"]["profile"] ?? $userClean, "/"),
-      "type"         => "website"
-    ]);
-
-    // Preload de la imagen LCP en el head para PageSpeed / Lighthouse
-    if (!empty($data["card"]["avatarSrc"])) {
-      \Base\Module\ViewOptimizerModule::preload($data["card"]["avatarSrc"], "image", ["fetchpriority" => "high"]);
-    }
-
-    return $this->view("User.index", $data);
   }
 
 }

@@ -29,6 +29,7 @@
     "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
     "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php",
     "convert-image": "@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php",
-    "db-maintenance": "@php App/Console/DatabaseMaintenanceScript.php"
+    "db-maintenance": "@php App/Console/DatabaseMaintenanceScript.php",
+    "setup-db": "@php -r \"require 'vendor/autoload.php'; require 'App/Config/config.php'; print_r(\\App\\DatabaseComponent\\SQLiteSetup::setupTables());\""
   }
 }

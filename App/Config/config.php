@@ -89,5 +89,42 @@ if (!defined('SUSCRIPTION_PRODUCTION')) {
     define('SUSCRIPTION_PRODUCTION', filter_var($envSuscription, FILTER_VALIDATE_BOOLEAN));
 }
 
+// ==================== NORMALIZACIÓN DB SQLITE (Windows / Linux) ====================
+// Previene que en servidores Linux (PHP-FPM / Nginx / Apache) las rutas relativas de SQLite
+// se resuelvan con respecto al directorio raíz (/) en lugar del directorio raíz del proyecto.
+$dbConnDriver = $_ENV['DB_CONNECTION'] ?? getenv('DB_CONNECTION') ?: 'sqlite';
+if ($dbConnDriver === 'sqlite') {
+    $rawDbPath = $_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: 'Database/clikhub.sqlite';
+    if (!str_starts_with($rawDbPath, '/') && !preg_match('/^[a-zA-Z]:[\\\\\/]/', $rawDbPath)) {
+        $absoluteDbPath = str_replace('\\', '/', $basePath . '/' . ltrim($rawDbPath, '/\\'));
+    } else {
+        $absoluteDbPath = str_replace('\\', '/', $rawDbPath);
+    }
+
+    if (!defined('BD')) {
+        define('BD', $absoluteDbPath);
+    }
+    if (!defined('DB_DATABASE')) {
+        define('DB_DATABASE', $absoluteDbPath);
+    }
+
+    // Asegurar que el directorio contenedor exista
+    $dbDir = dirname($absoluteDbPath);
+    if (!is_dir($dbDir)) {
+        @mkdir($dbDir, 0775, true);
+    }
+
+    // Si el archivo SQLite no existe o está vacío (0 bytes), inicializar tablas base
+    if (!file_exists($absoluteDbPath) || filesize($absoluteDbPath) === 0) {
+        if (class_exists('\App\DatabaseComponent\SQLiteSetup')) {
+            try {
+                \App\DatabaseComponent\SQLiteSetup::setupTables();
+            } catch (\Throwable $e) {
+                error_log('[DB_INIT_WARNING] No se pudo auto-inicializar SQLite: ' . $e->getMessage());
+            }
+        }
+    }
+}
+
 // Cargar configuración del framework
 require_once $basePath . '/vendor/eber/framework/config.php';
