@@ -128,7 +128,7 @@ class InitAppStructure
       }
     }
 
-    // 1. Copiar recursos base (Fonts, Helper, Ico, Library) de Resources/ a App/Rsc/
+    // 1. Copiar y sincronizar recursos base (Fonts, Helper, Ico, Library) de Resources/ a App/Rsc/
     $this->copyResources();
 
     // 2. Copiar archivos iniciales de configuración y estructura desde Resources/ a App/ y Bootstrap/
@@ -140,7 +140,7 @@ class InitAppStructure
     $this->createDefaultRouteFile();
     $this->createSafetyFiles();
 
-    // 3. Crear archivos raíz del proyecto si no existen
+    // 3. Crear archivos raíz del proyecto si no existen o sincronizar mejoras críticas
     $this->createProvidersFiles();
     $this->createEnvFiles();
     $this->createJsConfig();
@@ -159,6 +159,9 @@ class InitAppStructure
 
   /**
    * Copia los archivos de Resources/{Fonts,Helper,Ico,Library} al directorio App/Rsc/ del proyecto.
+   * Para librerías del framework (Library/Charts, Library/Gsap) e iconos del framework (Ico/),
+   * sincroniza automáticamente si el archivo origen ha sido actualizado, garantizando que
+   * las correcciones y mejoras del framework se reflejen en los proyectos derivados.
    */
   private function copyResources(): void
   {
@@ -175,35 +178,34 @@ class InitAppStructure
 
     $copied = 0;
     $skipped = 0;
+    $updated = 0;
 
     foreach (['Fonts', 'Helper', 'Ico', 'Library'] as $folder) {
       $src = $this->frameworkResources . '/' . $folder;
       $dest = $projectRsc . '/' . $folder;
+      // Permitir actualización automática de recursos provistos por el framework (Library e Ico)
+      $updateIfDifferent = ($folder === 'Library' || $folder === 'Ico');
       if (is_dir($src)) {
-        $this->copyDirectory($src, $dest, $copied, $skipped);
+        $this->copyDirectory($src, $dest, $copied, $skipped, $updated, $updateIfDifferent);
       }
     }
 
-    // Actualizar App/Rsc/Library/Charts/charts.css si conserva selectores fijos antiguos (.color8)
-    $srcChartsCss = $this->frameworkResources . '/Library/Charts/charts.css';
-    $destChartsCss = $projectRsc . '/Library/Charts/charts.css';
-    if (is_file($srcChartsCss) && is_file($destChartsCss)) {
-      $destChartsContent = (string)file_get_contents($destChartsCss);
-      if (str_contains($destChartsContent, '.mono-chart-svg.color8')) {
-        if (@copy($srcChartsCss, $destChartsCss)) {
-          echo "🔧 Actualizado: App/Rsc/Library/Charts/charts.css (soporte dinámico [class*=\"color\"])\n";
-        }
-      }
-    }
-
-    echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico y Library): {$copied} copiados, {$skipped} existentes\n";
+    $detail = "{$copied} copiados, {$updated} actualizados, {$skipped} al día";
+    echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico y Library): {$detail}\n";
   }
 
   /**
-   * Copia recursivamente un directorio sin sobrescribir archivos existentes del usuario
+   * Copia recursivamente un directorio respetando archivos personalizados del usuario
    * e ignorando cualquier archivo .gitkeep.
+   *
+   * @param string $source Directorio origen
+   * @param string $dest Directorio destino
+   * @param int $copied Contador de archivos creados
+   * @param int $skipped Contador de archivos omitidos
+   * @param int $updated Contador de archivos actualizados
+   * @param bool $updateIfDifferent Si es true y el archivo origen difiere del destino, lo actualiza
    */
-  private function copyDirectory(string $source, string $dest, int &$copied, int &$skipped): void
+  private function copyDirectory(string $source, string $dest, int &$copied, int &$skipped, int &$updated = 0, bool $updateIfDifferent = false): void
   {
     $dir = opendir($source);
     if (!$dir) {
@@ -223,10 +225,20 @@ class InitAppStructure
       $destFile = $dest . '/' . $file;
 
       if (is_dir($srcFile)) {
-        $this->copyDirectory($srcFile, $destFile, $copied, $skipped);
+        // No sobrescribir subcarpetas exclusivas del usuario como App/Rsc/Ico/Custom
+        $isUserCustomDir = ($file === 'Custom');
+        $this->copyDirectory($srcFile, $destFile, $copied, $skipped, $updated, $isUserCustomDir ? false : $updateIfDifferent);
       } else {
         if (file_exists($destFile)) {
-          $skipped++;
+          if ($updateIfDifferent && md5_file($srcFile) !== md5_file($destFile)) {
+            if (@copy($srcFile, $destFile)) {
+              $updated++;
+            } else {
+              $skipped++;
+            }
+          } else {
+            $skipped++;
+          }
         } else {
           if (@copy($srcFile, $destFile)) {
             $copied++;
@@ -409,8 +421,8 @@ class InitAppStructure
 
   /**
    * Copia _configTheme.css y theme.css desde Resources/Public/Css/ a App/Public/Css/ si no existen.
-   * Si _configTheme.css ya existe pero proviene de una versión previa sin variables de animación/hover,
-   * las sincroniza respetando los colores configurados por el usuario.
+   * Si _configTheme.css ya existe pero proviene de una versión previa sin variables de animación/hover
+   * o derivaciones de modo oscuro, las sincroniza respetando todos los colores personalizados del usuario.
    */
   private function createThemeConfig(): void
   {
@@ -542,6 +554,10 @@ class InitAppStructure
     }
   }
 
+  /**
+   * Crea o sincroniza .htaccess con las cabeceras de seguridad y mitigaciones CVE críticas
+   * sin sobrescribir reglas o configuraciones personalizadas del proyecto.
+   */
   private function createHtaccess(): void
   {
     $htaccessPath = $this->basePath . '/.htaccess';
@@ -601,6 +617,10 @@ HTACCESS;
     }
   }
 
+  /**
+   * Crea o actualiza index.php aplicando protecciones de seguridad
+   * (como sanitización anti-CRLF en FORCE_DOMAIN) respetando el código existente.
+   */
   private function createIndexPhp(): void
   {
     $indexPath = $this->basePath . '/index.php';
@@ -612,15 +632,46 @@ HTACCESS;
       }
 
       $content = (string)file_get_contents($indexPath);
-      if (str_contains($content, "require_once __DIR__ . '/config.php';")) {
-        $content = str_replace(
+      $updated = $content;
+      $changed = false;
+
+      // 1. Migración de ruta antigua de config.php a App/Config/config.php
+      if (str_contains($updated, "require_once __DIR__ . '/config.php';")) {
+        $updated = str_replace(
           "require_once __DIR__ . '/config.php';",
           "require_once __DIR__ . '/App/Config/config.php';",
-          $content
+          $updated
         );
-        if (file_put_contents($indexPath, $content)) {
-          echo "🔧 Actualizado: index.php para usar App/Config/config.php\n";
+        $changed = true;
+      }
+
+      // 2. Sanitización anti-CRLF Header Injection en redirección de FORCE_DOMAIN
+      if (str_contains($updated, 'FORCE_DOMAIN') && str_contains($updated, '$_SERVER[\'REQUEST_URI\']') && !str_contains($updated, '$safeRequestUri')) {
+        $pattern = '/header\(\s*["\']Location:\s*["\']\s*\.\s*\$protocol\s*\.\s*FORCE_DOMAIN\s*\.\s*\$_SERVER\[[\'"]REQUEST_URI[\'"]\]\s*\);/s';
+        $replacement = <<<'PHP'
+$safeRequestUri = str_replace(["\r", "\n", "%0d", "%0a", "%0D", "%0A"], '', (string)($_SERVER['REQUEST_URI'] ?? '/'));
+        $safeRequestUri = '/' . ltrim($safeRequestUri, '/');
+        header("Location: " . $protocol . FORCE_DOMAIN . $safeRequestUri);
+PHP;
+        $replaced = (string)preg_replace($pattern, $replacement, $updated, 1);
+        if ($replaced !== $updated) {
+          $updated = $replaced;
+          $changed = true;
         }
+      }
+
+      // 3. Normalización para admitir 'prod' y 'production' en ENVIRONMENT
+      if (str_contains($updated, "ENVIRONMENT === 'production'")) {
+        $updated = str_replace(
+          "ENVIRONMENT === 'production'",
+          "in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true)",
+          $updated
+        );
+        $changed = true;
+      }
+
+      if ($changed && file_put_contents($indexPath, $updated)) {
+        echo "🔧 Actualizado: index.php (seguridad y redirecciones sincronizadas)\n";
       } else {
         echo "⏭️  Saltado: index.php (ya existe y está actualizado)\n";
       }
@@ -666,12 +717,54 @@ PHP;
     }
   }
 
+  /**
+   * Crea o sincroniza .gitignore asegurando que todas las reglas esenciales
+   * (seguridad, base de datos local, temporales y subidas) estén presentes
+   * sin alterar las reglas personalizadas del proyecto.
+   */
   private function createGitignore(): void
   {
     $gitignorePath = $this->basePath . '/.gitignore';
 
+    $essentialIgnores = [
+      '/vendor/',
+      '.env',
+      '/App/Public/Min/',
+      '/Cache/',
+      '/Logs/',
+      '/Uploads/',
+      '/Database/*',
+      '*.mmdb',
+      '*.sqlite',
+      '*.sqlite-wal',
+      '*.sqlite-shm',
+    ];
+
     if (file_exists($gitignorePath)) {
-      echo "⏭️  Saltado: .gitignore (ya existe)\n";
+      $content = (string)file_get_contents($gitignorePath);
+      $missing = [];
+      foreach ($essentialIgnores as $pattern) {
+        $escaped = preg_quote($pattern, '/');
+        if (!preg_match('/(^|\r?\n)\s*' . $escaped . '\s*($|\r?\n)/', $content)) {
+          // Si ya existe una variante como /vendor/* o /Uploads/*, considerarlo cubierto
+          if ($pattern === '/vendor/' && (str_contains($content, '/vendor/*') || str_contains($content, 'vendor/'))) {
+            continue;
+          }
+          if ($pattern === '/Uploads/' && (str_contains($content, '/Uploads/*') || str_contains($content, 'Uploads/'))) {
+            continue;
+          }
+          $missing[] = $pattern;
+        }
+      }
+
+      if (!empty($missing)) {
+        $append = "\n# Reglas esenciales del framework (sincronizadas por InitAppStructure)\n" . implode("\n", $missing) . "\n";
+        if (file_put_contents($gitignorePath, rtrim($content) . "\n" . $append)) {
+          echo "🔧 Actualizado: .gitignore (agregadas " . count($missing) . " reglas esenciales faltantes: " . implode(', ', $missing) . ")\n";
+        }
+      } else {
+        echo "⏭️  Saltado: .gitignore (ya existe y está actualizado)\n";
+      }
       return;
     }
 
@@ -697,7 +790,9 @@ GITIGNORE;
   }
 
   /**
-   * Copia el AGENTS_PROJECTS.md del framework como AGENTS.md al proyecto nuevo.
+   * Copia o actualiza el AGENTS_PROJECTS.md del framework como AGENTS.md al proyecto.
+   * Si AGENTS.md ya existe y no tiene personalizaciones exclusivas del usuario,
+   * lo mantiene sincronizado con las últimas convenciones y herramientas del framework.
    */
   private function copyAgentsFile(): void
   {
@@ -710,7 +805,19 @@ GITIGNORE;
     }
 
     if (file_exists($dest)) {
-      echo "⏭️  Saltado: AGENTS.md (ya existe)\n";
+      if (file_exists($source)) {
+        $srcContent = (string)file_get_contents($source);
+        $destContent = (string)file_get_contents($dest);
+        if ($srcContent !== $destContent) {
+          // Si el usuario no agregó una sección de reglas personalizadas explícitas, sincronizar
+          if (!str_contains($destContent, '<!-- CUSTOM_PROJECT_RULES -->')) {
+            @copy($source, $dest);
+            echo "🔧 Actualizado: AGENTS.md (guía de convenciones sincronizada con el framework)\n";
+            return;
+          }
+        }
+      }
+      echo "⏭️  Saltado: AGENTS.md (ya existe y está actualizado)\n";
       return;
     }
 

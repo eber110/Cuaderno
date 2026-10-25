@@ -73,3 +73,7 @@
 
 # Ignorar archivo de prueba de rutas
 /App/Route/test.php
+
+# Reglas esenciales del framework (sincronizadas por InitAppStructure)
+/Uploads/
+*.mmdb
