@@ -112,18 +112,51 @@ class InitAppStructure
     $created = 0;
     $skipped = 0;
 
+    $writableDirs = [
+      'Database',
+      'Cache',
+      'Cache/Views',
+      'Logs',
+      'Logs/UserLog',
+      'Logs/VisitLog',
+      'Uploads',
+      'App/Public/Uploads',
+      'App/Public/Min',
+      'App/Public/Min/Css',
+      'App/Public/Min/Js',
+    ];
+
     foreach ($this->directories as $dir) {
       $fullPath = $this->basePath . '/' . $dir;
+      $isWritable = in_array($dir, $writableDirs, true);
 
       if (is_dir($fullPath)) {
+        if ($isWritable) {
+          @chmod($fullPath, 0775);
+        }
         echo "⏭️  Saltado: {$dir} (ya existe)\n";
         $skipped++;
       } else {
-        if (@mkdir($fullPath, 0755, true)) {
+        $mode = $isWritable ? 0775 : 0755;
+        if (@mkdir($fullPath, $mode, true)) {
+          if ($isWritable) {
+            @chmod($fullPath, 0775);
+          }
           echo "✅ Creado: {$dir}\n";
           $created++;
         } else {
           echo "❌ Error: No se pudo crear {$dir}\n";
+        }
+      }
+    }
+
+    // Asegurar permisos de escritura para bases de datos SQLite existentes en Database/
+    $databaseDir = $this->basePath . '/Database';
+    if (is_dir($databaseDir)) {
+      $sqliteFiles = glob($databaseDir . '/*.sqlite*') ?: [];
+      foreach ($sqliteFiles as $sqf) {
+        if (is_file($sqf)) {
+          @chmod($sqf, 0664);
         }
       }
     }
@@ -395,7 +428,7 @@ class InitAppStructure
   }
 
   /**
-   * Copia la plantilla de error desde Base/Error/HandlerError.php a App/errorViews/HandlerError.php.
+   * Copia o actualiza la plantilla de error desde Base/Error/HandlerError.php a App/errorViews/HandlerError.php.
    */
   private function copyErrorView(): void
   {
@@ -403,7 +436,17 @@ class InitAppStructure
     $dest = $this->basePath . '/App/errorViews/HandlerError.php';
 
     if (file_exists($dest)) {
-      echo "⏭️  Saltado: App/errorViews/HandlerError.php (ya existe)\n";
+      if (file_exists($source)) {
+        $content = (string)file_get_contents($dest);
+        if (!str_contains($content, '$dbDiagnostic')) {
+          if (!str_contains($content, '<!-- CUSTOM_ERROR_VIEW -->')) {
+            @copy($source, $dest);
+            echo "🔧 Actualizado: App/errorViews/HandlerError.php (diagnóstico seguro de base de datos sincronizado)\n";
+            return;
+          }
+        }
+      }
+      echo "⏭️  Saltado: App/errorViews/HandlerError.php (ya existe y está actualizado)\n";
       return;
     }
 
