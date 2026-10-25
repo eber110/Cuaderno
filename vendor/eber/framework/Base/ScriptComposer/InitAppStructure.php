@@ -547,7 +547,50 @@ class InitAppStructure
     $htaccessPath = $this->basePath . '/.htaccess';
 
     if (file_exists($htaccessPath)) {
-      echo "⏭️  Saltado: .htaccess (ya existe)\n";
+      $content = (string)file_get_contents($htaccessPath);
+      $updated = $content;
+      $changed = false;
+
+      // 1. Inyectar mitigación php_flag session.upload_progress.enabled Off (CVE-2026-109618 / CVE-2026-109619) si falta
+      if (!str_contains($updated, 'session.upload_progress.enabled')) {
+        $phpFlagBlock = <<<'HTACCESS'
+DirectoryIndex index.php
+
+# Mitigación contra CVE-2026-109618 y CVE-2026-109619 (PHP2Shell)
+<IfModule mod_php.c>
+  php_flag session.upload_progress.enabled Off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag session.upload_progress.enabled Off
+</IfModule>
+HTACCESS;
+        if (str_contains($updated, 'DirectoryIndex index.php')) {
+          $updated = (string)preg_replace('/^DirectoryIndex\s+index\.php\r?$/m', $phpFlagBlock, $updated, 1);
+          $changed = true;
+        }
+      }
+
+      // 2. Inyectar bloqueo RewriteCond contra PHP_SESSION_UPLOAD_PROGRESS (CVE-2026-109619) si falta
+      if (!str_contains($updated, 'PHP_SESSION_UPLOAD_PROGRESS')) {
+        $rewriteBlock = <<<'HTACCESS'
+RewriteEngine On
+
+# Bloquear vectores de inyección de estado de progreso de sesión (CVE-2026-109619)
+RewriteCond %{QUERY_STRING} PHP_SESSION_UPLOAD_PROGRESS [NC,OR]
+RewriteCond %{HTTP_COOKIE} PHP_SESSION_UPLOAD_PROGRESS [NC]
+RewriteRule ^ - [F,L]
+HTACCESS;
+        if (str_contains($updated, 'RewriteEngine On')) {
+          $updated = (string)preg_replace('/^RewriteEngine\s+On\r?$/m', $rewriteBlock, $updated, 1);
+          $changed = true;
+        }
+      }
+
+      if ($changed && file_put_contents($htaccessPath, $updated) !== false) {
+        echo "🔧 Actualizado: .htaccess (mitigaciones CVE-2026-109618 y CVE-2026-109619 sincronizadas)\n";
+      } else {
+        echo "⏭️  Saltado: .htaccess (ya existe y está actualizado)\n";
+      }
       return;
     }
 

@@ -43,6 +43,14 @@
 Options -Indexes -MultiViews
 DirectoryIndex index.php
 
+# Mitigación contra CVE-2026-109618 y CVE-2026-109619 (PHP2Shell)
+<IfModule mod_php.c>
+  php_flag session.upload_progress.enabled Off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag session.upload_progress.enabled Off
+</IfModule>
+
 # Ficheros sensibles: denegar acceso directo por HTTP
 <FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
   <IfModule mod_authz_core.c>
@@ -55,6 +63,11 @@ DirectoryIndex index.php
 </FilesMatch>
 
 RewriteEngine On
+
+# Bloquear vectores de inyección de estado de progreso de sesión (CVE-2026-109619)
+RewriteCond %{QUERY_STRING} PHP_SESSION_UPLOAD_PROGRESS [NC,OR]
+RewriteCond %{HTTP_COOKIE} PHP_SESSION_UPLOAD_PROGRESS [NC]
+RewriteRule ^ - [F,L]
 
 # Bloquear acceso web directo a carpetas sensibles del sistema
 RewriteRule ^(Cache|Logs|Database|\.git|vendor|App/Safety)(/|$) - [F,L,NC]
