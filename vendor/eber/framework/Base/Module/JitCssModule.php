@@ -29,11 +29,36 @@ class JitCssModule
                 MinifyModule::getDirectoryFilesRecursive($dir, 'html')
             );
             foreach ($scanFiles as $scanFile) {
-                $content = file_get_contents($scanFile);
+                $normalizedFile = str_replace('\\', '/', $scanFile);
+                // Excluir las propias librerías JIT y scripts de compilación para evitar auto-activación de clases
+                if (
+                    str_contains($normalizedFile, '/Base/LibraryCssJit/') ||
+                    str_contains($normalizedFile, '/Base/ScriptComposer/') ||
+                    str_ends_with($normalizedFile, '/Base/Module/JitCssModule.php')
+                ) {
+                    continue;
+                }
+
+                $content = (string)file_get_contents($scanFile);
+                // Limpiar bloques de comentarios para evitar falsos positivos con palabras de documentación
+                $content = (string)preg_replace('/\/\*.*?\*\//s', ' ', $content);
+
                 if (preg_match_all('/[a-zA-Z0-9_-]+/', $content, $matches)) {
                     foreach ($matches[0] as $word) {
                         $words[$word] = true;
                     }
+                }
+            }
+        }
+
+        // Incluir jsConfig.json de la raíz del proyecto si existe (para detectar clases pasadas por configuración JS)
+        $rootPath = defined('ROOT_PATH') ? ROOT_PATH : str_replace('\\', '/', getcwd());
+        $jsConfigFile = rtrim($rootPath, '/') . '/jsConfig.json';
+        if (is_file($jsConfigFile)) {
+            $jsConfigContent = (string)file_get_contents($jsConfigFile);
+            if (preg_match_all('/[a-zA-Z0-9_-]+/', $jsConfigContent, $matches)) {
+                foreach ($matches[0] as $word) {
+                    $words[$word] = true;
                 }
             }
         }
@@ -83,6 +108,19 @@ class JitCssModule
             $lowerWords = [];
             foreach ($words as $word => $val) {
                 $lowerWords[strtolower($word)] = true;
+            }
+
+            // Incluir también las familias declaradas en _configTheme.css (ej. --font, --font2, --font3)
+            $rootPath = defined('ROOT_PATH') ? ROOT_PATH : str_replace('\\', '/', getcwd());
+            $themeConfigPath = rtrim($rootPath, '/') . '/App/Public/Css/_configTheme.css';
+            if (is_file($themeConfigPath)) {
+                $themeContent = (string)file_get_contents($themeConfigPath);
+                if (preg_match_all('/[a-zA-Z0-9_-]+/', $themeContent, $themeMatches)) {
+                    foreach ($themeMatches[0] as $tw) {
+                        $words[$tw] = true;
+                        $lowerWords[strtolower($tw)] = true;
+                    }
+                }
             }
 
             // Separar por bloques de @font-face
@@ -192,6 +230,89 @@ class JitCssModule
         }
 
         return $activeFonts;
+    }
+
+    /**
+     * Sincroniza de forma no destructiva las variables de animación/hover en :root y
+     * las derivaciones --back-color*-hover en [data-theme="dark"] dentro de un _configTheme.css
+     * existente, respetando todos los colores y fuentes personalizados del proyecto.
+     *
+     * @param string $themeConfigPath Ruta absoluta a App/Public/Css/_configTheme.css
+     * @param bool $verbose Mostrar mensaje si se actualiza el archivo
+     * @return bool True si el archivo fue actualizado
+     */
+    public static function syncThemeConfigVariables(string $themeConfigPath, bool $verbose = true): bool
+    {
+        if (!is_file($themeConfigPath)) {
+            return false;
+        }
+
+        $content = (string)file_get_contents($themeConfigPath);
+        $updated = $content;
+        $changed = false;
+
+        // 1. Sincronizar variables de animación y efectos hover en :root si aún no existen
+        if (!str_contains($updated, '--animate-duration:') && str_contains($updated, '--transition-slow:')) {
+            $extraVars = <<<'CSS'
+  --transition-slow: all 0.25s ease-in-out;
+
+  /* Variables de animación y efectos hover */
+  --animate-duration: 400ms;
+  --animate-delay: 0ms;
+  --animate-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+
+  --hover-duration-in: 250ms;
+  --hover-duration-out: 350ms;
+  --hover-duration-soft: 350ms;
+  --hover-ease-in: cubic-bezier(0.25, 1, 0.5, 1);
+  --hover-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --hover-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --hover-scale: 1.20;
+  --hover-scale-soft: 1.02;
+  --hover-scale-shrink: 0.95;
+  --hover-y: -6px;
+  --hover-x: 6px;
+  --hover-rotate: 2deg;
+  --hover-rotate-tilt: -3deg;
+  --hover-glow-color: rgba(255, 255, 255, 0.4);
+  --hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  --hover-shadow-active: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --hover-shadow-soft: 0 6px 12px rgba(0, 0, 0, 0.12);
+CSS;
+            $replaced = (string)preg_replace('/^\s*--transition-slow:\s*[^;]+;/m', $extraVars, $updated, 1);
+            if ($replaced !== $updated) {
+                $updated = $replaced;
+                $changed = true;
+            }
+        }
+
+        // 2. Sincronizar --back-color{N}-hover en [data-theme="dark"] si el bloque existe y no los tiene
+        if (preg_match('/(\[data-theme\s*=\s*["\']dark["\']\]\s*\{)([^}]*)(\})/s', $updated, $darkMatch)) {
+            $darkBody = $darkMatch[2];
+            if (!str_contains($darkBody, '--back-color-hover')) {
+                if (preg_match_all('/--back-color(\d*)\s*:/', $darkBody, $colorMatches)) {
+                    $hoverLines = "\n";
+                    foreach ($colorMatches[1] as $suffix) {
+                        $varName = $suffix === '' ? '--back-color' : "--back-color{$suffix}";
+                        $hoverLines .= "  {$varName}-hover: oklch(from var({$varName}) calc(l * 1.2) calc(c - 0.02) h);\n";
+                    }
+                    $newDarkBlock = $darkMatch[1] . rtrim($darkBody) . "\n" . $hoverLines . "\n" . $darkMatch[3];
+                    $updated = str_replace($darkMatch[0], $newDarkBlock, $updated);
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed && file_put_contents($themeConfigPath, $updated) !== false) {
+            if ($verbose) {
+                echo "🔧 Actualizado: App/Public/Css/_configTheme.css (variables de tema/animación sincronizadas)\n";
+            }
+            return true;
+        }
+
+        return false;
     }
 
     /**

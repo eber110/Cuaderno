@@ -62,15 +62,7 @@
 .mono-chart-svg.textw,
 .mono-chart-svg.textb,
 .mono-chart-svg.textc,
-.mono-chart-svg.color,
-.mono-chart-svg.color1,
-.mono-chart-svg.color2,
-.mono-chart-svg.color3,
-.mono-chart-svg.color4,
-.mono-chart-svg.color5,
-.mono-chart-svg.color6,
-.mono-chart-svg.color7,
-.mono-chart-svg.color8 {
+.mono-chart-svg[class*="color"] {
   --chart-base: currentColor;
 }
 
@@ -84,15 +76,7 @@
 .mono-chart-svg text:not(.mono-svg-axis-text).texto,
 .mono-chart-svg text:not(.mono-svg-axis-text).textb,
 .mono-chart-svg text:not(.mono-svg-axis-text).textc,
-.mono-chart-svg text:not(.mono-svg-axis-text).color,
-.mono-chart-svg text:not(.mono-svg-axis-text).color1,
-.mono-chart-svg text:not(.mono-svg-axis-text).color2,
-.mono-chart-svg text:not(.mono-svg-axis-text).color3,
-.mono-chart-svg text:not(.mono-svg-axis-text).color4,
-.mono-chart-svg text:not(.mono-svg-axis-text).color5,
-.mono-chart-svg text:not(.mono-svg-axis-text).color6,
-.mono-chart-svg text:not(.mono-svg-axis-text).color7,
-.mono-chart-svg text:not(.mono-svg-axis-text).color8 {
+.mono-chart-svg text:not(.mono-svg-axis-text)[class*="color"] {
   fill: currentColor !important;
 }
 
@@ -120,28 +104,12 @@
 .mono-chart-svg text.mono-svg-axis-text.texto,
 .mono-chart-svg text.mono-svg-axis-text.textb,
 .mono-chart-svg text.mono-svg-axis-text.textc,
-.mono-chart-svg text.mono-svg-axis-text.color,
-.mono-chart-svg text.mono-svg-axis-text.color1,
-.mono-chart-svg text.mono-svg-axis-text.color2,
-.mono-chart-svg text.mono-svg-axis-text.color3,
-.mono-chart-svg text.mono-svg-axis-text.color4,
-.mono-chart-svg text.mono-svg-axis-text.color5,
-.mono-chart-svg text.mono-svg-axis-text.color6,
-.mono-chart-svg text.mono-svg-axis-text.color7,
-.mono-chart-svg text.mono-svg-axis-text.color8,
+.mono-chart-svg text.mono-svg-axis-text[class*="color"],
 .mono-chart-svg .mono-svg-axis-text.textw,
 .mono-chart-svg .mono-svg-axis-text.texto,
 .mono-chart-svg .mono-svg-axis-text.textb,
 .mono-chart-svg .mono-svg-axis-text.textc,
-.mono-chart-svg .mono-svg-axis-text.color,
-.mono-chart-svg .mono-svg-axis-text.color1,
-.mono-chart-svg .mono-svg-axis-text.color2,
-.mono-chart-svg .mono-svg-axis-text.color3,
-.mono-chart-svg .mono-svg-axis-text.color4,
-.mono-chart-svg .mono-svg-axis-text.color5,
-.mono-chart-svg .mono-svg-axis-text.color6,
-.mono-chart-svg .mono-svg-axis-text.color7,
-.mono-chart-svg .mono-svg-axis-text.color8 {
+.mono-chart-svg .mono-svg-axis-text[class*="color"] {
   fill: currentColor !important;
 }
 

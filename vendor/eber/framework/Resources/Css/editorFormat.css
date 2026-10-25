@@ -8,10 +8,10 @@
 /* Contenedor principal del contenido */
 .post-content {
 
-  font-family: var(--font);
-  font-size: var(--font-size);
+  font-family: var(--font, sans-serif);
+  font-size: var(--font-size, 20px);
   line-height: 1.4em;
-  color: var(--back-color6);
+  color: var(--back-color6, var(--text-primary, #333333));
   word-break: break-word;
 
 }
@@ -22,7 +22,7 @@
 
   margin: 0 0 1em 0;
   line-height: 1.4em;
-  font-size: var(--font-size);
+  font-size: var(--font-size, 20px);
   text-wrap: pretty;
 
 }
@@ -36,12 +36,12 @@
 .post-content h5,
 .post-content h6 {
 
-  font-family: var(--font);
+  font-family: var(--font, sans-serif);
   font-weight: 700;
   line-height: 1.2em;
   text-wrap: balance;
   margin: 1.2em 0 0.5em 0;
-  color: var(--back-color6);
+  color: var(--back-color6, var(--text-primary, #333333));
 
 }
 
@@ -63,7 +63,7 @@
 .post-content b {
 
   font-weight: 700;
-  color: var(--back-color6);
+  color: var(--back-color6, var(--text-primary, #333333));
 
 }
 
@@ -91,8 +91,8 @@
 
 .post-content mark {
 
-  background-color: color-mix(in srgb, var(--back-color5), transparent 50%);
-  color: var(--back-color6);
+  background-color: color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 50%);
+  color: var(--back-color6, var(--text-primary, #333333));
   padding: 0 3px;
   border-radius: 3px;
 
@@ -116,16 +116,16 @@
 /* ---- Enlace ---- */
 .post-content a {
 
-  color: var(--back-color5);
+  color: var(--back-color5, #d3d3d3);
   text-decoration: none;
   font-weight: bold;
-  transition: var(--transition);
+  transition: var(--transition, all 0.15s ease-in-out);
 
 }
 
 .post-content a:hover {
 
-  color: var(--back-color5-hover);
+  color: var(--back-color5-hover, #bfbfbf);
 
 }
 
@@ -172,12 +172,12 @@
 /* ---- Cita ---- */
 .post-content blockquote {
 
-  border-left: 4px solid var(--back-color5);
+  border-left: 4px solid var(--back-color5, #d3d3d3);
   margin: 1.2em 0;
   padding: 0.6em 0 0.6em 1.4em;
   font-style: italic;
-  color: color-mix(in srgb, var(--back-color6), transparent 20%);
-  background-color: color-mix(in srgb, var(--back-color5), transparent 88%);
+  color: color-mix(in srgb, var(--back-color6, #333333), transparent 20%);
+  background-color: color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 88%);
   border-radius: 0 6px 6px 0;
 
 }
@@ -200,7 +200,7 @@
   color: #9cdcfe;  /* azul claro tipo VS Code */
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid color-mix(in srgb, var(--back-color5), transparent 60%);
+  border: 1px solid color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 60%);
   white-space: pre-wrap;
   display: inline;
   line-height: inherit;
@@ -214,7 +214,7 @@
 
   background-color: #252526;
   color: #4ec9b0;  /* verde agua tipo VS Code */
-  border-color: color-mix(in srgb, var(--back-color4), transparent 40%);
+  border-color: color-mix(in srgb, var(--back-color4, #d3d3d3), transparent 40%);
 
 }
 
@@ -224,23 +224,6 @@
    Colores de sintaxis adaptados a las variables del framework
    ============================================================ */
 
-/* Variables locales del editor */
-.post-content .code-block {
-
-  --editor-bg:        #1e1e1e;
-  --editor-header-bg: #252526;
-  --editor-border:    #323232;
-  --editor-text:      #d4d4d4;
-  --editor-accent:    var(--back-color5);
-  --editor-string:    #ce9178;
-  --editor-keyword:   #569cd6;
-  --editor-comment:   #6a9955;
-  --editor-number:    #b5cea8;
-  --editor-func:      #dcdcaa;
-
-}
-
-
 /* ---- Wrapper del bloque de código (generado por codeBlock.js) ---- */
 .post-content .code-block {
 
@@ -248,6 +231,12 @@
   --editor-header-bg: #252526;
   --editor-border:    #3c3c3c;
   --editor-text:      #d4d4d4;
+  --editor-accent:    var(--back-color5, #d3d3d3);
+  --editor-string:    #ce9178;
+  --editor-keyword:   #569cd6;
+  --editor-comment:   #6a9955;
+  --editor-number:    #b5cea8;
+  --editor-func:      #dcdcaa;
   --editor-dot1:      #ff5f57;
   --editor-dot2:      #febc2e;
   --editor-dot3:      #28c840;
@@ -263,7 +252,7 @@
 /* Modo oscuro - el borde usa el acento del framework */
 [data-theme="dark"] .post-content .code-block {
 
-  --editor-border: color-mix(in srgb, var(--back-color5), transparent 45%);
+  --editor-border: color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 45%);
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
 
 }
@@ -309,19 +298,11 @@
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: lowercase;
-  color: var(--back-color4);
+  color: var(--back-color4, #d3d3d3);
   flex: 1;
   text-align: center;
 
 }
-
-/* Label en modo oscuro usa el color 3 del framework */
-/*[data-theme="dark"] .post-content .code-block-lang {
-
-  color: color-mix(in srgb, var(--back-color2), transparent 20%);
-
-}*/
-
 
 /* Botón copiar */
 .post-content .code-copy-btn {
@@ -336,9 +317,9 @@
   background: transparent;
   color: #858585;
   font-size: 0.72em;
-  font-family: var(--font);
+  font-family: var(--font, sans-serif);
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition, all 0.15s ease-in-out);
   line-height: 1;
 
 }
@@ -346,7 +327,7 @@
 .post-content .code-copy-btn:hover {
 
   background-color: #3c3c3c;
-  border-color: color-mix(in srgb, var(--back-color5), transparent 30%);
+  border-color: color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 30%);
   color: #d4d4d4;
 
 }
@@ -354,17 +335,17 @@
 /* Botón copiar en modo oscuro */
 [data-theme="dark"] .post-content .code-copy-btn:hover {
 
-  border-color: var(--back-color5);
-  color: var(--back-color6);
+  border-color: var(--back-color5, #d3d3d3);
+  color: var(--back-color6, #d3d3d3);
 
 }
 
 /* Estado copiado */
 .post-content .code-copy-btn.copied {
 
-  background-color: color-mix(in srgb, var(--success), transparent 80%);
-  border-color: var(--success);
-  color: var(--success);
+  background-color: color-mix(in srgb, var(--success, #00b900), transparent 80%);
+  border-color: var(--success, #00b900);
+  color: var(--success, #00b900);
 
 }
 
@@ -453,7 +434,7 @@
 .post-content hr {
 
   border: none;
-  border-top: 2px solid color-mix(in srgb, var(--back-color5), transparent 70%);
+  border-top: 2px solid color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 70%);
   margin: 1.5em 0;
 
 }
@@ -499,26 +480,26 @@
 
 .post-content th {
 
-  background-color: var(--back-color5);
-  color: var(--back-color6);
+  background-color: var(--back-color5, #d3d3d3);
+  color: var(--back-color6, var(--text-primary, #333333));
   font-weight: 700;
   padding: 10px 12px;
   text-align: left;
-  border: 1px solid color-mix(in srgb, var(--back-color5), transparent 40%);
+  border: 1px solid color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 40%);
 
 }
 
 .post-content td {
 
   padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--back-color3), transparent 40%);
+  border: 1px solid color-mix(in srgb, var(--back-color3, #d3d3d3), transparent 40%);
   vertical-align: top;
 
 }
 
 .post-content tbody tr:nth-child(even) {
 
-  background-color: color-mix(in srgb, var(--back-color5), transparent 90%);
+  background-color: color-mix(in srgb, var(--back-color5, #d3d3d3), transparent 90%);
 
 }
 

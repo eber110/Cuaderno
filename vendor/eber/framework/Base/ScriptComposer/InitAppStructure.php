@@ -184,6 +184,18 @@ class InitAppStructure
       }
     }
 
+    // Actualizar App/Rsc/Library/Charts/charts.css si conserva selectores fijos antiguos (.color8)
+    $srcChartsCss = $this->frameworkResources . '/Library/Charts/charts.css';
+    $destChartsCss = $projectRsc . '/Library/Charts/charts.css';
+    if (is_file($srcChartsCss) && is_file($destChartsCss)) {
+      $destChartsContent = (string)file_get_contents($destChartsCss);
+      if (str_contains($destChartsContent, '.mono-chart-svg.color8')) {
+        if (@copy($srcChartsCss, $destChartsCss)) {
+          echo "🔧 Actualizado: App/Rsc/Library/Charts/charts.css (soporte dinámico [class*=\"color\"])\n";
+        }
+      }
+    }
+
     echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico y Library): {$copied} copiados, {$skipped} existentes\n";
   }
 
@@ -397,10 +409,24 @@ class InitAppStructure
 
   /**
    * Copia _configTheme.css y theme.css desde Resources/Public/Css/ a App/Public/Css/ si no existen.
+   * Si _configTheme.css ya existe pero proviene de una versión previa sin variables de animación/hover,
+   * las sincroniza respetando los colores configurados por el usuario.
    */
   private function createThemeConfig(): void
   {
-    $this->copyFileIfNotExists('Public/Css/_configTheme.css', 'App/Public/Css/_configTheme.css');
+    $destThemeConfig = $this->basePath . '/App/Public/Css/_configTheme.css';
+    if (file_exists($destThemeConfig)) {
+      if (class_exists('\\Base\\Module\\JitCssModule')) {
+        if (!\Base\Module\JitCssModule::syncThemeConfigVariables($destThemeConfig, true)) {
+          echo "⏭️  Saltado: App/Public/Css/_configTheme.css (ya existe y está actualizado)\n";
+        }
+      } else {
+        echo "⏭️  Saltado: App/Public/Css/_configTheme.css (ya existe)\n";
+      }
+    } else {
+      $this->copyFileIfNotExists('Public/Css/_configTheme.css', 'App/Public/Css/_configTheme.css');
+    }
+
     $this->copyFileIfNotExists('Public/Css/theme.css', 'App/Public/Css/theme.css');
   }
 

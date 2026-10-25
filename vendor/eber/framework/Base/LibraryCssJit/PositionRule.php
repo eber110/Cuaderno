@@ -24,7 +24,15 @@ class PositionRule extends JitRuleBase
             return $statics[$word];
         }
 
-        // Top, Bottom, Left, Right
+        // Top, Bottom, Left, Right en px (ej. toppx40, leftpx20, toppx-desk-40)
+        if (preg_match('/^(top|bottom|left|right)px(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m)) {
+            $prop = $m[1];
+            $media = $m[2] ?? '';
+            $val = $m[3];
+            return $this->wrapMediaQuery($media, ".{$word} { {$prop}: {$val}px; }");
+        }
+
+        // Top, Bottom, Left, Right en %
         if (preg_match('/^(top|bottom|left|right)(?:-(desk|mid|sml))?-?(\d+)$/', $word, $m) || preg_match('/^(top|bottom|left|right)(\d+)$/', $word, $m)) {
             $prop = $m[1];
             if (count($m) === 4) {

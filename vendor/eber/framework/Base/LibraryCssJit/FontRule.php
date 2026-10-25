@@ -14,14 +14,6 @@ class FontRule extends JitRuleBase
             'font-sans' => ".font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif !important; }\n",
             'font-serif' => ".font-serif { font-family: ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif !important; }\n",
             'font-mono' => ".font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace !important; }\n",
-            'font-1' => ".font-1, .font1 { font-family: var(--font) !important; }\n",
-            'font1' => ".font-1, .font1 { font-family: var(--font) !important; }\n",
-            'font-2' => ".font-2, .font2 { font-family: var(--font2) !important; }\n",
-            'font2' => ".font-2, .font2 { font-family: var(--font2) !important; }\n",
-            'font-3' => ".font-3, .font3 { font-family: var(--font3) !important; }\n",
-            'font3' => ".font-3, .font3 { font-family: var(--font3) !important; }\n",
-            'font-4' => ".font-4, .font4 { font-family: var(--font4) !important; }\n",
-            'font4' => ".font-4, .font4 { font-family: var(--font4) !important; }\n",
 
             // Transformaciones de texto
             'upper' => ".upper { text-transform: uppercase !important; }\n",
@@ -250,18 +242,33 @@ class FontRule extends JitRuleBase
             return $this->wrapMediaQuery($media, ".{$word} { font-weight: bold; }");
         }
 
-        // Colors
-        if (preg_match('/^color([1-8])$/', $word, $m)) {
-            $num = $m[1];
-            $var = $num === '1' ? '--back-color' : "--back-color{$num}";
-            $imp = $num !== '1' ? ' !important' : '';
-            return ".color{$num}, .color{$num} a { color: var({$var}){$imp}; }\n";
+        // Fuentes dinámicas (.font1, .font-1, .font2, .font-2... .fontN)
+        if (preg_match('/^font-?(\d+)$/', $word, $m)) {
+            $index = (int)$m[1];
+            if ($index >= 1) {
+                $fontVar = $this->getFontVar($index);
+                return ".{$word} { font-family: {$fontVar} !important; }\n";
+            }
         }
-        if (preg_match('/^color([1-8])-hover$/', $word, $m)) {
-            $num = $m[1];
-            $var = $num === '1' ? '--back-color' : "--back-color{$num}";
-            $varHover = $num === '1' ? '--back-color-hover' : "--back-color{$num}-hover";
-            return ".color{$num}-hover, .color{$num}-hover a { color: var({$var}); transition: var(--transition); }\n.color{$num}-hover:hover, .color{$num}-hover:hover a { color: var({$varHover}); }\n";
+
+        // Colores dinámicos (.color1..N y .color1..N-hover) vinculados a _configTheme.css con fallback a gris claro
+        if (preg_match('/^color(\d+)$/', $word, $m)) {
+            $index = (int)$m[1];
+            if ($index < 1) {
+                return null;
+            }
+            $color = $this->getColorVar($index);
+            $imp = $index !== 1 ? ' !important' : '';
+            return ".color{$index}, .color{$index} a { color: {$color}{$imp}; }\n";
+        }
+        if (preg_match('/^color(\d+)-hover$/', $word, $m)) {
+            $index = (int)$m[1];
+            if ($index < 1) {
+                return null;
+            }
+            $color = $this->getColorVar($index);
+            $colorHover = $this->getColorHoverVar($index);
+            return ".color{$index}-hover, .color{$index}-hover a { color: {$color}; transition: var(--transition, all 0.15s ease-in-out); }\n.color{$index}-hover:hover, .color{$index}-hover:hover a { color: {$colorHover}; }\n";
         }
 
         return null;

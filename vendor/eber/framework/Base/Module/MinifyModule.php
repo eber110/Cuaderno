@@ -114,28 +114,83 @@ class MinifyModule
   }
 
   /**
-   * Minifica archivos CSS de múltiples directorios
-   * @param array $dir_css Directorios con archivos CSS
+   * Minifica archivos CSS de múltiples directorios o rutas respetando la cascada:
+   * 1. Variables y fuentes del proyecto (_configTheme.css, font-project.css)
+   * 2. Base y componentes del framework (Resources/Css/*)
+   * 3. Utilidades compiladas por JIT (jit-compiled.css)
+   * 4. Hojas de estilo personalizadas del proyecto en App/Public/Css/* (con theme.css al final)
+   *
+   * @param array $dir_css Directorios o archivos CSS
    * @param string $out_minifier Archivo de salida
    * @param bool $verbose Mostrar información de debug
    */
   public static function minifyCss(array $dir_css, string $out_minifier, bool $verbose = true): void
   {
-    $new_arch = [];
+    $collected = [];
+    $seen = [];
 
-    foreach ($dir_css as $dir) {
-      // Búsqueda recursiva de archivos CSS
-      $files = self::getDirectoryFilesRecursive($dir, 'css');
-      // Ordenar alfabéticamente dentro de cada directorio
-      sort($files);
-      $new_arch = array_merge($new_arch, $files);
+    foreach ($dir_css as $entry) {
+      if (is_file($entry) && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) === 'css') {
+        $files = [$entry];
+      } else {
+        $files = self::getDirectoryFilesRecursive($entry, 'css');
+        sort($files);
+      }
+
+      foreach ($files as $f) {
+        $norm = strtolower(str_replace('\\', '/', (string)(realpath($f) ?: $f)));
+        if (!isset($seen[$norm])) {
+          $seen[$norm] = true;
+          $collected[] = $f;
+        }
+      }
     }
 
-    if (empty($new_arch)) {
+    if (empty($collected)) {
       if ($verbose) {
         echo "⚠️  No se encontraron archivos CSS para minificar.\n";
       }
       return;
+    }
+
+    $themeConfigFiles = [];
+    $fontProjectFiles = [];
+    $frameworkCssFiles = [];
+    $jitCssFiles = [];
+    $projectCustomFiles = [];
+    $themeFinalFiles = [];
+
+    foreach ($collected as $file) {
+      $normPath = str_replace('\\', '/', $file);
+      $base = basename($normPath);
+
+      if ($base === '_configTheme.css') {
+        $themeConfigFiles[] = $file;
+      } elseif ($base === 'font-project.css') {
+        $fontProjectFiles[] = $file;
+      } elseif (str_contains($normPath, '/Resources/Css/')) {
+        $frameworkCssFiles[] = $file;
+      } elseif ($base === 'jit-compiled.css') {
+        $jitCssFiles[] = $file;
+      } elseif ($base === 'theme.css') {
+        $themeFinalFiles[] = $file;
+      } else {
+        $projectCustomFiles[] = $file;
+      }
+    }
+
+    $new_arch = array_merge(
+      $themeConfigFiles,
+      $fontProjectFiles,
+      $frameworkCssFiles,
+      $jitCssFiles,
+      $projectCustomFiles,
+      $themeFinalFiles
+    );
+
+    $outDir = dirname($out_minifier);
+    if (!is_dir($outDir)) {
+      @mkdir($outDir, 0755, true);
     }
 
     $minifier_css = new \MatthiasMullie\Minify\CSS();
@@ -185,6 +240,11 @@ class MinifyModule
 
     // Ordenar con prioridad configurable
     $new_arch = self::sortFilesByPriority($new_arch);
+
+    $outDir = dirname($out_minifier);
+    if (!is_dir($outDir)) {
+      @mkdir($outDir, 0755, true);
+    }
 
     $minifier_js = new \MatthiasMullie\Minify\JS();
 

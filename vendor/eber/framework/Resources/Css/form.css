@@ -5,13 +5,13 @@ textarea {
 }
 
 form * {
-  font-family: var(--font);
+  font-family: var(--font, sans-serif);
 }
 
 form input,
 textarea, select {
   /* resize: none; */
-  font-size: var(--font-size);
+  font-size: var(--font-size, 20px);
   padding: 10px 15px;
   /* border-radius: 15px; */
   /* border: 1px solid var(--back-color4); */
@@ -30,21 +30,21 @@ form select:focus {
   outline: none;
 }
 
-textarea:focus{
+textarea:focus {
   /* border: 1px solid var(--back-color2); */
   outline: none;
 }
 
-#media_upload{
-  background-color: var(--back-color5-hover);
-  color: var(--back-color);
+#media_upload {
+  background-color: var(--back-color5-hover, #bfbfbf);
+  color: var(--back-color, #d3d3d3);
 }
 
-.resize-textarea{
+.resize-textarea {
   field-sizing: content;
 }
 
-.form-scroll{
+.form-scroll {
   max-height: 98dvh !important;
   overflow-y: auto !important;
 }

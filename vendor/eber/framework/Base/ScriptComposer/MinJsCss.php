@@ -15,6 +15,23 @@ use Base\Module\JitCssModule;
 
 $cssPaths = [];
 
+// Asegurar que App/Public/Css/_configTheme.css exista (copiándolo desde Resources/Public/Css si aún no fue inicializado)
+$appCssDir = ROOT_PATH . '/App/Public/Css';
+if (!is_dir($appCssDir)) {
+    @mkdir($appCssDir, 0755, true);
+}
+$projectThemeConfig = $appCssDir . '/_configTheme.css';
+if (!file_exists($projectThemeConfig)) {
+    $frameworkThemeConfig = is_file(ROOT_PATH . '/vendor/eber/framework/Resources/Public/Css/_configTheme.css')
+        ? ROOT_PATH . '/vendor/eber/framework/Resources/Public/Css/_configTheme.css'
+        : ROOT_PATH . '/Resources/Public/Css/_configTheme.css';
+    if (is_file($frameworkThemeConfig)) {
+        @copy($frameworkThemeConfig, $projectThemeConfig);
+    }
+} else {
+    JitCssModule::syncThemeConfigVariables($projectThemeConfig);
+}
+
 // Resolver rutas de resources del framework dinámicamente primero (para que se carguen al inicio y el proyecto pueda sobrescribirlos)
 if (is_dir(ROOT_PATH . '/vendor/eber/framework/Resources/Css')) {
     $cssPaths[] = ROOT_PATH . '/vendor/eber/framework/Resources/Css';

@@ -47,7 +47,31 @@
 
   --transition: all 0.15s ease-in-out;
   --transition-slow: all 0.25s ease-in-out;
-  
+
+  /* Variables de animación y efectos hover */
+  --animate-duration: 400ms;
+  --animate-delay: 0ms;
+  --animate-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+
+  --hover-duration-in: 250ms;
+  --hover-duration-out: 350ms;
+  --hover-duration-soft: 350ms;
+  --hover-ease-in: cubic-bezier(0.25, 1, 0.5, 1);
+  --hover-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --hover-ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --hover-scale: 1.20;
+  --hover-scale-soft: 1.02;
+  --hover-scale-shrink: 0.95;
+  --hover-y: -6px;
+  --hover-x: 6px;
+  --hover-rotate: 2deg;
+  --hover-rotate-tilt: -3deg;
+  --hover-glow-color: rgba(255, 255, 255, 0.4);
+  --hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  --hover-shadow-active: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --hover-shadow-soft: 0 6px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* Modo oscuro - sobrescribe la paleta de colores */
@@ -67,5 +91,14 @@
   --back-color6: #A5CDF3;
   --back-color7: #432509;
   --back-color8: #F6D8BC;
+
+  --back-color-hover:  oklch(from var(--back-color) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color2-hover: oklch(from var(--back-color2) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color3-hover: oklch(from var(--back-color3) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color4-hover: oklch(from var(--back-color4) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color5-hover: oklch(from var(--back-color5) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color6-hover: oklch(from var(--back-color6) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color7-hover: oklch(from var(--back-color7) calc(l * 1.2) calc(c - 0.02) h);
+  --back-color8-hover: oklch(from var(--back-color8) calc(l * 1.2) calc(c - 0.02) h);
 
 }
