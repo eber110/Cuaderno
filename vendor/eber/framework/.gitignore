@@ -31,3 +31,6 @@
 # ===== Archivos auxiliares =====
 *.zip
 App.zip
+
+# Reglas esenciales del framework (sincronizadas por InitAppStructure)
+/App/Public/Min/

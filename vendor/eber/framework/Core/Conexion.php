@@ -82,10 +82,15 @@ class Conexion
 
     if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
       $sqlitePath = $this->db;
-      if ($sqlitePath !== ':memory:' && !empty($sqlitePath) && !file_exists($sqlitePath) && defined('ROOT_PATH')) {
-        $candidate = rtrim(ROOT_PATH, '/\\') . '/' . ltrim($sqlitePath, '/\\');
-        if (file_exists($candidate)) {
-          $sqlitePath = $candidate;
+      if ($sqlitePath !== ':memory:' && !empty($sqlitePath) && defined('ROOT_PATH')) {
+        // Si la ruta es relativa, resolverla contra ROOT_PATH para garantizar compatibilidad con Linux (PHP-FPM) y Windows
+        if (!str_starts_with($sqlitePath, '/') && !preg_match('/^[a-zA-Z]:[\\\\\/]/', $sqlitePath)) {
+          $sqlitePath = rtrim(ROOT_PATH, '/\\') . '/' . ltrim($sqlitePath, '/\\');
+        }
+        $sqlitePath = str_replace('\\', '/', $sqlitePath);
+        $sqliteDir  = dirname($sqlitePath);
+        if (!is_dir($sqliteDir)) {
+          @mkdir($sqliteDir, 0775, true);
         }
       }
       $dsn = "sqlite:{$sqlitePath}";

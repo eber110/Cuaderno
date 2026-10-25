@@ -426,6 +426,9 @@ class Builder
         'raw' => $e
       ];
 
+      // Registrar SIEMPRE el error real en los logs del servidor para diagnóstico (sin exponerlo al cliente en producción)
+      error_log("[Builder Exception 1052] " . $e->getMessage() . " | SQL: " . ($sql ?? ''));
+
       // Solo mostrar detalles en desarrollo, no en producción
       $isDev = !defined('ENVIRONMENT') || in_array(strtolower((string)ENVIRONMENT), ['dev', 'development', 'local'], true);
       if ($isDev) {
