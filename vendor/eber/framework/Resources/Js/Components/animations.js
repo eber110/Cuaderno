@@ -20,6 +20,29 @@ function hasScrollTrigger() {
 }
 
 /**
+ * Detecta el ángulo de rotación previo de un elemento por variables CSS o clases.
+ *
+ * @param {HTMLElement} el
+ * @returns {number}
+ */
+function getElementRotation(el) {
+  if (!el || typeof window === 'undefined') return 0;
+  const cssVarRot = el.style?.getPropertyValue('--text-rotate') || window.getComputedStyle(el).getPropertyValue('--text-rotate');
+  if (cssVarRot) {
+    const parsed = parseFloat(cssVarRot);
+    if (!isNaN(parsed)) return parsed;
+  }
+  const rotMatch = el.className?.match(/(?:^|\s)text-rotate-(n)?(\d+)/);
+  if (rotMatch) {
+    return (rotMatch[1] === 'n' ? -1 : 1) * parseFloat(rotMatch[2]);
+  }
+  if (el.classList?.contains('text-inverted') || el.classList?.contains('text-upside-down')) {
+    return 180;
+  }
+  return 0;
+}
+
+/**
  * Mapeo de nombres en camelCase (GSAP) a kebab-case (CSS)
  */
 const effectToClassMap = {
@@ -146,7 +169,10 @@ function registerGsapEffects() {
   // 4. Zoom / Scale
   gsap.registerEffect({
     name: 'zoomIn',
-    effect: (targets, config) => gsap.fromTo(targets, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, ...config }),
+    effect: (targets, config) => {
+      const rot = config.rotation !== undefined ? config.rotation : 0;
+      return gsap.fromTo(targets, { scale: 0.85, opacity: 0, rotation: rot }, { scale: 1, opacity: 1, rotation: rot, ...config });
+    },
     defaults: { duration: defaultDuration, ease: defaultEase }
   });
 
@@ -158,7 +184,10 @@ function registerGsapEffects() {
 
   gsap.registerEffect({
     name: 'scaleIn',
-    effect: (targets, config) => gsap.fromTo(targets, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, ...config }),
+    effect: (targets, config) => {
+      const rot = config.rotation !== undefined ? config.rotation : 0;
+      return gsap.fromTo(targets, { scale: 0.85, opacity: 0, rotation: rot }, { scale: 1, opacity: 1, rotation: rot, ...config });
+    },
     defaults: { duration: defaultDuration, ease: defaultEase }
   });
 
@@ -253,11 +282,20 @@ export function animate(element, effectName, options = {}) {
     }
     delete gsapOptions.infinite;
 
+    const initialRot = getElementRotation(el);
+    if (initialRot !== 0 && gsapOptions.rotation === undefined) {
+      gsapOptions.rotation = initialRot;
+    }
+
     // Si se especifica cleanup, lo hacemos al completar
     const originalComplete = gsapOptions.onComplete;
     gsapOptions.onComplete = () => {
-      if (gsapOptions.clearProps) {
-        gsap.set(el, { clearProps: gsapOptions.clearProps });
+      // Limpiar propiedades temporales inline de GSAP para devolver el control al CSS
+      gsap.set(el, { clearProps: gsapOptions.clearProps || 'scale,translate,opacity,rotation' });
+      if (initialRot !== 0) {
+        el.style.setProperty('--text-rotate', `${initialRot}deg`);
+        el.style.rotate = `${initialRot}deg`;
+        el.style.removeProperty('transform');
       }
       if (originalComplete) originalComplete();
     };

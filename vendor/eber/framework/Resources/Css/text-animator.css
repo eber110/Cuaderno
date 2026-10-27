@@ -77,6 +77,7 @@
   margin-left: 2px;
   vertical-align: -0.15em;
   animation: typewriterBlink 0.8s steps(2, start) infinite;
+  font-size: inherit;
 }
 
 @keyframes typewriterBlink {
@@ -84,13 +85,8 @@
   50% { opacity: 0; }
 }
 
-/* Scramble / Decoder Texto: Mantiene estrictamente la misma tipografía, tamaño, peso y altura */
+/* Scramble / Decoder Texto: Mantiene estrictamente la tipografía y tamaño de sus clases utilitarias */
 .text-animation.text-scramble {
-  font-family: inherit !important;
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  line-height: inherit !important;
-  letter-spacing: inherit !important;
   display: inline-block;
   vertical-align: baseline;
 }
@@ -108,6 +104,15 @@
   transform: translateY(14px) rotateX(30deg);
   animation: charPopIn 0.5s var(--anim-ease-out-expo) forwards;
   will-change: transform, opacity;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  -webkit-text-stroke: inherit;
+  -webkit-text-fill-color: inherit;
+  vertical-align: baseline;
 }
 
 @keyframes charPopIn {
@@ -115,6 +120,17 @@
     opacity: 1;
     transform: translateY(0) rotateX(0deg);
   }
+}
+
+/* Compatibilidad de gradientes y fondos en caracteres divididos */
+[class*="text-gradient"] > .anim-char-item {
+  background: inherit;
+  background-image: inherit;
+  background-size: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* ==========================================================

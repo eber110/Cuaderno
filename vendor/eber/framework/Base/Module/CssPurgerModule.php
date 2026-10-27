@@ -100,11 +100,13 @@ class CssPurgerModule
     // Widths: w0-w100, w-mid-0, w-sml-0, wpx0-wpx500
     '/^w(?:-(desk|mid|sml))?-?\d+$/',
     '/^wpx(?:-(desk|mid|sml))?-?\d+$/',
+    '/^w-(auto|fit|max|min)(?:-(desk|mid|sml))?$/',
     '/^wem(?:-(desk|mid|sml))?-?\d+$/',
 
     // Heights: h0-h100, hem0-hem100, hpx0-hpx1000, variantes responsive
     '/^h(?:-(desk|mid|sml))?-?\d+$/',
     '/^h(-max)?(-min)?-d?vh(?:-(desk|mid|sml))?$/',
+    '/^h-(auto|fit|max|min)(?:-(desk|mid|sml))?$/',
     '/^hem(?:-(desk|mid|sml))?-?\d+$/',
     '/^hpx(?:-(desk|mid|sml))?-?\d+$/',
 
@@ -138,6 +140,17 @@ class CssPurgerModule
 
     // Colors: color1-color8, back1-back8 y sus variantes hover
     '/^(color|back)\d+(-hover)?$/',
+
+    // Borders: border1-border8, border-b-1 a border-b-8, variantes direccionales y anchos
+    '/^border(\d+)(-(desk|mid|sml))?$/',
+    '/^border-(b|t|l|r|x|y)-(\d+)(-(desk|mid|sml))?$/',
+    '/^border(\d+)-hover$/',
+    '/^border(-[btlrxy])?-w\d+$/',
+
+    // Text visual styles: text-stroke, text-gradient, text-shadow, text-glow, text-3d, text-blur, text-shimmer, underline
+    '/^text-(stroke|gradient|shadow|glow|3d|blur|shimmer)/',
+    '/^text-(rotate|mirror|flip|vertical|upright|sideways|inverted?|upside-down|reverse|bidi|normal|ltr|rtl)/',
+    '/^underline\d+$/',
 
     // Line heights
     '/^line-h\d+$/',

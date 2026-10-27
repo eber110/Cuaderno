@@ -396,6 +396,160 @@ $runner->runTest("InitAppStructure - Reconstrucción completa de /App desde /Res
   $runner->assert(file_exists(ROOT_PATH . '/App/Route/web.php'), "App/Route/web.php debe copiarse desde Resources");
 });
 
+// =========================================================================
+// 12. JIT CSS - CONTAINERRULE
+// =========================================================================
+$runner->runTest("Jit CSS - ContainerRule (anchos responsivos 90%, 96%, 95%)", function () use ($runner) {
+  $rule = new \Base\LibraryCssJit\ContainerRule();
+
+  $containerCss = $rule->processWord('container');
+  $runner->assert(str_contains($containerCss, '.container { max-width: 90%;'), "El contenedor base .container debe tener max-width: 90%");
+
+  $deskCss = $rule->processWord('container-desk');
+  $runner->assert(str_contains($deskCss, '.container-desk { max-width: 90%;') && str_contains($deskCss, '@media screen and (min-width: 993px)'), "container-desk debe tener max-width: 90% con media query desk");
+
+  $midCss = $rule->processWord('container-mid');
+  $runner->assert(str_contains($midCss, '.container-mid { max-width: 96%;') && str_contains($midCss, '@media screen and (min-width: 577px) and (max-width: 992px)'), "container-mid debe tener max-width: 96% con media query mid");
+
+  $smlCss = $rule->processWord('container-sml');
+  $runner->assert(str_contains($smlCss, '.container-sml { max-width: 95%;') && str_contains($smlCss, '@media screen and (max-width: 576px)'), "container-sml debe tener max-width: 95% con media query sml");
+});
+
+// =========================================================================
+// 13. JIT CSS - BORDERRULE
+// =========================================================================
+$runner->runTest("Jit CSS - BorderRule (bordes .border1..N, .border-b-1..N y direccionales ligados a _configTheme.css)", function () use ($runner) {
+  $rule = new \Base\LibraryCssJit\BorderRule();
+
+  $b1 = $rule->processWord('border1');
+  $runner->assert(str_contains($b1, '.border1 { border: 1px solid var(--back-color); }'), "border1 debe usar var(--back-color)");
+
+  $b2 = $rule->processWord('border2');
+  $runner->assert(str_contains($b2, '.border2 { border: 1px solid var(--back-color2); }'), "border2 debe usar var(--back-color2)");
+
+  $b6 = $rule->processWord('border6');
+  $runner->assert(str_contains($b6, '.border6 { border: 1px solid var(--back-color6); }'), "border6 debe usar var(--back-color6)");
+
+  $b8 = $rule->processWord('border8');
+  $runner->assert(str_contains($b8, '.border8 { border: 1px solid var(--back-color8); }'), "border8 debe usar var(--back-color8)");
+
+  $bb1 = $rule->processWord('border-b-1');
+  $runner->assert(str_contains($bb1, '.border-b-1 { border-bottom: 1px solid var(--back-color); }'), "border-b-1 debe usar border-bottom con var(--back-color)");
+
+  $bb3 = $rule->processWord('border-b-3');
+  $runner->assert(str_contains($bb3, '.border-b-3 { border-bottom: 1px solid var(--back-color3); }'), "border-b-3 debe usar border-bottom con var(--back-color3)");
+
+  $bt2 = $rule->processWord('border-t-2');
+  $runner->assert(str_contains($bt2, '.border-t-2 { border-top: 1px solid var(--back-color2); }'), "border-t-2 debe usar border-top");
+
+  $bbSml = $rule->processWord('border-b-1-sml');
+  $runner->assert(str_contains($bbSml, '@media screen and (max-width: 576px)') && str_contains($bbSml, 'border-bottom: 1px solid var(--back-color);'), "border-b-1-sml debe incluir media query móvil");
+
+  $bw2 = $rule->processWord('border-w2');
+  $runner->assert(str_contains($bw2, '.border-w2 { border-width: 2px !important; }'), "border-w2 debe definir border-width: 2px");
+});
+
+// =========================================================================
+// 14. JIT CSS - TEXTSTYLERULE
+// =========================================================================
+$runner->runTest("Jit CSS - TextStyleRule (stroke, gradientes multidireccionales, sombras y efectos)", function () use ($runner) {
+  $rule = new \Base\LibraryCssJit\TextStyleRule();
+
+  // 1. Text Stroke sin fondo
+  $stroke1 = $rule->processWord('text-stroke1');
+  $runner->assert(str_contains($stroke1, '-webkit-text-stroke: 1px var(--back-color);') && str_contains($stroke1, 'color: transparent;'), "text-stroke1 debe tener borde de color y color transparente");
+
+  $strokeW2 = $rule->processWord('text-stroke1-w2');
+  $runner->assert(str_contains($strokeW2, '-webkit-text-stroke: 2px var(--back-color);'), "text-stroke1-w2 debe permitir ancho de trazo");
+
+  // 2. Text Gradient
+  $gradR = $rule->processWord('text-gradient-r-1-2');
+  $runner->assert(str_contains($gradR, 'linear-gradient(to right, var(--back-color), var(--back-color2))') && str_contains($gradR, '-webkit-background-clip: text;'), "text-gradient-r-1-2 debe ser degradado de izquierda a derecha clip text");
+
+  $gradCenter = $rule->processWord('text-gradient-center-1-3');
+  $runner->assert(str_contains($gradCenter, 'radial-gradient(circle, var(--back-color), var(--back-color3))'), "text-gradient-center debe ser gradiente radial");
+
+  $gradB = $rule->processWord('text-gradient-b-1');
+  $runner->assert(str_contains($gradB, 'linear-gradient(to bottom, var(--back-color),'), "text-gradient-b-1 debe calcular degradado vertical");
+
+  // 3. Sombras de texto (opacidad negra y colores temáticos)
+  $shadowOp = $rule->processWord('text-shadow-op40');
+  $runner->assert(str_contains($shadowOp, 'rgba(0, 0, 0, 0.4)'), "text-shadow-op40 debe tener opacidad 0.4");
+
+  $shadowColor = $rule->processWord('text-shadow2-lg');
+  $runner->assert(str_contains($shadowColor, 'var(--back-color2)'), "text-shadow2-lg debe usar var(--back-color2)");
+
+  // 4. Efectos sugeridos (Glow, 3D, Shimmer, Blur)
+  $glow = $rule->processWord('text-glow1');
+  $runner->assert(str_contains($glow, '0 0 5px var(--back-color)'), "text-glow1 debe generar efecto neón");
+
+  $d3 = $rule->processWord('text-3d-1');
+  $runner->assert(str_contains($d3, 'color-mix(in srgb, var(--back-color)'), "text-3d-1 debe generar sombreado 3D temático");
+
+  $shimmer = $rule->processWord('text-shimmer2');
+  $runner->assert(str_contains($shimmer, 'linear-gradient(90deg, var(--back-color2)'), "text-shimmer2 debe generar gradiente metálico");
+
+  $blur = $rule->processWord('text-blur');
+  $runner->assert(str_contains($blur, 'filter: blur(4px)'), "text-blur debe desenfocar texto");
+
+  // 5. Dirección, espejo y rotación de texto (con propiedades CSS independientes para convivir con animaciones)
+  $mirror = $rule->processWord('text-mirror');
+  $runner->assert(str_contains($mirror, 'scale: -1 1;'), "text-mirror debe aplicar propiedad CSS scale: -1 1");
+
+  $mirrorY = $rule->processWord('text-mirror-y');
+  $runner->assert(str_contains($mirrorY, 'scale: 1 -1;'), "text-mirror-y debe aplicar scale: 1 -1");
+
+  $inverted = $rule->processWord('text-inverted');
+  $runner->assert(str_contains($inverted, 'rotate: 180deg;'), "text-inverted debe aplicar rotate: 180deg");
+  $runner->assert(str_contains($inverted, '--text-rotate: 180deg;'), "text-inverted debe definir variable --text-rotate: 180deg");
+
+  $rot90 = $rule->processWord('text-rotate-90');
+  $runner->assert(str_contains($rot90, 'rotate: 90deg;'), "text-rotate-90 debe aplicar rotate: 90deg");
+  $runner->assert(str_contains($rot90, '--text-rotate: 90deg;'), "text-rotate-90 debe definir variable --text-rotate: 90deg");
+
+  $rot180 = $rule->processWord('text-rotate-180');
+  $runner->assert(str_contains($rot180, 'rotate: 180deg;'), "text-rotate-180 debe aplicar rotate: 180deg");
+
+  $rotN90 = $rule->processWord('text-rotate-n90');
+  $runner->assert(str_contains($rotN90, 'rotate: -90deg;'), "text-rotate-n90 debe aplicar propiedad CSS independiente rotate: -90deg");
+  $runner->assert(str_contains($rotN90, '--text-rotate: -90deg;'), "text-rotate-n90 debe definir variable --text-rotate: -90deg");
+
+  $normal = $rule->processWord('text-normal');
+  $runner->assert(str_contains($normal, 'rotate: 0deg !important;'), "text-normal debe resetear rotate");
+  $runner->assert(str_contains($normal, 'scale: 1 1 !important;'), "text-normal debe resetear scale");
+
+  $vertical = $rule->processWord('text-vertical');
+  $runner->assert(str_contains($vertical, 'writing-mode: vertical-rl;'), "text-vertical debe activar modo de escritura vertical-rl");
+
+  $upright = $rule->processWord('text-upright');
+  $runner->assert(str_contains($upright, 'text-orientation: upright;'), "text-upright debe apilar caracteres verticalmente de pie");
+});
+
+// =========================================================================
+// 15. JIT CSS - PROVISIONSRULE (W-AUTO, W-FIT, H-AUTO, H-FIT)
+// =========================================================================
+$runner->runTest("Jit CSS - ProvisionsRule (w-auto, w-fit, h-auto, h-fit y responsive)", function () use ($runner) {
+  $rule = new \Base\LibraryCssJit\ProvisionsRule();
+
+  $wAuto = $rule->processWord('w-auto');
+  $runner->assert(str_contains($wAuto, 'width: auto !important;'), "w-auto debe aplicar width: auto !important");
+
+  $wFit = $rule->processWord('w-fit');
+  $runner->assert(str_contains($wFit, 'width: fit-content !important;'), "w-fit debe aplicar width: fit-content !important");
+
+  $wFitDesk = $rule->processWord('w-fit-desk');
+  $runner->assert(str_contains($wFitDesk, '@media screen and (min-width: 993px)') && str_contains($wFitDesk, 'width: fit-content !important;'), "w-fit-desk debe envolverse en media query desk");
+
+  $hAuto = $rule->processWord('h-auto');
+  $runner->assert(str_contains($hAuto, 'height: auto !important;'), "h-auto debe aplicar height: auto !important");
+
+  $hFit = $rule->processWord('h-fit');
+  $runner->assert(str_contains($hFit, 'height: fit-content !important;'), "h-fit debe aplicar height: fit-content !important");
+
+  $hFitMid = $rule->processWord('h-fit-mid');
+  $runner->assert(str_contains($hFitMid, '@media screen and (min-width: 577px)') && str_contains($hFitMid, 'height: fit-content !important;'), "h-fit-mid debe envolverse en media query mid");
+});
+
 // Limpiar /App y carpetas temporales de sistema si no existían antes de ejecutar las pruebas (modo repositorio puro del framework)
 if (!$appExistedBeforeTests) {
   $deleteDir = function (string $dirPath) use (&$deleteDir): void {

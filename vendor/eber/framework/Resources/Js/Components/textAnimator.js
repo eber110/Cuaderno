@@ -137,7 +137,11 @@ export function animateText(el, effect = "fade-blur", options = {}) {
     el._textAnimInterval = null;
   }
 
-  // Eliminar cursor previo de typewriter si existe
+  // Eliminar cursor previo de typewriter si existe (dentro o como hermano adyacente)
+  const prevCursor = el.querySelector(".anim-typewriter-cursor");
+  if (prevCursor) {
+    prevCursor.remove();
+  }
   const next = el.nextElementSibling;
   if (next && next.classList.contains("anim-typewriter-cursor")) {
     next.remove();
@@ -174,16 +178,18 @@ export function animateText(el, effect = "fade-blur", options = {}) {
         const totalFrames = Math.max(18, Math.floor(duration / 30));
         let frame = 0;
 
-        // Fijar dimensiones exactas antes de empezar para evitar cualquier salto o jitter
-        const rect = el.getBoundingClientRect();
+        // Fijar dimensiones exactas antes de empezar usando offsetWidth y offsetHeight
+        // para respetar textos rotados (ej. 90deg, -90deg) sin invertir ancho y alto.
+        const layoutWidth = el.offsetWidth;
+        const layoutHeight = el.offsetHeight;
         const originalMinWidth = el.style.minWidth;
         const originalMinHeight = el.style.minHeight;
 
-        if (rect.width > 0) {
-          el.style.minWidth = `${Math.ceil(rect.width)}px`;
+        if (layoutWidth > 0 && !originalMinWidth) {
+          el.style.minWidth = `${Math.ceil(layoutWidth)}px`;
         }
-        if (rect.height > 0) {
-          el.style.minHeight = `${Math.ceil(rect.height)}px`;
+        if (layoutHeight > 0 && !originalMinHeight) {
+          el.style.minHeight = `${Math.ceil(layoutHeight)}px`;
         }
 
         el.classList.add("anim-scramble-active");
@@ -226,23 +232,29 @@ export function animateText(el, effect = "fade-blur", options = {}) {
         const showCursor = options.showCursor !== false;
         el.textContent = "";
 
+        const textSpan = document.createElement("span");
+        textSpan.className = "anim-typewriter-text";
+        el.appendChild(textSpan);
+
         let cursor = null;
         if (showCursor) {
           cursor = document.createElement("span");
           cursor.className = "anim-typewriter-cursor";
-          el.parentNode.insertBefore(cursor, el.nextSibling);
+          el.appendChild(cursor);
         }
 
         let charIndex = 0;
         el._textAnimInterval = setInterval(() => {
           if (charIndex < text.length) {
-            el.textContent += text[charIndex];
+            textSpan.textContent += text[charIndex];
             charIndex++;
           } else {
             clearInterval(el._textAnimInterval);
             el._textAnimInterval = null;
             if (cursor && options.keepCursor !== true) {
-              setTimeout(() => cursor.remove(), 1200);
+              setTimeout(() => {
+                if (cursor.parentNode) cursor.remove();
+              }, 1200);
             }
             resolve();
           }
