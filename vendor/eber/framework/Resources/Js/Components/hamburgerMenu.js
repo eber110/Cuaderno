@@ -419,6 +419,10 @@ export function hamburgerMenu() {
         closeEl._hasHamburgerListener = true;
         
         const closeHandler = (e) => {
+          // Si el evento ocurrió dentro de un control interactivo (toggle de modo oscuro, botón, enlace interno, etc.), no cerrar
+          if (e.target && e.target.closest && e.target.closest('.dark-mode-toggle, button, a:not(.closed-hamburger), input, select, textarea')) {
+            return;
+          }
           e.stopPropagation();
           if (e.type === 'touchstart') {
             closeEl._touchHandled = true;

@@ -33,6 +33,7 @@ class AnimationRule extends JitRuleBase
       "animated" => ".animated { -webkit-animation-duration: var(--animate-duration, 400ms); animation-duration: var(--animate-duration, 400ms); -webkit-animation-fill-mode: both; animation-fill-mode: both; -webkit-animation-delay: var(--animate-delay, 0ms); animation-delay: var(--animate-delay, 0ms); -webkit-animation-timing-function: {$easeOut}; animation-timing-function: {$easeOut}; }\nhtml.gsap-loaded .animated, html.gsap-loaded [data-animate] { transition: none !important; }\n",
       "animate-fast" => ".animate-fast { --animate-duration: 250ms; }\n",
       "animate-slow" => ".animate-slow { --animate-duration: 800ms; }\n",
+      "animate-slower" => ".animate-slower { --animate-duration: 1200ms; }\n",
       "animate-infinite" => ".animate-infinite { animation-iteration-count: infinite; }\n",
       "disabled-save-btn" => ".disabled-save-btn { opacity: 0.4; pointer-events: none !important; cursor: not-allowed !important; filter: grayscale(0.5); }\n",
 

@@ -75,6 +75,12 @@ class MinifyModule
         if (!in_array($filename, $allowedFiles)) {
             $allowedFiles[] = $filename;
         }
+        // Compatibilidad para módulos con nombres alternativos de archivo
+        if ($mod === 'initDarkMode' && !in_array('darkMode.js', $allowedFiles)) {
+            $allowedFiles[] = 'darkMode.js';
+        } elseif ($mod === 'darkMode' && !in_array('initDarkMode.js', $allowedFiles)) {
+            $allowedFiles[] = 'initDarkMode.js';
+        }
     }
 
     $priorityFiles = [];

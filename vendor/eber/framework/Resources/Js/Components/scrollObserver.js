@@ -130,6 +130,11 @@ export function extractDuration(el) {
     const unit = match[2] || 'ms';
     return unit === 's' ? num : num / 1000;
   }
+  if (el.classList) {
+    if (el.classList.contains('animate-slower')) return 1.2;
+    if (el.classList.contains('animate-slow')) return 0.8;
+    if (el.classList.contains('animate-fast')) return 0.25;
+  }
   if (el.dataset && el.dataset.animateDuration) {
     return parseFloat(el.dataset.animateDuration);
   }

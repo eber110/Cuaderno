@@ -74,6 +74,7 @@ export function initDarkMode(config = {}) {
   // Actualiza el icono de los botones toggle según el tema activo
   const updateToggleIcons = (theme) => {
 
+    const currentTheme = theme || (document.documentElement.getAttribute('data-theme') === DARK ? DARK : LIGHT);
     const buttons = document.querySelectorAll(options.toggleSelector);
 
     buttons.forEach(btn => {
@@ -81,21 +82,35 @@ export function initDarkMode(config = {}) {
       const iconLight = btn.querySelector('.dm-icon-light');
       const iconDark = btn.querySelector('.dm-icon-dark');
 
-      if (iconLight) iconLight.style.display = theme === DARK ? 'none' : 'inline-block';
-      if (iconDark) iconDark.style.display = theme === DARK ? 'inline-block' : 'none';
+      if (iconLight) iconLight.style.display = currentTheme === DARK ? 'none' : 'inline-block';
+      if (iconDark) iconDark.style.display = currentTheme === DARK ? 'inline-block' : 'none';
 
     });
 
   };
 
-  // Conecta los botones toggle que estén en el DOM
+  // Conecta los botones toggle mediante delegación global para soportar elementos estáticos y dinámicos (responsive/AJAX)
   const bindToggleButtons = () => {
 
-    const buttons = document.querySelectorAll(options.toggleSelector);
+    if (document._hasDarkModeDelegate) return;
+    document._hasDarkModeDelegate = true;
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', toggleTheme);
+    // Delegación global para 'click': intercepta clicks en cualquier elemento actual o futuro
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest(options.toggleSelector);
+      if (!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      toggleTheme();
     });
+
+    // Detener propagación de touchstart en móviles para evitar que contenedores padres cierren menús o capturen el toque
+    document.addEventListener('touchstart', (e) => {
+      const btn = e.target.closest(options.toggleSelector);
+      if (!btn) return;
+      e.stopPropagation();
+    }, { passive: true });
 
   };
 
@@ -106,21 +121,31 @@ export function initDarkMode(config = {}) {
     const theme = getSavedTheme();
     applyTheme(theme);
 
-    document.addEventListener('DOMContentLoaded', () => {
+    bindToggleButtons();
+    updateToggleIcons(theme);
 
-      bindToggleButtons();
-      updateToggleIcons(theme);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        updateToggleIcons(theme);
+      });
+    }
 
-    });
+    // Observador de mutaciones para actualizar iconos si elementos toggle son agregados dinámicamente o restaurados por responsive
+    if (typeof MutationObserver !== 'undefined') {
+      const domObserver = new MutationObserver(() => {
+        const current = document.documentElement.getAttribute('data-theme') === DARK ? DARK : LIGHT;
+        updateToggleIcons(current);
+      });
 
-    // Si el DOM ya está listo
-    if (document.readyState !== 'loading') {
-      bindToggleButtons();
-      updateToggleIcons(theme);
+      const rootEl = document.body || document.documentElement;
+      domObserver.observe(rootEl, {
+        childList: true,
+        subtree: true
+      });
     }
 
     // Escucha cambios en la preferencia del sistema (solo si no hay preferencia guardada)
-    if (options.autoDetect || (window.fmeDefaultTheme || 'system') === 'system') {
+    if ((options.autoDetect || (window.fmeDefaultTheme || 'system') === 'system') && window.matchMedia) {
 
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 
@@ -150,4 +175,6 @@ export function initDarkMode(config = {}) {
   };
 
 }
+
+export const darkMode = initDarkMode;
 

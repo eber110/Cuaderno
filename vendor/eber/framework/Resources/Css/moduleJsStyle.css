@@ -145,3 +145,61 @@ html[data-theme="light"] .no-drak-light {
 .remote-container.animated[data-container-ready] {
   transition: opacity 0.15s ease-in-out;
 }
+
+
+/* ==========================================================================
+   🌌 BACKGROUND MOTION TEXT - Patrón de fondo dinámico en Canvas
+   ========================================================================== */
+.background-motion-text:not(body) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.bmt-canvas {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ==========================================================================
+   🧭 FLOATING SCROLL - Barra de scroll flotante sin alterar el width de la página
+   ========================================================================== */
+html.has-floating-scroll,
+html.has-floating-scroll body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-gutter: auto !important;
+}
+
+html.has-floating-scroll::-webkit-scrollbar,
+html.has-floating-scroll body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+body.floating-scroll-dragging,
+body.floating-scroll-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: grabbing !important;
+}
+
+.floating-scroll-track {
+  position: fixed;
+  right: 0;
+  z-index: 2147483647;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.floating-scroll-thumb {
+  background-color: currentColor;
+  border-radius: 999px;
+  touch-action: none;
+}

@@ -47,7 +47,9 @@
       "textAnimator": [],
       "verticalMenu": [],
       "remoteContent": [],
-      "inlineCarousel": []
+      "inlineCarousel": [],
+      "backgroundMotionText": [],
+      "floatingScroll": []
     },
     "async": {}
   }

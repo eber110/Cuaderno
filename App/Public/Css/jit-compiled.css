@@ -1,6 +1,8 @@
 /* Generado automáticamente por JitCssModule (Modular) */
+.animate-fast { --animate-duration: 250ms; }
 .animate-infinite { animation-iteration-count: infinite; }
 .animate-slow { --animate-duration: 800ms; }
+.animate-slower { --animate-duration: 1200ms; }
 .animated { -webkit-animation-duration: var(--animate-duration, 400ms); animation-duration: var(--animate-duration, 400ms); -webkit-animation-fill-mode: both; animation-fill-mode: both; -webkit-animation-delay: var(--animate-delay, 0ms); animation-delay: var(--animate-delay, 0ms); -webkit-animation-timing-function: var(--animate-ease, cubic-bezier(0.25, 1, 0.5, 1)); animation-timing-function: var(--animate-ease, cubic-bezier(0.25, 1, 0.5, 1)); }
 html.gsap-loaded .animated, html.gsap-loaded [data-animate] { transition: none !important; }
 .bounce-in { -webkit-animation-name: bounceIn; animation-name: bounceIn; -webkit-animation-timing-function: var(--animate-ease-elastic, cubic-bezier(0.34, 1.56, 0.64, 1)); animation-timing-function: var(--animate-ease-elastic, cubic-bezier(0.34, 1.56, 0.64, 1)); --animate-duration: 550ms; }
@@ -470,6 +472,7 @@ html.gsap-loaded .hover-tilt { transition: none !important; }
 .dm-icon-light { font-size: 18px; line-height: 1; }
 .fill { object-fit: fill !important; }
 .hidden { display: none !important; }
+.ico { width: 16px; height: 16px; object-fit: cover; }
 .icon { width: 36px !important; height: 36px !important; border-radius: 50% !important; }
 .inactive { color: var(--text-inactive, #bdbdbd); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .inline { display: inline !important; }
