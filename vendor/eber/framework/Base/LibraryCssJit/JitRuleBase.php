@@ -86,8 +86,6 @@ abstract class JitRuleBase implements JitRuleInterface
         self::$themeHoverColors[$i] = "--back-color{$i}-hover";
       }
       self::$themeFonts[1] = "--font";
-      self::$themeFonts[2] = "--font2";
-      self::$themeFonts[3] = "--font3";
       return;
     }
 
@@ -116,16 +114,8 @@ abstract class JitRuleBase implements JitRuleInterface
       }
     }
 
-    // 3. Detectar variables de fuente --font, --font2, --font3... --fontN
-    if (preg_match_all('/(--font(\d*))\s*:/', $cleanCss, $fontMatches, PREG_SET_ORDER)) {
-      foreach ($fontMatches as $m) {
-        $varName = $m[1];
-        $index = ($m[2] === "" || $m[2] === "1") ? 1 : (int)$m[2];
-        if (!isset(self::$themeFonts[$index])) {
-          self::$themeFonts[$index] = $varName;
-        }
-      }
-    }
+    // 3. Registrar variable de fuente principal --font
+    self::$themeFonts[1] = "--font";
   }
 
   /**
@@ -188,21 +178,15 @@ abstract class JitRuleBase implements JitRuleInterface
   }
 
   /**
-   * Devuelve la expresión CSS para la fuente solicitada (.font1..N).
+   * Devuelve la expresión CSS para la fuente predeterminada del proyecto (--font).
    *
-   * @param int $index Índice de la fuente (1..N)
+   * @param int $index Índice de la fuente (mantenido por compatibilidad)
    * @return string
    */
-  protected function getFontVar(int $index): string
+  protected function getFontVar(int $index = 1): string
   {
     self::loadThemeConfig();
-    if (isset(self::$themeFonts[$index])) {
-      $varName = self::$themeFonts[$index];
-      return "var({$varName})";
-    }
-
-    $varName = $index === 1 ? "--font" : "--font{$index}";
-    return "var({$varName}, var(--font, sans-serif))";
+    return "var(--font)";
   }
 
   /**

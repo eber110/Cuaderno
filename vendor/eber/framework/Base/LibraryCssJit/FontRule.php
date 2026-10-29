@@ -9,8 +9,9 @@ class FontRule extends JitRuleBase
         // Globales y Bases
         $statics = [
             // Fuentes del sistema y variables
-            'font-alumini' => ".font-alumini { font-family: var(--font3) !important; line-height: 0.7em; }\n",
-            'font-roboto-condensed' => ".font-roboto-condensed { font-family: var(--font2) !important; }\n",
+            'font' => ".font { font-family: var(--font) !important; }\n",
+            'font-alumini' => ".font-alumini { font-family: var(--font) !important; line-height: 0.7em; }\n",
+            'font-roboto-condensed' => ".font-roboto-condensed { font-family: var(--font) !important; }\n",
             'font-sans' => ".font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif !important; }\n",
             'font-serif' => ".font-serif { font-family: ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif !important; }\n",
             'font-mono' => ".font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace !important; }\n",
@@ -242,7 +243,7 @@ class FontRule extends JitRuleBase
             return $this->wrapMediaQuery($media, ".{$word} { font-weight: bold; }");
         }
 
-        // Fuentes dinámicas (.font1, .font-1, .font2, .font-2... .fontN)
+        // Fuente predeterminada (.font1, .font-1... redirigidos a --font)
         if (preg_match('/^font-?(\d+)$/', $word, $m)) {
             $index = (int)$m[1];
             if ($index >= 1) {

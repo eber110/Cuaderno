@@ -110,7 +110,7 @@ class JitCssModule
                 $lowerWords[strtolower($word)] = true;
             }
 
-            // Incluir también las familias declaradas en _configTheme.css (ej. --font, --font2, --font3)
+            // Incluir también la familia declarada en _configTheme.css (--font)
             $rootPath = defined('ROOT_PATH') ? ROOT_PATH : str_replace('\\', '/', getcwd());
             $themeConfigPath = rtrim($rootPath, '/') . '/App/Public/Css/_configTheme.css';
             if (is_file($themeConfigPath)) {
@@ -250,6 +250,14 @@ class JitCssModule
         $content = (string)file_get_contents($themeConfigPath);
         $updated = $content;
         $changed = false;
+
+        // 0. Eliminar variables obsoletas --font2, --font3... y redirigir sus referencias a --font
+        $cleanedFonts = (string)preg_replace('/^[ \t]*--font[2-9]\d*\s*:[^\r\n]*\r?\n?/m', '', $updated);
+        $cleanedFonts = (string)preg_replace('/var\(\s*--font[2-9]\d*\s*(?:,\s*([^)]+))?\)/', 'var(--font)', $cleanedFonts);
+        if ($cleanedFonts !== $updated) {
+            $updated = $cleanedFonts;
+            $changed = true;
+        }
 
         // 1. Sincronizar variables de animación y efectos hover en :root si aún no existen
         if (!str_contains($updated, '--animate-duration:') && str_contains($updated, '--transition-slow:')) {

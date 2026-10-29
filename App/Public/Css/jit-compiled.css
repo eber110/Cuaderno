@@ -199,13 +199,14 @@ html.gsap-loaded .hover-tilt { transition: none !important; }
 .truncate, .text-truncate, .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .font-extrabold, .extrabold { font-weight: 800 !important; }
 .font-extralight, .extralight { font-weight: 200 !important; }
-.font13 { font-family: var(--font13, var(--font, sans-serif)) !important; }
-.font14 { font-family: var(--font14, var(--font, sans-serif)) !important; }
-.font15 { font-family: var(--font15, var(--font, sans-serif)) !important; }
-.font16 { font-family: var(--font16, var(--font, sans-serif)) !important; }
-.font24 { font-family: var(--font24, var(--font, sans-serif)) !important; }
-.font28 { font-family: var(--font28, var(--font, sans-serif)) !important; }
-.font32 { font-family: var(--font32, var(--font, sans-serif)) !important; }
+.font { font-family: var(--font) !important; }
+.font13 { font-family: var(--font) !important; }
+.font14 { font-family: var(--font) !important; }
+.font15 { font-family: var(--font) !important; }
+.font16 { font-family: var(--font) !important; }
+.font24 { font-family: var(--font) !important; }
+.font28 { font-family: var(--font) !important; }
+.font32 { font-family: var(--font) !important; }
 .indent-p, .indent { text-indent: 1.5em; }
 .ita, .italic { font-style: italic !important; }
 .font-light, .light { font-weight: 300 !important; }
