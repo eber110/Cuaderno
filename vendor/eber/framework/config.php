@@ -44,6 +44,7 @@ if (!defined('APP_ENV')) define('APP_ENV', $normalizedEnv);
 if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', filter_var($_ENV['CSRF_PROTECTION'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('DB_POOLING')) define('DB_POOLING', filter_var($_ENV['DB_POOLING'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('USE_CACHE')) define('USE_CACHE', filter_var($_ENV['USE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
+if (!defined('CSS_INLINE')) define('CSS_INLINE', filter_var($_ENV['CSS_INLINE'] ?? false, FILTER_VALIDATE_BOOLEAN));
 
 // Configuración de sesión segura (antes de session_start)
 if (session_status() !== PHP_SESSION_ACTIVE) {

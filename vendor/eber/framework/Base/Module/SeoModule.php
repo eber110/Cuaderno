@@ -250,8 +250,8 @@ class SeoModule
    *   - site_name: string - Nombre del sitio/marca (ej: "Sitio Web")
    *   - content: string - Descripción
    *   - image: string - URL de la imagen
-   *   - image_width: int|string - Ancho de la imagen (default: 400)
-   *   - image_height: int|string - Alto de la imagen (default: 400)
+   *   - image_width: int|string - Ancho de la imagen (default: 1200)
+   *   - image_height: int|string - Alto de la imagen (default: 630)
    *   - link: string - URL del contenido
    *   - type: string - Tipo (article, website). Default: website
    * @return void
@@ -277,8 +277,8 @@ class SeoModule
     $rawImage = $config['image'] ?? $imgOg;
     $image = self::makeAbsoluteUrl($rawImage);
 
-    $imageWidth = $config['image_width'] ?? $config['img_width'] ?? (is_array($config['image_size'] ?? null) ? $config['image_size'][0] : ($config['image_size'] ?? '400'));
-    $imageHeight = $config['image_height'] ?? $config['img_height'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][1] ?? '400') : '400');
+    $imageWidth = $config['image_width'] ?? $config['img_width'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][0] ?? '1200') : ($config['image_size'] ?? '1200'));
+    $imageHeight = $config['image_height'] ?? $config['img_height'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][1] ?? '630') : ($config['image_size'] ?? '630'));
 
     $rawLink = $config['link'] ?? $config['url'] ?? $linkOg;
     $link = self::makeAbsoluteUrl($rawLink);
@@ -333,8 +333,8 @@ class SeoModule
       $title = htmlspecialchars(strip_tags($override['title'] ?? $nameSite), ENT_QUOTES, 'UTF-8');
       $content = htmlspecialchars(strip_tags($override['content'] ?? $override['description'] ?? $description), ENT_QUOTES, 'UTF-8');
       $rawImage = $override['image'] ?? $imgOg;
-      $imageWidth = $override['image_width'] ?? $override['img_width'] ?? (is_array($override['image_size'] ?? null) ? $override['image_size'][0] : ($override['image_size'] ?? '400'));
-      $imageHeight = $override['image_height'] ?? $override['img_height'] ?? (is_array($override['image_size'] ?? null) ? ($override['image_size'][1] ?? '400') : '400');
+      $imageWidth = $override['image_width'] ?? $override['img_width'] ?? (is_array($override['image_size'] ?? null) ? ($override['image_size'][0] ?? '1200') : ($override['image_size'] ?? '1200'));
+      $imageHeight = $override['image_height'] ?? $override['img_height'] ?? (is_array($override['image_size'] ?? null) ? ($override['image_size'][1] ?? '630') : ($override['image_size'] ?? '630'));
       $rawLink = $override['link'] ?? $override['url'] ?? $linkOg;
       $type = $override['type'] ?? 'website';
     } else {
@@ -343,8 +343,8 @@ class SeoModule
       $title = $nameSite;
       $content = htmlspecialchars(strip_tags($description), ENT_QUOTES, 'UTF-8');
       $rawImage = $imgOg;
-      $imageWidth = '400';
-      $imageHeight = '400';
+      $imageWidth = '1200';
+      $imageHeight = '630';
       $rawLink = $linkOg;
       $type = 'website';
     }

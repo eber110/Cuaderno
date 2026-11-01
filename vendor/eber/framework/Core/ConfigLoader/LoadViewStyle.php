@@ -5,6 +5,48 @@ namespace Core\ConfigLoader;
 class LoadViewStyle
 {
   /**
+   * Estado forzado de inyección inline para CSS (true/false) o null si debe resolverse por entorno.
+   */
+  private static ?bool $forceInlineCss = null;
+
+  /**
+   * Caché en memoria para almacenar el contenido de archivos CSS y evitar lecturas repetidas de disco.
+   */
+  private static array $cssCache = [];
+
+  /**
+   * Define o anula el comportamiento de inyección inline de CSS para la petición actual.
+   *
+   * @param bool|null $status True para forzar inline, false para forzar <link>, null para resolver por entorno (.env)
+   */
+  public static function setInlineCss(?bool $status): void
+  {
+    self::$forceInlineCss = $status;
+  }
+
+  /**
+   * Determina si se debe usar CSS inline basándose en la siguiente prioridad:
+   * 1. Decisión local explícita del controlador ($forceInlineCss !== null)
+   * 2. Constante global CSS_INLINE
+   * 3. Variable de entorno $_ENV['CSS_INLINE']
+   * 4. Fallback: false (usa <link>)
+   *
+   * @return bool
+   */
+  public static function isInlineCss(): bool
+  {
+    if (self::$forceInlineCss !== null) {
+      return self::$forceInlineCss;
+    }
+
+    if (defined('CSS_INLINE')) {
+      return (bool) CSS_INLINE;
+    }
+
+    return filter_var($_ENV['CSS_INLINE'] ?? false, FILTER_VALIDATE_BOOLEAN);
+  }
+
+  /**
    * Convierte una ruta de filesystem a una URL relativa.
    */
   private function fsPathToUrl(string $fsPath): string
@@ -128,6 +170,45 @@ class LoadViewStyle
       $v = file_exists($fullFilePath) ? '?v=' . filemtime($fullFilePath) : '';
       $href = DOMAIN . ltrim($urlPath, '/') . $file . $v;
       print '<link rel="stylesheet" href="' . $href . '"' . ($param ? ' ' . $param : '') . '>';
+    }
+  }
+
+  /**
+   * Inyecta el contenido de los archivos CSS directamente en una etiqueta <style> en el <head>.
+   *
+   * @param string $ruteCss Ruta física del directorio o archivo CSS.
+   */
+  public function inlineCss(string $ruteCss): void
+  {
+    if (is_file($ruteCss)) {
+      $files = [basename($ruteCss)];
+      $baseDir = dirname($ruteCss);
+    } elseif (is_dir($ruteCss)) {
+      $files = $this->getDirectoryFiles($ruteCss);
+      $baseDir = rtrim($ruteCss, '/\\');
+    } else {
+      return;
+    }
+
+    foreach ($files as $file) {
+      if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'css') {
+        continue;
+      }
+
+      $fullFilePath = $baseDir . '/' . $file;
+      if (!file_exists($fullFilePath)) {
+        continue;
+      }
+
+      if (!isset(self::$cssCache[$fullFilePath])) {
+        $content = @file_get_contents($fullFilePath);
+        self::$cssCache[$fullFilePath] = ($content !== false) ? $content : '';
+      }
+
+      $cssContent = self::$cssCache[$fullFilePath];
+      if ($cssContent !== '') {
+        print "<style>\n" . $cssContent . "\n</style>\n";
+      }
     }
   }
 

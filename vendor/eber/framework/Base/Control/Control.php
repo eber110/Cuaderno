@@ -3,6 +3,7 @@
 namespace Base\Control;
 
 use Core\ErrorHandler;
+use Core\ConfigLoader\LoadViewStyle;
 use Base\Module\SeoModule;
 use Base\Module\TextModule;
 use Base\Module\DateTimeModule;
@@ -26,10 +27,26 @@ class Control
   protected $menu = array();
   protected $description;
   protected $share_conf;
+  protected ?bool $isInlineCss = null;
 
   public function __construct()
   {
     ViewOptimizerModule::init();
+  }
+
+  /**
+   * Configura si el CSS minificado debe inyectarse directamente en el <head> (inline <style>)
+   * para la vista que se renderizará a continuación.
+   * Permite sintaxis fluida: $this->inlineCss()->view('ruta', $data);
+   *
+   * @param bool $status True para forzar inline, false para forzar <link>
+   * @return static
+   */
+  public function inlineCss(bool $status = true): static
+  {
+    $this->isInlineCss = $status;
+    LoadViewStyle::setInlineCss($status);
+    return $this;
   }
 
   // ============================================
@@ -52,6 +69,11 @@ class Control
 
     // Agregar script de lazy loading si está habilitado
     $datas .= ViewOptimizerModule::getLazyLoadScript();
+
+    // Restablecer estado local de inlineCss
+    if ($this->isInlineCss !== null) {
+      LoadViewStyle::setInlineCss(null);
+    }
 
     // Enviar contenido inmediatamente y cerrar conexión (SEO Boost)
     ResponseModule::sendContent($datas);
@@ -180,6 +202,10 @@ class Control
     echo SeoModule::personSchema();
 
     echo ViewOptimizerModule::getPreloads();
+
+    if ($this->isInlineCss !== null) {
+      LoadViewStyle::setInlineCss($this->isInlineCss);
+    }
 
     require_once FRAMEWORK_PATH . 'Core/ConfigLoader/LoadStyle.php';
 

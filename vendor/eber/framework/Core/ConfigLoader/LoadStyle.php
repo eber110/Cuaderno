@@ -16,8 +16,12 @@ $load_style->loadLibraries();
 // Precargar el bundle principal de JavaScript modular en paralelo
 $load_style->modulePreloadJs();
 
-// Cargar CSS con prioridad alta
-$load_style->ruteCss(ROOT_PATH . '/App/Public/Min/Css/', 'fetchpriority="high"');
+// Cargar CSS directamente en <style> (inline) o mediante <link> con prioridad alta según configuración
+if (LoadViewStyle::isInlineCss()) {
+  $load_style->inlineCss(ROOT_PATH . '/App/Public/Min/Css/');
+} else {
+  $load_style->ruteCss(ROOT_PATH . '/App/Public/Min/Css/', 'fetchpriority="high"');
+}
 
 // Cargar el loader unificado con defer (ejecuta funciones después de que el DOM esté listo)
 $load_style->ruteStyle(ROOT_PATH . '/vendor/eber/framework/Resources/JsLoad/', 'type="module" defer');

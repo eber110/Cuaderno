@@ -318,6 +318,20 @@ $runner->runTest("SeoModule - Estructura JSON-LD y personSchema", function () us
   $runner->assert(str_contains($personSchema, '<script type="application/ld+json">'), "personSchema debe envolver el script JSON-LD");
   $runner->assert(str_contains($personSchema, '"name": "Juan Perez"'), "personSchema debe incluir el nombre");
   $runner->assert(str_contains($personSchema, '"jobTitle": "Arquitecto de Software"'), "personSchema debe incluir jobTitle");
+
+  // OpenGraph tamaños recomendados por defecto (1200x630)
+  $ogDefault = \Base\Module\SeoModule::openGraph(['image' => 'https://example.com/test.jpg']);
+  $runner->assert(str_contains($ogDefault, '<meta property="og:image:width" content="1200" />'), "openGraph por defecto debe tener ancho 1200");
+  $runner->assert(str_contains($ogDefault, '<meta property="og:image:height" content="630" />'), "openGraph por defecto debe tener alto 630");
+
+  // OpenGraph respetando tamaños personalizados
+  $ogCustom = \Base\Module\SeoModule::openGraph([
+    'image' => 'https://example.com/test.jpg',
+    'image_width' => 800,
+    'image_height' => 450
+  ]);
+  $runner->assert(str_contains($ogCustom, '<meta property="og:image:width" content="800" />'), "openGraph personalizado debe respetar ancho 800");
+  $runner->assert(str_contains($ogCustom, '<meta property="og:image:height" content="450" />'), "openGraph personalizado debe respetar alto 450");
 });
 
 // =========================================================================
