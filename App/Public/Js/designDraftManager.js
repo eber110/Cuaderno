@@ -119,9 +119,18 @@ export function designDraftManager() {
     }
     if (obj.titleColor && !result.title_color) result.title_color = obj.titleColor;
     if (obj.colorText && !result.color_text) result.color_text = obj.colorText;
-    if (obj.backCard) {
+    if (Array.isArray(obj.borders)) {
+      result.borders = obj.borders.join(",");
+    }
+    if (obj.backCard && typeof obj.backCard === "object") {
       if (obj.backCard.back_perfil && !result.back_perfil) result.back_perfil = obj.backCard.back_perfil;
       if (obj.backCard.style_back && !result.style_back) result.style_back = obj.backCard.style_back;
+      Object.entries(obj.backCard).forEach(([k, v]) => {
+        if (result[k] === undefined) result[k] = v;
+      });
+    }
+    if (obj.voidHero && obj.voidHero.space !== undefined && result.void_space === undefined) {
+      result.void_space = obj.voidHero.space;
     }
     return result;
   }
@@ -204,6 +213,122 @@ export function designDraftManager() {
     });
   }
 
+  function reindexSubProductsInBlock(item, blockIndex) {
+    if (!item || item.getAttribute("data-type") !== "product_group") return;
+    const subItems = Array.from(item.querySelectorAll(".sub-product-item"));
+    const prodCount = subItems.length;
+
+    subItems.forEach((subItem, pIdx) => {
+      const lbl = subItem.querySelector(".sub-product-label");
+      if (lbl) lbl.textContent = `Producto ${pIdx + 1}`;
+
+      const delBtn = subItem.querySelector(".delete-sub-product-btn, button[name*='[delete_sub_product]']");
+      if (delBtn) {
+        delBtn.name = `content[${blockIndex}][delete_sub_product]`;
+        delBtn.value = String(pIdx);
+        delBtn.style.display = prodCount > 2 ? "" : "none";
+      }
+
+      const minBadge = subItem.querySelector(".min-sub-product-badge");
+      if (minBadge) {
+        minBadge.style.display = prodCount > 2 ? "none" : "";
+      }
+
+      subItem.querySelectorAll("*").forEach((el) => {
+        const name = el.getAttribute("name");
+        if (name && name.includes("[products][")) {
+          el.setAttribute("name", name.replace(/^content\[[^\]]+\]\[products\]\[[^\]]+\]/, `content[${blockIndex}][products][${pIdx}]`));
+        } else if (name && name.startsWith("content_img_")) {
+          el.setAttribute("name", `content_img_${blockIndex}_${pIdx}`);
+        }
+
+        const id = el.getAttribute("id");
+        if (id && id.startsWith("offer-switch-")) {
+          el.setAttribute("id", `offer-switch-${blockIndex}-${pIdx}`);
+        }
+        const forAttr = el.getAttribute("for");
+        if (forAttr && forAttr.startsWith("offer-switch-")) {
+          el.setAttribute("for", `offer-switch-${blockIndex}-${pIdx}`);
+        }
+      });
+    });
+
+    const counterEl = item.querySelector(".sub-products-counter");
+    if (counterEl) counterEl.textContent = `${prodCount} / 8`;
+
+    const addBtn = item.querySelector(".add-sub-product-btn, button[name*='[add_sub_product]']");
+    if (addBtn) {
+      addBtn.name = `content[${blockIndex}][add_sub_product]`;
+      addBtn.style.display = prodCount < 8 ? "" : "none";
+      const addLbl = addBtn.querySelector(".add-sub-product-btn-label");
+      if (addLbl) addLbl.textContent = `Añadir producto al grupo (${prodCount}/8)`;
+    }
+
+    const maxMsg = item.querySelector(".max-sub-products-msg");
+    if (maxMsg) {
+      maxMsg.style.display = prodCount >= 8 ? "" : "none";
+    }
+
+    const isOdd = prodCount % 2 !== 0;
+    const oddWarn = item.querySelector(".odd-products-warning");
+    if (oddWarn) {
+      oddWarn.style.display = isOdd ? "" : "none";
+      const oddCount = oddWarn.querySelector(".odd-products-count");
+      if (oddCount) oddCount.textContent = String(prodCount);
+    }
+
+    const gridRadio = item.querySelector(`input[type="radio"][value="grid"][name$="[layout]"]`);
+    const slideRadio = item.querySelector(`input[type="radio"][value="slide"][name$="[layout]"]`);
+    const gridLabel = gridRadio ? item.querySelector(`label[for="${gridRadio.id}"]`) : null;
+    if (gridRadio) {
+      gridRadio.disabled = isOdd;
+      if (isOdd && gridRadio.checked && slideRadio) {
+        gridRadio.checked = false;
+        slideRadio.checked = true;
+      }
+    }
+    if (gridLabel) {
+      gridLabel.classList.toggle("opacity-50", isOdd);
+      gridLabel.classList.toggle("pointer-events-none", isOdd);
+    }
+  }
+
+  function syncProductGroupEditorSubItems(item, productsArray, blockIndex) {
+    if (!item || item.getAttribute("data-type") !== "product_group" || !Array.isArray(productsArray)) return;
+    const subContainer = item.querySelector(".sub-products-container") || item.querySelector(".sub-product-item")?.parentElement;
+    if (!subContainer) return;
+
+    let subItems = Array.from(subContainer.querySelectorAll(".sub-product-item"));
+    const targetLen = Math.max(2, Math.min(8, productsArray.length));
+
+    const tplGroup = document.getElementById("tpl_block_product_group");
+    let templateSubNode = null;
+    if (tplGroup) {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = tplGroup.innerHTML.replace(/\{\{INDEX\}\}/g, String(blockIndex));
+      templateSubNode = tmp.querySelector(".sub-product-item");
+    }
+
+    while (subItems.length < targetLen) {
+      const clone = templateSubNode ? templateSubNode.cloneNode(true) : (subItems[0] ? subItems[0].cloneNode(true) : null);
+      if (!clone) break;
+      const addBtn = subContainer.querySelector(".add-sub-product-btn, button[name*='[add_sub_product]']");
+      if (addBtn) {
+        subContainer.insertBefore(clone, addBtn);
+      } else {
+        subContainer.appendChild(clone);
+      }
+      subItems.push(clone);
+    }
+
+    while (subItems.length > targetLen && subItems.length > 2) {
+      const removed = subItems.pop();
+      if (removed) removed.remove();
+    }
+
+    reindexSubProductsInBlock(item, blockIndex);
+  }
+
   function reindexEditorDOM(container) {
     if (!container) return;
     const items = Array.from(container.querySelectorAll(".sortable-item"));
@@ -223,19 +348,46 @@ export function designDraftManager() {
         }
         const id = el.getAttribute("id");
         if (id) {
-          if (id.startsWith("content_img_banner_")) {
+          if (/^offer-switch-(?:\{\{INDEX\}\}|\d+)-(\d+)$/.test(id)) {
+            el.setAttribute("id", id.replace(/^offer-switch-(?:\{\{INDEX\}\}|\d+)-(\d+)$/, `offer-switch-${index}-$1`));
+          } else if (id.startsWith("content_img_banner_")) {
             el.setAttribute("id", id.replace(/^content_img_banner_[^_\s]+/, `content_img_banner_${index}`));
           } else if (id.startsWith("banner-crop-btn-wrap-")) {
             el.setAttribute("id", id.replace(/^banner-crop-btn-wrap-[^_\s]+/, `banner-crop-btn-wrap-${index}`));
+          } else if (id.startsWith("banner-size-hint-")) {
+            el.setAttribute("id", id.replace(/^banner-size-hint-[^_\s]+/, `banner-size-hint-${index}`));
           } else if (idxSuffixRegex.test(id) && !id.startsWith("content-item-")) {
             el.setAttribute("id", id.replace(idxSuffixRegex, `-${index}`));
           }
         }
         const forAttr = el.getAttribute("for");
-        if (forAttr && idxSuffixRegex.test(forAttr)) {
-          el.setAttribute("for", forAttr.replace(idxSuffixRegex, `-${index}`));
+        if (forAttr) {
+          if (/^offer-switch-(?:\{\{INDEX\}\}|\d+)-(\d+)$/.test(forAttr)) {
+            el.setAttribute("for", forAttr.replace(/^offer-switch-(?:\{\{INDEX\}\}|\d+)-(\d+)$/, `offer-switch-${index}-$1`));
+          } else if (idxSuffixRegex.test(forAttr)) {
+            el.setAttribute("for", forAttr.replace(idxSuffixRegex, `-${index}`));
+          }
+        }
+        if (el.hasAttribute("data-index")) {
+          el.setAttribute("data-index", String(index));
+        }
+        const dataTarget = el.getAttribute("data-target");
+        if (dataTarget && idxSuffixRegex.test(dataTarget)) {
+          el.setAttribute("data-target", dataTarget.replace(idxSuffixRegex, `-${index}`));
+        }
+        const dataValTarget = el.getAttribute("data-val-target");
+        if (dataValTarget && idxSuffixRegex.test(dataValTarget)) {
+          el.setAttribute("data-val-target", dataValTarget.replace(idxSuffixRegex, `-${index}`));
+        }
+        const dataTriggerColor = el.getAttribute("data-trigger-color");
+        if (dataTriggerColor && idxSuffixRegex.test(dataTriggerColor)) {
+          el.setAttribute("data-trigger-color", dataTriggerColor.replace(idxSuffixRegex, `-${index}`));
         }
       });
+
+      if (item.getAttribute("data-type") === "product_group") {
+        reindexSubProductsInBlock(item, index);
+      }
 
       // Sincronizar data-content-index en el preview según data-block-id
       const blkId = item.getAttribute("data-block-id");
@@ -312,16 +464,16 @@ export function designDraftManager() {
         });
 
         // B) Reconstruir bloques presentes en el borrador que no existan en el HTML del servidor
-        draft.content.forEach((block) => {
+        draft.content.forEach((block, bIdx) => {
           if (!block || !block.id) return;
-          const existingItem = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
+          let existingItem = editorList.querySelector(`.sortable-item[data-block-id="${block.id}"]`);
           if (!existingItem) {
             const blockType = block.type || "link";
             const tplBlock = document.getElementById("tpl_block_" + blockType);
             if (tplBlock) {
               const tempDiv = document.createElement("div");
               let html = tplBlock.innerHTML
-                .replace(/\{\{INDEX\}\}/g, "0")
+                .replace(/\{\{INDEX\}\}/g, String(bIdx))
                 .replace(/\{\{BLOCK_ID\}\}/g, block.id);
               tempDiv.innerHTML = html;
               const newNode = tempDiv.firstElementChild;
@@ -334,8 +486,12 @@ export function designDraftManager() {
                   body.style.display = "flex";
                 }
                 editorList.appendChild(newNode);
+                existingItem = newNode;
               }
             }
+          }
+          if (existingItem && block.type === "product_group" && Array.isArray(block.products)) {
+            syncProductGroupEditorSubItems(existingItem, block.products, bIdx);
           }
         });
 
@@ -540,18 +696,43 @@ export function designDraftManager() {
 
   /**
    * Guarda un campo en el borrador estructurado de trabajo navegando su path.
+   * Si se trata de un campo de contenido (content[idx]...), resuelve primero por blockId
+   * para evitar colisiones de índice al reordenar o añadir bloques.
+   *
    * @param {string} path Nombre o ruta del campo (ej: 'title' o 'content[0][title]')
    * @param {*} value Valor del campo
+   * @param {string|null} [blockId=null] ID único opcional del bloque de contenido
    */
-  function updateJsonDraftFromPath(path, value) {
+  function updateJsonDraftFromPath(path, value, blockId = null) {
     const draft = getDraftState();
     if (!draft) return;
     const parts = path.split(/\[|\]\[|\]/).filter(Boolean);
+
+    if (parts[0] === "content" && parts.length >= 3 && Array.isArray(draft.content)) {
+      const idx = parseInt(parts[1], 10);
+      const effectiveBlockId = blockId || document.querySelector(`#content-item-${idx}`)?.getAttribute("data-block-id") || null;
+      let targetIdx = -1;
+      if (effectiveBlockId) {
+        targetIdx = draft.content.findIndex((item) => item && item.id === effectiveBlockId);
+      }
+      if (targetIdx === -1 && !isNaN(idx)) {
+        targetIdx = idx;
+      }
+      if (targetIdx >= 0) {
+        parts[1] = String(targetIdx);
+        if (!draft.content[targetIdx]) {
+          draft.content[targetIdx] = effectiveBlockId ? { id: effectiveBlockId } : {};
+        } else if (effectiveBlockId && !draft.content[targetIdx].id) {
+          draft.content[targetIdx].id = effectiveBlockId;
+        }
+      }
+    }
+
     let current = draft;
     for (let i = 0; i < parts.length - 1; i++) {
       let part = parts[i];
       if (current[part] === undefined) {
-        current[part] = (isNaN(parseInt(parts[i+1], 10))) ? {} : [];
+        current[part] = (isNaN(parseInt(parts[i + 1], 10))) ? {} : [];
       }
       current = current[part];
     }
@@ -566,10 +747,32 @@ export function designDraftManager() {
       if (!draft.backCard) draft.backCard = {};
       draft.backCard.style_back = value;
     }
+    if (
+      path === "back_image_opacity" ||
+      path === "back_image_overlay" ||
+      path === "back_image_filter" ||
+      path === "back_image_filter_intensity" ||
+      path === "back_video_opacity" ||
+      path === "back_video_overlay"
+    ) {
+      if (!draft.backCard) draft.backCard = {};
+      draft.backCard[path] = value;
+    }
+    if (path === "hide") {
+      draft.hide = (value === true || value === "true" || value === 1 || value === "1");
+    }
+    if (path === "hover") {
+      draft.hover = (value === true || value === "true" || value === 1 || value === "1");
+    }
     if (path === "title_color") draft.titleColor = value;
     if (path === "color_text") draft.colorText = value;
     if (path === "borders") {
       draft.borders = Array.isArray(value) ? value : (typeof value === "string" ? value.split(",") : ["br0", "br0"]);
+    }
+    if (path === "void_space" || path === "voidHero[space]") {
+      if (!draft.voidHero) draft.voidHero = {};
+      draft.voidHero.space = parseInt(value, 10) || 70;
+      draft.void_space = draft.voidHero.space;
     }
 
     saveDraftState(draft);
@@ -579,17 +782,24 @@ export function designDraftManager() {
    * Registra la modificación de un campo y notifica a la interfaz.
    * @param {string} name
    * @param {*} value
+   * @param {string|null} [blockId=null]
    */
-  function setDraftField(name, value) {
+  function setDraftField(name, value, blockId = null) {
     if (!name) return;
-    updateJsonDraftFromPath(name, value);
+    updateJsonDraftFromPath(name, value, blockId);
     notifyDraftState();
   }
 
   /**
-   * Limpia el borrador local igualándolo al estado oficial.
+   * Limpia el borrador local igualándolo al estado oficial y resetea inputs de archivo pendientes.
    */
   function clearDraft() {
+    try {
+      document.querySelectorAll("input[type='file']").forEach((inp) => {
+        inp.value = "";
+        delete inp.dataset.isCropped;
+      });
+    } catch (_) {}
     const initial = getInitialState();
     if (initial) {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(initial));
@@ -729,6 +939,7 @@ export function designDraftManager() {
   function syncBlockActiveState(block, idx, extraData = {}) {
     if (!block) return;
     const type = block.dataset.type || "link";
+    const blkId = block.getAttribute("data-block-id") || null;
     const activeSwitch = block.querySelector(`input[type="checkbox"][name="content[${idx}][active]"]`) || block.querySelector(`.checkbox-switch[name="content[${idx}][active]"]`);
     if (!activeSwitch) return;
 
@@ -740,70 +951,53 @@ export function designDraftManager() {
       : null;
 
     if (isValid) {
+      const wasDisabled = activeSwitch.disabled || activeSwitch.hasAttribute("disabled") || block.dataset.wasInvalid === "true";
+
       // Habilitar el switch para que el usuario pueda activarlo u ocultarlo a voluntad
       activeSwitch.removeAttribute("disabled");
       activeSwitch.disabled = false;
+      delete block.dataset.wasInvalid;
+
+      // Si el bloque recién se completó (pasó de inválido/deshabilitado a válido) y el usuario no lo apagó manualmente,
+      // encender automáticamente el switch para que el bloque aparezca de inmediato en la vista previa
+      if (wasDisabled && block.dataset.userTurnedOff !== "true") {
+        activeSwitch.checked = true;
+        activeSwitch.setAttribute("active", "1");
+        setDraftField(activeSwitch.name, true, blkId);
+      }
 
       if (hiddenInput && hiddenInput.tagName === "INPUT" && hiddenInput.type === "hidden") {
         hiddenInput.disabled = activeSwitch.checked;
       }
 
-      // Actualizar datos del elemento en la vista previa (imagen, proporción), respetando estrictamente el estado del switch
-      const blkId = block.getAttribute("data-block-id");
-      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-        let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
-        if (!items || !items.length) {
-          if (!blkId) {
-            items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
-          }
-        }
-        items.forEach((item) => {
-          if (type === "banner") {
-            if (extraData.previewUrl) {
-              const previewImg = item.querySelector("img");
-              if (previewImg) previewImg.src = extraData.previewUrl;
-            }
-            const sizeRadio = block.querySelector(".banner-size-radio:checked");
-            if (sizeRadio && sizeRadio.value) {
-              const ratioMap = {
-                "720x720": "720 / 720",
-                "1024x720": "1024 / 720",
-                "720x1024": "720 / 1024"
-              };
-              if (ratioMap[sizeRadio.value]) {
-                item.style.aspectRatio = ratioMap[sizeRadio.value];
-              }
-            }
-          }
+      const draftState = getDraftState() || {};
+      const blockData = Array.isArray(draftState.content)
+        ? (blkId ? draftState.content.find((b) => b && b.id === blkId) : draftState.content[idx]) || { id: blkId, type, active: activeSwitch.checked }
+        : { id: blkId, type, active: activeSwitch.checked };
 
-          const variant = item.dataset.layoutVariant;
-          if (variant) {
-            const selectedLayout = block.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid";
-            if (variant === selectedLayout) {
-              item.style.display = activeSwitch.checked ? "" : "none";
-              if (activeSwitch.checked) item.classList.remove("hidden");
-            } else {
-              item.style.display = "none";
-              item.classList.add("hidden");
-            }
-          } else {
-            // El bloque SOLO se muestra en el preview si el switch está activado (checked)
-            item.style.display = activeSwitch.checked ? "" : "none";
-          }
-        });
+      if (extraData.previewUrl) {
+        blockData.imgSrc = extraData.previewUrl;
+        blockData.imgShow = true;
+      }
+      blockData.active = activeSwitch.checked;
+
+      document.querySelectorAll(".user-profile-preview").forEach((preview) => {
+        if (window.LivePreviewManager) {
+          window.LivePreviewManager.renderBlockInPreview(preview, blockData, idx, draftState);
+        }
       });
     } else {
+      block.dataset.wasInvalid = "true";
       activeSwitch.setAttribute("disabled", "disabled");
       activeSwitch.disabled = true;
       activeSwitch.checked = false;
       activeSwitch.setAttribute("active", "2");
-      setDraftField(activeSwitch.name, "false");
+      setDraftField(activeSwitch.name, "false", blkId);
 
       if (hiddenInput && hiddenInput.tagName === "INPUT" && hiddenInput.type === "hidden") {
         hiddenInput.disabled = false;
       }
 
-      const blkId = block.getAttribute("data-block-id");
       document.querySelectorAll(".user-profile-preview").forEach((preview) => {
         let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
         if (!items || !items.length) {
@@ -1301,74 +1495,6 @@ export function designDraftManager() {
       }
     `);
 
-    // Color de texto general (excluyendo el interior de botones .theme-button para preservar su diseño independiente)
-    if (fields.colorText) {
-      cssRules.push(`
-        .user-profile-preview .color-text-card,
-        .user-profile-preview .desc-hero-regular,
-        .user-profile-preview .desc-hero-big,
-        .user-profile-preview .desc-hero-mini,
-        .user-profile-preview .color-text-card a.color-text-card {
-          color: ${fields.colorText} !important;
-        }
-      `);
-    }
-
-    // Color del título principal del perfil
-    if (fields.titleColor) {
-      cssRules.push(`
-        .user-profile-preview .header-variant-wrapper .title-color,
-        .user-profile-preview .header-variant-wrapper h1,
-        .user-profile-preview .title-hero-regular,
-        .user-profile-preview .title-hero-big,
-        .user-profile-preview .title-hero-mini {
-          color: ${fields.titleColor} !important;
-        }
-      `);
-    }
-
-    // Color de botones generales
-    const btnBackVal = fields.back || document.getElementById("button-select-color")?.value || document.getElementById("select-color-button")?.value;
-    if (btnBackVal) {
-      cssRules.push(`
-        .user-profile-preview .theme-button {
-          background-color: ${btnBackVal} !important;
-        }
-      `);
-    }
-
-    // Color de texto de botones generales (con selectores directos de alta especificidad para p, a, span)
-    const btnColorVal = fields.color || document.getElementById("button-select-color-text")?.value || document.getElementById("select-color-text")?.value;
-    if (btnColorVal) {
-      cssRules.push(`
-        .user-profile-preview .theme-button,
-        .user-profile-preview .theme-button a,
-        .user-profile-preview .theme-button p,
-        .user-profile-preview .theme-button span:not(.theme-icon),
-        .user-profile-preview .theme-button .cut-phrase {
-          color: ${btnColorVal} !important;
-        }
-        .user-profile-preview .theme-icon,
-        .user-profile-preview .theme-button-menu svg {
-          color: ${btnColorVal} !important;
-        }
-      `);
-    }
-
-    // Sombra shadow-3 y color de sombra 3
-    const colorShadow3 = fields.colorShadow3 || document.getElementById("button-select-color-shadow3")?.value || document.getElementById("select-color-shadow3")?.value || document.querySelector('input[name="colorShadow3"]')?.value || "#000000";
-    if (fields.colorShadow3 || fields.shadow === "shadow-3") {
-      cssRules.push(`
-        .user-profile-preview .shadow-3 {
-          border-color: ${colorShadow3} !important;
-          box-shadow: 3px 5px 0px ${colorShadow3} !important;
-        }
-        .user-profile-preview .shadow-3 img {
-          border-color: ${colorShadow3} !important;
-        }
-      `);
-    }
-
     // Animación hover en botones
     const buttonBack = fields.back || document.getElementById("button-select-color")?.value || document.getElementById("select-color-button")?.value || document.querySelector('input[name="back"]')?.value || "#d6d6d6";
     if (fields.hover !== undefined) {
@@ -1388,29 +1514,50 @@ export function designDraftManager() {
       }
     }
 
-    // Actualizar la hoja de estilos en vivo
+    // Actualizar la hoja de estilos en vivo (solo para fondo/filtros/hover, sin !important en colores de texto)
     styleSheet.textContent = cssRules.join("\n");
 
+    // --- A2. VARIABLES CSS DE TEMA Y CABECERA DECLARATIVA VÍA LIVEPREVIEWMANAGER ---
+    const btnBackVal = fields.back || document.getElementById("button-select-color")?.value || document.getElementById("select-color-button")?.value;
+    const btnColorVal = fields.color || document.getElementById("button-select-color-text")?.value || document.getElementById("select-color-text")?.value;
+    const colorShadow3 = fields.colorShadow3 || document.getElementById("button-select-color-shadow3")?.value || document.getElementById("select-color-shadow3")?.value || document.querySelector('input[name="colorShadow3"]')?.value || "#000000";
+
+    const themePayload = {
+      back: btnBackVal,
+      color: btnColorVal,
+      colorText: fields.colorText,
+      titleColor: fields.titleColor,
+      colorShadow3: colorShadow3,
+      void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
+      header: fields.header,
+      title: fields.title,
+      desc: fields.desc
+    };
+
+    if (window.LivePreviewManager && typeof window.LivePreviewManager.applyThemeVarsToPreview === "function") {
+      previews.forEach((p) => {
+        window.LivePreviewManager.applyThemeVarsToPreview(p, themePayload);
+      });
+    }
+
     // --- B. BORDES Y SOMBRAS EN BOTONES (CLASES DIRECTAS) ---
-    if (fields.borders) {
-      const borderParts = Array.isArray(fields.borders) ? fields.borders : String(fields.borders).split(",");
+    const rawBorders = fields.borders || (fields["borders[0]"] ? `${fields["borders[0]"]},${fields["borders[1]"] || fields["borders[0]"]}` : null);
+    if (rawBorders) {
+      const borderParts = Array.isArray(rawBorders) ? rawBorders : String(rawBorders).split(",");
       const btnBorder = borderParts[0] || "br0";
       const imgBorder = borderParts[1] || "br0";
       const validBorders = ["br0", "br5", "br10", "br12", "br15", "br20", "br30", "br50"];
       const validImgBorders = ["br0", "br5", "br10", "br12", "br15", "br20", "br30", "br50"];
 
-      // En productos, banners y videos, br50 se adapta a br20 (y br12 en imágenes) para evitar deformaciones
       const clampedBorder = (btnBorder === "br50") ? "br20" : btnBorder;
       const clampedImgBorder = (imgBorder === "br50") ? "br12" : imgBorder;
 
-      // 1. Actualizar indicador visual en el panel de botones del dashboard
       document.querySelectorAll(".button-fill-style").forEach((el) => {
         validBorders.forEach((b) => el.classList.remove(b));
         el.classList.add(btnBorder);
       });
 
       previews.forEach((p) => {
-        // 2. Enlaces regulares
         p.querySelectorAll(".link-item-wrapper").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
@@ -1420,49 +1567,20 @@ export function designDraftManager() {
           img.classList.add(imgBorder);
         });
 
-        // 3. Productos regulares
-        p.querySelectorAll(".product-item-wrapper, .product-regular-wrapper").forEach((btn) => {
+        p.querySelectorAll(".product-item-wrapper, .product-regular-wrapper, .product-grid-card, .product-slide-card, .banner-block-wrapper, .campaign-block-wrapper, .video-block-wrapper").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(clampedBorder);
         });
-        p.querySelectorAll(".product-item-wrapper img.cover, .product-regular-wrapper img.cover").forEach((img) => {
+        p.querySelectorAll(".product-item-wrapper img.cover, .product-regular-wrapper img.cover, .product-grid-card img.cover, .product-slide-card img.cover").forEach((img) => {
           validImgBorders.forEach((b) => img.classList.remove(b));
           img.classList.add(clampedImgBorder);
         });
 
-        // 4. Grupos de productos (Cuadrícula y Carrusel)
-        p.querySelectorAll(".product-grid-card, .product-slide-card").forEach((btn) => {
-          validBorders.forEach((b) => btn.classList.remove(b));
-          btn.classList.add(clampedBorder);
-        });
-        p.querySelectorAll(".product-grid-card img.cover, .product-slide-card img.cover").forEach((img) => {
-          validImgBorders.forEach((b) => img.classList.remove(b));
-          img.classList.add(clampedImgBorder);
-        });
-
-        // 5. Banners
-        p.querySelectorAll(".banner-block-wrapper").forEach((banner) => {
-          validBorders.forEach((b) => banner.classList.remove(b));
-          banner.classList.add(clampedBorder);
-        });
-
-        // 6. Campañas (bloque contenedor y botón de acción)
-        p.querySelectorAll(".campaign-block-wrapper").forEach((camp) => {
-          validBorders.forEach((b) => camp.classList.remove(b));
-          camp.classList.add(clampedBorder);
-        });
         p.querySelectorAll(".campaign-content .modal-btn, .campaign-button").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
         });
 
-        // 7. Videos (bloque contenedor en ambos modos)
-        p.querySelectorAll(".video-block-wrapper").forEach((video) => {
-          validBorders.forEach((b) => video.classList.remove(b));
-          video.classList.add(clampedBorder);
-        });
-
-        // Fallback genérico para cualquier otro elemento con clase .theme-button
         p.querySelectorAll(".theme-button:not(.link-item-wrapper):not(.product-item-wrapper):not(.product-regular-wrapper):not(.product-grid-card):not(.product-slide-card):not(.campaign-block-wrapper):not(.banner-block-wrapper):not(.video-block-wrapper)").forEach((btn) => {
           validBorders.forEach((b) => btn.classList.remove(b));
           btn.classList.add(btnBorder);
@@ -1479,52 +1597,12 @@ export function designDraftManager() {
       const validShadows = ["shadow-0", "shadow-1", "shadow-2", "shadow-3", "shadow-card"];
 
       previews.forEach((p) => {
-        // Aplicar sombras a todos los bloques: enlaces, productos regulares, grupos de productos, banners, campañas y videos
         const targets = p.querySelectorAll(
           ".theme-button, .link-item-wrapper, .product-item-wrapper, .product-regular-wrapper, .product-grid-card, .product-slide-card, .banner-block-wrapper, .campaign-block-wrapper, .video-block-wrapper, .campaign-content .modal-btn, .campaign-button"
         );
         targets.forEach((el) => {
           validShadows.forEach((s) => el.classList.remove(s));
           el.classList.add(shadowClass);
-        });
-      });
-    }
-
-    // --- C. ESTILO DE CABECERA Y SEPARACIÓN VOID ---
-    if (fields.header) {
-      previews.forEach((p) => {
-        p.querySelectorAll(".header-variant-wrapper").forEach((wrap) => {
-          if (wrap.dataset.headerVariant === fields.header) {
-            wrap.classList.remove("hidden");
-          } else {
-            wrap.classList.add("hidden");
-          }
-        });
-      });
-    }
-
-    if (fields.void_space !== undefined) {
-      const spaceVal = String(fields.void_space);
-      previews.forEach((p) => {
-        p.querySelectorAll(".void-space").forEach((el) => {
-          el.style.setProperty("padding-top", `${spaceVal}%`, "important");
-        });
-      });
-    }
-
-    // --- D. TEXTOS DEL PERFIL (TÍTULO Y BIO) ---
-    if (fields.title !== undefined) {
-      previews.forEach((p) => {
-        p.querySelectorAll(".header-variant-wrapper h1, .header-variant-wrapper .title-hero-regular, .header-variant-wrapper .title-hero-big, .header-variant-wrapper .title-hero-mini").forEach((el) => {
-          el.textContent = fields.title;
-        });
-      });
-    }
-
-    if (fields.desc !== undefined) {
-      previews.forEach((p) => {
-        p.querySelectorAll(".header-variant-wrapper p.bold500, .header-variant-wrapper .desc-hero-regular, .header-variant-wrapper .desc-hero-big, .header-variant-wrapper .desc-hero-mini").forEach((el) => {
-          el.textContent = fields.desc;
         });
       });
     }
@@ -1549,7 +1627,8 @@ export function designDraftManager() {
       }
     });
 
-    // --- E. ACTUALIZACIÓN EN VIVO DE BLOQUES DE CONTENIDO (CAMPAÑAS, BANNERS, TÍTULOS, TEXTOS, ETC.) ---
+    // --- E. ACTUALIZACIÓN DECLARATIVA EN VIVO DE TODOS LOS BLOQUES VÍA LIVEPREVIEWMANAGER ---
+    const structuredDraft = getDraftState() || {};
     const contentMap = {};
     const contentProductMap = {};
 
@@ -1574,667 +1653,77 @@ export function designDraftManager() {
       }
     });
 
-    previews.forEach((p) => {
-      // 1. Actualización de cada bloque por su id (o fallback a índice)
-      Object.keys(contentMap).forEach((idx) => {
-        const cData = contentMap[idx];
-        const blkId = cData.id || document.querySelector(`#content-item-${idx}`)?.getAttribute("data-block-id");
-        let blocks = blkId ? p.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
-        if (!blocks || !blocks.length) {
-          if (!blkId) {
-            blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
-          }
-        }
-        if (!blocks.length) return;
+    // Unificar índices de bloques presentes en contentMap, contentProductMap o structuredDraft.content
+    const allBlockIndices = new Set([
+      ...Object.keys(contentMap),
+      ...Object.keys(contentProductMap)
+    ]);
+    if (Array.isArray(structuredDraft.content)) {
+      structuredDraft.content.forEach((_, i) => allBlockIndices.add(String(i)));
+    }
 
-        blocks.forEach((block) => {
-          // Visibilidad (switch active)
-          const activeSwitch = blkId 
-            ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[type="checkbox"][name$="[active]"]`) 
-            : document.querySelector(`input[type="checkbox"][name="content[${idx}][active]"]`);
-          const isAct = (cData.active !== undefined)
-            ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
-            : (activeSwitch ? activeSwitch.checked : (block.style.display !== "none"));
+    if (window.LivePreviewManager && typeof window.LivePreviewManager.renderBlockInPreview === "function") {
+      allBlockIndices.forEach((idx) => {
+        const numIdx = parseInt(idx, 10);
+        const structBlock = (Array.isArray(structuredDraft.content) && structuredDraft.content[numIdx])
+          ? structuredDraft.content[numIdx]
+          : {};
+        const flatBlock = contentMap[idx] || {};
+        const mergedBlock = Object.assign({}, structBlock, flatBlock);
 
-          if (cData.active !== undefined || activeSwitch) {
-            const variant = block.dataset.layoutVariant;
-            const videoVariant = block.dataset.videoVariant;
-            if (variant) {
-              const currentLayout = cData.layout || (document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid");
-              if (variant === currentLayout) {
-                block.style.display = isAct ? "" : "none";
-              } else {
-                block.style.display = "none";
-              }
-            } else if (videoVariant) {
-              const currentVideoMode = cData.video_mode || (document.querySelector(`input[name="content[${idx}][video_mode]"]:checked`)?.value || "link");
-              if (videoVariant === currentVideoMode) {
-                block.style.display = isAct ? "" : "none";
-              } else {
-                block.style.display = "none";
-              }
-            } else {
-              block.style.display = isAct ? "" : "none";
-            }
-          }
-
-          // A. CAMPAÑA
-          if (block.classList.contains("campaign-block-wrapper")) {
-            const imgPosition = cData.img_position || (block.querySelector("figure.faded-image:not([style*='display: none'])") ? "header" : "background");
-            const effectiveSize = (imgPosition === "header") ? "horizontal" : (cData.size || (block.classList.contains("campaign-size-square") ? "square" : (block.classList.contains("campaign-size-vertical") ? "vertical" : "horizontal")));
-
-            // Tamaño del contenedor
-            block.classList.remove("campaign-size-horizontal", "campaign-size-square", "campaign-size-vertical");
-            block.classList.add("campaign-size-" + effectiveSize);
-
-            // Posición de imagen (Fondo vs Cabecera)
-            const bgLayer = block.querySelector(".campaign-bg-layer");
-            const headerFig = block.querySelector("figure.faded-image");
-            const contentEl = block.querySelector(".campaign-content");
-
-            if (imgPosition === "header") {
-              if (bgLayer) bgLayer.style.display = "none";
-              if (headerFig) {
-                headerFig.style.display = "";
-              } else if (bgLayer) {
-                const bgImg = bgLayer.querySelector("img");
-                if (bgImg && bgImg.src) {
-                  const fig = document.createElement("figure");
-                  fig.className = "w100 ar-square overflow-hidden faded-image";
-                  fig.innerHTML = `<img src="${bgImg.src}" alt="Campaña" class="cover w100 ar-square">`;
-                  if (contentEl) block.insertBefore(fig, contentEl);
-                }
-              }
-              if (contentEl) {
-                contentEl.classList.remove("pt20");
-                contentEl.classList.add("pt0");
-              }
-            } else {
-              if (headerFig) headerFig.style.display = "none";
-              if (bgLayer) {
-                bgLayer.style.display = "";
-              } else if (headerFig) {
-                const hImg = headerFig.querySelector("img");
-                if (hImg && hImg.src) {
-                  const newBgLayer = document.createElement("div");
-                  newBgLayer.className = "campaign-bg-layer";
-                  newBgLayer.style.cssText = "position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;";
-                  newBgLayer.innerHTML = `
-                    <img src="${hImg.src}" alt="Campaña" class="cover w100 h100" style="object-fit: cover;">
-                    <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from ${cData.bg_color || "#1e1e1e"} l c h / ${cData.bg_opacity || 80}%);"></div>
-                  `;
-                  block.insertBefore(newBgLayer, block.firstChild);
-                }
-              }
-              if (contentEl) {
-                contentEl.classList.remove("pt0");
-                contentEl.classList.add("pt20");
-              }
-            }
-
-            // Formato flex de contenido y ancla del botón según tamaño
-            const isNotHorizontal = (effectiveSize !== "horizontal");
-            if (contentEl) {
-              if (isNotHorizontal) {
-                contentEl.classList.add("flex-1");
-                contentEl.style.flex = "1 1 auto";
-                contentEl.style.minHeight = "max-content";
-              } else {
-                contentEl.classList.remove("flex-1");
-                contentEl.style.flex = "";
-                contentEl.style.minHeight = "";
-              }
-            }
-
-            const btnEl = block.querySelector(".campaign-button");
-            if (btnEl) {
-              if (isNotHorizontal) {
-                btnEl.classList.add("campaign-btn-anchor-bottom");
-              } else {
-                btnEl.classList.remove("campaign-btn-anchor-bottom");
-              }
-              if (cData.button_text !== undefined) {
-                btnEl.textContent = cData.button_text.trim() || "Suscribirme";
-              }
-              if (cData.btn_bg_color) {
-                btnEl.style.setProperty("background-color", cData.btn_bg_color, "important");
-              }
-              if (cData.btn_text_color) {
-                btnEl.style.setProperty("color", cData.btn_text_color, "important");
-              }
-            }
-
-            // Colores de fondo y opacidad de overlay
-            const bgColor = cData.bg_color || block.style.backgroundColor || "#1e1e1e";
-            if (cData.bg_color) {
-              block.style.setProperty("background-color", bgColor, "important");
-            }
-
-            const bgOverlay = block.querySelector(".campaign-bg-overlay");
-            if (bgOverlay && (cData.bg_color || cData.bg_opacity !== undefined)) {
-              const opacityVal = (cData.bg_opacity !== undefined) ? cData.bg_opacity : 80;
-              bgOverlay.style.setProperty("background-color", `oklch(from ${bgColor} l c h / ${opacityVal}%)`, "important");
-            }
-
-            // Grupo de texto
-            const textGroup = block.querySelector(".campaign-text-group");
-            if (textGroup) {
-              // Alineación horizontal
-              if (cData.text_align) {
-                ["left", "center", "right"].forEach((a) => {
-                  textGroup.classList.remove("campaign-align-" + a);
-                });
-                textGroup.classList.add("campaign-align-" + cData.text_align);
-
-                const innerDiv = textGroup.querySelector("div.flex-column.gap5");
-                if (innerDiv) {
-                  ["left", "center", "right"].forEach((a) => {
-                    innerDiv.classList.remove("campaign-align-" + a);
-                  });
-                  innerDiv.classList.add("campaign-align-" + cData.text_align);
-                }
-              }
-
-              // Alineación vertical
-              ["top", "center", "bottom"].forEach((p) => {
-                textGroup.classList.remove("campaign-text-pos-" + p);
-              });
-              if (isNotHorizontal && cData.text_position) {
-                textGroup.classList.add("campaign-text-pos-" + cData.text_position);
-              }
-
-              // Título
-              let h3 = textGroup.querySelector("h3");
-              const titleVal = (cData.title !== undefined) ? cData.title : (h3 ? h3.textContent : "");
-              if (titleVal.trim() !== "") {
-                if (!h3) {
-                  h3 = document.createElement("h3");
-                  h3.className = "bold700 campaign-title-large w100";
-                  const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
-                  innerDiv.insertBefore(h3, innerDiv.firstChild);
-                }
-                h3.textContent = titleVal;
-                h3.style.display = "";
-              } else if (h3) {
-                h3.style.display = "none";
-              }
-
-              if (h3) {
-                if (cData.title_size) {
-                  ["small", "medium", "large"].forEach((s) => h3.classList.remove("campaign-title-" + s));
-                  h3.classList.add("campaign-title-" + cData.title_size);
-                }
-                if (cData.title_color) {
-                  h3.style.setProperty("color", cData.title_color, "important");
-                }
-              }
-
-              // Descripción
-              let pDesc = textGroup.querySelector("p:not(.modal-btn):not(.campaign-button)");
-              const descVal = (cData.desc !== undefined) ? cData.desc : (pDesc ? pDesc.textContent : "");
-              if (descVal.trim() !== "") {
-                if (!pDesc) {
-                  pDesc = document.createElement("p");
-                  pDesc.className = "campaign-desc-medium w100";
-                  const innerDiv = textGroup.querySelector("div.flex-column.gap5") || textGroup;
-                  innerDiv.appendChild(pDesc);
-                }
-                pDesc.innerHTML = escapeHtml(descVal).replace(/\n/g, "<br>");
-                pDesc.style.display = "";
-              } else if (pDesc) {
-                pDesc.style.display = "none";
-              }
-
-              if (pDesc) {
-                if (cData.desc_size) {
-                  ["small", "medium", "large"].forEach((s) => pDesc.classList.remove("campaign-desc-" + s));
-                  pDesc.classList.add("campaign-desc-" + cData.desc_size);
-                }
-                if (cData.desc_color) {
-                  pDesc.style.setProperty("color", cData.desc_color, "important");
-                }
-              }
-
-              // Contador regresivo
-              const countdownBox = block.querySelector(".campaign-countdown-box, [data-countdown]");
-              if (countdownBox) {
-                if (cData.has_countdown !== undefined) {
-                  const hasCd = (cData.has_countdown === true || cData.has_countdown === "true" || cData.has_countdown === "1" || cData.has_countdown === 1);
-                  countdownBox.style.display = hasCd ? "" : "none";
-                }
-                if (cData.countdown_date) {
-                  countdownBox.setAttribute("data-countdown", cData.countdown_date);
-                }
-                if (cData.countdown_bg_color) {
-                  countdownBox.style.setProperty("background-color", cData.countdown_bg_color, "important");
-                }
-                if (cData.countdown_text_color) {
-                  countdownBox.style.setProperty("color", cData.countdown_text_color, "important");
-                }
-                if (cData.countdown_text_size) {
-                  ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("countdown-text-" + s));
-                  countdownBox.classList.add("countdown-text-" + cData.countdown_text_size);
-                }
-                if (cData.countdown_widget_size) {
-                  ["small", "medium", "large"].forEach((s) => countdownBox.classList.remove("campaign-countdown-widget-" + s));
-                  countdownBox.classList.add("campaign-countdown-widget-" + cData.countdown_widget_size);
-                }
-              }
-            }
-          }
-
-          // B. TÍTULO
-          else if (block.classList.contains("title-block-wrapper")) {
-            const h2 = block.querySelector("h2");
-            if (h2) {
-              if (cData.title !== undefined) {
-                h2.textContent = cData.title;
-                if (isAct) {
-                  block.style.display = (cData.title.trim() === "") ? "none" : "";
-                } else {
-                  block.style.display = "none";
-                }
-              }
-              if (cData.title_size) {
-                ["x18", "x20", "x24"].forEach((s) => h2.classList.remove(s));
-                const sizeMap = { small: "x18", medium: "x20", large: "x24" };
-                h2.classList.add(sizeMap[cData.title_size] || "x18");
-              }
-              if (cData.title_weight) {
-                ["bold500", "bold600", "bold700", "bold900"].forEach((w) => h2.classList.remove(w));
-                h2.classList.add("bold" + cData.title_weight);
-              }
-            }
-          }
-
-          // C. TEXTO
-          else if (block.classList.contains("text-block-wrapper")) {
-            const pEl = block.querySelector("p");
-            if (pEl) {
-              if (cData.text !== undefined) {
-                pEl.innerHTML = escapeHtml(cData.text).replace(/\n/g, "<br>");
-                if (isAct) {
-                  block.style.display = (cData.text.trim() === "") ? "none" : "";
-                } else {
-                  block.style.display = "none";
-                }
-              }
-              if (cData.text_weight) {
-                ["bold400", "bold500"].forEach((w) => pEl.classList.remove(w));
-                pEl.classList.add("bold" + cData.text_weight);
-              }
-              if (cData.text_align) {
-                ["text-left", "text-center", "text-right"].forEach((a) => block.classList.remove(a));
-                block.classList.add("text-" + cData.text_align);
-              }
-            }
-          }
-
-          // D. SEPARADOR
-          else if (block.classList.contains("separator-block-wrapper")) {
-            const sepIcon = cData.separator_icon !== undefined 
-              ? cData.separator_icon 
-              : (document.querySelector(`input[name="content[${idx}][separator_icon]"]:checked`)?.value || "none");
-            const sepSize = cData.separator_size !== undefined 
-              ? cData.separator_size 
-              : (document.querySelector(`input[name="content[${idx}][separator_size]"]:checked`)?.value || "large");
-            const spaceSize = cData.space_size !== undefined 
-              ? cData.space_size 
-              : (document.querySelector(`input[name="content[${idx}][space_size]"]:checked`)?.value || "40");
-
-            const isSpace = (!sepIcon || sepIcon === "none" || sepIcon === "ban");
-
-            if (isSpace) {
-              block.className = "separator-block-wrapper w100";
-              block.style.margin = "";
-              block.style.boxSizing = "";
-              block.style.userSelect = "";
-              block.style.height = spaceSize + "px";
-              block.innerHTML = "";
-            } else {
-              const editorItem = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"]`) : document.querySelector(`#content-item-${idx}`);
-              let svgHtml = "";
-              if (editorItem) {
-                const iconInput = editorItem.querySelector(`input.separator-icon-radio[value="${sepIcon}"]`);
-                const iconLbl = iconInput ? (iconInput.nextElementSibling || editorItem.querySelector(`label[for="${iconInput.id}"]`)) : null;
-                const sEl = iconLbl ? iconLbl.querySelector("svg") : null;
-                if (sEl) svgHtml = sEl.outerHTML;
-              }
-              if (!svgHtml) {
-                const iconRadio = document.querySelector(`input[name="content[${idx}][separator_icon]"][value="${sepIcon}"]`);
-                const iconLabel = iconRadio ? iconRadio.nextElementSibling : document.querySelector(`label[for="sep-ico-${sepIcon}-${idx}"]`);
-                const svgEl = iconLabel ? iconLabel.querySelector("svg") : null;
-                if (svgEl) svgHtml = svgEl.outerHTML;
-              }
-
-              block.className = "separator-block-wrapper w100 flex-row center-center color-text-card p0";
-              block.style.margin = "10px 0";
-              block.style.boxSizing = "border-box";
-              block.style.userSelect = "none";
-              block.style.height = "";
-
-              if (svgHtml) {
-                if (sepSize === "small") {
-                  block.innerHTML = `<span class="flex-row center-center" style="width: 18px; height: 18px; font-size: 18px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
-                } else {
-                  const widthPercent = (sepSize === "medium") ? "60%" : "100%";
-                  let spans = "";
-                  for (let k = 0; k < 35; k++) {
-                    spans += `<span class="flex-row center-center" style="width: 16px; height: 16px; font-size: 16px; flex-shrink: 0; line-height: 1;">${svgHtml}</span>`;
-                  }
-                  block.innerHTML = `<div style="display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; align-items: center; gap: 8px; height: 18px; overflow: hidden; width: ${widthPercent}; max-width: ${widthPercent};">${spans}</div>`;
-                }
-              }
-            }
-          }
-
-          // E. BANNER
-          else if (block.classList.contains("banner-block-wrapper")) {
-            if (cData.bg_color) {
-              block.style.setProperty("background-color", cData.bg_color, "important");
-            }
-            if (cData.bg_opacity !== undefined) {
-              const img = block.querySelector("img");
-              if (img) {
-                img.style.opacity = (cData.bg_opacity / 100).toFixed(2);
-              }
-            }
-            if (cData.size) {
-              const ratioMap = {
-                "720x720": "720 / 720",
-                "1024x720": "1024 / 720",
-                "720x1024": "720 / 1024"
-              };
-              if (ratioMap[cData.size]) {
-                block.style.aspectRatio = ratioMap[cData.size];
-              }
-            }
-            if (cData.url !== undefined) {
-              const aEl = block.querySelector("a");
-              if (aEl) aEl.href = cData.url || "#";
-            }
-          }
-
-          // F. PRODUCTO REGULAR
-          else if (block.classList.contains("product-regular-wrapper")) {
-            if (cData.title !== undefined) {
-              const pTitle = block.querySelector(".capitalize-p");
-              if (pTitle) {
-                const svgEl = pTitle.querySelector("svg");
-                pTitle.innerHTML = "";
-                if (svgEl) pTitle.appendChild(svgEl);
-                pTitle.appendChild(document.createTextNode(" " + cData.title));
-              }
-            }
-            if (cData.url !== undefined) {
-              const aEl = block.querySelector("a");
-              if (aEl) aEl.href = cData.url || "#";
-            }
-            if (cData.price !== undefined || cData.offer !== undefined || cData.discount !== undefined || cData.porcentage !== undefined) {
-              const priceContainer = block.querySelector(".flex-column.gap5.w50.p15");
-              if (priceContainer) {
-                const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][offer]"]`);
-                const isOffer = (cData.offer !== undefined)
-                  ? (cData.offer === true || cData.offer === "true" || cData.offer === 1 || cData.offer === "1")
-                  : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
-
-                const priceInput = document.querySelector(`input[name="content[${idx}][price]"]`);
-                const priceVal = (cData.price !== undefined)
-                  ? String(cData.price).trim()
-                  : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
-
-                const discountInput = document.querySelector(`input[name="content[${idx}][discount]"]`);
-                const percentageInput = document.querySelector(`input[name="content[${idx}][porcentage]"]`);
-
-                let discountVal = (cData.discount !== undefined)
-                  ? String(cData.discount).trim()
-                  : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".bold500:last-child")?.textContent.replace("$", "").trim() || ""));
-
-                let pctVal = (cData.porcentage !== undefined)
-                  ? String(cData.porcentage).trim()
-                  : (percentageInput ? percentageInput.value.trim() : "");
-
-                // Si discountVal está vacío o es igual al precio y tenemos porcentaje > 0, calcularlo
-                if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
-                  discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
-                }
-
-                // Eliminar contenido de precios anterior
-                const existingPrices = priceContainer.querySelectorAll("p:not(.capitalize-p), div.flex-column");
-                existingPrices.forEach((el) => el.remove());
-
-                if (!isOffer) {
-                  if (priceVal !== "") {
-                    const p = document.createElement("p");
-                    p.className = "bold500";
-                    p.textContent = "$" + priceVal;
-                    priceContainer.appendChild(p);
-                  }
-                } else {
-                  const effectiveDiscount = discountVal || priceVal;
-                  const div = document.createElement("div");
-                  div.className = "flex-column center-start gap0";
-                  div.innerHTML = `
-                    <p class="inactive" style="text-decoration:line-through;">$${priceVal}</p>
-                    <p class="x16">Precio oferta</p>
-                    <p class="bold500">$${effectiveDiscount}</p>
-                  `;
-                  priceContainer.appendChild(div);
-                }
-              }
-            }
-          }
-
-          // G. GRUPO DE PRODUCTOS
-          else if (block.classList.contains("product-group-wrapper")) {
-            if (cData.title !== undefined) {
-              let pTitle = block.querySelector("p.title-color");
-              if (cData.title.trim() !== "") {
-                if (!pTitle) {
-                  pTitle = document.createElement("p");
-                  pTitle.className = "bold600 text-c title-color w100";
-                  block.insertBefore(pTitle, block.firstChild);
-                }
-                pTitle.textContent = cData.title;
-                pTitle.style.display = "";
-              } else if (pTitle) {
-                pTitle.style.display = "none";
-              }
-            }
-
-            // Cambio instantáneo de formato (Cuadrícula vs Carrusel)
-            if (cData.layout !== undefined) {
-              const variant = block.dataset.layoutVariant;
-              if (variant) {
-                const isSelected = (variant === cData.layout);
-                if (isSelected) {
-                  block.classList.remove("hidden");
-                  const activeSwitch = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[name$="[active]"]`) : document.querySelector(`input[name="content[${idx}][active]"]`);
-                  const isAct = (cData.active !== undefined)
-                    ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
-                    : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
-                  block.style.display = isAct ? "" : "none";
-                } else {
-                  block.classList.add("hidden");
-                  block.style.display = "none";
-                }
-              }
-            }
-          }
-
-          // H. ENLACE REGULAR
-          else if (block.classList.contains("link-item-wrapper")) {
-            if (cData.title !== undefined) {
-              const pTitle = block.querySelector(".cut-phrase");
-              if (pTitle) {
-                pTitle.textContent = cData.title;
-              }
-            }
-            if (cData.url !== undefined) {
-              const aEl = block.querySelector("a");
-              if (aEl) aEl.href = cData.url || "#";
-            }
-          }
-
-          // I. ENLACE DE VIDEO
-          else if (block.classList.contains("video-block-wrapper")) {
-            if (cData.title !== undefined) {
-              const pDesc = block.querySelector(".video-desc-wrap p");
-              if (pDesc) {
-                pDesc.textContent = cData.title;
-              }
-              const pPlayerTitle = block.querySelector(".video-player-mode p");
-              if (pPlayerTitle) {
-                pPlayerTitle.textContent = cData.title;
-              }
-              const facade = block.querySelector(".video-facade");
-              if (facade) {
-                facade.setAttribute("data-title", cData.title);
-              }
-            }
-            if (cData.url !== undefined) {
-              const aEls = block.querySelectorAll("a");
-              aEls.forEach((aEl) => { aEl.href = cData.url || "#"; });
-
-              const ytMatch = (cData.url || "").match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
-              const vmMatch = (cData.url || "").match(/vimeo\.com\/(?:video\/)?([0-9]+)/i);
-
-              const facade = block.querySelector(".video-facade");
-              if (facade && cData.url) {
-                if (ytMatch && ytMatch[1]) {
-                  facade.setAttribute("data-embed-url", `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0&autoplay=1`);
-                  const img = facade.querySelector("img");
-                  if (img && (!cData.imgSrc || cData.imgSrc.includes("no-image.webp"))) {
-                    img.src = `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`;
-                  }
-                } else if (vmMatch && vmMatch[1]) {
-                  facade.setAttribute("data-embed-url", `https://player.vimeo.com/video/${vmMatch[1]}?autoplay=1`);
-                }
-              }
-
-              const iframe = block.querySelector("iframe");
-              if (iframe && cData.url) {
-                if (ytMatch && ytMatch[1]) {
-                  iframe.src = `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0`;
-                } else if (vmMatch && vmMatch[1]) {
-                  iframe.src = `https://player.vimeo.com/video/${vmMatch[1]}`;
-                }
-              }
-              const video = block.querySelector("video");
-              if (video && cData.url) {
-                const source = video.querySelector("source");
-                if (source) {
-                  source.src = cData.url;
-                  video.load();
-                }
-              }
-            }
-            if (cData.imgSrc !== undefined) {
-              const facadeImg = block.querySelector(".video-facade img");
-              if (facadeImg && cData.imgSrc) {
-                facadeImg.src = cData.imgSrc;
-              }
-            }
-            // Cambio instantáneo de modo de video (link vs player)
-            if (cData.video_mode !== undefined) {
-              const variant = block.dataset.videoVariant;
-              if (variant) {
-                const isSelected = (variant === cData.video_mode);
-                if (isSelected) {
-                  block.classList.remove("hidden");
-                  const activeSwitch = blkId ? document.querySelector(`.sortable-item[data-block-id="${blkId}"] input[name$="[active]"]`) : document.querySelector(`input[name="content[${idx}][active]"]`);
-                  const isAct = (cData.active !== undefined)
-                    ? (cData.active === "true" || cData.active === true || cData.active === 1 || cData.active === "1")
-                    : (activeSwitch ? (activeSwitch.checked || activeSwitch.getAttribute("active") === "1") : true);
-                  block.style.display = isAct ? "" : "none";
-                } else {
-                  block.classList.add("hidden");
-                  block.style.display = "none";
-                }
-              }
-            }
-          }
-        });
-      });
-
-      // 2. Sub-productos de grupos de productos
-      Object.keys(contentProductMap).forEach((idx) => {
-        const blkId = document.querySelector(`#content-item-${idx}`)?.getAttribute("data-block-id");
-        let blocks = blkId ? p.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
-        if (!blocks.length) {
-          blocks = p.querySelectorAll(`[data-content-index="${idx}"]`);
-        }
-        if (!blocks.length) return;
+        // Fusionar sub-productos si existen
         const subMap = contentProductMap[idx];
+        if (subMap || Array.isArray(structBlock.products)) {
+          const baseProducts = Array.isArray(structBlock.products) ? structBlock.products.map((p) => Object.assign({}, p)) : [];
+          if (subMap) {
+            Object.keys(subMap).forEach((pIdx) => {
+              const pNum = parseInt(pIdx, 10);
+              baseProducts[pNum] = Object.assign({}, baseProducts[pNum] || {}, subMap[pIdx]);
+            });
+          }
+          mergedBlock.products = baseProducts;
+        }
 
-        blocks.forEach((block) => {
-          const cards = block.querySelectorAll(".product-grid-card, .product-slide-card");
+        // Asegurar id y type desde el DOM del editor si aún no están en el objeto
+        const editorItem = document.querySelector(`#content-item-${idx}`);
+        if (!mergedBlock.id && editorItem) {
+          mergedBlock.id = editorItem.getAttribute("data-block-id") || editorItem.querySelector('input[name$="[id]"]')?.value;
+        }
+        if (!mergedBlock.type && editorItem) {
+          mergedBlock.type = editorItem.querySelector('input[name$="[type]"]')?.value;
+        }
 
-          Object.keys(subMap).forEach((pIdx) => {
-            const card = cards[pIdx];
-            if (!card) return;
-            const pData = subMap[pIdx];
-
-            if (pData.title !== undefined) {
-              const titleEl = card.querySelector(".capitalize-p");
-              if (titleEl) {
-                const svgEl = titleEl.querySelector("svg");
-                titleEl.innerHTML = "";
-                if (svgEl) titleEl.appendChild(svgEl);
-                titleEl.appendChild(document.createTextNode(" " + pData.title));
-              }
-            }
-
-            if (pData.url !== undefined) {
-              const aEl = card.querySelector("a");
-              if (aEl) aEl.href = pData.url || "#";
-            }
-
-            if (pData.price !== undefined || pData.offer !== undefined || pData.discount !== undefined || pData.porcentage !== undefined) {
-              const priceContainer = card.querySelector(".mt-auto");
-              if (priceContainer) {
-                const offerSwitch = document.querySelector(`input[type="checkbox"][name="content[${idx}][products][${pIdx}][offer]"]`) || document.querySelector(`.checkbox-switch[name="content[${idx}][products][${pIdx}][offer]"]`);
-                const isOffer = (pData.offer !== undefined)
-                  ? (pData.offer === true || pData.offer === "true" || pData.offer === 1 || pData.offer === "1")
-                  : (offerSwitch ? (offerSwitch.checked || offerSwitch.getAttribute("active") === "1") : false);
-
-                const priceInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][price]"]`);
-                const priceVal = (pData.price !== undefined)
-                  ? String(pData.price).trim()
-                  : (priceInput ? priceInput.value.trim() : (priceContainer.querySelector(".bold500, .inactive")?.textContent.replace("$", "").trim() || ""));
-
-                const discountInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][discount]"]`);
-                const percentageInput = document.querySelector(`input[name="content[${idx}][products][${pIdx}][porcentage]"]`);
-
-                let discountVal = (pData.discount !== undefined)
-                  ? String(pData.discount).trim()
-                  : (discountInput ? discountInput.value.trim() : (priceContainer.querySelector(".text-success")?.textContent.replace("$", "").trim() || ""));
-
-                let pctVal = (pData.porcentage !== undefined)
-                  ? String(pData.porcentage).trim()
-                  : (percentageInput ? percentageInput.value.trim() : "");
-
-                if ((!discountVal || discountVal === "" || discountVal === priceVal) && pctVal && parseFloat(pctVal) > 0 && parseFloat(priceVal) > 0) {
-                  discountVal = String(Math.round(parseFloat(priceVal) * (1 - (parseFloat(pctVal) / 100))));
-                }
-
-                if (!isOffer) {
-                  priceContainer.innerHTML = priceVal !== "" ? `<p class="bold500">$${priceVal}</p>` : "";
-                } else {
-                  const effectiveDiscount = discountVal || priceVal;
-                  priceContainer.innerHTML = `
-                    <div class="flex-column gap0">
-                      <p class="inactive x16" style="text-decoration: line-through;">$${priceVal}</p>
-                      <p class="bold500 text-success">$${effectiveDiscount}</p>
-                    </div>
-                  `;
-                }
-              }
-            }
-          });
+        previews.forEach((p) => {
+          window.LivePreviewManager.renderBlockInPreview(p, mergedBlock, idx, structuredDraft);
         });
       });
-    });
+    }
+  }
+
+  /**
+   * Sincroniza la interfaz visual de estado de visibilidad del perfil (texto en Visibilidad y badge en barra lateral).
+   * @param {boolean} isHidden
+   */
+  function syncProfileVisibilityUI(isHidden) {
+    const statusText = document.getElementById("profile-visibility-status-text");
+    if (statusText) {
+      statusText.textContent = isHidden ? "oculto" : "visible";
+    }
+    const hiddenBadge = document.getElementById("sidebar-status-hidden-badge");
+    const visibleLink = document.getElementById("sidebar-status-visible-link");
+    if (hiddenBadge && visibleLink) {
+      if (isHidden) {
+        hiddenBadge.classList.remove("hidden");
+        hiddenBadge.style.removeProperty("display");
+        visibleLink.classList.add("hidden");
+        visibleLink.style.setProperty("display", "none", "important");
+      } else {
+        hiddenBadge.classList.add("hidden");
+        hiddenBadge.style.setProperty("display", "none", "important");
+        visibleLink.classList.remove("hidden");
+        visibleLink.style.removeProperty("display");
+      }
+    }
   }
 
   // =========================================================================
@@ -2395,10 +1884,7 @@ export function designDraftManager() {
           }
 
           if (cb.name === "hide") {
-            const statusText = document.getElementById("profile-visibility-status-text");
-            if (statusText) {
-              statusText.textContent = isChecked ? "oculto" : "visible";
-            }
+            syncProfileVisibilityUI(isChecked);
           }
 
           syncConditionalUI(cb);
@@ -2844,6 +2330,201 @@ export function designDraftManager() {
   }
 
   /**
+   * Procesa en 0ms y de forma 100% local en el cliente las acciones sobre imágenes
+   * (toggle_img_show, delete_img) y sub-productos de product_group (add_sub_product, delete_sub_product)
+   * sin enviar el formulario al servidor ni reiniciar el estado Guardar/Descartar.
+   *
+   * @param {HTMLElement} submitBtn Botón disparador
+   * @returns {boolean} True si la acción fue manejada localmente.
+   */
+  function handleLocalImageAndSubProductAction(submitBtn) {
+    if (!submitBtn || !submitBtn.name) return false;
+    const nameStr = submitBtn.name;
+    const block = submitBtn.closest(".sortable-item") || submitBtn.closest(".content-block");
+    if (!block) return false;
+
+    const bId = block.getAttribute("data-block-id") || block.querySelector('input[name$="[id]"]')?.value || null;
+    const bIdx = getBlockIndex(block) ?? 0;
+
+    // 1. Mostrar / Ocultar imagen (toggle_img_show)
+    if (nameStr.endsWith("[toggle_img_show]")) {
+      const imgShowName = nameStr.replace(/\[toggle_img_show\]$/, "[imgShow]");
+      const imgShowInput = block.querySelector(`input[name="${imgShowName}"]`);
+      const currentVal = imgShowInput ? (imgShowInput.value === "true" || imgShowInput.value === "1") : true;
+      const newVal = !currentVal;
+
+      if (imgShowInput) {
+        imgShowInput.value = newVal ? "true" : "false";
+      }
+
+      const eyeOpen = submitBtn.querySelector(".icon-eye-open");
+      const eyeClosed = submitBtn.querySelector(".icon-eye-closed");
+      if (eyeOpen && eyeClosed) {
+        eyeOpen.style.display = newVal ? "" : "none";
+        eyeClosed.style.display = newVal ? "none" : "";
+      }
+      submitBtn.title = newVal ? "Ocultar imagen" : "Mostrar imagen";
+
+      setDraftField(imgShowName, newVal, bId);
+      syncBlockActiveState(block, bIdx);
+      applyDraftToPreview(getDraft());
+      notifyDraftState();
+      return true;
+    }
+
+    // 2. Eliminar imagen personalizada (delete_img)
+    if (nameStr.endsWith("[delete_img]")) {
+      const basePrefix = nameStr.replace(/\[delete_img\]$/, "");
+      const scopeEl = submitBtn.closest(".sub-product-item") || block;
+      const noImgUrl = "/Uploads/Media/Static/Custom/no-image.webp";
+
+      const thumb = scopeEl.querySelector("figure img");
+      if (thumb) {
+        thumb.src = noImgUrl;
+      }
+
+      const imgInput = block.querySelector(`input[name="${basePrefix}[img]"]`);
+      const imgDefInput = block.querySelector(`input[name="${basePrefix}[imgDefault]"]`);
+      const imgShowInput = block.querySelector(`input[name="${basePrefix}[imgShow]"]`);
+      if (imgInput) imgInput.value = "no-image.webp";
+      if (imgDefInput) imgDefInput.value = "false";
+      if (imgShowInput) imgShowInput.value = "true";
+
+      const fileInp = scopeEl.querySelector('input[type="file"]');
+      if (fileInp) {
+        try { fileInp.value = ""; } catch (_) {}
+        delete fileInp.dataset.isCropped;
+      }
+
+      submitBtn.style.display = "none";
+
+      const toggleBtn = scopeEl.querySelector('button[name$="[toggle_img_show]"]');
+      if (toggleBtn) {
+        const eyeOpen = toggleBtn.querySelector(".icon-eye-open");
+        const eyeClosed = toggleBtn.querySelector(".icon-eye-closed");
+        if (eyeOpen && eyeClosed) {
+          eyeOpen.style.display = "";
+          eyeClosed.style.display = "none";
+        }
+      }
+
+      setDraftField(`${basePrefix}[img]`, "no-image.webp", bId);
+      setDraftField(`${basePrefix}[imgDefault]`, false, bId);
+      setDraftField(`${basePrefix}[imgSrc]`, noImgUrl, bId);
+      setDraftField(`${basePrefix}[imgShow]`, true, bId);
+
+      syncBlockActiveState(block, bIdx);
+      applyDraftToPreview(getDraft());
+      notifyDraftState();
+      return true;
+    }
+
+    // 3. Añadir sub-producto en product_group (add_sub_product)
+    if (nameStr.endsWith("[add_sub_product]")) {
+      const subContainer = block.querySelector(".sub-products-container") || submitBtn.parentElement;
+      if (!subContainer) return false;
+      const currentSubItems = Array.from(subContainer.querySelectorAll(".sub-product-item"));
+      if (currentSubItems.length >= 8) return true;
+
+      const newSubIdx = currentSubItems.length;
+      const tplGroup = document.getElementById("tpl_block_product_group");
+      let newSubNode = null;
+      if (tplGroup) {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = tplGroup.innerHTML.replace(/\{\{INDEX\}\}/g, String(bIdx));
+        const tplSub = tmp.querySelector(".sub-product-item");
+        if (tplSub) newSubNode = tplSub.cloneNode(true);
+      }
+
+      if (newSubNode) {
+        subContainer.insertBefore(newSubNode, submitBtn);
+      }
+
+      reindexSubProductsInBlock(block, bIdx);
+
+      const newCount = subContainer.querySelectorAll(".sub-product-item").length;
+      const isOdd = newCount % 2 !== 0;
+
+      window.updateJsonDraft((state) => {
+        if (!state || !Array.isArray(state.content)) return state;
+        const targetBlock = (bId && state.content.find((b) => b && b.id === bId)) || state.content[bIdx];
+        if (targetBlock) {
+          if (!Array.isArray(targetBlock.products)) targetBlock.products = [];
+          targetBlock.products.push({
+            img: "no-image.webp",
+            imgSrc: "/Uploads/Media/Static/Custom/no-image.webp",
+            title: "",
+            url: "",
+            price: "",
+            offer: false,
+            discount: "",
+            porcentage: 0,
+            imgDefault: false,
+            imgShow: true,
+            metaTitle: "",
+            metaDesc: "",
+            metaImg: ""
+          });
+          if (isOdd) {
+            targetBlock.layout = "slide";
+          }
+        }
+        return state;
+      });
+
+      if (window.__formComponents) {
+        window.__formComponents.initCheckboxSwitches?.();
+      }
+      syncBlockActiveState(block, bIdx);
+      applyDraftToPreview(getDraft());
+      document.dispatchEvent(new CustomEvent("previewUpdated"));
+      document.dispatchEvent(new CustomEvent("contentUpdated"));
+      notifyDraftState();
+      return true;
+    }
+
+    // 4. Eliminar sub-producto en product_group (delete_sub_product)
+    if (nameStr.endsWith("[delete_sub_product]")) {
+      const subItem = submitBtn.closest(".sub-product-item");
+      const subContainer = block.querySelector(".sub-products-container") || subItem?.parentElement;
+      if (!subItem || !subContainer) return false;
+
+      const currentSubItems = Array.from(subContainer.querySelectorAll(".sub-product-item"));
+      if (currentSubItems.length <= 2) return true;
+
+      const subIdx = currentSubItems.indexOf(subItem);
+      if (subIdx === -1) return false;
+
+      subItem.remove();
+      reindexSubProductsInBlock(block, bIdx);
+
+      const newCount = subContainer.querySelectorAll(".sub-product-item").length;
+      const isOdd = newCount % 2 !== 0;
+
+      window.updateJsonDraft((state) => {
+        if (!state || !Array.isArray(state.content)) return state;
+        const targetBlock = (bId && state.content.find((b) => b && b.id === bId)) || state.content[bIdx];
+        if (targetBlock && Array.isArray(targetBlock.products)) {
+          targetBlock.products.splice(subIdx, 1);
+          if (isOdd) {
+            targetBlock.layout = "slide";
+          }
+        }
+        return state;
+      });
+
+      syncBlockActiveState(block, bIdx);
+      applyDraftToPreview(getDraft());
+      document.dispatchEvent(new CustomEvent("previewUpdated"));
+      document.dispatchEvent(new CustomEvent("contentUpdated"));
+      notifyDraftState();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Parsea de manera segura respuestas que deben ser JSON, limpiando
    * cualquier salida previa o posterior (como warnings o notices de depuración).
    *
@@ -3215,6 +2896,9 @@ export function designDraftManager() {
 
       const submitter = e.submitter || lastClickedSubmitButton;
       if (submitter && isStructuralAction(submitter)) {
+        if (handleLocalImageAndSubProductAction(submitter)) {
+          return;
+        }
         if (submitter.name && (submitter.name.includes("delete_sub_product") || submitter.name.includes("delete_img"))) {
           performOptimisticDelete(submitter);
         }
@@ -3261,6 +2945,9 @@ export function designDraftManager() {
 
         if (isStructuralAction(submitBtn)) {
           e.preventDefault();
+          if (handleLocalImageAndSubProductAction(submitBtn)) {
+            return;
+          }
           if (submitBtn.name && (submitBtn.name.includes("delete_sub_product") || submitBtn.name.includes("delete_img"))) {
             performOptimisticDelete(submitBtn);
           }
@@ -3332,6 +3019,9 @@ export function designDraftManager() {
     // Solo procesar controles pertenecientes al contenedor de edición
     if (!target.closest(".remote-container") && !target.closest(".custom-color-picker-popover")) return;
 
+    const ownerBlock = target.closest(".sortable-item.content-block, .sortable-item[data-block-id]");
+    const ownerBlockId = ownerBlock?.getAttribute("data-block-id") || ownerBlock?.querySelector('input[name$="[id]"]')?.value || null;
+
     // Manejo de selectores de color
     const isColor = target.type === "color" || target.classList.contains("color-picker");
     if (isColor) {
@@ -3339,7 +3029,7 @@ export function designDraftManager() {
       if (labelText && target.value) {
         labelText.textContent = target.value;
       }
-      setDraftField(target.name, target.value);
+      setDraftField(target.name, target.value, ownerBlockId);
       applyDraftToPreview(getDraft());
       return;
     }
@@ -3355,7 +3045,7 @@ export function designDraftManager() {
           if (valEl) valEl.textContent = `${target.value}%`;
         }
       }
-      setDraftField(target.name, target.value);
+      setDraftField(target.name, target.value, ownerBlockId);
       applyDraftToPreview(getDraft());
 
       // Sincronizar estado de activación/desbloqueo del bloque en tiempo real mientras se escribe
@@ -3374,6 +3064,9 @@ export function designDraftManager() {
     if (!target || !target.name) return;
 
     if (!target.closest(".remote-container") && !target.closest(".custom-color-picker-popover")) return;
+
+    const ownerBlock = target.closest(".sortable-item.content-block, .sortable-item[data-block-id]");
+    const ownerBlockId = ownerBlock?.getAttribute("data-block-id") || ownerBlock?.querySelector('input[name$="[id]"]')?.value || null;
 
     // Sincronizar UI condicional del formulario
     syncConditionalUI(target);
@@ -3430,10 +3123,10 @@ export function designDraftManager() {
       if (target.classList && target.classList.contains("separator-icon-radio")) {
         const isSpace = (target.value === "none" || target.value === "ban");
         const modeFieldName = target.name.replace(/\[separator_icon\]$/, "[separator_mode]");
-        setDraftField(modeFieldName, isSpace ? "space" : "line");
+        setDraftField(modeFieldName, isSpace ? "space" : "line", ownerBlockId);
       }
 
-      setDraftField(target.name, target.value);
+      setDraftField(target.name, target.value, ownerBlockId);
       applyDraftToPreview(getDraft());
       const block = target.closest(".sortable-item.content-block");
       if (block) {
@@ -3447,66 +3140,37 @@ export function designDraftManager() {
 
     // Checkboxes
     if (target.type === "checkbox") {
-      setDraftField(target.name, target.checked ? (target.value || "true") : "false");
+      // Si el usuario conmuta manualmente el switch de activación de un bloque, registrar su preferencia
+      if (target.matches(".checkbox-switch") && /^content\[\d+\]\[active\]$/.test(target.name)) {
+        const editorBlock = target.closest(".sortable-item");
+        if (editorBlock) {
+          editorBlock.dataset.userTurnedOff = target.checked ? "false" : "true";
+        }
+      }
+
+      setDraftField(target.name, target.checked ? (target.value || "true") : "false", ownerBlockId);
       applyDraftToPreview(getDraft());
 
-      // Si es el switch de ocultar perfil, sincronizar el texto explicativo de la tarjeta
+      // Si es el switch de ocultar perfil, sincronizar el texto explicativo de la tarjeta y badge lateral
       if (target.name === "hide") {
-        const statusText = document.getElementById("profile-visibility-status-text");
-        if (statusText) {
-          statusText.textContent = target.checked ? "oculto" : "visible";
-        }
+        syncProfileVisibilityUI(target.checked);
       }
 
-      // Sincronizar visibilidad de elementos en la vista previa al conmutar switches de activación de bloque
-      if (target.matches(".checkbox-switch")) {
-        const match = target.name && target.name.match(/^content\[(\d+)\]\[active\]$/);
-        if (match) {
-          const idx = match[1];
-          const editorBlock = target.closest(".sortable-item");
-          const blkId = editorBlock?.getAttribute("data-block-id") || editorBlock?.querySelector('input[name$="[id]"]')?.value;
-
-          document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-            let items = blkId ? preview.querySelectorAll(`[data-block-id="${blkId}"]`) : [];
-            if (!items || !items.length) {
-              if (!blkId) {
-                items = preview.querySelectorAll(`[data-content-index="${idx}"]`);
-              }
-            }
-            items.forEach((item) => {
-              const variant = item.dataset.layoutVariant;
-              const videoVariant = item.dataset.videoVariant;
-              if (variant) {
-                const selectedLayout = document.querySelector(`input[name="content[${idx}][layout]"]:checked`)?.value || "grid";
-                if (variant === selectedLayout) {
-                  item.style.display = target.checked ? "" : "none";
-                  if (target.checked) item.classList.remove("hidden");
-                } else {
-                  item.style.display = "none";
-                  item.classList.add("hidden");
-                }
-              } else if (videoVariant) {
-                const selectedVideoMode = document.querySelector(`input[name="content[${idx}][video_mode]"]:checked`)?.value || "link";
-                if (videoVariant === selectedVideoMode) {
-                  item.style.display = target.checked ? "" : "none";
-                  if (target.checked) item.classList.remove("hidden");
-                } else {
-                  item.style.display = "none";
-                  item.classList.add("hidden");
-                }
-              } else {
-                item.style.display = target.checked ? "" : "none";
-              }
-            });
-          });
+      if (!(target.matches(".checkbox-switch") && /^content\[\d+\]\[active\]$/.test(target.name))) {
+        const block = target.closest(".sortable-item.content-block");
+        if (block) {
+          const idx = getBlockIndex(block);
+          if (idx !== null) {
+            syncBlockActiveState(block, idx);
+          }
         }
-        return;
       }
+      return;
     }
 
     // Selectores y otros inputs
     if (target.type !== "file") {
-      setDraftField(target.name, target.value);
+      setDraftField(target.name, target.value, ownerBlockId);
       applyDraftToPreview(getDraft());
       const block = target.closest(".sortable-item.content-block");
       if (block) {
@@ -3545,9 +3209,15 @@ export function designDraftManager() {
         img.src = previewUrl;
       });
 
-      // 2. Actualizar ÚNICAMENTE la imagen de cabecera / avatar en la vista previa (.user-profile-preview)
-      document.querySelectorAll(".user-profile-preview .header-variant-wrapper figure img, .user-profile-preview .header-regularHero figure img, .user-profile-preview .header-midHero figure img").forEach((img) => {
-        img.src = previewUrl;
+      // 2. Actualizar la imagen de cabecera / avatar en todos los contenedores .user-profile-preview vía LivePreviewManager
+      document.querySelectorAll(".user-profile-preview").forEach((p) => {
+        if (window.LivePreviewManager && typeof window.LivePreviewManager.applyThemeVarsToPreview === "function") {
+          window.LivePreviewManager.applyThemeVarsToPreview(p, { avatarSrc: previewUrl });
+        } else {
+          p.querySelectorAll(".header-variant-wrapper figure img").forEach((img) => {
+            img.src = previewUrl;
+          });
+        }
       });
 
       notifyDraftState();
@@ -3616,64 +3286,45 @@ export function designDraftManager() {
         // 1. Actualizar miniatura dentro del formulario en el editor
         const subItem = target.closest(".sub-product-item");
         const block = target.closest(".sortable-item") || target.closest(".content-block");
+        const bId = block?.getAttribute("data-block-id") || block?.querySelector('input[name$="[id]"]')?.value || null;
+        const bIdx = (block ? getBlockIndex(block) : null) ?? itemIdx;
+
         if (subItem) {
           const thumb = subItem.querySelector("figure img");
           if (thumb) thumb.src = previewUrl;
+          const delBtn = subItem.querySelector('button[name$="[delete_img]"], .delete-img-btn');
+          if (delBtn) delBtn.style.display = "flex";
         } else if (block) {
           const thumb = block.querySelector("figure img");
           if (thumb) thumb.src = previewUrl;
+          const delBtn = block.querySelector('button[name$="[delete_img]"], .delete-img-btn');
+          if (delBtn) delBtn.style.display = "flex";
         }
 
-        // 2. Actualizar imagen en la vista previa
-        const bId = block?.getAttribute("data-block-id");
-        document.querySelectorAll(".user-profile-preview").forEach((preview) => {
-          let items = bId ? preview.querySelectorAll(`[data-block-id="${bId}"]`) : [];
-          if (!items || !items.length) {
-            items = preview.querySelectorAll(`[data-content-index="${itemIdx}"]`);
-          }
-          items.forEach((item) => {
-            if (subIdx !== undefined) {
-              const card = item.querySelector(`[data-sub-index="${subIdx}"]`) 
-                || item.querySelectorAll(".product-grid-card, .product-slide-card")[subIdx];
-              if (card) {
-                let fig = card.querySelector("figure");
-                let img = card.querySelector("figure img");
-                if (!fig) {
-                  fig = document.createElement("figure");
-                  fig.className = "w100 ar-square overflow-hidden";
-                  img = document.createElement("img");
-                  img.className = "cover w100 h100 br12";
-                  fig.appendChild(img);
-                  const link = card.querySelector("a");
-                  if (link) {
-                    link.insertBefore(fig, link.firstElementChild);
-                  } else {
-                    card.insertBefore(fig, card.firstElementChild);
-                  }
-                }
-                if (img) {
-                  img.src = previewUrl;
-                }
-                fig.style.display = "";
-              }
-            } else {
-              let fig = item.querySelector("figure");
-              let previewImg = item.querySelector("figure img") || item.querySelector("img");
-              if (previewImg) {
-                previewImg.src = previewUrl;
-              }
-              if (fig) {
-                fig.style.display = "";
-              }
-            }
-          });
-        });
+        // 2. Persistir imgSrc, imgDefault=true e imgShow=true en el borrador estructurado para sincronía inmediata
+        if (subIdx !== undefined) {
+          const subImgDefInput = block?.querySelector(`input[name="content[${bIdx}][products][${subIdx}][imgDefault]"]`);
+          if (subImgDefInput) subImgDefInput.value = "true";
+          const subImgShowInput = block?.querySelector(`input[name="content[${bIdx}][products][${subIdx}][imgShow]"]`);
+          if (subImgShowInput) subImgShowInput.value = "true";
+          setDraftField(`content[${bIdx}][products][${subIdx}][imgDefault]`, true, bId);
+          setDraftField(`content[${bIdx}][products][${subIdx}][imgShow]`, true, bId);
+          setDraftField(`content[${bIdx}][products][${subIdx}][imgSrc]`, previewUrl, bId);
+        } else {
+          const imgDefInput = block?.querySelector(`input[name="content[${bIdx}][imgDefault]"]`);
+          if (imgDefInput) imgDefInput.value = "true";
+          const imgShowInput = block?.querySelector(`input[name="content[${bIdx}][imgShow]"]`);
+          if (imgShowInput) imgShowInput.value = "true";
+          setDraftField(`content[${bIdx}][imgDefault]`, true, bId);
+          setDraftField(`content[${bIdx}][imgShow]`, true, bId);
+          setDraftField(`content[${bIdx}][imgSrc]`, previewUrl, bId);
+        }
 
-        // 3. Sincronizar estado del bloque y habilitar/activar switch en tiempo real
+        // 3. Sincronizar estado del bloque y renderizar en vista previa vía LivePreviewManager
         if (block) {
-          const bIdx = getBlockIndex(block) || itemIdx;
           syncBlockActiveState(block, bIdx, { previewUrl });
         }
+        applyDraftToPreview(getDraft());
       }
       notifyDraftState();
     }
@@ -3816,6 +3467,14 @@ export function designDraftManager() {
           localStorage.setItem(INITIAL_KEY, JSON.stringify(savedCard));
           localStorage.setItem(DRAFT_KEY, JSON.stringify(savedCard));
         }
+
+        // Limpiar todos los inputs de archivo tras el guardado exitoso para que hasDraft() retorne false inmediatamente
+        document.querySelectorAll("input[type='file']").forEach((fileInput) => {
+          try {
+            fileInput.value = "";
+            delete fileInput.dataset.isCropped;
+          } catch (_) {}
+        });
 
         // Eliminar sobreescrituras dinámicas temporales ya que el preview oficial las reemplazará
         if (dynamicStyleEl) {
@@ -4067,6 +3726,8 @@ export function designDraftManager() {
       notifyDraftState();
     }
     refreshAllBannersState();
+    document.dispatchEvent(new CustomEvent("previewUpdated"));
+    document.dispatchEvent(new CustomEvent("contentUpdated"));
   }
 
   if (document.readyState === "loading") {
@@ -4149,111 +3810,116 @@ export function designDraftManager() {
       reindexEditorDOM(list);
 
       // 4. Crear el objeto por defecto limpio e inactivo para el borrador JSON
+      // Soporta automáticamente cualquier bloque actual o futuro leyendo también los valores iniciales del <template>
       let defaultBlock = {
         id: newBlockId,
         type: type,
-        active: false
+        active: false,
+        img: "no-image.webp",
+        imgSrc: "",
+        imgShow: true,
+        imgDefault: false
       };
 
+      // Hidratar dinámicamente propiedades por defecto desde los controles del nodo de plantilla recién clonado
+      if (newNode) {
+        newNode.querySelectorAll("input[name], select[name], textarea[name]").forEach((ctrl) => {
+          if (ctrl.type === "file") return;
+          if (ctrl.type === "radio" && !ctrl.checked) return;
+          const m = ctrl.name.match(/^content\[\d+\]\[([^\]]+)\](?:\[(\d+)\]\[([^\]]+)\])?$/);
+          if (!m) return;
+          const prop = m[1];
+          const subIdx = m[2];
+          const subProp = m[3];
+          if (prop === "delete" || prop === "active") return;
+          let val = ctrl.type === "checkbox" ? ctrl.checked : ctrl.value;
+          if (val === "true") val = true;
+          else if (val === "false") val = false;
+
+          if (subIdx !== undefined && subProp !== undefined) {
+            if (!Array.isArray(defaultBlock[prop])) defaultBlock[prop] = [];
+            const idxNum = parseInt(subIdx, 10);
+            if (!defaultBlock[prop][idxNum]) {
+              defaultBlock[prop][idxNum] = { img: "no-image.webp", imgShow: true, imgDefault: false };
+            }
+            defaultBlock[prop][idxNum][subProp] = val;
+          } else {
+            defaultBlock[prop] = val;
+          }
+        });
+      }
+
       if (type === "link") {
-        defaultBlock.title = "";
-        defaultBlock.url = "";
-        defaultBlock.img = "no-image.webp";
-        defaultBlock.imgSrc = "";
-        defaultBlock.imgShow = false;
-        defaultBlock.imgDefault = false;
-        defaultBlock.metaTitle = "";
-        defaultBlock.metaDesc = "";
-        defaultBlock.metaImg = "";
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.url = defaultBlock.url || "";
+        defaultBlock.imgShow = true;
       } else if (type === "product") {
-        defaultBlock.title = "";
-        defaultBlock.url = "";
-        defaultBlock.price = "";
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.url = defaultBlock.url || "";
+        defaultBlock.price = defaultBlock.price || "";
         defaultBlock.offer = false;
         defaultBlock.discount = "";
         defaultBlock.porcentage = 0;
-        defaultBlock.img = "no-image.webp";
-        defaultBlock.imgSrc = "";
-        defaultBlock.imgShow = false;
-        defaultBlock.imgDefault = false;
-        defaultBlock.metaTitle = "";
-        defaultBlock.metaDesc = "";
-        defaultBlock.metaImg = "";
+        defaultBlock.imgShow = true;
       } else if (type === "product_group") {
-        defaultBlock.title = "";
-        defaultBlock.layout = "grid";
-        defaultBlock.products = [
-          { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" },
-          { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" }
-        ];
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.layout = defaultBlock.layout || "grid";
+        if (!Array.isArray(defaultBlock.products) || defaultBlock.products.length === 0) {
+          defaultBlock.products = [
+            { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" },
+            { img: "no-image.webp", title: "", url: "", price: "", offer: false, discount: "", porcentage: 0, imgDefault: false, imgShow: true, metaTitle: "", metaDesc: "", metaImg: "" }
+          ];
+        }
       } else if (type === "campaign") {
-        defaultBlock.title = "";
-        defaultBlock.desc = "";
-        defaultBlock.button_text = "Suscribirme";
-        defaultBlock.name = "";
-        defaultBlock.email = "";
-        defaultBlock.whatsapp = "";
-        defaultBlock.ask_name = true;
-        defaultBlock.ask_whatsapp = false;
-        defaultBlock.size = "horizontal";
-        defaultBlock.text_position = "center";
-        defaultBlock.text_align = "center";
-        defaultBlock.title_size = "large";
-        defaultBlock.desc_size = "medium";
-        defaultBlock.title_color = "#ffffff";
-        defaultBlock.desc_color = "#ffffff";
-        defaultBlock.btn_bg_color = "";
-        defaultBlock.btn_text_color = "";
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.desc = defaultBlock.desc || "";
+        defaultBlock.button_text = defaultBlock.button_text || "Suscribirme";
+        defaultBlock.ask_name = defaultBlock.ask_name !== undefined ? defaultBlock.ask_name : true;
+        defaultBlock.ask_whatsapp = defaultBlock.ask_whatsapp !== undefined ? defaultBlock.ask_whatsapp : false;
+        defaultBlock.size = defaultBlock.size || "horizontal";
+        defaultBlock.text_position = defaultBlock.text_position || "center";
+        defaultBlock.text_align = defaultBlock.text_align || "center";
+        defaultBlock.title_size = defaultBlock.title_size || "large";
+        defaultBlock.desc_size = defaultBlock.desc_size || "medium";
+        defaultBlock.title_color = defaultBlock.title_color || "#ffffff";
+        defaultBlock.desc_color = defaultBlock.desc_color || "#ffffff";
         defaultBlock.has_countdown = false;
-        defaultBlock.countdown_date = "";
-        defaultBlock.countdown_bg_color = "#24252a";
-        defaultBlock.countdown_text_color = "#ffffff";
-        defaultBlock.countdown_text_size = "medium";
-        defaultBlock.countdown_widget_size = "medium";
-        defaultBlock.img = "no-image.webp";
-        defaultBlock.img_position = "background";
-        defaultBlock.bg_opacity = 80;
-        defaultBlock.bg_color = "#1e1e1e";
-        defaultBlock.imgDefault = false;
+        defaultBlock.img_position = defaultBlock.img_position || "background";
+        defaultBlock.bg_opacity = defaultBlock.bg_opacity !== undefined ? defaultBlock.bg_opacity : 80;
+        defaultBlock.bg_color = defaultBlock.bg_color || "#1e1e1e";
         defaultBlock.imgShow = true;
-        defaultBlock.metaTitle = "";
-        defaultBlock.metaDesc = "";
-        defaultBlock.metaImg = "";
       } else if (type === "banner") {
-        defaultBlock.img = "no-image.webp";
-        defaultBlock.url = "";
-        defaultBlock.size = "";
-        defaultBlock.bg_color = "#f2e5ff";
-        defaultBlock.bg_opacity = 100;
-        defaultBlock.imgDefault = false;
+        defaultBlock.url = defaultBlock.url || "";
+        defaultBlock.size = defaultBlock.size || "";
+        defaultBlock.bg_color = defaultBlock.bg_color || "#f2e5ff";
+        defaultBlock.bg_opacity = defaultBlock.bg_opacity !== undefined ? defaultBlock.bg_opacity : 100;
         defaultBlock.imgShow = true;
-        defaultBlock.metaTitle = "";
-        defaultBlock.metaDesc = "";
-        defaultBlock.metaImg = "";
       } else if (type === "title") {
-        defaultBlock.title = "";
-        defaultBlock.title_size = "small";
-        defaultBlock.title_weight = "500";
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.title_size = defaultBlock.title_size || "small";
+        defaultBlock.title_weight = defaultBlock.title_weight || "500";
       } else if (type === "text") {
-        defaultBlock.text = "";
-        defaultBlock.text_weight = "400";
-        defaultBlock.text_align = "left";
+        defaultBlock.text = defaultBlock.text || "";
+        defaultBlock.text_weight = defaultBlock.text_weight || "400";
+        defaultBlock.text_align = defaultBlock.text_align || "left";
       } else if (type === "separator") {
-        defaultBlock.separator_mode = "space";
-        defaultBlock.separator_icon = "none";
-        defaultBlock.separator_size = "large";
-        defaultBlock.space_size = "40";
-        defaultBlock.active = false;
+        defaultBlock.separator_mode = defaultBlock.separator_mode || "space";
+        defaultBlock.separator_icon = defaultBlock.separator_icon || "none";
+        defaultBlock.separator_size = defaultBlock.separator_size || "large";
+        defaultBlock.space_size = defaultBlock.space_size || "40";
+        defaultBlock.active = true;
+        if (newNode) {
+          const sepActiveSw = newNode.querySelector('input.checkbox-switch[name$="[active]"]');
+          if (sepActiveSw) {
+            sepActiveSw.checked = true;
+            sepActiveSw.setAttribute("active", "1");
+          }
+        }
       } else if (type === "video") {
-        defaultBlock.video_mode = "link";
-        defaultBlock.img = "no-image.webp";
-        defaultBlock.title = "";
-        defaultBlock.url = "";
-        defaultBlock.imgDefault = false;
-        defaultBlock.imgShow = false;
-        defaultBlock.metaTitle = "";
-        defaultBlock.metaDesc = "";
-        defaultBlock.metaImg = "";
+        defaultBlock.video_mode = defaultBlock.video_mode || "link";
+        defaultBlock.title = defaultBlock.title || "";
+        defaultBlock.url = defaultBlock.url || "";
+        defaultBlock.imgShow = true;
       }
 
       window.updateJsonDraft(state => {
@@ -4266,8 +3932,20 @@ export function designDraftManager() {
         syncBlockActiveState(newNode, 0);
       }
 
-      // Disparar eventos para que el sistema sepa que hubo cambios
+      if (typeof initColorPickers === "function") initColorPickers();
+      if (window.__formComponents) {
+        window.__formComponents.initCheckboxSwitches?.();
+        window.__formComponents.styleColorPickers?.();
+        window.__formComponents.initCustomRangeSliders?.();
+      }
+
+      applyDraftToPreview(getDraft());
+
+      // Disparar eventos para que el sistema y componentes (cropImage, cutPhrase, sortable, formComponents) inicialicen el nuevo bloque
       document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      document.dispatchEvent(new CustomEvent("previewUpdated"));
+      document.dispatchEvent(new CustomEvent("remoteContentUpdated"));
+      document.dispatchEvent(new CustomEvent("contentUpdated"));
       notifyDraftState();
 
       setTimeout(() => {
@@ -4280,6 +3958,8 @@ export function designDraftManager() {
           window.__formComponents.styleColorPickers?.();
           window.__formComponents.initCustomRangeSliders?.();
         }
+        document.dispatchEvent(new CustomEvent("previewUpdated"));
+        document.dispatchEvent(new CustomEvent("contentUpdated"));
       }, 50);
     }
   });

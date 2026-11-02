@@ -5,7 +5,8 @@
     "config.js",
     "querys.js",
     "scrollObserver.js",
-    "menuMemory.js"
+    "menuMemory.js",
+    "LivePreviewManager.js"
   ],
   "exclude": [],
   "functions": {
@@ -30,6 +31,7 @@
       "copyToClipboard": [],
       "tooltip": [],
       "autoSubmitForm": [],
+      "LivePreviewManager": [],
       "designDraftManager": [],
       "formComponents": [],
       "sortableContent": [],

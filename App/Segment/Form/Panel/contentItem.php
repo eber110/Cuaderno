@@ -241,20 +241,18 @@
                   <span class="bold500 x13">Carrusel</span>
                 </label>
               </div>
-              <?php if ($prodCount % 2 !== 0) : ?>
-                <span class="flex-row center-start gap5 x12 text-muted mt2">
-                  <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <?= $prodCount ?>.
-                </span>
-              <?php endif; ?>
+              <span class="odd-products-warning flex-row center-start gap5 x12 text-muted mt2" style="<?= ($prodCount % 2 !== 0) ? '' : 'display: none;' ?>">
+                <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <span class="odd-products-count"><?= $prodCount ?></span>.
+              </span>
 
               <!-- Título del grupo (opcional) -->
               <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título del grupo (opcional, ej: Mi Colección)">
 
               <!-- Lista de Sub-productos (Mínimo 2, Máximo 8) -->
-              <div class="flex-column gap15 w100 mt5">
+              <div class="sub-products-container flex-column gap15 w100 mt5">
                 <div class="flex-row center-between w100">
                   <p class="x14 bold600 texto">Productos en este grupo</p>
-                  <span class="x12 text-muted bold500"><?= $prodCount ?> / 8</span>
+                  <span class="sub-products-counter x12 text-muted bold500"><?= $prodCount ?> / 8</span>
                 </div>
 
                 <?php foreach ($groupProducts as $pIdx => $prod) :
@@ -289,14 +287,11 @@
                 ?>
                   <div class="sub-product-item flex-column gap10 p15 br10 back-card-graphic shadow-card-graphic" style="border: 1px solid rgba(150, 150, 150, 0.2);">
                     <div class="flex-row center-between w100">
-                      <span class="x13 bold600 texto">Producto <?= $pIdx + 1 ?></span>
-                      <?php if ($prodCount > 2) : ?>
-                        <button type="submit" name="content[<?= $i?>][delete_sub_product]" value="<?= $pIdx ?>" class="pointer flex-row center-center text-muted hover-danger" style="background:transparent; border:none; padding:2px 6px; font-size:12px;" title="Eliminar este producto">
-                          <?= svg("trash", "x16") ?> Eliminar
-                        </button>
-                      <?php else : ?>
-                        <span class="x11 text-muted" title="Mínimo 2 productos requeridos">Mínimo 2</span>
-                      <?php endif; ?>
+                      <span class="sub-product-label x13 bold600 texto">Producto <?= $pIdx + 1 ?></span>
+                      <button type="submit" name="content[<?= $i?>][delete_sub_product]" value="<?= $pIdx ?>" class="delete-sub-product-btn pointer flex-row center-center text-muted hover-danger" style="background:transparent; border:none; padding:2px 6px; font-size:12px; <?= ($prodCount > 2) ? '' : 'display: none;' ?>" title="Eliminar este producto">
+                        <?= svg("trash", "x16") ?> Eliminar
+                      </button>
+                      <span class="min-sub-product-badge x11 text-muted" style="<?= ($prodCount > 2) ? 'display: none;' : '' ?>" title="Mínimo 2 productos requeridos">Mínimo 2</span>
                     </div>
 
                     <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][img]" value="<?= e($pImg) ?>">
@@ -313,13 +308,12 @@
                           <img src="<?= e($pDisplayImgSrc) ?>" alt="Imagen producto" class="cover">
                         </figure>
                         <div class="flex-row center-center gap0 back-menu-img-form br50 pl8 pr8">
-                          <?php if ($pImgDefault) : ?>
-                            <button type="submit" name="content[<?= $i?>][products][<?= $pIdx?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:4px;" title="Borrar imagen">
-                              <?= svg("trash", "x16") ?>
-                            </button>
-                          <?php endif; ?>
-                          <button type="submit" name="content[<?= $i?>][products][<?= $pIdx?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:4px;" title="<?= $pImgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
-                            <?= $pImgShow ? svg("eye", "x16") : svg("no-eye", "x16") ?>
+                          <button type="submit" name="content[<?= $i?>][products][<?= $pIdx?>][delete_img]" value="true" class="delete-img-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:4px; <?= $pImgDefault ? '' : 'display: none;' ?>" title="Borrar imagen">
+                            <?= svg("trash", "x16") ?>
+                          </button>
+                          <button type="submit" name="content[<?= $i?>][products][<?= $pIdx?>][toggle_img_show]" value="true" class="toggle-img-show-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:4px;" title="<?= $pImgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                            <span class="icon-eye-open flex-row center-center" style="<?= $pImgShow ? '' : 'display: none;' ?>"><?= svg("eye", "x16") ?></span>
+                            <span class="icon-eye-closed flex-row center-center" style="<?= $pImgShow ? 'display: none;' : '' ?>"><?= svg("no-eye", "x16") ?></span>
                           </button>
                         </div>
                       </div>
@@ -364,13 +358,10 @@
                   </div>
                 <?php endforeach; ?>
 
-                <?php if ($prodCount < 8) : ?>
-                  <button type="submit" name="content[<?= $i?>][add_sub_product]" value="true" class="p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto w100 mt5" style="border: 1px dashed rgba(150, 150, 150, 0.4);">
-                    <?= svg("add") ?> Añadir producto al grupo (<?= $prodCount ?>/8)
-                  </button>
-                <?php else : ?>
-                  <p class="x12 text-muted text-center p10">Límite máximo de 8 productos alcanzado.</p>
-                <?php endif; ?>
+                <button type="submit" name="content[<?= $i?>][add_sub_product]" value="true" class="add-sub-product-btn p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto w100 mt5" style="border: 1px dashed rgba(150, 150, 150, 0.4); <?= ($prodCount < 8) ? '' : 'display: none;' ?>">
+                  <?= svg("add") ?> <span class="add-sub-product-btn-label">Añadir producto al grupo (<?= $prodCount ?>/8)</span>
+                </button>
+                <p class="max-sub-products-msg x12 text-muted text-center p10" style="<?= ($prodCount >= 8) ? '' : 'display: none;' ?>">Límite máximo de 8 productos alcanzado.</p>
               </div>
 
             <?php elseif ($itemType === 'campaign') : ?>
@@ -442,13 +433,12 @@
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
-                    <?php if ($imgDefault) : ?>
-                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
-                        <?= svg("trash", "x20") ?>
-                      </button>
-                    <?php endif; ?>
-                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
-                      <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                    <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="delete-img-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%; <?= $imgDefault ? '' : 'display: none;' ?>" title="Borrar imagen">
+                      <?= svg("trash", "x20") ?>
+                    </button>
+                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="toggle-img-show-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                      <span class="icon-eye-open flex-row center-center" style="<?= $imgShow ? '' : 'display: none;' ?>"><?= svg("eye", "x20") ?></span>
+                      <span class="icon-eye-closed flex-row center-center" style="<?= $imgShow ? 'display: none;' : '' ?>"><?= svg("no-eye", "x20") ?></span>
                     </button>
                   </div>
                 </div>
@@ -891,13 +881,12 @@
                     </figure>
 
                     <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
-                      <?php if ($imgDefault) : ?>
-                        <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
-                          <?= svg("trash", "x20") ?>
-                        </button>
-                      <?php endif; ?>
-                      <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
-                        <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="delete-img-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%; <?= $imgDefault ? '' : 'display: none;' ?>" title="Borrar imagen">
+                        <?= svg("trash", "x20") ?>
+                      </button>
+                      <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="toggle-img-show-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                        <span class="icon-eye-open flex-row center-center" style="<?= $imgShow ? '' : 'display: none;' ?>"><?= svg("eye", "x20") ?></span>
+                        <span class="icon-eye-closed flex-row center-center" style="<?= $imgShow ? 'display: none;' : '' ?>"><?= svg("no-eye", "x20") ?></span>
                       </button>
                     </div>
                   </div>
@@ -1195,13 +1184,12 @@
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
-                    <?php if ($imgDefault) : ?>
-                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen personalizada">
-                        <?= svg("trash", "x20") ?>
-                      </button>
-                    <?php endif; ?>
-                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar carátula' : 'Mostrar carátula' ?>">
-                      <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                    <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="delete-img-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%; <?= $imgDefault ? '' : 'display: none;' ?>" title="Borrar imagen personalizada">
+                      <?= svg("trash", "x20") ?>
+                    </button>
+                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="toggle-img-show-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar carátula' : 'Mostrar carátula' ?>">
+                      <span class="icon-eye-open flex-row center-center" style="<?= $imgShow ? '' : 'display: none;' ?>"><?= svg("eye", "x20") ?></span>
+                      <span class="icon-eye-closed flex-row center-center" style="<?= $imgShow ? 'display: none;' : '' ?>"><?= svg("no-eye", "x20") ?></span>
                     </button>
                   </div>
                 </div>
@@ -1244,13 +1232,12 @@
                   </figure>
 
                   <div class="flex-row center-center gap0 back-menu-img-form br50 pl10 pl-sml-5 pr10 pr-sml-5">
-                    <?php if ($imgDefault) : ?>
-                      <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="Borrar imagen">
-                        <?= svg("trash", "x20") ?>
-                      </button>
-                    <?php endif; ?>
-                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
-                      <?= $imgShow ? svg("eye", "x20") : svg("no-eye", "x20") ?>
+                    <button type="submit" name="content[<?= $i?>][delete_img]" value="true" class="delete-img-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%; <?= $imgDefault ? '' : 'display: none;' ?>" title="Borrar imagen">
+                      <?= svg("trash", "x20") ?>
+                    </button>
+                    <button type="submit" name="content[<?= $i?>][toggle_img_show]" value="true" class="toggle-img-show-btn pointer flex-row center-center textc" style="background:transparent; border:none; padding:5px; border-radius:50%;" title="<?= $imgShow ? 'Ocultar imagen' : 'Mostrar imagen' ?>">
+                      <span class="icon-eye-open flex-row center-center" style="<?= $imgShow ? '' : 'display: none;' ?>"><?= svg("eye", "x20") ?></span>
+                      <span class="icon-eye-closed flex-row center-center" style="<?= $imgShow ? 'display: none;' : '' ?>"><?= svg("no-eye", "x20") ?></span>
                     </button>
                   </div>
                 </div>

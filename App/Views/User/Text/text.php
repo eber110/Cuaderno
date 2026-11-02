@@ -19,8 +19,8 @@
   $showText = ($textContent !== "" && (!isset($isActive) || $isActive));
 ?>
 
-<div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= $showText ? '' : ' display: none;' ?>">
-  <p class="<?= $weightClass ?> color-text-card capitalize-p">
+<div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-block-type="text" data-bind-class="text-left|text-center|text-right:textAlignClass" class="text-block-wrapper w100 <?= $alignClass ?> p0" style="box-sizing: border-box;<?= $showText ? '' : ' display: none;' ?>">
+  <p data-bind="text" data-bind-nl2br="true" data-bind-class="bold400|bold500:textWeightClass" class="<?= $weightClass ?> color-text-card capitalize-p">
     <?= nl2br(e($textContent)) ?>
   </p>
 </div>

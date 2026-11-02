@@ -82,38 +82,36 @@
   $campaignId   = "campaign-block-" . (int)$dataContent;
 ?>
 
-<div id="<?= e($campaignId) ?>" data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor ?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
+<div id="<?= e($campaignId) ?>" data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-block-type="campaign" data-bind-style="background-color:bg_color" data-bind-class="campaign-size-horizontal|campaign-size-square|campaign-size-vertical:campaignSizeClass" class="campaign-block-wrapper w100 flex-column position-relative <?= $sizeClass ?> <?= $borderCard ?> <?= $shadowCard ?>" style="background-color: <?= $bgColor ?>;<?= (isset($isActive) && !$isActive) ? ' display: none;' : '' ?>">
 
-  <?php if ($imgShow && $hasImg) : ?>
-    <!-- Imagen de fondo y capa de opacidad/color -->
-    <div class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;<?= ($imgPosition === 'background') ? '' : ' display: none;' ?>">
-      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;border: none;">
-      <div class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= $bgColor ?> l c h / <?= $bgOpacity ?>%);"></div>
-    </div>
+  <!-- Imagen de fondo y capa de opacidad/color -->
+  <div data-bind-show="isBgImg" class="campaign-bg-layer" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none;<?= $isBgMode ? '' : ' display: none;' ?>">
+    <img data-bind-attr="src:imgSrc,alt:title" src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 h100" style="object-fit: cover;border: none;">
+    <div data-bind-style="background-color:bgOverlayCss" class="campaign-bg-overlay" style="position: absolute; inset: 0; width: 100%; height: 100%; background-color: oklch(from <?= $bgColor ?> l c h / <?= $bgOpacity ?>%);"></div>
+  </div>
 
-    <!-- Imagen destacada de cabecera cuadrada -->
-    <figure class="w100 ar-square overflow-hidden faded-image" style="<?= ($imgPosition === 'header') ? '' : 'display: none;' ?>">
-      <img src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square" style="border: none;">
-    </figure>
-  <?php endif; ?>
+  <!-- Imagen destacada de cabecera cuadrada -->
+  <figure data-bind-show="isHeaderImg" class="w100 ar-square overflow-hidden faded-image" style="<?= $hasHeaderImg ? '' : 'display: none;' ?>">
+    <img data-bind-attr="src:imgSrc,alt:title" src="<?= eUrl($imgSrc) ?>" alt="<?= e($title) ?>" class="cover w100 ar-square" style="border: none;">
+  </figure>
 
   <!-- Contenido de la campaña -->
-  <div class="campaign-content flex-column gap15 p20 <?= ($hasHeaderImg) ? "pt0" : "pt20"?> w100 position-relative z-index-1 <?= ($size !== 'horizontal') ? 'flex-1' : '' ?>" style="box-sizing: border-box;<?= ($size !== 'horizontal') ? ' flex: 1 1 auto; min-height: max-content;' : '' ?>">
+  <div data-bind-class="pt0|pt20:campaignContentPtClass;flex-1:campaignContentFlexClass" class="campaign-content flex-column gap15 p20 <?= ($hasHeaderImg) ? "pt0" : "pt20"?> w100 position-relative z-index-1 <?= ($size !== 'horizontal') ? 'flex-1' : '' ?>" style="box-sizing: border-box;<?= ($size !== 'horizontal') ? ' flex: 1 1 auto; min-height: max-content;' : '' ?>">
     
     <!-- Grupo de texto y contador -->
-    <div class="campaign-text-group flex-column gap15 w100 campaign-align-<?= $textAlign ?> <?= $textPosClass ?>">
+    <div data-bind-class="campaign-align-left|campaign-align-center|campaign-align-right:campaignAlignClass;campaign-text-pos-top|campaign-text-pos-center|campaign-text-pos-bottom:campaignTextPosClass" class="campaign-text-group flex-column gap15 w100 campaign-align-<?= $textAlign ?> <?= $textPosClass ?>">
       <!-- Título y Descripción -->
-      <div class="flex-column gap5 w100 campaign-align-<?= $textAlign ?>">
-        <h3 class="bold700 campaign-title-<?= $titleSize ?> w100" style="color: <?= e($titleColor) ?>;<?= empty($title) ? ' display: none;' : '' ?>"><?= e($title) ?></h3>
+      <div data-bind-class="campaign-align-left|campaign-align-center|campaign-align-right:campaignAlignClass" class="flex-column gap5 w100 campaign-align-<?= $textAlign ?>">
+        <h3 data-bind="title" data-bind-show="hasTitle" data-bind-style="color:title_color" data-bind-class="campaign-title-small|campaign-title-medium|campaign-title-large:campaignTitleSizeClass" class="bold700 campaign-title-<?= $titleSize ?> w100" style="color: <?= e($titleColor) ?>;<?= empty($title) ? ' display: none;' : '' ?>"><?= e($title) ?></h3>
 
-        <p class="campaign-desc-<?= $descSize ?> w100" style="color: <?= e($descColor) ?>;<?= empty($desc) ? ' display: none;' : '' ?>"><?= nl2br(e($desc)) ?></p>
+        <p data-bind="desc" data-bind-nl2br="true" data-bind-show="hasDesc" data-bind-style="color:desc_color" data-bind-class="campaign-desc-small|campaign-desc-medium|campaign-desc-large:campaignDescSizeClass" class="campaign-desc-<?= $descSize ?> w100" style="color: <?= e($descColor) ?>;<?= empty($desc) ? ' display: none;' : '' ?>"><?= nl2br(e($desc)) ?></p>
       </div>
 
       <!-- Contador Regresivo -->
       <?php 
         $showCountdownBox = ($hasCountdown && !empty($countdownDate));
       ?>
-      <div class="campaign-countdown-box grid col-7 campaign-countdown-widget-<?= $countdownWidgetSize ?> countdown-text-<?= $countdownTextSize ?>" data-countdown="<?= e($countdownDate) ?>" style="background-color: <?= e($countdownBgColor) ?>; color: <?= e($countdownTextColor) ?>; backdrop-filter: blur(4px);<?= $showCountdownBox ? '' : ' display: none;' ?>">
+      <div data-bind-show="showCountdown" data-bind-attr="data-countdown:countdown_date" data-bind-style="background-color:countdown_bg_color,color:countdown_text_color" data-bind-class="campaign-countdown-widget-small|campaign-countdown-widget-medium|campaign-countdown-widget-large:countdownWidgetSizeClass;countdown-text-small|countdown-text-medium|countdown-text-large:countdownTextSizeClass" class="campaign-countdown-box grid col-7 campaign-countdown-widget-<?= $countdownWidgetSize ?> countdown-text-<?= $countdownTextSize ?>" data-countdown="<?= e($countdownDate) ?>" style="background-color: <?= e($countdownBgColor) ?>; color: <?= e($countdownTextColor) ?>; backdrop-filter: blur(4px);<?= $showCountdownBox ? '' : ' display: none;' ?>">
         <div class="flex-column center-center flex-1">
           <span class="countdown-days countdown-num bold700">00</span>
           <span class="countdown-unit text-uppercase opacity-70">Días</span>
@@ -137,7 +135,7 @@
     </div>
 
 
-    <p class="modal-btn animated darken p15 bold500 pointer text-center campaign-button <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
+    <p data-bind="button_text" data-bind-style="background-color:btn_bg_color,color:btn_text_color" data-bind-class="campaign-btn-anchor-bottom:campaignBtnAnchorClass" class="modal-btn animated darken p15 bold500 pointer text-center campaign-button <?= $btnAnchorClass ?> <?= $card["shadow"]?> <?= $card["borders"][0]?>" style="background-color: <?= e($btnBgColor) ?>; color: <?= e($btnTextColor) ?>;"><?= e($buttonText) ?></p>
 
     <div class="hidden">
       <div class="flex-column center-center w100 wrap">

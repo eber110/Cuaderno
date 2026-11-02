@@ -567,64 +567,31 @@ export function formComponents() {
         preview.querySelectorAll('.shadow-3 img').forEach(el => {
           el.style.setProperty('border-color', hex, 'important');
         });
-      } else if (name.includes('bg_color')) {
+      } else if (name.startsWith('content[')) {
         const itemBlock = inputElement?.closest('.sortable-item');
-        const itemType = itemBlock?.getAttribute('data-type');
-        if (itemType === 'banner') {
-          const bannerItems = Array.from(document.querySelectorAll('#sortable-content-list .sortable-item[data-type="banner"]'));
-          const bIdx = bannerItems.indexOf(itemBlock);
-          const bannerWrappers = preview.querySelectorAll('.banner-block-wrapper');
-          if (bIdx !== -1 && bannerWrappers[bIdx]) {
-            bannerWrappers[bIdx].style.setProperty('background-color', hex, 'important');
-          } else {
-            bannerWrappers.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-          }
-        } else if (itemType === 'campaign') {
-          const campItems = Array.from(document.querySelectorAll('#sortable-content-list .sortable-item[data-type="campaign"]'));
-          const cIdx = campItems.indexOf(itemBlock);
-          const campWrappers = preview.querySelectorAll('.campaign-block-wrapper');
-          if (cIdx !== -1 && campWrappers[cIdx]) {
-            campWrappers[cIdx].style.setProperty('background-color', hex, 'important');
-          } else {
-            campWrappers.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-          }
+        const blkId = itemBlock?.getAttribute('data-block-id');
+        const blkIdx = itemBlock?.getAttribute('data-index') ?? inputElement?.dataset?.index;
+        let targetWrapper = blkId ? preview.querySelector(`[data-block-id="${blkId}"]`) : null;
+        if (!targetWrapper && blkIdx !== undefined && blkIdx !== null) {
+          targetWrapper = preview.querySelector(`[data-content-index="${blkIdx}"]`);
         }
-      } else if (name.includes('title_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-title[data-index="${idx}"]`)
-          : preview.querySelectorAll('.campaign-title');
-        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-      } else if (name.includes('desc_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-desc[data-index="${idx}"]`)
-          : preview.querySelectorAll('.campaign-desc');
-        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-      } else if (name.includes('btn_bg_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-          : preview.querySelectorAll('.campaign-button');
-        targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-      } else if (name.includes('btn_text_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-button[data-index="${idx}"]`)
-          : preview.querySelectorAll('.campaign-button');
-        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
-      } else if (name.includes('countdown_bg_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"], [data-countdown][data-index="${idx}"]`)
-          : preview.querySelectorAll('.campaign-countdown-wrapper, [data-countdown]');
-        targets.forEach(el => el.style.setProperty('background-color', hex, 'important'));
-      } else if (name.includes('countdown_text_color')) {
-        const idx = inputElement?.dataset?.index;
-        const targets = idx !== undefined 
-          ? preview.querySelectorAll(`.campaign-countdown-wrapper[data-index="${idx}"] *, [data-countdown][data-index="${idx}"] *`)
-          : preview.querySelectorAll('.campaign-countdown-wrapper *, [data-countdown] *');
-        targets.forEach(el => el.style.setProperty('color', hex, 'important'));
+        if (!targetWrapper) return;
+
+        if (name.includes('bg_color')) {
+          targetWrapper.style.backgroundColor = hex;
+        } else if (name.includes('title_color')) {
+          targetWrapper.querySelectorAll('.campaign-title').forEach(el => { el.style.color = hex; });
+        } else if (name.includes('desc_color')) {
+          targetWrapper.querySelectorAll('.campaign-desc').forEach(el => { el.style.color = hex; });
+        } else if (name.includes('btn_bg_color')) {
+          targetWrapper.querySelectorAll('.campaign-button, .campaign-content .modal-btn').forEach(el => { el.style.backgroundColor = hex; });
+        } else if (name.includes('btn_text_color')) {
+          targetWrapper.querySelectorAll('.campaign-button, .campaign-content .modal-btn').forEach(el => { el.style.color = hex; });
+        } else if (name.includes('countdown_bg_color')) {
+          targetWrapper.querySelectorAll('.campaign-countdown-box, [data-countdown]').forEach(el => { el.style.backgroundColor = hex; });
+        } else if (name.includes('countdown_text_color')) {
+          targetWrapper.querySelectorAll('.campaign-countdown-box, .campaign-countdown-box *, [data-countdown], [data-countdown] *').forEach(el => { el.style.color = hex; });
+        }
       }
     });
   }

@@ -247,35 +247,6 @@ export function videoBackgroundController() {
         overlay.style.opacity = (val / 100).toFixed(2);
       });
     }
-
-    // Color de texto global: actualiza todo el texto Y el título en el preview (y sincroniza titleColor si existe en el panel)
-    if (target.name === "colorText") {
-      const newColor = target.value;
-      document.querySelectorAll(".user-profile-preview .color-text-card").forEach((el) => {
-        el.style.color = newColor;
-      });
-      document.querySelectorAll(".user-profile-preview .title-color, .user-profile-preview .title-hero-regular, .user-profile-preview .title-hero-big, .user-profile-preview .title-hero-mini, .user-profile-preview h1, .user-profile-preview h2, .user-profile-preview h3").forEach((el) => {
-        el.style.color = newColor;
-      });
-      document.querySelectorAll(".user-profile-preview .color-menu-user").forEach((el) => {
-        el.style.color = "#ffffff";
-      });
-
-      const titleInput = document.getElementById("select-color-title");
-      if (titleInput) {
-        titleInput.value = newColor;
-        const labelText = titleInput.closest("label")?.querySelector("p, span");
-        if (labelText) labelText.textContent = newColor;
-      }
-    }
-
-    // Color de título independiente: actualiza SOLO el título en el preview
-    if (target.name === "titleColor") {
-      const newColor = target.value;
-      document.querySelectorAll(".user-profile-preview .title-color, .user-profile-preview .title-hero-regular, .user-profile-preview .title-hero-big, .user-profile-preview .title-hero-mini, .user-profile-preview h1, .user-profile-preview h2, .user-profile-preview h3").forEach((el) => {
-        el.style.color = newColor;
-      });
-    }
   });
 
   // =========================================================================

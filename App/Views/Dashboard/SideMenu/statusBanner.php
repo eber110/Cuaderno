@@ -9,16 +9,13 @@
   $isHide   = !empty($card["hide"]) && ($card["hide"] === true || $card["hide"] === "true" || $card["hide"] === 1 || $card["hide"] === "1");
 ?>
 <?php if ($isActive) : ?>
-  <?php if ($isHide) : ?>
-    <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
-      data-tooltip="Puedes ocultar o mostrar tu perfil desde el menú «Visibilidad»."
-      style-tooltip="back5 textc shadow x18">
-        <?= svg("triangle-exclamation-fill","x16 mr5");?> Perfil oculto
-        <span class="flex-row center-center pointer"><?= svg("question");?></span>
-    </p>
-  <?php else : ?>
-    <a href="/<?= e($username) ?>" class="<?= $item ?>"><?= svg("arrow-l-l") ?> Ver mi perfil</a>
-  <?php endif; ?>
+  <p id="sidebar-status-hidden-badge" class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom <?= $isHide ? '' : 'hidden' ?>" style="<?= $isHide ? '' : 'display: none !important;' ?>"
+    data-tooltip="Puedes ocultar o mostrar tu perfil desde el menú «Visibilidad»."
+    style-tooltip="back5 textc shadow x18">
+      <?= svg("triangle-exclamation-fill","x16 mr5");?> Perfil oculto
+      <span class="flex-row center-center pointer"><?= svg("question");?></span>
+  </p>
+  <a id="sidebar-status-visible-link" href="/<?= e($username) ?>" class="<?= $item ?> <?= !$isHide ? '' : 'hidden' ?>" style="<?= !$isHide ? '' : 'display: none !important;' ?>"><?= svg("arrow-l-l") ?> Ver mi perfil</a>
 <?php else : ?>
   <p class="p5 pl10 pr10 br10 back-item-sidebar-hover w100 flex-row center-start gap5 back-danger textc tooltip animated bottom" 
     data-tooltip="Completa los datos requeridos en tu perfil para activarlo."

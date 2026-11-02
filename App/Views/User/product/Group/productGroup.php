@@ -42,10 +42,8 @@
   <!-- ==================== VISTA PREVIA (EDITOR): AMBOS FORMATOS CONMUTABLES EN VIVO ==================== -->
 
   <!-- Formato Cuadrícula (Grid 2 Columnas) -->
-  <div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-layout-variant="grid" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100 <?= ($layout === 'grid') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'grid') ? '' : 'display: none;') ?>">
-    <?php if (!empty($groupTitle)) : ?>
-      <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
-    <?php endif; ?>
+  <div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-block-type="product_group" data-layout-variant="grid" class="product-group-wrapper product-group-grid-wrapper flex-column gap8 w100 <?= ($layout === 'grid') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'grid') ? '' : 'display: none;') ?>">
+    <p data-bind="title" data-bind-show="hasTitle" class="bold600 text-c title-color w100" style="<?= !empty($groupTitle) ? '' : 'display: none;' ?>"><?= e($groupTitle) ?></p>
 
     <div class="product-group-grid w100" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
       <?php foreach ($productsToRender as $pIdx => $prod) :
@@ -61,27 +59,22 @@
         $hasImg      = !empty($pImgSrc) && strpos($pImgSrc, 'no-image.webp') === false;
       ?>
         <div class="product-grid-card theme-button pointer flex-column between-stretch p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative" data-sub-index="<?= (int)$pIdx ?>">
-          <a href="<?= eUrl($pUrl) ?>" target="_blank" rel="noopener noreferrer" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
-            <figure class="w100 ar-square overflow-hidden" style="<?= ($pImgShow && $hasImg) ? '' : 'display: none;' ?>">
-              <img src="<?= eUrl($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
+          <a data-sub-bind-attr="href:url,data-link-id:url" href="<?= eUrl($pUrl) ?>" target="_blank" rel="noopener noreferrer" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
+            <figure data-sub-bind-show="hasImg" class="w100 ar-square overflow-hidden" style="<?= ($pImgShow && $hasImg) ? '' : 'display: none;' ?>">
+              <img data-sub-bind-attr="src:imgSrc,alt:title" src="<?= eUrl($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
             </figure>
 
             <div class="flex-column gap4 w100 flex-1">
-              <p class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+              <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
                 <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
               </p>
 
               <div class="mt-auto flex-row center-between w100 pr25">
-                <?php if (!$pOffer || empty($pDiscount)) : ?>
-                  <?php if ($pPrice !== '') : ?>
-                    <p class="bold500">$<?= e($pPrice) ?></p>
-                  <?php endif; ?>
-                <?php else : ?>
-                  <div class="flex-column gap0">
-                    <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
-                    <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
-                  </div>
-                <?php endif; ?>
+                <p data-sub-bind="price" data-sub-bind-prefix="$" data-sub-bind-show="isRegularPrice" class="bold500" style="<?= ((!$pOffer || empty($pDiscount)) && $pPrice !== '') ? '' : 'display: none;' ?>">$<?= e($pPrice) ?></p>
+                <div data-sub-bind-show="isOffer" class="flex-column gap0" style="<?= ($pOffer && !empty($pDiscount)) ? '' : 'display: none;' ?>">
+                  <p data-sub-bind="price" data-sub-bind-prefix="$" class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
+                  <p data-sub-bind="effectiveDiscount" data-sub-bind-prefix="$" class="bold500 text-success">$<?= e($pDiscount) ?></p>
+                </div>
               </div>
             </div>
           </a>
@@ -122,10 +115,8 @@
   </div>
 
   <!-- Formato Carrusel Deslizante (Slide Horizontal) -->
-  <div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-layout-variant="slide" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100 <?= ($layout === 'slide') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'slide') ? '' : 'display: none;') ?>">
-    <?php if (!empty($groupTitle)) : ?>
-      <p class="bold600 text-c title-color w100"><?= e($groupTitle) ?></p>
-    <?php endif; ?>
+  <div data-content-index="<?= e((string)$dataContent) ?>" data-block-id="<?= e($blockId ?? ($card['content'][$dataContent]['id'] ?? '')) ?>" data-block-type="product_group" data-layout-variant="slide" class="product-group-wrapper product-group-slide-wrapper flex-column gap8 w100 <?= ($layout === 'slide') ? '' : 'hidden' ?>" style="<?= (isset($isActive) && !$isActive) ? 'display: none;' : (($layout === 'slide') ? '' : 'display: none;') ?>">
+    <p data-bind="title" data-bind-show="hasTitle" class="bold600 text-c title-color w100" style="<?= !empty($groupTitle) ? '' : 'display: none;' ?>"><?= e($groupTitle) ?></p>
 
     <div class="product-group-slide-container position-relative">
       <button type="button" class="product-slide-btn product-slide-prev is-hidden" aria-label="Anterior">
@@ -149,27 +140,22 @@
           $hasImg      = !empty($pImgSrc) && strpos($pImgSrc, 'no-image.webp') === false;
         ?>
           <div class="product-slide-card theme-button pointer flex-column p7 gap8 <?= ($card["borders"][0] == "br50") ? "br20" : $card["borders"][0] ?> <?= $card["shadow"] ?> position-relative" data-sub-index="<?= (int)$pIdx ?>">
-            <a href="<?= eUrl($pUrl) ?>" target="_blank" rel="noopener noreferrer" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
-              <figure class="w100 ar-square overflow-hidden" style="<?= ($pImgShow && $hasImg) ? '' : 'display: none;' ?>">
-                <img src="<?= eUrl($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
+            <a data-sub-bind-attr="href:url,data-link-id:url" href="<?= eUrl($pUrl) ?>" target="_blank" rel="noopener noreferrer" class="track-link-click flex-column gap8 w100 h100" data-user="<?= e($profile) ?>" data-link-id="<?= e($pUrl) ?>" style="text-decoration: none; color: inherit;">
+              <figure data-sub-bind-show="hasImg" class="w100 ar-square overflow-hidden" style="<?= ($pImgShow && $hasImg) ? '' : 'display: none;' ?>">
+                <img data-sub-bind-attr="src:imgSrc,alt:title" src="<?= eUrl($pImgSrc) ?>" alt="<?= e($pTitle) ?>" class="cover w100 h100 <?= ($card["borders"][1] == "br50") ? "br12" : $card["borders"][1] ?>" fetchpriority="high">
               </figure>
 
               <div class="flex-column gap4 w100 flex-1">
-                <p class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+                <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
                   <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
                 </p>
 
                 <div class="mt-auto flex-row center-between w100 pr25">
-                  <?php if (!$pOffer || empty($pDiscount)) : ?>
-                    <?php if ($pPrice !== '') : ?>
-                      <p class="bold500">$<?= e($pPrice) ?></p>
-                    <?php endif; ?>
-                  <?php else : ?>
-                    <div class="flex-column gap0">
-                      <p class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
-                      <p class="bold500 text-success">$<?= e($pDiscount) ?></p>
-                    </div>
-                  <?php endif; ?>
+                  <p data-sub-bind="price" data-sub-bind-prefix="$" data-sub-bind-show="isRegularPrice" class="bold500" style="<?= ((!$pOffer || empty($pDiscount)) && $pPrice !== '') ? '' : 'display: none;' ?>">$<?= e($pPrice) ?></p>
+                  <div data-sub-bind-show="isOffer" class="flex-column gap0" style="<?= ($pOffer && !empty($pDiscount)) ? '' : 'display: none;' ?>">
+                    <p data-sub-bind="price" data-sub-bind-prefix="$" class="bold500 x16" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($pPrice) ?></p>
+                    <p data-sub-bind="effectiveDiscount" data-sub-bind-prefix="$" class="bold500 text-success">$<?= e($pDiscount) ?></p>
+                  </div>
                 </div>
               </div>
             </a>

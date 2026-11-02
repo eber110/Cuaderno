@@ -10,6 +10,7 @@
     $rawStyle  = $card["style"] ?? "buttonRegular";
     $cardStyle = in_array($rawStyle, $allowedStyles, true) ? $rawStyle : "buttonRegular";
     $isPreview = !empty($isPreview) || !empty($card["isPreview"]);
+    $blockTypes = \App\Models\DesignModels::getBlockTypes();
 
     for ($i = 0; $i < count($content); $i++) {
       $itemType   = $content[$i]["type"] ?? '';
@@ -33,18 +34,10 @@
         }
       }
 
-      $partName = match ($itemType) {
-        "link"          => "User." . $cardStyle,
-        "product"       => "User.productRegular",
-        "product_group" => "User.productGroup",
-        "campaign"      => "User.campaign",
-        "banner"        => "User.banner",
-        "title"         => "User.title",
-        "text"          => "User.text",
-        "separator"     => "User.separator",
-        "video"         => "User.video",
-        default         => null,
-      };
+      $viewBase = $blockTypes[$itemType]["viewBase"] ?? null;
+      $partName = ($itemType === "link")
+        ? "User." . $cardStyle
+        : ($viewBase ? (str_ends_with($viewBase, ".") ? $viewBase . $cardStyle : $viewBase) : null);
 
       if ($partName) {
         _part($partName, [

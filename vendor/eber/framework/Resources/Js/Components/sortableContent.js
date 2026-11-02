@@ -459,160 +459,32 @@ export function sortableContent() {
     });
 
     // Limpieza global de seguridad si el arrastre se interrumpe
-    window.addEventListener("dragend", () => {
-      document.querySelectorAll(".sortable-item[draggable='true']").forEach((el) => {
-        el.setAttribute("draggable", "false");
+    window.addEventListener("blur", () => {
+      document.querySelectorAll(".sortable-floating-avatar").forEach((el) => el.remove());
+      document.querySelectorAll(".sortable-item.dragging, .sortable-item.is-drop-placeholder").forEach((el) => {
+        el.classList.remove("dragging", "is-drop-placeholder");
+        el.style.height = "";
+        el.style.opacity = "";
       });
-      document.querySelectorAll(".sortable-item.dragging").forEach((el) => {
-        el.classList.remove("dragging");
-        el.style.opacity = "1";
-      });
-      blockNextClick = true;
-      setTimeout(() => {
-        blockNextClick = false;
-        isDragging = false;
-      }, 50);
-    });
-
-    window.addEventListener("mouseup", () => {
-      document.querySelectorAll(".sortable-item[draggable='true']").forEach((el) => {
-        el.setAttribute("draggable", "false");
-      });
+      document.body.classList.remove("is-sorting-items");
+      isDragging = false;
     });
   }
 
   function initSortable(container) {
-    let draggedItem = null;
+    let activeItem = null;
+    let floatingAvatar = null;
     let initialIndex = null;
-    let activeDragHandle = null;
-
-    // Solo habilitar draggable cuando mousedown ocurra sobre .drag-handle
-    container.addEventListener("mousedown", (e) => {
-      const handle = e.target.closest(".drag-handle, [data-drag-handle]");
-      if (handle && !e.target.closest("input, textarea, select, button, label, .modal-btn, .checkbox-switch, a")) {
-        const item = handle.closest(".sortable-item");
-        if (item) {
-          activeDragHandle = handle;
-          item.setAttribute("draggable", "true");
-          return;
-        }
-      }
-
-      // Si el clic es en cualquier otra parte (slider, inputs, cuerpo, etc.), desactivar draggable
-      activeDragHandle = null;
-      container.querySelectorAll('.sortable-item[draggable="true"]').forEach((el) => {
-        el.setAttribute("draggable", "false");
-      });
-    });
-
-    // Iniciar arrastre solo si se originó en la zona arrastrable (drag-handle)
-    container.addEventListener("dragstart", (e) => {
-      if (!activeDragHandle) {
-        e.preventDefault();
-        return;
-      }
-
-      const item = e.target.closest(".sortable-item");
-      if (!item || !item.contains(activeDragHandle)) {
-        e.preventDefault();
-        return;
-      }
-
-      // Ignorar si el arrastre se inició dentro de un campo interactivo o botón
-      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a")) {
-        e.preventDefault();
-        return;
-      }
-
-      isDragging = true;
-
-      // Limpiar selecciones de texto activas en el navegador
-      if (window.getSelection) {
-        window.getSelection().removeAllRanges();
-      }
-
-      draggedItem = item;
-      const allItems = [...container.querySelectorAll(".sortable-item")];
-      initialIndex = allItems.indexOf(item);
-
-      item.classList.add("dragging");
-      item.style.opacity = "0.4";
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", ""); // Compatibilidad Firefox
-      }
-    });
-
-    // Prevenir comportamiento por defecto en drop
-    container.addEventListener("drop", (e) => {
-      e.preventDefault();
-    });
-
-    // Finalizar arrastre
-    container.addEventListener("dragend", (e) => {
-      activeDragHandle = null;
-      container.querySelectorAll('.sortable-item[draggable="true"]').forEach((el) => {
-        el.setAttribute("draggable", "false");
-      });
-
-      const item = e.target.closest(".sortable-item") || draggedItem;
-      if (item) {
-        item.classList.remove("dragging");
-        item.style.opacity = "1";
-      }
-
-      if (draggedItem) {
-        const allItems = [...container.querySelectorAll(".sortable-item")];
-        const newIndex = allItems.indexOf(draggedItem);
-
-        // Solo re-indexar y enviar si la posición realmente cambió
-        if (initialIndex !== null && newIndex !== -1 && initialIndex !== newIndex) {
-          updateIndicesAndSubmit(container, draggedItem);
-        }
-      }
-
-      draggedItem = null;
-      initialIndex = null;
-
-      setTimeout(() => {
-        isDragging = false;
-      }, 50);
-    });
-
-    // Movimiento al arrastrar por encima de otros elementos
-    container.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      if (e.dataTransfer) {
-        e.dataTransfer.dropEffect = "move";
-      }
-
-      if (!draggedItem) return;
-
-      const afterElement = getDragAfterElement(container, e.clientY);
-
-      if (afterElement == null) {
-        const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
-        if (lastSortable && lastSortable !== draggedItem) {
-          lastSortable.after(draggedItem);
-        } else if (!lastSortable && container.lastElementChild !== draggedItem) {
-          container.appendChild(draggedItem);
-        }
-      } else {
-        if (draggedItem.nextElementSibling !== afterElement && draggedItem !== afterElement) {
-          container.insertBefore(draggedItem, afterElement);
-        }
-      }
-    });
-
-    // --- SOPORTE PARA PANTALLAS TÁCTILES (Touch Events) ---
-    let touchItem = null;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchCurrentY = 0;
-    let touchInitialIndex = null;
-    let isTouchDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let startRect = null;
+    let isPointerDragging = false;
     let autoScrollRaf = null;
     let touchDelayTimeout = null;
+    let pointerMode = null; // "mouse" | "touch"
+    let lastTouchTime = 0;
 
     /**
      * Obtiene el contenedor desplazable más cercano o window.
@@ -644,13 +516,130 @@ export function sortableContent() {
     }
 
     /**
-     * Realiza desplazamiento automático suave si el dedo se acerca a los extremos de la pantalla.
+     * Crea el clon visual elevado (100% opaco y con sombra profunda) que sigue al cursor
+     * por encima de los demás bloques, convirtiendo el ítem original en el hueco de destino.
      *
-     * @param {number} clientY Coordenada Y del toque.
+     * @param {HTMLElement} item Elemento .sortable-item a elevar.
+     */
+    function activateFloatingDrag(item) {
+      if (!item || isPointerDragging) return;
+      isPointerDragging = true;
+      isDragging = true;
+
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
+
+      startRect = item.getBoundingClientRect();
+      floatingAvatar = item.cloneNode(true);
+      floatingAvatar.removeAttribute("id");
+      floatingAvatar.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+
+      // Sincronizar valores actuales de inputs/textareas/selects en el clon visual
+      const origInputs = item.querySelectorAll("input, textarea, select");
+      const cloneInputs = floatingAvatar.querySelectorAll("input, textarea, select");
+      origInputs.forEach((inp, idx) => {
+        const cInp = cloneInputs[idx];
+        if (!cInp) return;
+        if (inp.type === "checkbox" || inp.type === "radio") {
+          cInp.checked = inp.checked;
+        } else if (inp.type !== "file") {
+          cInp.value = inp.value;
+        }
+      });
+
+      floatingAvatar.classList.remove("dragging", "is-drop-placeholder");
+      floatingAvatar.classList.add("sortable-floating-avatar");
+      floatingAvatar.style.top = `${startRect.top}px`;
+      floatingAvatar.style.left = `${startRect.left}px`;
+      floatingAvatar.style.width = `${startRect.width}px`;
+      floatingAvatar.style.height = `${startRect.height}px`;
+      floatingAvatar.style.transform = "translate3d(0px, 0px, 0px) scale(1.025)";
+      document.body.appendChild(floatingAvatar);
+      document.body.classList.add("is-sorting-items");
+
+      // Convertir el elemento original en un hueco marcador limpio con su altura exacta
+      item.style.height = `${startRect.height}px`;
+      item.classList.add("dragging", "is-drop-placeholder");
+    }
+
+    /**
+     * Mueve el hueco marcador en la lista aplicando animación FLIP suave a los demás bloques.
+     *
+     * @param {number} clientY Coordenada Y actual del puntero.
+     */
+    function updateSlotPositionWithFlip(clientY) {
+      if (!activeItem || !isPointerDragging) return;
+
+      const afterElement = getDragAfterElement(container, clientY);
+      let shouldMove = false;
+
+      if (afterElement == null) {
+        const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
+        if ((lastSortable && lastSortable !== activeItem) || (!lastSortable && container.lastElementChild !== activeItem)) {
+          shouldMove = true;
+        }
+      } else if (activeItem.nextElementSibling !== afterElement && activeItem !== afterElement) {
+        shouldMove = true;
+      }
+
+      if (!shouldMove) return;
+
+      // 1. First: registrar posiciones actuales de los hermanos antes del cambio DOM
+      const siblings = [...container.querySelectorAll(".sortable-item:not(.dragging)")];
+      const prevTops = new Map();
+      siblings.forEach((sib) => {
+        prevTops.set(sib, sib.getBoundingClientRect().top);
+      });
+
+      // 2. Ejecutar inserción en el DOM
+      if (afterElement == null) {
+        const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
+        if (lastSortable && lastSortable !== activeItem) {
+          lastSortable.after(activeItem);
+        } else if (!lastSortable && container.lastElementChild !== activeItem) {
+          container.appendChild(activeItem);
+        }
+      } else {
+        container.insertBefore(activeItem, afterElement);
+      }
+
+      // 3. Invert & Play: animar suavemente el desplazamiento de los bloques sobrepasados
+      siblings.forEach((sib) => {
+        const oldTop = prevTops.get(sib);
+        const newTop = sib.getBoundingClientRect().top;
+        const deltaY = oldTop - newTop;
+        if (Math.abs(deltaY) > 1) {
+          sib.style.transition = "none";
+          sib.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+          void sib.offsetHeight;
+          sib.style.transition = "transform 220ms cubic-bezier(0.2, 1, 0.2, 1)";
+          sib.style.transform = "";
+        }
+      });
+    }
+
+    /**
+     * Actualiza la posición de la tarjeta flotante elevada siguiendo el puntero.
+     *
+     * @param {number} clientX Coordenada X.
+     * @param {number} clientY Coordenada Y.
+     */
+    function updateAvatarTransform(clientX, clientY) {
+      if (!floatingAvatar || !startRect) return;
+      const dx = (clientX - startX) * 0.08;
+      const dy = clientY - startY;
+      floatingAvatar.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(1.025)`;
+    }
+
+    /**
+     * Realiza desplazamiento automático suave si el puntero se acerca a los extremos de la pantalla.
+     *
+     * @param {number} clientY Coordenada Y del puntero.
      */
     function checkAutoScroll(clientY) {
       stopAutoScroll();
-      if (!isTouchDragging || !touchItem) return;
+      if (!isPointerDragging || !activeItem) return;
 
       const viewportHeight = window.innerHeight;
       const edgeThreshold = 75;
@@ -665,7 +654,7 @@ export function sortableContent() {
       if (speed !== 0) {
         const scrollParent = getScrollParent(container);
         const scrollStep = () => {
-          if (!isTouchDragging || !touchItem) return;
+          if (!isPointerDragging || !activeItem) return;
 
           if (scrollParent === window || scrollParent === document.body || scrollParent === document.documentElement) {
             window.scrollBy(0, speed);
@@ -677,21 +666,7 @@ export function sortableContent() {
             }
           }
 
-          // Recalcular orden en vivo mientras ocurre el scroll
-          const afterElement = getDragAfterElement(container, touchCurrentY);
-          if (afterElement == null) {
-            const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
-            if (lastSortable && lastSortable !== touchItem) {
-              lastSortable.after(touchItem);
-            } else if (!lastSortable && container.lastElementChild !== touchItem) {
-              container.appendChild(touchItem);
-            }
-          } else {
-            if (touchItem.nextElementSibling !== afterElement && touchItem !== afterElement) {
-              container.insertBefore(touchItem, afterElement);
-            }
-          }
-
+          updateSlotPositionWithFlip(currentY);
           autoScrollRaf = requestAnimationFrame(scrollStep);
         };
         autoScrollRaf = requestAnimationFrame(scrollStep);
@@ -699,121 +674,113 @@ export function sortableContent() {
     }
 
     /**
-     * Manejador de touchmove en window.
-     *
-     * @param {TouchEvent} e Evento táctil.
+     * Finaliza el arrastre animando el aterrizaje de la tarjeta flotante hacia el hueco final.
      */
-    const onTouchMove = (e) => {
-      if (!touchItem || !e.touches || e.touches.length !== 1) return;
-
-      const touch = e.touches[0];
-      touchCurrentY = touch.clientY;
-      const deltaX = Math.abs(touch.clientX - touchStartX);
-      const deltaY = Math.abs(touch.clientY - touchStartY);
-
-      if (!isTouchDragging) {
-        // Si se mueve más de 8px antes de que se active el drag (por el delay), 
-        // asumimos que el usuario está haciendo scroll y cancelamos el drag
-        if (deltaX > 8 || deltaY > 8) {
-          cleanUpTouch();
-          return;
-        }
-      }
-
-      if (isTouchDragging) {
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-
-        const afterElement = getDragAfterElement(container, touch.clientY);
-        if (afterElement == null) {
-          const lastSortable = [...container.querySelectorAll(".sortable-item")].pop();
-          if (lastSortable && lastSortable !== touchItem) {
-            lastSortable.after(touchItem);
-          } else if (!lastSortable && container.lastElementChild !== touchItem) {
-            container.appendChild(touchItem);
-          }
-        } else {
-          if (touchItem.nextElementSibling !== afterElement && touchItem !== afterElement) {
-            container.insertBefore(touchItem, afterElement);
-          }
-        }
-
-        checkAutoScroll(touch.clientY);
-      }
-    };
-
-    /**
-     * Manejador de touchend.
-     *
-     * @param {TouchEvent} e Evento táctil.
-     */
-    const onTouchEnd = (e) => {
+    function finishDragSession() {
       stopAutoScroll();
-
-      if (isTouchDragging && touchItem) {
-        if (e && e.cancelable) {
-          e.preventDefault();
-        }
-
-        touchItem.classList.remove("dragging");
-        touchItem.style.opacity = "1";
-
-        const allItems = [...container.querySelectorAll(".sortable-item")];
-        const newIndex = allItems.indexOf(touchItem);
-
-        if (touchInitialIndex !== null && newIndex !== -1 && touchInitialIndex !== newIndex) {
-          updateIndicesAndSubmit(container, touchItem);
-        }
-
-        blockNextClick = true;
-        setTimeout(() => {
-          blockNextClick = false;
-          isDragging = false;
-        }, 200);
-      }
-
-      cleanUpTouch();
-    };
-
-    /**
-     * Manejador de touchcancel.
-     */
-    const onTouchCancel = () => {
-      stopAutoScroll();
-      if (touchItem) {
-        touchItem.classList.remove("dragging");
-        touchItem.style.opacity = "1";
-      }
-      blockNextClick = true;
-      setTimeout(() => {
-        blockNextClick = false;
-        isDragging = false;
-      }, 150);
-      cleanUpTouch();
-    };
-
-    function cleanUpTouch() {
       if (touchDelayTimeout) {
         clearTimeout(touchDelayTimeout);
         touchDelayTimeout = null;
       }
-      stopAutoScroll();
+
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("touchmove", onTouchMove, { passive: false });
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchCancel);
-      touchItem = null;
-      touchInitialIndex = null;
-      isTouchDragging = false;
+
+      const item = activeItem;
+      const avatar = floatingAvatar;
+      const sRect = startRect;
+      const initIdx = initialIndex;
+
+      activeItem = null;
+      floatingAvatar = null;
+      startRect = null;
+      initialIndex = null;
+      pointerMode = null;
+      document.body.classList.remove("is-sorting-items");
+
+      if (!isPointerDragging || !item) {
+        isPointerDragging = false;
+        if (avatar) avatar.remove();
+        return;
+      }
+
+      isPointerDragging = false;
+      const allItems = [...container.querySelectorAll(".sortable-item")];
+      const newIndex = allItems.indexOf(item);
+      const orderChanged = initIdx !== null && newIndex !== -1 && initIdx !== newIndex;
+
+      // Actualizar índices y vista previa en 0ms al soltar
+      if (orderChanged) {
+        updateIndicesAndSubmit(container, item);
+      }
+
+      // Animar aterrizaje suave de la tarjeta flotante hacia la posición exacta del hueco
+      if (avatar && sRect) {
+        const targetRect = item.getBoundingClientRect();
+        const targetDx = targetRect.left - sRect.left;
+        const targetDy = targetRect.top - sRect.top;
+        avatar.style.transition = "transform 165ms cubic-bezier(0.2, 1, 0.3, 1), box-shadow 165ms ease";
+        avatar.style.transform = `translate3d(${targetDx}px, ${targetDy}px, 0) scale(1)`;
+        avatar.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.08)";
+
+        setTimeout(() => {
+          avatar.remove();
+          item.classList.remove("dragging", "is-drop-placeholder");
+          item.style.height = "";
+          item.style.opacity = "";
+        }, 165);
+      } else {
+        item.classList.remove("dragging", "is-drop-placeholder");
+        item.style.height = "";
+        item.style.opacity = "";
+      }
+
+      blockNextClick = true;
+      setTimeout(() => {
+        blockNextClick = false;
+        isDragging = false;
+      }, 180);
     }
 
-    container.addEventListener("touchstart", (e) => {
-      if (!e.touches || e.touches.length !== 1) return;
+    // Prevenir dragstart nativo HTML5 para evitar la imagen fantasma semitransparente del navegador
+    container.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+    });
+
+    // --- 1. SOPORTE PARA RATÓN (Desktop Mouse Events) ---
+    const onMouseMove = (e) => {
+      if (!activeItem || pointerMode !== "mouse") return;
+      currentX = e.clientX;
+      currentY = e.clientY;
+
+      if (!isPointerDragging) {
+        const dist = Math.hypot(currentX - startX, currentY - startY);
+        if (dist < 4) return;
+        activateFloatingDrag(activeItem);
+      }
+
+      e.preventDefault();
+      updateAvatarTransform(currentX, currentY);
+      updateSlotPositionWithFlip(currentY);
+      checkAutoScroll(currentY);
+    };
+
+    const onMouseUp = () => {
+      if (pointerMode !== "mouse") return;
+      finishDragSession();
+    };
+
+    container.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      // Evitar que eventos sintéticos de ratón en pantallas táctiles se salten el delay de 500ms
+      if (Date.now() - lastTouchTime < 800) return;
 
       const handle = e.target.closest(".drag-handle, [data-drag-handle]");
       if (!handle) return;
 
-      // No iniciar arrastre si el toque ocurre en controles interactivos internos
       if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a, [contenteditable]")) {
         return;
       }
@@ -821,26 +788,91 @@ export function sortableContent() {
       const item = handle.closest(".sortable-item");
       if (!item || !container.contains(item)) return;
 
-      touchItem = item;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchCurrentY = e.touches[0].clientY;
+      pointerMode = "mouse";
+      activeItem = item;
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = e.clientX;
+      currentY = e.clientY;
       const allItems = [...container.querySelectorAll(".sortable-item")];
-      touchInitialIndex = allItems.indexOf(item);
-      isTouchDragging = false;
-      
-      // Delay de 500ms (medio segundo) para arrastrar en táctil
-      touchDelayTimeout = setTimeout(() => {
-        isTouchDragging = true;
-        isDragging = true;
-        touchItem.classList.add("dragging");
-        touchItem.style.opacity = "0.4";
-        
-        if (navigator.vibrate) navigator.vibrate(50);
+      initialIndex = allItems.indexOf(item);
+      isPointerDragging = false;
 
-        if (window.getSelection) {
-          window.getSelection().removeAllRanges();
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+    });
+
+    // --- 2. SOPORTE PARA PANTALLAS TÁCTILES (Touch Events con delay de 500ms anti-scroll accidental) ---
+    const onTouchMove = (e) => {
+      if (!activeItem || pointerMode !== "touch" || !e.touches || e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      currentX = touch.clientX;
+      currentY = touch.clientY;
+      const deltaX = Math.abs(currentX - startX);
+      const deltaY = Math.abs(currentY - startY);
+
+      if (!isPointerDragging) {
+        // Si el dedo se mueve más de 8px antes de cumplirse los 500ms, el usuario está haciendo scroll: cancelar arrastre
+        if (deltaX > 8 || deltaY > 8) {
+          finishDragSession();
+          return;
         }
+      }
+
+      if (isPointerDragging) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        updateAvatarTransform(currentX, currentY);
+        updateSlotPositionWithFlip(currentY);
+        checkAutoScroll(currentY);
+      }
+    };
+
+    const onTouchEnd = (e) => {
+      lastTouchTime = Date.now();
+      if (pointerMode !== "touch") return;
+      if (isPointerDragging && e && e.cancelable) {
+        e.preventDefault();
+      }
+      finishDragSession();
+    };
+
+    const onTouchCancel = () => {
+      lastTouchTime = Date.now();
+      if (pointerMode !== "touch") return;
+      finishDragSession();
+    };
+
+    container.addEventListener("touchstart", (e) => {
+      lastTouchTime = Date.now();
+      if (!e.touches || e.touches.length !== 1) return;
+
+      const handle = e.target.closest(".drag-handle, [data-drag-handle]");
+      if (!handle) return;
+
+      if (e.target.closest("input, textarea, select, button, label, .modal-btn, .content-modal-menu, .checkbox-switch, a, [contenteditable]")) {
+        return;
+      }
+
+      const item = handle.closest(".sortable-item");
+      if (!item || !container.contains(item)) return;
+
+      pointerMode = "touch";
+      activeItem = item;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      currentX = startX;
+      currentY = startY;
+      const allItems = [...container.querySelectorAll(".sortable-item")];
+      initialIndex = allItems.indexOf(item);
+      isPointerDragging = false;
+
+      // Delay de 500ms (medio segundo) para arrastrar en táctil sin interferir con el scroll
+      touchDelayTimeout = setTimeout(() => {
+        activateFloatingDrag(activeItem);
+        if (navigator.vibrate) navigator.vibrate(50);
       }, 500);
 
       window.addEventListener("touchmove", onTouchMove, { passive: false });
@@ -1118,9 +1150,13 @@ export function sortableContent() {
           element.setAttribute("data-val-target", oldValTarget.replace(/-\d+$/, `-${index}`));
         }
 
-        // 6. Re-indexar data-index
+        // 6. Re-indexar data-index y data-trigger-color
         if (element.hasAttribute("data-index")) {
           element.setAttribute("data-index", String(index));
+        }
+        const oldTriggerColor = element.getAttribute("data-trigger-color");
+        if (oldTriggerColor && /-\d+$/.test(oldTriggerColor)) {
+          element.setAttribute("data-trigger-color", oldTriggerColor.replace(/-\d+$/, `-${index}`));
         }
       });
     });

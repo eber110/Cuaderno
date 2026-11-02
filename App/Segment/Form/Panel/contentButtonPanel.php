@@ -38,7 +38,8 @@
 <!-- TEMPLATES PARA FASE 3 -->
 <div id="editor-templates" style="display:none;">
   <?php
-    $templateTypes = array_keys(\App\Models\DesignModels::getBlockTypes());
+    $blockTypesCatalog = \App\Models\DesignModels::getBlockTypes();
+    $templateTypes = array_keys($blockTypesCatalog);
     $allowedStyles = ["buttonRegular"];
     $rawStyle  = $card["style"] ?? "buttonRegular";
     $cardStyle = in_array($rawStyle, $allowedStyles, true) ? $rawStyle : "buttonRegular";
@@ -80,78 +81,73 @@
       ];
 
       $item = [
-        "id"             => "{{BLOCK_ID}}",
-        "type"           => $tType,
-        "title"          => "",
-        "url"            => "",
-        "img"            => "no-image.webp",
-        "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
-        "imgDefault"     => false,
-        "imgShow"        => false,
-        "active"         => false,
-        "metaTitle"      => "",
-        "metaDesc"       => "",
-        "metaImg"        => "",
-        "price"          => "",
-        "offer"          => false,
-        "discount"       => "",
-        "porcentage"     => 0,
-        "desc"           => "",
-        "separator_mode" => "space",
-        "separator_icon" => "none",
-        "separator_size" => "large",
-        "space_size"     => "40",
-        "layout"         => "grid",
-        "products"       => ($tType === "product_group") ? $defaultSubProducts : []
+        "id"                    => "{{BLOCK_ID}}",
+        "type"                  => $tType,
+        "title"                 => "",
+        "url"                   => "",
+        "img"                   => "no-image.webp",
+        "imgSrc"                => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
+        "imgDefault"            => false,
+        "imgShow"               => true,
+        "active"                => ($tType === "separator"),
+        "metaTitle"             => "",
+        "metaDesc"              => "",
+        "metaImg"               => "",
+        "price"                 => "",
+        "offer"                 => false,
+        "discount"              => "",
+        "porcentage"            => 0,
+        "desc"                  => "",
+        "button_text"           => "Suscribirme",
+        "size"                  => ($tType === "campaign") ? "horizontal" : "",
+        "img_position"          => "background",
+        "bg_color"              => ($tType === "banner") ? "#f2e5ff" : "#1e1e1e",
+        "bg_opacity"            => ($tType === "banner") ? 100 : 80,
+        "text_position"         => "center",
+        "text_align"            => ($tType === "text") ? "left" : "center",
+        "title_size"            => ($tType === "title") ? "small" : "large",
+        "title_weight"          => "500",
+        "text"                  => "",
+        "text_weight"           => "400",
+        "desc_size"             => "medium",
+        "title_color"           => "#ffffff",
+        "desc_color"            => "#ffffff",
+        "btn_bg_color"          => $card["back"] ?? "#000000",
+        "btn_text_color"        => $card["color"] ?? "#ffffff",
+        "ask_name"              => true,
+        "ask_whatsapp"          => false,
+        "has_countdown"         => false,
+        "countdown_date"        => "",
+        "countdown_bg_color"    => $card["back"] ?? "#000000",
+        "countdown_text_color"  => $card["color"] ?? "#ffffff",
+        "countdown_text_size"   => "medium",
+        "countdown_widget_size" => "medium",
+        "video_mode"            => "link",
+        "separator_mode"        => "space",
+        "separator_icon"        => "none",
+        "separator_size"        => "large",
+        "space_size"            => "40",
+        "layout"                => "grid",
+        "products"              => ($tType === "product_group") ? $defaultSubProducts : []
       ];
       
       echo "<template id=\"tpl_block_{$tType}\">";
       include __DIR__ . "/contentItem.php";
       echo "</template>";
 
-      $partName = match ($tType) {
-        "link"          => "User." . $cardStyle,
-        "product"       => "User.productRegular",
-        "product_group" => "User.productGroup",
-        "campaign"      => "User.campaign",
-        "banner"        => "User.banner",
-        "title"         => "User.title",
-        "text"          => "User.text",
-        "separator"     => "User.separator",
-        "video"         => "User.video",
-        default         => null,
-      };
+      $viewBase = $blockTypesCatalog[$tType]["viewBase"] ?? null;
+      $partName = ($tType === "link")
+        ? "User." . $cardStyle
+        : ($viewBase ? (str_ends_with($viewBase, ".") ? $viewBase . $cardStyle : $viewBase) : null);
 
       if ($partName) {
          $mockCard = $card;
-         $mockCard["content"]["{{INDEX}}"] = [
-            "id"             => "{{BLOCK_ID}}",
-            "type"           => $tType,
-            "title"          => "",
-            "url"            => "",
-            "metaTitle"      => "",
-            "metaDesc"       => "",
-            "metaImg"        => "",
-            "img"            => "no-image.webp",
-            "imgSrc"         => DIR_UPLOAD_MEDIA_STATIC . "Custom/no-image.webp",
-            "imgShow"        => false,
-            "active"         => false,
-            "price"          => "",
-            "offer"          => false,
-            "discount"       => "",
-            "porcentage"     => 0,
-            "separator_mode" => "space",
-            "separator_icon" => "none",
-            "separator_size" => "large",
-            "space_size"     => "40",
-            "layout"         => "grid",
-            "products"       => ($tType === "product_group") ? $defaultSubProducts : []
-         ];
+         $mockCard["content"]["{{INDEX}}"] = $item;
          echo "<template id=\"tpl_preview_{$tType}\">";
          _part($partName, [
             "dataContent" => "{{INDEX}}",
             "card"        => $mockCard,
-            "isActive"    => false,
+            "isActive"    => ($tType === "separator"),
             "isPreview"   => true,
             "blockId"     => "{{BLOCK_ID}}"
          ]);

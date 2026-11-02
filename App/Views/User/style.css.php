@@ -277,7 +277,7 @@
   }
 
   .void-space{
-    padding-top: <?= $voidSpace."%" ?> !important;
+    padding-top: var(--preview-void-space, <?= $voidSpace."%" ?>) !important;
   }
 
   @keyframes livePulse {
