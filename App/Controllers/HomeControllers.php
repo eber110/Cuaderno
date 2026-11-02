@@ -23,7 +23,7 @@ class HomeControllers extends Control
       "title"       => "{$siteName} — Todo lo que haces. En un solo link instantáneo.",
       "site_name"   => $siteName,
       "content"     => "Conecta tus productos, redes, eventos y campañas en una página limpia y ultraligera.",
-      "image"       => DIR_UPLOAD_MEDIA_STATIC . "hero.webp",
+      "image"       => IMG_OG,
       "image_width" => 1200,
       "image_height"=> 630,
       "link"        => defined('DOMAIN') ? DOMAIN : "/",
