@@ -1,6 +1,10 @@
 /vendor/*
 !/vendor/eber/
 .env
+.env.*
+!.env.example
+/dist/
+*.zip
 /.vscode/
 /scratch/
 /App/Public/Min/
