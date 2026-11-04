@@ -132,6 +132,9 @@ frame/                         # Repositorio del framework (también es un proye
 ## 5. Comandos (scripts de Composer)
 
 ```bash
+composer new-project         # Crea un nuevo proyecto derivado (o CLI: frame new)
+composer package             # Genera ZIP de despliegue inicial completo (o CLI: frame package)
+composer deploy              # Despliega código al servidor vía HTTP (o CLI: frame deploy [--all])
 composer min-script          # Compila JIT + minifica CSS/JS → regenera App/Public/Min + jit-compiled.css
 composer install-font        # Instalador interactivo de fuentes (woff2/ttf/otf)
 composer reset-font          # Gestor/reset de fuentes instaladas

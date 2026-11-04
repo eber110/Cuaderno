@@ -181,6 +181,7 @@ class InitAppStructure
     $this->createIndexPhp();
     $this->createGitignore();
     $this->copyAgentsFile();
+    $this->createDeployReceiver();
 
     echo "\n📊 Resumen:\n";
     echo "   Directorios creados: {$created}\n";
@@ -570,6 +571,37 @@ class InitAppStructure
         echo "✅ Actualizado: .env.example (con la plantilla más reciente del framework)\n";
       }
     }
+
+    // Si no es el repositorio del framework, asegurar que SEED y DEPLOY_TOKEN estén generados
+    if (!$this->isFrameworkRepo && file_exists($envPath)) {
+      $envContent = (string)file_get_contents($envPath);
+      $modified = false;
+
+      // 1. Generar SEED si está vacía
+      if (preg_match('/^SEED\s*=\s*["\']?["\']?\s*$/m', $envContent)) {
+        $seed = bin2hex(random_bytes(32));
+        $envContent = preg_replace('/^SEED\s*=\s*["\']?["\']?\s*$/m', 'SEED="' . $seed . '"', $envContent);
+        $modified = true;
+        echo "🔑 Semilla de seguridad (SEED) generada automáticamente en .env\n";
+      }
+
+      // 2. Generar DEPLOY_TOKEN si no existe o está vacío
+      if (!str_contains($envContent, 'DEPLOY_TOKEN')) {
+        $deployToken = bin2hex(random_bytes(16));
+        $envContent .= "\n# ==================== DEPLOYMENT ====================\nDEPLOY_URL=\"\"\nDEPLOY_TOKEN=\"{$deployToken}\"\n";
+        $modified = true;
+        echo "🚀 Clave de despliegue (DEPLOY_TOKEN) generada automáticamente en .env\n";
+      } elseif (preg_match('/^DEPLOY_TOKEN\s*=\s*["\']?["\']?\s*$/m', $envContent)) {
+        $deployToken = bin2hex(random_bytes(16));
+        $envContent = preg_replace('/^DEPLOY_TOKEN\s*=\s*["\']?["\']?\s*$/m', 'DEPLOY_TOKEN="' . $deployToken . '"', $envContent);
+        $modified = true;
+        echo "🚀 Clave de despliegue (DEPLOY_TOKEN) generada automáticamente en .env\n";
+      }
+
+      if ($modified) {
+        file_put_contents($envPath, $envContent);
+      }
+    }
   }
 
   private function createJsConfig(): void
@@ -873,6 +905,42 @@ GITIGNORE;
       echo "✅ Creado: AGENTS.md (guía de trabajo del proyecto)\n";
     } else {
       echo "❌ Error: No se pudo crear AGENTS.md\n";
+    }
+  }
+
+  /**
+   * Crea deploy.php en la raíz del proyecto para habilitar 'frame deploy' inmediatamente.
+   */
+  private function createDeployReceiver(): void
+  {
+    if ($this->isFrameworkRepo) {
+      return;
+    }
+
+    $deployFile = $this->basePath . '/deploy.php';
+    if (file_exists($deployFile)) {
+      echo "⏭️  Saltado: deploy.php (ya existe)\n";
+      return;
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $envPath = $this->basePath . '/.env';
+    if (file_exists($envPath)) {
+      $envContent = (string)file_get_contents($envPath);
+      if (preg_match('/^DEPLOY_TOKEN\s*=\s*["\']?([^"\'\r\n]+)["\']?/m', $envContent, $m)) {
+        if (!empty($m[1])) {
+          $token = trim($m[1]);
+        }
+      }
+    }
+
+    $deployClassFile = __DIR__ . '/DeployPackage.php';
+    if (file_exists($deployClassFile)) {
+      require_once $deployClassFile;
+      $template = DeployPackage::getDeployReceiverTemplate($token);
+      if (file_put_contents($deployFile, $template)) {
+        echo "✅ Creado: deploy.php (receptor de despliegue con token configurado)\n";
+      }
     }
   }
 

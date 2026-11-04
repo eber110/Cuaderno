@@ -21,6 +21,8 @@
   "scripts": {
     "post-install-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
     "post-update-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
+    "package": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php package",
+    "deploy": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php deploy",
     "min-script": "@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php",
     "create-table-mysql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php",
     "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
@@ -29,6 +31,10 @@
     "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
     "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php",
     "convert-image": "@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php",
+    "make:controller": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller",
+    "make:model": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model",
+    "make:component": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php component",
+    "make:middleware": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php middleware",
     "db-maintenance": "@php App/Console/DatabaseMaintenanceScript.php",
     "setup-db": "@php -r \"require 'vendor/autoload.php'; require 'App/Config/config.php'; print_r(\\App\\DatabaseComponent\\SQLiteSetup::setupTables());\""
   }
