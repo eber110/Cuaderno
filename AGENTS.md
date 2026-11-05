@@ -343,25 +343,41 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 
 ---
 
-## 5. Comandos (scripts de Composer)
+## 5. Comandos CLI (Frame CLI y Composer)
+
+Los comandos se pueden ejecutar directamente desde cualquier terminal de PowerShell o CMD usando `frame <comando>`, o a través de scripts de Composer:
 
 ```bash
-composer min-script          # JIT + minificación CSS/JS → App/Public/Min + jit-compiled.css
-composer install-font        # Instalar fuentes (woff2/ttf/otf)
-composer reset-font          # Gestor/reset de fuentes instaladas
-composer create-table-mysql   # Inicializar tablas BD MySQL
-composer create-table-pgsql   # Inicializar tablas BD PostgreSQL
-composer update-geoip        # Descargar GeoLite2 actualizado
-composer convert-image       # Conversor de imágenes
+# Optimización y Assets
+frame min                            # JIT + minificación CSS/JS → App/Public/Min + jit-compiled.css (composer min-script)
+frame link                           # Vincula o actualiza la ruta del framework en composer.json (composer link)
+frame image:convert                  # Conversor de imágenes (composer convert-image)
 
-# Generadores CLI rápidos:
-composer make:controller <Nombre>   # Crea controlador en App/Controllers/
-composer make:model <Nombre>        # Crea modelo en App/Models/
-composer make:component <Nombre>    # Crea componente en App/Components/
-composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
+# Despliegue y Empaquetado
+frame package                        # Genera ZIP completo para hosting (composer package)
+frame deploy [--all]                 # Despliega cambios vía HTTP al servidor (composer deploy)
+
+# Fuentes Tipográficas
+frame font:install                   # Instalar fuentes woff2/ttf/otf (composer install-font)
+frame font:reset                     # Gestor/reset de fuentes instaladas (composer reset-font)
+
+# Base de Datos
+frame db:mysql                       # Inicializar tablas BD MySQL (composer create-table-mysql)
+frame db:pgsql                       # Inicializar tablas BD PostgreSQL (composer create-table-pgsql)
+
+# Seguridad y Servicios
+frame routes:scan                    # Escanear y cachear mapa de rutas (composer scan-routes)
+frame geoip:update                   # Descargar GeoLite2 actualizado (composer update-geoip)
+frame key:rotate [--seed] [--token]  # Rotar claves SEED y DEPLOY_TOKEN ante intrusiones (composer key:rotate)
+
+# Generadores CLI rápidos (make):
+frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (composer make:controller)
+frame make:model <Nombre>            # Crea modelo en App/Models/ (composer make:model)
+frame make:component <Nombre>        # Crea componente en App/Components/ (composer make:component)
+frame make:middleware <Nombre>       # Crea middleware en App/Middleware/ (composer make:middleware)
 ```
 
-⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`.
+⚠ Tras cambiar CSS/JS siempre ejecutar `frame min` (o `composer min-script`).
 
 ---
 

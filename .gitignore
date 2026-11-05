@@ -81,3 +81,6 @@
 # Reglas esenciales del framework (sincronizadas por InitAppStructure)
 /Uploads/
 *.mmdb
+
+# Reglas esenciales del framework (sincronizadas por InitAppStructure)
+.vscode/
