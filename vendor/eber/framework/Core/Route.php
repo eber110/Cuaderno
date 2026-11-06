@@ -252,6 +252,11 @@ class Route
       }
     }
 
+    // Registrar herramientas internas de desarrollo del framework (Theme Studio)
+    if (class_exists('\\Base\\Control\\ThemeStudioControl')) {
+      \Base\Control\ThemeStudioControl::registerRoutes();
+    }
+
     // Ejecutar CORS al inicio de la solicitud
     if (class_exists('\Base\Module\CorsModule')) {
       \Base\Module\CorsModule::handle();

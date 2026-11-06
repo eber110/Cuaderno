@@ -74,7 +74,11 @@ $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 $request_scheme = $_SERVER['REQUEST_SCHEME'] ?? ($isHttps ? 'https' : 'http');
 if (!defined('SCHEME')) define('SCHEME', $request_scheme . '://');
 
-$server_name = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+$rawHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$server_name = preg_replace('/[^a-zA-Z0-9.\-:\[\]]/', '', (string) $rawHost) ?: 'localhost';
+if (!str_contains($server_name, ':') && !empty($_SERVER['SERVER_PORT']) && !in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
+	$server_name .= ':' . (int)$_SERVER['SERVER_PORT'];
+}
 if (!defined('URL')) define('URL', SCHEME . trim((string) $server_name, '/') . '/');
 if (!defined('APP')) define('APP', '');
 if (!defined('LINK')) define('LINK', trim((string) URL, '/'));

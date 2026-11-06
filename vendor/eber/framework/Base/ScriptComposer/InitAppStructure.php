@@ -393,6 +393,7 @@ class InitAppStructure
     $this->copyFileIfNotExists('Config/CorsConfiguration.php', 'App/Config/CorsConfiguration.php');
     $this->copyFileIfNotExists('Config/TokenConfiguration.php', 'App/Config/TokenConfiguration.php');
     $this->copyFileIfNotExists('Config/preloadFonts.json', 'App/Config/preloadFonts.json');
+    $this->copyFileIfNotExists('Config/theme.json', 'App/Config/theme.json');
 
     // loadLibraryJsConfiguration.php (con migración automática a Charts si ya existe)
     $libConfigPath = $this->basePath . '/App/Config/loadLibraryJsConfiguration.php';
@@ -480,7 +481,12 @@ class InitAppStructure
         echo "⏭️  Saltado: App/Public/Css/_configTheme.css (ya existe)\n";
       }
     } else {
-      $this->copyFileIfNotExists('Public/Css/_configTheme.css', 'App/Public/Css/_configTheme.css');
+      if (class_exists('\\Base\\Module\\ThemeModule')) {
+        \Base\Module\ThemeModule::build($this->basePath);
+        echo "✅ Creado: App/Public/Css/_configTheme.css (compilado desde theme.json)\n";
+      } else {
+        $this->copyFileIfNotExists('Public/Css/_configTheme.css', 'App/Public/Css/_configTheme.css');
+      }
     }
 
     $this->copyFileIfNotExists('Public/Css/theme.css', 'App/Public/Css/theme.css');
@@ -799,20 +805,29 @@ PHP;
    */
   private function createGitignore(): void
   {
+    if ($this->isFrameworkRepo) {
+      return;
+    }
+
     $gitignorePath = $this->basePath . '/.gitignore';
 
     $essentialIgnores = [
       '/vendor/',
       '.env',
+      '.env.*',
+      '!.env.example',
+      '/dist/',
+      '*.zip',
       '/App/Public/Min/',
-      '/Cache/',
-      '/Logs/',
-      '/Uploads/',
+      '/Cache/*',
+      '/Logs/*',
+      '/Uploads/*',
       '/Database/*',
       '*.mmdb',
       '*.sqlite',
       '*.sqlite-wal',
       '*.sqlite-shm',
+      '.vscode/',
     ];
 
     if (file_exists($gitignorePath)) {
@@ -821,11 +836,20 @@ PHP;
       foreach ($essentialIgnores as $pattern) {
         $escaped = preg_quote($pattern, '/');
         if (!preg_match('/(^|\r?\n)\s*' . $escaped . '\s*($|\r?\n)/', $content)) {
-          // Si ya existe una variante como /vendor/* o /Uploads/*, considerarlo cubierto
+          // Si ya existe una variante equivalente, considerarla cubierta
           if ($pattern === '/vendor/' && (str_contains($content, '/vendor/*') || str_contains($content, 'vendor/'))) {
             continue;
           }
-          if ($pattern === '/Uploads/' && (str_contains($content, '/Uploads/*') || str_contains($content, 'Uploads/'))) {
+          if (($pattern === '/Uploads/' || $pattern === '/Uploads/*') && (str_contains($content, '/Uploads/*') || str_contains($content, '/Uploads/'))) {
+            continue;
+          }
+          if (($pattern === '/Cache/' || $pattern === '/Cache/*') && (str_contains($content, '/Cache/*') || str_contains($content, '/Cache/'))) {
+            continue;
+          }
+          if (($pattern === '/Logs/' || $pattern === '/Logs/*') && (str_contains($content, '/Logs/*') || str_contains($content, '/Logs/'))) {
+            continue;
+          }
+          if (($pattern === '/Database/' || $pattern === '/Database/*') && (str_contains($content, '/Database/*') || str_contains($content, '/Database/'))) {
             continue;
           }
           $missing[] = $pattern;
@@ -846,15 +870,24 @@ PHP;
     $content = <<<'GITIGNORE'
 /vendor/
 .env
+.env.*
+!.env.example
+/dist/
 /App/Public/Min/
-/Cache/
-/Logs/
-/Uploads/
+/Cache/*
+!/Cache/.gitkeep
+/Logs/*
+!/Logs/.gitkeep
+/Uploads/*
+!/Uploads/.gitkeep
 /Database/*
+!/Database/.gitkeep
 *.mmdb
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+*.zip
+.vscode/
 GITIGNORE;
 
     if (file_put_contents($gitignorePath, $content)) {

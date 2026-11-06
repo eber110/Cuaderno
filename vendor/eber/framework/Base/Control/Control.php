@@ -142,8 +142,9 @@ class Control
             require $filePath;
             $content = ob_get_clean();
 
+            $activeTheme = function_exists('theme_name') ? theme_name() : 'default';
             $this->confView();
-            print '<body>';
+            print '<body class="theme-' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
             require $layoutPath;
             print '</body>';
             print '</html>';
@@ -151,8 +152,9 @@ class Control
           }
         }
 
+        $activeTheme = function_exists('theme_name') ? theme_name() : 'default';
         $this->confView();
-        print '<body>';
+        print '<body class="theme-' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
         require_once $filePath;
         print '</body>';
         print '</html>';
@@ -174,8 +176,12 @@ class Control
    */
   public function confView()
   {
+    $activeTheme = function_exists('theme_name') ? theme_name() : 'default';
+    if (!defined('THEME_NAME')) {
+      define('THEME_NAME', $activeTheme);
+    }
     echo '<!DOCTYPE html>';
-    echo '<html lang="es">';
+    echo '<html lang="es" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
     echo '<head>';
     // Metadatos principales y SEO
     echo '<meta charset="UTF-8">';

@@ -43,8 +43,8 @@ class TextStyleRule extends JitRuleBase
       "text-blur-lg" => ".text-blur-lg { filter: blur(8px); transition: filter 0.25s ease; cursor: pointer; }\n.text-blur-lg:hover { filter: none; }\n",
 
       // Trazos estáticos
-      "text-stroke-white" => ".text-stroke-white { -webkit-text-stroke: 1px #ffffff; -webkit-text-fill-color: transparent; color: transparent; }\n",
-      "text-stroke-black" => ".text-stroke-black { -webkit-text-stroke: 1px #000000; -webkit-text-fill-color: transparent; color: transparent; }\n",
+      "text-stroke-white" => ".text-stroke-white { -webkit-text-stroke: 1px #ffffff; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; }\n",
+      "text-stroke-black" => ".text-stroke-black { -webkit-text-stroke: 1px #000000; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; }\n",
 
       // Subrayados grosores auxiliares
       "underline-w2" => ".underline-w2 { text-decoration-thickness: 2px !important; }\n",
@@ -91,11 +91,12 @@ class TextStyleRule extends JitRuleBase
       $color = $this->getColorVar($index);
       return $this->wrapMediaQuery(
         $media,
-        ".{$word} { -webkit-text-stroke: {$width}px {$color}; -webkit-text-fill-color: transparent; color: transparent; display: inline-block; }"
+        ".{$word} { -webkit-text-stroke: {$width}px {$color}; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; display: inline-block; }"
       );
     }
 
     // 1b. TEXT STROKE CON RELLENO (Borde sobre texto sólido): .text-stroke-fill1..N, .text-stroke-fill1-w2
+    // Se incluye paint-order: stroke fill para que el trazo se dibuje DETRÁS del relleno y no invada los glifos ni corte letras adyacentes.
     if (preg_match('/^text-stroke-fill(\d+)(?:-w(\d+))?(?:-(desk|mid|sml))?$/', $word, $m)) {
       $index = (int)$m[1];
       if ($index < 1) {
@@ -106,7 +107,7 @@ class TextStyleRule extends JitRuleBase
       $color = $this->getColorVar($index);
       return $this->wrapMediaQuery(
         $media,
-        ".{$word} { -webkit-text-stroke: {$width}px {$color}; display: inline-block; }"
+        ".{$word} { -webkit-text-stroke: {$width}px {$color}; paint-order: stroke fill; display: inline-block; }"
       );
     }
 
@@ -118,13 +119,39 @@ class TextStyleRule extends JitRuleBase
       }
       $color = $this->getColorVar($index);
       $hover = $this->getColorHoverVar($index);
-      return ".{$word} { -webkit-text-stroke: 1px {$color}; -webkit-text-fill-color: transparent; color: transparent; display: inline-block; transition: var(--transition, all 0.15s ease-in-out); }\n.{$word}:hover { -webkit-text-stroke-color: {$hover}; }\n";
+      return ".{$word} { -webkit-text-stroke: 1px {$color}; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; display: inline-block; transition: var(--transition, all 0.15s ease-in-out); }\n.{$word}:hover { -webkit-text-stroke-color: {$hover}; }\n";
     }
 
     // 1d. GROSOR DE TRAZO INDEPENDIENTE: .text-stroke-w1..text-stroke-w10
     if (preg_match('/^text-stroke-w(\d+)$/', $word, $m)) {
       $width = (int)$m[1];
-      return ".{$word} { -webkit-text-stroke-width: {$width}px !important; }\n";
+      return ".{$word} { -webkit-text-stroke-width: {$width}px !important; paint-order: stroke fill; }\n";
+    }
+
+    // 1e. TEXT OUTLINE UNIFICADO (Borde exterior nítido estilo Illustrator sin cortes de glifos): .text-outline1..N, .text-outline1-w1..w10
+    // Genera sombra perimetral en 8 o 16 direcciones sin difuminar (blur 0), creando una silueta exterior continua idéntica al Pathfinder Unite.
+    if (preg_match('/^text-outline(\d+)(?:-w(\d+))?(?:-(desk|mid|sml))?$/', $word, $m)) {
+      $index = (int)$m[1];
+      if ($index < 1) {
+        return null;
+      }
+      $width = isset($m[2]) && $m[2] !== "" ? (int)$m[2] : 1;
+      $media = $m[3] ?? "";
+      $color = $this->getColorVar($index);
+
+      $shadows = [];
+      $steps = $width <= 2 ? 8 : 16;
+      for ($i = 0; $i < $steps; $i++) {
+        $angle = ($i / $steps) * 2 * M_PI;
+        $x = round(cos($angle) * $width, 1);
+        $y = round(sin($angle) * $width, 1);
+        $shadows[] = "{$x}px {$y}px 0 {$color}";
+      }
+      $shadowCss = implode(", ", $shadows);
+      return $this->wrapMediaQuery(
+        $media,
+        ".{$word} { text-shadow: {$shadowCss}; display: inline-block; }"
+      );
     }
 
     // 2. TEXT GRADIENT (Degradado dependiente de variables con direcciones: left, right, top, bottom, center/radial, diag):

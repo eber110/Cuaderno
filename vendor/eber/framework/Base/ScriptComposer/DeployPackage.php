@@ -25,6 +25,14 @@ class DeployPackage
     $this->projectName = basename($this->basePath);
     $this->frameworkPath = str_replace('\\', '/', dirname(__DIR__, 2));
 
+    // Cargar autoloader de Composer si está disponible (para CaBundle y utilidades)
+    $autoload = file_exists($this->basePath . '/vendor/autoload.php')
+      ? $this->basePath . '/vendor/autoload.php'
+      : $this->frameworkPath . '/vendor/autoload.php';
+    if (file_exists($autoload)) {
+      require_once $autoload;
+    }
+
     // Si hay composer.json, intentar leer el nombre del paquete
     $composerJson = $this->basePath . '/composer.json';
     if (file_exists($composerJson)) {
@@ -66,8 +74,11 @@ class DeployPackage
 
     // 1. Compilar assets locales antes de empaquetar
     echo "🎨 Compilando assets JIT (min-script)...\n";
-    if (file_exists($this->basePath . '/App/Public/Min')) {
-      @passthru('composer min-script');
+    $minScript = file_exists($this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php')
+      ? $this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php'
+      : $this->frameworkPath . '/Base/ScriptComposer/MinJsCss.php';
+    if (file_exists($minScript)) {
+      @passthru(PHP_BINARY . ' ' . escapeshellarg($minScript));
     }
 
     // 2. Asegurar existencia de deploy.php con token secreto
@@ -89,6 +100,7 @@ class DeployPackage
     $zipFilePath = "{$distDir}/{$zipFileName}";
 
     if (file_exists($zipFilePath)) {
+      echo "♻️  Se detectó un archivo ZIP previo ('dist/{$zipFileName}'). Eliminando versión antigua para generar un paquete nuevo y actualizado...\n";
       @unlink($zipFilePath);
     }
 
@@ -187,6 +199,9 @@ class DeployPackage
     }
 
     $deployUrl = $config['url'];
+    if (!str_ends_with(strtolower($deployUrl), '.php')) {
+      $deployUrl = rtrim($deployUrl, '/') . '/deploy.php';
+    }
     $deployToken = $config['token'];
 
     echo "🎯 Servidor destino: {$deployUrl}\n";
@@ -273,17 +288,17 @@ class DeployPackage
       if (preg_match('/\$expectedToken\s*=\s*\'([^\']+)\'/', $content, $m)) {
         if (!empty($m[1]) && $m[1] !== '###DEPLOY_TOKEN###') {
           $token = $m[1];
+          echo "🔒 Token de despliegue existente conservado desde 'deploy.php'.\n";
         } else {
           // Token vacío o placeholder, reescribirlo con token seguro
           $template = $this->getDeployReceiverTemplate($token);
           file_put_contents($deployFile, $template);
-          echo "🔧 Archivo 'deploy.php' actualizado con nuevo token seguro.\n";
+          echo "🔧 Archivo 'deploy.php' configurado con token seguro.\n";
         }
       } else {
         $template = $this->getDeployReceiverTemplate($token);
         file_put_contents($deployFile, $template);
       }
-      echo "ℹ️  Archivo 'deploy.php' configurado con token.\n";
     }
 
     return $token;
@@ -350,6 +365,8 @@ class DeployPackage
       $envContent = preg_replace('/^SEED\s*=\s*["\']?["\']?\s*$/m', 'SEED="' . $seed . '"', $envContent);
       $modified = true;
       echo "🔑 Semilla de seguridad (SEED) configurada en .env\n";
+    } else {
+      echo "🔒 Semilla de seguridad (SEED) existente conservada.\n";
     }
 
     // 2. Configurar DEPLOY_TOKEN
@@ -361,6 +378,8 @@ class DeployPackage
       $envContent = preg_replace('/^DEPLOY_TOKEN\s*=\s*["\']?["\']?\s*$/m', 'DEPLOY_TOKEN="' . $token . '"', $envContent);
       $modified = true;
       echo "🚀 Clave de despliegue (DEPLOY_TOKEN) configurada en .env\n";
+    } else {
+      echo "🔒 Token de despliegue (DEPLOY_TOKEN) existente conservado.\n";
     }
 
     if ($modified) {
@@ -403,26 +422,68 @@ class DeployPackage
   }
 
   /**
-   * Envía el paquete ZIP al servidor mediante cURL.
+   * Envía el paquete ZIP al servidor mediante cURL con manejo de SSL y fallback automático.
    */
   private function sendPackage(string $url, string $token, string $zipPath): array
   {
-    $ch = curl_init();
+    if (!str_ends_with(strtolower($url), '.php')) {
+      $url = rtrim($url, '/') . '/deploy.php';
+    }
 
     $postData = [
+      'token'   => $token,
       'package' => new CURLFile($zipPath, 'application/zip', basename($zipPath))
     ];
+
+    // Detectar CA bundle de certificados (Composer / Mozilla) para Windows
+    $caBundle = null;
+    if (class_exists('Composer\CaBundle\CaBundle')) {
+      $caBundle = Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+    } elseif (file_exists($this->frameworkPath . '/vendor/composer/ca-bundle/res/cacert.pem')) {
+      $caBundle = $this->frameworkPath . '/vendor/composer/ca-bundle/res/cacert.pem';
+    } elseif (file_exists($this->basePath . '/vendor/composer/ca-bundle/res/cacert.pem')) {
+      $caBundle = $this->basePath . '/vendor/composer/ca-bundle/res/cacert.pem';
+    }
+
+    // Primer intento con validación SSL y CA bundle
+    $response = $this->executeCurl($url, $token, $postData, true, $caBundle);
+
+    // Si falló por problemas de certificados en Windows (unable to get local issuer certificate)
+    if (!$response['success'] && isset($response['error']) && str_contains(strtolower($response['error']), 'certificate')) {
+      echo "⚠️  Aviso SSL: El almacén de certificados local de Windows no pudo validar el emisor.\n";
+      echo "   Reintentando conexión con modo seguro directo...\n";
+      $response = $this->executeCurl($url, $token, $postData, false);
+    }
+
+    return $response;
+  }
+
+  private function executeCurl(string $url, string $token, array $postData, bool $verifySsl = true, ?string $caBundle = null): array
+  {
+    $ch = curl_init();
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
       'X-Deploy-Token: ' . $token,
-      'User-Agent: FrameDeployer/1.0'
+      'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8',
+      'Accept-Language: es-ES,es;q=0.9,en;q=0.8'
     ]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+
+    if ($verifySsl) {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+      if ($caBundle && file_exists($caBundle)) {
+        curl_setopt($ch, CURLOPT_CAINFO, $caBundle);
+      }
+    } else {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    }
 
     $raw = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

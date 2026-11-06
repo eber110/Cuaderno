@@ -160,6 +160,8 @@ class NewProject
       'scripts' => [
         'post-install-cmd' => '@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php',
         'post-update-cmd' => '@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php',
+        'link' => '@php vendor/eber/framework/Base/ScriptComposer/LinkProject.php',
+        'frame' => '@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php',
         'package' => '@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php package',
         'deploy' => '@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php deploy',
         'min-script' => '@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php',
@@ -169,6 +171,7 @@ class NewProject
         'reset-font' => '@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php',
         'update-geoip' => '@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php',
         'scan-routes' => '@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php',
+        'key:rotate' => '@php vendor/eber/framework/Base/ScriptComposer/RotateKeys.php',
         'convert-image' => '@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php',
         'make:controller' => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller',
         'make:model' => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model',

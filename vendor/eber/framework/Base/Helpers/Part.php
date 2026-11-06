@@ -969,3 +969,21 @@ function _scrollMemoryAntiFoucToString(string $memoryId = ''): string
   return '<script>(function(){try{var p=document.currentScript?document.currentScript.parentElement:null;if(!p)return;p.style.setProperty("scroll-behavior","auto","important");var path=window.location.pathname;var m="' . $safeId . '";var s=null;if(m){s=sessionStorage.getItem("fme_scroll_"+m+"_"+path);}else{var mid=p.getAttribute("data-scroll-memory")||p.getAttribute("id")||"content";s=sessionStorage.getItem("fme_scroll_"+mid+"_"+path);}if(!s)return;var targetTop=parseInt(s,10);if(isNaN(targetTop)||targetTop<=0)return;p.scrollTop=targetTop;if(Math.abs(p.scrollTop-targetTop)>2){var prevVis=p.style.visibility;p.style.visibility="hidden";var attempts=0;var stabilizeScroll=function(){attempts++;p.scrollTop=targetTop;if(Math.abs(p.scrollTop-targetTop)<=2||attempts>=8){p.style.visibility=prevVis;}else{requestAnimationFrame(stabilizeScroll);}};requestAnimationFrame(stabilizeScroll);}}catch(e){}})();</script>';
 }
 
+
+
+// ╔════════════════════════════════════════════╗
+// ║  9. TEMA Y ESTACIONALIDAD                   ║
+// ╚════════════════════════════════════════════╝
+
+/**
+ * Obtiene el nombre o slug del tema activo actualmente en la aplicación.
+ *
+ * @return string Slug del tema (ej. 'default', 'new-year', 'black-friday')
+ */
+function theme_name(): string
+{
+  if (defined('THEME_NAME')) {
+    return (string)THEME_NAME;
+  }
+  return \Base\Module\ThemeModule::getActiveThemeSlug();
+}

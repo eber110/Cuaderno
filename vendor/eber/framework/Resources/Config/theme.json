@@ -1,0 +1,37 @@
+{
+  "layout": {
+    "font": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+    "fontSize": "20px",
+    "widthWindow": "1500px",
+    "scrollbarWidth": "thin",
+    "scrollbarHide": "none"
+  },
+  "light": {
+    "body": "#FFF9E5",
+    "text": {
+      "primary": "#00124D",
+      "secondary": "#FFF9E5",
+      "inactive": "#bdbdbd"
+    },
+    "colors": [
+      "#FFC7B3",
+      "#B3FFED",
+      "#B3C4FF"
+    ]
+  },
+  "dark": {
+    "auto": true,
+    "body": "#092743",
+    "text": {
+      "primary": "#e6f3ff",
+      "secondary": "#051c31",
+      "inactive": "#bdbdbd"
+    },
+    "colors": []
+  },
+  "status": {
+    "success": "#00b900",
+    "caution": "#ff8c00",
+    "danger": "#ff0000"
+  }
+}

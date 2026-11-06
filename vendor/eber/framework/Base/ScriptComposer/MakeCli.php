@@ -27,22 +27,60 @@ class MakeCli
 
   public function run(array $args): void
   {
-    $type = strtolower($args[1] ?? '');
+    $type = strtolower(trim((string)($args[1] ?? '')));
     $name = $args[2] ?? null;
+
+    if (str_starts_with($type, 'make:')) {
+      $type = substr($type, 5);
+    }
 
     if (empty($type)) {
       echo "🛠️  Generadores CLI disponibles:\n";
-      echo "   - controller [Nombre]   -> Crea un Controlador en App/Controllers/\n";
-      echo "   - model [Nombre]        -> Crea un Modelo en App/Models/\n";
-      echo "   - component [Nombre]    -> Crea un Componente en App/Components/\n";
-      echo "   - middleware [Nombre]   -> Crea un Middleware en App/Middleware/\n\n";
-      echo "Ingrese el tipo a generar: ";
-      $type = strtolower(trim((string)fgets(STDIN)));
+      echo "   1. controller [Nombre]   -> Crea un Controlador en App/Controllers/\n";
+      echo "   2. model [Nombre]        -> Crea un Modelo en App/Models/\n";
+      echo "   3. component [Nombre]    -> Crea un Componente en App/Components/\n";
+      echo "   4. middleware [Nombre]   -> Crea un Middleware en App/Middleware/\n\n";
+      echo "Ingrese el tipo a generar (1-4 o controller/model/component/middleware): ";
+      $input = trim(preg_replace('/^\xef\xbb\xbf/', '', (string)fgets(STDIN)));
+
+      // Si el usuario ingresó tipo y nombre juntos (ej: "controller Prueba" o "1 Prueba")
+      $parts = preg_split('/\s+/', $input, 2);
+      $type = strtolower(trim(preg_replace('/^\xef\xbb\xbf/', '', $parts[0] ?? '')));
+      if (empty($name) && !empty($parts[1])) {
+        $name = trim(preg_replace('/^\xef\xbb\xbf/', '', $parts[1]));
+      }
+    }
+
+    if (str_starts_with($type, 'make:')) {
+      $type = substr($type, 5);
+    }
+
+    // Mapear números y nombres en español/inglés
+    $typeMap = [
+      '1'           => 'controller',
+      'controller'  => 'controller',
+      'controlador' => 'controller',
+      'c'           => 'controller',
+      '2'           => 'model',
+      'model'       => 'model',
+      'modelo'      => 'model',
+      'm'           => 'model',
+      '3'           => 'component',
+      'component'   => 'component',
+      'componente'  => 'component',
+      'comp'        => 'component',
+      '4'           => 'middleware',
+      'middleware'  => 'middleware',
+      'mid'         => 'middleware',
+    ];
+
+    if (isset($typeMap[$type])) {
+      $type = $typeMap[$type];
     }
 
     if (empty($name)) {
       echo "Ingrese el nombre de la clase (ej: User): ";
-      $name = trim((string)fgets(STDIN));
+      $name = trim(preg_replace('/^\xef\xbb\xbf/', '', (string)fgets(STDIN)));
     }
 
     if (empty($name)) {

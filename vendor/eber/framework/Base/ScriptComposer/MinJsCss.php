@@ -12,8 +12,17 @@ if (!defined('ROOT_PATH')) {
 
 use Base\Module\MinifyModule;
 use Base\Module\JitCssModule;
+use Base\Module\ThemeModule;
 
 $cssPaths = [];
+
+// Compilación automática de theme.json si existe y está modificado o si _configTheme.css no existe
+if (class_exists('\\Base\\Module\\ThemeModule')) {
+    $themeBuild = ThemeModule::build(ROOT_PATH);
+    if (!empty($themeBuild['updated'])) {
+        echo "🎨 Tema sincronizado: App/Public/Css/_configTheme.css actualizado desde theme.json\n";
+    }
+}
 
 // Asegurar que App/Public/Css/_configTheme.css exista (copiándolo desde Resources/Public/Css si aún no fue inicializado)
 $appCssDir = ROOT_PATH . '/App/Public/Css';

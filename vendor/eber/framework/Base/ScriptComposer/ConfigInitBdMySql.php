@@ -1,6 +1,29 @@
 <?php
 
-require 'vendor/autoload.php';
+// Asegurar autoloading y carga de configuración independientemente del directorio actual
+$baseDir = str_replace('\\', '/', getcwd());
+$frameworkDir = str_replace('\\', '/', dirname(__DIR__, 2));
+
+if (file_exists($baseDir . '/vendor/autoload.php')) {
+  require_once $baseDir . '/vendor/autoload.php';
+} elseif (file_exists($frameworkDir . '/vendor/autoload.php')) {
+  require_once $frameworkDir . '/vendor/autoload.php';
+}
+
+// Cargar variables de entorno y configuración del framework
+if (file_exists($baseDir . '/App/Config/config.php')) {
+  require_once $baseDir . '/App/Config/config.php';
+} elseif (file_exists($baseDir . '/config.php')) {
+  if (file_exists($baseDir . '/.env') && class_exists(\Dotenv\Dotenv::class)) {
+    \Dotenv\Dotenv::createImmutable($baseDir)->safeLoad();
+  }
+  require_once $baseDir . '/config.php';
+} elseif (file_exists($frameworkDir . '/config.php')) {
+  if (file_exists($frameworkDir . '/.env') && class_exists(\Dotenv\Dotenv::class)) {
+    \Dotenv\Dotenv::createImmutable($frameworkDir)->safeLoad();
+  }
+  require_once $frameworkDir . '/config.php';
+}
 
 use Base\Builder\Builder;
 use Base\ErrorHandler;
@@ -11,7 +34,11 @@ function configInitBd()
   $builder = new Builder;
 
   // --- Database Configuration ---
-  $dbName = BD; // Nombre de tu base de datos desde tus constantes
+  $dbName = defined('BD') && !empty(BD) ? BD : ($_ENV['DB_DATABASE'] ?? '');
+  if (empty($dbName)) {
+    echo "❌ Error: La base de datos (DB_DATABASE) no está configurada en su archivo .env\n";
+    exit(1);
+  }
 
   try {
     echo '<pre>';

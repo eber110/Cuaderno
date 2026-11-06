@@ -99,7 +99,7 @@ frame/                         # Repositorio del framework (también es un proye
 7. **Sesión y autenticación:** usar `Base\Module\Session` para manejo de sesión y `Base\Module\AuthModule` para autenticación agnóstica de esquema (`AuthModule::attempt()`, `login()`, `check()`, `user()`, `logout()`, `hashPassword()`).
 8. **Seguridad:** no uses valores de `$_ENV`/`$_SERVER` sin sanitizarlos. El Builder ya escapa; NO concatenar SQL directamente.
 9. **Permisos de tablas (Zero-Config):** Por defecto el framework no restringe tablas con listas fijas y valida nombres con sintaxis SQL segura contra inyecciones (`/^[a-zA-Z0-9_]+$/`). Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
-10. **No comitear** archivos: `.env`, `Logs/`, `Cache/`, `*.mmdb`, `App/Public/Min/`.
+10. **No comitear** en el repositorio del framework: `/App/`, `.env`, `Logs/`, `Cache/`, `Uploads/`, `Database/*.sqlite`, `*.mmdb`, `dist/`.
 
 ---
 
@@ -129,28 +129,47 @@ frame/                         # Repositorio del framework (también es un proye
 
 ---
 
-## 5. Comandos (scripts de Composer)
+## 5. Comandos CLI (Frame CLI y Composer)
+
+Los comandos se pueden ejecutar de forma global desde cualquier terminal (PowerShell o CMD) utilizando `frame <comando>` o mediante scripts de Composer:
 
 ```bash
-composer new-project         # Crea un nuevo proyecto derivado (o CLI: frame new)
-composer package             # Genera ZIP de despliegue inicial completo (o CLI: frame package)
-composer deploy              # Despliega código al servidor vía HTTP (o CLI: frame deploy [--all])
-composer min-script          # Compila JIT + minifica CSS/JS → regenera App/Public/Min + jit-compiled.css
-composer install-font        # Instalador interactivo de fuentes (woff2/ttf/otf)
-composer reset-font          # Gestor/reset de fuentes instaladas
-composer create-table-mysql   # Inicializa tablas BD MySQL
-composer create-table-pgsql   # Inicializa tablas BD PostgreSQL
-composer update-geoip        # Descarga GeoLite2 actualizado
-composer convert-image       # Conversor interactivo de imágenes (GIF animado a WebP animado, etc.)
+# Proyecto y Estructura
+frame new [nombre] [directorio]      # Crea un nuevo proyecto derivado (composer new-project)
+frame init                           # Inicializa o repara la estructura /App (composer init-app)
+frame link                           # Vincula o actualiza la ruta del framework en composer.json (composer link)
 
-# Generadores CLI rápidos:
-composer make:controller <Nombre>   # Crea controlador en App/Controllers/
-composer make:model <Nombre>        # Crea modelo en App/Models/
-composer make:component <Nombre>    # Crea componente en App/Components/
-composer make:middleware <Nombre>   # Crea middleware en App/Middleware/
+# Despliegue y Empaquetado
+frame package                        # Genera ZIP de despliegue inicial completo (composer package)
+frame deploy [--all]                 # Despliega código al servidor vía HTTP (composer deploy)
+
+# Optimización y Assets
+frame theme:build [--force]          # Compila theme.json a _configTheme.css (composer theme:build)
+frame theme:studio [--port=8000]     # Muestra URL de acceso a Theme Studio (composer theme:studio)
+frame min                            # Compila JIT + minifica CSS/JS (composer min-script)
+frame image:convert                  # Conversor interactivo de imágenes (composer convert-image)
+
+# Fuentes Tipográficas
+frame font:install                   # Instalador interactivo de fuentes woff2/ttf/otf (composer install-font)
+frame font:reset                     # Gestor/reset de fuentes instaladas (composer reset-font)
+
+# Base de Datos
+frame db:mysql                       # Inicializa tablas BD MySQL (composer create-table-mysql)
+frame db:pgsql                       # Inicializa tablas BD PostgreSQL (composer create-table-pgsql)
+
+# Seguridad y Servicios
+frame routes:scan                    # Escanea y cachea mapa de seguridad de rutas (composer scan-routes)
+frame geoip:update                   # Descarga GeoLite2 actualizado (composer update-geoip)
+frame key:rotate [--seed] [--token]  # Rota la semilla SEED y DEPLOY_TOKEN ante intrusiones (composer key:rotate)
+
+# Generadores de código (make):
+frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (composer make:controller)
+frame make:model <Nombre>            # Crea modelo en App/Models/ (composer make:model)
+frame make:component <Nombre>        # Crea componente en App/Components/ (composer make:component)
+frame make:middleware <Nombre>       # Crea middleware en App/Middleware/ (composer make:middleware)
 ```
 
-⚠ Tras cambiar CSS/JS siempre ejecutar `composer min-script`. `InitAppStructure` (estructura /App) se ejecuta con `composer install/update`.
+⚠ Tras cambiar CSS/JS siempre ejecutar `frame min` (o `composer min-script`). `InitAppStructure` (estructura /App) se ejecuta con `composer install/update` o `frame init`.
 
 ---
 
