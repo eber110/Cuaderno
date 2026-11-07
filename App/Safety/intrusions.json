@@ -190,5 +190,25 @@
                 "redirect": ""
             }
         }
+    },
+    {
+        "timestamp": "2026-11-05 23:15:26",
+        "reason": "HTTP Error 403 (Theme Studio solo está disponible en entorno de desarrollo local.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/_frame/theme-studio/",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+        "context": {
+            "time": "2026-11-05 23:15:26",
+            "code": 403,
+            "msg": "Theme Studio solo está disponible en entorno de desarrollo local.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio/",
+            "method": "GET",
+            "context": {
+                "code": 403,
+                "redirect": ""
+            }
+        }
     }
 ]

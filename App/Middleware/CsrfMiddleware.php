@@ -16,6 +16,7 @@ class CsrfMiddleware implements MiddlewareInterface
    * Por ejemplo, webhooks externos firmados por HMAC como Lemon Squeezy o trackers anónimos.
    */
   private const EXCLUDED_ROUTES = [
+    '/_frame',
     '/lemon-squeezy/webhook',
     '/op/track-click',
     '/op/track-view',

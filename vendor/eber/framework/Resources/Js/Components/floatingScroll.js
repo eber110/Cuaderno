@@ -177,6 +177,9 @@ export class FloatingScroll {
     this.responsiveClasses = responsiveList;
 
     const rawOpts = options && typeof options === "object" ? options : {};
+    this.win = rawOpts.targetWindow || (typeof window !== "undefined" ? window : null);
+    this.doc = rawOpts.targetDocument || (this.win ? this.win.document : (typeof document !== "undefined" ? document : null));
+
     this.options = {
       hoverExpand: rawOpts.hoverExpand !== undefined ? Number(rawOpts.hoverExpand) : 4,
       minThumbHeight: rawOpts.minThumbHeight !== undefined ? Number(rawOpts.minThumbHeight) : 36,
@@ -187,11 +190,13 @@ export class FloatingScroll {
       zIndex: rawOpts.zIndex !== undefined ? rawOpts.zIndex : 2147483647
     };
 
-    // Si ya existe una instancia global previa en body, destruirla antes de crear la nueva
-    if (window.__floatingScrollInstance && window.__floatingScrollInstance !== this) {
-      window.__floatingScrollInstance.destroy();
+    // Si ya existe una instancia global previa en el contexto objetivo, destruirla antes de crear la nueva
+    if (this.win && this.win.__floatingScrollInstance && this.win.__floatingScrollInstance !== this) {
+      this.win.__floatingScrollInstance.destroy();
     }
-    window.__floatingScrollInstance = this;
+    if (this.win) {
+      this.win.__floatingScrollInstance = this;
+    }
 
     this.isDragging = false;
     this.isHovered = false;
@@ -217,9 +222,46 @@ export class FloatingScroll {
    * @private
    */
   _initDOM() {
-    document.documentElement.classList.add("has-floating-scroll");
+    if (!this.doc || !this.doc.documentElement) return;
+    this.doc.documentElement.classList.add("has-floating-scroll");
 
-    this.track = document.createElement("div");
+    // Asegurar que las reglas base para ocultar la barra nativa existan en el documento objetivo
+    if (!this.doc.getElementById("floating-scroll-base-styles")) {
+      const style = this.doc.createElement("style");
+      style.id = "floating-scroll-base-styles";
+      style.textContent = `
+        html.has-floating-scroll,
+        html.has-floating-scroll body {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+          scrollbar-gutter: auto !important;
+        }
+        html.has-floating-scroll::-webkit-scrollbar,
+        html.has-floating-scroll body::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          background: transparent !important;
+        }
+        .floating-scroll-track {
+          position: fixed;
+          right: 0;
+          z-index: 2147483647;
+          background: transparent;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: none;
+        }
+        .floating-scroll-thumb {
+          background-color: currentColor;
+          border-radius: 999px;
+          touch-action: none;
+        }
+      `;
+      (this.doc.head || this.doc.documentElement).appendChild(style);
+    }
+
+    this.track = this.doc.createElement("div");
     this.track.id = "floating-scroll-track";
     this.track.setAttribute("role", "scrollbar");
     this.track.setAttribute("aria-controls", "body");
@@ -228,7 +270,11 @@ export class FloatingScroll {
     this._applyClassesAndStyles();
     this._ensureThumbElement();
 
-    document.body.appendChild(this.track);
+    if (this.doc.body) {
+      this.doc.body.appendChild(this.track);
+    } else {
+      this.doc.documentElement.appendChild(this.track);
+    }
   }
 
   /**
@@ -242,7 +288,7 @@ export class FloatingScroll {
 
     let thumb = this.track.querySelector(".floating-scroll-thumb");
     if (!thumb) {
-      thumb = document.createElement("div");
+      thumb = this.doc.createElement("div");
       thumb.className = "floating-scroll-thumb";
       this.track.appendChild(thumb);
     }
@@ -325,6 +371,8 @@ export class FloatingScroll {
    * @private
    */
   _bindEvents() {
+    if (!this.win || !this.doc) return;
+
     // 1. Scroll pasivo sincronizado con requestAnimationFrame
     this._onScroll = () => {
       if (this.isDestroyed) return;
@@ -339,20 +387,20 @@ export class FloatingScroll {
       }
       this._scheduleUpdate();
     };
-    window.addEventListener("scroll", this._onScroll, { passive: true });
+    this.win.addEventListener("scroll", this._onScroll, { passive: true });
 
     // 2. Resize de ventana y cambios de altura del DOM (ResizeObserver)
     this._onResize = () => {
       if (this.isDestroyed) return;
       this._scheduleUpdate();
     };
-    window.addEventListener("resize", this._onResize, { passive: true });
+    this.win.addEventListener("resize", this._onResize, { passive: true });
 
     if (typeof ResizeObserver !== "undefined") {
       this._resizeObserver = new ResizeObserver(this._onResize);
-      this._resizeObserver.observe(document.documentElement);
-      if (document.body) {
-        this._resizeObserver.observe(document.body);
+      this._resizeObserver.observe(this.doc.documentElement);
+      if (this.doc.body) {
+        this._resizeObserver.observe(this.doc.body);
       }
     }
 
@@ -386,7 +434,7 @@ export class FloatingScroll {
           Math.min(this.maxThumbTop, clickY - this.thumbHeight * 0.5)
         );
         const ratio = this.maxThumbTop > 0 ? targetThumbTop / this.maxThumbTop : 0;
-        window.scrollTo({
+        this.win.scrollTo({
           top: ratio * this.maxScrollTop,
           behavior: "smooth"
         });
@@ -398,19 +446,28 @@ export class FloatingScroll {
 
       this.isDragging = true;
       this.dragStartY = e.clientY;
-      this.dragStartScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      this.dragStartScrollTop = this.win.scrollY || this.doc.documentElement.scrollTop || 0;
 
       // Desactivar scroll-behavior: smooth durante el drag para respuesta instantánea 1:1
-      this._prevHtmlScrollBehavior = document.documentElement.style.scrollBehavior;
-      this._prevBodyScrollBehavior = document.body.style.scrollBehavior;
-      document.documentElement.style.scrollBehavior = "auto";
-      document.body.style.scrollBehavior = "auto";
-      document.body.classList.add("floating-scroll-dragging");
+      this._prevHtmlScrollBehavior = this.doc.documentElement.style.scrollBehavior;
+      this._prevBodyScrollBehavior = this.doc.body ? this.doc.body.style.scrollBehavior : "";
+      this.doc.documentElement.style.scrollBehavior = "auto";
+      if (this.doc.body) {
+        this.doc.body.style.scrollBehavior = "auto";
+        this.doc.body.classList.add("floating-scroll-dragging");
+      }
 
       if (this.track.setPointerCapture && e.pointerId !== undefined) {
         try {
           this.track.setPointerCapture(e.pointerId);
         } catch (_) {}
+      }
+
+      // Si el objetivo es un iframe, escuchar también eventos en la ventana contenedora superior
+      if (typeof window !== "undefined" && window !== this.win) {
+        window.addEventListener("pointermove", this._onPointerMove, { passive: false });
+        window.addEventListener("pointerup", this._onPointerUp);
+        window.addEventListener("pointercancel", this._onPointerUp);
       }
 
       this._styleThumb();
@@ -427,7 +484,7 @@ export class FloatingScroll {
         Math.min(this.maxScrollTop, this.dragStartScrollTop + deltaY * scrollRatio)
       );
 
-      window.scrollTo(0, nextScrollTop);
+      this.win.scrollTo(0, nextScrollTop);
       this._updateMetricsAndPosition();
     };
 
@@ -435,9 +492,11 @@ export class FloatingScroll {
       if (!this.isDragging) return;
       this.isDragging = false;
 
-      document.documentElement.style.scrollBehavior = this._prevHtmlScrollBehavior || "";
-      document.body.style.scrollBehavior = this._prevBodyScrollBehavior || "";
-      document.body.classList.remove("floating-scroll-dragging");
+      this.doc.documentElement.style.scrollBehavior = this._prevHtmlScrollBehavior || "";
+      if (this.doc.body) {
+        this.doc.body.style.scrollBehavior = this._prevBodyScrollBehavior || "";
+        this.doc.body.classList.remove("floating-scroll-dragging");
+      }
 
       if (this.track && this.track.releasePointerCapture && e && e.pointerId !== undefined) {
         try {
@@ -445,13 +504,19 @@ export class FloatingScroll {
         } catch (_) {}
       }
 
+      if (typeof window !== "undefined" && window !== this.win) {
+        window.removeEventListener("pointermove", this._onPointerMove);
+        window.removeEventListener("pointerup", this._onPointerUp);
+        window.removeEventListener("pointercancel", this._onPointerUp);
+      }
+
       this._styleThumb();
     };
 
     this.track.addEventListener("pointerdown", this._onPointerDown);
-    window.addEventListener("pointermove", this._onPointerMove, { passive: false });
-    window.addEventListener("pointerup", this._onPointerUp);
-    window.addEventListener("pointercancel", this._onPointerUp);
+    this.win.addEventListener("pointermove", this._onPointerMove, { passive: false });
+    this.win.addEventListener("pointerup", this._onPointerUp);
+    this.win.addEventListener("pointercancel", this._onPointerUp);
 
     // 5. Observar si querys.js (no-desk, no-tablet, no-phone) restaura el innerHTML del track al cambiar de breakpoint
     if (typeof MutationObserver !== "undefined") {
@@ -480,7 +545,8 @@ export class FloatingScroll {
    */
   _scheduleUpdate() {
     if (this.rafId) return;
-    this.rafId = requestAnimationFrame(() => {
+    const reqAnim = (this.win && this.win.requestAnimationFrame) ? this.win.requestAnimationFrame : requestAnimationFrame;
+    this.rafId = reqAnim(() => {
       this.rafId = null;
       this._updateMetricsAndPosition();
     });
@@ -492,13 +558,13 @@ export class FloatingScroll {
    * @private
    */
   _updateMetricsAndPosition() {
-    if (this.isDestroyed || !this.track) return;
+    if (this.isDestroyed || !this.track || !this.win || !this.doc) return;
 
     // Si está oculto por una clase responsiva (no-phone, no-tablet, no-desk), no gastar recursos
     if (
       this.track.style.display === "none" ||
       this.track.getAttribute("aria-hidden") === "true" ||
-      window.getComputedStyle(this.track).display === "none"
+      (this.win.getComputedStyle && this.win.getComputedStyle(this.track).display === "none")
     ) {
       return;
     }
@@ -506,10 +572,10 @@ export class FloatingScroll {
     this._ensureThumbElement();
     if (!this.thumb) return;
 
-    const docEl = document.documentElement;
-    const body = document.body;
+    const docEl = this.doc.documentElement;
+    const body = this.doc.body;
 
-    const viewportHeight = window.innerHeight || docEl.clientHeight;
+    const viewportHeight = this.win.innerHeight || docEl.clientHeight;
     const scrollHeight = Math.max(
       docEl.scrollHeight,
       body ? body.scrollHeight : 0,
@@ -540,7 +606,7 @@ export class FloatingScroll {
 
     const currentScrollTop = Math.max(
       0,
-      Math.min(this.maxScrollTop, window.scrollY || docEl.scrollTop || 0)
+      Math.min(this.maxScrollTop, this.win.scrollY || docEl.scrollTop || 0)
     );
     const scrollProgress = this.maxScrollTop > 0 ? currentScrollTop / this.maxScrollTop : 0;
     this.thumbTop = Math.round(scrollProgress * this.maxThumbTop);
@@ -613,15 +679,24 @@ export class FloatingScroll {
     clearTimeout(this.hideTimer);
 
     if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
+      const cancelAnim = (this.win && this.win.cancelAnimationFrame) ? this.win.cancelAnimationFrame : cancelAnimationFrame;
+      cancelAnim(this.rafId);
       this.rafId = null;
     }
 
-    window.removeEventListener("scroll", this._onScroll);
-    window.removeEventListener("resize", this._onResize);
-    window.removeEventListener("pointermove", this._onPointerMove);
-    window.removeEventListener("pointerup", this._onPointerUp);
-    window.removeEventListener("pointercancel", this._onPointerUp);
+    if (this.win) {
+      this.win.removeEventListener("scroll", this._onScroll);
+      this.win.removeEventListener("resize", this._onResize);
+      this.win.removeEventListener("pointermove", this._onPointerMove);
+      this.win.removeEventListener("pointerup", this._onPointerUp);
+      this.win.removeEventListener("pointercancel", this._onPointerUp);
+    }
+
+    if (typeof window !== "undefined" && window !== this.win) {
+      window.removeEventListener("pointermove", this._onPointerMove);
+      window.removeEventListener("pointerup", this._onPointerUp);
+      window.removeEventListener("pointercancel", this._onPointerUp);
+    }
 
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
@@ -637,11 +712,15 @@ export class FloatingScroll {
       this.track.parentNode.removeChild(this.track);
     }
 
-    document.documentElement.classList.remove("has-floating-scroll");
-    document.body.classList.remove("floating-scroll-dragging");
+    if (this.doc && this.doc.documentElement) {
+      this.doc.documentElement.classList.remove("has-floating-scroll");
+    }
+    if (this.doc && this.doc.body) {
+      this.doc.body.classList.remove("floating-scroll-dragging");
+    }
 
-    if (window.__floatingScrollInstance === this) {
-      delete window.__floatingScrollInstance;
+    if (this.win && this.win.__floatingScrollInstance === this) {
+      delete this.win.__floatingScrollInstance;
     }
   }
 }

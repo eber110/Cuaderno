@@ -349,6 +349,8 @@ Los comandos se pueden ejecutar directamente desde cualquier terminal de PowerSh
 
 ```bash
 # Optimización y Assets
+frame theme:build [--force]          # Compila theme.json a _configTheme.css (composer theme:build)
+frame theme:studio [--port=8000]     # Muestra URL de acceso a Theme Studio (composer theme:studio)
 frame min                            # JIT + minificación CSS/JS → App/Public/Min + jit-compiled.css (composer min-script)
 frame link                           # Vincula o actualiza la ruta del framework en composer.json (composer link)
 frame image:convert                  # Conversor de imágenes (composer convert-image)

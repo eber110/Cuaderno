@@ -15,6 +15,18 @@ class AnalyticsModule
     private static ?PDO $pdo = null;
 
     /**
+     * Permite inyectar una conexión PDO personalizada (ej: para pruebas o bases de datos aisladas)
+     * o cerrar la conexión activa pasando null.
+     */
+    public static function setPdo(?PDO $pdo = null): void
+    {
+        self::$pdo = $pdo;
+        if ($pdo !== null) {
+            self::initSchema();
+        }
+    }
+
+    /**
      * Obtiene la conexión a la base de datos SQLite.
      * Configurada con WAL (Write-Ahead Logging) para evitar bloqueos por concurrencia.
      */

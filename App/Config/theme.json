@@ -1,0 +1,62 @@
+{
+    "activeTheme": "default",
+    "themes": {
+        "default": {
+            "name": "Predeterminado",
+            "slug": "default",
+            "schedule": null,
+            "layout": {
+                "font": "'GoogleSansFlex_120pt', sans-serif",
+                "fontSize": "18px",
+                "widthWindow": "1500px",
+                "scrollbarWidth": "thin",
+                "scrollbarHide": "none"
+            },
+            "light": {
+                "body": "#FFF9E5",
+                "text": {
+                    "primary": "#00124D",
+                    "secondary": "#FFF9E5",
+                    "inactive": "#BDBDBD"
+                },
+                "colors": [
+                    "#FFC7B3",
+                    "#B3FFED",
+                    "#B3C4FF",
+                    "#00FFC3",
+                    "#FF4400",
+                    "#003CFF",
+                    "#B3EBFF",
+                    "#00124D"
+                ]
+            },
+            "dark": {
+                "auto": false,
+                "body": "#092743",
+                "text": {
+                    "primary": "#E6F3FF",
+                    "secondary": "#051C31",
+                    "inactive": "#BDBDBD"
+                },
+                "colors": [
+                    "#0C345A",
+                    "#124E87",
+                    "#1869B4",
+                    "#4B9CE7",
+                    "#78B4ED",
+                    "#A5CDF3",
+                    "#432509",
+                    "#F6D8BC"
+                ]
+            },
+            "status": {
+                "success": "#00b900",
+                "hoverSuccess": "#04ea04",
+                "caution": "#ff8c00",
+                "hoverCaution": "#fead4b",
+                "danger": "#ff0000",
+                "hoverDanger": "#fc6161"
+            }
+        }
+    }
+}

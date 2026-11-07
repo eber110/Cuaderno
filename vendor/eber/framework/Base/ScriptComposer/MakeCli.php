@@ -13,20 +13,37 @@
 class MakeCli
 {
   private string $basePath;
+  private bool $isFrameworkRepo = false;
+  private bool $isCustomPath = false;
 
-  public function __construct()
+  public function __construct(?string $basePath = null)
   {
-    $this->basePath = getcwd();
+    $this->isCustomPath = $basePath !== null;
+    $this->basePath = $basePath ? str_replace('\\', '/', $basePath) : str_replace('\\', '/', getcwd());
+
+    $composerJsonPath = $this->basePath . '/composer.json';
+    if (file_exists($composerJsonPath)) {
+      $composerData = json_decode((string)file_get_contents($composerJsonPath), true);
+      if (($composerData['name'] ?? '') === 'eber/framework') {
+        $this->isFrameworkRepo = true;
+      }
+    }
   }
 
-  public static function make(string $type, string $name): void
+  public static function make(string $type, string $name, ?string $basePath = null): void
   {
-    $cli = new self();
+    $cli = new self($basePath);
     $cli->run(['cli', $type, $name]);
   }
 
   public function run(array $args): void
   {
+    if ($this->isFrameworkRepo && !$this->isCustomPath) {
+      echo "ℹ️  Repositorio del framework ('eber/framework') detectado.\n";
+      echo "   Los comandos make:* solo deben ejecutarse en proyectos derivados.\n";
+      return;
+    }
+
     $type = strtolower(trim((string)($args[1] ?? '')));
     $name = $args[2] ?? null;
 

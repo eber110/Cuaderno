@@ -293,7 +293,9 @@ class Route
     if ($matchedRoute) {
       try {
         // MODIFICADO: Lógica para combinar y excluir middlewares.
-        $allMiddlewares = array_merge(self::$globalMiddlewares, $matchedRoute['middlewares']);
+        $isInternalFrameRoute = str_starts_with($matchedRoute['uri'] ?? '', '/_frame/');
+        $applicableGlobalMiddlewares = $isInternalFrameRoute ? [] : self::$globalMiddlewares;
+        $allMiddlewares = array_merge($applicableGlobalMiddlewares, $matchedRoute['middlewares']);
         $excludedMiddlewares = $matchedRoute['exclude_middlewares'] ?? [];
         $middlewaresToRun = array_diff($allMiddlewares, $excludedMiddlewares);
 

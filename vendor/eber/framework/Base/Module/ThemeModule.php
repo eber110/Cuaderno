@@ -1163,6 +1163,60 @@ class ThemeModule
         $lines[] = "body.theme-{$cleanSlug} .no-theme-{$cleanSlug} {";
         $lines[] = "  display: none !important;";
         $lines[] = "}";
+
+        // Si este tema difiere del activo principal en :root, emitir variables de paleta scoped
+        if ($cleanSlug !== $activeSlug && is_array($tData)) {
+          $tNorm = self::normalizeSingleTheme($tData, $cleanSlug);
+          $tLayout = $tNorm["layout"];
+          $tLight = $tNorm["light"];
+          $tDark = $tNorm["dark"];
+          $tStatus = $tNorm["status"];
+          $tDarkColors = !empty($tDark["colors"]) ? $tDark["colors"] : self::generateDarkPalette($tLight["colors"]);
+
+          $lines[] = "";
+          $lines[] = "/* Variables scoped para tema: {$cleanName} ({$cleanSlug}) */";
+          $lines[] = "[data-theme-name=\"{$cleanSlug}\"],";
+          $lines[] = "body.theme-{$cleanSlug} {";
+          $lines[] = "  --theme-active: \"{$cleanSlug}\";";
+          $lines[] = "  --font: " . $tLayout["font"] . ";";
+          $lines[] = "  --font-size: " . $tLayout["fontSize"] . ";";
+          $lines[] = "  --width-window: " . $tLayout["widthWindow"] . ";";
+          $lines[] = "  --scrollbar-width: " . $tLayout["scrollbarWidth"] . ";";
+          $lines[] = "  --scrollbar-hide: " . $tLayout["scrollbarHide"] . ";";
+          $lines[] = "  --body: " . $tLight["body"] . ";";
+          $lines[] = "  --text-primary: " . $tLight["text"]["primary"] . ";";
+          $lines[] = "  --text-secondary: " . $tLight["text"]["secondary"] . ";";
+          $lines[] = "  --text-inactive: " . $tLight["text"]["inactive"] . ";";
+          foreach ($tLight["colors"] as $cIdx => $cVal) {
+            $vName = ($cIdx === 0) ? "--back-color" : "--back-color" . ($cIdx + 1);
+            $hName = ($cIdx === 0) ? "--back-color-hover" : "--back-color" . ($cIdx + 1) . "-hover";
+            $lines[] = "  {$vName}: {$cVal};";
+            $lines[] = "  {$hName}: oklch(from var({$vName}) calc(l * 1.2) calc(c - 0.02) h);";
+          }
+          $lines[] = "  --success: " . $tStatus["success"] . ";";
+          $lines[] = "  --hover-success: " . $tStatus["hoverSuccess"] . ";";
+          $lines[] = "  --caution: " . $tStatus["caution"] . ";";
+          $lines[] = "  --hover-caution: " . $tStatus["hoverCaution"] . ";";
+          $lines[] = "  --danger: " . $tStatus["danger"] . ";";
+          $lines[] = "  --hover-danger: " . $tStatus["hoverDanger"] . ";";
+          $lines[] = "}";
+          $lines[] = "";
+          $lines[] = "[data-theme=\"dark\"][data-theme-name=\"{$cleanSlug}\"],";
+          $lines[] = "[data-theme=\"dark\"] body.theme-{$cleanSlug},";
+          $lines[] = "body.theme-{$cleanSlug}[data-theme=\"dark\"],";
+          $lines[] = "[data-theme-name=\"{$cleanSlug}\"][data-theme=\"dark\"] {";
+          $lines[] = "  --body: " . $tDark["body"] . ";";
+          $lines[] = "  --text-primary: " . $tDark["text"]["primary"] . ";";
+          $lines[] = "  --text-secondary: " . $tDark["text"]["secondary"] . ";";
+          $lines[] = "  --text-inactive: " . $tDark["text"]["inactive"] . ";";
+          foreach ($tDarkColors as $cIdx => $cVal) {
+            $vName = ($cIdx === 0) ? "--back-color" : "--back-color" . ($cIdx + 1);
+            $hName = ($cIdx === 0) ? "--back-color-hover" : "--back-color" . ($cIdx + 1) . "-hover";
+            $lines[] = "  {$vName}: {$cVal};";
+            $lines[] = "  {$hName}: oklch(from var({$vName}) calc(l * 1.2) calc(c - 0.02) h);";
+          }
+          $lines[] = "}";
+        }
       }
     }
 

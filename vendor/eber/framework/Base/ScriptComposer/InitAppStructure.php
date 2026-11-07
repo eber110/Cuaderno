@@ -77,10 +77,12 @@ class InitAppStructure
   ];
 
   private bool $isFrameworkRepo = false;
+  private bool $isCustomPath = false;
 
-  public function __construct()
+  public function __construct(?string $basePath = null)
   {
-    $this->basePath = str_replace('\\', '/', getcwd());
+    $this->isCustomPath = $basePath !== null;
+    $this->basePath = $basePath ? str_replace('\\', '/', $basePath) : str_replace('\\', '/', getcwd());
     $this->appPath = $this->basePath . '/App';
     $this->frameworkResources = str_replace('\\', '/', dirname(__DIR__, 2) . '/Resources');
 
@@ -107,6 +109,13 @@ class InitAppStructure
    */
   public function create(): bool
   {
+    if ($this->isFrameworkRepo && !$this->isCustomPath) {
+      echo "ℹ️  Repositorio del framework ('eber/framework') detectado.\n";
+      echo "   La carpeta /App no se genera en el framework (solo en proyectos derivados).\n";
+      echo "   Toda la estructura base reside en /Resources y se construye en cada proyecto derivado.\n";
+      return true;
+    }
+
     echo "🔧 Iniciando estructura de directorios de /App...\n\n";
 
     $created = 0;
@@ -393,7 +402,32 @@ class InitAppStructure
     $this->copyFileIfNotExists('Config/CorsConfiguration.php', 'App/Config/CorsConfiguration.php');
     $this->copyFileIfNotExists('Config/TokenConfiguration.php', 'App/Config/TokenConfiguration.php');
     $this->copyFileIfNotExists('Config/preloadFonts.json', 'App/Config/preloadFonts.json');
-    $this->copyFileIfNotExists('Config/theme.json', 'App/Config/theme.json');
+
+    // theme.json: Si no existe, pero ya existe un _configTheme.css en el proyecto,
+    // extraemos la configuración original del CSS (colores, fuentes, modo oscuro)
+    // para nunca pisar los colores que el usuario ya había definido en su proyecto.
+    $themeJsonPath = $this->basePath . '/App/Config/theme.json';
+    if (!file_exists($themeJsonPath)) {
+      $destThemeConfig = $this->basePath . '/App/Public/Css/_configTheme.css';
+      if (file_exists($destThemeConfig) && class_exists('\\Base\\Module\\ThemeModule')) {
+        $extracted = \Base\Module\ThemeModule::extractConfigFromCss(null, $this->basePath);
+        $full = [
+          'activeTheme' => 'default',
+          'themes' => [
+            'default' => array_merge(
+              ['name' => 'Predeterminado', 'slug' => 'default', 'schedule' => null],
+              $extracted
+            )
+          ]
+        ];
+        \Base\Module\ThemeModule::saveFullConfig($full, $themeJsonPath);
+        echo "✅ Creado: App/Config/theme.json (extraído desde tu _configTheme.css existente)\n";
+      } else {
+        $this->copyFileIfNotExists('Config/theme.json', 'App/Config/theme.json');
+      }
+    } else {
+      echo "⏭️  Saltado: App/Config/theme.json (ya existe)\n";
+    }
 
     // loadLibraryJsConfiguration.php (con migración automática a Charts si ya existe)
     $libConfigPath = $this->basePath . '/App/Config/loadLibraryJsConfiguration.php';
@@ -977,9 +1011,9 @@ GITIGNORE;
     }
   }
 
-  public static function run(): bool
+  public static function run(?string $basePath = null): bool
   {
-    $init = new self();
+    $init = new self($basePath);
     return $init->create();
   }
 }

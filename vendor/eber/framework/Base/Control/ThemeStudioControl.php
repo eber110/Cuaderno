@@ -27,6 +27,7 @@ class ThemeStudioControl extends Control
 
     \Core\Route::get('/_frame/theme-studio', [self::class, 'index']);
     \Core\Route::post('/_frame/theme-studio/save', [self::class, 'save']);
+    \Core\Route::post('/_frame/theme-studio/load-to-site', [self::class, 'loadToSite']);
     \Core\Route::post('/_frame/theme-studio/set-active', [self::class, 'setActive']);
     \Core\Route::post('/_frame/theme-studio/delete-theme', [self::class, 'deleteThemeEndpoint']);
     \Core\Route::get('/_frame/theme-studio/fonts', [self::class, 'fonts']);
@@ -242,7 +243,8 @@ class ThemeStudioControl extends Control
   }
 
   /**
-   * Endpoint API para guardar y compilar el tema vía POST.
+   * Endpoint API para guardar el tema y las paletas en theme.json vía POST (modo aislado).
+   * Persiste la configuración sin alterar _configTheme.css ni compilar los assets del sitio real.
    */
   public function save(): void
   {
@@ -272,7 +274,7 @@ class ThemeStudioControl extends Control
       return;
     }
 
-    // Guardar en App/Config/theme.json (soporta configuración completa o actualización de tema individual)
+    // Guardar en App/Config/theme.json de forma aislada
     $saved = ThemeModule::saveConfig($data);
     if (!$saved) {
       $this->json([
@@ -282,30 +284,25 @@ class ThemeStudioControl extends Control
       return;
     }
 
-    // Compilar a App/Public/Css/_configTheme.css
-    $compiled = ThemeModule::compile();
+    // NOTA: No compilamos a _configTheme.css ni minificamos aquí.
+    // Theme Studio opera en modo aislado: la previsualización se realiza en el iframe mediante variables en vivo.
+    // Para aplicar el tema al sitio web real, se utiliza el botón '🚀 Cargar' en la pestaña Temas.
 
-    // Sincronizar JIT y regenerar CSS minificado si el proyecto cuenta con estructura de assets
-    $this->triggerAssetMinification();
-
-    $basePath = defined('ROOT_PATH') ? ROOT_PATH : getcwd();
     $fullConfig = ThemeModule::loadFullConfig();
     $activeSlug = ThemeModule::resolveActiveThemeSlug($fullConfig);
 
     $this->json([
       'success' => true,
-      'message' => '¡Tema guardado, clases utilitarias condicionales generadas y compilado en _configTheme.css!',
-      'path' => $basePath . '/App/Public/Css/_configTheme.css',
+      'message' => 'Tema y paletas guardados en theme.json (modo aislado, sin compilar al sitio web).',
       'fullConfig' => $fullConfig,
       'activeThemeSlug' => $activeSlug,
-      'updated' => $compiled['updated'] ?? true
     ]);
   }
 
   /**
-   * Establece el tema activo (o 'auto' para calendario) vía POST.
+   * Carga y aplica un tema al sitio web real (compila _configTheme.css y regenera el bundle CSS minificado).
    */
-  public function setActive(): void
+  public function loadToSite(): void
   {
     if (!self::isDevEnvironment()) {
       $this->json(['success' => false, 'message' => 'No autorizado'], 403);
@@ -316,24 +313,44 @@ class ThemeStudioControl extends Control
     $data = json_decode($rawInput, true) ?: [];
     $slug = trim((string)($data['slug'] ?? 'default'));
 
+    // Si viene la configuración completa actualizada desde el editor, persistirla primero
+    if (!empty($data['fullConfig']) && is_array($data['fullConfig'])) {
+      ThemeModule::saveConfig($data['fullConfig']);
+    }
+
+    // Actualizar tema activo
     $updated = ThemeModule::setActiveTheme($slug);
     if (!$updated) {
-      $this->json(['success' => false, 'message' => 'No se pudo activar el tema especificado.'], 400);
+      $this->json(['success' => false, 'message' => "No se pudo activar el tema '{$slug}'."], 400);
       return;
     }
 
-    ThemeModule::compile();
+    // Ahora sí: compilar a App/Public/Css/_configTheme.css
+    $compiled = ThemeModule::compile();
+
+    // Sincronizar JIT y regenerar CSS minificado del sitio real
     $this->triggerAssetMinification();
 
+    $basePath = defined('ROOT_PATH') ? ROOT_PATH : getcwd();
     $fullConfig = ThemeModule::loadFullConfig();
     $activeSlug = ThemeModule::resolveActiveThemeSlug($fullConfig);
 
     $this->json([
       'success' => true,
-      'message' => "Tema activo establecido en '{$slug}'.",
+      'message' => "¡Tema '{$slug}' cargado y aplicado con éxito al sitio web!",
+      'path' => $basePath . '/App/Public/Css/_configTheme.css',
       'fullConfig' => $fullConfig,
       'activeThemeSlug' => $activeSlug,
+      'compiled' => $compiled['updated'] ?? true,
     ]);
+  }
+
+  /**
+   * Establece el tema activo (o 'auto' para calendario) vía POST y lo compila al sitio.
+   */
+  public function setActive(): void
+  {
+    $this->loadToSite();
   }
 
   /**
@@ -384,8 +401,9 @@ class ThemeStudioControl extends Control
     $cssThemePath = $basePath . '/App/Public/Css/_configTheme.css';
 
     if (is_file($cssThemePath) && class_exists('\\Base\\Module\\JitCssModule') && class_exists('\\Base\\Module\\MinifyModule')) {
+      ob_start();
       try {
-        \Base\Module\JitCssModule::syncThemeConfigVariables($cssThemePath);
+        \Base\Module\JitCssModule::syncThemeConfigVariables($cssThemePath, false);
 
         $cssPaths = [];
         if (is_dir($basePath . '/vendor/eber/framework/Resources/Css')) {
@@ -407,15 +425,20 @@ class ThemeStudioControl extends Control
         ], 'is_dir');
 
         $jitOutPath = $basePath . '/App/Public/Css/jit-compiled.css';
-        \Base\Module\JitCssModule::generateJitCss($purgePaths, $jitOutPath);
+        \Base\Module\JitCssModule::generateJitCss($purgePaths, $jitOutPath, false);
         $cssPaths[] = $jitOutPath;
 
         \Base\Module\MinifyModule::minifyCss(
           $cssPaths,
-          $basePath . '/App/Public/Min/Css/css.min.css'
+          $basePath . '/App/Public/Min/Css/css.min.css',
+          false
         );
       } catch (\Throwable $e) {
         // Continuar sin bloquear la respuesta
+      } finally {
+        if (ob_get_level() > 0) {
+          ob_end_clean();
+        }
       }
     }
   }

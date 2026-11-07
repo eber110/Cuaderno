@@ -666,6 +666,8 @@ PHP;
   }
 }
 
-// Iniciar ejecución
-$deployer = new DeployPackage();
-$deployer->run($argv);
+// Iniciar ejecución si se llama directamente desde CLI
+if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['argv'][0] ?? '')) {
+  $deployer = new DeployPackage();
+  $deployer->run($_SERVER['argv'] ?? []);
+}

@@ -119,6 +119,7 @@ html.gsap-loaded .hover-tilt { transition: none !important; }
 .back-success { position: relative; z-index: 1; }
 .back-success::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--success, #00b900); filter: var(--sepia, sepia(40%)) !important; z-index: -1; }
 .back1 { background-color: var(--back-color) !important; }
+.back10 { background-color: var(--back-color10, #d3d3d3) !important; }
 .back2 { background-color: var(--back-color2) !important; }
 .back3 { background-color: var(--back-color3) !important; }
 .back4 { background-color: var(--back-color4) !important; }
@@ -185,6 +186,7 @@ html.gsap-loaded .hover-tilt { transition: none !important; }
 .color-danger, .color-danger a { color: var(--danger); filter: var(--sepia); }
 .color-success, .color-success a { color: var(--success); filter: var(--sepia); }
 .color1, .color1 a { color: var(--back-color); }
+.color10, .color10 a { color: var(--back-color10, #d3d3d3) !important; }
 .color2, .color2 a { color: var(--back-color2) !important; }
 .color3, .color3 a { color: var(--back-color3) !important; }
 .color4, .color4 a { color: var(--back-color4) !important; }

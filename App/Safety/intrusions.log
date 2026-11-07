@@ -8,3 +8,4 @@
 [2026-10-03 23:31:11] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown
 [2026-10-04 00:34:59] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown
 [2026-10-07 02:41:28] INTRUSION DETECTED | IP: unknown | Method: unknown | URI: unknown | Reason: HTTP Error 405 (Método no permitido) | UserAgent: unknown
+[2026-11-05 23:15:26] INTRUSION DETECTED | IP: ::1 | Method: GET | URI: /_frame/theme-studio/ | Reason: HTTP Error 403 (Theme Studio solo está disponible en entorno de desarrollo local.) | UserAgent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0

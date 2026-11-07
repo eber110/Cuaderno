@@ -12,7 +12,12 @@ function svg($name_icon, $class = '', $transform = '')
   $route_svg = ROUTE_ICON . $name_icon_lower . '.svg';
 
   if (!file_exists($route_svg)) {
-    return '?!';
+    $fallback_svg = (defined('FRAMEWORK_PATH') ? FRAMEWORK_PATH : dirname(__DIR__, 2) . '/') . 'Resources/Ico/' . $name_icon_lower . '.svg';
+    if (file_exists($fallback_svg)) {
+      $route_svg = $fallback_svg;
+    } else {
+      return '?!';
+    }
   }
 
   // Cargar XML silenciando errores de parseo

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Frame Theme Studio</title>
+  <?php if (class_exists('\\Base\\Module\\SecurityModule')): ?>
+    <?= \Base\Module\SecurityModule::csrfMeta() ?>
+  <?php endif; ?>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
   <style>
     :root {
@@ -37,154 +40,120 @@
     .ts-header {
       background: var(--ts-surface);
       border-bottom: 1px solid var(--ts-border);
-      padding: 10px 20px;
+      padding: 0 18px;
+      height: 54px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 15px;
+      gap: 14px;
       z-index: 100;
       flex-shrink: 0;
     }
     .ts-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 1.1rem;
+      gap: 8px;
+      font-size: 1.05rem;
       font-weight: 700;
       color: #fff;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .ts-badge {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       background: rgba(56, 189, 248, 0.15);
       color: var(--ts-primary);
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 999px;
       border: 1px solid rgba(56, 189, 248, 0.3);
       font-weight: 600;
     }
-    .ts-center-controls {
+    .ts-header-center {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: var(--ts-bg);
-      padding: 4px 8px;
-      border-radius: 10px;
-      border: 1px solid var(--ts-border);
-      flex-wrap: wrap;
+      gap: 12px;
+      flex-shrink: 1;
+      min-width: 0;
     }
-    .ts-route-bar {
+    .ts-theme-bar {
       display: flex;
       align-items: center;
       gap: 6px;
-      border-right: 1px solid var(--ts-border);
-      padding-right: 10px;
-    }
-    .ts-route-select {
-      background: var(--ts-surface);
+      background: var(--ts-bg);
       border: 1px solid var(--ts-border);
-      color: #fff;
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+    .ts-theme-label {
+      font-size: 0.75rem;
+      color: var(--ts-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ts-theme-select {
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      font-size: 0.82rem;
       font-weight: 600;
       outline: none;
       cursor: pointer;
-      max-width: 200px;
+      max-width: 175px;
     }
-    .ts-route-select:focus {
-      border-color: var(--ts-primary);
+    .ts-theme-select option {
+      background: #0f172a;
+      color: #f1f5f9;
     }
-    .ts-route-input {
-      background: var(--ts-surface);
-      border: 1px solid var(--ts-border);
-      color: var(--ts-primary);
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-family: monospace;
-      width: 130px;
-      outline: none;
-    }
-    .ts-route-input:focus {
-      border-color: var(--ts-primary);
-    }
-    .ts-icon-btn {
-      background: var(--ts-surface);
-      border: 1px solid var(--ts-border);
-      color: var(--ts-muted);
-      cursor: pointer;
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      display: inline-flex;
+    .ts-mode-segmented {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-    }
-    .ts-icon-btn:hover {
-      background: var(--ts-surface-hover);
-      color: #fff;
-      border-color: var(--ts-primary);
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
     }
     .ts-mode-btn {
       background: transparent;
       border: none;
       color: var(--ts-muted);
       cursor: pointer;
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
     .ts-mode-btn.active {
       background: var(--ts-surface-hover);
       color: #fff;
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
-    .ts-viewport-btns {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      border-left: 1px solid var(--ts-border);
-      padding-left: 8px;
-    }
-    .ts-view-btn {
-      background: transparent;
-      border: none;
-      color: var(--ts-muted);
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      transition: all 0.15s ease;
-    }
-    .ts-view-btn.active {
-      background: var(--ts-surface-hover);
-      color: var(--ts-primary);
-    }
     .ts-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .ts-btn {
       border: none;
       cursor: pointer;
       font-family: inherit;
       font-weight: 600;
-      font-size: 0.88rem;
-      padding: 8px 16px;
+      font-size: 0.86rem;
+      padding: 7px 15px;
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.15s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .ts-btn-primary {
       background: var(--ts-success);
@@ -202,11 +171,170 @@
       background: #475569;
     }
 
+    /* Dedicated Canvas Navigation & Viewport Bar */
+    .ts-canvas-bar {
+      width: 100%;
+      background: var(--ts-surface);
+      border: 1px solid var(--ts-border);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .ts-canvas-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .ts-sidebar-toggle-btn {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-muted);
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .ts-sidebar-toggle-btn:hover {
+      background: var(--ts-surface-hover);
+      color: #fff;
+      border-color: var(--ts-primary);
+    }
+    .ts-route-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+    .ts-canvas-label {
+      font-size: 0.76rem;
+      color: var(--ts-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ts-route-select {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      max-width: 220px;
+      flex-shrink: 1;
+    }
+    .ts-route-select:focus {
+      border-color: var(--ts-primary);
+    }
+    .ts-route-input {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-primary);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: monospace;
+      width: 120px;
+      outline: none;
+      flex-shrink: 1;
+    }
+    .ts-route-input:focus {
+      border-color: var(--ts-primary);
+    }
+    .ts-icon-btn {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-muted);
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .ts-icon-btn:hover {
+      background: var(--ts-surface-hover);
+      color: #fff;
+      border-color: var(--ts-primary);
+    }
+    .ts-viewport-bar {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 3px 4px;
+      flex-shrink: 0;
+    }
+    .ts-view-btn {
+      background: transparent;
+      border: none;
+      color: var(--ts-muted);
+      cursor: pointer;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ts-view-btn.active {
+      background: var(--ts-surface-hover);
+      color: var(--ts-primary);
+      font-weight: 700;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1200px) {
+      .ts-view-btn span { display: none; }
+      .ts-view-btn { padding: 5px 7px; }
+      .ts-route-select { max-width: 150px; }
+      .ts-route-input { width: 90px; }
+      .ts-theme-select { max-width: 130px; }
+    }
+    @media (max-width: 1024px) {
+      .ts-brand-text { display: none; }
+      .ts-badge { display: none; }
+      .ts-theme-label { display: none; }
+      .ts-mode-btn span { display: none; }
+      .ts-mode-btn { padding: 5px 8px; }
+      .ts-sidebar { width: 380px; }
+    }
+    @media (max-width: 800px) {
+      .ts-canvas-label { display: none; }
+      .ts-route-input { display: none; }
+      .ts-btn span { display: none; }
+      .ts-btn { padding: 6px 10px; }
+    }
+
     /* Main Container (Sidebar + Real Project View) */
     .ts-main {
       display: flex;
       flex: 1;
-      height: calc(100vh - 61px);
+      height: calc(100vh - 54px);
       overflow: hidden;
     }
 
@@ -219,37 +347,54 @@
       flex-direction: column;
       flex-shrink: 0;
       overflow: hidden;
+      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+    .ts-sidebar.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      border-right: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
     .ts-tabs {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       background: var(--ts-bg);
       border-bottom: 1px solid var(--ts-border);
-      overflow-x: auto;
-      scrollbar-width: none !important;
+      padding: 6px;
+      gap: 5px;
     }
-    .ts-tabs::-webkit-scrollbar { display: none !important; }
     .ts-tab-btn {
-      flex: 1;
-      min-width: 68px;
-      background: transparent;
-      border: none;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 6px;
       color: var(--ts-muted);
-      padding: 12px 6px;
-      font-size: 0.78rem;
+      padding: 8px 4px;
+      font-size: 0.74rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
       white-space: nowrap;
     }
+    .ts-tab-btn:hover {
+      background: var(--ts-surface-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.16);
+    }
     .ts-tab-btn.active {
+      background: rgba(56, 189, 248, 0.14);
       color: var(--ts-primary);
-      border-bottom-color: var(--ts-primary);
-      background: rgba(56, 189, 248, 0.05);
+      border-color: rgba(56, 189, 248, 0.45);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+    .ts-tab-btn:nth-child(7) {
+      grid-column: span 2;
     }
     .ts-tab-content {
       flex: 1;
@@ -738,6 +883,188 @@
       justify-content: space-between;
       align-items: center;
     }
+
+    /* Date Input & Selector de Fechas Popover */
+    .ts-date-input-group {
+      display: flex;
+      align-items: center;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+    .ts-date-input-group:focus-within {
+      border-color: var(--ts-primary);
+    }
+    .ts-date-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      font-family: monospace;
+      outline: none;
+    }
+    .ts-date-picker-trigger {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      border-left: 1px solid var(--ts-border);
+      color: var(--ts-text);
+      padding: 7px 11px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .ts-date-picker-trigger:hover {
+      background: var(--ts-surface-hover);
+      color: var(--ts-primary);
+    }
+    .ts-chip-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--ts-border);
+      color: #94a3b8;
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ts-chip-btn:hover {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--ts-primary);
+      color: #f8fafc;
+      transform: translateY(-1px);
+    }
+
+    /* Popover Calendario Flotante */
+    .ts-datepicker-popover {
+      position: fixed;
+      z-index: 100010;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      width: 250px;
+      font-family: var(--ts-font);
+      user-select: none;
+      animation: tsFadeInScale 0.15s ease-out;
+    }
+    @keyframes tsFadeInScale {
+      from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .ts-dp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .ts-dp-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .ts-dp-nav-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+    .ts-dp-nav-btn:hover {
+      background: var(--ts-primary);
+      color: #0f172a;
+      border-color: var(--ts-primary);
+    }
+    .ts-dp-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .ts-dp-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .ts-dp-day {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: all 0.12s ease;
+    }
+    .ts-dp-day:hover {
+      background: rgba(56, 189, 248, 0.2);
+      color: #fff;
+    }
+    .ts-dp-day.empty {
+      cursor: default;
+      background: transparent !important;
+      color: transparent;
+    }
+    .ts-dp-day.today {
+      border: 1px solid var(--ts-primary);
+      font-weight: 700;
+    }
+    .ts-dp-day.selected {
+      background: var(--ts-primary) !important;
+      color: #0f172a !important;
+      font-weight: 700;
+    }
+    .ts-dp-day.in-range {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+    .ts-dp-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ts-dp-footer-btn {
+      background: none;
+      border: none;
+      color: var(--ts-primary);
+      font-size: 0.72rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .ts-dp-footer-btn:hover {
+      text-decoration: underline;
+    }
+    .ts-dp-mode-badge {
+      font-size: 0.66rem;
+      color: var(--ts-muted);
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -745,39 +1072,16 @@
   <!-- Top App Bar -->
   <header class="ts-header">
     <div class="ts-brand">
-      <span>🎨</span> Frame Theme Studio
+      <span class="ts-brand-icon">🎨</span>
+      <span class="ts-brand-text">Frame Theme Studio</span>
       <span class="ts-badge">dev mode</span>
     </div>
 
-    <div class="ts-center-controls">
-      <!-- Selector de Vista Real del Proyecto (App/Route) -->
-      <div class="ts-route-bar">
-        <span style="font-size:0.75rem; color:var(--ts-muted); font-weight:600;">Vista:</span>
-        <select id="projectRouteSelect" class="ts-route-select" onchange="navigateProjectRoute(this.value)" title="Rutas GET detectadas en App/Route">
-          <?php foreach (($projectRoutes ?? [['uri' => '/', 'label' => '/ (Vista Principal)']]) as $routeItem): ?>
-            <option value="<?= htmlspecialchars($routeItem['uri']) ?>"><?= htmlspecialchars($routeItem['label']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <input type="text" id="projectRouteInput" class="ts-route-input" value="/" onkeydown="if(event.key==='Enter') navigateProjectRoute(this.value)" title="Ruta activa del proyecto (presiona Enter para ir)">
-        <button type="button" class="ts-icon-btn" onclick="reloadProjectView()" title="Recargar vista del proyecto">
-          🔄
-        </button>
-        <button type="button" class="ts-icon-btn" onclick="openProjectInNewTab()" title="Abrir vista actual en nueva pestaña">
-          ↗️
-        </button>
-      </div>
-
-      <!-- Alternador Claro / Oscuro en Vivo -->
-      <button type="button" class="ts-mode-btn active" id="btnModeLight" onclick="setPreviewMode('light')">
-        ☀️ Claro
-      </button>
-      <button type="button" class="ts-mode-btn" id="btnModeDark" onclick="setPreviewMode('dark')">
-        🌙 Oscuro
-      </button>
-
+    <!-- Center: Theme Selector & Color Mode Switcher -->
+    <div class="ts-header-center">
       <!-- Selector de Tema / Paleta Guardada -->
       <div class="ts-theme-bar">
-        <span style="font-size:0.75rem; color:var(--ts-muted); font-weight:600;">Tema:</span>
+        <span class="ts-theme-label">🏷️ Tema:</span>
         <select id="themeSelector" class="ts-theme-select" onchange="switchThemeTo(this.value)" title="Paletas guardadas">
           <?php foreach (($allThemes ?? ['default' => $config]) as $s => $thm): ?>
             <?php 
@@ -795,21 +1099,24 @@
         </button>
       </div>
 
-      <!-- Controles de Viewport Responsivo Real -->
-      <div class="ts-viewport-btns">
-        <button type="button" class="ts-view-btn active" onclick="setViewport('100%', this)" title="Escritorio Completo">🖥️ 100%</button>
-        <button type="button" class="ts-view-btn" onclick="setViewport('1200px', this)" title="Laptop / Contenedor 1200px">💻 1200px</button>
-        <button type="button" class="ts-view-btn" onclick="setViewport('768px', this)" title="Tablet 768px">📱 768px</button>
-        <button type="button" class="ts-view-btn" onclick="setViewport('380px', this)" title="Móvil 380px">📱 380px</button>
+      <!-- Segmented Pill Claro / Oscuro -->
+      <div class="ts-mode-segmented">
+        <button type="button" class="ts-mode-btn active" id="btnModeLight" onclick="setPreviewMode('light')" title="Previsualizar Modo Claro">
+          ☀️ <span>Claro</span>
+        </button>
+        <button type="button" class="ts-mode-btn" id="btnModeDark" onclick="setPreviewMode('dark')" title="Previsualizar Modo Oscuro">
+          🌙 <span>Oscuro</span>
+        </button>
       </div>
     </div>
 
+    <!-- Right: Actions -->
     <div class="ts-actions">
       <button type="button" class="ts-btn ts-btn-secondary" onclick="resetDefaults()" title="Restaurar a los colores definidos en _configTheme.css">
-        🔄 Reset
+        🔄 <span>Reset</span>
       </button>
-      <button type="button" class="ts-btn ts-btn-primary" id="btnSave" onclick="saveTheme()">
-        💾 Guardar y Aplicar
+      <button type="button" class="ts-btn ts-btn-primary" id="btnSave" onclick="saveTheme()" title="Guardar cambios del tema en theme.json (sin compilar al sitio)">
+        💾 <span>Guardar</span>
       </button>
     </div>
   </header>
@@ -823,9 +1130,9 @@
         <button type="button" class="ts-tab-btn active" onclick="switchTab('themes', this)">🏷️ Temas</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('colors', this)">🎨 Colores</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('dark', this)">🌙 Oscuro</button>
+        <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('json', this)">📋 JSON</button>
       </div>
 
@@ -865,19 +1172,52 @@
             </label>
 
             <div id="schedFormFields" style="display:none;">
-              <div class="ts-field" style="margin-bottom:8px;">
-                <label for="schedStart" style="font-size:0.75rem;">Fecha Inicio (YYYY-MM-DD o MM-DD)</label>
-                <input type="text" id="schedStart" class="ts-route-input" style="width:100%;" placeholder="ej. 12-28 o 2026-11-20">
+              <!-- Presets Rápidos de Eventos -->
+              <div style="margin-bottom:12px;">
+                <span style="display:block; font-size:0.68rem; color:var(--ts-muted); margin-bottom:6px; font-weight:700; letter-spacing:0.04em;">PRESETS DE EVENTOS RÁPIDOS:</span>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <button type="button" class="ts-chip-btn" onclick="applySchedulePreset('navidad')" title="20 Dic a 26 Dic (Navidad)">🎄 Navidad</button>
+                  <button type="button" class="ts-chip-btn" onclick="applySchedulePreset('ano-nuevo')" title="28 Dic a 06 Ene (Año Nuevo)">🎆 Año Nuevo</button>
+                  <button type="button" class="ts-chip-btn" onclick="applySchedulePreset('black-friday')" title="20 Nov a 30 Nov (Black Friday)">🏷️ Black Friday</button>
+                  <button type="button" class="ts-chip-btn" onclick="applySchedulePreset('halloween')" title="25 Oct a 02 Nov (Halloween)">🎃 Halloween</button>
+                  <button type="button" class="ts-chip-btn" onclick="applySchedulePreset('san-valentin')" title="10 Feb a 16 Feb (San Valentín)">💘 San Valentín</button>
+                </div>
               </div>
 
+              <!-- Input Fecha Inicio -->
               <div class="ts-field" style="margin-bottom:8px;">
-                <label for="schedEnd" style="font-size:0.75rem;">Fecha Fin (YYYY-MM-DD o MM-DD)</label>
-                <input type="text" id="schedEnd" class="ts-route-input" style="width:100%;" placeholder="ej. 01-05 o 2026-11-30">
+                <label for="schedStart" style="font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                  <span>Fecha Inicio (YYYY-MM-DD o MM-DD)</span>
+                  <span id="schedStartHint" style="font-size:0.68rem; color:var(--ts-primary);"></span>
+                </label>
+                <div class="ts-date-input-group">
+                  <input type="text" id="schedStart" class="ts-date-input" placeholder="ej. 12-28 o 2026-11-20" oninput="onScheduleDateChange()">
+                  <button type="button" class="ts-date-picker-trigger" onclick="openDatePicker('start', event)" title="Abrir selector de calendario para fecha inicio">
+                    📅
+                  </button>
+                </div>
               </div>
+
+              <!-- Input Fecha Fin -->
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label for="schedEnd" style="font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                  <span>Fecha Fin (YYYY-MM-DD o MM-DD)</span>
+                  <span id="schedEndHint" style="font-size:0.68rem; color:var(--ts-primary);"></span>
+                </label>
+                <div class="ts-date-input-group">
+                  <input type="text" id="schedEnd" class="ts-date-input" placeholder="ej. 01-05 o 2026-11-30" oninput="onScheduleDateChange()">
+                  <button type="button" class="ts-date-picker-trigger" onclick="openDatePicker('end', event)" title="Abrir selector de calendario para fecha fin">
+                    📅
+                  </button>
+                </div>
+              </div>
+
+              <!-- Estado Dinámico del Rango -->
+              <div id="schedStatusBanner" style="display:none; padding:8px 10px; border-radius:6px; font-size:0.74rem; margin-bottom:10px; line-height:1.4;"></div>
 
               <div style="margin-bottom:12px;">
                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.78rem; color:var(--ts-muted);">
-                  <input type="checkbox" id="schedRecurring" checked>
+                  <input type="checkbox" id="schedRecurring" checked onchange="onScheduleRecurringChange()">
                   🔁 Recurrente anualmente (todos los años)
                 </label>
               </div>
@@ -1152,6 +1492,49 @@
 
     <!-- Right Live Real Project View Stage -->
     <main class="ts-sandbox-stage">
+      
+      <!-- Barra Superior de Navegación del Canvas & Resoluciones Viewport -->
+      <div class="ts-canvas-bar">
+        <!-- Izquierda: Toggle de Sidebar y Barra de Direcciones del Proyecto -->
+        <div class="ts-canvas-nav">
+          <button type="button" class="ts-sidebar-toggle-btn" id="btnToggleSidebar" onclick="toggleSidebar()" title="Ocultar / Mostrar panel lateral">
+            ◀ Panel
+          </button>
+          
+          <div class="ts-route-bar">
+            <span class="ts-canvas-label">🌐 Vista:</span>
+            <select id="projectRouteSelect" class="ts-route-select" onchange="navigateProjectRoute(this.value)" title="Rutas GET detectadas en App/Route">
+              <?php foreach (($projectRoutes ?? [['uri' => '/', 'label' => '/ (Vista Principal)']]) as $routeItem): ?>
+                <option value="<?= htmlspecialchars($routeItem['uri']) ?>"><?= htmlspecialchars($routeItem['label']) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <input type="text" id="projectRouteInput" class="ts-route-input" value="/" onkeydown="if(event.key==='Enter') navigateProjectRoute(this.value)" title="Ruta activa del proyecto (presiona Enter para ir)">
+            <button type="button" class="ts-icon-btn" onclick="reloadProjectView()" title="Recargar vista del proyecto">
+              🔄
+            </button>
+            <button type="button" class="ts-icon-btn" onclick="openProjectInNewTab()" title="Abrir vista actual en nueva pestaña">
+              ↗️
+            </button>
+          </div>
+        </div>
+
+        <!-- Derecha: Selector de Resolución y Dispositivos (100%, 1200px, 768px, 380px) -->
+        <div class="ts-viewport-bar">
+          <button type="button" class="ts-view-btn active" onclick="setViewport('100%', this)" title="Escritorio Completo">
+            🖥️ <span>100%</span>
+          </button>
+          <button type="button" class="ts-view-btn" onclick="setViewport('1200px', this)" title="Laptop / Contenedor 1200px">
+            💻 <span>1200px</span>
+          </button>
+          <button type="button" class="ts-view-btn" onclick="setViewport('768px', this)" title="Tablet 768px">
+            📱 <span>768px</span>
+          </button>
+          <button type="button" class="ts-view-btn" onclick="setViewport('380px', this)" title="Móvil 380px">
+            📲 <span>380px</span>
+          </button>
+        </div>
+      </div>
+
       <div class="ts-sandbox-window" id="sandboxWindow">
         <div id="sandbox">
           <!-- Renderizado en vivo de la vista real del proyecto (App/Route -> "/") con inyección dinámica de _configTheme.css -->
@@ -1193,6 +1576,45 @@
         <button type="button" class="ts-btn ts-btn-secondary" onclick="closeSaveThemeModal()">Cancelar</button>
         <button type="button" class="ts-btn ts-btn-primary" onclick="submitSaveNewTheme()">Guardar Tema</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación Genérico y Profesional -->
+  <div id="modalConfirm" class="ts-modal-overlay">
+    <div class="ts-modal-box" style="max-width: 420px; text-align: center;">
+      <div style="font-size: 2.2rem; margin-bottom: 8px;" id="modalConfirmIcon">🔄</div>
+      <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 10px;" id="modalConfirmTitle">
+        ¿Restaurar valores por defecto?
+      </h3>
+      <p style="font-size: 0.84rem; color: var(--ts-muted); margin-bottom: 20px; line-height: 1.45;" id="modalConfirmMessage">
+        ¿Deseas restaurar los colores y la configuración a los definidos en _configTheme.css del proyecto?
+      </p>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button type="button" class="ts-btn ts-btn-secondary" onclick="closeConfirmModal()">
+          Cancelar
+        </button>
+        <button type="button" class="ts-btn ts-btn-primary" id="btnConfirmAccept" onclick="onConfirmModalAccept()">
+          Sí, Restaurar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popover Selector de Fechas (Date Picker) -->
+  <div id="tsDatePickerPopover" class="ts-datepicker-popover" style="display: none;">
+    <div class="ts-dp-header">
+      <button type="button" class="ts-dp-nav-btn" onclick="dpPrevMonth()" title="Mes anterior">&lsaquo;</button>
+      <div class="ts-dp-title" id="dpCurrentMonthYear">Noviembre 2026</div>
+      <button type="button" class="ts-dp-nav-btn" onclick="dpNextMonth()" title="Mes siguiente">&rsaquo;</button>
+    </div>
+    <div class="ts-dp-weekdays">
+      <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+    </div>
+    <div class="ts-dp-days" id="dpDaysGrid"></div>
+    <div class="ts-dp-footer">
+      <button type="button" class="ts-dp-footer-btn" onclick="dpSelectToday()">Hoy</button>
+      <span class="ts-dp-mode-badge" id="dpModeBadge">Modo: MM-DD</span>
+      <button type="button" class="ts-dp-footer-btn" onclick="closeDatePicker()">✕ Cerrar</button>
     </div>
   </div>
 
@@ -1356,6 +1778,472 @@
       updateJsonViewer();
     }
 
+    // ==============================================================
+    // FLOATING SCROLLBAR ENGINE PARA LA PREVIEW (Resources/Js/Components/floatingScroll.js)
+    // ==============================================================
+
+    class PreviewFloatingScroll {
+      constructor(width = 8, color = "color2", responsive = "", options = {}) {
+        const parsedWidth = parseFloat(width);
+        this.width = Number.isFinite(parsedWidth) && parsedWidth > 0 ? parsedWidth : 8;
+
+        const rawOpts = options && typeof options === "object" ? options : {};
+        this.win = rawOpts.targetWindow || (typeof window !== "undefined" ? window : null);
+        this.doc = rawOpts.targetDocument || (this.win ? this.win.document : document);
+
+        this.options = {
+          hoverExpand: rawOpts.hoverExpand !== undefined ? Number(rawOpts.hoverExpand) : 4,
+          minThumbHeight: rawOpts.minThumbHeight !== undefined ? Number(rawOpts.minThumbHeight) : 36,
+          offsetRight: rawOpts.offsetRight !== undefined ? Number(rawOpts.offsetRight) : 3,
+          offsetY: rawOpts.offsetY !== undefined ? Number(rawOpts.offsetY) : 4,
+          opacity: rawOpts.opacity !== undefined ? Number(rawOpts.opacity) : 0.65,
+          autoHide: Boolean(rawOpts.autoHide),
+          zIndex: rawOpts.zIndex !== undefined ? rawOpts.zIndex : 2147483647
+        };
+
+        this.color = color || "var(--ts-primary, #38bdf8)";
+        this.isDragging = false;
+        this.isHovered = false;
+        this.dragStartY = 0;
+        this.dragStartScrollTop = 0;
+        this.thumbHeight = 0;
+        this.thumbTop = 0;
+        this.maxScrollTop = 0;
+        this.maxThumbTop = 0;
+        this.rafId = null;
+        this.hideTimer = null;
+        this.isDestroyed = false;
+
+        this._initDOM();
+        this._bindEvents();
+        this.refresh();
+      }
+
+      _initDOM() {
+        if (!this.doc || !this.doc.documentElement) return;
+        this.doc.documentElement.classList.add("has-floating-scroll");
+
+        // Reglas mínimas esenciales para ocultar scrollbars nativos en el iframe
+        if (!this.doc.getElementById("floating-scroll-base-styles")) {
+          const style = this.doc.createElement("style");
+          style.id = "floating-scroll-base-styles";
+          style.textContent = `
+            html.has-floating-scroll,
+            html.has-floating-scroll body {
+              scrollbar-width: none !important;
+              -ms-overflow-style: none !important;
+              scrollbar-gutter: auto !important;
+            }
+            html.has-floating-scroll::-webkit-scrollbar,
+            html.has-floating-scroll body::-webkit-scrollbar {
+              display: none !important;
+              width: 0 !important;
+              height: 0 !important;
+              background: transparent !important;
+            }
+            .floating-scroll-track {
+              position: fixed;
+              right: 0;
+              z-index: 2147483647;
+              background: transparent;
+              user-select: none;
+              -webkit-user-select: none;
+              touch-action: none;
+            }
+            .floating-scroll-thumb {
+              background-color: currentColor;
+              border-radius: 999px;
+              touch-action: none;
+            }
+          `;
+          (this.doc.head || this.doc.documentElement).appendChild(style);
+        }
+
+        // Eliminar track previo si ya existía
+        const oldTrack = this.doc.getElementById("floating-scroll-track");
+        if (oldTrack && oldTrack.parentNode) {
+          oldTrack.parentNode.removeChild(oldTrack);
+        }
+
+        this.track = this.doc.createElement("div");
+        this.track.id = "floating-scroll-track";
+        this.track.setAttribute("role", "scrollbar");
+        this.track.setAttribute("aria-controls", "body");
+        this.track.setAttribute("aria-orientation", "vertical");
+
+        this._applyClassesAndStyles();
+        this._ensureThumbElement();
+
+        if (this.doc.body) {
+          this.doc.body.appendChild(this.track);
+        } else {
+          this.doc.documentElement.appendChild(this.track);
+        }
+      }
+
+      _ensureThumbElement() {
+        if (!this.track) return;
+        let thumb = this.track.querySelector(".floating-scroll-thumb");
+        if (!thumb) {
+          thumb = this.doc.createElement("div");
+          thumb.className = "floating-scroll-thumb";
+          this.track.appendChild(thumb);
+        }
+        this.thumb = thumb;
+        this._styleThumb();
+      }
+
+      _applyClassesAndStyles() {
+        if (!this.track) return;
+        this.track.className = "floating-scroll-track";
+
+        const hitAreaWidth = Math.max(14, this.width + this.options.hoverExpand + this.options.offsetRight * 2);
+        const s = this.track.style;
+        s.position = "fixed";
+        s.top = `${this.options.offsetY}px`;
+        s.right = "0px";
+        s.bottom = `${this.options.offsetY}px`;
+        s.width = `${hitAreaWidth}px`;
+        s.zIndex = String(this.options.zIndex);
+        s.pointerEvents = "auto";
+        s.userSelect = "none";
+        s.webkitUserSelect = "none";
+        s.background = "transparent";
+        s.color = this.color;
+      }
+
+      _styleThumb() {
+        if (!this.thumb) return;
+        const activeWidth = (this.isHovered || this.isDragging)
+          ? this.width + this.options.hoverExpand
+          : this.width;
+
+        const ts = this.thumb.style;
+        ts.position = "absolute";
+        ts.top = "0px";
+        ts.right = `${this.options.offsetRight}px`;
+        ts.width = `${activeWidth}px`;
+        ts.height = `${Math.max(this.options.minThumbHeight, this.thumbHeight)}px`;
+        ts.borderRadius = "999px";
+        ts.backgroundColor = "currentColor";
+        ts.opacity = (this.isHovered || this.isDragging) ? "1" : String(this.options.opacity);
+        ts.transform = `translate3d(0, ${this.thumbTop}px, 0)`;
+        ts.transition = this.isDragging
+          ? "width 0.15s ease, opacity 0.15s ease"
+          : "width 0.15s ease, opacity 0.2s ease";
+        ts.cursor = this.isDragging ? "grabbing" : "grab";
+        ts.willChange = "transform, width, opacity";
+      }
+
+      _bindEvents() {
+        if (!this.win || !this.doc) return;
+
+        this._onScroll = () => {
+          if (this.isDestroyed) return;
+          if (this.options.autoHide && this.thumb && !this.isDragging && !this.isHovered) {
+            this.thumb.style.opacity = String(this.options.opacity);
+            clearTimeout(this.hideTimer);
+            this.hideTimer = setTimeout(() => {
+              if (!this.isDragging && !this.isHovered && this.thumb) {
+                this.thumb.style.opacity = "0";
+              }
+            }, 1200);
+          }
+          this._scheduleUpdate();
+        };
+        this.win.addEventListener("scroll", this._onScroll, { passive: true });
+
+        this._onResize = () => {
+          if (this.isDestroyed) return;
+          this._scheduleUpdate();
+        };
+        this.win.addEventListener("resize", this._onResize, { passive: true });
+
+        if (typeof ResizeObserver !== "undefined") {
+          this._resizeObserver = new ResizeObserver(this._onResize);
+          this._resizeObserver.observe(this.doc.documentElement);
+          if (this.doc.body) {
+            this._resizeObserver.observe(this.doc.body);
+          }
+        }
+
+        this.track.addEventListener("mouseenter", () => {
+          this.isHovered = true;
+          clearTimeout(this.hideTimer);
+          this._styleThumb();
+        });
+
+        this.track.addEventListener("mouseleave", () => {
+          this.isHovered = false;
+          if (!this.isDragging) {
+            this._styleThumb();
+          }
+        });
+
+        this._onPointerDown = (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          this._ensureThumbElement();
+
+          const clickedThumb = e.target.closest(".floating-scroll-thumb");
+
+          if (!clickedThumb) {
+            const trackRect = this.track.getBoundingClientRect();
+            const clickY = e.clientY - trackRect.top;
+            const targetThumbTop = Math.max(
+              0,
+              Math.min(this.maxThumbTop, clickY - this.thumbHeight * 0.5)
+            );
+            const ratio = this.maxThumbTop > 0 ? targetThumbTop / this.maxThumbTop : 0;
+            this.win.scrollTo({
+              top: ratio * this.maxScrollTop,
+              behavior: "smooth"
+            });
+            return;
+          }
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          this.isDragging = true;
+          this.dragStartY = e.clientY;
+          this.dragStartScrollTop = this.win.scrollY || this.doc.documentElement.scrollTop || 0;
+
+          this._prevHtmlScrollBehavior = this.doc.documentElement.style.scrollBehavior;
+          this._prevBodyScrollBehavior = this.doc.body ? this.doc.body.style.scrollBehavior : "";
+          this.doc.documentElement.style.scrollBehavior = "auto";
+          if (this.doc.body) {
+            this.doc.body.style.scrollBehavior = "auto";
+            this.doc.body.classList.add("floating-scroll-dragging");
+          }
+
+          if (this.track.setPointerCapture && e.pointerId !== undefined) {
+            try {
+              this.track.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+
+          if (typeof window !== "undefined" && window !== this.win) {
+            window.addEventListener("pointermove", this._onPointerMove, { passive: false });
+            window.addEventListener("pointerup", this._onPointerUp);
+            window.addEventListener("pointercancel", this._onPointerUp);
+          }
+
+          this._styleThumb();
+        };
+
+        this._onPointerMove = (e) => {
+          if (!this.isDragging) return;
+          e.preventDefault();
+
+          const deltaY = e.clientY - this.dragStartY;
+          const scrollRatio = this.maxThumbTop > 0 ? this.maxScrollTop / this.maxThumbTop : 0;
+          const nextScrollTop = Math.max(
+            0,
+            Math.min(this.maxScrollTop, this.dragStartScrollTop + deltaY * scrollRatio)
+          );
+
+          this.win.scrollTo(0, nextScrollTop);
+          this._updateMetricsAndPosition();
+        };
+
+        this._onPointerUp = (e) => {
+          if (!this.isDragging) return;
+          this.isDragging = false;
+
+          this.doc.documentElement.style.scrollBehavior = this._prevHtmlScrollBehavior || "";
+          if (this.doc.body) {
+            this.doc.body.style.scrollBehavior = this._prevBodyScrollBehavior || "";
+            this.doc.body.classList.remove("floating-scroll-dragging");
+          }
+
+          if (this.track && this.track.releasePointerCapture && e && e.pointerId !== undefined) {
+            try {
+              this.track.releasePointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+
+          if (typeof window !== "undefined" && window !== this.win) {
+            window.removeEventListener("pointermove", this._onPointerMove);
+            window.removeEventListener("pointerup", this._onPointerUp);
+            window.removeEventListener("pointercancel", this._onPointerUp);
+          }
+
+          this._styleThumb();
+        };
+
+        this.track.addEventListener("pointerdown", this._onPointerDown);
+        this.win.addEventListener("pointermove", this._onPointerMove, { passive: false });
+        this.win.addEventListener("pointerup", this._onPointerUp);
+        this.win.addEventListener("pointercancel", this._onPointerUp);
+      }
+
+      _scheduleUpdate() {
+        if (this.rafId) return;
+        const reqAnim = (this.win && this.win.requestAnimationFrame) ? this.win.requestAnimationFrame : requestAnimationFrame;
+        this.rafId = reqAnim(() => {
+          this.rafId = null;
+          this._updateMetricsAndPosition();
+        });
+      }
+
+      _updateMetricsAndPosition() {
+        if (this.isDestroyed || !this.track || !this.win || !this.doc) return;
+
+        this._ensureThumbElement();
+        if (!this.thumb) return;
+
+        const docEl = this.doc.documentElement;
+        const body = this.doc.body;
+
+        const viewportHeight = this.win.innerHeight || docEl.clientHeight;
+        const scrollHeight = Math.max(
+          docEl.scrollHeight,
+          body ? body.scrollHeight : 0,
+          docEl.offsetHeight,
+          body ? body.offsetHeight : 0
+        );
+
+        this.maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+
+        if (this.maxScrollTop <= 1) {
+          this.track.style.visibility = "hidden";
+          this.track.style.pointerEvents = "none";
+          return;
+        }
+
+        this.track.style.visibility = "visible";
+        this.track.style.pointerEvents = "auto";
+
+        const trackHeight = Math.max(1, viewportHeight - this.options.offsetY * 2);
+        const proportionalHeight = (viewportHeight / scrollHeight) * trackHeight;
+        this.thumbHeight = Math.max(
+          this.options.minThumbHeight,
+          Math.min(trackHeight, Math.round(proportionalHeight))
+        );
+
+        this.maxThumbTop = Math.max(0, trackHeight - this.thumbHeight);
+
+        const currentScrollTop = Math.max(
+          0,
+          Math.min(this.maxScrollTop, this.win.scrollY || docEl.scrollTop || 0)
+        );
+        const scrollProgress = this.maxScrollTop > 0 ? currentScrollTop / this.maxScrollTop : 0;
+        this.thumbTop = Math.round(scrollProgress * this.maxThumbTop);
+
+        this.thumb.style.height = `${this.thumbHeight}px`;
+        this.thumb.style.transform = `translate3d(0, ${this.thumbTop}px, 0)`;
+
+        const progressPct = Math.round(scrollProgress * 100);
+        this.track.setAttribute("aria-valuenow", String(progressPct));
+      }
+
+      setColor(color) {
+        if (color) {
+          this.color = color;
+          this._applyClassesAndStyles();
+          this._styleThumb();
+        }
+        return this;
+      }
+
+      refresh() {
+        this._updateMetricsAndPosition();
+        return this;
+      }
+
+      destroy() {
+        this.isDestroyed = true;
+        clearTimeout(this.hideTimer);
+
+        if (this.rafId) {
+          const cancelAnim = (this.win && this.win.cancelAnimationFrame) ? this.win.cancelAnimationFrame : cancelAnimationFrame;
+          cancelAnim(this.rafId);
+          this.rafId = null;
+        }
+
+        if (this.win) {
+          this.win.removeEventListener("scroll", this._onScroll);
+          this.win.removeEventListener("resize", this._onResize);
+          this.win.removeEventListener("pointermove", this._onPointerMove);
+          this.win.removeEventListener("pointerup", this._onPointerUp);
+          this.win.removeEventListener("pointercancel", this._onPointerUp);
+        }
+
+        if (typeof window !== "undefined" && window !== this.win) {
+          window.removeEventListener("pointermove", this._onPointerMove);
+          window.removeEventListener("pointerup", this._onPointerUp);
+          window.removeEventListener("pointercancel", this._onPointerUp);
+        }
+
+        if (this._resizeObserver) {
+          this._resizeObserver.disconnect();
+          this._resizeObserver = null;
+        }
+
+        if (this.track && this.track.parentNode) {
+          this.track.parentNode.removeChild(this.track);
+        }
+
+        if (this.doc && this.doc.documentElement) {
+          this.doc.documentElement.classList.remove("has-floating-scroll");
+        }
+        if (this.doc && this.doc.body) {
+          this.doc.body.classList.remove("floating-scroll-dragging");
+        }
+      }
+    }
+
+    let iframeScrollInstance = null;
+
+    function setupIframeFloatingScroll(frame) {
+      if (!frame) return;
+      try {
+        const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+        const win = frame.contentWindow;
+        if (!doc || !win || !doc.body) return;
+
+        if (iframeScrollInstance) {
+          iframeScrollInstance.destroy();
+          iframeScrollInstance = null;
+        }
+
+        // Asegurar que la clase has-floating-scroll esté en html
+        doc.documentElement.classList.add("has-floating-scroll");
+
+        const isDark = (currentPreviewMode === 'dark');
+        const activeColors = isDark 
+          ? (themeConfig.dark.colors.length ? themeConfig.dark.colors : themeConfig.light.colors)
+          : themeConfig.light.colors;
+        const scrollColor = activeColors[1] || activeColors[0] || 'var(--ts-primary, #38bdf8)';
+
+        iframeScrollInstance = new PreviewFloatingScroll(8, scrollColor, '', {
+          targetWindow: win,
+          targetDocument: doc,
+          hoverExpand: 4,
+          minThumbHeight: 36,
+          offsetRight: 3,
+          offsetY: 4,
+          opacity: 0.65,
+          autoHide: false
+        });
+      } catch (e) {
+        // Ignorar posibles restricciones de sandbox
+      }
+    }
+
+    function updateIframeFloatingScrollColor() {
+      if (!iframeScrollInstance) return;
+      try {
+        const isDark = (currentPreviewMode === 'dark');
+        const activeColors = isDark 
+          ? (themeConfig.dark.colors.length ? themeConfig.dark.colors : themeConfig.light.colors)
+          : themeConfig.light.colors;
+        const scrollColor = activeColors[1] || activeColors[0] || 'var(--ts-primary, #38bdf8)';
+        iframeScrollInstance.setColor(scrollColor);
+        iframeScrollInstance.refresh();
+      } catch (e) {}
+    }
+
     function setupProjectIframe() {
       const frame = document.getElementById('projectPreviewFrame');
       if (!frame || frame.dataset.listenerAttached === '1') return;
@@ -1393,6 +2281,9 @@
           // Aplicar modo claro/oscuro actual e inyectar variables CSS en vivo
           syncIframeThemeAttribute(doc, frame.contentWindow);
           injectLiveThemeIntoIframe();
+
+          // Inicializar barra de scroll flotante en la preview (elimina barra nativa y gutter)
+          setupIframeFloatingScroll(frame);
 
           // Observar si el usuario cambia el tema desde el botón propio dentro de la vista del proyecto
           if (iframeThemeObserver) {
@@ -1962,6 +2853,21 @@
         }
       }
 
+      // Eliminar barra de scroll nativa en el iframe de previsualización para usar floatingScroll
+      css += `\n/* Ocultar barra nativa en el iframe para floatingScroll (sin reserva de gutter ni distorsión de ancho) */\n`;
+      css += `html, body, html.has-floating-scroll, html.has-floating-scroll body {\n`;
+      css += `  scrollbar-width: none !important;\n`;
+      css += `  -ms-overflow-style: none !important;\n`;
+      css += `  scrollbar-gutter: auto !important;\n`;
+      css += `}\n`;
+      css += `html::-webkit-scrollbar, body::-webkit-scrollbar,\n`;
+      css += `html.has-floating-scroll::-webkit-scrollbar, html.has-floating-scroll body::-webkit-scrollbar {\n`;
+      css += `  display: none !important;\n`;
+      css += `  width: 0 !important;\n`;
+      css += `  height: 0 !important;\n`;
+      css += `  background: transparent !important;\n`;
+      css += `}\n`;
+
       return css;
     }
 
@@ -1975,6 +2881,7 @@
 
         // Inyectar atributo data-theme-name en html y body, y clase theme-{slug} en body
         doc.documentElement.setAttribute('data-theme-name', currentThemeSlug);
+        doc.documentElement.classList.add('has-floating-scroll');
         if (doc.body) {
           doc.body.setAttribute('data-theme-name', currentThemeSlug);
           const cleanBodyClass = doc.body.className.replace(/\btheme-[a-z0-9_-]+\b/g, '').trim();
@@ -2013,6 +2920,9 @@
 
       // Sobrescribir en tiempo real las variables de _configTheme.css dentro de la vista real del proyecto
       injectLiveThemeIntoIframe();
+
+      // Sincronizar el color de la barra de scroll flotante del iframe
+      updateIframeFloatingScrollColor();
 
       // Actualizar paneles de diagnóstico en el Sidebar (WCAG y Gradientes)
       renderWcagTab(activeColors, activeTextPrimary, activeTextSecondary, activeBody);
@@ -2168,6 +3078,17 @@
       applySandboxStyles();
     }
 
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.ts-sidebar');
+      const btn = document.getElementById('btnToggleSidebar');
+      if (!sidebar) return;
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      if (btn) {
+        btn.innerHTML = isCollapsed ? '▶ Panel' : '◀ Panel';
+        btn.title = isCollapsed ? 'Mostrar panel lateral de configuración' : 'Ocultar panel lateral';
+      }
+    }
+
     function setViewport(width, btnEl) {
       const windowEl = document.getElementById('sandboxWindow');
       windowEl.style.maxWidth = width;
@@ -2176,6 +3097,9 @@
         btnEl.classList.add('active');
       } else if (typeof event !== 'undefined' && event.target) {
         event.target.classList.add('active');
+      }
+      if (iframeScrollInstance) {
+        setTimeout(() => iframeScrollInstance.refresh(), 260);
       }
     }
 
@@ -2211,15 +3135,59 @@
       });
     }
 
-    function resetDefaults() {
-      if (confirm('¿Restaurar los colores y configuración a los definidos en _configTheme.css del proyecto?')) {
-        themeConfig = JSON.parse(JSON.stringify(defaultCssConfig));
-        themeConfig.slug = currentThemeSlug;
-        themeConfig.name = fullThemeConfig.themes[currentThemeSlug]?.name || 'Predeterminado';
-        fullThemeConfig.themes[currentThemeSlug] = JSON.parse(JSON.stringify(themeConfig));
-        initStudio();
-        showToast('🔄 Colores restaurados a los de _configTheme.css');
+    let __confirmCallback = null;
+
+    function openConfirmModal({ icon = '⚠️', title = '¿Estás seguro?', message = '', acceptText = 'Aceptar', acceptClass = 'ts-btn-primary', onAccept = null }) {
+      const icoEl = document.getElementById('modalConfirmIcon');
+      const titleEl = document.getElementById('modalConfirmTitle');
+      const msgEl = document.getElementById('modalConfirmMessage');
+      const acceptBtn = document.getElementById('btnConfirmAccept');
+
+      if (icoEl) icoEl.textContent = icon;
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
+
+      if (acceptBtn) {
+        acceptBtn.textContent = acceptText;
+        acceptBtn.className = `ts-btn ${acceptClass}`;
       }
+
+      __confirmCallback = onAccept;
+
+      const modal = document.getElementById('modalConfirm');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('modalConfirm');
+      if (modal) modal.classList.remove('open');
+      __confirmCallback = null;
+    }
+
+    function onConfirmModalAccept() {
+      const cb = __confirmCallback;
+      closeConfirmModal();
+      if (typeof cb === 'function') {
+        cb();
+      }
+    }
+
+    function resetDefaults() {
+      openConfirmModal({
+        icon: '🔄',
+        title: '¿Restaurar Configuración?',
+        message: '¿Deseas restaurar los colores, tipografías y variables a los definidos en _configTheme.css del proyecto?',
+        acceptText: 'Sí, Restaurar',
+        acceptClass: 'ts-btn-primary',
+        onAccept: () => {
+          themeConfig = JSON.parse(JSON.stringify(defaultCssConfig));
+          themeConfig.slug = currentThemeSlug;
+          themeConfig.name = fullThemeConfig.themes[currentThemeSlug]?.name || 'Predeterminado';
+          fullThemeConfig.themes[currentThemeSlug] = JSON.parse(JSON.stringify(themeConfig));
+          initStudio();
+          showToast('🔄 Colores restaurados a los de _configTheme.css');
+        }
+      });
     }
 
     // ==============================================================
@@ -2266,6 +3234,7 @@
       if (inEnd) inEnd.value = curSched.end || '';
       if (chkRecurring) chkRecurring.checked = curSched.recurring !== false;
       toggleScheduleForm(!!curSched.enabled);
+      onScheduleDateChange();
 
       if (!container) return;
       container.innerHTML = '';
@@ -2305,11 +3274,9 @@
             <button type="button" class="ts-btn ${isCurrent ? 'ts-btn-primary' : 'ts-btn-secondary'}" style="padding:4px 10px; font-size:0.75rem;" onclick="switchThemeTo('${s}')">
               ${isCurrent ? '✏️ Editando' : '👁️ Ver y Editar'}
             </button>
-            ${!isActive ? `
-              <button type="button" class="ts-btn ts-btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="activateTheme('${s}')" title="Establecer como tema principal">
-                ⭐ Activar
-              </button>
-            ` : ''}
+            <button type="button" class="ts-btn ts-btn-secondary" style="padding:4px 10px; font-size:0.75rem; font-weight:700; color:#38bdf8; border-color:rgba(56,189,248,0.35);" onclick="loadThemeToSite('${s}')" title="Cargar y aplicar este tema al sitio web real">
+              🚀 Cargar
+            </button>
             ${s !== 'default' ? `
               <button type="button" class="ts-btn ts-btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:#ef4444;" onclick="deleteTheme('${s}')" title="Eliminar tema">
                 🗑️
@@ -2344,6 +3311,7 @@
     function toggleScheduleForm(show) {
       const el = document.getElementById('schedFormFields');
       if (el) el.style.display = show ? 'block' : 'none';
+      if (show) onScheduleDateChange();
     }
 
     function saveCurrentThemeSchedule() {
@@ -2364,6 +3332,344 @@
       fullThemeConfig.themes[currentThemeSlug].schedule = themeConfig.schedule;
 
       saveTheme();
+    }
+
+    // ==============================================================
+    // MOTOR SELECTOR DE FECHAS (DATE PICKER) Y PROGRAMACIÓN
+    // ==============================================================
+
+    const DP_MONTH_NAMES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    let dpTarget = null; // 'start' o 'end'
+    let dpYear = new Date().getFullYear();
+    let dpMonth = new Date().getMonth(); // 0 - 11
+
+    function openDatePicker(target, evt) {
+      if (evt) {
+        evt.stopPropagation();
+      }
+      dpTarget = target;
+
+      const input = document.getElementById(target === 'start' ? 'schedStart' : 'schedEnd');
+      const val = input ? input.value.trim() : '';
+
+      // Si el input ya tiene fecha, parsearla para mostrar ese mes
+      if (val) {
+        let parsedYear = new Date().getFullYear();
+        let parsedMonth = new Date().getMonth();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+          const parts = val.split('-');
+          parsedYear = parseInt(parts[0], 10);
+          parsedMonth = parseInt(parts[1], 10) - 1;
+        } else if (/^\d{2}-\d{2}$/.test(val)) {
+          const parts = val.split('-');
+          parsedMonth = parseInt(parts[0], 10) - 1;
+        }
+        if (parsedMonth >= 0 && parsedMonth <= 11) {
+          dpMonth = parsedMonth;
+          dpYear = parsedYear;
+        }
+      }
+
+      renderDatePicker();
+
+      const popover = document.getElementById('tsDatePickerPopover');
+      if (!popover) return;
+
+      const triggerBtn = (evt && evt.currentTarget) ? evt.currentTarget : input;
+      const rect = triggerBtn.getBoundingClientRect();
+      const popWidth = 250;
+      let left = rect.right - popWidth;
+      if (left < 10) left = 10;
+      let top = rect.bottom + 6;
+
+      // Si sobrepasa la parte inferior de la ventana, mostrar hacia arriba
+      if (top + 280 > window.innerHeight) {
+        top = Math.max(10, rect.top - 280);
+      }
+
+      popover.style.left = `${left}px`;
+      popover.style.top = `${top}px`;
+      popover.style.display = 'block';
+
+      setTimeout(() => {
+        document.addEventListener('click', onDatePickerDocClick);
+        document.addEventListener('keydown', onDatePickerKeyDown);
+      }, 10);
+    }
+
+    function closeDatePicker() {
+      const popover = document.getElementById('tsDatePickerPopover');
+      if (popover) popover.style.display = 'none';
+      document.removeEventListener('click', onDatePickerDocClick);
+      document.removeEventListener('keydown', onDatePickerKeyDown);
+      dpTarget = null;
+    }
+
+    function onDatePickerDocClick(e) {
+      const popover = document.getElementById('tsDatePickerPopover');
+      if (popover && !popover.contains(e.target) && !e.target.closest('.ts-date-picker-trigger')) {
+        closeDatePicker();
+      }
+    }
+
+    function onDatePickerKeyDown(e) {
+      if (e.key === 'Escape') closeDatePicker();
+    }
+
+    function dpPrevMonth() {
+      dpMonth--;
+      if (dpMonth < 0) {
+        dpMonth = 11;
+        dpYear--;
+      }
+      renderDatePicker();
+    }
+
+    function dpNextMonth() {
+      dpMonth++;
+      if (dpMonth > 11) {
+        dpMonth = 0;
+        dpYear++;
+      }
+      renderDatePicker();
+    }
+
+    function renderDatePicker() {
+      const titleEl = document.getElementById('dpCurrentMonthYear');
+      const gridEl = document.getElementById('dpDaysGrid');
+      const badgeEl = document.getElementById('dpModeBadge');
+      if (!gridEl) return;
+
+      if (titleEl) {
+        titleEl.textContent = `${DP_MONTH_NAMES[dpMonth]} ${dpYear}`;
+      }
+
+      const isRecurring = document.getElementById('schedRecurring') ? document.getElementById('schedRecurring').checked : true;
+      if (badgeEl) {
+        badgeEl.textContent = isRecurring ? 'Formato: MM-DD (Anual)' : 'Formato: YYYY-MM-DD';
+      }
+
+      const inStart = document.getElementById('schedStart');
+      const inEnd = document.getElementById('schedEnd');
+      const startVal = inStart ? inStart.value.trim() : '';
+      const endVal = inEnd ? inEnd.value.trim() : '';
+
+      // Primer día del mes (0 = domingo, 1 = lunes, ..., 6 = sábado)
+      const firstDayDate = new Date(dpYear, dpMonth, 1);
+      let startingDay = firstDayDate.getDay();
+      // Semana inicia en Lunes: Lu=0, Ma=1, Mi=2, Ju=3, Vi=4, Sá=5, Do=6
+      startingDay = (startingDay === 0) ? 6 : startingDay - 1;
+
+      const daysInMonth = new Date(dpYear, dpMonth + 1, 0).getDate();
+      const today = new Date();
+      const isCurrentMonthYear = (today.getFullYear() === dpYear && today.getMonth() === dpMonth);
+
+      gridEl.innerHTML = '';
+
+      // Celdas vacías iniciales
+      for (let i = 0; i < startingDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'ts-dp-day empty';
+        gridEl.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'ts-dp-day';
+        dayEl.textContent = String(d);
+
+        const mStr = String(dpMonth + 1).padStart(2, '0');
+        const dStr = String(d).padStart(2, '0');
+        const ymdStr = `${dpYear}-${mStr}-${dStr}`;
+        const mdStr = `${mStr}-${dStr}`;
+
+        if (isCurrentMonthYear && today.getDate() === d) {
+          dayEl.classList.add('today');
+          dayEl.title = 'Hoy';
+        }
+
+        const isSelectedStart = (startVal === ymdStr || startVal === mdStr);
+        const isSelectedEnd = (endVal === ymdStr || endVal === mdStr);
+        const isCurrentTargetSelected = (dpTarget === 'start' && isSelectedStart) || (dpTarget === 'end' && isSelectedEnd);
+
+        if (isCurrentTargetSelected || isSelectedStart || isSelectedEnd) {
+          dayEl.classList.add('selected');
+        } else if (startVal && endVal) {
+          const sMd = startVal.slice(-5);
+          const eMd = endVal.slice(-5);
+          if (sMd <= eMd) {
+            if (mdStr >= sMd && mdStr <= eMd) dayEl.classList.add('in-range');
+          } else {
+            if (mdStr >= sMd || mdStr <= eMd) dayEl.classList.add('in-range');
+          }
+        }
+
+        dayEl.onclick = (e) => {
+          e.stopPropagation();
+          dpSelectDay(d);
+        };
+
+        gridEl.appendChild(dayEl);
+      }
+    }
+
+    function dpSelectDay(day) {
+      const isRecurring = document.getElementById('schedRecurring') ? document.getElementById('schedRecurring').checked : true;
+      const mStr = String(dpMonth + 1).padStart(2, '0');
+      const dStr = String(day).padStart(2, '0');
+      const formatted = isRecurring ? `${mStr}-${dStr}` : `${dpYear}-${mStr}-${dStr}`;
+
+      const targetInput = document.getElementById(dpTarget === 'start' ? 'schedStart' : 'schedEnd');
+      if (targetInput) {
+        targetInput.value = formatted;
+      }
+
+      const justChosen = dpTarget;
+      closeDatePicker();
+      onScheduleDateChange();
+
+      // Si seleccionó fecha inicio y fin está vacía, abrir automáticamente el selector para fecha fin
+      if (justChosen === 'start') {
+        const inEnd = document.getElementById('schedEnd');
+        if (inEnd && !inEnd.value.trim()) {
+          setTimeout(() => {
+            openDatePicker('end');
+          }, 150);
+        }
+      }
+    }
+
+    function dpSelectToday() {
+      const today = new Date();
+      dpYear = today.getFullYear();
+      dpMonth = today.getMonth();
+      dpSelectDay(today.getDate());
+    }
+
+    function applySchedulePreset(presetKey) {
+      const presets = {
+        'navidad': { start: '12-20', end: '12-26', name: 'Navidad' },
+        'ano-nuevo': { start: '12-28', end: '01-06', name: 'Año Nuevo' },
+        'black-friday': { start: '11-20', end: '11-30', name: 'Black Friday / Cyber Monday' },
+        'halloween': { start: '10-25', end: '11-02', name: 'Halloween' },
+        'san-valentin': { start: '02-10', end: '02-16', name: 'San Valentín' }
+      };
+
+      const p = presets[presetKey];
+      if (!p) return;
+
+      const inStart = document.getElementById('schedStart');
+      const inEnd = document.getElementById('schedEnd');
+      const chkRec = document.getElementById('schedRecurring');
+
+      if (inStart) inStart.value = p.start;
+      if (inEnd) inEnd.value = p.end;
+      if (chkRec) chkRec.checked = true;
+
+      onScheduleDateChange();
+      showToast(`📅 Preset aplicado: ${p.name} (${p.start} ➔ ${p.end})`);
+    }
+
+    function onScheduleRecurringChange() {
+      const isRecurring = document.getElementById('schedRecurring').checked;
+      const inStart = document.getElementById('schedStart');
+      const inEnd = document.getElementById('schedEnd');
+
+      if (isRecurring) {
+        if (inStart && /^\d{4}-\d{2}-\d{2}$/.test(inStart.value)) inStart.value = inStart.value.slice(-5);
+        if (inEnd && /^\d{4}-\d{2}-\d{2}$/.test(inEnd.value)) inEnd.value = inEnd.value.slice(-5);
+      } else {
+        const curY = new Date().getFullYear();
+        if (inStart && /^\d{2}-\d{2}$/.test(inStart.value)) inStart.value = `${curY}-${inStart.value}`;
+        if (inEnd && /^\d{2}-\d{2}$/.test(inEnd.value)) inEnd.value = `${curY}-${inEnd.value}`;
+      }
+      onScheduleDateChange();
+    }
+
+    function isCurrentScheduleActive(start, end, recurring) {
+      if (!start || !end) return false;
+      const now = new Date();
+      if (recurring) {
+        const sMd = start.slice(-5);
+        const eMd = end.slice(-5);
+        const nowM = String(now.getMonth() + 1).padStart(2, '0');
+        const nowD = String(now.getDate()).padStart(2, '0');
+        const todayMd = `${nowM}-${nowD}`;
+        if (sMd <= eMd) {
+          return todayMd >= sMd && todayMd <= eMd;
+        } else {
+          return todayMd >= sMd || todayMd <= eMd;
+        }
+      } else {
+        const nowY = now.getFullYear();
+        const nowM = String(now.getMonth() + 1).padStart(2, '0');
+        const nowD = String(now.getDate()).padStart(2, '0');
+        const todayYmd = `${nowY}-${nowM}-${nowD}`;
+        return todayYmd >= start && todayYmd <= end;
+      }
+    }
+
+    function formatFriendlyDateText(val) {
+      if (!val) return '';
+      const md = val.slice(-5);
+      const parts = md.split('-');
+      if (parts.length !== 2) return val;
+      const mIdx = parseInt(parts[0], 10) - 1;
+      const d = parseInt(parts[1], 10);
+      if (mIdx >= 0 && mIdx < DP_MONTH_NAMES.length) {
+        const shortMonths = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        return `${d} ${shortMonths[mIdx]}`;
+      }
+      return val;
+    }
+
+    function onScheduleDateChange() {
+      const inStart = document.getElementById('schedStart');
+      const inEnd = document.getElementById('schedEnd');
+      const chkRec = document.getElementById('schedRecurring');
+      const banner = document.getElementById('schedStatusBanner');
+      const hintStart = document.getElementById('schedStartHint');
+      const hintEnd = document.getElementById('schedEndHint');
+      if (!inStart || !inEnd || !banner) return;
+
+      const start = inStart.value.trim();
+      const end = inEnd.value.trim();
+      const rec = chkRec ? chkRec.checked : true;
+
+      if (hintStart) hintStart.textContent = start ? formatFriendlyDateText(start) : '';
+      if (hintEnd) hintEnd.textContent = end ? formatFriendlyDateText(end) : '';
+
+      if (!start && !end) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      if (!start || !end) {
+        banner.style.display = 'block';
+        banner.style.background = 'rgba(234, 179, 8, 0.15)';
+        banner.style.border = '1px solid rgba(234, 179, 8, 0.35)';
+        banner.style.color = '#fde047';
+        banner.innerHTML = '⚠️ Completa ambas fechas (Inicio y Fin) para activar el rango.';
+        return;
+      }
+
+      const activeNow = isCurrentScheduleActive(start, end, rec);
+      banner.style.display = 'block';
+      if (activeNow) {
+        banner.style.background = 'rgba(34, 197, 94, 0.15)';
+        banner.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+        banner.style.color = '#86efac';
+        banner.innerHTML = `🟢 <strong>ACTIVO AHORA:</strong> El tema se aplica automáticamente hoy (${start} ➔ ${end}${rec ? ', anual' : ''}).`;
+      } else {
+        banner.style.background = 'rgba(56, 189, 248, 0.12)';
+        banner.style.border = '1px solid rgba(56, 189, 248, 0.35)';
+        banner.style.color = '#bae6fd';
+        banner.innerHTML = `📅 <strong>PROGRAMADO:</strong> Se activará del ${start} al ${end} ${rec ? '(todos los años)' : ''}.`;
+      }
     }
 
     function openSaveThemeModal() {
@@ -2417,11 +3723,74 @@
       renderThemesTab();
     }
 
+    function getStudioHeaders() {
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+      if (token) {
+        headers['X-CSRF-TOKEN'] = token;
+        headers['X-XSRF-TOKEN'] = token;
+      }
+      return headers;
+    }
+
+    async function loadThemeToSite(slug) {
+      if (!slug) return;
+
+      // Si el tema que se va a cargar es el que se está editando actualmente,
+      // sincronizamos los cambios locales al fullThemeConfig
+      if (slug === currentThemeSlug) {
+        themeConfig.slug = slug;
+        if (!themeConfig.name && fullThemeConfig.themes[slug]) {
+          themeConfig.name = fullThemeConfig.themes[slug].name;
+        }
+        fullThemeConfig.themes[slug] = JSON.parse(JSON.stringify(themeConfig));
+      }
+
+      showToast(`⏳ Cargando tema "${slug}" y aplicando al sitio web...`);
+
+      try {
+        const response = await fetch('/_frame/theme-studio/load-to-site', {
+          method: 'POST',
+          headers: getStudioHeaders(),
+          body: JSON.stringify({
+            slug: slug,
+            fullConfig: fullThemeConfig
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('Error response:', errText);
+          showToast('❌ Error del servidor al cargar tema en el sitio', 'error');
+          return;
+        }
+
+        const res = await response.json();
+        if (res.success) {
+          activeThemeSlug = slug;
+          if (res.fullConfig) {
+            fullThemeConfig = res.fullConfig;
+          }
+          renderThemesTab();
+          applySandboxStyles();
+          showToast(`🚀 ¡Tema "${slug}" cargado y aplicado con éxito al sitio web!`, 'success');
+        } else {
+          showToast('❌ ' + (res.message || 'Error al cargar tema en el sitio'), 'error');
+        }
+      } catch (e) {
+        console.error('Connection error:', e);
+        showToast('❌ Error al procesar la respuesta del servidor', 'error');
+      }
+    }
+
     async function activateTheme(slug) {
       try {
         const response = await fetch('/_frame/theme-studio/set-active', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getStudioHeaders(),
           body: JSON.stringify({ slug })
         });
         const res = await response.json();
@@ -2440,33 +3809,40 @@
     }
 
     async function deleteTheme(slug) {
-      if (!confirm(`¿Eliminar permanentemente el tema "${slug}"?`)) return;
-
-      try {
-        const response = await fetch('/_frame/theme-studio/delete-theme', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug })
-        });
-        const res = await response.json();
-        if (res.success) {
-          if (res.fullConfig) {
-            fullThemeConfig = res.fullConfig;
-          } else {
-            delete fullThemeConfig.themes[slug];
+      openConfirmModal({
+        icon: '🗑️',
+        title: `¿Eliminar tema "${slug}"?`,
+        message: 'Esta acción eliminará permanentemente la paleta y configuración de este tema guardado.',
+        acceptText: 'Sí, Eliminar',
+        acceptClass: 'ts-btn-secondary',
+        onAccept: async () => {
+          try {
+            const response = await fetch('/_frame/theme-studio/delete-theme', {
+              method: 'POST',
+              headers: getStudioHeaders(),
+              body: JSON.stringify({ slug })
+            });
+            const res = await response.json();
+            if (res.success) {
+              if (res.fullConfig) {
+                fullThemeConfig = res.fullConfig;
+              } else {
+                delete fullThemeConfig.themes[slug];
+              }
+              if (currentThemeSlug === slug) {
+                switchThemeTo('default');
+              } else {
+                renderThemesTab();
+              }
+              showToast(`🗑️ Tema "${slug}" eliminado`);
+            } else {
+              showToast('❌ ' + (res.message || 'Error al eliminar'), 'error');
+            }
+          } catch (e) {
+            showToast('❌ Error de conexión al eliminar tema', 'error');
           }
-          if (currentThemeSlug === slug) {
-            switchThemeTo('default');
-          } else {
-            renderThemesTab();
-          }
-          showToast(`🗑️ Tema "${slug}" eliminado`);
-        } else {
-          showToast('❌ ' + (res.message || 'Error al eliminar'), 'error');
         }
-      } catch (e) {
-        showToast('❌ Error de conexión al eliminar tema', 'error');
-      }
+      });
     }
 
     // ==============================================================
@@ -2489,10 +3865,7 @@
       try {
         const response = await fetch('/_frame/theme-studio/save', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
+          headers: getStudioHeaders(),
           body: JSON.stringify(fullThemeConfig)
         });
 
@@ -2507,7 +3880,7 @@
           }
           renderThemesTab();
           applySandboxStyles();
-          showToast('✅ ' + (data.message || '¡Tema guardado y compilado con éxito en _configTheme.css!'), 'success');
+          showToast('💾 ' + (data.message || 'Tema guardado en theme.json (modo aislado)'), 'success');
         } else {
           showToast('❌ ' + (data.message || 'Error al guardar'), 'error');
         }
@@ -2524,8 +3897,25 @@
       const msg = document.getElementById('toastMsg');
       const icon = document.getElementById('toastIcon');
 
-      msg.textContent = message;
-      icon.textContent = (type === 'error') ? '❌' : (message.includes('⚡') ? '⚡' : '✅');
+      // Limpiar prefijo de emoji si viene en el texto para no duplicar icono
+      const cleanMsg = message.replace(/^[\p{Emoji}\u200d\uFE0F]+\s*/u, '');
+      msg.textContent = cleanMsg;
+
+      let ico = '✅';
+      if (type === 'error') {
+        ico = '❌';
+      } else if (message.includes('⚡')) {
+        ico = '⚡';
+      } else if (message.includes('🚀')) {
+        ico = '🚀';
+      } else if (message.includes('💾')) {
+        ico = '💾';
+      } else if (message.includes('⏳')) {
+        ico = '⏳';
+      } else if (message.includes('🗑️')) {
+        ico = '🗑️';
+      }
+      icon.textContent = ico;
       toast.className = `ts-toast show ${type}`;
 
       clearTimeout(window.__toastTimer);
@@ -2536,6 +3926,13 @@
 
     // Iniciar estudio al cargar el DOM
     document.addEventListener('DOMContentLoaded', initStudio);
+
+    // Actualizar barra de scroll flotante del iframe al redimensionar la ventana principal
+    window.addEventListener('resize', () => {
+      if (iframeScrollInstance) {
+        iframeScrollInstance.refresh();
+      }
+    });
   </script>
 </body>
 </html>

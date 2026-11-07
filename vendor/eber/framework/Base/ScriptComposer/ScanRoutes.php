@@ -12,6 +12,17 @@ if (!defined('ROOT_PATH')) {
   define('ROOT_PATH', $basePath);
 }
 
+// En el repositorio del framework no existe ni se genera /App
+$composerJsonPath = $basePath . '/composer.json';
+if (file_exists($composerJsonPath)) {
+  $composerData = json_decode((string)file_get_contents($composerJsonPath), true);
+  if (($composerData['name'] ?? '') === 'eber/framework') {
+    echo "ℹ️  Repositorio del framework ('eber/framework') detectado.\n";
+    echo "   No se escanean rutas de /App en el repositorio del framework (solo en proyectos derivados).\n";
+    exit(0);
+  }
+}
+
 use Core\ConfigLoader\RouteLoader;
 use Base\Module\Security\RouteScanner;
 
