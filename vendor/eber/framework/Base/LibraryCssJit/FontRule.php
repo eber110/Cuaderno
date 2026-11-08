@@ -269,7 +269,7 @@ class FontRule extends JitRuleBase
             }
             $color = $this->getColorVar($index);
             $colorHover = $this->getColorHoverVar($index);
-            return ".color{$index}-hover, .color{$index}-hover a { color: {$color}; transition: var(--transition, all 0.15s ease-in-out); }\n.color{$index}-hover:hover, .color{$index}-hover:hover a { color: {$colorHover}; }\n";
+            return ".color{$index}-hover, .color{$index}-hover a { color: {$color}; transition: var(--transition, all 0.15s ease-in-out) !important; }\n.color{$index}-hover:hover, .color{$index}-hover:hover a { color: {$colorHover} !important; }\n";
         }
 
         return null;

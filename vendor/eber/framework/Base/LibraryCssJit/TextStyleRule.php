@@ -119,7 +119,7 @@ class TextStyleRule extends JitRuleBase
       }
       $color = $this->getColorVar($index);
       $hover = $this->getColorHoverVar($index);
-      return ".{$word} { -webkit-text-stroke: 1px {$color}; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; display: inline-block; transition: var(--transition, all 0.15s ease-in-out); }\n.{$word}:hover { -webkit-text-stroke-color: {$hover}; }\n";
+      return ".{$word} { -webkit-text-stroke: 1px {$color}; -webkit-text-fill-color: transparent; color: transparent; paint-order: stroke fill; display: inline-block; transition: var(--transition, all 0.15s ease-in-out) !important; }\n.{$word}:hover { -webkit-text-stroke-color: {$hover} !important; }\n";
     }
 
     // 1d. GROSOR DE TRAZO INDEPENDIENTE: .text-stroke-w1..text-stroke-w10

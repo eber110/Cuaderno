@@ -1,4 +1,4 @@
-<header class="container observer container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 h-dvh-desk hpxmin-mid-1000 pb100 pt-mid-100 pb-mid-100 pt-sml-50 pb-sml-50">
+<header class="container observer container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 h-dvh-desk hpxmin-mid-1000 pt190 pb100 |pt-mid-190 pb-mid-100 pt-sml-140 pb-sml-50">
   <div class="hem20 w100 p15 p-sml-0 flex-column center-start">
     <div class="flex-column gap5">
       <p class="oswald bold600 x28 color5 slide-in-bottom ob-0 dl-100 animate-slow">BIO LINK ULTRALIGERO</p>

@@ -74,7 +74,6 @@
   font-weight: 900 !important;
 }
 
-
 /* ==========================================================================
    🔤 FUENTE ESTÁTICA: GoogleSansFlex_120pt (Peso: 200)
    ========================================================================== */
@@ -128,4 +127,25 @@
 .oswald700 {
   font-family: 'oswald' !important;
   font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Limelight (Peso: 300)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Limelight';
+  src: url('/App/Rsc/Fonts/limelight/Limelight-Regular.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+.limel {
+  font-family: 'Limelight' !important;
+}
+
+.limel300 {
+  font-family: 'Limelight' !important;
+  font-weight: 300 !important;
 }

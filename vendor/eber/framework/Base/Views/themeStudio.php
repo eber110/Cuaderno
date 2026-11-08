@@ -2827,10 +2827,10 @@
         const varName = (i === 1) ? '--back-color' : `--back-color${i}`;
         const hoverVarName = (i === 1) ? '--back-color-hover' : `--back-color${i}-hover`;
         css += `.back${i} { background-color: var(${varName}) !important; }\n`;
-        css += `.back${i}-hover { background-color: var(${varName}) !important; transition: var(--transition, all 0.15s ease-in-out); }\n`;
+        css += `.back${i}-hover { background-color: var(${varName}) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }\n`;
         css += `.back${i}-hover:hover, .back${i}-hover:focus { background-color: var(${hoverVarName}) !important; }\n`;
         css += `.color${i}, .color${i} a { color: var(${varName}) !important; }\n`;
-        css += `.color${i}-hover, .color${i}-hover a { color: var(${varName}); transition: var(--transition, all 0.15s ease-in-out); }\n`;
+        css += `.color${i}-hover, .color${i}-hover a { color: var(${varName}); transition: var(--transition, all 0.15s ease-in-out) !important; }\n`;
         css += `.color${i}-hover:hover, .color${i}-hover:hover a { color: var(${hoverVarName}) !important; }\n`;
         css += `.border${i} { border: 1px solid var(${varName}); }\n`;
         css += `.border-b-${i} { border-bottom: 1px solid var(${varName}); }\n`;

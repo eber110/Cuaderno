@@ -43,7 +43,7 @@ class JitCssModule
                 // Limpiar bloques de comentarios para evitar falsos positivos con palabras de documentación
                 $content = (string)preg_replace('/\/\*.*?\*\//s', ' ', $content);
 
-                if (preg_match_all('/[a-zA-Z0-9_-]+/', $content, $matches)) {
+                if (preg_match_all('/[a-zA-Z0-9_-]+(?:\[[^\]\r\n\t "\'<>]+\])?(?:-[a-zA-Z0-9_-]+)?/', $content, $matches)) {
                     foreach ($matches[0] as $word) {
                         $words[$word] = true;
                     }
@@ -56,7 +56,7 @@ class JitCssModule
         $jsConfigFile = rtrim($rootPath, '/') . '/jsConfig.json';
         if (is_file($jsConfigFile)) {
             $jsConfigContent = (string)file_get_contents($jsConfigFile);
-            if (preg_match_all('/[a-zA-Z0-9_-]+/', $jsConfigContent, $matches)) {
+            if (preg_match_all('/[a-zA-Z0-9_-]+(?:\[[^\]\r\n\t "\'<>]+\])?(?:-[a-zA-Z0-9_-]+)?/', $jsConfigContent, $matches)) {
                 foreach ($matches[0] as $word) {
                     $words[$word] = true;
                 }

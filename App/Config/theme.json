@@ -1,5 +1,5 @@
 {
-    "activeTheme": "default",
+    "activeTheme": "predeterminada",
     "themes": {
         "default": {
             "name": "Predeterminado",
@@ -47,6 +47,79 @@
                     "#A5CDF3",
                     "#432509",
                     "#F6D8BC"
+                ]
+            },
+            "status": {
+                "success": "#00B900",
+                "hoverSuccess": "#04EA04",
+                "caution": "#FF8C00",
+                "hoverCaution": "#FEAD4B",
+                "danger": "#FF0000",
+                "hoverDanger": "#FC6161"
+            }
+        },
+        "predeterminada": {
+            "name": "predeterminada",
+            "slug": "predeterminada",
+            "schedule": null,
+            "layout": {
+                "font": "'GoogleSansFlex_120pt', sans-serif",
+                "fontSize": "18px",
+                "widthWindow": "1500px",
+                "scrollbarWidth": "thin",
+                "scrollbarHide": "none"
+            },
+            "light": {
+                "body": "#E6EAFA",
+                "text": {
+                    "primary": "#0B101E",
+                    "secondary": "#EAFAE6",
+                    "inactive": "#BDBDBD"
+                },
+                "colors": [
+                    "#0B101E",
+                    "#071B55",
+                    "#01228C",
+                    "#3E5AC3",
+                    "#E6EAFA",
+                    "#1E0B10",
+                    "#55071B",
+                    "#8C0122",
+                    "#C33E5A",
+                    "#FAE6EA",
+                    "#101E0B",
+                    "#1B5507",
+                    "#228C01",
+                    "#5AC33E",
+                    "#EAFAE6",
+                    "#B59D16"
+                ]
+            },
+            "dark": {
+                "auto": false,
+                "body": "#E6EAFA",
+                "text": {
+                    "primary": "#0B101E",
+                    "secondary": "#EAFAE6",
+                    "inactive": "#BDBDBD"
+                },
+                "colors": [
+                    "#0B101E",
+                    "#071B55",
+                    "#01228C",
+                    "#3E5AC3",
+                    "#E6EAFA",
+                    "#1E0B10",
+                    "#55071B",
+                    "#8C0122",
+                    "#C33E5A",
+                    "#FAE6EA",
+                    "#101E0B",
+                    "#1B5507",
+                    "#228C01",
+                    "#5AC33E",
+                    "#EAFAE6",
+                    "#B59D16"
                 ]
             },
             "status": {
