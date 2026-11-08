@@ -407,7 +407,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .pt150 { padding-top: 150px !important; }
 .pt190 { padding-top: 190px !important; }
 .pt20 { padding-top: 20px !important; }
-.pt25 { padding-top: 25px !important; }
 .pt30 { padding-top: 30px !important; }
 .pt40 { padding-top: 40px !important; }
 .pt5 { padding-top: 5px !important; }
@@ -697,6 +696,12 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 @media screen and (max-width: 576px) {
   .flex-column-sml.center-start { justify-content: center; align-items: flex-start; }
   .flex-row-sml.center-start { align-items: center; justify-content: flex-start; }
+}
+@media screen and (max-width: 576px) {
+  .flex-column.center-start-sml { justify-content: center !important; align-items: flex-start !important; }
+.flex-row.center-start-sml { align-items: center !important; justify-content: flex-start !important; }
+.flex-column-sml.center-start-sml { justify-content: center !important; align-items: flex-start !important; }
+.flex-row-sml.center-start-sml { align-items: center !important; justify-content: flex-start !important; }
 }
 .flex-column.end-start { justify-content: flex-end; align-items: flex-start; }
 .flex-row.end-start { align-items: flex-end; justify-content: flex-start; }

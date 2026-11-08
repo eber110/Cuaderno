@@ -34,13 +34,16 @@
  *
  * @example
  * // 2. En HTML sobre cualquier contenedor
- * <section class="background-motion-text back8 color2 p40"
- *          data-bmt-content="asterisk"
- *          data-bmt-rotate="true"
- *          data-bmt-move="true"
- *          data-bmt-gap="36"
- *          data-bmt-size="16"
- *          data-bmt-opacity="0.15">
+ * <div class="flex-column top-center gap0 text-protected overflow background-motion-text"
+ *       data-bmt-content="asterisk"
+ *       data-bmt-rotate="true"
+ *       data-bmt-move="true"
+ *       data-bmt-move-speed="20"
+ *       data-bmt-rotate-speed="35"
+ *       data-bmt-gap="36"
+ *       data-bmt-size="16"
+ *       data-bmt-opacity="0.15"
+ *       data-bmt-color="currentColor">
  *   <h2>Contenido sobre fondo dinámico</h2>
  * </section>
  *

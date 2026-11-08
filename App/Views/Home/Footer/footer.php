@@ -1,7 +1,7 @@
 <footer class="container-xl back8 textw border-top pt80 pt-mid-60 pt-sml-40 pb80 pb-mid-60 pb-sml-40" style="border-color: rgba(255, 255, 255, 0.08);">
-  <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column gap50 gap-mid-40 gap-sml-30 w100">
+  <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column gap30 gap-mid-20 gap-sml-15 w100">
     
-    <div class="flex-row center-between flex-column-mid center-center-mid text-center-mid flex-column-sml center-center-sml text-center-sml gap30 w100">
+    <div class="flex-row center-center center-start-sml">
       <div class="flex-column start-start center-center-mid center-center-sml text-center-mid text-center-sml gap12 max-w450">
         <a href="/" class="bold700 x30 textw text-none flex-row center-start center-center-mid center-center-sml gap0 shine-hover">
           <figure class="hpx44 hpx-sml-35">
@@ -11,26 +11,20 @@
             <img src="<?= URL_IMG_PUBLIC?>/Custom/logo-white.webp" alt="" class="cover">
           </figure>
         </a>
-        <p class="x18 textc m0 max-w450">
-          Tu bio link ultraligero y personalizable. Conecta todos tus contenidos en una sola página rápida y profesional.
-        </p>
       </div>
-
-      <!-- <div class="flex-row center-end center-center-mid center-center-sml flex-wrap gap25 gap-mid-20 gap-sml-15">
-        <a href="/" class="x18 bold500 color7 color5-hover text-none">Inicio</a>
-        <a href="/ingresar" class="x18 bold500 color7 color5-hover text-none">Ingresar</a>
-        <a href="/registrar" class="x18 bold500 color7 color5-hover text-none">Crear cuenta</a>
-        <a href="/terminos" class="x18 bold500 color7 color5-hover text-none">Términos</a>
-        <a href="/privacidad" class="x18 bold500 color7 color5-hover text-none">Privacidad</a>
-      </div> -->
     </div>
 
-    <div class="w100 pt25 border-top flex-row center-between flex-column-mid center-center-mid text-center-mid flex-column-sml center-center-sml text-center-sml gap15 x18 color7" style="border-color: rgba(255, 255, 255, 0.08);">
-      <p class="m0 x18 textc">
-        &copy; <?= date('Y') ?> <?= defined('NAME_SITE') ? e(NAME_SITE) : 'Clikhub' ?>. Todos los derechos reservados.
-      </p>
-      <p class="m0 x18 textc">
+    <div class="flex-row center-center center-start-sml gap5 bold500 x20">
+      <a href="/ingresar" class="p10 pl15 pr15 br10 back3-hover">Ingresar</a>
+      <a href="/registrar" class="p10 pl15 pr15 br50 back7-hover">Registrar</a>
+    </div>
+
+    <div class="flex-column center-center gap10">
+      <p class="m0 x20 textc">
         Hecho con velocidad y rendimiento para creadores.
+      </p>
+      <p class="m0 x20 textc">
+        &copy; <?= date('Y') ?> <?= defined('NAME_SITE') ? e(NAME_SITE) : 'Clikhub' ?>. Todos los derechos reservados.
       </p>
     </div>
 

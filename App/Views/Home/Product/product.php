@@ -1,15 +1,15 @@
-<div class="container-xl back5 observer overflow">
+<div class="container-xl back5 observer overflow back-[/App/Public/Img/fondo-product.webp] back-cover back-center back11-overlay-30">
   <div class="container-desk container-xl-mid |container-sml w-sml-100 flex-column gap20 gap-sml-0 flex-row center-center flex-column-sml center-center-sml pt100 pb100 pt-sml-0 pb-sml-0">
     
-    <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-20 back5 faded-image-sml z-index-10 pt-sml-50 pb-sml-80">
+    <div class="w100 flex-column around-start flex-column-sml top-start-sml gap20 p15 p-sml-20 back16-sml faded-image-sml z-index-10 pt-sml-50 pb-sml-80">
       <div class="flex-column gap10">
         <p class="oswald bold600 x28 textc slide-in-left ob-30 dl-100 animate-slow">PERSONALIZACIÓN SIN LÍMITES</p>
-        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-30 dl-200 animate-slow m0 p0">Adapta tu contenido al ritmo de tus campañas.</h2>
-        <p class="bold500 x20 x-sml-18 slide-in-left ob-30 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Cambia de estrategia sin reconstruir tu web. Activa bloques para eventos, lanzamientos especiales o redes sociales con un solo clic.</p>
+        <h2 class="oswald bold700 capitalize-p line-h10 x80 x-mid-60 x-sml-40 textc slide-in-left ob-30 dl-200 animate-slow m0 p0 limel">Adapta tu contenido al ritmo de tus campañas.</h2>
+        <p class="bold500 x24 x-sml-22 slide-in-left ob-30 dl-400 animate-slow pt20 pb20 pt-mid-10 pb-mid-20 pt-sml-5 textc">Cambia de estrategia sin reconstruir tu web. Activa bloques para eventos, lanzamientos especiales o redes sociales con un solo clic.</p>
       </div>
-      <a href="/registrar" class="slide-in-bottom ob-40 dl-600 p14 pr35 pl35 br50 w-auto back7 back7-hover texto x20 x-sml-18 bold600 pointer shadow hover-scale-soft flex-row center-center gap10 text-none">
+      <a href="/registrar" class="slide-in-bottom ob-40 dl-600 p14 pr35 pl35 br50 w-auto |back13 back13-hover textc x20 x-sml-18 bold600 pointer shadow hover-scale-soft flex-row center-center gap10 text-none">
         <span>Regístrate gratis</span>
-        <?= svg("arrow-r-l", "x18 texto") ?>
+        <?= svg("arrow-r-l", "x18 textc") ?>
       </a>
     </div>  
 
@@ -33,7 +33,7 @@
       ?>
 
       <?php if (!empty($slideFiles)): ?>
-        <div class="product-vertical-carousel flex-column center-center fade-in ob-40 dl-1000">
+        <div class="product-vertical-carousel flex-column center-center fade-in ob-40 dl-600">
           <div class="product-carousel-track flex-column center-center gap30 absolute ml80 w100 w-mid-80 w-sml-90">
             <?php for ($s = 0; $s < 3; $s++): ?>
               <div class="product-carousel-set flex-column center-center gap30 w100" <?= $s > 0 ? 'aria-hidden="true"' : '' ?>>
