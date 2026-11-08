@@ -1,4 +1,4 @@
-<div class="flex-column top-center gap0 text-protected overflow">
+<div class="flex-column top-center gap0 text-protected overflow |back3 background-motion-text" data-bmt-content="asterisk" data-bmt-rotate="true" data-bmt-move="true" data-bmt-gap="36" data-bmt-size="16" data-bmt-opacity="0.15" data-bmt-move="0.15">
 
   <?php
     _component("Menu.menuHome");

@@ -1,4 +1,4 @@
-<section class="container-xl back-body observer pt100 pt-mid-80 pt-sml-50 pb100 pb-mid-80 pb-sml-50">
+<section class="container-xl |back-body observer pt100 pt-mid-80 pt-sml-50 pb100 pb-mid-80 pb-sml-50">
   <div class="container container-xl-mid container-xl-sml pl-mid-20 pr-mid-20 pl-sml-20 pr-sml-20 flex-column center-center gap50 gap-mid-40 gap-sml-30 |w100">
     
     <div class="flex-column center-center textc gap10 max-w700">
@@ -40,7 +40,7 @@
       </div>
 
       <!-- Card 3: Campañas & Urgencia -->
-      <div class="p25 p-mid-20 p-sml-20 br20 back5-hover shadow-card-graphic hover-scale-soft flex-column gap15 slide-in-bottom ob-20 dl-300 animate-slow">
+      <div class="p25 p-mid-20 p-sml-20 br20 back10-hover shadow-card-graphic hover-scale-soft flex-column gap15 slide-in-bottom ob-20 dl-300 animate-slow">
         <div class="wpx50 hpx50 br15 back7 texto flex-row center-center shadow">
           <?= svg("alarm", "x24 textw") ?>
         </div>
