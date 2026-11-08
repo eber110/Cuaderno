@@ -114,6 +114,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .back10 { background-color: var(--back-color10) !important; }
 .back11-overlay-30 { position: relative; z-index: 1; }
 .back11-overlay-30::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--back-color11) !important; opacity: 0.3; z-index: -1; pointer-events: none; }
+.back12 { background-color: var(--back-color12) !important; }
 .back13 { background-color: var(--back-color13) !important; }
 .back13-hover { background-color: var(--back-color13) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }
 .back13-hover:hover, .back13-hover:focus { background-color: var(--back-color13-hover) !important; }
