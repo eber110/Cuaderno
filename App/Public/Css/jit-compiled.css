@@ -266,7 +266,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .sticky { position: sticky !important; }
 .top { top: 0%; }
 .top0 { top: 0%; }
-.top2 { top: 2%; }
 .toppx40 { top: 40px; }
 .br0 { border-radius: 0px !important; overflow: clip; }
 .br10 { border-radius: 10px !important; overflow: clip; }
@@ -408,14 +407,12 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .w-fit { width: fit-content !important; }
 .w100 { width: 100%; }
 .w3 { width: 3%; }
-.w40 { width: 40%; }
 .w50 { width: 50%; }
 .w60 { width: 60%; }
 .w80 { width: 80%; }
 .w85 { width: 85%; }
 .w90 { width: 90%; }
 .wpx100 { width: 100px; }
-.wpx1000 { width: 1000px; }
 .wpx140 { width: 140px; }
 .wpx200 { width: 200px; }
 .wpx22 { width: 22px; }
@@ -803,22 +800,13 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
   .span-sml-1 { grid-column: span 1; }
 }
 @media screen and (min-width: 993px) {
-  .br-desk-100 { border-radius: 100px !important; overflow: clip; }
-}
-@media screen and (min-width: 993px) {
   .br-desk-15 { border-radius: 15px !important; overflow: clip; }
-}
-@media screen and (min-width: 577px) and (max-width: 992px) {
-  .br-mid-100 { border-radius: 100px !important; overflow: clip; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .br-mid-15 { border-radius: 15px !important; overflow: clip; }
 }
 @media screen and (max-width: 576px) {
   .br-sml-0 { border-radius: 0px !important; overflow: clip; }
-}
-@media screen and (max-width: 576px) {
-  .br-sml-15 { border-radius: 15px !important; overflow: clip; }
 }
 @media screen and (min-width: 993px) {
   .brtl-desk-30 { border-top-left-radius: 30px !important; }
@@ -923,6 +911,9 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
   .pl-sml-12 { padding-left: 12px !important; }
 }
 @media screen and (max-width: 576px) {
+  .pl-sml-15 { padding-left: 15px !important; }
+}
+@media screen and (max-width: 576px) {
   .pl-sml-20 { padding-left: 20px !important; }
 }
 @media screen and (max-width: 576px) {
@@ -936,6 +927,9 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 }
 @media screen and (max-width: 576px) {
   .pr-sml-12 { padding-right: 12px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pr-sml-15 { padding-right: 15px !important; }
 }
 @media screen and (max-width: 576px) {
   .pr-sml-20 { padding-right: 20px !important; }
@@ -975,6 +969,9 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 }
 @media screen and (max-width: 576px) {
   .pt-sml-70 { padding-top: 70px !important; }
+}
+@media screen and (max-width: 576px) {
+  .pt-sml-90 { padding-top: 90px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .w-mid-0 { width: 0%; }
