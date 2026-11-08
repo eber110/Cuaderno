@@ -18,9 +18,8 @@
       <div class="flex-column center-center gap12 pt15 z-index-10">
         <a href="/registrar" class="slide-in-bottom ob-20 dl-400 p16 pr40 pl40 br50 back8 back8-hover textw textc x22 x-sml-20 bold700 pointer shadow hover-scale-soft flex-row center-center gap10 text-none">
           <span>Crear mi Clikhub gratis</span>
-          <?//= svg("arrow-r-l", "x20 textw") ?>
         </a>
-        <span class="x22 textc bold500 flex-row center-center gap8 slide-in-bottom ob-20 dl-500 animate-slow">
+        <span class="x18 textc bold500 flex-row center-center gap8 slide-in-bottom ob-20 dl-500 animate-slow">
           <span class="color4"><?= svg("check", "x18 textc") ?></span> Registro instantáneo • 100% gratuito
         </span>
       </div>
