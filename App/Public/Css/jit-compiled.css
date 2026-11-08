@@ -61,8 +61,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .ob-0:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .ob-20 { --ob-threshold: 0.2; }
 .ob-20:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
-.ob-40 { --ob-threshold: 0.4; }
-.ob-40:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .observer { position: relative; }
 .observer [class*="ob-"]:not(.animated), [class*="ob-"]:not(.animated) { opacity: 0; -webkit-animation-name: none !important; animation-name: none !important; will-change: transform, opacity; }
 .pulse { -webkit-animation-name: pulse; animation-name: pulse; --animate-duration: 2s; animation-iteration-count: infinite; }
