@@ -1,4 +1,4 @@
-<main class="flex-column between-center h-dvh text-protected pl20 pr20 pl-sml-10 pr-sml-10 background-motion-text" data-bmt-content="Clikhub" data-bmt-rotate="false" data-bmt-move="true" data-bmt-gap="26" data-bmt-size="16" data-bmt-opacity="0.15">
+<main class="flex-column between-center h-dvh text-protected pl20 pr20 pl-sml-10 pr-sml-10 background-motion-text" data-bmt-content="Clikhub" data-bmt-rotate="false" data-bmt-move="true" data-bmt-gap="26" data-bmt-size="16" data-bmt-opacity="0.08">
   <?php _menu("Register.menuRegister");?>
   
   <div class="wpx610 w-mid-70 w-sml-100 flex-column gap10">
