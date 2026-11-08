@@ -398,11 +398,11 @@ body,
 
 }
 
-.texto, .texto a, .texto input, .texto textarea, .texto select, .texto button, input.texto, textarea.texto, select.texto, button.texto {
+.texto, .texto a, .texto, .texto textarea, .texto select, .texto button, textarea.texto, select.texto, button.texto {
   color: var(--text-primary) !important;
 }
 
-.textc, .textc a, .textc input, .textc textarea, .textc select, .textc button, input.textc, textarea.textc, select.textc, button.textc {
+.textc, .textc a, .textc, .textc textarea, .textc select, .textc button, textarea.textc, select.textc, button.textc {
   color: var(--text-secondary) !important;
 }
 

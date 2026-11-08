@@ -10,7 +10,6 @@
 @keyframes bounceOut { from { transform: scale3d(1, 1, 1); opacity: 1; } to { transform: scale3d(0.3, 0.3, 0.3); opacity: 0; } }
 .disabled-save-btn { opacity: 0.4; pointer-events: none !important; cursor: not-allowed !important; filter: grayscale(0.5); }
 .dl-100 { -webkit-animation-delay: 100ms !important; animation-delay: 100ms !important; --animate-delay: 100ms; }
-.dl-1000 { -webkit-animation-delay: 1000ms !important; animation-delay: 1000ms !important; --animate-delay: 1000ms; }
 .dl-200 { -webkit-animation-delay: 200ms !important; animation-delay: 200ms !important; --animate-delay: 200ms; }
 .dl-300 { -webkit-animation-delay: 300ms !important; animation-delay: 300ms !important; --animate-delay: 300ms; }
 .dl-400 { -webkit-animation-delay: 400ms !important; animation-delay: 400ms !important; --animate-delay: 400ms; }
@@ -138,8 +137,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .back4-hover { background-color: var(--back-color4) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }
 .back4-hover:hover, .back4-hover:focus { background-color: var(--back-color4-hover) !important; }
 .back5 { background-color: var(--back-color5) !important; }
-.back5-hover { background-color: var(--back-color5) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }
-.back5-hover:hover, .back5-hover:focus { background-color: var(--back-color5-hover) !important; }
 .back6 { background-color: var(--back-color6) !important; }
 .back7 { background-color: var(--back-color7) !important; }
 .back7-hover { background-color: var(--back-color7) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }
@@ -209,11 +206,11 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .color3, .color3 a { color: var(--back-color3) !important; }
 .color4, .color4 a { color: var(--back-color4) !important; }
 .color5, .color5 a { color: var(--back-color5) !important; }
-.color5-hover, .color5-hover a { color: var(--back-color5); transition: var(--transition, all 0.15s ease-in-out) !important; }
-.color5-hover:hover, .color5-hover:hover a { color: var(--back-color5-hover) !important; }
 .color6, .color6 a { color: var(--back-color6) !important; }
 .color7, .color7 a { color: var(--back-color7) !important; }
 .color8, .color8 a { color: var(--back-color8) !important; }
+.color8-hover, .color8-hover a { color: var(--back-color8); transition: var(--transition, all 0.15s ease-in-out) !important; }
+.color8-hover:hover, .color8-hover:hover a { color: var(--back-color8-hover) !important; }
 .truncate, .text-truncate, .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .font-extrabold, .extrabold { font-weight: 800 !important; }
 .font-extralight, .extralight { font-weight: 200 !important; }
@@ -301,7 +298,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .h4 { height: 4%; }
 .h5 { height: 5%; }
 .h50 { height: 50%; }
-.hem20 { min-height: 20em; }
 .hem5 { min-height: 5em; }
 .hpx100 { height: 100px; }
 .hpx12 { height: 12px; }
@@ -413,6 +409,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .pt8 { padding-top: 8px !important; }
 .pt80 { padding-top: 80px !important; }
 .w-auto { width: auto !important; }
+.w-fit { width: fit-content !important; }
 .w100 { width: 100%; }
 .w3 { width: 3%; }
 .w40 { width: 40%; }
@@ -954,9 +951,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
   .pt-mid-10 { padding-top: 10px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
-  .pt-mid-190 { padding-top: 190px !important; }
-}
-@media screen and (min-width: 577px) and (max-width: 992px) {
   .pt-mid-60 { padding-top: 60px !important; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
@@ -1027,9 +1021,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .wpx-mid-300 { width: 300px; }
-}
-@media screen and (min-width: 577px) and (max-width: 992px) {
-  .wpx-mid-350 { width: 350px; }
 }
 @media screen and (max-width: 576px) {
   .wpx-sml-160 { width: 160px; }
