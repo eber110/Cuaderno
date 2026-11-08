@@ -1,4 +1,4 @@
-<nav class="container container-mid container-sml absolute top2 flex-column center-center before">
+<nav class="container container-mid container-sml absolute toppx40 flex-column center-center before">
   <div class="w100 p15 pl30 pr30 br100 body-back border1 shadow-menu flex-row center-between gap10">
     <figure class="hpx40">
       <img src="<?= LOGOPAG?>" alt="" class="cover no-phone">

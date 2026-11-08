@@ -113,7 +113,7 @@ export class BackgroundMotionText {
    * @param {Object|boolean} [options={}] Opciones adicionales de configuración.
    * @param {Object} [maybeOptions={}] Opciones cuando el primer argumento es un HTMLElement.
    */
-  constructor(contentOrEl = "•", rotate = false, moveBg = false, options = {}, maybeOptions = {}) {
+  constructor(contentOrEl = "•", rotate = undefined, moveBg = undefined, options = undefined, maybeOptions = {}) {
     let targetEl = null;
     let rawContent = contentOrEl;
     let rawRotate = rotate;
@@ -123,10 +123,27 @@ export class BackgroundMotionText {
     // Permitir pasar un HTMLElement como primer argumento
     if (typeof HTMLElement !== "undefined" && contentOrEl instanceof HTMLElement) {
       targetEl = contentOrEl;
-      rawContent = typeof rotate === "string" ? rotate : undefined;
-      rawRotate = typeof rotate === "boolean" ? rotate : moveBg;
-      rawMoveBg = typeof rotate === "boolean" ? moveBg : options;
-      rawOptions = (typeof rotate === "boolean" ? options : maybeOptions) || {};
+      if (typeof rotate === "string") {
+        rawContent = rotate;
+        rawRotate = moveBg;
+        rawMoveBg = typeof options === "boolean" ? options : undefined;
+        rawOptions = maybeOptions || {};
+      } else if (typeof rotate === "boolean") {
+        rawContent = undefined;
+        rawRotate = rotate;
+        rawMoveBg = typeof moveBg === "boolean" ? moveBg : undefined;
+        rawOptions = (typeof moveBg === "object" ? moveBg : options) || {};
+      } else if (typeof rotate === "object" && rotate !== null) {
+        rawContent = undefined;
+        rawRotate = undefined;
+        rawMoveBg = undefined;
+        rawOptions = rotate;
+      } else {
+        rawContent = undefined;
+        rawRotate = undefined;
+        rawMoveBg = undefined;
+        rawOptions = {};
+      }
     } else if (rawOptions.target) {
       if (typeof rawOptions.target === "string") {
         targetEl = document.querySelector(rawOptions.target);
