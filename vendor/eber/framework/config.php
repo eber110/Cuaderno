@@ -139,6 +139,38 @@ if (!defined('ROUTE_IMG_PUBLIC')) define('ROUTE_IMG_PUBLIC', ROOT_PATH . '/App/P
 if (!defined('ROUTE_DATABASE')) define('ROUTE_DATABASE', ROOT_PATH . '/Database/');
 if (!defined('ROUTE_DATABASE_COMPONENT')) define('ROUTE_DATABASE_COMPONENT', ROOT_PATH . '/App/DatabaseComponent/');
 if (!defined('ROUTE_SAFETY')) define('ROUTE_SAFETY', ROOT_PATH . '/App/Safety/');
+if (!defined('ROUTE_LANG')) define('ROUTE_LANG', ROOT_PATH . '/App/Lang/');
+
+// ==================== IDIOMA (i18n) ====================
+if (!defined('MULTILANG')) {
+  define('MULTILANG', filter_var($_ENV['APP_MULTILANG'] ?? false, FILTER_VALIDATE_BOOLEAN));
+}
+if (!defined('LANG_DEFAULT')) {
+  $rawDefaultLocale = trim((string)($_ENV['APP_LOCALE'] ?? 'es'));
+  define('LANG_DEFAULT', preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $rawDefaultLocale) ? $rawDefaultLocale : 'es');
+}
+if (!defined('LANG_FALLBACK')) {
+  $rawFallbackLocale = trim((string)($_ENV['APP_FALLBACK_LOCALE'] ?? LANG_DEFAULT));
+  define('LANG_FALLBACK', preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $rawFallbackLocale) ? $rawFallbackLocale : LANG_DEFAULT);
+}
+if (!defined('LANG_AVAILABLE')) {
+  if (!MULTILANG) {
+    define('LANG_AVAILABLE', [LANG_DEFAULT]);
+  } else {
+    $rawLocales = explode(',', (string)($_ENV['APP_LOCALES'] ?? 'es,en'));
+    $validLocales = [];
+    foreach ($rawLocales as $loc) {
+      $loc = trim($loc);
+      if (preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $loc) && !in_array($loc, $validLocales, true)) {
+        $validLocales[] = $loc;
+      }
+    }
+    if (!in_array(LANG_DEFAULT, $validLocales, true)) {
+      array_unshift($validLocales, LANG_DEFAULT);
+    }
+    define('LANG_AVAILABLE', $validLocales ?: [LANG_DEFAULT]);
+  }
+}
 
 // ==================== URL PATHS (para HTML) ====================
 if (!defined('URL_RESOURCE')) define('URL_RESOURCE', '/App/Rsc/');

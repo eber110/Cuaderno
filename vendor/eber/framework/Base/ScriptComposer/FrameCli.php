@@ -190,6 +190,48 @@ class FrameCli
       'usage'    => 'frame make [tipo] [Nombre]',
       'aliases'  => [],
     ],
+
+    // --- Idiomas (i18n) ---
+    'lang:make' => [
+      'script'   => 'LangCli.php',
+      'prepend'  => ['make'],
+      'desc'     => 'Crea un nuevo idioma en App/Lang/<locale>/ clonando claves del idioma base',
+      'category' => 'Idiomas (i18n)',
+      'usage'    => 'frame lang:make <locale> [--auto]',
+      'aliases'  => [],
+    ],
+    'lang:check' => [
+      'script'   => 'LangCli.php',
+      'prepend'  => ['check'],
+      'desc'     => 'Compara todos los idiomas contra el idioma por defecto y reporta claves faltantes',
+      'category' => 'Idiomas (i18n)',
+      'usage'    => 'frame lang:check',
+      'aliases'  => [],
+    ],
+    'lang:scan' => [
+      'script'   => 'LangCli.php',
+      'prepend'  => ['scan'],
+      'desc'     => 'Escanea vistas y segmentos buscando claves __() que no existan en diccionarios',
+      'category' => 'Idiomas (i18n)',
+      'usage'    => 'frame lang:scan',
+      'aliases'  => [],
+    ],
+    'lang:export' => [
+      'script'   => 'LangCli.php',
+      'prepend'  => ['export'],
+      'desc'     => 'Exporta todos los diccionarios de idioma a un archivo JSON o CSV',
+      'category' => 'Idiomas (i18n)',
+      'usage'    => 'frame lang:export [json|csv] [archivo]',
+      'aliases'  => [],
+    ],
+    'lang:import' => [
+      'script'   => 'LangCli.php',
+      'prepend'  => ['import'],
+      'desc'     => 'Importa traducciones desde un archivo JSON o CSV hacia App/Lang/',
+      'category' => 'Idiomas (i18n)',
+      'usage'    => 'frame lang:import <archivo>',
+      'aliases'  => [],
+    ],
   ];
 
   public function __construct()

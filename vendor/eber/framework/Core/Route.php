@@ -171,6 +171,18 @@ class Route
   }
 
   /**
+   * Agrupa rutas localizadas. Las rutas definidas dentro del callback son accesibles
+   * tanto sin prefijo (idioma por defecto) como con prefijo '/{locale}/...' cuando MULTILANG=true.
+   *
+   * @param callable $callback Función que define las rutas dentro del grupo localizado.
+   * @return void
+   */
+  public static function localized(callable $callback): void
+  {
+    self::group($callback);
+  }
+
+  /**
    * Establece un prefijo para un grupo de rutas.
    *
    * @param string $prefix El prefijo para las URIs.
@@ -241,7 +253,12 @@ class Route
       if (class_exists('\Base\Module\SecurityModule')) {
         \Base\Module\SecurityModule::logIntrusion('Intento de explotación de PHP_SESSION_UPLOAD_PROGRESS (CVE-2026-109619)');
       }
-      ErrorHandler::handle403('Solicitud bloqueada por política de seguridad.');
+      ErrorHandler::handle403(function_exists('__') ? __('global.errors.403_security') : 'Solicitud bloqueada por política de seguridad.');
+    }
+
+    // Detectar idioma en cascada y registrar ruta de cambio de idioma si MULTILANG está activo
+    if (class_exists('\\Base\\Module\\LangModule')) {
+      \Base\Module\LangModule::detect();
     }
 
     // Cargar rutas del proyecto si no se han registrado previamente
@@ -249,6 +266,22 @@ class Route
       $routeDir = ROOT_PATH . '/App/Route';
       if (is_dir($routeDir) && class_exists('\\Core\\ConfigLoader\\RouteLoader')) {
         \Core\ConfigLoader\RouteLoader::load($routeDir);
+      }
+    }
+
+    // Asegurar que la ruta '/lang/:locale' esté disponible cuando MULTILANG=true
+    if (class_exists('\\Base\\Module\\LangModule') && \Base\Module\LangModule::isMultilang()) {
+      $hasLangRoute = false;
+      foreach (self::$routes as $r) {
+        if (($r['uri'] ?? '') === '/lang/:locale' && ($r['method'] ?? '') === self::METHOD_GET) {
+          $hasLangRoute = true;
+          break;
+        }
+      }
+      if (!$hasLangRoute) {
+        self::get('/lang/:locale', function (string $locale) {
+          \Base\Module\LangModule::handleSwitchRoute($locale);
+        });
       }
     }
 
@@ -266,6 +299,17 @@ class Route
     $uri = preg_replace('#(?<!:)//+#', '/', $uri);
     $uri = trim($uri, '/');
     $uri = ($uri === '') ? '/' : '/' . $uri;
+
+    // Si MULTILANG está activo y la URI contiene prefijo de idioma soportado (ej. /en/contacto),
+    // fijar el idioma y reescribir la URI para que coincida con las rutas registradas sin duplicarlas.
+    if (class_exists('\\Base\\Module\\LangModule') && \Base\Module\LangModule::isMultilang()) {
+      $extractedLocale = null;
+      $strippedUri = \Base\Module\LangModule::stripLocalePrefix($uri, $extractedLocale);
+      if ($extractedLocale !== null) {
+        \Base\Module\LangModule::setLocale($extractedLocale, true);
+        $uri = $strippedUri;
+      }
+    }
 
     $method = $_SERVER['REQUEST_METHOD'];
 
@@ -324,18 +368,18 @@ class Route
         //echo "<h1>Error 500: Error Interno del Servidor</h1>";
         // Descomenta la siguiente línea solo en desarrollo para ver el detalle del error.
         // echo "<p>" . $e->getMessage() . "</p>";
-        ErrorHandler::handle_code(500, 500, "Error Interno del Servidor");
+        ErrorHandler::handle_code(500, 500, function_exists('__') ? __('global.errors.500_desc') : "Error Interno del Servidor");
       }
     } else {
       if (!empty($allowedMethodsForUri)) {
         //http_response_code(405);
         //header('Allow: ' . implode(', ', array_unique($allowedMethodsForUri)));
         //echo "<h1>Error 405: Método no permitido</h1>";
-        ErrorHandler::handle_code(405, 405, "Método no permitido");
+        ErrorHandler::handle_code(405, 405, function_exists('__') ? __('global.errors.405_desc') : "Método no permitido");
       } else {
         //http_response_code(404);
         //echo "<h1 style='color: red;'>Error 404: Página no encontrada</h1>";
-        ErrorHandler::handle_code(404, 404, "Página no encontrada");
+        ErrorHandler::handle_code(404, 404, function_exists('__') ? __('global.errors.404_desc') : "Página no encontrada");
       }
     }
 
@@ -442,7 +486,7 @@ class Route
     $maxBytes = defined('MAX_INPUT_BYTES') ? (int)MAX_INPUT_BYTES : 10485760;
     $contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
     if ($maxBytes > 0 && $contentLength > $maxBytes) {
-      ErrorHandler::handle_code(413, 413, 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
+      ErrorHandler::handle_code(413, 413, function_exists('__') ? __('global.errors.413_desc') : 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
       return null;
     }
 
@@ -455,7 +499,7 @@ class Route
     }
 
     if ($maxBytes > 0 && strlen($dataJS) > $maxBytes) {
-      ErrorHandler::handle_code(413, 413, 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
+      ErrorHandler::handle_code(413, 413, function_exists('__') ? __('global.errors.413_desc') : 'El cuerpo de la solicitud excede el tamaño máximo permitido.');
       return null;
     }
 

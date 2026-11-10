@@ -24,6 +24,7 @@
             "Base/Helpers/Svg.php",
             "Base/Helpers/Part.php",
             "Base/Helpers/Number.php",
+            "Base/Helpers/Lang.php",
             "Base/Cookie/CookieConfiguration.php"
         ]
     },
@@ -48,6 +49,11 @@
         "make:controller": "php Base/ScriptComposer/MakeCli.php controller",
         "make:model": "php Base/ScriptComposer/MakeCli.php model",
         "make:component": "php Base/ScriptComposer/MakeCli.php component",
-        "make:middleware": "php Base/ScriptComposer/MakeCli.php middleware"
+        "make:middleware": "php Base/ScriptComposer/MakeCli.php middleware",
+        "lang:make": "php Base/ScriptComposer/LangCli.php make",
+        "lang:check": "php Base/ScriptComposer/LangCli.php check",
+        "lang:scan": "php Base/ScriptComposer/LangCli.php scan",
+        "lang:export": "php Base/ScriptComposer/LangCli.php export",
+        "lang:import": "php Base/ScriptComposer/LangCli.php import"
     }
 }

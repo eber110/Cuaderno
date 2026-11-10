@@ -1,58 +1,59 @@
 {
-  "priority": [
-    "aaSvgStore.js",
-    "component.js",
-    "config.js",
-    "querys.js",
-    "scrollObserver.js",
-    "menuMemory.js",
-    "LivePreviewManager.js"
-  ],
-  "exclude": [],
-  "functions": {
-    "defer": {
-      "notification": [
-        "shadow border2 textw"
-      ],
-      "modalMenu": [],
-      "modal": [],
-      "protectedMenuImage": [
-        false
-      ],
-      "loadImgModern": [],
-      "cropImage": [],
-      "cutPhrase": [],
-      "codeBlock": [],
-      "accordion": [],
-      "tabs": [],
-      "remoteContent": [],
-      "verticalMenu": [],
-      "animations": [],
-      "copyToClipboard": [],
-      "tooltip": [],
-      "autoSubmitForm": [],
-      "LivePreviewManager": [],
-      "designDraftManager": [],
-      "formComponents": [],
-      "sortableContent": [],
-      "inlineCarousel": [],
-      "textLimiter": [],
-      "saveButtonController": [],
-      "analyticsTracker": [],
-      "activeViewers": [],
-      "hamburgerMenu": [],
-      "videoBackgroundController": [],
-      "imageGallery": [],
-      "productPricingController": [],
-      "productSlider": [],
-      "productInfiniteCarousel": [],
-      "scrollMemory": [],
-      "textAnimator": [],
-      "svgChartAnimator": [],
-      "bottomNavPhone": [],
-      "menuMemory": [],
-      "backgroundMotionText": []
-    },
-    "async": {}
-  }
+    "priority": [
+        "aaSvgStore.js",
+        "component.js",
+        "config.js",
+        "querys.js",
+        "scrollObserver.js",
+        "menuMemory.js",
+        "LivePreviewManager.js",
+        "lang.js"
+    ],
+    "exclude": [],
+    "functions": {
+        "defer": {
+            "notification": [
+                "shadow border2 textw"
+            ],
+            "modalMenu": [],
+            "modal": [],
+            "protectedMenuImage": [
+                false
+            ],
+            "loadImgModern": [],
+            "cropImage": [],
+            "cutPhrase": [],
+            "codeBlock": [],
+            "accordion": [],
+            "tabs": [],
+            "remoteContent": [],
+            "verticalMenu": [],
+            "animations": [],
+            "copyToClipboard": [],
+            "tooltip": [],
+            "autoSubmitForm": [],
+            "LivePreviewManager": [],
+            "designDraftManager": [],
+            "formComponents": [],
+            "sortableContent": [],
+            "inlineCarousel": [],
+            "textLimiter": [],
+            "saveButtonController": [],
+            "analyticsTracker": [],
+            "activeViewers": [],
+            "hamburgerMenu": [],
+            "videoBackgroundController": [],
+            "imageGallery": [],
+            "productPricingController": [],
+            "productSlider": [],
+            "productInfiniteCarousel": [],
+            "scrollMemory": [],
+            "textAnimator": [],
+            "svgChartAnimator": [],
+            "bottomNavPhone": [],
+            "menuMemory": [],
+            "backgroundMotionText": []
+        },
+        "async": {}
+    }
 }

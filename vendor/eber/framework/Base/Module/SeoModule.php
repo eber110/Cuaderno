@@ -132,8 +132,11 @@ class SeoModule
       return ucwords(self::$customTitle);
     }
 
-    // Generar desde la URL
+    // Generar desde la URL (limpiando prefijo de idioma si MULTILANG está activo)
     $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    if (class_exists(LangModule::class) && LangModule::isMultilang()) {
+      $uri = LangModule::stripLocalePrefix($uri);
+    }
 
     $titles = trim($uri, '/');
     $titles = explode('/', $titles);
@@ -267,8 +270,12 @@ class SeoModule
     $siteNameRaw = $config['site_name'] ?? $config['siteName'] ?? $nameSite;
     $siteName = htmlspecialchars(strip_tags($siteNameRaw), ENT_QUOTES, 'UTF-8');
 
-    $localeRaw = defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL';
+    $localeRaw = class_exists(LangModule::class) && LangModule::isMultilang()
+      ? LangModule::getOgLocale()
+      : (defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL');
     $locale = htmlspecialchars(strip_tags($config['locale'] ?? $localeRaw), ENT_QUOTES, 'UTF-8');
+
+    $alternateTags = self::buildOgLocaleAlternateTags();
 
     $title = htmlspecialchars(strip_tags($config['title'] ?? $nameSite), ENT_QUOTES, 'UTF-8');
     $contentRaw = $config['content'] ?? $config['description'] ?? $description;
@@ -287,7 +294,7 @@ class SeoModule
     $domainHost = !empty($link) ? parse_url($link, PHP_URL_HOST) : (defined('DOMAIN') ? parse_url(DOMAIN, PHP_URL_HOST) : '');
 
     self::$openGraphTags = '<meta property="og:site_name" content="' . $siteName . '" />
-        <meta property="og:locale" content="' . $locale . '" />
+        <meta property="og:locale" content="' . $locale . '" />' . $alternateTags . '
         ' . (!empty($logo) ? '<meta property="og:logo" content="' . self::makeAbsoluteUrl($logo) . '" />' : '') . '
         <meta property="og:title" content="' . $title . '" />
         <meta property="og:description" content="' . $content . '" />
@@ -327,9 +334,13 @@ class SeoModule
     $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Sitio Web';
     $description = defined('DESCRIPTION') ? DESCRIPTION : '';
 
+    $defaultOgLocale = class_exists(LangModule::class) && LangModule::isMultilang()
+      ? LangModule::getOgLocale()
+      : (defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL');
+
     if ($override !== null) {
       $siteNameRaw = $override['site_name'] ?? $override['siteName'] ?? $nameSite;
-      $localeRaw = $override['locale'] ?? (defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL');
+      $localeRaw = $override['locale'] ?? $defaultOgLocale;
       $title = htmlspecialchars(strip_tags($override['title'] ?? $nameSite), ENT_QUOTES, 'UTF-8');
       $content = htmlspecialchars(strip_tags($override['content'] ?? $override['description'] ?? $description), ENT_QUOTES, 'UTF-8');
       $rawImage = $override['image'] ?? $imgOg;
@@ -339,7 +350,7 @@ class SeoModule
       $type = $override['type'] ?? 'website';
     } else {
       $siteNameRaw = $nameSite;
-      $localeRaw = defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL';
+      $localeRaw = $defaultOgLocale;
       $title = $nameSite;
       $content = htmlspecialchars(strip_tags($description), ENT_QUOTES, 'UTF-8');
       $rawImage = $imgOg;
@@ -351,12 +362,13 @@ class SeoModule
 
     $siteName = htmlspecialchars(strip_tags($siteNameRaw), ENT_QUOTES, 'UTF-8');
     $locale = htmlspecialchars(strip_tags($localeRaw), ENT_QUOTES, 'UTF-8');
+    $alternateTags = self::buildOgLocaleAlternateTags();
     $image = self::makeAbsoluteUrl($rawImage);
     $link = self::makeAbsoluteUrl($rawLink);
     $domainHost = !empty($link) ? parse_url($link, PHP_URL_HOST) : (defined('DOMAIN') ? parse_url(DOMAIN, PHP_URL_HOST) : '');
 
     $tags = '<meta property="og:site_name" content="' . $siteName . '" />
-        <meta property="og:locale" content="' . $locale . '" />
+        <meta property="og:locale" content="' . $locale . '" />' . $alternateTags . '
         ' . (!empty($logo) ? '<meta property="og:logo" content="' . self::makeAbsoluteUrl($logo) . '" />' : '') . '
         <meta property="og:title" content="' . $title . '" />
         <meta property="og:description" content="' . $content . '" />
@@ -401,12 +413,81 @@ class SeoModule
     return self::$description !== null;
   }
 
+  /**
+   * Genera las etiquetas <link rel="alternate" hreflang="..."> y x-default para la URI actual
+   * cuando el modo multiidioma (MULTILANG) está activo.
+   *
+   * @param string|null $uri URI opcional (por defecto usa la URI de la solicitud actual).
+   * @return string Etiquetas HTML <link rel="alternate" hreflang="..."> o string vacío si MULTILANG es false.
+   */
+  public static function hreflang(?string $uri = null): string
+  {
+    if (!class_exists(LangModule::class) || !LangModule::isMultilang()) {
+      return '';
+    }
+
+    $available = LangModule::available();
+    if (count($available) < 1) {
+      return '';
+    }
+
+    if ($uri === null) {
+      $uri = $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?? '/';
+      if (($qPos = strpos($uri, '?')) !== false) {
+        $uri = substr($uri, 0, $qPos);
+      }
+    }
+
+    $cleanPath = LangModule::stripLocalePrefix($uri);
+    $tags = '';
+
+    foreach ($available as $loc) {
+      $altUrl = htmlspecialchars(LangModule::localizedUrl($cleanPath, $loc, true), ENT_QUOTES, 'UTF-8');
+      $safeLoc = htmlspecialchars(str_replace('_', '-', $loc), ENT_QUOTES, 'UTF-8');
+      $tags .= '<link rel="alternate" hreflang="' . $safeLoc . '" href="' . $altUrl . '">' . "\n";
+    }
+
+    $defaultLoc = LangModule::defaultLocale();
+    $defaultUrl = htmlspecialchars(LangModule::localizedUrl($cleanPath, $defaultLoc, true), ENT_QUOTES, 'UTF-8');
+    $tags .= '<link rel="alternate" hreflang="x-default" href="' . $defaultUrl . '">';
+
+    return $tags;
+  }
+
+  /**
+   * Construye las etiquetas <meta property="og:locale:alternate" content="...">
+   * para todos los idiomas habilitados distintos al activo cuando MULTILANG=true.
+   *
+   * @return string
+   */
+  private static function buildOgLocaleAlternateTags(): string
+  {
+    if (!class_exists(LangModule::class) || !LangModule::isMultilang()) {
+      return '';
+    }
+
+    $current = LangModule::getLocale();
+    $available = LangModule::available();
+    $out = '';
+
+    foreach ($available as $loc) {
+      if ($loc === $current) {
+        continue;
+      }
+      $ogLoc = htmlspecialchars(LangModule::getOgLocale($loc), ENT_QUOTES, 'UTF-8');
+      $out .= "\n        " . '<meta property="og:locale:alternate" content="' . $ogLoc . '" />';
+    }
+
+    return $out;
+  }
+
   // ============================================
   // MÉTODOS PARA SITEMAP.XML
   // ============================================
 
   /**
    * Genera el sitemap.xml automáticamente.
+   * Si MULTILANG está activo con url_prefix, emite las variantes por idioma e incluye xhtml:link hreflang.
    *
    * @param array $excludeRoutes Rutas a excluir del sitemap.
    * @param array $routeOptions Opciones SEO específicas por ruta (priority, changefreq, lastmod).
@@ -416,8 +497,17 @@ class SeoModule
   public static function sitemap(array $excludeRoutes = [], array $routeOptions = []): string
   {
     $routes = Route::getRoutes();
+    $isMultilang = class_exists(LangModule::class) && LangModule::isMultilang();
+    $langConfig = $isMultilang ? LangModule::getConfig() : [];
+    $useUrlPrefix = $isMultilang && !empty($langConfig['url_prefix']);
+    $availableLocales = $useUrlPrefix ? LangModule::available() : [''];
+
     $xml = '<?xml version="1.0" encoding="UTF-8"?>';
-    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    if ($useUrlPrefix && count($availableLocales) > 1) {
+      $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
+    } else {
+      $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    }
 
     $baseUrl = rtrim(defined('URL') ? URL : 'http://localhost', '/');
 
@@ -434,6 +524,48 @@ class SeoModule
 
     $processedRoutes = [];
 
+    $appendUrlNode = function (string $uri) use (&$xml, $baseUrl, $normalizedRouteOptions, $useUrlPrefix, $availableLocales) {
+      $localesToEmit = ($useUrlPrefix && !empty($availableLocales)) ? $availableLocales : [''];
+
+      foreach ($localesToEmit as $loc) {
+        if ($loc !== '' && class_exists(LangModule::class)) {
+          $relUrl = LangModule::localizedUrl($uri, $loc, false);
+          $url = $baseUrl . $relUrl;
+        } else {
+          $url = $baseUrl . $uri;
+        }
+
+        $xml .= '<url>';
+        $xml .= '<loc>' . htmlspecialchars($url, ENT_XML1, 'UTF-8') . '</loc>';
+
+        if ($useUrlPrefix && count($availableLocales) > 1 && class_exists(LangModule::class)) {
+          foreach ($availableLocales as $altLoc) {
+            $altFull = $baseUrl . LangModule::localizedUrl($uri, $altLoc, false);
+            $safeHreflang = htmlspecialchars(str_replace('_', '-', $altLoc), ENT_XML1, 'UTF-8');
+            $xml .= '<xhtml:link rel="alternate" hreflang="' . $safeHreflang . '" href="' . htmlspecialchars($altFull, ENT_XML1, 'UTF-8') . '" />';
+          }
+          $defFull = $baseUrl . LangModule::localizedUrl($uri, LangModule::defaultLocale(), false);
+          $xml .= '<xhtml:link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($defFull, ENT_XML1, 'UTF-8') . '" />';
+        }
+
+        if (isset($normalizedRouteOptions[$uri])) {
+          $options = $normalizedRouteOptions[$uri];
+
+          if (isset($options['lastmod'])) {
+            $xml .= '<lastmod>' . htmlspecialchars($options['lastmod'], ENT_XML1, 'UTF-8') . '</lastmod>';
+          }
+          if (isset($options['changefreq'])) {
+            $xml .= '<changefreq>' . htmlspecialchars($options['changefreq'], ENT_XML1, 'UTF-8') . '</changefreq>';
+          }
+          if (isset($options['priority'])) {
+            $xml .= '<priority>' . htmlspecialchars((string) $options['priority'], ENT_XML1, 'UTF-8') . '</priority>';
+          }
+        }
+
+        $xml .= '</url>';
+      }
+    };
+
     // Procesar rutas registradas
     foreach ($routes as $route) {
       if ($route['method'] !== 'GET') {
@@ -442,8 +574,8 @@ class SeoModule
 
       $uri = $route['uri'];
 
-      // Omitir rutas dinámicas
-      if (strpos($uri, ':') !== false) {
+      // Omitir rutas dinámicas o rutas internas del framework
+      if (strpos($uri, ':') !== false || str_starts_with($uri, '/_frame/')) {
         continue;
       }
 
@@ -463,26 +595,7 @@ class SeoModule
       }
 
       $processedRoutes[$uri] = true;
-
-      $url = $baseUrl . $uri;
-      $xml .= '<url>';
-      $xml .= '<loc>' . htmlspecialchars($url, ENT_XML1, 'UTF-8') . '</loc>';
-
-      if (isset($normalizedRouteOptions[$uri])) {
-        $options = $normalizedRouteOptions[$uri];
-
-        if (isset($options['lastmod'])) {
-          $xml .= '<lastmod>' . htmlspecialchars($options['lastmod'], ENT_XML1, 'UTF-8') . '</lastmod>';
-        }
-        if (isset($options['changefreq'])) {
-          $xml .= '<changefreq>' . htmlspecialchars($options['changefreq'], ENT_XML1, 'UTF-8') . '</changefreq>';
-        }
-        if (isset($options['priority'])) {
-          $xml .= '<priority>' . htmlspecialchars((string) $options['priority'], ENT_XML1, 'UTF-8') . '</priority>';
-        }
-      }
-
-      $xml .= '</url>';
+      $appendUrlNode($uri);
     }
 
     // Procesar rutas adicionales de routeOptions
@@ -503,21 +616,7 @@ class SeoModule
         continue;
       }
 
-      $url = $baseUrl . $uri;
-      $xml .= '<url>';
-      $xml .= '<loc>' . htmlspecialchars($url, ENT_XML1, 'UTF-8') . '</loc>';
-
-      if (isset($options['lastmod'])) {
-        $xml .= '<lastmod>' . htmlspecialchars($options['lastmod'], ENT_XML1, 'UTF-8') . '</lastmod>';
-      }
-      if (isset($options['changefreq'])) {
-        $xml .= '<changefreq>' . htmlspecialchars($options['changefreq'], ENT_XML1, 'UTF-8') . '</changefreq>';
-      }
-      if (isset($options['priority'])) {
-        $xml .= '<priority>' . htmlspecialchars((string) $options['priority'], ENT_XML1, 'UTF-8') . '</priority>';
-      }
-
-      $xml .= '</url>';
+      $appendUrlNode($uri);
     }
 
     $xml .= '</urlset>';

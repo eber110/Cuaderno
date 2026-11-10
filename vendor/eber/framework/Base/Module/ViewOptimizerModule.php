@@ -55,6 +55,10 @@ class ViewOptimizerModule
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
 
+    if (class_exists(LangModule::class) && LangModule::isMultilang()) {
+      header('Vary: Cookie, Accept-Language');
+    }
+
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
       header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }

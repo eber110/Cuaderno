@@ -41,7 +41,7 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Builder/Builder.php    # Query Builder MySQL/PostgreSQL (composición sobre PDO, anti-inyección)
 │   ├── Module/                # 31 módulos reutilizables (AuthModule, GeoLocation, etc.)
 │   ├── LibraryCssJit/         # Reglas JIT CSS (JitRule interface + reglas)
-│   ├── Helpers/               # Part.php (vistas), Svg.php (svg()), Number.php (nd, ndp)
+│   ├── Helpers/               # Part.php (vistas), Svg.php (svg()), Number.php (nd, ndp), Lang.php (__(), t(), __n(), locale(), langUrl())
 │   ├── Cookie/                # CookieConfiguration
 │   ├── Error/HandlerError.php # Plantilla de error (se copia a App/errorViews/)
 │   ├── Providers/ServiceProvider.php  # Clase base de providers
@@ -51,6 +51,7 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Controllers/           # Controladores del proyecto
 │   ├── Models/                # Modelos
 │   ├── Views/                 # Vistas (dummy_w.php ejemplo)
+│   ├── Lang/                  # Diccionarios de traducción por idioma (es/, en/…)
 │   ├── errorViews/            # Vistas de error (HandlerError.php)
 │   ├── Route/                 # <- DEFINICIÓN DE RUTAS del proyecto
 │   ├── Middleware/            # (con subcapa MiddlewareInterface/)
@@ -68,8 +69,9 @@ frame/                         # Repositorio del framework (también es un proye
 │       └── Library/           # Librerías (Gsap/…; carga config en App/Config/loadLibraryJsConfiguration.php)
 │
 ├── Resources/                # FUENTE canónica de assets y configuración inicial ⚠ NO BORRAR
-│   ├── Config/                # Configuraciones base (config, Cookie, Cors, Token, loadLibraryJs) → App/Config/
-│   ├── Middleware/            # MiddlewareInterface base → App/Middleware/MiddlewareInterface/
+│   ├── Config/                # Configuraciones base (config, Cookie, Cors, Token, Lang, loadLibraryJs) → App/Config/
+│   ├── Lang/                  # Diccionarios base de traducción (es/, en/) → App/Lang/
+│   ├── Middleware/            # MiddlewareInterface y LocaleMiddleware base → App/Middleware/
 │   ├── Public/Css/            # Tema base (_configTheme.css, theme.css) → App/Public/Css/
 │   ├── Route/                 # Ruta inicial (web.php) → App/Route/
 │   ├── Safety/                # JSON iniciales de seguridad → App/Safety/
@@ -100,6 +102,7 @@ frame/                         # Repositorio del framework (también es un proye
 8. **Seguridad:** no uses valores de `$_ENV`/`$_SERVER` sin sanitizarlos. El Builder ya escapa; NO concatenar SQL directamente.
 9. **Permisos de tablas (Zero-Config):** Por defecto el framework no restringe tablas con listas fijas y valida nombres con sintaxis SQL segura contra inyecciones (`/^[a-zA-Z0-9_]+$/`). Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 10. **No comitear** en el repositorio del framework: `/App/`, `.env`, `Logs/`, `Cache/`, `Uploads/`, `Database/*.sqlite`, `*.mmdb`, `dist/`.
+11. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) para permitir soporte multiidioma (`APP_MULTILANG` en `.env`) sin reescribir plantillas.
 
 ---
 
@@ -167,6 +170,13 @@ frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (com
 frame make:model <Nombre>            # Crea modelo en App/Models/ (composer make:model)
 frame make:component <Nombre>        # Crea componente en App/Components/ (composer make:component)
 frame make:middleware <Nombre>       # Crea middleware en App/Middleware/ (composer make:middleware)
+
+# Internacionalización (i18n):
+frame lang:make <locale> [--auto]    # Crea idioma nuevo desde el base; --auto traduce con Gemini (composer lang:make)
+frame lang:check                     # Audita claves faltantes/sobrantes y :placeholders (composer lang:check)
+frame lang:scan                      # Escanea vistas buscando textos sin traducir o claves huérfanas (composer lang:scan)
+frame lang:export [archivo]          # Exporta diccionarios a JSON/CSV (composer lang:export)
+frame lang:import <archivo>          # Importa traducciones desde JSON/CSV (composer lang:import)
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `frame min` (o `composer min-script`). `InitAppStructure` (estructura /App) se ejecuta con `composer install/update` o `frame init`.
@@ -211,7 +221,7 @@ feat(auth): add schema-agnostic AuthModule and hybrid GeoLocation
 
 ## 8. Documentación
 
-La documentación por módulo está en `Docs/*.md`: `Route.md` (rutas), `grid`, `interactionModule.md`, `SecurityModule.md`, `SeoModule.md`, `HttpPostModule.md`, `ImgProcessModule.md`, `BUILDER_DOCS.md`, `GSAP_GUIDE.md`, `hostProtocol.md`, `PART_COMPONENTS_GUIDE.md`, `componentes-ui-js.md`.
+La documentación por módulo está en `Docs/*.md`: `Route.md` (rutas), `LangModule.md` (internacionalización i18n), `grid`, `interactionModule.md`, `SecurityModule.md`, `SeoModule.md`, `HttpPostModule.md`, `ImgProcessModule.md`, `BUILDER_DOCS.md`, `GSAP_GUIDE.md`, `hostProtocol.md`, `PART_COMPONENTS_GUIDE.md`, `componentes-ui-js.md`.
 
 Mantener la documentación actualizada cuando cambies módulos.
 
@@ -228,3 +238,4 @@ Mantener la documentación actualizada cuando cambies módulos.
 - ❌ Duplicar funcionalidades entre módulos — extender módulo existente.
 - ❌ Comitear `.env` o artefactos generados (`Min/`, mmdb, logs).
 - ❌ Usar `echo` fuera de vistas/`ResponseModule`.
+- ❌ Concatenar fragmentos traducidos (`__('a') . ' ' . $x . ' ' . __('b')`) en vez de usar interpolación `__('frase', ['x' => $x])` (el orden gramatical cambia por idioma).

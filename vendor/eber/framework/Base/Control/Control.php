@@ -28,10 +28,24 @@ class Control
   protected $description;
   protected $share_conf;
   protected ?bool $isInlineCss = null;
+  protected int $viewCacheTtl = 0;
 
   public function __construct()
   {
     ViewOptimizerModule::init();
+  }
+
+  /**
+   * Habilita el cacheo de la vista completa que se renderizará a continuación en Cache/Views,
+   * incluyendo automáticamente el idioma activo (locale) en la clave de caché.
+   *
+   * @param int $ttl Segundos de vida del caché (ej: 3600).
+   * @return static
+   */
+  public function cacheView(int $ttl = 3600): static
+  {
+    $this->viewCacheTtl = max(0, $ttl);
+    return $this;
   }
 
   /**
@@ -64,11 +78,44 @@ class Control
    */
   public function view($route, $data = [], ?string $layout = null)
   {
+    $useViewCache = $this->viewCacheTtl > 0 && (!defined('USE_CACHE') || USE_CACHE);
+    $cacheFile = null;
+
+    if ($useViewCache) {
+      $activeLoc = function_exists('locale') ? locale() : (defined('LANG_DEFAULT') ? LANG_DEFAULT : 'es');
+      $reqUri = $_SERVER['REQUEST_URI'] ?? '/';
+      $themeName = function_exists('theme_name') ? theme_name() : 'default';
+      $inlineFlag = $this->isInlineCss !== null ? ($this->isInlineCss ? '1' : '0') : (LoadViewStyle::isInlineCss() ? '1' : '0');
+      $cacheHash = md5($activeLoc . '|' . $route . '|' . ($layout ?? '') . '|' . $themeName . '|' . $inlineFlag . '|' . $reqUri);
+      $cacheDir = (defined('ROOT_PATH') ? ROOT_PATH : getcwd()) . '/Cache/Views/';
+      if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0775, true);
+      }
+      $cacheFile = $cacheDir . $activeLoc . '_' . $cacheHash . '.html';
+
+      if (is_file($cacheFile) && (time() - (int)filemtime($cacheFile)) < $this->viewCacheTtl) {
+        $cachedHtml = @file_get_contents($cacheFile);
+        if ($cachedHtml !== false && $cachedHtml !== '') {
+          $this->viewCacheTtl = 0;
+          if ($this->isInlineCss !== null) {
+            LoadViewStyle::setInlineCss(null);
+          }
+          ResponseModule::sendContent($cachedHtml);
+          return;
+        }
+      }
+    }
+
     \ViewData::set($data);
     $datas = $this->viewPart($route, ['data' => $data], $layout);
 
     // Agregar script de lazy loading si está habilitado
     $datas .= ViewOptimizerModule::getLazyLoadScript();
+
+    if ($useViewCache && $cacheFile !== null && is_string($datas) && $datas !== '') {
+      @file_put_contents($cacheFile, $datas, LOCK_EX);
+    }
+    $this->viewCacheTtl = 0;
 
     // Restablecer estado local de inlineCss
     if ($this->isInlineCss !== null) {
@@ -95,7 +142,7 @@ class Control
     $filePath = ROUTE_VIEW . $route . '.php';
 
     if (!file_exists($filePath)) {
-      ErrorHandler::handleCode(404, 404, 'No existe la vista especificada.');
+      ErrorHandler::handleCode(404, 404, function_exists('__') ? __('global.errors.404_view') : 'No existe la vista especificada.');
       return '';
     }
 
@@ -164,7 +211,7 @@ class Control
         print "Error: " . $e->getMessage();
       }
     } else {
-      ErrorHandler::handleCode(404, 404, 'No existe la vista especificada. Verifica que has escrito correctamente el nombre de la vista!!');
+      ErrorHandler::handleCode(404, 404, function_exists('__') ? __('global.errors.404_view') : 'No existe la vista especificada. Verifica que has escrito correctamente el nombre de la vista!!');
       return;
     }
   }
@@ -180,8 +227,9 @@ class Control
     if (!defined('THEME_NAME')) {
       define('THEME_NAME', $activeTheme);
     }
+    $htmlLang = function_exists('locale') ? locale() : (defined('LANG_DEFAULT') ? LANG_DEFAULT : 'es');
     echo '<!DOCTYPE html>';
-    echo '<html lang="es" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
+    echo '<html lang="' . htmlspecialchars((string)$htmlLang, ENT_QUOTES, 'UTF-8') . '" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
     echo '<head>';
     // Metadatos principales y SEO
     echo '<meta charset="UTF-8">';
@@ -200,12 +248,20 @@ class Control
     $canonicalUrl = rtrim(DOMAIN, '/') . '/' . ltrim($currentUri, '/');
     $canonicalUrl = preg_replace('#(?<!:)//+#', '/', $canonicalUrl);
     echo '<link rel="canonical" href="' . $canonicalUrl . '">';
+    if (method_exists(SeoModule::class, 'hreflang')) {
+      echo SeoModule::hreflang($currentUri);
+    }
     
     echo SeoModule::getRobotsMeta();
     echo SeoModule::openGraph();
 
     // JSON-LD estructurado de Persona (opcional, solo si está configurado)
     echo SeoModule::personSchema();
+
+    // Diccionario de traducciones JS seguro (<script type="application/json" id="i18n">)
+    if (class_exists('\Base\Module\LangModule')) {
+      echo \Base\Module\LangModule::renderJsTranslations('js');
+    }
 
     echo ViewOptimizerModule::getPreloads();
 

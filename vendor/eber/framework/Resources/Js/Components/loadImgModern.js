@@ -74,7 +74,10 @@ export function loadImgModern() {
       const dataNoteVal = input.getAttribute('data-note') || '';
       const newMsg = document.createElement("div");
       newMsg.className = `cantImgLoad flex-row center-center w-auto ${dataNoteVal}`.trim();
-      newMsg.innerHTML = `${cantImg} archivo${cantImg !== 1 ? 's' : ''}`;
+      const defaultFileMsg = `${cantImg} archivo${cantImg !== 1 ? 's' : ''}`;
+      newMsg.innerHTML = typeof t === 'function'
+        ? t(cantImg === 1 ? 'files_one' : 'files_many', { count: cantImg }, defaultFileMsg)
+        : defaultFileMsg;
 
       const maskButton = container.querySelector('.js-load-img-mask');
       if (maskButton) {
@@ -205,7 +208,8 @@ export function loadImgModern() {
     maskLoadImgModern.className = ["js-load-img-mask", "cursor-pointer", ...inputClasses].join(' ');
 
     // Usar placeholder como texto, o el valor por defecto si no existe
-    const placeholderText = loadImgModern.getAttribute('placeholder') || "Agregar una imagen";
+    const defaultAddImg = typeof t === 'function' ? t('add_image', {}, 'Agregar una imagen') : 'Agregar una imagen';
+    const placeholderText = loadImgModern.getAttribute('placeholder') || defaultAddImg;
     maskLoadImgModern.textContent = placeholderText;
 
     const previewArea = document.createElement("div");

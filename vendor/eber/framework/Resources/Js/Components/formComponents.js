@@ -498,7 +498,7 @@ export function formComponents() {
     // Tono (Hue)
     const hueLabel = document.createElement('div');
     hueLabel.className = 'x12 bold500 textb';
-    hueLabel.textContent = 'Tono';
+    hueLabel.textContent = typeof t === 'function' ? t('hue', {}, 'Tono') : 'Tono';
     slidersContainer.appendChild(hueLabel);
 
     const hueSlider = document.createElement('input');
@@ -512,7 +512,7 @@ export function formComponents() {
     // Saturación (Saturation)
     const satLabel = document.createElement('div');
     satLabel.className = 'x12 bold500 textb';
-    satLabel.textContent = 'Saturación';
+    satLabel.textContent = typeof t === 'function' ? t('saturation', {}, 'Saturación') : 'Saturación';
     slidersContainer.appendChild(satLabel);
 
     const satSlider = document.createElement('input');
@@ -527,7 +527,7 @@ export function formComponents() {
     // Luminosidad (Lightness)
     const lightLabel = document.createElement('div');
     lightLabel.className = 'x12 bold500 textb';
-    lightLabel.textContent = 'Brillo';
+    lightLabel.textContent = typeof t === 'function' ? t('lightness', {}, 'Brillo') : 'Brillo';
     slidersContainer.appendChild(lightLabel);
     
     const lightSlider = document.createElement('input');
@@ -623,7 +623,7 @@ export function formComponents() {
     const acceptBtn = document.createElement('button');
     acceptBtn.className = 'btn-success p5 br5 x14 textw pointer';
     acceptBtn.style.cssText = 'padding: 6px 12px; border: none; font-weight: 500;';
-    acceptBtn.textContent = 'Aceptar';
+    acceptBtn.textContent = typeof t === 'function' ? t('accept', {}, 'Aceptar') : 'Aceptar';
     acceptBtn.addEventListener('click', () => closeActivePopover(true));
     footer.appendChild(acceptBtn);
 

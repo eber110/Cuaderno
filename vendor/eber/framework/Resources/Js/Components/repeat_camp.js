@@ -37,7 +37,10 @@ export function repeat_camp(limit = 10) {
 
     const btnAdd = document.createElement('div');
     btnAdd.className = 'color7 pointer text-protected x16 m0 p0 mb5 w-auto';
-    btnAdd.innerHTML = `+ Agrega otra opción (${limit - 1})`;
+    const remInitial = limit - 1;
+    btnAdd.innerHTML = typeof t === 'function'
+      ? t('add_option', { remaining: remInitial }, `+ Agrega otra opción (${remInitial})`)
+      : `+ Agrega otra opción (${remInitial})`;
     btnAdd.id = 'btn-add';
     btnAdd.dataset.clicks = '1';
 
@@ -59,11 +62,17 @@ export function repeat_camp(limit = 10) {
       const campCount = countCamp.length;
 
       if (limit > campCount) {
-        activeBtn.innerHTML = `+ Agrega otra opción (${limit - clicks})`;
+        const rem = limit - clicks;
+        activeBtn.innerHTML = typeof t === 'function'
+          ? t('add_option', { remaining: rem }, `+ Agrega otra opción (${rem})`)
+          : `+ Agrega otra opción (${rem})`;
         const campNewEnd = campNew.cloneNode(true);
         campNewEnd.removeAttribute("required");
         campNewEnd.value = "";
-        campNewEnd.placeholder = 'Opción ' + (campCount + 1);
+        const optNum = campCount + 1;
+        campNewEnd.placeholder = typeof t === 'function'
+          ? t('option_n', { n: optNum }, 'Opción ' + optNum)
+          : 'Opción ' + optNum;
         contCamp.appendChild(campNewEnd);
       } else {
         activeBtn.dataset.clicks = '1';

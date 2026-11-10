@@ -57,6 +57,10 @@ class InitAppStructure
     'App/Rsc/Library/Gsap',
     // Seguridad de rutas e IPs
     'App/Safety',
+    // Diccionarios de idioma (i18n)
+    'App/Lang',
+    'App/Lang/es',
+    'App/Lang/en',
     // Segmentos reutilizables del proyecto (vacíos al iniciar)
     'App/Segment',
     'App/Segment/Form',
@@ -176,6 +180,7 @@ class InitAppStructure
     // 2. Copiar archivos iniciales de configuración y estructura desde Resources/ a App/ y Bootstrap/
     $this->createBootstrapFiles();
     $this->createConfigFiles();
+    $this->createLangFiles();
     $this->createMiddlewareInterface();
     $this->copyErrorView();
     $this->createThemeConfig();
@@ -186,6 +191,7 @@ class InitAppStructure
     $this->createProvidersFiles();
     $this->createEnvFiles();
     $this->createJsConfig();
+    $this->updateComposerScripts();
     $this->createHtaccess();
     $this->createIndexPhp();
     $this->createGitignore();
@@ -401,6 +407,7 @@ class InitAppStructure
     $this->copyFileIfNotExists('Config/CookieConfiguration.php', 'App/Config/CookieConfiguration.php');
     $this->copyFileIfNotExists('Config/CorsConfiguration.php', 'App/Config/CorsConfiguration.php');
     $this->copyFileIfNotExists('Config/TokenConfiguration.php', 'App/Config/TokenConfiguration.php');
+    $this->copyFileIfNotExists('Config/LangConfiguration.php', 'App/Config/LangConfiguration.php');
     $this->copyFileIfNotExists('Config/preloadFonts.json', 'App/Config/preloadFonts.json');
 
     // theme.json: Si no existe, pero ya existe un _configTheme.css en el proyecto,
@@ -453,13 +460,38 @@ class InitAppStructure
   }
 
   /**
-   * Copia MiddlewareInterface.php desde Resources/Middleware/MiddlewareInterface/ si no existe.
+   * Copia los diccionarios de idioma base desde Resources/Lang/ a App/Lang/
+   * sin sobrescribir archivos de traducción personalizados del usuario.
+   */
+  private function createLangFiles(): void
+  {
+    $srcLang = $this->frameworkResources . '/Lang';
+    $destLang = $this->basePath . '/App/Lang';
+
+    if (!is_dir($srcLang)) {
+      return;
+    }
+
+    $copied = 0;
+    $skipped = 0;
+    $updated = 0;
+
+    $this->copyDirectory($srcLang, $destLang, $copied, $skipped, $updated, false);
+    echo "🌐 Diccionarios en App/Lang: {$copied} copiados, {$skipped} respetados\n";
+  }
+
+  /**
+   * Copia MiddlewareInterface.php y LocaleMiddleware.php desde Resources/Middleware/ si no existen.
    */
   private function createMiddlewareInterface(): void
   {
     $this->copyFileIfNotExists(
       'Middleware/MiddlewareInterface/MiddlewareInterface.php',
       'App/Middleware/MiddlewareInterface/MiddlewareInterface.php'
+    );
+    $this->copyFileIfNotExists(
+      'Middleware/LocaleMiddleware.php',
+      'App/Middleware/LocaleMiddleware.php'
     );
   }
 
@@ -474,10 +506,10 @@ class InitAppStructure
     if (file_exists($dest)) {
       if (file_exists($source)) {
         $content = (string)file_get_contents($dest);
-        if (!str_contains($content, '$dbDiagnostic')) {
+        if (!str_contains($content, '$dbDiagnostic') || !str_contains($content, "__('global.errors.")) {
           if (!str_contains($content, '<!-- CUSTOM_ERROR_VIEW -->')) {
             @copy($source, $dest);
-            echo "🔧 Actualizado: App/errorViews/HandlerError.php (diagnóstico seguro de base de datos sincronizado)\n";
+            echo "🔧 Actualizado: App/errorViews/HandlerError.php (diagnóstico seguro e i18n sincronizados)\n";
             return;
           }
         }
@@ -638,6 +670,72 @@ class InitAppStructure
         echo "🚀 Clave de despliegue (DEPLOY_TOKEN) generada automáticamente en .env\n";
       }
 
+      // 3. Agregar bloque de configuración de idioma (i18n) si no existe en un proyecto actual
+      if (!str_contains($envContent, 'APP_MULTILANG')) {
+        $i18nBlock = <<<'ENV'
+
+
+# ==================== IDIOMA (i18n) ====================
+# Activar detección automática de idioma, selector y SEO multiidioma (true / false)
+APP_MULTILANG=false
+
+# Idioma principal por defecto (único idioma si APP_MULTILANG=false)
+APP_LOCALE="es"
+
+# Idioma de respaldo (fallback) para claves faltantes
+APP_FALLBACK_LOCALE="es"
+
+# Idiomas habilitados separados por coma (solo se usa si APP_MULTILANG=true)
+APP_LOCALES="es,en"
+ENV;
+        if (preg_match('/^DEFAULT_THEME\s*=\s*[^\r\n]+/m', $envContent)) {
+          $envContent = (string)preg_replace(
+            '/^(DEFAULT_THEME\s*=\s*[^\r\n]+)/m',
+            '$1' . $i18nBlock,
+            $envContent,
+            1
+          );
+        } else {
+          $envContent = rtrim($envContent) . $i18nBlock . "\n";
+        }
+        $modified = true;
+        echo "🌐 Configuración de idioma (APP_MULTILANG, APP_LOCALE, APP_FALLBACK_LOCALE, APP_LOCALES) añadida a .env\n";
+      }
+
+      // 4. Sincronizar CSS_INLINE si falta en .env
+      if (!str_contains($envContent, 'CSS_INLINE')) {
+        $cssInlineBlock = "\n\n# Inyección directa de CSS en <head> (inline <style>) en lugar de <link> externo (true / false)\nCSS_INLINE=\"false\"";
+        if (preg_match('/^USE_CACHE\s*=\s*[^\r\n]+/m', $envContent)) {
+          $envContent = (string)preg_replace(
+            '/^(USE_CACHE\s*=\s*[^\r\n]+)/m',
+            '$1' . $cssInlineBlock,
+            $envContent,
+            1
+          );
+        } else {
+          $envContent = rtrim($envContent) . $cssInlineBlock . "\n";
+        }
+        $modified = true;
+        echo "🎨 Variable CSS_INLINE añadida a .env\n";
+      }
+
+      // 5. Sincronizar MAXMIND_LICENSE_KEY si falta en .env
+      if (!str_contains($envContent, 'MAXMIND_LICENSE_KEY')) {
+        $maxmindBlock = "\n\n# License Key para descargar actualizaciones de MaxMind GeoLite2\nMAXMIND_LICENSE_KEY=\"\"";
+        if (preg_match('/^GEO_REQUEST_TIMEOUT\s*=\s*[^\r\n]+/m', $envContent)) {
+          $envContent = (string)preg_replace(
+            '/^(GEO_REQUEST_TIMEOUT\s*=\s*[^\r\n]+)/m',
+            '$1' . $maxmindBlock,
+            $envContent,
+            1
+          );
+        } else {
+          $envContent = rtrim($envContent) . $maxmindBlock . "\n";
+        }
+        $modified = true;
+        echo "🌍 Variable MAXMIND_LICENSE_KEY añadida a .env\n";
+      }
+
       if ($modified) {
         file_put_contents($envPath, $envContent);
       }
@@ -649,12 +747,24 @@ class InitAppStructure
     $jsConfigPath = $this->basePath . '/jsConfig.json';
 
     if (file_exists($jsConfigPath)) {
+      $raw = (string)file_get_contents($jsConfigPath);
+      $decoded = json_decode($raw, true);
+      if (is_array($decoded) && isset($decoded['priority']) && is_array($decoded['priority']) && !in_array('lang.js', $decoded['priority'], true)) {
+        $decoded['priority'][] = 'lang.js';
+        if (empty($decoded['functions']['async'])) {
+          $decoded['functions']['async'] = new \stdClass();
+        }
+        if (file_put_contents($jsConfigPath, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+          echo "🔧 Actualizado: jsConfig.json (agregado 'lang.js' a priority)\n";
+          return;
+        }
+      }
       echo "⏭️  Saltado: jsConfig.json (ya existe)\n";
       return;
     }
 
     $content = json_encode([
-      'priority' => ['aaSvgStore.js', 'component.js', 'config.js', 'querys.js'],
+      'priority' => ['aaSvgStore.js', 'component.js', 'config.js', 'querys.js', 'lang.js'],
       'exclude' => [],
       'functions' => [
         'defer' => new \stdClass(),
@@ -666,6 +776,74 @@ class InitAppStructure
       echo "✅ Creado: jsConfig.json\n";
     } else {
       echo "❌ Error: No se pudo crear jsConfig.json\n";
+    }
+  }
+
+  /**
+   * Sincroniza los scripts CLI del framework en el composer.json del proyecto derivado
+   * sin alterar dependencias ni scripts personalizados existentes.
+   */
+  private function updateComposerScripts(): void
+  {
+    if ($this->isFrameworkRepo) {
+      return;
+    }
+
+    $composerJsonPath = $this->basePath . '/composer.json';
+    if (!file_exists($composerJsonPath)) {
+      return;
+    }
+
+    $raw = (string)file_get_contents($composerJsonPath);
+    $data = json_decode($raw, true);
+    if (!is_array($data)) {
+      return;
+    }
+
+    if (!isset($data['scripts']) || !is_array($data['scripts'])) {
+      $data['scripts'] = [];
+    }
+
+    $standardScripts = [
+      'init-app'           => '@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php',
+      'package'            => '@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php package',
+      'deploy'             => '@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php deploy',
+      'link'               => '@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php link',
+      'theme:build'        => '@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php theme:build',
+      'theme:studio'       => '@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php theme:studio',
+      'min-script'         => '@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php',
+      'create-table-mysql' => '@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php',
+      'create-table-pgsql' => '@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php',
+      'install-font'       => '@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php',
+      'reset-font'         => '@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php',
+      'update-geoip'       => '@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php',
+      'scan-routes'        => '@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php',
+      'convert-image'      => '@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php',
+      'key:rotate'         => '@php vendor/eber/framework/Base/ScriptComposer/RotateKeys.php',
+      'make:controller'    => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller',
+      'make:model'         => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model',
+      'make:component'     => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php component',
+      'make:middleware'    => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php middleware',
+      'lang:make'          => '@php vendor/eber/framework/Base/ScriptComposer/LangCli.php make',
+      'lang:check'         => '@php vendor/eber/framework/Base/ScriptComposer/LangCli.php check',
+      'lang:scan'          => '@php vendor/eber/framework/Base/ScriptComposer/LangCli.php scan',
+      'lang:export'        => '@php vendor/eber/framework/Base/ScriptComposer/LangCli.php export',
+      'lang:import'        => '@php vendor/eber/framework/Base/ScriptComposer/LangCli.php import',
+    ];
+
+    $added = 0;
+    foreach ($standardScripts as $name => $cmd) {
+      if (!isset($data['scripts'][$name])) {
+        $data['scripts'][$name] = $cmd;
+        $added++;
+      }
+    }
+
+    if ($added > 0) {
+      $encoded = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+      if (file_put_contents($composerJsonPath, $encoded) !== false) {
+        echo "🔧 Actualizado: composer.json ({$added} scripts CLI añadidos)\n";
+      }
     }
   }
 

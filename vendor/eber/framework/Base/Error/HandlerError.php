@@ -49,6 +49,19 @@
     error_log('[DB_ERROR_1052_DIAGNOSTIC] ' . json_encode($dbDiagnostic));
   }
 
+  $errorLabel      = function_exists('__') ? __('global.errors.title') : 'Error';
+  $yesLabel        = function_exists('__') ? __('global.yes') : 'Sí';
+  $diagTitle       = function_exists('__') ? __('global.errors.db_diag_title') : 'Diagnóstico Base de Datos (Solo visible para Administrador / Dev):';
+  $driverLabel     = function_exists('__') ? __('global.errors.db_driver') : 'Driver:';
+  $pathLabel       = function_exists('__') ? __('global.errors.db_path') : 'Ruta BD:';
+  $existsLabel     = function_exists('__') ? __('global.errors.db_file_exists') : 'Archivo existe:';
+  $missingLabel    = function_exists('__') ? __('global.errors.db_file_missing') : 'NO (archivo faltante en servidor)';
+  $dirWritLabel    = function_exists('__') ? __('global.errors.db_dir_writable') : 'Directorio escribible:';
+  $dirDeniedLabel  = function_exists('__') ? __('global.errors.db_dir_denied') : 'NO (permiso denegado para www-data en carpeta Database/)';
+  $fileWritLabel   = function_exists('__') ? __('global.errors.db_file_writable') : 'Archivo escribible:';
+  $fileDeniedLabel = function_exists('__') ? __('global.errors.db_file_denied') : 'NO (permiso denegado para www-data en archivo .sqlite)';
+  $lastErrorLabel  = function_exists('__') ? __('global.errors.db_last_error') : 'Último error PDO:';
+
 ?>
 
 <div id="error-<?= $msg[1]?>" class="container-xl h-dvh flex-column center-center">
@@ -58,24 +71,24 @@
 
       <div class="text-center color2 x50 bold600 flex-row center-start gap10">
         <p class="x50 bold600 flex-row center-center"><?= $svg?></p>
-        <p class="x50 bold600">Error</p>
+        <p class="x50 bold600"><?= e($errorLabel) ?></p>
         <p class="x50 bold600"><?= $msg[1]?>!</p>
       </div>
       <p class="mb10 m0 x25 color2 no-indent pt10 pb10"><?= $msg[2]?></p>
 
       <?php if (!empty($dbDiagnostic) && $isDevOrAdmin) : ?>
         <div class="p15 br10 back-card mt10 mb15 w100 text-left color3 x14" style="border: 1px solid rgba(255,100,100,0.3); font-family: monospace;">
-          <p class="bold700 color-caution mb5">Diagnóstico Base de Datos (Solo visible para Administrador / Dev):</p>
+          <p class="bold700 color-caution mb5"><?= e($diagTitle) ?></p>
           <ul style="margin: 0; padding-left: 20px;">
-            <li><strong>Driver:</strong> <?= e($dbDiagnostic['driver']) ?></li>
-            <li><strong>Ruta BD:</strong> <?= e($dbDiagnostic['database']) ?></li>
+            <li><strong><?= e($driverLabel) ?></strong> <?= e($dbDiagnostic['driver']) ?></li>
+            <li><strong><?= e($pathLabel) ?></strong> <?= e($dbDiagnostic['database']) ?></li>
             <?php if ($dbDiagnostic['driver'] === 'sqlite') : ?>
-              <li><strong>Archivo existe:</strong> <?= $dbDiagnostic['file_exists'] ? '<span class="color-success">Sí</span>' : '<span class="color-danger bold700">NO (archivo faltante en servidor)</span>' ?></li>
-              <li><strong>Directorio escribible:</strong> <?= $dbDiagnostic['dir_writable'] ? '<span class="color-success">Sí</span>' : '<span class="color-danger bold700">NO (permiso denegado para www-data en carpeta Database/)</span>' ?></li>
-              <li><strong>Archivo escribible:</strong> <?= $dbDiagnostic['file_writable'] ? '<span class="color-success">Sí</span>' : '<span class="color-danger bold700">NO (permiso denegado para www-data en archivo .sqlite)</span>' ?></li>
+              <li><strong><?= e($existsLabel) ?></strong> <?= $dbDiagnostic['file_exists'] ? '<span class="color-success">' . e($yesLabel) . '</span>' : '<span class="color-danger bold700">' . e($missingLabel) . '</span>' ?></li>
+              <li><strong><?= e($dirWritLabel) ?></strong> <?= $dbDiagnostic['dir_writable'] ? '<span class="color-success">' . e($yesLabel) . '</span>' : '<span class="color-danger bold700">' . e($dirDeniedLabel) . '</span>' ?></li>
+              <li><strong><?= e($fileWritLabel) ?></strong> <?= $dbDiagnostic['file_writable'] ? '<span class="color-success">' . e($yesLabel) . '</span>' : '<span class="color-danger bold700">' . e($fileDeniedLabel) . '</span>' ?></li>
             <?php endif; ?>
             <?php if (!empty($dbDiagnostic['last_error'])) : ?>
-              <li><strong>Último error PDO:</strong> <?= e($dbDiagnostic['last_error']) ?></li>
+              <li><strong><?= e($lastErrorLabel) ?></strong> <?= e($dbDiagnostic['last_error']) ?></li>
             <?php endif; ?>
           </ul>
         </div>

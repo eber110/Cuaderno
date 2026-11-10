@@ -97,12 +97,17 @@ class ErrorHandler
             'referrer' => $_SERVER['HTTP_REFERER'] ?? 'direct'
         ]);
 
+        $title = function_exists('__') ? __('global.errors.404_title') : 'Error 404 - No Encontrado';
+        $desc = function_exists('__') ? __('global.errors.404_desc') : 'La página que buscas no existe en esta aplicación.';
+        $btn = function_exists('__') ? __('global.back_home') : 'Volver al Inicio';
+        $homeLink = function_exists('langUrl') ? langUrl('/') : (defined('LINK') ? LINK : '/');
+
         self::render(
             404,
             'HandlerError',
-            'Error 404 - No Encontrado',
-            'La página que buscas no existe en esta aplicación.',
-            [404, '404', 'La página que buscas no existe en esta aplicación.', defined('LINK') ? LINK : '/', 'Volver al Inicio', '']
+            $title,
+            $desc,
+            [404, '404', htmlspecialchars($desc, ENT_QUOTES, 'UTF-8'), $homeLink, $btn, '']
         );
     }
 
@@ -120,17 +125,29 @@ class ErrorHandler
             header("Allow: {$allowedMethods}");
         }
 
-        $message = 'El método ' . htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'desconocido') . ' no está permitido.';
-        if ($allowedMethods) {
-            $message .= ' Métodos permitidos: ' . htmlspecialchars($allowedMethods);
+        $reqMethod = (string)($_SERVER['REQUEST_METHOD'] ?? 'desconocido');
+        if (function_exists('__')) {
+            $message = __('global.errors.405_method', ['method' => $reqMethod]);
+            if ($allowedMethods) {
+                $message .= ' ' . __('global.errors.405_allowed', ['methods' => $allowedMethods]);
+            }
+        } else {
+            $message = 'El método ' . htmlspecialchars($reqMethod, ENT_QUOTES, 'UTF-8') . ' no está permitido.';
+            if ($allowedMethods) {
+                $message .= ' Métodos permitidos: ' . htmlspecialchars($allowedMethods, ENT_QUOTES, 'UTF-8');
+            }
         }
+
+        $title = function_exists('__') ? __('global.errors.405_title') : 'Error 405 - Método No Permitido';
+        $desc = function_exists('__') ? __('global.errors.405_desc') : 'El método solicitado no está permitido para esta URI.';
+        $btn = function_exists('__') ? __('global.back') : 'Volver';
 
         self::render(
             405,
             'HandlerError',
-            'Error 405 - Método No Permitido',
-            'El método solicitado no está permitido para esta URI.',
-            [405, 'METHOD_NOT_ALLOWED', $message, '', 'Volver', '']
+            $title,
+            $desc,
+            [405, 'METHOD_NOT_ALLOWED', $message, '', $btn, '']
         );
     }
 
@@ -143,48 +160,75 @@ class ErrorHandler
             'trace' => self::isDev() ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5) : []
         ]);
 
-        $userMessage = (self::isDev() && $showDetails && $message)
-            ? htmlspecialchars($message)
+        $defaultUserMsg = function_exists('__')
+            ? __('global.errors.500_user')
             : 'Lo sentimos, algo salió mal. Estamos trabajando para solucionarlo.';
+
+        $userMessage = (self::isDev() && $showDetails && $message)
+            ? htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+            : htmlspecialchars($defaultUserMsg, ENT_QUOTES, 'UTF-8');
+
+        $title = function_exists('__') ? __('global.errors.500_title') : 'Error 500 - Error del Servidor';
+        $desc = function_exists('__') ? __('global.errors.500_desc') : 'Error interno del servidor.';
+        $btn = function_exists('__') ? __('global.back') : 'Volver';
 
         self::render(
             500,
             'HandlerError',
-            'Error 500 - Error del Servidor',
-            'Error interno del servidor.',
-            [500, 'INTERNAL_SERVER_ERROR', $userMessage, '', 'Volver', '']
+            $title,
+            $desc,
+            [500, 'INTERNAL_SERVER_ERROR', $userMessage, '', $btn, '']
         );
     }
 
     /**
      * Error 403 - Prohibido.
      */
-    public static function handle403(string $message = 'No tienes permiso para acceder a este recurso.'): void
+    public static function handle403(string $message = ''): void
     {
+        if ($message === '') {
+            $message = function_exists('__')
+                ? __('global.errors.403_desc')
+                : 'No tienes permiso para acceder a este recurso.';
+        }
+
         self::log(403, $message);
+
+        $title = function_exists('__') ? __('global.errors.403_title') : 'Error 403 - Acceso Prohibido';
+        $btn = function_exists('__') ? __('global.back') : 'Volver';
 
         self::render(
             403,
             'HandlerError',
-            'Error 403 - Acceso Prohibido',
+            $title,
             $message,
-            [403, 'FORBIDDEN', htmlspecialchars($message), '', 'Volver', '']
+            [403, 'FORBIDDEN', htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), '', $btn, '']
         );
     }
 
     /**
      * Error 401 - No Autorizado.
      */
-    public static function handle401(string $message = 'Debes iniciar sesión para acceder.'): void
+    public static function handle401(string $message = ''): void
     {
+        if ($message === '') {
+            $message = function_exists('__')
+                ? __('global.errors.401_desc')
+                : 'Debes iniciar sesión para acceder.';
+        }
+
         self::log(401, $message);
+
+        $title = function_exists('__') ? __('global.errors.401_title') : 'Error 401 - No Autorizado';
+        $btn = function_exists('__') ? __('global.login') : 'Iniciar Sesión';
+        $loginUrl = function_exists('langUrl') ? langUrl('/login') : (defined('LINK') ? LINK . 'login' : '/login');
 
         self::render(
             401,
             'HandlerError',
-            'Error 401 - No Autorizado',
+            $title,
             $message,
-            [401, 'UNAUTHORIZED', htmlspecialchars($message), defined('LINK') ? LINK . 'login' : '/login', 'Iniciar Sesión', '']
+            [401, 'UNAUTHORIZED', htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), $loginUrl, $btn, '']
         );
     }
 
@@ -203,20 +247,26 @@ class ErrorHandler
         int|string $code,
         string $message,
         string $redirect = '',
-        string $buttonText = 'Salir de aquí',
+        string $buttonText = '',
         string $svg = ''
     ): void {
+        if ($buttonText === '') {
+            $buttonText = function_exists('__') ? __('global.leave') : 'Salir de aquí';
+        }
+
         self::log($http, $message, [
             'code' => $code,
             'redirect' => $redirect
         ]);
 
+        $errorPrefix = function_exists('__') ? __('global.errors.title') : 'Error';
+
         self::render(
             $http,
             'HandlerError',
-            "Error {$code}",
+            "{$errorPrefix} {$code}",
             $message,
-            [$http, $code, htmlspecialchars($message), $redirect, $buttonText, $svg]
+            [$http, $code, htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), $redirect, $buttonText, $svg]
         );
     }
 
@@ -239,7 +289,7 @@ class ErrorHandler
     /**
      * @deprecated Usar handleCode() directamente.
      */
-    public static function handle_code($http, $code, $msg, $redirect = '', $textButton = 'Salir de aquí', $svg = ''): void
+    public static function handle_code($http, $code, $msg, $redirect = '', $textButton = '', $svg = ''): void
     {
         self::handleCode((int)$http, $code, $msg, $redirect, $textButton, $svg);
     }

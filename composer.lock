@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "e80efc11c42dff1716ef6fab5ed60619aeefcf1c"
+                "reference": "ca2f533c1d80f7d0ea44388e3f5f66e9c276d06f"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -104,6 +104,7 @@
                     "Base/Helpers/Svg.php",
                     "Base/Helpers/Part.php",
                     "Base/Helpers/Number.php",
+                    "Base/Helpers/Lang.php",
                     "Base/Cookie/CookieConfiguration.php"
                 ]
             },
@@ -170,6 +171,21 @@
                 ],
                 "make:middleware": [
                     "php Base/ScriptComposer/MakeCli.php middleware"
+                ],
+                "lang:make": [
+                    "php Base/ScriptComposer/LangCli.php make"
+                ],
+                "lang:check": [
+                    "php Base/ScriptComposer/LangCli.php check"
+                ],
+                "lang:scan": [
+                    "php Base/ScriptComposer/LangCli.php scan"
+                ],
+                "lang:export": [
+                    "php Base/ScriptComposer/LangCli.php export"
+                ],
+                "lang:import": [
+                    "php Base/ScriptComposer/LangCli.php import"
                 ]
             },
             "authors": [

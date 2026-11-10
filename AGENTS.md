@@ -46,6 +46,7 @@ tu-proyecto/
 │   ├── Middleware/            # Interceptores de peticiones (auth, permisos)
 │   │   └── MiddlewareInterface/MiddlewareInterface.php
 │   ├── Route/                 # web.php, test.php… (se cargan solos)
+│   ├── Lang/                  # Diccionarios de traducción por idioma (es/, en/…)
 │   ├── errorViews/            # Vistas de error (HandlerError.php)
 │   ├── Providers/             # Service Providers del proyecto
 │   ├── Config/                # config.php, CookieConfiguration, TokenConfiguration…
@@ -227,6 +228,10 @@ App/Views/Dashboard/StatisticsPanel/
 | `e()` / `ee()` | Escape HTML anti-XSS |
 | `nd($number, $decimals = 2, $thousands = true)` | Formatea número con COMA decimal (`1.250,50`) (`Base/Helpers/Number.php`) |
 | `ndp($number, $decimals = 2, $thousands = true)` | Formatea número con PUNTO decimal (`1,250.50`) (`Base/Helpers/Number.php`) |
+| `__('grupo.clave', $replace)` / `t(...)` | Traduce texto con interpolación `:param` escapada (`Base/Helpers/Lang.php`) |
+| `__n('grupo.clave', $count, $replace)` | Traduce texto con pluralización (`Base/Helpers/Lang.php`) |
+| `__raw('grupo.clave', $replace)` | Traduce texto permitiendo HTML seguro del diccionario (`Base/Helpers/Lang.php`) |
+| `locale()` / `langUrl('en')` | Idioma activo actual / URL equivalente en otro idioma (`Base/Helpers/Lang.php`) |
 
 ### 3.4 Componentes (`App/Components/`) — piezas de código con sus datos
 
@@ -342,6 +347,7 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 | `DateTimeModule` | Fechas y "time ago" |
 | `TextModule` | Utilidades de texto |
 | `GraphicsModule` | `configStyle()`, `arcMeter()`, `stackedTones()`, `tileTreemap()`, `hybridSpline()`, `pillPillars()` — gráficos SVG puros con OKLCH y 400ms |
+| `LangModule` | `get()`, `choice()`, `detect()`, `setLocale()`, `getLocale()`, `localizedUrl()` — internacionalización (i18n) |
 
 ---
 
@@ -379,6 +385,13 @@ frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (com
 frame make:model <Nombre>            # Crea modelo en App/Models/ (composer make:model)
 frame make:component <Nombre>        # Crea componente en App/Components/ (composer make:component)
 frame make:middleware <Nombre>       # Crea middleware en App/Middleware/ (composer make:middleware)
+
+# Internacionalización (i18n):
+frame lang:make <locale> [--auto]    # Crea idioma nuevo desde el base; --auto traduce con Gemini (composer lang:make)
+frame lang:check                     # Audita claves faltantes/sobrantes y :placeholders (composer lang:check)
+frame lang:scan                      # Escanea vistas buscando textos sin traducir o claves huérfanas (composer lang:scan)
+frame lang:export [archivo]          # Exporta diccionarios a JSON/CSV (composer lang:export)
+frame lang:import <archivo>          # Importa traducciones desde JSON/CSV (composer lang:import)
 ```
 
 ⚠ Tras cambiar CSS/JS siempre ejecutar `frame min` (o `composer min-script`).
@@ -399,6 +412,7 @@ frame make:middleware <Nombre>       # Crea middleware en App/Middleware/ (compo
 10. **Seguridad contra IDOR e inyección:** Prohibido terminantemente usar `extract()` sobre datos de usuario o arrays de parámetros de peticiones. Leer explícitamente cada campo.
 11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`.
 12. **Protección CSRF y métodos seguros:** Todas las operaciones con cambio de estado o mutación (guardar, editar, eliminar, salir/logout) deben ejecutarse por `POST` y validar token CSRF (`_token`, `csrf_token` o header `X-CSRF-TOKEN`).
+13. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) centralizando los diccionarios en `App/Lang/{locale}/`.
 
 ---
 
@@ -466,3 +480,4 @@ Ejemplo: `feat(home): agregar hero con datos de HomeModels`, `fix(middleware): r
 - ❌ Añadir frameworks/libs frontend sin avisar.
 - ❌ Comitear `.env`, `Logs/`, `Cache/`, `App/Public/Min/`, mmdb.
 - ❌ Escribir o editar código en los archivos del framework (`vendor/eber/framework/`). Si se necesita un módulo del framework, solicitarlo al usuario para que se escriba en el repositorio del framework primero.
+- ❌ Concatenar fragmentos traducidos (`__('a') . ' ' . $x . ' ' . __('b')`) en vez de usar interpolación `__('frase', ['x' => $x])` (el orden gramatical cambia por idioma).

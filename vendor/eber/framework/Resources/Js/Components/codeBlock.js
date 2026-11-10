@@ -107,7 +107,7 @@ function detectLanguage(code) {
   }
 
   // Fallback
-  return 'código';
+  return typeof t === 'function' ? t('code', {}, 'código') : 'código';
 
 }
 
@@ -203,15 +203,17 @@ function buildHeader(lang, code) {
   langLabel.textContent = lang;
 
   // Botón copiar con icono SVG
+  const copyLabel = typeof t === 'function' ? t('copy', {}, 'Copiar') : 'Copiar';
+  const copyCodeAria = typeof t === 'function' ? t('copy_code', {}, 'Copiar código') : 'Copiar código';
   const copyBtn = document.createElement('button');
   copyBtn.className = 'code-copy-btn copy-btn';
-  copyBtn.setAttribute('aria-label', 'Copiar código');
+  copyBtn.setAttribute('aria-label', copyCodeAria);
   copyBtn.innerHTML = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
-    Copiar
+    ${copyLabel}
   `;
 
   // Guardar referencia al bloque de código
@@ -312,11 +314,12 @@ function copyFallback(text) {
 function showCopied(btn) {
 
   const originalHTML = btn.innerHTML;
+  const copiedLabel = typeof t === 'function' ? t('copied', {}, 'Copiado') : 'Copiado';
   btn.innerHTML = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
-    Copiado
+    ${copiedLabel}
   `;
   btn.classList.add('copied');
 

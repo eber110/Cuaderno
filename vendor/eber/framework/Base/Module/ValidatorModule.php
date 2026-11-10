@@ -105,7 +105,10 @@ class ValidatorModule
 
     // Validar que se hayan proporcionado validadores
     if (empty($validate[0])) {
-      return '<p class="mt5 mb5">Agregue un validador para el campo:<span class="bold800 color6"> "' . $content . '"</span>.</p>';
+      $msgMissing = function_exists('__')
+        ? __('validation.missing_rule', ['field' => (string)$content])
+        : 'Agregue un validador para el campo: "' . htmlspecialchars((string)$content, ENT_QUOTES, 'UTF-8') . '".';
+      return '<p class="mt5 mb5">' . $msgMissing . '</p>';
     }
 
     $function_available = [
@@ -208,7 +211,10 @@ class ValidatorModule
 
       // Verificar si el validador existe
       if (!in_array($validator_name, $function_available)) {
-        return '<p>Método <span class="bold800 color6">"' . $validator_name . '"</span> no aceptado.</p>';
+        $msgInvalid = function_exists('__')
+          ? __('validation.invalid_method', ['method' => (string)$validator_name])
+          : 'Método "' . htmlspecialchars((string)$validator_name, ENT_QUOTES, 'UTF-8') . '" no aceptado.';
+        return '<p>' . $msgInvalid . '</p>';
       }
 
       // Ejecutar el validador correspondiente
@@ -232,6 +238,22 @@ class ValidatorModule
 
     // Todos los validadores pasaron
     return [true, self::$content];
+  }
+
+  /**
+   * Obtiene el mensaje de error traducido para una regla de validación desde el diccionario 'validation'.
+   *
+   * @param string $rule Nombre de la regla (ej: 'email', 'min_length', 'max_length').
+   * @param array<string, scalar> $params Parámetros opcionales (ej: ['min' => 8, 'field' => 'correo']).
+   * @return string Mensaje traducido.
+   */
+  public static function message(string $rule, array $params = []): string
+  {
+    $key = 'validation.' . trim($rule);
+    if (function_exists('__')) {
+      return __($key, $params);
+    }
+    return $rule;
   }
 
 

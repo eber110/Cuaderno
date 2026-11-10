@@ -1,41 +1,51 @@
 {
-  "name": "eber/cuaderno",
-  "repositories": [
-    {
-      "type": "path",
-      "url": "C:/Users/eber/Proyectos/frame",
-      "options": {
-        "symlink": false
-      }
+    "name": "eber/cuaderno",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "C:/Users/eber/Proyectos/frame",
+            "options": {
+                "symlink": false
+            }
+        }
+    ],
+    "require": {
+        "eber/framework": "dev-main",
+        "geoip2/geoip2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "App/"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
+        "post-update-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
+        "package": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php package",
+        "deploy": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php deploy",
+        "min-script": "@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php",
+        "create-table-mysql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php",
+        "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
+        "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
+        "reset-font": "@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php",
+        "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
+        "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php",
+        "convert-image": "@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php",
+        "make:controller": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller",
+        "make:model": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model",
+        "make:component": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php component",
+        "make:middleware": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php middleware",
+        "db-maintenance": "@php App/Console/DatabaseMaintenanceScript.php",
+        "setup-db": "@php -r \"require 'vendor/autoload.php'; require 'App/Config/config.php'; print_r(\\App\\DatabaseComponent\\SQLiteSetup::setupTables());\"",
+        "init-app": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
+        "link": "@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php link",
+        "theme:build": "@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php theme:build",
+        "theme:studio": "@php vendor/eber/framework/Base/ScriptComposer/FrameCli.php theme:studio",
+        "key:rotate": "@php vendor/eber/framework/Base/ScriptComposer/RotateKeys.php",
+        "lang:make": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php make",
+        "lang:check": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php check",
+        "lang:scan": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php scan",
+        "lang:export": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php export",
+        "lang:import": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php import"
     }
-  ],
-  "require": {
-    "eber/framework": "dev-main",
-    "geoip2/geoip2": "*"
-  },
-  "autoload": {
-    "psr-4": {
-      "App\\": "App/"
-    }
-  },
-  "scripts": {
-    "post-install-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
-    "post-update-cmd": "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php",
-    "package": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php package",
-    "deploy": "@php vendor/eber/framework/Base/ScriptComposer/DeployPackage.php deploy",
-    "min-script": "@php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php",
-    "create-table-mysql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdMySql.php",
-    "create-table-pgsql": "@php vendor/eber/framework/Base/ScriptComposer/ConfigInitBdPostgreSql.php",
-    "install-font": "@php vendor/eber/framework/Base/ScriptComposer/InstallFont.php",
-    "reset-font": "@php vendor/eber/framework/Base/ScriptComposer/ResetFont.php",
-    "update-geoip": "@php vendor/eber/framework/Base/ScriptComposer/UpdateGeoIp.php",
-    "scan-routes": "@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php",
-    "convert-image": "@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php",
-    "make:controller": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller",
-    "make:model": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model",
-    "make:component": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php component",
-    "make:middleware": "@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php middleware",
-    "db-maintenance": "@php App/Console/DatabaseMaintenanceScript.php",
-    "setup-db": "@php -r \"require 'vendor/autoload.php'; require 'App/Config/config.php'; print_r(\\App\\DatabaseComponent\\SQLiteSetup::setupTables());\""
-  }
 }

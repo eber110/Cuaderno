@@ -13,6 +13,7 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         'd94387a1c078aa6a2bb51684b5685de7' => __DIR__ . '/../..' . '/Base/Helpers/Svg.php',
         'c3c4c64c266c1494cc3c24afba16262a' => __DIR__ . '/../..' . '/Base/Helpers/Part.php',
         '6880498316028d2b30c5c688465447f9' => __DIR__ . '/../..' . '/Base/Helpers/Number.php',
+        '3e83a9991d2b50effbb5141c2bc86c8e' => __DIR__ . '/../..' . '/Base/Helpers/Lang.php',
         '50aa4457e719a51b73dc3f62a852475b' => __DIR__ . '/../..' . '/Base/Cookie/CookieConfiguration.php',
     );
 

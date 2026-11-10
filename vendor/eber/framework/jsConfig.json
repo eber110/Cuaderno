@@ -3,7 +3,8 @@
     "aaSvgStore.js",
     "component.js",
     "config.js",
-    "querys.js"
+    "querys.js",
+    "lang.js"
   ],
   "exclude": [],
   "functions": {

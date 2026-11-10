@@ -56,7 +56,7 @@ export function copyToClipboard() {
     // Función para mostrar feedback
     const showFeedback = () => {
       const originalText = copyBtn.innerHTML;
-      copyBtn.innerHTML = '✓ Copiado';
+      copyBtn.innerHTML = typeof t === 'function' ? t('copied_check', {}, '✓ Copiado') : '✓ Copiado';
       copyBtn.classList.add('copied');
       setTimeout(() => {
         copyBtn.innerHTML = originalText;

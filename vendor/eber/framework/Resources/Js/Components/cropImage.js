@@ -309,7 +309,8 @@ export function cropImage() {
     maskCropImg.className = ["js-crop-img-mask", "cursor-pointer", ...inputClasses].join(' ');
 
     // Placeholder como texto
-    const placeholderText = input.getAttribute('placeholder') || "Seleccionar imagen";
+    const defaultSelectImg = typeof t === 'function' ? t('select_image', {}, 'Seleccionar imagen') : 'Seleccionar imagen';
+    const placeholderText = input.getAttribute('placeholder') || defaultSelectImg;
     maskCropImg.textContent = placeholderText;
 
     // Área para la vista previa
@@ -406,11 +407,16 @@ export function cropImage() {
         modalOverlay.className = 'crop-modal-overlay';
         const maskId = `crop-mask-hole-${Date.now()}`;
 
+        const cropTitle = typeof t === 'function' ? t('crop_title', {}, 'Recortar Imagen') : 'Recortar Imagen';
+        const cropAlt = typeof t === 'function' ? t('crop_alt', {}, 'A recortar') : 'A recortar';
+        const cancelLabel = typeof t === 'function' ? t('cancel', {}, 'Cancelar') : 'Cancelar';
+        const saveLabel = typeof t === 'function' ? t('crop_save', {}, 'Recortar y Guardar') : 'Recortar y Guardar';
+
         modalOverlay.innerHTML = `
           <div class="${cardClassList}">
-            <div class="crop-modal-title">Recortar Imagen</div>
+            <div class="crop-modal-title">${cropTitle}</div>
             <div class="crop-container">
-              <img src="${imgUrl}" class="crop-image" alt="A recortar">
+              <img src="${imgUrl}" class="crop-image" alt="${cropAlt}">
               <svg class="crop-mask" width="${containerW}" height="${containerH}" style="position: absolute; top:0; left:0; z-index:2; pointer-events:none;">
                 <defs>
                   <mask id="${maskId}">
@@ -430,8 +436,8 @@ export function cropImage() {
               </div>
             </div>
             <div class="crop-buttons">
-              <button type="button" class="${cancelBtnClassList}">Cancelar</button>
-              <button type="button" class="${saveBtnClassList}">Recortar y Guardar</button>
+              <button type="button" class="${cancelBtnClassList}">${cancelLabel}</button>
+              <button type="button" class="${saveBtnClassList}">${saveLabel}</button>
             </div>
           </div>
         `;

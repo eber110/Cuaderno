@@ -50,6 +50,25 @@ class CacheModule
   // =========================================================================
 
   /**
+   * Resuelve la clave efectiva de caché incorporando el idioma activo
+   * cuando el modo multiidioma (MULTILANG) está habilitado, evitando servir
+   * contenido cacheado en un idioma a usuarios de otro idioma.
+   *
+   * @param string $key Clave original.
+   * @return string Clave con prefijo de locale si MULTILANG=true.
+   */
+  public static function resolveKey(string $key): string
+  {
+    if (class_exists(LangModule::class) && LangModule::isMultilang()) {
+      $loc = LangModule::getLocale();
+      if (!str_starts_with($key, 'i18n_' . $loc . ':')) {
+        return 'i18n_' . $loc . ':' . $key;
+      }
+    }
+    return $key;
+  }
+
+  /**
    * Obtiene un valor del caché en memoria.
    * 
    * @param string $key Clave del caché.
@@ -58,6 +77,7 @@ class CacheModule
    */
   public static function getMemory(string $key, mixed $default = null): mixed
   {
+    $key = self::resolveKey($key);
     if (!isset(self::$memoryCache[$key])) {
       return $default;
     }
@@ -83,6 +103,7 @@ class CacheModule
    */
   public static function setMemory(string $key, mixed $value, int $ttl = 0): void
   {
+    $key = self::resolveKey($key);
     self::$memoryCache[$key] = [
       'expires' => $ttl > 0 ? time() + $ttl : 0,
       'data' => $value
@@ -107,6 +128,7 @@ class CacheModule
    */
   public static function forgetMemory(string $key): void
   {
+    $key = self::resolveKey($key);
     unset(self::$memoryCache[$key]);
   }
 
@@ -148,6 +170,7 @@ class CacheModule
    */
   private static function getFilename(string $key): string
   {
+    $key = self::resolveKey($key);
     return self::getCachePath() . md5($key) . '.cache';
   }
 

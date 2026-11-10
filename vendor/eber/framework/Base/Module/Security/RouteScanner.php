@@ -143,6 +143,24 @@ class RouteScanner
     $normalizedUri = trim($uri, '/');
     $normalizedUri = ($normalizedUri === '') ? '/' : '/' . $normalizedUri;
 
+    // Si MULTILANG está activo, permitir la ruta '/lang/{locale}' y recortar prefijos de idioma ('/en/contacto' -> '/contacto')
+    if (class_exists('\\Base\\Module\\LangModule') && \Base\Module\LangModule::isMultilang()) {
+      if ($method === 'GET' && preg_match('#^/lang/[a-z]{2}(?:_[A-Z]{2})?$#', $normalizedUri)) {
+        return [
+          'method'                => 'GET',
+          'uri'                   => '/lang/:locale',
+          'has_variables'         => true,
+          'variables'             => ['locale'],
+          'protect_at_controller' => true,
+        ];
+      }
+      $extracted = null;
+      $stripped = \Base\Module\LangModule::stripLocalePrefix($normalizedUri, $extracted);
+      if ($extracted !== null) {
+        $normalizedUri = $stripped;
+      }
+    }
+
     // 1. Estáticas
     if (isset($config['static_routes']) && is_array($config['static_routes'])) {
       foreach ($config['static_routes'] as $route) {

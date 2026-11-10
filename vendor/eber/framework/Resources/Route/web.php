@@ -7,5 +7,5 @@ use Core\Route;
  */
 
 Route::get('/', function () {
-    return 'Bienvenido a mi aplicación';
+  return function_exists('__') ? e(__('global.welcome')) : 'Bienvenido a mi aplicación';
 });
