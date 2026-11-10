@@ -1214,4 +1214,76 @@ class StatisticsModels extends BuilderSqlite {
     return filter_var($env, FILTER_VALIDATE_BOOLEAN);
   }
 
+  /**
+   * Obtiene el inicio de la semana actual (lunes 00:00 hora local) expresado en UTC,
+   * ya que los registros de clics y visitas se almacenan con gmdate().
+   *
+   * @return string Fecha y hora UTC en formato Y-m-d H:i:s.
+   */
+  private static function getStartOfWeekUtc(): string {
+    $startLocal = strtotime("monday this week 00:00:00");
+    return gmdate("Y-m-d H:i:s", $startLocal ?: time());
+  }
+
+  /**
+   * Obtiene el total histórico de clics y los clics de la semana actual de un enlace concreto.
+   * El link_id se normaliza igual que en VisitModels::processClick (trim + minúsculas).
+   *
+   * @param string $indexUser Identificador único index_user del dueño del enlace.
+   * @param string $linkId URL o identificador del enlace.
+   * @return array Estructura con claves 'total' y 'week'.
+   */
+  public static function getLinkClicksSummary(string $indexUser, string $linkId): array {
+    $linkIdClean = mb_strtolower(trim($linkId), "UTF-8");
+    if (empty($indexUser) || $linkIdClean === "" || $linkIdClean === "#") {
+      return ["total" => 0, "week" => 0];
+    }
+
+    try {
+      $total = (int)(new self("link_clicks"))
+        ->where("index_user", $indexUser)
+        ->where("link_id", $linkIdClean)
+        ->count();
+
+      $week = (int)(new self("link_clicks"))
+        ->where("index_user", $indexUser)
+        ->where("link_id", $linkIdClean)
+        ->where("created_at", ">=", self::getStartOfWeekUtc())
+        ->count();
+
+      return ["total" => $total, "week" => $week];
+    } catch (\Throwable $e) {
+      error_log("Error en StatisticsModels::getLinkClicksSummary: " . $e->getMessage());
+      return ["total" => 0, "week" => 0];
+    }
+  }
+
+  /**
+   * Obtiene el total histórico de visitas al perfil y las visitas de la semana actual.
+   *
+   * @param string $indexUser Identificador único index_user del perfil.
+   * @return array Estructura con claves 'total' y 'week'.
+   */
+  public static function getProfileViewsSummary(string $indexUser): array {
+    if (empty($indexUser)) {
+      return ["total" => 0, "week" => 0];
+    }
+
+    try {
+      $total = (int)(new self("profile_views"))
+        ->where("index_user", $indexUser)
+        ->count();
+
+      $week = (int)(new self("profile_views"))
+        ->where("index_user", $indexUser)
+        ->where("created_at", ">=", self::getStartOfWeekUtc())
+        ->count();
+
+      return ["total" => $total, "week" => $week];
+    } catch (\Throwable $e) {
+      error_log("Error en StatisticsModels::getProfileViewsSummary: " . $e->getMessage());
+      return ["total" => 0, "week" => 0];
+    }
+  }
+
 }

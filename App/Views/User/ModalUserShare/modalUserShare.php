@@ -92,16 +92,11 @@
     </div>
   <?php endif; ?>
 
-  <div class="flex-column top-start gap20 gap-sml-10 w100 mt20 mt5">
-    <div class="">
-      <p class="bold700">Únete a <?= e($card["profile"] ?? ($data["profile"] ?? '')) ?> en Clikhub.</p>
-      <p>Un solo enlace, todas tus redes. Tu espacio personal gratis para conectar a tu audiencia con todo lo que creas.</p>
-    </div>
-
-    <div class="flex-row center-center gap15 w100">
-      <a href="/registrar" class="br50 w100 btn-share-register p15 p-sml-10 flex-row center-center text-c bold700">Regístrate gratis</a>
-      <a href="/" class="br50 w100 btn-share-see-more p15 p-sml-10 flex-row center-center text-c bold700">Descubre más</a>
-    </div>
-  </div>
+  <?php _component("Share.shareOwnerStats", [
+    "profile"     => $card["profile"] ?? ($data["profile"] ?? ""),
+    "displayName" => $card["profile"] ?? ($data["profile"] ?? ""),
+    "url"         => $data["url"] ?? "",
+    "type"        => "profile"
+  ]); ?>
 
 </div>

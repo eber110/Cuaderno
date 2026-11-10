@@ -7,10 +7,11 @@
 
   <?php if ($connect ?? false == true) :?>
     <div class="flex-row center-between">
-      <a href="/panel/<?= e($username ?? "Usuario");?>" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Configuración"><?= svg("gear");?></a>
+      <!-- <a href="/panel/<?= e($username ?? "Usuario");?>" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Configuración"><?= svg("gear");?></a> -->
+      <a href="/ingresar" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Ingresar"><?= svg("logoSvg");?></a>
 
       <div class="flex-row center-end gap5">
-        <p class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36"><?= svg("share-from");?></p>
+        <p class="color-menu-user back-item-menu flex-row center-center hpx36 wpx36 modal-btn animated"><?= svg("share-from");?></p>
         <div class="hidden">
           <div class="flex-column center-center w100 wrap">
             <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
@@ -25,9 +26,17 @@
   <?php else :?>
     <?php if (!\Base\Module\Session::session_active()) :?>
       <div class="flex-row center-between">
-        <a href="/ingresar" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Ingresar"><?= svg("logoSvg");?></a>
+        <p class="color-menu-user back-item-menu flex-row center-center hpx36 wpx36 modal-btn animated"><?= svg("logoSvg");?></p>
+        <div class="hidden">
+          <div class="flex-column center-center w100 wrap">
+            <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml back10">
+              <?php _part("User.modalRegister", ["data" => $userShareData ?? [], "card" => $card ?? []])?>
+            </div>
+          </div>
+        </div>
+
         <!-- Integrar el modal para registrarse e ingresar al perfil -->
-        <p class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36"><?= svg("share-from");?></p>
+        <p class="color-menu-user back-item-menu flex-row center-center hpx36 wpx36 modal-btn animated"><?= svg("share-from");?></p>
         <div class="hidden">
           <div class="flex-column center-center w100 wrap">
             <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
@@ -38,9 +47,9 @@
       </div>
     <?php else :?>
       <div class="flex-row center-between">
-        <a href="/" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Volver"><?= svg("arrow-l-l");?> Volver</a>
+        <a href="/" class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36" aria-label="Volver"><?= svg("arrow-l-l");?></a>
 
-        <p class="flex-row center-center color-menu-user back-item-menu hpx36 wpx36"><?= svg("share-from");?></p>
+        <p class="color-menu-user back-item-menu flex-row center-center hpx36 wpx36 modal-btn animated"><?= svg("share-from");?></p>
         <div class="hidden">
           <div class="flex-column center-center w100 wrap">
             <div class="wpx520 w-sml-100 back-modal-item br-desk-15 br-mid-15 br-sml-0 p20 text-menu-modal text-protected h-dvh-sml">
