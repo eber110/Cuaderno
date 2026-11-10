@@ -49,9 +49,9 @@
       <?php foreach ($productsToRender as $pIdx => $prod) :
         $pTitle      = $prod["title"] ?? '';
         $pUrl        = $prod["url"] ?? '#';
-        $pPrice      = $prod["price"] ?? '';
+        $pPrice      = nd($prod["price"], 0) ?? '';
         $pOffer      = $prod["offer"] ?? false;
-        $pDiscount   = $prod["discount"] ?? '';
+        $pDiscount   = nd($prod["discount"], 0) ?? '';
         $pPorcentage = $prod["porcentage"] ?? 0;
         $pImgSrc     = $prod["imgSrc"] ?? '';
         $pRawImgShow = $prod["imgShow"] ?? true;
@@ -130,9 +130,9 @@
         <?php foreach ($productsToRender as $pIdx => $prod) :
           $pTitle      = $prod["title"] ?? '';
           $pUrl        = $prod["url"] ?? '#';
-          $pPrice      = $prod["price"] ?? '';
+          $pPrice      = nd($prod["price"], 0) ?? '';
           $pOffer      = $prod["offer"] ?? false;
-          $pDiscount   = $prod["discount"] ?? '';
+          $pDiscount   = nd($prod["discount"], 0) ?? '';
           $pPorcentage = $prod["porcentage"] ?? 0;
           $pImgSrc     = $prod["imgSrc"] ?? '';
           $pRawImgShow = $prod["imgShow"] ?? true;
@@ -210,9 +210,9 @@
         <?php foreach ($productsToRender as $pIdx => $prod) :
           $pTitle      = $prod["title"] ?? '';
           $pUrl        = $prod["url"] ?? '#';
-          $pPrice      = $prod["price"] ?? '';
+          $pPrice      = nd($prod["price"], 0) ?? '';
           $pOffer      = $prod["offer"] ?? false;
-          $pDiscount   = $prod["discount"] ?? '';
+          $pDiscount   = nd($prod["discount"], 0) ?? '';
           $pPorcentage = $prod["porcentage"] ?? 0;
           $pImgSrc     = $prod["imgSrc"] ?? '';
           $pRawImgShow = $prod["imgShow"] ?? true;
@@ -301,9 +301,9 @@
           <?php foreach ($productsToRender as $pIdx => $prod) :
             $pTitle      = $prod["title"] ?? '';
             $pUrl        = $prod["url"] ?? '#';
-            $pPrice      = $prod["price"] ?? '';
+            $pPrice      = nd($prod["price"], 0) ?? '';
             $pOffer      = $prod["offer"] ?? false;
-            $pDiscount   = $prod["discount"] ?? '';
+            $pDiscount   = nd($prod["discount"], 0) ?? '';
             $pPorcentage = $prod["porcentage"] ?? 0;
             $pImgSrc     = $prod["imgSrc"] ?? '';
             $pRawImgShow = $prod["imgShow"] ?? true;

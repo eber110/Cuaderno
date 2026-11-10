@@ -39,7 +39,7 @@
     $data["share"] = \Base\Module\ShareButtonModule::share($data["url"], $card["desc"] ?? "", $acceptedLinks);
   }
 ?>
-<div class="flex-column center-center gap15 back-modal-item">
+<div class="flex-column center-center gap15 back-modal-item relative">
   <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>
   <p class="no-phone absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 
@@ -56,10 +56,10 @@
       <p class="bold500 text-c bold400 x20 x-sml-20 textw"><?= e($title) ?></p>
     <?php endif; ?>
     <?php if ($offer == false) : ?>
-      <p class="bold600 text-c x18 textw">$<?= e($price) ?></p>
+      <p class="text-c x28 textw anton">$<?= e($price) ?></p>
     <?php else:?>
       <div class="flex-column gap0 p10 pl15 pr15 br10 shadow-1" style="background-color: oklch(from <?= safeCssColor($card["backCard"]["back_perfil"] ?? $card["back"] ?? '#1e293b', '#1e293b') ?> calc(l * 0.55) calc(c - 0.04) h /85%);">
-        <p class="bold600 text-c x18 textw">$<?= e($discount) ?></p>
+        <p class="text-c x28 textw anton">$<?= e($discount) ?></p>
         <span class="bold500 text-c x16 textw">precio oferta!!!</span>
       </div>
     <?php endif; ?>

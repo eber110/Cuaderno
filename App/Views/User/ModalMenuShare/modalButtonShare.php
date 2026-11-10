@@ -49,7 +49,7 @@
     $data["share"] = \Base\Module\ShareButtonModule::share($data["url"], $card["desc"] ?? "", $acceptedLinks);
   }
 ?>
-<div class="flex-column center-center gap15 back-modal-item">
+<div class="flex-column center-center gap15 back-modal-item relative">
   <p class="no-desk no-tablet fixed top right pointer mt15 mr15 modal-close-button z-index-20"><?= svg("xmark")?></p>
   <p class="no-phone absolute top right pointer modal-close-button z-index-20"><?= svg("xmark")?></p>
 

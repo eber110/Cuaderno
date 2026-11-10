@@ -12,6 +12,7 @@ class ComposerStaticInit01361b118028926d8b11ed908191c52f
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'd94387a1c078aa6a2bb51684b5685de7' => __DIR__ . '/../..' . '/Base/Helpers/Svg.php',
         'c3c4c64c266c1494cc3c24afba16262a' => __DIR__ . '/../..' . '/Base/Helpers/Part.php',
+        '6880498316028d2b30c5c688465447f9' => __DIR__ . '/../..' . '/Base/Helpers/Number.php',
         '50aa4457e719a51b73dc3f62a852475b' => __DIR__ . '/../..' . '/Base/Cookie/CookieConfiguration.php',
     );
 

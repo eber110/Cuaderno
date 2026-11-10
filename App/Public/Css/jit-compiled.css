@@ -303,6 +303,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .hpx30 { height: 30px; }
 .hpx32 { height: 32px; }
 .hpx35 { height: 35px; }
+.hpx36 { height: 36px; }
 .hpx40 { height: 40px; }
 .hpx44 { height: 44px; }
 .hpx45 { height: 45px; }
@@ -420,6 +421,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .wpx30 { width: 30px; }
 .wpx320 { width: 320px; }
 .wpx35 { width: 35px; }
+.wpx36 { width: 36px; }
 .wpx40 { width: 40px; }
 .wpx400 { width: 400px; }
 .wpx45 { width: 45px; }

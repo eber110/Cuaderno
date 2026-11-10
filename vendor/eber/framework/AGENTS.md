@@ -41,7 +41,7 @@ frame/                         # Repositorio del framework (también es un proye
 │   ├── Builder/Builder.php    # Query Builder MySQL/PostgreSQL (composición sobre PDO, anti-inyección)
 │   ├── Module/                # 31 módulos reutilizables (AuthModule, GeoLocation, etc.)
 │   ├── LibraryCssJit/         # Reglas JIT CSS (JitRule interface + reglas)
-│   ├── Helpers/               # Part.php (vistas parciales), Svg.php (svg())
+│   ├── Helpers/               # Part.php (vistas), Svg.php (svg()), Number.php (nd, ndp)
 │   ├── Cookie/                # CookieConfiguration
 │   ├── Error/HandlerError.php # Plantilla de error (se copia a App/errorViews/)
 │   ├── Providers/ServiceProvider.php  # Clase base de providers
@@ -110,7 +110,7 @@ frame/                         # Repositorio del framework (también es un proye
 - **Clases y métodos:** `PascalCase` clases, `camelCase` métodos con visibilidad explícita (`public`/`private`/`protected`).
 - **Estilos:** indentación de **2 espacios**, comillas dobles, sin cerrar etiqueta `?>`.
 - **Docblocks PHPDoc en español** describen cada método con `@param` y `@return`. Ver ejemplo `Base/Module/SeoModule.php`.
-- **Helpers:** funciones globales autoloaded vía `composer.json` "files" (`svg()`, `Part`, config) — accesibles desde cualquier vista.
+- **Helpers:** funciones globales autoloaded vía `composer.json` "files" (`svg()`, `Part`, `Number`, config) — accesibles desde cualquier vista.
 - **Type hints + return types** (PHP 8): `public static function title(string $override = ''): string`.
 - Preferir métodos **estáticos** para módulos (`Base\Module\X::metodo()`).
 - Constantes favorecen `TIME_*` y `ROUTE_*` de `config.php`.

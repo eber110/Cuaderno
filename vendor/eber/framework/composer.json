@@ -23,20 +23,19 @@
         "files": [
             "Base/Helpers/Svg.php",
             "Base/Helpers/Part.php",
+            "Base/Helpers/Number.php",
             "Base/Cookie/CookieConfiguration.php"
         ]
     },
     "scripts": {
-        "post-install-cmd": [
-            "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"
-        ],
-        "post-update-cmd": [
-            "@php vendor/eber/framework/Base/ScriptComposer/InitAppStructure.php"
-        ],
+        "frame": "php Base/ScriptComposer/FrameCli.php",
         "new-project": "php Base/ScriptComposer/NewProject.php",
         "package": "php Base/ScriptComposer/DeployPackage.php package",
         "deploy": "php Base/ScriptComposer/DeployPackage.php deploy",
         "init-app": "php Base/ScriptComposer/InitAppStructure.php",
+        "link": "php Base/ScriptComposer/LinkProject.php",
+        "theme:build": "php Base/ScriptComposer/BuildTheme.php",
+        "theme:studio": "php Base/ScriptComposer/OpenStudio.php",
         "min-script": "php Base/ScriptComposer/MinJsCss.php",
         "create-table-mysql": "php Base/ScriptComposer/ConfigInitBdMySql.php",
         "create-table-pgsql": "php Base/ScriptComposer/ConfigInitBdPostgreSql.php",
@@ -44,6 +43,7 @@
         "reset-font": "php Base/ScriptComposer/ResetFont.php",
         "update-geoip": "php Base/ScriptComposer/UpdateGeoIp.php",
         "scan-routes": "php Base/ScriptComposer/ScanRoutes.php",
+        "key:rotate": "php Base/ScriptComposer/RotateKeys.php",
         "convert-image": "php Base/ScriptComposer/ConvertImage.php",
         "make:controller": "php Base/ScriptComposer/MakeCli.php controller",
         "make:model": "php Base/ScriptComposer/MakeCli.php model",

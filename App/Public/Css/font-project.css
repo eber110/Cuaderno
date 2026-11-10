@@ -149,3 +149,24 @@
   font-family: 'Limelight' !important;
   font-weight: 300 !important;
 }
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Anton (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Anton';
+  src: url('/App/Rsc/Fonts/anton/Anton-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.anton {
+  font-family: 'Anton' !important;
+}
+
+.anton400 {
+  font-family: 'Anton' !important;
+  font-weight: 400 !important;
+}

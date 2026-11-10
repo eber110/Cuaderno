@@ -225,6 +225,8 @@ App/Views/Dashboard/StatisticsPanel/
 | `_if($condicion, "Home.banner")` | Incluye la parte solo si se cumple la condición |
 | `_partToString(...)` / `_componentToString(...)` | Version que retorna string en vez de imprimir |
 | `e()` / `ee()` | Escape HTML anti-XSS |
+| `nd($number, $decimals = 2, $thousands = true)` | Formatea número con COMA decimal (`1.250,50`) (`Base/Helpers/Number.php`) |
+| `ndp($number, $decimals = 2, $thousands = true)` | Formatea número con PUNTO decimal (`1,250.50`) (`Base/Helpers/Number.php`) |
 
 ### 3.4 Componentes (`App/Components/`) — piezas de código con sus datos
 

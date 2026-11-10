@@ -3,11 +3,11 @@
    * @var mixed $card 
    * @var mixed $dataContent
   */
-  $price = $card["content"][$dataContent]["price"] ?? '';
+  $price = nd($card["content"][$dataContent]["price"], 0) ?? '';
   $rawOffer = $card["content"][$dataContent]["offer"] ?? false;
   $isOffer = ($rawOffer === true || $rawOffer === 'true' || $rawOffer === 1 || $rawOffer === '1');
   $offer = $isOffer;
-  $discount = $card["content"][$dataContent]["discount"] ?? '';
+  $discount = nd($card["content"][$dataContent]["discount"], 0) ?? '';
   $porcentage = $card["content"][$dataContent]["porcentage"] ?? '';
   $img = $card["content"][$dataContent]["img"] ?? '';
   $imgSrc = $card["content"][$dataContent]["imgSrc"] ?? '';

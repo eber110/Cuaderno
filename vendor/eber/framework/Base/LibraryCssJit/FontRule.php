@@ -10,8 +10,6 @@ class FontRule extends JitRuleBase
         $statics = [
             // Fuentes del sistema y variables
             'font' => ".font { font-family: var(--font) !important; }\n",
-            'font-alumini' => ".font-alumini { font-family: var(--font) !important; line-height: 0.7em; }\n",
-            'font-roboto-condensed' => ".font-roboto-condensed { font-family: var(--font) !important; }\n",
             'font-sans' => ".font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif !important; }\n",
             'font-serif' => ".font-serif { font-family: ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif !important; }\n",
             'font-mono' => ".font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace !important; }\n",

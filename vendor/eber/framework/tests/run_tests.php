@@ -18,7 +18,6 @@
  */
 
 define('ROOT_PATH', str_replace('\\', '/', dirname(__DIR__)));
-$appExistedBeforeTests = is_dir(ROOT_PATH . '/App');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config.php';
@@ -189,17 +188,19 @@ $runner->runTest("ImgProcessModule - Desacoplado de Builder", function () use ($
 // =========================================================================
 $runner->runTest("AnalyticsModule - SQLite desacoplado y retrocompatibilidad", function () use ($runner) {
   $tempDb = sys_get_temp_dir() . '/test_analytics_' . uniqid() . '.sqlite';
-  $analytics = new \Base\Module\AnalyticsModule($tempDb);
+  $testPdo = new \PDO("sqlite:" . $tempDb);
+  $testPdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+  \Base\Module\AnalyticsModule::setPdo($testPdo);
 
   // Probar nuevo sistema de eventos genéricos
-  $loggedEvent = $analytics->logEvent('page_view', 'post_100', ['referrer' => 'google.com']);
+  $loggedEvent = \Base\Module\AnalyticsModule::logEvent('page_view', 'post_100', ['referrer' => 'google.com']);
   $runner->assert($loggedEvent === true, "logEvent() debe registrar eventos correctamente");
 
-  $eventSummary = $analytics->getEventSummary('page_view');
+  $eventSummary = \Base\Module\AnalyticsModule::getEventSummary('page_view');
   $runner->assert(isset($eventSummary['total_events']) && $eventSummary['total_events'] >= 1, "getEventSummary() debe contabilizar el evento");
 
   // Probar métodos retrocompatibles de analíticas de perfiles
-  $loggedProfile = $analytics->logProfileView('profile_999', [
+  $loggedProfile = \Base\Module\AnalyticsModule::logProfileView('profile_999', [
     'ip_address' => '127.0.0.1',
     'device_type' => 'Desktop',
     'browser' => 'Chrome',
@@ -208,13 +209,16 @@ $runner->runTest("AnalyticsModule - SQLite desacoplado y retrocompatibilidad", f
   ]);
   $runner->assert($loggedProfile === true, "logProfileView() debe funcionar por retrocompatibilidad");
 
-  $loggedClick = $analytics->logLinkClick('profile_999', 'link_123', ['country_code' => 'CL']);
+  $loggedClick = \Base\Module\AnalyticsModule::logLinkClick('profile_999', 'link_123', ['country_code' => 'CL']);
   $runner->assert($loggedClick === true, "logLinkClick() debe funcionar por retrocompatibilidad");
 
-  $summary = $analytics->getProfileSummary('profile_999');
+  $summary = \Base\Module\AnalyticsModule::getProfileSummary('profile_999');
   $runner->assert(isset($summary['total_views']) && $summary['total_views'] >= 1, "getProfileSummary() debe retornar vistas");
   $runner->assert(isset($summary['total_clicks']) && $summary['total_clicks'] >= 1, "getProfileSummary() debe retornar clicks");
 
+  // Reset y eliminación de archivo temporal
+  \Base\Module\AnalyticsModule::setPdo(null);
+  $testPdo = null;
   if (file_exists($tempDb)) {
     @unlink($tempDb);
   }
@@ -299,9 +303,15 @@ $runner->runTest("Control - Métodos viewClean, json, redirect y layouts", funct
   $cleanOutput = $controller->testViewClean('TestDummy.dummy', ['name' => 'Eber']);
   $runner->assert(trim($cleanOutput) === 'Hola Eber', "viewClean debe renderizar la vista sin doctype ni layout");
 
-  // Limpiar archivo temporal
+  // Limpiar archivo temporal y carpetas generadas para no dejar /App en el framework
   @unlink($tempViewFile);
   @rmdir($tempViewDir);
+  if (defined('ROUTE_VIEW') && is_dir(ROUTE_VIEW)) {
+    @rmdir(ROUTE_VIEW);
+  }
+  if (is_dir(ROOT_PATH . '/App')) {
+    @rmdir(ROOT_PATH . '/App');
+  }
 });
 
 // =========================================================================
@@ -361,25 +371,39 @@ $runner->runTest("GeoLocation - Servicio híbrido de resolución geográfica", f
 $runner->runTest("MakeCli - Generadores de código CLI", function () use ($runner) {
   $runner->assert(class_exists('MakeCli'), "MakeCli debe existir");
 
+  // Probar en un sandbox temporal aislado para no generar /App en el framework
+  $sandbox = str_replace('\\', '/', sys_get_temp_dir() . '/frame_make_sandbox_' . uniqid());
+  @mkdir($sandbox, 0755, true);
+
   // Probar generación de controlador temporal
   $dummyController = 'PruebaTest';
-  $controllerPath = ROUTE_CONTROLLER . $dummyController . 'Controllers.php';
+  $controllerPath = $sandbox . '/App/Controllers/' . $dummyController . 'Controllers.php';
 
-  \MakeCli::make('controller', $dummyController);
-  $runner->assert(file_exists($controllerPath), "make:controller debe crear el archivo del controlador");
+  \MakeCli::make('controller', $dummyController, $sandbox);
+  $runner->assert(file_exists($controllerPath), "make:controller debe crear el archivo del controlador en sandbox");
   $content = file_get_contents($controllerPath);
   $runner->assert(str_contains($content, "class {$dummyController}Controllers extends Control"), "El controlador generado debe extender Control");
-  @unlink($controllerPath);
 
   // Probar generación de modelo temporal
   $dummyModel = 'PruebaTest';
-  $modelPath = ROUTE_MODEL . $dummyModel . 'Models.php';
+  $modelPath = $sandbox . '/App/Models/' . $dummyModel . 'Models.php';
 
-  \MakeCli::make('model', $dummyModel);
-  $runner->assert(file_exists($modelPath), "make:model debe crear el archivo del modelo");
+  \MakeCli::make('model', $dummyModel, $sandbox);
+  $runner->assert(file_exists($modelPath), "make:model debe crear el archivo del modelo en sandbox");
   $modelContent = file_get_contents($modelPath);
   $runner->assert(str_contains($modelContent, "class {$dummyModel}Models extends Builder"), "El modelo generado debe extender Builder");
-  @unlink($modelPath);
+
+  // Limpiar sandbox temporal
+  $cleanSandbox = function (string $dirPath) use (&$cleanSandbox): void {
+    if (!is_dir($dirPath)) return;
+    foreach (scandir($dirPath) ?: [] as $item) {
+      if ($item === '.' || $item === '..') continue;
+      $target = $dirPath . '/' . $item;
+      is_dir($target) ? $cleanSandbox($target) : @unlink($target);
+    }
+    @rmdir($dirPath);
+  };
+  $cleanSandbox($sandbox);
 });
 
 // =========================================================================
@@ -392,22 +416,45 @@ $runner->runTest("InitAppStructure - Reconstrucción completa de /App desde /Res
   $runner->assert(file_exists($chartsDir . '/charts.css'), "Resources/Library/Charts/charts.css debe existir");
   $runner->assert(file_exists(ROOT_PATH . '/Resources/Config/config.php'), "Resources/Config/config.php debe existir");
 
-  // Probar ejecución segura de InitAppStructure para reconstruir /App
-  $init = new \InitAppStructure();
+  // 1. Probar que en el repositorio del framework no se genera /App
+  $fwInit = new \InitAppStructure();
+  ob_start();
+  $fwResult = $fwInit->create();
+  ob_end_clean();
+  $runner->assert($fwResult === true, "InitAppStructure::create() en el repo del framework debe retornar true sin errores");
+  $runner->assert(!is_dir(ROOT_PATH . '/App'), "InitAppStructure no debe crear /App en el repositorio del framework");
+
+  // 2. Probar reconstrucción completa de /App en un sandbox temporal de proyecto derivado
+  $sandbox = str_replace('\\', '/', sys_get_temp_dir() . '/frame_init_sandbox_' . uniqid());
+  @mkdir($sandbox, 0755, true);
+
+  $init = new \InitAppStructure($sandbox);
   ob_start();
   $result = $init->create();
   ob_end_clean();
-  $runner->assert($result === true, "InitAppStructure::create() debe ejecutarse sin errores");
+  $runner->assert($result === true, "InitAppStructure::create() debe ejecutarse sin errores en sandbox");
 
   // Verificar directorios vacíos de Segment y archivos base copiados desde Resources
-  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Form'), "App/Segment/Form debe crearse");
-  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Menu'), "App/Segment/Menu debe crearse");
-  $runner->assert(is_dir(ROOT_PATH . '/App/Segment/Template'), "App/Segment/Template debe crearse");
-  $runner->assert(file_exists(ROOT_PATH . '/App/Config/config.php'), "App/Config/config.php debe copiarse desde Resources");
-  $runner->assert(file_exists(ROOT_PATH . '/App/Config/CookieConfiguration.php'), "App/Config/CookieConfiguration.php debe copiarse desde Resources");
-  $runner->assert(file_exists(ROOT_PATH . '/App/Middleware/MiddlewareInterface/MiddlewareInterface.php'), "MiddlewareInterface.php debe copiarse desde Resources");
-  $runner->assert(file_exists(ROOT_PATH . '/App/Public/Css/_configTheme.css'), "_configTheme.css debe copiarse desde Resources");
-  $runner->assert(file_exists(ROOT_PATH . '/App/Route/web.php'), "App/Route/web.php debe copiarse desde Resources");
+  $runner->assert(is_dir($sandbox . '/App/Segment/Form'), "App/Segment/Form debe crearse");
+  $runner->assert(is_dir($sandbox . '/App/Segment/Menu'), "App/Segment/Menu debe crearse");
+  $runner->assert(is_dir($sandbox . '/App/Segment/Template'), "App/Segment/Template debe crearse");
+  $runner->assert(file_exists($sandbox . '/App/Config/config.php'), "App/Config/config.php debe copiarse desde Resources");
+  $runner->assert(file_exists($sandbox . '/App/Config/CookieConfiguration.php'), "App/Config/CookieConfiguration.php debe copiarse desde Resources");
+  $runner->assert(file_exists($sandbox . '/App/Middleware/MiddlewareInterface/MiddlewareInterface.php'), "MiddlewareInterface.php debe copiarse desde Resources");
+  $runner->assert(file_exists($sandbox . '/App/Public/Css/_configTheme.css'), "_configTheme.css debe copiarse desde Resources");
+  $runner->assert(file_exists($sandbox . '/App/Route/web.php'), "App/Route/web.php debe copiarse desde Resources");
+
+  // Limpiar sandbox temporal
+  $cleanSandbox = function (string $dirPath) use (&$cleanSandbox): void {
+    if (!is_dir($dirPath)) return;
+    foreach (scandir($dirPath) ?: [] as $item) {
+      if ($item === '.' || $item === '..') continue;
+      $target = $dirPath . '/' . $item;
+      is_dir($target) ? $cleanSandbox($target) : @unlink($target);
+    }
+    @rmdir($dirPath);
+  };
+  $cleanSandbox($sandbox);
 });
 
 // =========================================================================
@@ -475,6 +522,14 @@ $runner->runTest("Jit CSS - TextStyleRule (stroke, gradientes multidireccionales
 
   $strokeW2 = $rule->processWord('text-stroke1-w2');
   $runner->assert(str_contains($strokeW2, '-webkit-text-stroke: 2px var(--back-color);'), "text-stroke1-w2 debe permitir ancho de trazo");
+
+  // 1b. Text Stroke con relleno y orden de pintura optimizado (paint-order)
+  $strokeFill = $rule->processWord('text-stroke-fill1-w2');
+  $runner->assert(str_contains($strokeFill, '-webkit-text-stroke: 2px var(--back-color);') && str_contains($strokeFill, 'paint-order: stroke fill;'), "text-stroke-fill1-w2 debe incluir paint-order: stroke fill");
+
+  // 1c. Text Outline unificado
+  $outline = $rule->processWord('text-outline1-w2');
+  $runner->assert(str_contains($outline, 'text-shadow:') && str_contains($outline, 'var(--back-color)'), "text-outline1-w2 debe generar sombra de contorno exterior");
 
   // 2. Text Gradient
   $gradR = $rule->processWord('text-gradient-r-1-2');
@@ -564,19 +619,245 @@ $runner->runTest("Jit CSS - ProvisionsRule (w-auto, w-fit, h-auto, h-fit y respo
   $runner->assert(str_contains($hFitMid, '@media screen and (min-width: 577px)') && str_contains($hFitMid, 'height: fit-content !important;'), "h-fit-mid debe envolverse en media query mid");
 });
 
-// Limpiar /App y carpetas temporales de sistema si no existían antes de ejecutar las pruebas (modo repositorio puro del framework)
-if (!$appExistedBeforeTests) {
-  $deleteDir = function (string $dirPath) use (&$deleteDir): void {
-    if (!is_dir($dirPath)) return;
-    foreach (scandir($dirPath) ?: [] as $item) {
-      if ($item === '.' || $item === '..') continue;
-      $target = $dirPath . '/' . $item;
-      is_dir($target) ? $deleteDir($target) : @unlink($target);
+// =========================================================================
+// 16. THEME ENGINE & THEMEMODULE (FASE 1)
+// =========================================================================
+$runner->runTest("Theme Engine - ThemeModule (esquema JSON, colores, HSL y compilación CSS)", function () use ($runner) {
+  // 1. Carga y normalización de esquema
+  $defaultConfig = \Base\Module\ThemeModule::getDefaultConfig();
+  $runner->assert(isset($defaultConfig['layout']['font']), "Configuración default debe incluir layout.font");
+  $runner->assert(count($defaultConfig['light']['colors']) === 3, "Paleta clara debe tener 3 colores por defecto");
+  $runner->assert($defaultConfig['dark']['auto'] === true, "dark.auto debe ser true por defecto");
+
+  $templatePath = ROOT_PATH . '/Resources/Config/theme.json';
+  $runner->assert(file_exists($templatePath), "Resources/Config/theme.json debe existir como plantilla");
+  $loaded = \Base\Module\ThemeModule::loadConfig($templatePath);
+  $runner->assert(!empty($loaded['light']['body']), "loadConfig debe cargar light.body");
+  $runner->assert(isset($loaded['status']['hoverSuccess']), "loadConfig debe garantizar hoverSuccess");
+
+  // 2. Conversiones HSL y RGB
+  $testHex = '#FF4400';
+  [$r, $g, $b] = \Base\Module\ThemeModule::hexToRgb($testHex);
+  $runner->assert($r === 255 && $g === 68 && $b === 0, "hexToRgb debe descomponer #FF4400 correctamente");
+  [$h, $s, $l] = \Base\Module\ThemeModule::rgbToHsl($r, $g, $b);
+  $runner->assert($h >= 15 && $h <= 17, "rgbToHsl debe calcular un tono ~16 grados para naranja");
+  [$backR, $backG, $backB] = \Base\Module\ThemeModule::hslToRgb($h, $s, $l);
+  $runner->assert(abs($backR - $r) <= 1 && abs($backG - $g) <= 1 && abs($backB - $b) <= 1, "hslToRgb debe revertir a RGB con fidelidad");
+  $reHex = \Base\Module\ThemeModule::rgbToHex($backR, $backG, $backB);
+  $runner->assert(strtoupper($reHex) === strtoupper($testHex), "rgbToHex debe devolver el hex original");
+
+  // 3. Generación automática de modo oscuro
+  $darkPalette = \Base\Module\ThemeModule::generateDarkPalette($loaded['light']['colors']);
+  $runner->assert(count($darkPalette) === count($loaded['light']['colors']), "generateDarkPalette debe devolver la misma cantidad de colores");
+  
+  // Comprobar que un color muy claro (#FFC7B3) se vuelve oscuro en dark palette
+  [$lightR, $lightG, $lightB] = \Base\Module\ThemeModule::hexToRgb('#FFC7B3');
+  [$darkR, $darkG, $darkB] = \Base\Module\ThemeModule::hexToRgb($darkPalette[0]);
+  [, , $lightL] = \Base\Module\ThemeModule::rgbToHsl($lightR, $lightG, $lightB);
+  [, , $darkL] = \Base\Module\ThemeModule::rgbToHsl($darkR, $darkG, $darkB);
+  $runner->assert($darkL < $lightL, "El primer color en dark palette debe ser más oscuro que el original claro");
+
+  // 4. Compilación a CSS con sincronización segura
+  $existingCss = <<<CSS
+:root {
+  --animate-duration: 750ms;
+  --custom-var-test: #abcdef;
+}
+[data-theme="dark"] {
+  --custom-dark-test: 20px;
+}
+.test-trailing { display: block; }
+CSS;
+
+  $compiled = \Base\Module\ThemeModule::compileToCss($loaded, $existingCss);
+  $runner->assert(str_contains($compiled, ':root {'), "CSS debe incluir bloque :root");
+  $runner->assert(str_contains($compiled, '[data-theme="dark"] {'), "CSS debe incluir bloque [data-theme='dark']");
+  $runner->assert(str_contains($compiled, '--back-color: #FFC7B3;'), "CSS debe contener --back-color");
+  $runner->assert(str_contains($compiled, '--back-color-hover: oklch('), "CSS debe contener hovers oklch");
+  $runner->assert(str_contains($compiled, '--animate-duration: 750ms;'), "CSS debe preservar la duración personalizada de animación");
+  $runner->assert(str_contains($compiled, '--custom-var-test: #abcdef;'), "CSS debe preservar variables personalizadas en :root");
+  $runner->assert(str_contains($compiled, '--custom-dark-test: 20px;'), "CSS debe preservar variables personalizadas en [data-theme='dark']");
+  $runner->assert(str_contains($compiled, '.test-trailing { display: block; }'), "CSS debe preservar reglas CSS finales");
+
+  // 5. Test de build a disco y soporte de Coloristia
+  $coloristiaSnippet = <<<CSS
+/* Paleta generada en Coloristia */
+:root {
+  --color-base: #11EEB3;
+  --color-step-1: #102820;
+  --color-step-2: #11372B;
+  --color-step-3: #114636;
+}
+CSS;
+  $parsedColoristia = \Base\Module\ThemeModule::parseColorsFromInput($coloristiaSnippet);
+  $runner->assert(count($parsedColoristia) === 3 && $parsedColoristia[0] === '#102820', "parseColorsFromInput debe parsear steps de Coloristia en orden");
+
+  // 6. Test de Multi-tema, Programación por Calendario y Utilidades Condicionales (Fase 4)
+  $fullDef = \Base\Module\ThemeModule::getDefaultFullConfig();
+  $runner->assert(isset($fullDef['activeTheme']) && $fullDef['activeTheme'] === 'default', "getDefaultFullConfig debe tener activeTheme='default'");
+  $runner->assert(isset($fullDef['themes']['default']), "getDefaultFullConfig debe incluir el tema 'default'");
+
+  // Comprobar programación por calendario estacional (Año Nuevo 12-28 a 01-05 cruzando fin de año)
+  $nySched = [
+    'enabled' => true,
+    'recurring' => true,
+    'start' => '12-28',
+    'end' => '01-05'
+  ];
+  $runner->assert(\Base\Module\ThemeModule::isScheduleActive($nySched, new \DateTimeImmutable('2026-12-31')), "isScheduleActive debe ser true el 31 de Diciembre");
+  $runner->assert(\Base\Module\ThemeModule::isScheduleActive($nySched, new \DateTimeImmutable('2027-01-02')), "isScheduleActive debe ser true el 2 de Enero");
+  $runner->assert(!\Base\Module\ThemeModule::isScheduleActive($nySched, new \DateTimeImmutable('2026-06-15')), "isScheduleActive debe ser false el 15 de Junio");
+
+  // Comprobar resolución automática de tema y retorno a 'default' tras vencimiento
+  $testThemesConfig = [
+    'activeTheme' => 'default',
+    'themes' => [
+      'default' => \Base\Module\ThemeModule::getDefaultConfig('default', 'Predeterminado'),
+      'new-year' => array_merge(\Base\Module\ThemeModule::getDefaultConfig('new-year', 'Año Nuevo'), ['schedule' => $nySched])
+    ]
+  ];
+  $activeInSeason = \Base\Module\ThemeModule::resolveActiveThemeSlug($testThemesConfig, null, new \DateTimeImmutable('2026-12-30'));
+  $runner->assert($activeInSeason === 'new-year', "resolveActiveThemeSlug debe resolver 'new-year' cuando está dentro de la fecha programada");
+  
+  $activeOutOfSeason = \Base\Module\ThemeModule::resolveActiveThemeSlug($testThemesConfig, null, new \DateTimeImmutable('2026-03-10'));
+  $runner->assert($activeOutOfSeason === 'default', "resolveActiveThemeSlug debe volver automáticamente a 'default' cuando termina la fecha");
+
+  // Comprobar compilación de utilidades condicionales en CSS
+  $compiledMulti = \Base\Module\ThemeModule::compileToCss($testThemesConfig, null, $testThemesConfig['themes']);
+  $runner->assert(str_contains($compiledMulti, '--theme-active:'), "CSS compilado debe incluir la variable global --theme-active en :root");
+  $runner->assert(str_contains($compiledMulti, '.only-theme-new-year') && str_contains($compiledMulti, '.no-theme-new-year'), "CSS debe incluir utilidades .only-theme-new-year y .no-theme-new-year");
+  $runner->assert(str_contains($compiledMulti, 'data-theme-name="new-year"'), "CSS debe incluir selectores por atributo data-theme-name");
+  $runner->assert(str_contains($compiledMulti, 'body.theme-new-year'), "CSS debe incluir selectores por clase de body");
+  $runner->assert(function_exists('theme_name') && is_string(theme_name()), "Helper global theme_name() debe existir y devolver un string");
+
+  $tempDir = ROOT_PATH . '/tests/temp_theme_test';
+  @mkdir($tempDir . '/App/Config', 0755, true);
+  @mkdir($tempDir . '/App/Public/Css', 0755, true);
+
+  $jsonFile = $tempDir . '/App/Config/theme.json';
+  \Base\Module\ThemeModule::saveConfig($loaded, $jsonFile);
+  $runner->assert(file_exists($jsonFile), "saveConfig debe escribir theme.json en disco");
+
+  $buildRes = \Base\Module\ThemeModule::build($tempDir, true);
+  $runner->assert($buildRes['success'] === true, "ThemeModule::build debe retornar success=true");
+  $runner->assert(file_exists($tempDir . '/App/Public/Css/_configTheme.css'), "build debe generar _configTheme.css");
+
+  // Verificar timestamps y needsRebuild
+  $runner->assert(!\Base\Module\ThemeModule::needsRebuild($tempDir), "needsRebuild debe retornar false tras un build");
+  
+  // Modificar theme.json (avanzar timestamp) y comprobar needsRebuild
+  touch($jsonFile, time() + 10);
+  $runner->assert(\Base\Module\ThemeModule::needsRebuild($tempDir), "needsRebuild debe ser true cuando theme.json es más reciente");
+
+  // Limpiar directorio temporal de prueba
+  @unlink($jsonFile);
+  @unlink($tempDir . '/App/Public/Css/_configTheme.css');
+  @rmdir($tempDir . '/App/Public/Css');
+  @rmdir($tempDir . '/App/Config');
+  @rmdir($tempDir . '/App/Public');
+  @rmdir($tempDir . '/App');
+  @rmdir($tempDir);
+});
+
+// =========================================================================
+// 17. THEME STUDIO - CONTROLADOR, ENTORNO Y VISTAS (FASE 2)
+// =========================================================================
+$runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de rutas", function () use ($runner) {
+  // 1. Verificación de entorno de desarrollo
+  $runner->assert(\Base\Control\ThemeStudioControl::isDevEnvironment(), "isDevEnvironment debe ser true en entorno de pruebas/desarrollo");
+
+  // 2. Registro de rutas de desarrollo
+  \Base\Control\ThemeStudioControl::registerRoutes();
+  $routes = \Core\Route::getRoutes();
+
+  $foundGet = false;
+  $foundPost = false;
+  $foundLoadToSite = false;
+  $foundSetActive = false;
+  $foundDelete = false;
+  foreach ($routes as $route) {
+    if ($route['uri'] === '/_frame/theme-studio' && $route['method'] === 'GET') {
+      $foundGet = true;
     }
-    @rmdir($dirPath);
-  };
-  foreach (['App', 'Cache', 'Database', 'Logs', 'Uploads', 'Resources/Fonts', 'Resources/Helper'] as $dirToClean) {
-    $deleteDir(ROOT_PATH . '/' . $dirToClean);
+    if ($route['uri'] === '/_frame/theme-studio/save' && $route['method'] === 'POST') {
+      $foundPost = true;
+    }
+    if ($route['uri'] === '/_frame/theme-studio/load-to-site' && $route['method'] === 'POST') {
+      $foundLoadToSite = true;
+    }
+    if ($route['uri'] === '/_frame/theme-studio/set-active' && $route['method'] === 'POST') {
+      $foundSetActive = true;
+    }
+    if ($route['uri'] === '/_frame/theme-studio/delete-theme' && $route['method'] === 'POST') {
+      $foundDelete = true;
+    }
+  }
+  $runner->assert($foundGet, "Debe registrarse la ruta GET /_frame/theme-studio");
+  $runner->assert($foundPost, "Debe registrarse la ruta POST /_frame/theme-studio/save");
+  $runner->assert($foundLoadToSite, "Debe registrarse la ruta POST /_frame/theme-studio/load-to-site");
+  $runner->assert($foundSetActive, "Debe registrarse la ruta POST /_frame/theme-studio/set-active");
+  $runner->assert($foundDelete, "Debe registrarse la ruta POST /_frame/theme-studio/delete-theme");
+
+  // 3. Fuentes instaladas
+  $fonts = \Base\Control\ThemeStudioControl::getInstalledFonts();
+  $runner->assert(is_array($fonts) && count($fonts) >= 3, "getInstalledFonts debe devolver una lista de fuentes con al menos los stacks del sistema");
+  $runner->assert(!empty($fonts[0]['name']) && !empty($fonts[0]['value']), "Cada entrada de fuente debe incluir 'name' y 'value'");
+
+  // 4. Existencia y estructura de la vista
+  $viewPath = ROOT_PATH . '/Base/Views/themeStudio.php';
+  $runner->assert(file_exists($viewPath), "Base/Views/themeStudio.php debe existir");
+  $viewContent = (string)file_get_contents($viewPath);
+  $runner->assert(str_contains($viewContent, 'Frame Theme Studio'), "La vista debe incluir la cabecera de Frame Theme Studio");
+  $runner->assert(str_contains($viewContent, 'batchInput'), "La vista debe incluir el área de Pegado Rápido");
+  $runner->assert(str_contains($viewContent, 'darkBatchInput'), "La vista debe incluir el área de Pegado Rápido para Modo Oscuro (Coloristia)");
+  $runner->assert(str_contains($viewContent, 'parseColorsFromInput'), "La vista debe incluir el parser universal de Coloristia");
+  $runner->assert(str_contains($viewContent, 'btnAddColor'), "La vista debe incluir el botón para agregar colores a la paleta");
+  $runner->assert(str_contains($viewContent, 'removeColorSlot'), "La vista debe incluir la función para eliminar colores de la paleta");
+  $runner->assert(!str_contains($viewContent, 'harmonyType'), "La vista no debe incluir el generador armónico");
+  $runner->assert(str_contains($viewContent, 'id="sandbox"'), "La vista debe incluir el contenedor sandbox de previsualización interactiva");
+  // 5. Verificación de Vista Real del Proyecto en Vivo y Diagnóstico (Fase 3)
+  $projectRoutes = \Base\Control\ThemeStudioControl::getProjectRoutes();
+  $runner->assert(is_array($projectRoutes) && !empty($projectRoutes) && $projectRoutes[0]['uri'] === '/', "getProjectRoutes debe devolver las rutas del proyecto con '/' como vista principal");
+  $runner->assert(str_contains($viewContent, 'id="projectPreviewFrame"'), "La vista debe incluir el iframe #projectPreviewFrame para renderizar las vistas reales del proyecto");
+  $runner->assert(str_contains($viewContent, 'projectRouteSelect') && str_contains($viewContent, 'projectRouteInput'), "La vista debe incluir el selector y campo de rutas de App/Route");
+  $runner->assert(str_contains($viewContent, 'injectLiveThemeIntoIframe') && str_contains($viewContent, 'buildLiveThemeCssString'), "La vista debe inyectar y sobrescribir las variables de _configTheme.css en vivo dentro del iframe del proyecto");
+  $runner->assert(str_contains($viewContent, 'getContrastRatio') && str_contains($viewContent, 'getWcagRating'), "La vista debe incluir el motor matemático de evaluación de contraste WCAG 2.1");
+  $runner->assert(str_contains($viewContent, 'tab-wcag') && str_contains($viewContent, 'wcagMatrixContainer'), "La vista debe incluir la pestaña y contenedor de la matriz WCAG en vivo");
+  $runner->assert(str_contains($viewContent, 'renderGradientsShowcase') && str_contains($viewContent, 'tab-gradients'), "La vista debe incluir el showcase y pestaña de gradientes armónicos de Coloristia");
+  // 6. Verificación de Múltiples Temas Guardados, Selector y Modal (Fase 4)
+  $runner->assert(str_contains($viewContent, 'id="themeSelector"'), "La vista debe incluir el selector de temas guardados en la cabecera");
+  $runner->assert(str_contains($viewContent, 'tab-themes') && str_contains($viewContent, 'themesListContainer'), "La vista debe incluir la pestaña de gestión de temas y su contenedor");
+  $runner->assert(str_contains($viewContent, 'id="modalSaveTheme"'), "La vista debe incluir el modal para guardar paletas como nuevo tema");
+  $runner->assert(str_contains($viewContent, 'submitSaveNewTheme') && str_contains($viewContent, 'saveCurrentThemeSchedule'), "La vista debe incluir las funciones JS para persistir nuevos temas y programaciones");
+  $runner->assert(str_contains($viewContent, 'loadThemeToSite'), "La vista debe incluir la función JS loadThemeToSite para cargar y aplicar un tema al sitio real");
+  $runner->assert(str_contains($viewContent, 'id="btnSave"') && str_contains($viewContent, '💾 Guardar'), "El botón principal debe ser '💾 Guardar' para modo aislado");
+  $runner->assert(str_contains($viewContent, 'data-theme-name'), "La vista debe inyectar el atributo data-theme-name en vivo en el iframe");
+
+  // 7. Verificación de Selector de Fechas (Date Picker) y FloatingScroll en Preview (Fase 5)
+  $runner->assert(str_contains($viewContent, 'id="tsDatePickerPopover"'), "La vista debe incluir el popover del selector de fechas (#tsDatePickerPopover)");
+  $runner->assert(str_contains($viewContent, 'openDatePicker') && str_contains($viewContent, 'applySchedulePreset'), "La vista debe incluir las funciones JS del calendario interactivo y presets rápidos");
+  $runner->assert(str_contains($viewContent, 'setupIframeFloatingScroll') && str_contains($viewContent, 'PreviewFloatingScroll'), "La vista debe incluir el motor floatingScroll para la barra de previsualización sin alterar el ancho");
+
+  $floatingJsPath = ROOT_PATH . '/Resources/Js/Components/floatingScroll.js';
+  $runner->assert(file_exists($floatingJsPath), "Resources/Js/Components/floatingScroll.js debe existir");
+  $floatingJsContent = (string)file_get_contents($floatingJsPath);
+  $runner->assert(str_contains($floatingJsContent, 'targetWindow') && str_contains($floatingJsContent, 'targetDocument'), "floatingScroll.js debe soportar targetWindow y targetDocument para previsualizaciones e iframes");
+});
+
+// Limpiar /App y carpetas de proyecto en el repositorio del framework
+$deleteDir = function (string $dirPath) use (&$deleteDir): void {
+  if (!is_dir($dirPath)) return;
+  foreach (scandir($dirPath) ?: [] as $item) {
+    if ($item === '.' || $item === '..') continue;
+    $target = $dirPath . '/' . $item;
+    is_dir($target) ? $deleteDir($target) : @unlink($target);
+  }
+  @rmdir($dirPath);
+};
+foreach (['App', 'Cache', 'Database', 'Logs', 'Uploads'] as $dirToClean) {
+  $target = ROOT_PATH . '/' . $dirToClean;
+  if (is_dir($target)) {
+    $deleteDir($target);
   }
 }
 
