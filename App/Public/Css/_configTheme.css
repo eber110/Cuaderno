@@ -49,14 +49,14 @@
   --back-color15-hover: oklch(from var(--back-color15) calc(l * 1.2) calc(c - 0.02) h);
   --back-color16-hover: oklch(from var(--back-color16) calc(l * 1.2) calc(c - 0.02) h);
 
-  --success: #00b900;
-  --hover-success: #04ea04;
+  --success: #00B900;
+  --hover-success: #04EA04;
 
-  --caution: #ff8c00;
-  --hover-caution: #fead4b;
+  --caution: #FF8C00;
+  --hover-caution: #FEAD4B;
 
-  --danger: #ff0000;
-  --hover-danger: #fc6161;
+  --danger: #FF0000;
+  --hover-danger: #FC6161;
 
   --theme-active: "default";
   --sepia: sepia(40%);

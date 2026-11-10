@@ -123,12 +123,12 @@
                 ]
             },
             "status": {
-                "success": "#00b900",
-                "hoverSuccess": "#04ea04",
-                "caution": "#ff8c00",
-                "hoverCaution": "#fead4b",
-                "danger": "#ff0000",
-                "hoverDanger": "#fc6161"
+                "success": "#00B900",
+                "hoverSuccess": "#04EA04",
+                "caution": "#FF8C00",
+                "hoverCaution": "#FEAD4B",
+                "danger": "#FF0000",
+                "hoverDanger": "#FC6161"
             }
         }
     }
