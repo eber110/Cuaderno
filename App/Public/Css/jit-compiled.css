@@ -192,6 +192,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .bold800 { font-weight: 800; }
 .bold900 { font-weight: 900; }
 .capitalize { text-transform: capitalize !important; }
+.capitalize-first::first-letter { text-transform: uppercase !important; }
 .capitalize-p::first-letter { text-transform: uppercase !important; }
 .color-caution, .color-caution a { color: var(--caution); filter: var(--sepia); }
 .color-danger, .color-danger a { color: var(--danger); filter: var(--sepia); }

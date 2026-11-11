@@ -22,7 +22,10 @@
 ?>
 <?php if ($isOwner) : ?>
   <div class="flex-column top-start gap25 gap-sml-15 w100 mt20 mt5">
-    <p class="bold700">Hola <?= e($sessionUser) ?>.</p>
+    <div>
+      <p class="bold700">Hola, <span class="capitalize-first"><?= e($sessionUser) ?>.</span></p>
+      <p>Impulsa tus números hoy. Mantén tu espacio actualizado y compártelo en tus redes para atraer más tráfico al instante.</p>
+    </div>
 
     <div class="grid col-2 gap15 w100">
       <div class="flex-column top-center gap5 w100 p15 p-sml-10 br20 border-card-modal">
