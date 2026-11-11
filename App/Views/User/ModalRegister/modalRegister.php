@@ -13,6 +13,9 @@
       <p class="pl25 pr25 x20 bold500" style="color: #a7a7a7;">Tu nombre</p>
     </a>
     <p class="bold600">Asegura tu nombre antes de que alguien más lo tome.</p>
-    <a href="/registrar" class="p15 pl25 pr25 text-c back8-hover color5 br50 bold500 x20 w100">Reclamar mi usuario gratis <?= svg("arrow-r-l")?></a>
+    <div class="flex-column center-center gap5 w100">
+      <a href="/registrar" class="p15 pl25 pr25 text-c back8-hover color5 br50 bold500 x20 w100">Reclamar mi usuario gratis <?= svg("arrow-r-l")?></a>
+      <p class="w90 bold500">si tienes una cuenta <a href="/ingresar" class="color8-hover bold600">Ingresa aquí.</a></p>
+    </div>
   </div>
 </div>
