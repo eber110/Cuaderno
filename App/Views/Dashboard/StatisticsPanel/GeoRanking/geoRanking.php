@@ -66,7 +66,7 @@
     <!-- Vista Desbloqueada (Premium): Países con GraphicsModule::horizontalBars -->
     <?php if (!empty($countryBars)): ?>
       <div class="flex-column center-center gap10 w100">
-        <div class="w-mid-90 wpx-desk-650">
+        <div class="w-mid-90 wpx-desk-650 w-sml-100">
           <?= GraphicsModule::horizontalBars([
             'bars'        => $countryBars,
             'width'       => 650,

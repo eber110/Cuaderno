@@ -109,9 +109,9 @@
     <div class="w100 flex-column center pt10">
       <div class="w100 flex-column gap5">
         <div class="flex-row center-end gap10 pr15">
-          <span>Días: <strong>Lun — Dom</strong></span>
+          <!-- <span>Días: <strong>Lun — Dom</strong></span>
           <span>•</span>
-          <span>Horas: <strong>00:00 — 24:00</strong></span>
+          <span>Horas: <strong>00:00 — 24:00</strong></span> -->
         </div>
 
         <div class="w100 flex-row center-center">
