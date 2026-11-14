@@ -17,9 +17,9 @@
     : "p5 pl15 pr15 pl-sml-10 pr-sml-10 br15 back-card-graphic shadow-card-graphic border-none texto hidden";
 ?>
 <div class="sticky top z-index-20">
-  <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
+  <div data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
     <span class="live-dot-pulse"></span>
-    <span id="active-viewers-text" class="active-viewers-text x18 bold500 color-live-view">1 en línea</span>
+    <span class="active-viewers-text x18 bold500 color-live-view">1 en línea</span>
   </div>
 
   <nav class="flex-row center-between gap10 p20 p-sml-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
@@ -27,9 +27,9 @@
     <div class="flex-row center-start flex-shrink-0">
       <!-- Badge de Usuarios en Línea (desktop y tablet) -->
       <div class="wpx200 hpx32 no-phone">
-        <div id="active-viewers-badge" data-profile-user="<?= e($profile) ?>" class="active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 br20 back-live-view shadow-card-graphic hidden">
+        <div data-profile-user="<?= e($profile) ?>" class="active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 br20 back-live-view shadow-card-graphic hidden">
           <span class="live-dot-pulse"></span>
-          <span id="active-viewers-text" class="active-viewers-text x18 bold500 color-live-view">1 en línea</span>
+          <span class="active-viewers-text x18 bold500 color-live-view">1 en línea</span>
         </div>
       </div>
 
@@ -50,16 +50,16 @@
       </div>
 
       <div class="no-desk flex-shrink-0">
-        <div class="modal-btn animated pointer">
+        <div class="modal-btn animated pointer" data-preview-modal-trigger="true">
           <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-phone nowrap">Vista previa</p>
           <p class="p5 pl10 pr10 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-tablet flex-row center-center"><?= svg("eye")?></p>
         </div>
         <div class="hidden">
-          <div class="flex-column center-center w100">
+          <div class="flex-column center-center w100 h-dvh">
             <div class="absolute m20 top right fadeIn pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
               <?= svg("xmark")?>
             </div>
-            <?php _component("UserPreview.userPreview", ["data" => $card])?>
+            <div class="mobile-preview-mount flex-column center-center w100"></div>
           </div>
         </div>
       </div>

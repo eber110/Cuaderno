@@ -139,7 +139,25 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      $previewHtml       = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
+      $isCompact = !empty($paramArr["compact"])
+        || !empty(\Base\Module\SecurityModule::post("compact", ""))
+        || !empty(\Base\Module\SecurityModule::get("compact", ""));
+
+      if ($isCompact) {
+        while (ob_get_level() > 0) {
+          ob_end_clean();
+        }
+
+        ResponseModule::json([
+          "success"           => true,
+          "compact"           => true,
+          "hasCustom"         => false,
+          "sidebarStatusHtml" => $sidebarStatusHtml,
+          "card"              => $cardData
+        ]);
+      }
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
 
       $uri = [
         "formDesign"    => "/panel/{$userClean}/diseno",
@@ -312,13 +330,30 @@ class DesignControllers extends Control {
         $cardData["profile"] = $userClean;
       }
 
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-
       $sessionData = \Base\Module\Session::user_session_show() ?: [];
       $sidebarStatusHtml = _partToString("Dashboard.SideMenu.statusBanner", [
         "card"    => $cardData,
         "session" => $sessionData
       ]);
+
+      $isCompact = !empty(\Base\Module\SecurityModule::post("compact", ""))
+        || !empty(\Base\Module\SecurityModule::get("compact", ""));
+
+      if ($isCompact) {
+        while (ob_get_level() > 0) {
+          ob_end_clean();
+        }
+
+        ResponseModule::json([
+          "success"           => true,
+          "compact"           => true,
+          "updated"           => true,
+          "sidebarStatusHtml" => $sidebarStatusHtml,
+          "card"              => $cardData
+        ]);
+      }
+
+      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
 
       $uri = [
         "formDesign"    => "/panel/{$userClean}/diseno",

@@ -161,6 +161,9 @@ export function saveButtonController() {
    */
   function updatePreviewHtml(html) {
     if (!html) return;
+    if (typeof window.__updateUserPreviewTemplate === "function") {
+      window.__updateUserPreviewTemplate(html);
+    }
     const previewContainers = document.querySelectorAll(".user-profile-preview");
     previewContainers.forEach((container) => {
       const temp = document.createElement("div");
@@ -534,10 +537,29 @@ export function saveButtonController() {
           }
         }
 
+        // Marcar wrappers pendientes de animación SVG si están ocultos al inyectarse
+        if (generalWrapper) {
+          generalWrapper.dataset.chartsAnimated = generalRemote && !generalRemote.classList.contains("hidden") ? "true" : "false";
+        }
+        if (linksWrapper) {
+          linksWrapper.dataset.chartsAnimated = linksRemote && !linksRemote.classList.contains("hidden") ? "true" : "false";
+        }
+
         if (typeof window.initCharts === "function") {
           if (generalWrapper) window.initCharts(generalWrapper);
           if (linksWrapper) window.initCharts(linksWrapper);
         }
+
+        if (window.SvgChartAnimator && typeof window.SvgChartAnimator.initAllSvgCharts === "function") {
+          if (generalWrapper && generalRemote && !generalRemote.classList.contains("hidden")) {
+            window.SvgChartAnimator.initAllSvgCharts(generalWrapper, true);
+          }
+          if (linksWrapper && linksRemote && !linksRemote.classList.contains("hidden")) {
+            window.SvgChartAnimator.initAllSvgCharts(linksWrapper, true);
+          }
+        }
+
+        document.dispatchEvent(new CustomEvent("statsLoaded", { detail: data }));
       }
     } catch (err) {
       console.error("Error al cargar estadísticas bajo demanda:", err);
@@ -553,6 +575,17 @@ export function saveButtonController() {
     const btn = e.target.closest('.remote-btn[data-remote="stats-general-remote"], .remote-btn[data-remote="stats-links-remote"], .remote-btn[data-remote="statistics-remote"]');
     if (btn) {
       loadStatisticsIfNeeded();
+
+      // Animar gráficos SVG si la pestaña ya estaba cargada por AJAX pero permanecía oculta
+      const targetId = btn.dataset.remote;
+      requestAnimationFrame(() => {
+        const panel = targetId ? document.getElementById(targetId) : null;
+        const wrapper = panel ? (document.getElementById(`${targetId}-wrapper`) || panel) : null;
+        if (wrapper && panel && panel.dataset.loaded === "true" && wrapper.dataset.chartsAnimated !== "true") {
+          wrapper.dataset.chartsAnimated = "true";
+          window.SvgChartAnimator?.initAllSvgCharts?.(wrapper, true);
+        }
+      });
     }
   });
 

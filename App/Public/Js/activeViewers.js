@@ -127,10 +127,12 @@ export function activeViewers() {
     }
   }
 
+  const HEARTBEAT_INTERVAL_MS = 45000;
+
   // Iniciar timer recurrente solo después de ejecutar el primer heartbeat
   const startInterval = () => {
     if (!intervalId) {
-      intervalId = setInterval(sendHeartbeat, 15000);
+      intervalId = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
     }
   };
 
@@ -157,7 +159,7 @@ export function activeViewers() {
     } else {
       sendHeartbeat();
       if (!intervalId) {
-        intervalId = setInterval(sendHeartbeat, 15000);
+        intervalId = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
       }
     }
   });

@@ -1,4 +1,4 @@
-<div id="preview-widget-container" class="preview-widget-container flex-column center-center gap15 p30 p-sml-20 w100" style="box-sizing: border-box;">
+<div class="preview-widget-container flex-column center-center gap15 p30 p-sml-20 w100" style="box-sizing: border-box;">
 
   <?php 
     /** 

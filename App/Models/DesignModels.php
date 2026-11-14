@@ -709,12 +709,7 @@ class DesignModels extends Builder {
       $content = [];
       $existingContentList = $dataRequest["content"] ?? [];
       $officialContent     = $officialCard["content"] ?? [];
-      $officialImages      = [];
-      foreach ($officialContent as $offItem) {
-        if (!empty($offItem["img"])) {
-          $officialImages[] = $offItem["img"];
-        }
-      }
+      $officialImages      = self::collectContentImageNames($officialContent);
 
       // Mapear elementos existentes por ID para evitar colisiones por índice
       $existingById = [];
@@ -1577,6 +1572,10 @@ class DesignModels extends Builder {
           }
         }
       }
+
+      if ($isExplicitListAction) {
+        self::cleanupOrphanContentImages($existingContentList, $content, $officialImages);
+      }
     }
 
     if (isset($param["add_content_type"])) {
@@ -1787,8 +1786,9 @@ class DesignModels extends Builder {
       "hover"        => isset($param["hover"]) ? ($param["hover"] === "true" || $param["hover"] === true || $param["hover"] === 1 || $param["hover"] === "1") : ($dataRequest["hover"] ?? false),
       "color"        => $param["color"] ?? $dataRequest["color"] ?? "#494949",
       "colorShadow3" => $param["colorShadow3"] ?? $dataRequest["colorShadow3"] ?? "#000000",
-      "rrss"         => $rrss ?? $dataRequest["rrss"] ?? [],
-      "content"      => $content ?? $dataRequest["content"] ?? []
+      "rrss"            => $rrss ?? $dataRequest["rrss"] ?? [],
+      "content"         => $content ?? $dataRequest["content"] ?? [],
+      "last_updated_at" => time()
     ];
 
     // 1. Guardar en el contenedor de caché de cambio ultra rápido (runtime / disco)
@@ -1845,6 +1845,53 @@ class DesignModels extends Builder {
   }
 
   /**
+   * Recolecta todos los nombres de archivo de imagen usados en una lista de bloques y sus subproductos.
+   *
+   * @param array $blocks Lista de bloques de contenido.
+   * @return array Lista única de nombres de archivo.
+   */
+  private static function collectContentImageNames(array $blocks): array {
+    $names = [];
+    foreach ($blocks as $block) {
+      if (!is_array($block)) {
+        continue;
+      }
+      if (!empty($block["img"]) && is_string($block["img"])) {
+        $names[] = $block["img"];
+      }
+      if (!empty($block["products"]) && is_array($block["products"])) {
+        foreach ($block["products"] as $sub) {
+          if (!empty($sub["img"]) && is_string($sub["img"])) {
+            $names[] = $sub["img"];
+          }
+        }
+      }
+    }
+    return array_values(array_unique($names));
+  }
+
+  /**
+   * Elimina del disco imágenes de contenido huérfanas tras reconciliación completa de bloques (ahorro de inodos).
+   *
+   * @param array $previousBlocks Bloques previos al guardado.
+   * @param array $survivingBlocks Bloques resultantes que permanecen activos.
+   * @param array $officialImages Imágenes aún referenciadas por el diseño oficial publicado.
+   * @return void
+   */
+  private static function cleanupOrphanContentImages(array $previousBlocks, array $survivingBlocks, array $officialImages): void {
+    $previousImgs = self::collectContentImageNames($previousBlocks);
+    if (empty($previousImgs)) {
+      return;
+    }
+    $keepImgs = array_flip(array_merge(self::collectContentImageNames($survivingBlocks), $officialImages));
+    foreach ($previousImgs as $imgName) {
+      if (!isset($keepImgs[$imgName])) {
+        self::deleteContentImageFromDisk($imgName);
+      }
+    }
+  }
+
+  /**
    * Elimina un archivo de imagen de fondo del disco de manera segura contra Path Traversal.
    *
    * @param string $bgFilename Nombre del archivo de imagen.
@@ -1878,6 +1925,7 @@ class DesignModels extends Builder {
     $userClean = mb_strtolower($user, "UTF-8");
     self::ensureBlockIds($card);
     $card["active"] = true;
+    $card["last_updated_at"] = time();
 
     if (isset($card["borders"])) {
       if (is_string($card["borders"])) {
@@ -1983,6 +2031,7 @@ class DesignModels extends Builder {
       }
 
       $card["active"] = true;
+      $card["last_updated_at"] = time();
 
       // 4. Guardar como versión oficial publicada (is_draft = 0)
       self::saveDesignToDb($userClean, 0, $card);
@@ -2009,6 +2058,7 @@ class DesignModels extends Builder {
         $card = $officialData["card"];
         if (!($card["active"] ?? false)) {
           $card["active"] = true;
+          $card["last_updated_at"] = time();
           self::saveDesignToDb($userClean, 0, $card);
           if (class_exists(CacheModule::class)) {
             CacheModule::set("design_official_" . $userClean, ["card" => $card], 86400 * 30);
@@ -2523,6 +2573,7 @@ class DesignModels extends Builder {
     unset($item);
 
     if ($updated) {
+      $card["last_updated_at"] = time();
       self::saveDesignToDb($userClean, $isDraft, $card);
       if (class_exists(CacheModule::class)) {
         $cacheKey = ($isDraft === 1) ? ("design_draft_" . $userClean) : ("design_official_" . $userClean);

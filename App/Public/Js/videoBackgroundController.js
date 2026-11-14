@@ -409,6 +409,9 @@ export function videoBackgroundController() {
 
             // 1. Actualizar vista previa del perfil
             if (resData && resData.html) {
+              if (typeof window.__updateUserPreviewTemplate === "function") {
+                window.__updateUserPreviewTemplate(resData.html);
+              }
               document.querySelectorAll(".user-profile-preview").forEach((container) => {
                 const temp = document.createElement("div");
                 temp.innerHTML = resData.html.trim();

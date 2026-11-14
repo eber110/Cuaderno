@@ -109,6 +109,8 @@ export function menuMemory() {
     const remoteId = btn.dataset.remote;
     if (remoteId) {
       setMenuMemory(remoteId);
+      // Asegurar que prevalezca { remote, timestamp } incluso si verticalMenu.js escribe después sin timestamp
+      setTimeout(() => setMenuMemory(remoteId), 0);
     }
   });
 

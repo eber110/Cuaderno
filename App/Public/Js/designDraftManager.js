@@ -24,53 +24,269 @@ export function designDraftManager() {
   const INITIAL_KEY = `cuaderno_design_initial_${user}`;
   const DRAFT_KEY = `cuaderno_design_draft_${user}`;
 
+  // Caché en RAM para evitar lecturas/escrituras síncronas repetitivas a localStorage
+  let cachedInitialState = null;
+  let cachedInitialJson = null;
+  let cachedDraftState = null;
+  let cachedDraftJson = null;
+  let persistDraftTimer = null;
+  let isDraftDirtyForPersist = false;
+  let rafPreviewTimer = null;
+
+  // Registro exclusivo en RAM de Blob URLs pendientes (nunca persistidas en localStorage)
+  const pendingBlobUrls = new Map();
+  const pendingUploadFlags = new Set();
+
   /**
-   * Obtiene el estado inicial (oficial) de la tarjeta desde localStorage.
+   * Elimina cualquier URL temporal blob: o data: heredada en un estado JSON antes de persistirlo o usarlo.
+   * @param {Object|null} state
+   * @returns {Object|null}
+   */
+  function sanitizeBlobStringsInState(state) {
+    if (!state || typeof state !== "object") return state;
+    if (typeof state.avatar === "string" && (state.avatar.startsWith("blob:") || state.avatar.startsWith("data:"))) {
+      state.avatar = "no-user.webp";
+    }
+    if (state.backCard && typeof state.backCard.back_image === "string" && (state.backCard.back_image.startsWith("blob:") || state.backCard.back_image.startsWith("data:"))) {
+      state.backCard.back_image = "";
+    }
+    if (Array.isArray(state.content)) {
+      state.content.forEach((blk) => {
+        if (!blk || typeof blk !== "object") return;
+        if (typeof blk.imgSrc === "string" && (blk.imgSrc.startsWith("blob:") || blk.imgSrc.startsWith("data:"))) {
+          blk.imgSrc = blk.img && blk.img !== "no-image.webp" ? `/Uploads/${blk.img}` : "";
+        }
+        if (Array.isArray(blk.products)) {
+          blk.products.forEach((sub) => {
+            if (sub && typeof sub.imgSrc === "string" && (sub.imgSrc.startsWith("blob:") || sub.imgSrc.startsWith("data:"))) {
+              sub.imgSrc = sub.img && sub.img !== "no-image.webp" ? `/Uploads/${sub.img}` : "";
+            }
+          });
+        }
+      });
+    }
+    return state;
+  }
+
+  /**
+   * Revoca de memoria una Blob URL pendiente y limpia su bandera de subida.
+   * @param {string} key
+   */
+  function revokePendingBlob(key) {
+    if (!key) return;
+    const oldUrl = pendingBlobUrls.get(key);
+    if (oldUrl) {
+      try { URL.revokeObjectURL(oldUrl); } catch (_) {}
+      pendingBlobUrls.delete(key);
+    }
+    pendingUploadFlags.delete(key);
+  }
+
+  /**
+   * Crea y registra una nueva Blob URL temporal para vista previa revocando cualquier anterior.
+   * @param {string} key
+   * @param {File|Blob} file
+   * @returns {string}
+   */
+  function setPendingBlob(key, file) {
+    revokePendingBlob(key);
+    const url = URL.createObjectURL(file);
+    pendingBlobUrls.set(key, url);
+    pendingUploadFlags.add(key);
+    return url;
+  }
+
+  /**
+   * Revoca todas las Blob URLs registradas en RAM (libera memoria del navegador).
+   */
+  function clearAllPendingBlobs() {
+    pendingBlobUrls.forEach((url) => {
+      try { URL.revokeObjectURL(url); } catch (_) {}
+    });
+    pendingBlobUrls.clear();
+    pendingUploadFlags.clear();
+  }
+
+  /**
+   * Obtiene el Blob URL temporal activo para un bloque o sub-ítem si existe en RAM.
+   * @param {string|null} blockId
+   * @param {string|number|null} [subIdx=null]
+   * @returns {string|null}
+   */
+  function getPendingBlockBlobUrl(blockId, subIdx = null) {
+    if (!blockId) return null;
+    const key = (subIdx !== null && subIdx !== undefined)
+      ? `block:${blockId}:sub:${subIdx}`
+      : `block:${blockId}`;
+    return pendingBlobUrls.get(key) || null;
+  }
+
+  /**
+   * Revoca todas las Blob URLs asociadas a un bloque (incluido sus sub-productos).
+   * @param {string|null} blockId
+   */
+  function revokeBlockBlobs(blockId) {
+    if (!blockId) return;
+    const prefix = `block:${blockId}`;
+    Array.from(pendingBlobUrls.keys()).forEach((k) => {
+      if (k === prefix || k.startsWith(`${prefix}:`)) {
+        revokePendingBlob(k);
+      }
+    });
+  }
+
+  /**
+   * Ejecuta una actualización visual coalescida al siguiente frame de animación.
+   * @param {Function} callback
+   */
+  function scheduleRafTask(callback) {
+    if (rafPreviewTimer) {
+      cancelAnimationFrame(rafPreviewTimer);
+    }
+    rafPreviewTimer = requestAnimationFrame(() => {
+      rafPreviewTimer = null;
+      callback();
+    });
+  }
+
+  /**
+   * Vuelca inmediatamente el borrador en RAM a localStorage si hay escritura pendiente.
+   */
+  function flushDraftSave() {
+    if (persistDraftTimer) {
+      clearTimeout(persistDraftTimer);
+      persistDraftTimer = null;
+    }
+    if (isDraftDirtyForPersist && cachedDraftState) {
+      cachedDraftJson = JSON.stringify(cachedDraftState);
+      try {
+        localStorage.setItem(DRAFT_KEY, cachedDraftJson);
+      } catch (e) {
+        console.warn("Error al escribir en localStorage:", e);
+      }
+      isDraftDirtyForPersist = false;
+    }
+  }
+
+  window.addEventListener("pagehide", flushDraftSave);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushDraftSave();
+    }
+  });
+
+  /**
+   * Obtiene el estado inicial (oficial) de la tarjeta desde caché RAM o localStorage.
    * @returns {Object|null}
    */
   function getInitialState() {
+    if (cachedInitialState !== null) {
+      return cachedInitialState;
+    }
     try {
       const data = localStorage.getItem(INITIAL_KEY);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+      cachedInitialState = sanitizeBlobStringsInState(JSON.parse(data));
+      cachedInitialJson = JSON.stringify(cachedInitialState);
+      return cachedInitialState;
     } catch (e) {
       return null;
     }
   }
 
   /**
-   * Obtiene el estado de trabajo actual (borrador estructurado) desde localStorage.
+   * Guarda el estado inicial oficial en caché RAM y localStorage.
+   * @param {Object|null} state
+   */
+  function setInitialState(state) {
+    cachedInitialState = state ? sanitizeBlobStringsInState(JSON.parse(JSON.stringify(state))) : null;
+    cachedInitialJson = cachedInitialState ? JSON.stringify(cachedInitialState) : null;
+    try {
+      if (cachedInitialJson !== null) {
+        localStorage.setItem(INITIAL_KEY, cachedInitialJson);
+      } else {
+        localStorage.removeItem(INITIAL_KEY);
+      }
+    } catch (e) {
+      console.warn("Error al guardar INITIAL_KEY:", e);
+    }
+  }
+
+  /**
+   * Obtiene el estado de trabajo actual (borrador estructurado) desde caché RAM o localStorage.
    * @returns {Object|null}
    */
   function getDraftState() {
+    if (cachedDraftState !== null) {
+      return cachedDraftState;
+    }
     try {
       const data = localStorage.getItem(DRAFT_KEY);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+      cachedDraftState = sanitizeBlobStringsInState(JSON.parse(data));
+      cachedDraftJson = JSON.stringify(cachedDraftState);
+      return cachedDraftState;
     } catch (e) {
       return null;
     }
   }
 
   /**
-   * Persiste el estado de trabajo estructurado en localStorage y notifica cambios.
-   * @param {Object} draft
+   * Guarda de forma inmediata (síncrona) el borrador en RAM y localStorage.
+   * @param {Object|null} state
    */
-  function saveDraftState(draft) {
+  function setDraftStateImmediate(state) {
+    if (persistDraftTimer) {
+      clearTimeout(persistDraftTimer);
+      persistDraftTimer = null;
+    }
+    cachedDraftState = state ? sanitizeBlobStringsInState(JSON.parse(JSON.stringify(state))) : null;
+    cachedDraftJson = cachedDraftState ? JSON.stringify(cachedDraftState) : null;
+    isDraftDirtyForPersist = false;
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      if (cachedDraftJson !== null) {
+        localStorage.setItem(DRAFT_KEY, cachedDraftJson);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
     } catch (e) {
       console.warn("Error al escribir en localStorage:", e);
+    }
+  }
+
+  /**
+   * Persiste el estado de trabajo estructurado en RAM con escritura debounced en localStorage y notifica cambios.
+   * @param {Object} draft
+   * @param {{immediate?: boolean}} [options={}]
+   */
+  function saveDraftState(draft, options = {}) {
+    cachedDraftState = draft;
+    if (options && options.immediate) {
+      flushDraftSave();
+      cachedDraftJson = JSON.stringify(draft);
+      try {
+        localStorage.setItem(DRAFT_KEY, cachedDraftJson);
+      } catch (e) {
+        console.warn("Error al escribir en localStorage:", e);
+      }
+      isDraftDirtyForPersist = false;
+    } else {
+      isDraftDirtyForPersist = true;
+      if (persistDraftTimer) clearTimeout(persistDraftTimer);
+      persistDraftTimer = setTimeout(flushDraftSave, 200);
     }
     notifyDraftState();
   }
 
   /**
-   * Comprueba si el borrador de trabajo difiere del estado inicial oficial.
-   * Cero consultas a la base de datos, cero dependencia de marcas de tiempo.
+   * Comprueba si el borrador de trabajo difiere del estado inicial oficial o hay archivos pendientes.
+   * Cero consultas a la base de datos y mínimo overhead en RAM.
    * @returns {boolean}
    */
   function hasDraft() {
-    const initStr = localStorage.getItem(INITIAL_KEY);
-    const draftStr = localStorage.getItem(DRAFT_KEY);
+    if (pendingUploadFlags.size > 0 || pendingBlobUrls.size > 0) {
+      return true;
+    }
     try {
       const inputs = document.querySelectorAll("input[type='file']");
       for (let i = 0; i < inputs.length; i++) {
@@ -79,7 +295,12 @@ export function designDraftManager() {
         }
       }
     } catch (_) {}
-    if (!initStr || !draftStr) return false;
+
+    const initObj = getInitialState();
+    const draftObj = getDraftState();
+    if (!initObj || !draftObj) return false;
+    const initStr = cachedInitialJson ?? JSON.stringify(initObj);
+    const draftStr = isDraftDirtyForPersist ? JSON.stringify(draftObj) : (cachedDraftJson ?? JSON.stringify(draftObj));
     return initStr !== draftStr;
   }
 
@@ -170,23 +391,20 @@ export function designDraftManager() {
 
         // Si no existe INITIAL_KEY o el servidor tiene una versión más nueva (ej. tras guardar/publicar)
         if (!storedInitial || (serverUpdatedAt > 0 && serverUpdatedAt > storedUpdatedAt)) {
-          storedInitial = serverState;
-          localStorage.setItem(INITIAL_KEY, JSON.stringify(storedInitial));
-          storedDraft = serverState;
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(storedDraft));
+          setInitialState(serverState);
+          setDraftStateImmediate(serverState);
           return;
         }
 
         // Si no existe DRAFT_KEY, clonar idéntico al estado inicial
         if (!storedDraft) {
-          storedDraft = storedInitial;
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(storedDraft));
+          setDraftStateImmediate(storedInitial);
         } else {
           // Si ambos existían y son idénticos (no hay cambios pendientes), y el servidor cambió, sincronizar ambos
           if (storedInitial && JSON.stringify(storedInitial) === JSON.stringify(storedDraft)) {
             if (JSON.stringify(storedInitial) !== JSON.stringify(serverState)) {
-              localStorage.setItem(INITIAL_KEY, JSON.stringify(serverState));
-              localStorage.setItem(DRAFT_KEY, JSON.stringify(serverState));
+              setInitialState(serverState);
+              setDraftStateImmediate(serverState);
             }
           }
         }
@@ -443,14 +661,207 @@ export function designDraftManager() {
     });
   }
 
+  /**
+   * Construye un ítem de formulario RRSS desde la plantilla #tpl_rrss_item clonando su icono SVG desde el menú selector.
+   * @param {string} socialName Nombre normalizado de la red social.
+   * @param {number} index Índice inicial en la lista.
+   * @param {string} [url=""] URL configurada.
+   * @returns {HTMLElement|null}
+   */
+  function buildRrssEditorItemFromTemplate(socialName, index, url = "") {
+    const tpl = document.getElementById("tpl_rrss_item");
+    if (!tpl) return null;
+    const cleanName = String(socialName || "").trim().toLowerCase();
+    const label = cleanName ? cleanName.charAt(0).toUpperCase() + cleanName.slice(1) : "";
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = tpl.innerHTML
+      .replace(/\{\{INDEX\}\}/g, String(index))
+      .replace(/\{\{RRSS_NAME\}\}/g, cleanName)
+      .replace(/\{\{RRSS_LABEL\}\}/g, label);
+    const node = tempDiv.firstElementChild;
+    if (!node) return null;
+
+    const pickerSvg = document.querySelector(`button[data-action="add-rrss-template"][data-rrss="${cleanName}"] svg`);
+    const iconSlot = node.querySelector(".rrss-icon-slot");
+    if (pickerSvg && iconSlot) {
+      const clonedSvg = pickerSvg.cloneNode(true);
+      clonedSvg.classList.remove("x18");
+      clonedSvg.classList.add("x20");
+      iconSlot.appendChild(clonedSvg);
+    }
+
+    const urlInput = node.querySelector(`input[name^="rrss["][name$="[1]"]`);
+    if (urlInput && url !== undefined) {
+      urlInput.value = url;
+    }
+    return node;
+  }
+
+  /**
+   * Construye un enlace RRSS para la vista previa desde #tpl_preview_rrss clonando el SVG del selector.
+   * @param {string} socialName Nombre normalizado de la red social.
+   * @param {string} [url=""] URL configurada.
+   * @returns {HTMLElement|null}
+   */
+  function buildRrssPreviewLinkFromTemplate(socialName, url = "") {
+    const tpl = document.getElementById("tpl_preview_rrss");
+    if (!tpl) return null;
+    const cleanName = String(socialName || "").trim().toLowerCase();
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = tpl.innerHTML.replace(/\{\{RRSS_NAME\}\}/g, cleanName);
+    const link = tempDiv.firstElementChild;
+    if (!link) return null;
+
+    const pickerSvg = document.querySelector(`button[data-action="add-rrss-template"][data-rrss="${cleanName}"] svg`);
+    if (pickerSvg) {
+      const clonedSvg = pickerSvg.cloneNode(true);
+      clonedSvg.classList.remove("x18");
+      link.appendChild(clonedSvg);
+    }
+    const trimmedUrl = String(url || "").trim();
+    link.href = trimmedUrl || "#";
+    link.style.display = trimmedUrl !== "" ? "" : "none";
+    return link;
+  }
+
+  /**
+   * Sincroniza bidireccionalmente todos los controles compartidos con el mismo atributo name
+   * (por ejemplo, inputs globales duplicados entre colorPanel y paneles individuales).
+   *
+   * @param {string} name Nombre del campo.
+   * @param {*} value Nuevo valor a propagar.
+   * @param {HTMLElement|null} [excludeEl=null] Elemento origen a excluir.
+   */
+  function syncSiblingInputsByName(name, value, excludeEl = null) {
+    if (!name) return;
+    document.querySelectorAll(`input[name="${CSS.escape(name)}"], textarea[name="${CSS.escape(name)}"], select[name="${CSS.escape(name)}"]`).forEach((inp) => {
+      if (inp === excludeEl || inp.type === "file") return;
+      if (inp.value !== String(value)) {
+        inp.value = value;
+      }
+      if (inp.type === "color" || inp.classList.contains("color-picker")) {
+        const labelText = inp.closest("label")?.querySelector("p, span");
+        if (labelText && labelText.textContent !== String(value)) {
+          labelText.textContent = value;
+        }
+      }
+    });
+  }
+
+  /**
+   * Sincroniza adiciones, eliminaciones y orden de bloques/RRSS dentro de una instancia .user-profile-preview.
+   *
+   * @param {HTMLElement} previewEl Contenedor .user-profile-preview a sincronizar.
+   * @param {Object|null} draft Estado del borrador con content y rrss.
+   */
+  function syncPreviewStructureFromDraft(previewEl, draft) {
+    if (!previewEl || !draft) return;
+
+    if (Array.isArray(draft.content)) {
+      const pContainer = previewEl.querySelector(".preview-widget-container, #preview-widget-container");
+      if (pContainer) {
+        const draftBlockIds = new Set(draft.content.map((b) => b && b.id).filter(Boolean));
+        Array.from(pContainer.querySelectorAll("[data-block-id]")).forEach((item) => {
+          const bId = item.getAttribute("data-block-id");
+          if (bId && !draftBlockIds.has(bId)) {
+            item.remove();
+          }
+        });
+
+        draft.content.forEach((block) => {
+          if (!block || !block.id) return;
+          const existingPrevEl = pContainer.querySelector(`[data-block-id="${block.id}"]`);
+          if (!existingPrevEl) {
+            const blockType = block.type || "link";
+            const tplPreview = document.getElementById("tpl_preview_" + blockType);
+            if (tplPreview) {
+              const htmlPreview = tplPreview.innerHTML
+                .replace(/\{\{INDEX\}\}/g, "0")
+                .replace(/\{\{BLOCK_ID\}\}/g, block.id);
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = htmlPreview;
+              Array.from(tempDiv.children).forEach((node) => {
+                if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
+                  node.setAttribute("data-block-id", block.id);
+                  const isActive = (block.active === true || block.active === "true" || block.active === 1 || block.active === "1");
+                  node.style.display = isActive ? "" : "none";
+                }
+                pContainer.appendChild(node);
+              });
+            }
+          }
+        });
+
+        const targetNodes = [];
+        draft.content.forEach((block, newIdx) => {
+          if (!block || !block.id) return;
+          Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`)).forEach((el) => {
+            el.setAttribute("data-content-index", String(newIdx));
+            targetNodes.push(el);
+          });
+        });
+
+        targetNodes.forEach((node, i) => {
+          if (pContainer.children[i] !== node) {
+            pContainer.insertBefore(node, pContainer.children[i] || null);
+          }
+        });
+      }
+    }
+
+    if (Array.isArray(draft.rrss)) {
+      const draftRrssNames = new Set(
+        draft.rrss.map((r) => (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase()).filter(Boolean)
+      );
+      Array.from(previewEl.querySelectorAll('[data-link-id^="rrss_"]')).forEach((link) => {
+        const linkName = (link.getAttribute("data-link-id") || "").replace(/^rrss_/, "").toLowerCase();
+        if (linkName && !draftRrssNames.has(linkName)) {
+          link.remove();
+        }
+      });
+
+      const wrapper = previewEl.querySelector(".preview-rrss-container");
+      if (wrapper) {
+        wrapper.style.display = draft.rrss.length > 0 ? "" : "none";
+      }
+
+      const remainingLinks = Array.from(previewEl.querySelectorAll('[data-link-id^="rrss_"]'));
+      const wrappers = new Set([
+        ...(wrapper ? [wrapper] : []),
+        ...remainingLinks.map((l) => l.parentElement).filter(Boolean)
+      ]);
+
+      wrappers.forEach((rrssWrapper) => {
+        const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
+        const targetNodes = [];
+        draft.rrss.forEach((r) => {
+          const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+          const url = (Array.isArray(r) ? r[1] : r?.url || "");
+          if (!name) return;
+          let match = previewLinks.find((link) => (link.getAttribute("data-link-id") || "").toLowerCase() === `rrss_${name}`);
+          if (!match) {
+            match = buildRrssPreviewLinkFromTemplate(name, url);
+            if (match) rrssWrapper.appendChild(match);
+          }
+          if (match) targetNodes.push(match);
+        });
+
+        targetNodes.forEach((node, i) => {
+          if (rrssWrapper.children[i] !== node) {
+            rrssWrapper.insertBefore(node, rrssWrapper.children[i] || null);
+          }
+        });
+      });
+    }
+  }
+
   function restoreOrderFromDraft() {
     const draft = getDraftState();
     if (!draft) return;
 
-    // 1. Restaurar orden, adiciones y eliminaciones de Bloques de Contenido
+    // 1. Restaurar orden, adiciones y eliminaciones de Bloques de Contenido en el editor
     if (draft && Array.isArray(draft.content)) {
       const editorList = document.getElementById("sortable-content-list");
-      const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
 
       if (editorList) {
         // A) Eliminar del editor cualquier bloque borrado en el borrador
@@ -507,68 +918,11 @@ export function designDraftManager() {
         // D) Re-indexar el editor
         reindexEditorDOM(editorList);
       }
-
-      if (previewContainers.length > 0) {
-        previewContainers.forEach((pContainer) => {
-          // A) Eliminar de la vista previa los bloques borrados en el borrador
-          const existingPreviewItems = Array.from(pContainer.querySelectorAll("[data-block-id]"));
-          const draftBlockIds = new Set(draft.content.map((b) => b && b.id).filter(Boolean));
-          existingPreviewItems.forEach((item) => {
-            const bId = item.getAttribute("data-block-id");
-            if (bId && !draftBlockIds.has(bId)) {
-              item.remove();
-            }
-          });
-
-          // B) Reconstruir en vista previa los bloques del borrador que no existan en el DOM
-          draft.content.forEach((block) => {
-            if (!block || !block.id) return;
-            const existingPrevEl = pContainer.querySelector(`[data-block-id="${block.id}"]`);
-            if (!existingPrevEl) {
-              const blockType = block.type || "link";
-              const tplPreview = document.getElementById("tpl_preview_" + blockType);
-              if (tplPreview) {
-                let htmlPreview = tplPreview.innerHTML
-                  .replace(/\{\{INDEX\}\}/g, "0")
-                  .replace(/\{\{BLOCK_ID\}\}/g, block.id);
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = htmlPreview;
-                Array.from(tempDiv.children).forEach((node) => {
-                  if (node.hasAttribute && (node.hasAttribute("data-content-index") || node.hasAttribute("data-block-id") || (node.className && node.className.includes("block-wrapper")))) {
-                    node.setAttribute("data-block-id", block.id);
-                    const isActive = (block.active === true || block.active === "true" || block.active === 1 || block.active === "1");
-                    node.style.display = isActive ? "" : "none";
-                  }
-                  pContainer.appendChild(node);
-                });
-              }
-            }
-          });
-
-          // C) Reordenar y alinear la vista previa
-          const targetNodes = [];
-          draft.content.forEach((block, newIdx) => {
-            if (!block || !block.id) return;
-            const prevEls = Array.from(pContainer.querySelectorAll(`[data-block-id="${block.id}"]`));
-            prevEls.forEach((el) => {
-              el.setAttribute("data-content-index", String(newIdx));
-              targetNodes.push(el);
-            });
-          });
-
-          targetNodes.forEach((node, i) => {
-            if (pContainer.children[i] !== node) {
-              pContainer.insertBefore(node, pContainer.children[i] || null);
-            }
-          });
-        });
-      }
     }
 
-    // 2. Restaurar orden, adiciones y eliminaciones de Redes Sociales
+    // 2. Restaurar orden, adiciones y eliminaciones de Redes Sociales en el editor
     if (draft && Array.isArray(draft.rrss)) {
       const rrssList = document.getElementById("sortable-rrss-list");
-      const allPreviews = document.querySelectorAll(".user-profile-preview");
       const draftRrssNames = new Set(
         draft.rrss.map((r) => (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase()).filter(Boolean)
       );
@@ -586,18 +940,22 @@ export function designDraftManager() {
           }
         });
 
-        // B) Reordenar según el borrador
-        draft.rrss.forEach((r) => {
+        // B) Reconstruir faltantes y reordenar según el borrador
+        draft.rrss.forEach((r, idx) => {
           const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
+          const url = (Array.isArray(r) ? r[1] : r?.url || "");
           if (!name) return;
           const items = Array.from(rrssList.querySelectorAll(".sortable-item"));
-          const rrssEl = items.find((item) => {
+          let rrssEl = items.find((item) => {
             const itemName = (item.getAttribute("data-rrss-name") 
               || item.querySelector('input[name$="[0]"]')?.value 
               || item.querySelector('input[type="hidden"][name*="[0]"]')?.value 
               || "").trim().toLowerCase();
             return itemName === name;
           });
+          if (!rrssEl) {
+            rrssEl = buildRrssEditorItemFromTemplate(name, idx, url);
+          }
           if (rrssEl) {
             rrssList.appendChild(rrssEl);
           }
@@ -606,43 +964,12 @@ export function designDraftManager() {
         // C) Re-indexar rrss inputs
         reindexRrssEditorDOM(rrssList);
       }
-
-      if (allPreviews.length > 0) {
-        allPreviews.forEach((preview) => {
-          // Eliminar de vista previa redes borradas en el borrador
-          const allRrssLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
-          allRrssLinks.forEach((link) => {
-            const linkName = (link.getAttribute("data-link-id") || "").replace(/^rrss_/, "").toLowerCase();
-            if (linkName && !draftRrssNames.has(linkName)) {
-              link.remove();
-            }
-          });
-
-          const remainingLinks = Array.from(preview.querySelectorAll('[data-link-id^="rrss_"]'));
-          const wrappers = new Set(remainingLinks.map((l) => l.parentElement).filter(Boolean));
-
-          wrappers.forEach((rrssWrapper) => {
-            const previewLinks = Array.from(rrssWrapper.querySelectorAll('[data-link-id^="rrss_"]'));
-            const targetNodes = [];
-            draft.rrss.forEach((r) => {
-              const name = (Array.isArray(r) ? r[0] : r?.name || "").trim().toLowerCase();
-              if (!name) return;
-              const match = previewLinks.find((link) => {
-                const linkId = (link.getAttribute("data-link-id") || "").toLowerCase();
-                return linkId === `rrss_${name}`;
-              });
-              if (match) targetNodes.push(match);
-            });
-
-            targetNodes.forEach((node, i) => {
-              if (rrssWrapper.children[i] !== node) {
-                rrssWrapper.insertBefore(node, rrssWrapper.children[i] || null);
-              }
-            });
-          });
-        });
-      }
     }
+
+    // 3. Sincronizar bloques y redes en todas las vistas previas activas en el DOM
+    document.querySelectorAll(".user-profile-preview").forEach((previewEl) => {
+      syncPreviewStructureFromDraft(previewEl, draft);
+    });
   }
 
   window.updateJsonDraft = function(modifierFunction) {
@@ -794,6 +1121,7 @@ export function designDraftManager() {
    * Limpia el borrador local igualándolo al estado oficial y resetea inputs de archivo pendientes.
    */
   function clearDraft() {
+    clearAllPendingBlobs();
     try {
       document.querySelectorAll("input[type='file']").forEach((inp) => {
         inp.value = "";
@@ -802,7 +1130,7 @@ export function designDraftManager() {
     } catch (_) {}
     const initial = getInitialState();
     if (initial) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(initial));
+      setDraftStateImmediate(initial);
     }
     notifyDraftState();
   }
@@ -1403,9 +1731,14 @@ export function designDraftManager() {
         }
         
         if (imageBg) {
-          const defaultNoImage = "/App/Public/Img/Custom/no-image.webp";
-          if (!imageBg.getAttribute("src") || imageBg.getAttribute("src") === "") {
-            imageBg.src = defaultNoImage;
+          const pendingBgBlob = pendingBlobUrls.get("back_image");
+          if (pendingBgBlob) {
+            imageBg.src = pendingBgBlob;
+          } else {
+            const defaultNoImage = "/App/Public/Img/Custom/no-image.webp";
+            if (!imageBg.getAttribute("src") || imageBg.getAttribute("src") === "") {
+              imageBg.src = defaultNoImage;
+            }
           }
           imageBg.style.display = styleBack === "image" ? "" : "none";
         }
@@ -1531,7 +1864,8 @@ export function designDraftManager() {
       void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
       header: fields.header,
       title: fields.title,
-      desc: fields.desc
+      desc: fields.desc,
+      avatarSrc: pendingBlobUrls.get("avatar")
     };
 
     if (window.LivePreviewManager && typeof window.LivePreviewManager.applyThemeVarsToPreview === "function") {
@@ -1691,6 +2025,22 @@ export function designDraftManager() {
         }
         if (!mergedBlock.type && editorItem) {
           mergedBlock.type = editorItem.querySelector('input[name$="[type]"]')?.value;
+        }
+
+        // Aplicar Blob URLs pendientes desde RAM sin haberlas persistido en localStorage
+        const blockBlobKey = mergedBlock.id || idx;
+        const mainBlobUrl = pendingBlobUrls.get(`block:${blockBlobKey}`) || pendingBlobUrls.get(`block:${idx}`);
+        if (mainBlobUrl) {
+          mergedBlock.imgSrc = mainBlobUrl;
+          mergedBlock.imgDefault = true;
+          mergedBlock.imgShow = true;
+        }
+        if (Array.isArray(mergedBlock.products)) {
+          mergedBlock.products = mergedBlock.products.map((prod, subIdx) => {
+            const subBlobUrl = pendingBlobUrls.get(`block:${blockBlobKey}:sub:${subIdx}`) || pendingBlobUrls.get(`block:${idx}:sub:${subIdx}`);
+            if (!subBlobUrl) return prod;
+            return Object.assign({}, prod, { imgSrc: subBlobUrl, imgDefault: true, imgShow: true });
+          });
         }
 
         previews.forEach((p) => {
@@ -2229,7 +2579,8 @@ export function designDraftManager() {
         || (triggerElement ? triggerElement.closest(".sortable-item, .content-block") : null);
       const bId = panelElement ? panelElement.getAttribute("data-block-id") : null;
 
-      // Remover inmediatamente del preview
+        // Remover inmediatamente del preview y liberar cualquier Blob temporal en RAM
+      revokeBlockBlobs(bId);
       const previewContainers = document.querySelectorAll(".preview-widget-container, #preview-widget-container");
       previewContainers.forEach((pContainer) => {
         let prevEls = bId 
@@ -2295,6 +2646,10 @@ export function designDraftManager() {
           el.remove();
         });
       }
+      document.querySelectorAll(".user-profile-preview .preview-rrss-container").forEach((wrap) => {
+        const remainingVisible = Array.from(wrap.querySelectorAll("a[data-link-id^='rrss_']")).some((a) => a.style.display !== "none");
+        wrap.style.display = remainingVisible ? "" : "none";
+      });
 
       // Remover del editor
       if (panelElement) {
@@ -2375,6 +2730,9 @@ export function designDraftManager() {
     // 2. Eliminar imagen personalizada (delete_img)
     if (nameStr.endsWith("[delete_img]")) {
       const basePrefix = nameStr.replace(/\[delete_img\]$/, "");
+      const subMatch = basePrefix.match(/\[products\]\[(\d+)\]$/);
+      const blobKey = subMatch ? `block:${bId || bIdx}:sub:${subMatch[1]}` : `block:${bId || bIdx}`;
+      revokePendingBlob(blobKey);
       const scopeEl = submitBtn.closest(".sub-product-item") || block;
       const noImgUrl = "/Uploads/Media/Static/Custom/no-image.webp";
 
@@ -2562,8 +2920,12 @@ export function designDraftManager() {
     try {
       isCheckingMetadata = true;
       const csrf = getCsrfToken();
-      const response = await fetch(`/panel/${user}/extraer-metadatos`, {
+      const bodyParams = new URLSearchParams({ compact: "1" });
+      if (csrf) bodyParams.set("_token", csrf);
+
+      const response = await fetch(`/panel/${user}/extraer-metadatos?compact=1`, {
         method: "POST",
+        body: bodyParams,
         headers: {
           "X-Requested-With": "XMLHttpRequest",
           ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
@@ -2574,8 +2936,83 @@ export function designDraftManager() {
 
       const data = await parseSafeJson(response);
       if (data && data.success && data.updated) {
-        // 1. Actualizar vista previa oficial
-        if (data.html) {
+        // Actualizar estados en RAM y localStorage preservando cambios locales en curso
+        if (data.card) {
+          setInitialState(data.card);
+          const currentDraft = getDraftState();
+          if (currentDraft && Array.isArray(currentDraft.content) && Array.isArray(data.card.content)) {
+            const serverById = new Map();
+            data.card.content.forEach((sb) => {
+              if (sb && sb.id) serverById.set(sb.id, sb);
+            });
+            const previews = document.querySelectorAll(".user-profile-preview");
+
+            currentDraft.content.forEach((localBlk, idx) => {
+              if (!localBlk || !localBlk.id) return;
+              const srvBlk = serverById.get(localBlk.id);
+              if (!srvBlk) return;
+
+              let blkChanged = false;
+              const editorItem = document.querySelector(`.sortable-item[data-block-id="${localBlk.id}"]`) || document.getElementById(`content-item-${idx}`);
+
+              if (srvBlk.metaScraped && !localBlk.metaScraped) {
+                localBlk.metaTitle = srvBlk.metaTitle || localBlk.metaTitle || "";
+                localBlk.metaDesc = srvBlk.metaDesc || localBlk.metaDesc || "";
+                localBlk.metaImg = srvBlk.metaImg || localBlk.metaImg || "";
+                localBlk.metaScraped = true;
+                if (!localBlk.title && srvBlk.title) {
+                  localBlk.title = srvBlk.title;
+                }
+                blkChanged = true;
+              }
+
+              if (Array.isArray(localBlk.products) && Array.isArray(srvBlk.products)) {
+                localBlk.products.forEach((lSub, sIdx) => {
+                  const sSub = srvBlk.products[sIdx];
+                  if (sSub && sSub.metaScraped && !lSub.metaScraped) {
+                    lSub.metaTitle = sSub.metaTitle || lSub.metaTitle || "";
+                    lSub.metaDesc = sSub.metaDesc || lSub.metaDesc || "";
+                    lSub.metaImg = sSub.metaImg || lSub.metaImg || "";
+                    lSub.metaScraped = true;
+                    if (!lSub.title && sSub.title) lSub.title = sSub.title;
+                    blkChanged = true;
+                  }
+                });
+              }
+
+              if (blkChanged) {
+                if (editorItem) {
+                  const titleInp = editorItem.querySelector(`input[name^="content["][name$="[title]"]`);
+                  if (titleInp && !titleInp.value && localBlk.title) titleInp.value = localBlk.title;
+                  const metaT = editorItem.querySelector(`input[name^="content["][name$="[metaTitle]"]`);
+                  if (metaT) metaT.value = localBlk.metaTitle || "";
+                  const metaD = editorItem.querySelector(`input[name^="content["][name$="[metaDesc]"]`);
+                  if (metaD) metaD.value = localBlk.metaDesc || "";
+                  const metaI = editorItem.querySelector(`input[name^="content["][name$="[metaImg]"]`);
+                  if (metaI) metaI.value = localBlk.metaImg || "";
+                }
+                if (window.LivePreviewManager?.renderBlockInPreview) {
+                  previews.forEach((p) => {
+                    window.LivePreviewManager.renderBlockInPreview(p, localBlk, idx, currentDraft);
+                  });
+                }
+              }
+            });
+            setDraftStateImmediate(currentDraft);
+          } else {
+            setDraftStateImmediate(data.card);
+          }
+        }
+
+        if (data.sidebarStatusHtml) {
+          document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
+            sidebar.innerHTML = data.sidebarStatusHtml;
+          });
+        }
+
+        // Modo legado: solo si el servidor devolvió explícitamente html completo (no compacto)
+        if (!data.compact && data.html) {
+          updateUserPreviewTemplate(data.html);
           document.querySelectorAll(".user-profile-preview").forEach((container) => {
             const temp = document.createElement("div");
             temp.innerHTML = data.html.trim();
@@ -2586,49 +3023,10 @@ export function designDraftManager() {
               container.innerHTML = data.html;
             }
           });
+          linkPreviewBlockIds();
         }
 
-        // 2. Actualizar formularios en .remote-container manteniendo la pestaña activa
-        if (data.formHtml) {
-          const remoteContainer = document.querySelector(".remote-container");
-          if (remoteContainer) {
-            const activeContent = remoteContainer.querySelector(".remote-content.active");
-            const activeId = activeContent ? activeContent.id : null;
-            const savedScroll = activeContent ? activeContent.scrollTop : 0;
-
-            const temp = document.createElement("div");
-            temp.innerHTML = data.formHtml.trim();
-            const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
-            if (newContainer) {
-              remoteContainer.innerHTML = newContainer.innerHTML;
-              if (activeId) {
-                remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
-                  if (c.id === activeId) {
-                    c.classList.remove("hidden");
-                    c.classList.add("active");
-                    if (savedScroll > 0) {
-                      c.scrollTop = savedScroll;
-                    }
-                  } else {
-                    c.classList.remove("active");
-                    c.classList.add("hidden");
-                  }
-                });
-              }
-
-              if (window.__formComponents) {
-                window.__formComponents.initCheckboxSwitches?.();
-                window.__formComponents.styleColorPickers?.();
-                window.__formComponents.initCustomRangeSliders?.();
-              }
-              refreshAllBannersState();
-            }
-          }
-        }
-
-        // 3. Notificar eventos
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
-        document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
         notifyDraftState();
       }
     } catch (e) {
@@ -2771,12 +3169,13 @@ export function designDraftManager() {
 
       if (data && data.success) {
         if (data.card) {
-          localStorage.setItem(INITIAL_KEY, JSON.stringify(data.card));
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(data.card));
+          setInitialState(data.card);
+          setDraftStateImmediate(data.card);
         }
 
-        // 10. Actualizar vista previa oficial (.user-profile-preview)
+        // 10. Actualizar vista previa oficial (.user-profile-preview) y plantilla compartida
         if (data.html) {
+          updateUserPreviewTemplate(data.html);
           document.querySelectorAll(".user-profile-preview").forEach((container) => {
             const temp = document.createElement("div");
             temp.innerHTML = data.html.trim();
@@ -2804,7 +3203,7 @@ export function designDraftManager() {
             let activeId = activeContent ? activeContent.id : null;
             if (!activeId) {
               const closestRemote = (triggerElement && typeof triggerElement.closest === "function") ? triggerElement.closest(".remote-content") : null;
-              activeId = closestRemote ? closestRemote.id : (localStorage.getItem("vertical_menu_active") || null);
+              activeId = closestRemote ? closestRemote.id : (window.__menuMemory?.get?.() || null);
             }
 
             const temp = document.createElement("div");
@@ -2993,7 +3392,7 @@ export function designDraftManager() {
       if (hiddenInput) hiddenInput.value = actualOpacity;
 
       setDraftField("back_video_opacity", actualOpacity);
-      applyDraftToPreview(getDraft());
+      scheduleRafTask(() => applyDraftToPreview(getDraft()));
       return;
     }
 
@@ -3010,7 +3409,7 @@ export function designDraftManager() {
       if (hiddenInput) hiddenInput.value = sliderVal;
 
       setDraftField("back_image_filter_intensity", sliderVal);
-      applyDraftToPreview(getDraft());
+      scheduleRafTask(() => applyDraftToPreview(getDraft()));
       return;
     }
 
@@ -3022,6 +3421,42 @@ export function designDraftManager() {
     const ownerBlock = target.closest(".sortable-item.content-block, .sortable-item[data-block-id]");
     const ownerBlockId = ownerBlock?.getAttribute("data-block-id") || ownerBlock?.querySelector('input[name$="[id]"]')?.value || null;
 
+    const THEME_VAR_FIELDS = new Set(["back", "color", "colorText", "titleColor", "colorShadow3", "title", "desc", "void_space", "voidHero[space]"]);
+
+    const renderGranularBlock = (blockEl, blockId) => {
+      const structDraft = getDraftState();
+      if (!structDraft || !Array.isArray(structDraft.content)) return;
+      const idx = blockEl ? getBlockIndex(blockEl) : null;
+      let bIdx = blockId ? structDraft.content.findIndex((b) => b && b.id === blockId) : -1;
+      if (bIdx === -1 && idx !== null && !isNaN(parseInt(idx, 10))) {
+        bIdx = parseInt(idx, 10);
+      }
+      if (bIdx < 0 || !structDraft.content[bIdx]) return;
+
+      const blockCopy = Object.assign({}, structDraft.content[bIdx]);
+      const blobKey = blockCopy.id || bIdx;
+      const mainBlob = pendingBlobUrls.get(`block:${blobKey}`) || pendingBlobUrls.get(`block:${bIdx}`);
+      if (mainBlob) {
+        blockCopy.imgSrc = mainBlob;
+        blockCopy.imgDefault = true;
+        blockCopy.imgShow = true;
+      }
+      if (Array.isArray(blockCopy.products)) {
+        blockCopy.products = blockCopy.products.map((pItem, sIdx) => {
+          const sBlob = pendingBlobUrls.get(`block:${blobKey}:sub:${sIdx}`) || pendingBlobUrls.get(`block:${bIdx}:sub:${sIdx}`);
+          return sBlob ? Object.assign({}, pItem, { imgSrc: sBlob, imgDefault: true, imgShow: true }) : pItem;
+        });
+      }
+
+      const targetIdx = idx !== null ? idx : bIdx;
+      scheduleRafTask(() => {
+        if (!window.LivePreviewManager?.renderBlockInPreview) return;
+        document.querySelectorAll(".user-profile-preview").forEach((p) => {
+          window.LivePreviewManager.renderBlockInPreview(p, blockCopy, targetIdx, structDraft);
+        });
+      });
+    };
+
     // Manejo de selectores de color
     const isColor = target.type === "color" || target.classList.contains("color-picker");
     if (isColor) {
@@ -3029,8 +3464,21 @@ export function designDraftManager() {
       if (labelText && target.value) {
         labelText.textContent = target.value;
       }
+      syncSiblingInputsByName(target.name, target.value, target);
       setDraftField(target.name, target.value, ownerBlockId);
-      applyDraftToPreview(getDraft());
+      if (ownerBlock) {
+        renderGranularBlock(ownerBlock, ownerBlockId);
+      } else if (THEME_VAR_FIELDS.has(target.name)) {
+        const fieldName = target.name;
+        const fieldVal = target.value;
+        scheduleRafTask(() => {
+          document.querySelectorAll(".user-profile-preview").forEach((p) => {
+            window.LivePreviewManager?.applyThemeVarsToPreview?.(p, { [fieldName]: fieldVal });
+          });
+        });
+      } else {
+        scheduleRafTask(() => applyDraftToPreview(getDraft()));
+      }
       return;
     }
 
@@ -3045,8 +3493,48 @@ export function designDraftManager() {
           if (valEl) valEl.textContent = `${target.value}%`;
         }
       }
+      if (!ownerBlock) {
+        syncSiblingInputsByName(target.name, target.value, target);
+      }
       setDraftField(target.name, target.value, ownerBlockId);
-      applyDraftToPreview(getDraft());
+
+      if (ownerBlock) {
+        renderGranularBlock(ownerBlock, ownerBlockId);
+      } else {
+        const matchRrss = target.name.match(/^rrss\[(\d+)\]\[1\]$/);
+        if (matchRrss) {
+          const rrssIdx = matchRrss[1];
+          const rrssUrl = String(target.value || "").trim();
+          const nameInput = document.querySelector(`input[name="rrss[${rrssIdx}][0]"]`);
+          const socialName = (nameInput ? nameInput.value : "").trim().toLowerCase();
+          if (socialName) {
+            scheduleRafTask(() => {
+              document.querySelectorAll(".user-profile-preview").forEach((p) => {
+                const link = p.querySelector(`[data-link-id="rrss_${socialName}"], [aria-label="${socialName}"]`);
+                if (link) {
+                  link.href = rrssUrl || "#";
+                  link.style.display = rrssUrl !== "" ? "" : "none";
+                }
+                const wrapper = p.querySelector(".preview-rrss-container");
+                if (wrapper) {
+                  const anyVisible = Array.from(wrapper.querySelectorAll("a[data-link-id^='rrss_']")).some((a) => a.style.display !== "none");
+                  wrapper.style.display = anyVisible ? "" : "none";
+                }
+              });
+            });
+          }
+        } else if (THEME_VAR_FIELDS.has(target.name)) {
+          const fieldName = target.name;
+          const fieldVal = target.value;
+          scheduleRafTask(() => {
+            document.querySelectorAll(".user-profile-preview").forEach((p) => {
+              window.LivePreviewManager?.applyThemeVarsToPreview?.(p, { [fieldName]: fieldVal });
+            });
+          });
+        } else {
+          scheduleRafTask(() => applyDraftToPreview(getDraft()));
+        }
+      }
 
       // Sincronizar estado de activación/desbloqueo del bloque en tiempo real mientras se escribe
       const block = target.closest(".sortable-item.content-block");
@@ -3202,7 +3690,7 @@ export function designDraftManager() {
       }
 
       const file = target.files[0];
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = setPendingBlob("avatar", file);
 
       // 1. Actualizar las miniaturas de los botones de estilo de cabecera en el panel del editor
       document.querySelectorAll('label[for="regularHeader"] figure img, label[for="midHeader"] figure img, label[for$="Header"] figure img').forEach((img) => {
@@ -3228,7 +3716,7 @@ export function designDraftManager() {
       }
 
       const file = target.files[0];
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = setPendingBlob("back_image", file);
 
       // 1. Actualizar imagen, overlay y viñeta en la vista previa del celular
       document.querySelectorAll(".user-profile-preview .back-image-bg").forEach((img) => {
@@ -3277,7 +3765,6 @@ export function designDraftManager() {
       }
 
       const file = target.files[0];
-      const previewUrl = URL.createObjectURL(file);
       const match = target.name.match(/^content_img_(\d+)(?:_(\d+))?$/);
       if (match) {
         const itemIdx = match[1];
@@ -3288,6 +3775,8 @@ export function designDraftManager() {
         const block = target.closest(".sortable-item") || target.closest(".content-block");
         const bId = block?.getAttribute("data-block-id") || block?.querySelector('input[name$="[id]"]')?.value || null;
         const bIdx = (block ? getBlockIndex(block) : null) ?? itemIdx;
+        const blobKey = subIdx !== undefined ? `block:${bId || bIdx}:sub:${subIdx}` : `block:${bId || bIdx}`;
+        const previewUrl = setPendingBlob(blobKey, file);
 
         if (subItem) {
           const thumb = subItem.querySelector("figure img");
@@ -3301,7 +3790,7 @@ export function designDraftManager() {
           if (delBtn) delBtn.style.display = "flex";
         }
 
-        // 2. Persistir imgSrc, imgDefault=true e imgShow=true en el borrador estructurado para sincronía inmediata
+        // 2. Persistir solo imgDefault=true e imgShow=true en localStorage (el Blob URL queda exclusivamente en RAM)
         if (subIdx !== undefined) {
           const subImgDefInput = block?.querySelector(`input[name="content[${bIdx}][products][${subIdx}][imgDefault]"]`);
           if (subImgDefInput) subImgDefInput.value = "true";
@@ -3309,7 +3798,6 @@ export function designDraftManager() {
           if (subImgShowInput) subImgShowInput.value = "true";
           setDraftField(`content[${bIdx}][products][${subIdx}][imgDefault]`, true, bId);
           setDraftField(`content[${bIdx}][products][${subIdx}][imgShow]`, true, bId);
-          setDraftField(`content[${bIdx}][products][${subIdx}][imgSrc]`, previewUrl, bId);
         } else {
           const imgDefInput = block?.querySelector(`input[name="content[${bIdx}][imgDefault]"]`);
           if (imgDefInput) imgDefInput.value = "true";
@@ -3317,14 +3805,31 @@ export function designDraftManager() {
           if (imgShowInput) imgShowInput.value = "true";
           setDraftField(`content[${bIdx}][imgDefault]`, true, bId);
           setDraftField(`content[${bIdx}][imgShow]`, true, bId);
-          setDraftField(`content[${bIdx}][imgSrc]`, previewUrl, bId);
         }
 
-        // 3. Sincronizar estado del bloque y renderizar en vista previa vía LivePreviewManager
+        // 3. Sincronizar estado del bloque y renderizar exclusivamente este bloque en vista previa vía LivePreviewManager
         if (block) {
           syncBlockActiveState(block, bIdx, { previewUrl });
         }
-        applyDraftToPreview(getDraft());
+        const structDraft = getDraftState();
+        const blockObj = (bId && structDraft?.content?.find((b) => b && b.id === bId)) || structDraft?.content?.[bIdx];
+        if (blockObj && window.LivePreviewManager?.renderBlockInPreview) {
+          const renderCopy = Object.assign({}, blockObj);
+          if (subIdx !== undefined && Array.isArray(renderCopy.products)) {
+            renderCopy.products = renderCopy.products.map((pItem, sI) => (
+              String(sI) === String(subIdx) ? Object.assign({}, pItem, { imgSrc: previewUrl, imgDefault: true, imgShow: true }) : pItem
+            ));
+          } else {
+            renderCopy.imgSrc = previewUrl;
+            renderCopy.imgDefault = true;
+            renderCopy.imgShow = true;
+          }
+          document.querySelectorAll(".user-profile-preview").forEach((p) => {
+            window.LivePreviewManager.renderBlockInPreview(p, renderCopy, bIdx, structDraft || {});
+          });
+        } else {
+          applyDraftToPreview(getDraft());
+        }
       }
       notifyDraftState();
     }
@@ -3355,44 +3860,36 @@ export function designDraftManager() {
         await new Promise((resolve) => setTimeout(resolve, 80));
       }
 
-      const draft = getDraft();
+      flushDraftSave();
+      const draftState = getDraftState();
       const formData = new FormData();
 
-      // Recorrer todos los formularios dentro de .remote-container para no omitir secciones inactivas
-      const forms = document.querySelectorAll(".remote-container form");
-      if (forms.length > 0) {
-        forms.forEach((formEl) => {
-          const formEntries = new FormData(formEl);
-          for (const [key, value] of formEntries.entries()) {
-            formData.append(key, value);
-          }
-        });
-      } else {
-        const activeForm = document.querySelector(".remote-content.active form") || document.querySelector("form.auto-submit") || document.querySelector("form");
-        if (activeForm) {
-          const formEntries = new FormData(activeForm);
-          for (const [key, value] of formEntries.entries()) {
-            formData.append(key, value);
-          }
-        }
+      // Súper Guardado compacto: enviar únicamente draft_json estructurado + flags esenciales + archivos modificados
+      if (draftState) {
+        formData.set("draft_json", JSON.stringify(draftState));
+        formData.set("is_full_content", "1");
+      }
+      formData.set("compact", "1");
+
+      const hideSubmitted = document.querySelector('input[name="hide_form_submitted"]');
+      if (hideSubmitted) {
+        formData.set("hide_form_submitted", hideSubmitted.value || "1");
+      }
+      const videoUrlDirect = document.getElementById("input-back-video-url");
+      if (videoUrlDirect && videoUrlDirect.value) {
+        formData.set("back_video_url_direct", videoUrlDirect.value);
+      }
+      const videoPubIdDirect = document.querySelector('input[name="back_video_public_id_direct"]');
+      if (videoPubIdDirect && videoPubIdDirect.value) {
+        formData.set("back_video_public_id_direct", videoPubIdDirect.value);
+      }
+      const deleteVideoFlag = document.getElementById("delete-video-flag");
+      if (deleteVideoFlag && deleteVideoFlag.value === "true") {
+        formData.set("delete_video", "true");
       }
 
-      // Incluir cualquier archivo pendiente en inputs file de todo el documento o panel
+      // Adjuntar únicamente inputs file activos con tamaño > 0
       const fileInputs = document.querySelectorAll("input[type='file']");
-      fileInputs.forEach((fileInput) => {
-        if (fileInput.name && fileInput.files && fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          if (file && file.size > 0) {
-            formData.delete(fileInput.name);
-            formData.append(fileInput.name, file);
-          }
-        }
-      });
-
-      // 1. Sobrescribir con todos los campos acumulados en el borrador (tienen máxima prioridad para textos/opciones)
-      appendFormDataRecursive(formData, draft);
-
-      // 2. Garantizar que los archivos reales en inputs file mantengan máxima prioridad y no hayan sido sobreescritos
       fileInputs.forEach((fileInput) => {
         if (fileInput.name && fileInput.files && fileInput.files.length > 0) {
           const file = fileInput.files[0];
@@ -3402,13 +3899,6 @@ export function designDraftManager() {
         }
       });
 
-      // 3. Incluir el JSON estructurado completo como draft_json para sincronización en backend
-      const draftState = getDraftState();
-      if (draftState) {
-        formData.set("draft_json", JSON.stringify(draftState));
-        formData.set("is_full_content", "1");
-      }
-
       let csrf = getCsrfToken();
       formData.delete("_token");
       formData.delete("csrf_token");
@@ -3416,7 +3906,7 @@ export function designDraftManager() {
         formData.set("_token", csrf);
       }
 
-      const saveUrl = `/panel/${user}/guardar`;
+      const saveUrl = `/panel/${user}/guardar?compact=1`;
 
       let response = await fetch(saveUrl, {
         method: "POST",
@@ -3464,11 +3954,12 @@ export function designDraftManager() {
         // En Two-JSON: sincronizar ambos JSONs (initial y draft) con la versión oficial guardada
         const savedCard = data.card || draftState;
         if (savedCard) {
-          localStorage.setItem(INITIAL_KEY, JSON.stringify(savedCard));
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(savedCard));
+          setInitialState(savedCard);
+          setDraftStateImmediate(savedCard);
         }
 
-        // Limpiar todos los inputs de archivo tras el guardado exitoso para que hasDraft() retorne false inmediatamente
+        // Liberar Blob URLs pendientes y limpiar inputs file tras el guardado exitoso
+        clearAllPendingBlobs();
         document.querySelectorAll("input[type='file']").forEach((fileInput) => {
           try {
             fileInput.value = "";
@@ -3476,9 +3967,65 @@ export function designDraftManager() {
           } catch (_) {}
         });
 
-        // Eliminar sobreescrituras dinámicas temporales ya que el preview oficial las reemplazará
-        if (dynamicStyleEl) {
+        // Solo limpiar sobreescrituras CSS temporales cuando llega un preview HTML oficial completo
+        if (!data.compact && data.html && dynamicStyleEl) {
           dynamicStyleEl.textContent = "";
+        }
+
+        // Si el servidor respondió en modo compacto, reconciliar rutas finales de imágenes sin destruir el DOM
+        if (data.compact && savedCard) {
+          const finalAvatar = savedCard.avatarSrc || (savedCard.avatar ? `/Uploads/Avatar/${savedCard.avatar}` : "");
+          if (finalAvatar) {
+            document.querySelectorAll('label[for="regularHeader"] figure img, label[for="midHeader"] figure img, label[for$="Header"] figure img').forEach((img) => {
+              img.src = finalAvatar;
+            });
+            document.querySelectorAll(".user-profile-preview").forEach((p) => {
+              window.LivePreviewManager?.applyThemeVarsToPreview?.(p, { avatarSrc: finalAvatar });
+            });
+          }
+
+          const finalBgImg = savedCard.backCard?.back_image_src || (savedCard.backCard?.back_image ? `/Uploads/Background/${savedCard.backCard.back_image}` : "");
+          if (finalBgImg) {
+            const thumb = document.getElementById("thumb-image-preview");
+            if (thumb) thumb.src = finalBgImg;
+            const thumbStyle = document.getElementById("thumb-style-image");
+            if (thumbStyle) thumbStyle.src = finalBgImg;
+            document.querySelectorAll(".user-profile-preview .back-image-bg").forEach((img) => {
+              img.src = finalBgImg;
+            });
+          }
+
+          if (Array.isArray(savedCard.content)) {
+            savedCard.content.forEach((blk, idx) => {
+              if (!blk) return;
+              const edItem = (blk.id && document.querySelector(`.sortable-item[data-block-id="${blk.id}"]`)) || document.getElementById(`content-item-${idx}`);
+              if (edItem) {
+                const imgInp = edItem.querySelector(`input[name^="content["][name$="[img]"]`);
+                if (imgInp && blk.img) imgInp.value = blk.img;
+                const mainThumb = edItem.querySelector(":scope figure img");
+                if (mainThumb && blk.imgSrc && !edItem.querySelector(".sub-product-item")) {
+                  mainThumb.src = blk.imgSrc;
+                }
+                if (Array.isArray(blk.products)) {
+                  const subItems = edItem.querySelectorAll(".sub-product-item");
+                  blk.products.forEach((subP, sIdx) => {
+                    const subEl = subItems[sIdx];
+                    if (subEl && subP) {
+                      const subImgInp = subEl.querySelector(`input[name$="[products][${sIdx}][img]"]`);
+                      if (subImgInp && subP.img) subImgInp.value = subP.img;
+                      const subThumb = subEl.querySelector("figure img");
+                      if (subThumb && subP.imgSrc) subThumb.src = subP.imgSrc;
+                    }
+                  });
+                }
+              }
+              document.querySelectorAll(".user-profile-preview").forEach((p) => {
+                window.LivePreviewManager?.renderBlockInPreview?.(p, blk, idx, savedCard);
+              });
+            });
+          }
+
+          applyDraftToPreview(getDraft());
         }
 
         // Actualizar la vista previa con el HTML oficial retornado por el servidor
@@ -3582,9 +4129,10 @@ export function designDraftManager() {
     }
 
     // 1. Revertir localmente en 0ms igualando el borrador al estado inicial oficial
+    clearAllPendingBlobs();
     const initial = getInitialState();
     if (initial) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(initial));
+      setDraftStateImmediate(initial);
       restoreOrderFromDraft();
       applyDraftToPreview(flattenObject(initial));
       syncFormControls(flattenObject(initial));
@@ -3614,9 +4162,10 @@ export function designDraftManager() {
     const data = await parseSafeJson(response);
 
     if (data && data.success) {
+      clearAllPendingBlobs();
       if (data.card) {
-        localStorage.setItem(INITIAL_KEY, JSON.stringify(data.card));
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(data.card));
+        setInitialState(data.card);
+        setDraftStateImmediate(data.card);
       }
 
       // 1. Restaurar HTML oficial de la vista previa
@@ -3962,7 +4511,163 @@ export function designDraftManager() {
         document.dispatchEvent(new CustomEvent("contentUpdated"));
       }, 50);
     }
+
+    // Añadir red social en 0ms mediante <template> (Local-First)
+    const rrssBtn = e.target.closest('button[data-action="add-rrss-template"]');
+    if (rrssBtn) {
+      e.preventDefault();
+      const rawName = rrssBtn.getAttribute("data-rrss");
+      const cleanName = rawName ? rawName.trim().toLowerCase() : "";
+      if (!cleanName) return;
+
+      const modalMenu = rrssBtn.closest(".content-modal-menu");
+      if (modalMenu) {
+        modalMenu.classList.add("hidden");
+      }
+
+      const rrssList = document.getElementById("sortable-rrss-list");
+      const newRrssNode = buildRrssEditorItemFromTemplate(cleanName, 0, "");
+      if (rrssList && newRrssNode) {
+        rrssList.insertBefore(newRrssNode, rrssList.firstChild);
+        reindexRrssEditorDOM(rrssList);
+      }
+
+      document.querySelectorAll(".user-profile-preview .preview-rrss-container").forEach((wrapper) => {
+        const previewLink = buildRrssPreviewLinkFromTemplate(cleanName, "");
+        if (previewLink) {
+          wrapper.insertBefore(previewLink, wrapper.firstChild);
+        }
+      });
+
+      window.updateJsonDraft((state) => {
+        if (!Array.isArray(state.rrss)) state.rrss = [];
+        state.rrss.unshift([cleanName, ""]);
+        return state;
+      });
+
+      document.dispatchEvent(new CustomEvent("designDraftStateChanged", { detail: { hasDraft: true } }));
+      document.dispatchEvent(new CustomEvent("previewUpdated"));
+      document.dispatchEvent(new CustomEvent("contentUpdated"));
+      notifyDraftState();
+
+      if (window.__saveButtonController?.enableSaveButton) {
+        window.__saveButtonController.enableSaveButton();
+      }
+
+      const urlInput = newRrssNode?.querySelector('input[type="text"]');
+      if (urlInput) {
+        requestAnimationFrame(() => urlInput.focus());
+      }
+    }
   });
+
+  /**
+   * Actualiza la plantilla única #user-preview-template cuando el servidor devuelve un HTML oficial nuevo.
+   *
+   * @param {string} html HTML renderizado de .user-profile-preview.
+   */
+  function updateUserPreviewTemplate(html) {
+    if (!html || typeof html !== "string") return;
+    const tpl = document.getElementById("user-preview-template");
+    if (!tpl) return;
+    const temp = document.createElement("div");
+    temp.innerHTML = html.trim();
+    const nextPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
+    if (!nextPreview) return;
+    tpl.innerHTML = "";
+    tpl.content.appendChild(nextPreview);
+  }
+  window.__updateUserPreviewTemplate = updateUserPreviewTemplate;
+
+  /**
+   * Monta e hidrata una instancia de .user-profile-preview en el contenedor indicado,
+   * clonando el preview de escritorio si está vivo o desde #user-preview-template si querys.js lo vació.
+   *
+   * @param {HTMLElement|null} mountEl Contenedor destino donde montar el preview.
+   * @param {boolean} [preferDesktopClone=true] Si debe intentar clonar primero #preview-mount-desktop.
+   */
+  function mountPreviewInto(mountEl, preferDesktopClone = true) {
+    if (!mountEl) return;
+
+    const desktopPreview = preferDesktopClone
+      ? document.querySelector("#preview-mount-desktop .user-profile-preview")
+      : null;
+
+    let fragmentOrNode = null;
+    let mountedFromTemplate = false;
+
+    if (desktopPreview) {
+      fragmentOrNode = desktopPreview.cloneNode(true);
+    } else {
+      const tpl = document.getElementById("user-preview-template");
+      if (!tpl) return;
+      fragmentOrNode = tpl.content.cloneNode(true);
+      mountedFromTemplate = true;
+    }
+
+    if (fragmentOrNode.querySelectorAll) {
+      fragmentOrNode.querySelectorAll("[data-gsap-hover-bound]").forEach((el) => {
+        el.removeAttribute("data-gsap-hover-bound");
+      });
+    }
+
+    mountEl.innerHTML = "";
+    mountEl.appendChild(fragmentOrNode);
+
+    const mountedPreview = mountEl.querySelector(".user-profile-preview");
+    if (!mountedPreview) return;
+
+    if (mountedFromTemplate) {
+      linkPreviewBlockIds();
+      syncPreviewStructureFromDraft(mountedPreview, getDraftState());
+      const flatDraft = getDraft();
+      if (Object.keys(flatDraft).length > 0) {
+        applyDraftToPreview(flatDraft);
+      }
+    }
+
+    const modalVideo = mountedPreview.querySelector(".back-video-bg");
+    if (modalVideo && modalVideo.style.display !== "none") {
+      modalVideo.muted = true;
+      modalVideo.playsInline = true;
+      modalVideo.play().catch(() => {});
+    }
+
+    document.dispatchEvent(new CustomEvent("contentUpdated"));
+    document.dispatchEvent(new CustomEvent("previewUpdated"));
+  }
+
+  // Hidratar el montaje de escritorio si la página cargó en tablet/móvil y luego pasó a ancho desktop
+  const desktopMountMedia = window.matchMedia("(min-width: 993px)");
+  const ensureDesktopMountHydrated = (isDesktop) => {
+    if (!isDesktop) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!desktopMountMedia.matches) return;
+        const desktopMount = document.getElementById("preview-mount-desktop");
+        if (desktopMount && !desktopMount.closest('[aria-hidden="true"]') && !desktopMount.querySelector(".user-profile-preview")) {
+          mountPreviewInto(desktopMount, false);
+        }
+      });
+    });
+  };
+  if (typeof desktopMountMedia.addEventListener === "function") {
+    desktopMountMedia.addEventListener("change", (ev) => ensureDesktopMountHydrated(ev.matches));
+  } else if (typeof desktopMountMedia.addListener === "function") {
+    desktopMountMedia.addListener((ev) => ensureDesktopMountHydrated(ev.matches));
+  }
+
+  // Montar bajo demanda el preview dentro del modal móvil/tablet desde desktop o #user-preview-template
+  document.addEventListener("click", (e) => {
+    const previewTrigger = e.target.closest('[data-preview-modal-trigger="true"]');
+    if (!previewTrigger) return;
+
+    queueMicrotask(() => {
+      const mount = document.querySelector(".modal-overlay .mobile-preview-mount");
+      if (!mount) return;
+      mountPreviewInto(mount, true);
+    });
+  }, true);
 
   document.addEventListener("sortableUpdated", (e) => {
     if (!e.detail || !e.detail.container) return;

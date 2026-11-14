@@ -114,22 +114,6 @@
     </div>
   </div>
 
-  <div id="content-remote-4" class="remote-content hidden">
-    <div class="post-content">
-      <script id="initial-design-state" type="application/json">
-        <?= json_encode($card, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
-      </script>
-    </div>
-  </div>
-
-  <div id="content-remote-5" class="remote-content hidden">
-    <div class="post-content">
-      <script id="initial-session-state" type="application/json">
-        <?= json_encode($session, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
-      </script>
-    </div>
-  </div>
-
 </div>
 
 <!-- Script Anti-FOUT / Anti-Parpadeo Síncrono: Restaura el estado guardado del menú y panel antes del primer pintado con expiración de 1 hora -->
