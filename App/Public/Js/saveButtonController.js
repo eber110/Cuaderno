@@ -161,9 +161,6 @@ export function saveButtonController() {
    */
   function updatePreviewHtml(html) {
     if (!html) return;
-    if (typeof window.__updateUserPreviewTemplate === "function") {
-      window.__updateUserPreviewTemplate(html);
-    }
     const previewContainers = document.querySelectorAll(".user-profile-preview");
     previewContainers.forEach((container) => {
       const temp = document.createElement("div");
@@ -543,11 +540,6 @@ export function saveButtonController() {
         }
         if (linksWrapper) {
           linksWrapper.dataset.chartsAnimated = linksRemote && !linksRemote.classList.contains("hidden") ? "true" : "false";
-        }
-
-        if (typeof window.initCharts === "function") {
-          if (generalWrapper) window.initCharts(generalWrapper);
-          if (linksWrapper) window.initCharts(linksWrapper);
         }
 
         if (window.SvgChartAnimator && typeof window.SvgChartAnimator.initAllSvgCharts === "function") {

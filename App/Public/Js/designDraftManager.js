@@ -736,6 +736,14 @@ export function designDraftManager() {
     if (!name) return;
     document.querySelectorAll(`input[name="${CSS.escape(name)}"], textarea[name="${CSS.escape(name)}"], select[name="${CSS.escape(name)}"]`).forEach((inp) => {
       if (inp === excludeEl || inp.type === "file") return;
+      if (inp.type === "radio") {
+        inp.checked = (inp.value === String(value));
+        return;
+      }
+      if (inp.type === "checkbox") {
+        inp.checked = (value === true || value === "true" || value === 1 || value === "1");
+        return;
+      }
       if (inp.value !== String(value)) {
         inp.value = value;
       }
@@ -2245,7 +2253,7 @@ export function designDraftManager() {
       // 3. Inputs tipo color / texto / textarea / select
       const inputs = document.querySelectorAll(`input[name="${name}"], textarea[name="${name}"], select[name="${name}"]`);
       inputs.forEach((input) => {
-        if (input.type === "file") return;
+        if (input.type === "file" || input.type === "radio" || input.type === "checkbox") return;
         input.value = val;
 
         // Actualizar etiqueta de texto asociada a selectores de color (#hex)
@@ -2270,11 +2278,9 @@ export function designDraftManager() {
   }
 
   // =========================================================================
-  // 5. MANEJO ESTRUCTURAL ASÍNCRONO (AJAX PARA AÑADIR / ELIMINAR / TOGGLE)
+  // 5. MANEJO ESTRUCTURAL LOCAL-FIRST
   // =========================================================================
 
-  let remoteAjaxQueue = Promise.resolve();
-  let isSubmittingRemoteAjax = false;
   let lastClickedSubmitButton = null;
 
   /**
@@ -2296,260 +2302,6 @@ export function designDraftManager() {
       name.includes("toggle_img_show") ||
       name.includes("[delete]")
     );
-  }
-
-  /**
-   * Muestra un aviso visual flotante (toast) con estado de la acción en curso.
-   *
-   * @param {string} message Texto a mostrar
-   * @param {"loading"|"success"|"error"} [type="loading"] Tipo de aviso
-   * @param {number} [duration=0] Duración en ms antes de auto-ocultarse
-   */
-  function showActionToast(message, type = "loading", duration = 0) {
-    let toast = document.getElementById("action-feedback-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "action-feedback-toast";
-      toast.style.position = "fixed";
-      toast.style.bottom = "28px";
-      toast.style.left = "50%";
-      toast.style.transform = "translateX(-50%) translateY(20px)";
-      toast.style.opacity = "0";
-      toast.style.transition = "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)";
-      toast.style.zIndex = "999999";
-      toast.style.pointerEvents = "none";
-      toast.style.borderRadius = "50px";
-      toast.style.padding = "10px 22px";
-      toast.style.fontWeight = "500";
-      toast.style.fontSize = "14px";
-      toast.style.boxShadow = "0 8px 24px rgba(0,0,0,0.18)";
-      toast.style.display = "flex";
-      toast.style.alignItems = "center";
-      toast.style.gap = "10px";
-      document.body.appendChild(toast);
-    }
-
-    if (toast.__timer) {
-      clearTimeout(toast.__timer);
-      toast.__timer = null;
-    }
-
-    if (type === "loading") {
-      toast.style.background = "rgba(25, 25, 25, 0.92)";
-      toast.style.backdropFilter = "blur(8px)";
-      toast.style.color = "#ffffff";
-      toast.innerHTML = `
-        <span class="save-btn-spinner" style="margin-right: 0; width: 13px; height: 13px; border-width: 2px;"></span>
-        <span>${message}</span>
-      `;
-    } else if (type === "success") {
-      toast.style.background = "rgba(22, 101, 52, 0.95)";
-      toast.style.backdropFilter = "blur(8px)";
-      toast.style.color = "#ffffff";
-      toast.innerHTML = `
-        <span style="font-size: 15px; line-height: 1; font-weight: bold;">✓</span>
-        <span>${message}</span>
-      `;
-    } else if (type === "error") {
-      toast.style.background = "rgba(185, 28, 28, 0.95)";
-      toast.style.backdropFilter = "blur(8px)";
-      toast.style.color = "#ffffff";
-      toast.innerHTML = `
-        <span style="font-size: 15px; line-height: 1; font-weight: bold;">✕</span>
-        <span>${message}</span>
-      `;
-    }
-
-    requestAnimationFrame(() => {
-      toast.style.transform = "translateX(-50%) translateY(0)";
-      toast.style.opacity = "1";
-    });
-
-    if (duration > 0) {
-      toast.__timer = setTimeout(() => {
-        hideActionToast();
-      }, duration);
-    }
-  }
-
-  /**
-   * Oculta suavemente el aviso flotante (toast).
-   */
-  function hideActionToast() {
-    const toast = document.getElementById("action-feedback-toast");
-    if (toast) {
-      toast.style.transform = "translateX(-50%) translateY(20px)";
-      toast.style.opacity = "0";
-    }
-  }
-
-  /**
-   * Muestra el aviso visual directamente en la posición del bloque que se está eliminando.
-   *
-   * @param {HTMLElement} panelElement Elemento contenedor del bloque en el panel
-   * @param {string} message Mensaje a mostrar (ej: "Eliminando bloque...")
-   */
-  function showInPlaceDeleteNotice(panelElement, message = "Eliminando bloque...") {
-    if (!panelElement || panelElement.querySelector(".in-place-delete-notice")) return;
-
-    panelElement.classList.add("item-deleting-in-place");
-    panelElement.style.pointerEvents = "none";
-
-    const currentHeight = panelElement.offsetHeight;
-    if (currentHeight > 0) {
-      panelElement.style.minHeight = Math.min(currentHeight, 70) + "px";
-    }
-
-    // Ocultar elementos visuales existentes sin tocar los inputs (para que FormData los conserve)
-    Array.from(panelElement.children).forEach((child) => {
-      if (child.tagName !== "INPUT" && !child.classList.contains("in-place-delete-notice")) {
-        child.dataset.prevDisplay = child.style.display || "";
-        child.style.display = "none";
-      }
-    });
-
-    // Crear el aviso en la posición exacta del bloque
-    const noticeEl = document.createElement("div");
-    noticeEl.className = "in-place-delete-notice flex-row center-center gap10 w100 p15 text-c";
-    noticeEl.style.minHeight = "48px";
-    noticeEl.style.opacity = "0";
-    noticeEl.style.transform = "scale(0.96)";
-    noticeEl.style.transition = "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)";
-    noticeEl.innerHTML = `
-      <span class="save-btn-spinner save-btn-spinner-dark" style="margin-right: 0; width: 15px; height: 15px; border-width: 2px;"></span>
-      <span class="bold500 texto x15">${message}</span>
-    `;
-
-    panelElement.appendChild(noticeEl);
-
-    requestAnimationFrame(() => {
-      noticeEl.style.opacity = "1";
-      noticeEl.style.transform = "scale(1)";
-    });
-  }
-
-  /**
-   * Restaura el contenido visual del bloque si la eliminación falló en el servidor.
-   *
-   * @param {HTMLElement} panelElement Elemento contenedor del bloque
-   */
-  function restoreInPlaceBlock(panelElement) {
-    if (!panelElement) return;
-    panelElement.classList.remove("item-deleting-in-place");
-    panelElement.style.pointerEvents = "";
-    panelElement.style.minHeight = "";
-
-    const noticeEl = panelElement.querySelector(".in-place-delete-notice");
-    if (noticeEl) {
-      noticeEl.remove();
-    }
-
-    Array.from(panelElement.children).forEach((child) => {
-      if (child.tagName !== "INPUT" && child.dataset.prevDisplay !== undefined) {
-        child.style.display = child.dataset.prevDisplay;
-        delete child.dataset.prevDisplay;
-      }
-    });
-  }
-
-  /**
-   * Anima la salida y colapso de un elemento visual (panel o preview).
-   *
-   * @param {HTMLElement} element Elemento a colapsar y ocultar
-   */
-  function animateElementRemoval(element) {
-    if (!element || element.classList.contains("item-deleting")) return;
-    element.classList.add("item-deleting");
-    element.style.pointerEvents = "none";
-    const startHeight = element.offsetHeight;
-    element.style.maxHeight = startHeight + "px";
-    
-    // Forzar reflujo para que la transición CSS desde startHeight hasta 0 funcione
-    void element.offsetHeight;
-    
-    element.style.opacity = "0";
-    element.style.transform = "scale(0.92) translateY(-8px)";
-    element.style.maxHeight = "0px";
-    element.style.paddingTop = "0px";
-    element.style.paddingBottom = "0px";
-    element.style.marginTop = "0px";
-    element.style.marginBottom = "0px";
-    element.style.overflow = "hidden";
-  }
-
-  /**
-   * Ejecuta la eliminación optimista en la interfaz (panel + vista previa).
-   *
-   * @param {HTMLElement} [triggerElement] Elemento disparador (checkbox, botón)
-   * @param {string} [targetId] ID del checkbox objetivo si vino de un label
-   */
-  function performOptimisticDelete(triggerElement = null, targetId = null) {
-    let panelElement = null;
-    let previewElements = [];
-    let deleteNotice = "Eliminando bloque...";
-
-    const idStr = targetId || (triggerElement && triggerElement.id ? triggerElement.id : "");
-    const nameStr = triggerElement && triggerElement.name ? triggerElement.name : "";
-
-    // 1. Caso: delete-link-X o content[X][delete]
-    let contentIndex = null;
-    if (idStr.startsWith("delete-link-")) {
-      contentIndex = idStr.replace("delete-link-", "");
-    } else if (nameStr) {
-      const match = nameStr.match(/content\[(\d+)\]\[delete\]/);
-      if (match) contentIndex = match[1];
-    }
-
-    if (contentIndex !== null) {
-      panelElement = document.getElementById("content-item-" + contentIndex) || (triggerElement ? triggerElement.closest(".sortable-item, .content-block") : null);
-      const bId = panelElement?.getAttribute("data-block-id");
-      previewElements = bId 
-        ? Array.from(document.querySelectorAll(`.user-profile-preview [data-block-id="${bId}"]`))
-        : Array.from(document.querySelectorAll(`.user-profile-preview [data-content-index="${contentIndex}"]`));
-      deleteNotice = "Eliminando bloque...";
-    }
-
-    // 2. Caso: delete-rrss-X o rrss[X][delete]
-    let rrssIndex = null;
-    if (idStr.startsWith("delete-rrss-")) {
-      rrssIndex = idStr.replace("delete-rrss-", "");
-    } else if (nameStr) {
-      const match = nameStr.match(/rrss\[(\d+)\]\[delete\]/);
-      if (match) rrssIndex = match[1];
-    }
-
-    if (rrssIndex !== null) {
-      panelElement = document.getElementById("rrss-item-" + rrssIndex) || (triggerElement ? triggerElement.closest(".sortable-item, .rrss-item") : null);
-      const rrssNameInput = panelElement ? panelElement.querySelector(`input[name="rrss[${rrssIndex}][0]"]`) : null;
-      const socialName = rrssNameInput ? rrssNameInput.value : "";
-      if (socialName) {
-        previewElements = Array.from(document.querySelectorAll(`.user-profile-preview [data-link-id="rrss_${socialName}"], .user-profile-preview [aria-label="${socialName}"]`));
-      }
-      deleteNotice = "Eliminando red social...";
-    }
-
-    // 3. Caso: sub-producto dentro de product_group
-    if (nameStr.includes("delete_sub_product")) {
-      panelElement = triggerElement ? (triggerElement.closest(".sub-product-item, .product-item, [class*='sub-product']") || triggerElement.closest("div.flex-column, div.flex-row")) : null;
-      deleteNotice = "Eliminando sub-producto...";
-    } else if (nameStr.includes("delete_img")) {
-      deleteNotice = "Eliminando imagen...";
-    }
-
-    // Mostrar el aviso directamente en la posición del bloque en el panel
-    if (panelElement) {
-      showInPlaceDeleteNotice(panelElement, deleteNotice);
-    }
-
-    // Animar salida en la vista previa
-    if (previewElements && previewElements.length > 0) {
-      previewElements.forEach((pItem) => {
-        animateElementRemoval(pItem);
-      });
-    }
-
-    // Activar inmediatamente los botones Guardar / Descartar
-    document.dispatchEvent(new CustomEvent("designDraftChanged"));
   }
 
   /**
@@ -2915,7 +2667,7 @@ export function designDraftManager() {
    * @returns {Promise<void>}
    */
   async function triggerPendingMetadataCheck() {
-    if (isCheckingMetadata || isSubmittingRemoteAjax) return;
+    if (isCheckingMetadata) return;
 
     try {
       isCheckingMetadata = true;
@@ -3010,22 +2762,6 @@ export function designDraftManager() {
           });
         }
 
-        // Modo legado: solo si el servidor devolvió explícitamente html completo (no compacto)
-        if (!data.compact && data.html) {
-          updateUserPreviewTemplate(data.html);
-          document.querySelectorAll(".user-profile-preview").forEach((container) => {
-            const temp = document.createElement("div");
-            temp.innerHTML = data.html.trim();
-            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
-            if (targetPreview && container.parentNode) {
-              container.parentNode.replaceChild(targetPreview, container);
-            } else {
-              container.innerHTML = data.html;
-            }
-          });
-          linkPreviewBlockIds();
-        }
-
         document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
         notifyDraftState();
       }
@@ -3036,258 +2772,11 @@ export function designDraftManager() {
     }
   }
 
-  /**
-   * Envía el formulario de .remote-container mediante petición asíncrona (Fetch/AJAX),
-   * procesa adiciones o eliminaciones y actualiza la vista previa y el editor en vivo
-   * sin provocar recargas completas de la página ni perder la pestaña activa.
-   *
-   * @async
-   * @param {HTMLFormElement} [form] Formulario origen
-   * @param {HTMLElement} [triggerElement] Elemento botón o checkbox que disparó la acción
-   * @returns {Promise<boolean>}
-   */
-  /**
-   * Encola y procesa el envío asíncrono de un formulario de .remote-container
-   * garantizando ejecución secuencial y retornando siempre una promesa.
-   *
-   * @param {HTMLFormElement} [form] Formulario origen
-   * @param {HTMLElement} [triggerElement] Elemento botón o checkbox que disparó la acción
-   * @returns {Promise<boolean>}
-   */
-  function submitRemoteFormAjax(form, triggerElement = null) {
-    const run = () => executeSubmitRemoteFormAjax(form, triggerElement);
-    const promise = remoteAjaxQueue.then(run, run);
-    remoteAjaxQueue = promise.then(() => true, () => false);
-    return promise;
-  }
-
-  /**
-   * Ejecución real de la petición Fetch asíncrona hacia el backend.
-   *
-   * @async
-   * @param {HTMLFormElement} [form]
-   * @param {HTMLElement} [triggerElement]
-   * @returns {Promise<boolean>}
-   */
-  async function executeSubmitRemoteFormAjax(form, triggerElement = null) {
-    isSubmittingRemoteAjax = true;
-
-    const isDeleteAction = triggerElement && triggerElement.name && (
-      triggerElement.name.includes("[delete]") ||
-      triggerElement.name.includes("delete_sub_product") ||
-      triggerElement.name.includes("delete_img")
-    );
-
-    // Si no se había ejecutado el borrado optimista aún, ejecutarlo ahora
-    if (isDeleteAction) {
-      performOptimisticDelete(triggerElement);
-    }
-
-    // Deshabilitar temporalmente clics en botones de eliminación para evitar peticiones duplicadas
-    document.querySelectorAll('label[for^="delete-link-"], label[for^="delete-rrss-"], .modal-btn').forEach((btn) => {
-      btn.style.pointerEvents = "none";
-    });
-
-    try {
-      // 1. Cerrar cualquier modal abierto (confirmación de eliminar, menús emergentes)
-      document.querySelectorAll(".modal-overlay, .custom-modal-overlay").forEach((m) => m.remove());
-      document.querySelectorAll(".content-modal-menu").forEach((m) => m.classList.add("hidden"));
-      document.querySelectorAll(".open-modal-menu").forEach((b) => b.classList.remove("active"));
-
-      // 2. Obtener siempre el formulario más actualizado desde el DOM
-      let currentForm = form;
-      if (!currentForm || !document.body.contains(currentForm)) {
-        currentForm = document.querySelector("#sortable-content-list")?.closest("form") 
-          || document.querySelector(".remote-content.active form") 
-          || document.querySelector(".remote-container form");
-      }
-      if (!currentForm) {
-        return false;
-      }
-
-      // 3. Crear FormData con los campos del formulario
-      const formData = new FormData(currentForm);
-
-      // 4. Si hay un disparador con nombre y valor (ej. botón submit o checkbox), asegurar su valor
-      if (triggerElement && triggerElement.name) {
-        const val = triggerElement.value !== undefined && triggerElement.value !== null ? triggerElement.value : "true";
-        formData.set(triggerElement.name, val);
-      }
-
-      // 5. Incorporar cambios acumulados en el borrador local (excepto si el ítem fue eliminado)
-      const draft = getDraft();
-      let deletedPrefix = null;
-      if (isDeleteAction && triggerElement.name) {
-        deletedPrefix = triggerElement.name.replace(/\[delete\]$/, "");
-      }
-
-      const isReorderAction = formData.has("is_reorder") || (triggerElement && triggerElement.name === "is_reorder");
-
-      Object.keys(draft).forEach((key) => {
-        if (deletedPrefix && key.startsWith(deletedPrefix)) {
-          return; // Omitir datos antiguos de un elemento que se está borrando
-        }
-        if (isReorderAction && (key.startsWith("content[") || key.startsWith("rrss["))) {
-          return; // En reordenamiento, los inputs del formulario en el DOM ya reflejan el orden y valores exactos reindexados
-        }
-        if (draft[key] && typeof draft[key] === "object" && !(draft[key] instanceof File) && !(draft[key] instanceof Blob)) { appendFormDataRecursive(formData, draft[key], key); } else { formData.set(key, draft[key]); }
-      });
-
-      // 6. Si es una acción de añadir nuevo elemento, marcar sessionStorage para expandirlo al renderizar
-      const isAddAction = triggerElement && (
-        triggerElement.name === "add_content_type" ||
-        triggerElement.name === "add_rrss_name" ||
-        (typeof triggerElement.name === "string" && triggerElement.name.includes("add_sub_product"))
-      );
-      if (isAddAction) {
-        sessionStorage.setItem("open_new_block_on_load", "true");
-      }
-
-      // 7. Guardar posición de scroll actual para evitar saltos indeseados
-      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-
-      // 8. Enviar petición Fetch con encabezado XMLHttpRequest y token CSRF
-      const csrf = getCsrfToken();
-      if (csrf && !formData.has("_token") && !formData.has("csrf_token")) {
-        formData.append("_token", csrf);
-      }
-      const postUrl = currentForm.getAttribute("action") || `/panel/${user}/diseno`;
-      const response = await fetch(postUrl, {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          ...(csrf ? { "X-CSRF-TOKEN": csrf } : {})
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error en el servidor al actualizar el diseño: ${response.statusText}`);
-      }
-
-      const data = await parseSafeJson(response);
-
-      if (data && data.success) {
-        if (data.card) {
-          setInitialState(data.card);
-          setDraftStateImmediate(data.card);
-        }
-
-        // 10. Actualizar vista previa oficial (.user-profile-preview) y plantilla compartida
-        if (data.html) {
-          updateUserPreviewTemplate(data.html);
-          document.querySelectorAll(".user-profile-preview").forEach((container) => {
-            const temp = document.createElement("div");
-            temp.innerHTML = data.html.trim();
-            const targetPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
-            if (targetPreview && container.parentNode) {
-              container.parentNode.replaceChild(targetPreview, container);
-            } else {
-              container.innerHTML = data.html;
-            }
-          });
-        }
-
-        // 11. Actualizar banner de estado en barra lateral
-        if (data.sidebarStatusHtml) {
-          document.querySelectorAll(".sidebar-profile-status").forEach((sidebar) => {
-            sidebar.innerHTML = data.sidebarStatusHtml;
-          });
-        }
-
-        // 12. Actualizar formularios en .remote-container manteniendo la pestaña activa
-        if (data.formHtml) {
-          const remoteContainer = document.querySelector(".remote-container");
-          if (remoteContainer) {
-            const activeContent = remoteContainer.querySelector(".remote-content.active");
-            let activeId = activeContent ? activeContent.id : null;
-            if (!activeId) {
-              const closestRemote = (triggerElement && typeof triggerElement.closest === "function") ? triggerElement.closest(".remote-content") : null;
-              activeId = closestRemote ? closestRemote.id : (window.__menuMemory?.get?.() || null);
-            }
-
-            const temp = document.createElement("div");
-            temp.innerHTML = data.formHtml.trim();
-            const newContainer = temp.querySelector(".remote-container") || temp.firstElementChild;
-            if (newContainer) {
-              remoteContainer.innerHTML = newContainer.innerHTML;
-              if (activeId) {
-                remoteContainer.querySelectorAll(".remote-content").forEach((c) => {
-                  if (c.id === activeId) {
-                    c.classList.remove("hidden");
-                    c.classList.add("active");
-                  } else {
-                    c.classList.remove("active");
-                    c.classList.add("hidden");
-                  }
-                });
-              }
-
-              // Sincronizar de inmediato los controles de formulario con cualquier cambio pendiente del borrador
-              syncFormControls(getDraft());
-
-              // Inicializar inmediatamente switches y componentes de formulario en el nuevo contenido
-              if (window.__formComponents) {
-                window.__formComponents.initCheckboxSwitches?.();
-                window.__formComponents.styleColorPickers?.();
-                window.__formComponents.initCustomRangeSliders?.();
-              }
-              refreshAllBannersState();
-            }
-          }
-        }
-
-        // 13. Restaurar scroll de la ventana
-        window.scrollTo(0, currentScrollY);
-
-        // 14. Notificar a otros módulos (sortableContent, formComponents, saveButtonController)
-        document.dispatchEvent(new CustomEvent("previewUpdated", { detail: data }));
-        document.dispatchEvent(new CustomEvent("remoteContentUpdated", { detail: data }));
-        notifyDraftState();
-
-        setTimeout(() => {
-          triggerPendingMetadataCheck();
-        }, 500);
-
-        return true;
-      } else {
-        throw new Error(data?.message || "No se pudo actualizar el elemento.");
-      }
-    } catch (err) {
-      console.error("Error en submitRemoteFormAjax:", err);
-      if (isDeleteAction) {
-        // Restaurar bloques en el panel
-        document.querySelectorAll(".item-deleting-in-place").forEach((el) => {
-          restoreInPlaceBlock(el);
-        });
-        // Revertir animación de los elementos en preview
-        document.querySelectorAll(".item-deleting").forEach((el) => {
-          el.classList.remove("item-deleting");
-          el.style.opacity = "";
-          el.style.transform = "";
-          el.style.maxHeight = "";
-          el.style.paddingTop = "";
-          el.style.paddingBottom = "";
-          el.style.marginTop = "";
-          el.style.marginBottom = "";
-          el.style.overflow = "";
-          el.style.pointerEvents = "";
-        });
-      }
-      return false;
-    } finally {
-      document.querySelectorAll('label[for^="delete-link-"], label[for^="delete-rrss-"], .modal-btn').forEach((btn) => {
-        btn.style.pointerEvents = "";
-      });
-      isSubmittingRemoteAjax = false;
-    }
-  }
-
   // =========================================================================
   // 6. CAPTURA Y DELEGACIÓN DE EVENTOS DE INTERACCIÓN (SUBMIT / CLICK / INPUT / CHANGE)
   // =========================================================================
 
-  // Prevenir envíos de navegación convencionales en el panel y delegar a AJAX
+  // Prevenir envíos de navegación convencionales en el panel y procesar acciones locales
   document.addEventListener("submit", (e) => {
     const form = e.target;
     if (form && form.closest(".remote-container")) {
@@ -3295,13 +2784,7 @@ export function designDraftManager() {
 
       const submitter = e.submitter || lastClickedSubmitButton;
       if (submitter && isStructuralAction(submitter)) {
-        if (handleLocalImageAndSubProductAction(submitter)) {
-          return;
-        }
-        if (submitter.name && (submitter.name.includes("delete_sub_product") || submitter.name.includes("delete_img"))) {
-          performOptimisticDelete(submitter);
-        }
-        submitRemoteFormAjax(form, submitter);
+        handleLocalImageAndSubProductAction(submitter);
         return;
       }
 
@@ -3315,7 +2798,7 @@ export function designDraftManager() {
     }
   });
 
-  // Delegación de clics: interceptar modales de borrado y botones de adición/eliminación
+  // Delegación de clics: interceptar modales de borrado y acciones locales de contenido
   document.addEventListener("click", (e) => {
     // 1. Confirmación de eliminación en modal (label asociado a checkbox delete)
     const deleteLabel = e.target.closest('label[for^="delete-link-"], label[for^="delete-rrss-"]');
@@ -3332,7 +2815,7 @@ export function designDraftManager() {
       return;
     }
 
-    // 2. Botones submit dentro de .remote-container (añadir tipo, red social, subproducto, borrar imagen)
+    // 2. Botones submit dentro de .remote-container (añadir tipo, subproducto, borrar imagen, toggle)
     const submitBtn = e.target.closest('button[type="submit"], input[type="submit"]');
     if (submitBtn) {
       const form = submitBtn.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
@@ -3344,13 +2827,7 @@ export function designDraftManager() {
 
         if (isStructuralAction(submitBtn)) {
           e.preventDefault();
-          if (handleLocalImageAndSubProductAction(submitBtn)) {
-            return;
-          }
-          if (submitBtn.name && (submitBtn.name.includes("delete_sub_product") || submitBtn.name.includes("delete_img"))) {
-            performOptimisticDelete(submitBtn);
-          }
-          submitRemoteFormAjax(form, submitBtn);
+          handleLocalImageAndSubProductAction(submitBtn);
         }
       }
     }
@@ -3484,7 +2961,7 @@ export function designDraftManager() {
 
     // Manejo de campos de texto, bio y deslizadores de rango
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-      if (target.type === "file") return;
+      if (target.type === "file" || target.type === "radio" || target.type === "checkbox") return;
       if (target.type === "range") {
         target.style.setProperty("--range-progress", `${target.value}%`);
         const valTargetId = target.dataset.valTarget;
@@ -3561,11 +3038,7 @@ export function designDraftManager() {
 
     // Checkbox de borrado directo
     if (target.type === "checkbox" && target.name.includes("[delete]") && target.checked) {
-      if (handleLocalBlockDelete(target)) {
-        return;
-      }
-      const form = target.closest("form") || document.querySelector(".remote-content.active form") || document.querySelector(".remote-container form");
-      submitRemoteFormAjax(form, target);
+      handleLocalBlockDelete(target);
       return;
     }
 
@@ -3855,11 +3328,6 @@ export function designDraftManager() {
     isSavingDraft = true;
 
     try {
-      await remoteAjaxQueue;
-      while (isSubmittingRemoteAjax) {
-        await new Promise((resolve) => setTimeout(resolve, 80));
-      }
-
       flushDraftSave();
       const draftState = getDraftState();
       const formData = new FormData();
@@ -4123,11 +3591,6 @@ export function designDraftManager() {
    * @returns {Promise<boolean>} True si se descartó con éxito.
    */
   async function discardDraft() {
-    await remoteAjaxQueue;
-    while (isSubmittingRemoteAjax) {
-      await new Promise((resolve) => setTimeout(resolve, 80));
-    }
-
     // 1. Revertir localmente en 0ms igualando el borrador al estado inicial oficial
     clearAllPendingBlobs();
     const initial = getInitialState();
@@ -4257,7 +3720,6 @@ export function designDraftManager() {
     hasDraft,
     saveDraft,
     discardDraft,
-    submitRemoteFormAjax,
     applyDraftToPreview,
     syncFormControls,
     triggerPendingMetadataCheck
@@ -4561,113 +4023,33 @@ export function designDraftManager() {
     }
   });
 
-  /**
-   * Actualiza la plantilla única #user-preview-template cuando el servidor devuelve un HTML oficial nuevo.
-   *
-   * @param {string} html HTML renderizado de .user-profile-preview.
-   */
-  function updateUserPreviewTemplate(html) {
-    if (!html || typeof html !== "string") return;
-    const tpl = document.getElementById("user-preview-template");
-    if (!tpl) return;
-    const temp = document.createElement("div");
-    temp.innerHTML = html.trim();
-    const nextPreview = temp.querySelector(".user-profile-preview") || temp.firstElementChild;
-    if (!nextPreview) return;
-    tpl.innerHTML = "";
-    tpl.content.appendChild(nextPreview);
-  }
-  window.__updateUserPreviewTemplate = updateUserPreviewTemplate;
-
-  /**
-   * Monta e hidrata una instancia de .user-profile-preview en el contenedor indicado,
-   * clonando el preview de escritorio si está vivo o desde #user-preview-template si querys.js lo vació.
-   *
-   * @param {HTMLElement|null} mountEl Contenedor destino donde montar el preview.
-   * @param {boolean} [preferDesktopClone=true] Si debe intentar clonar primero #preview-mount-desktop.
-   */
-  function mountPreviewInto(mountEl, preferDesktopClone = true) {
-    if (!mountEl) return;
-
-    const desktopPreview = preferDesktopClone
-      ? document.querySelector("#preview-mount-desktop .user-profile-preview")
-      : null;
-
-    let fragmentOrNode = null;
-    let mountedFromTemplate = false;
-
-    if (desktopPreview) {
-      fragmentOrNode = desktopPreview.cloneNode(true);
-    } else {
-      const tpl = document.getElementById("user-preview-template");
-      if (!tpl) return;
-      fragmentOrNode = tpl.content.cloneNode(true);
-      mountedFromTemplate = true;
-    }
-
-    if (fragmentOrNode.querySelectorAll) {
-      fragmentOrNode.querySelectorAll("[data-gsap-hover-bound]").forEach((el) => {
-        el.removeAttribute("data-gsap-hover-bound");
-      });
-    }
-
-    mountEl.innerHTML = "";
-    mountEl.appendChild(fragmentOrNode);
-
-    const mountedPreview = mountEl.querySelector(".user-profile-preview");
-    if (!mountedPreview) return;
-
-    if (mountedFromTemplate) {
-      linkPreviewBlockIds();
-      syncPreviewStructureFromDraft(mountedPreview, getDraftState());
-      const flatDraft = getDraft();
-      if (Object.keys(flatDraft).length > 0) {
-        applyDraftToPreview(flatDraft);
-      }
-    }
-
-    const modalVideo = mountedPreview.querySelector(".back-video-bg");
-    if (modalVideo && modalVideo.style.display !== "none") {
-      modalVideo.muted = true;
-      modalVideo.playsInline = true;
-      modalVideo.play().catch(() => {});
-    }
-
-    document.dispatchEvent(new CustomEvent("contentUpdated"));
-    document.dispatchEvent(new CustomEvent("previewUpdated"));
-  }
-
-  // Hidratar el montaje de escritorio si la página cargó en tablet/móvil y luego pasó a ancho desktop
-  const desktopMountMedia = window.matchMedia("(min-width: 993px)");
-  const ensureDesktopMountHydrated = (isDesktop) => {
-    if (!isDesktop) return;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!desktopMountMedia.matches) return;
-        const desktopMount = document.getElementById("preview-mount-desktop");
-        if (desktopMount && !desktopMount.closest('[aria-hidden="true"]') && !desktopMount.querySelector(".user-profile-preview")) {
-          mountPreviewInto(desktopMount, false);
-        }
-      });
-    });
-  };
-  if (typeof desktopMountMedia.addEventListener === "function") {
-    desktopMountMedia.addEventListener("change", (ev) => ensureDesktopMountHydrated(ev.matches));
-  } else if (typeof desktopMountMedia.addListener === "function") {
-    desktopMountMedia.addListener((ev) => ensureDesktopMountHydrated(ev.matches));
-  }
-
-  // Montar bajo demanda el preview dentro del modal móvil/tablet desde desktop o #user-preview-template
+  // Sincronizar el preview dentro del modal móvil/tablet inmediatamente después de que modal.js lo abra
   document.addEventListener("click", (e) => {
     const previewTrigger = e.target.closest('[data-preview-modal-trigger="true"]');
     if (!previewTrigger) return;
 
-    queueMicrotask(() => {
-      const mount = document.querySelector(".modal-overlay .mobile-preview-mount");
-      if (!mount) return;
-      mountPreviewInto(mount, true);
-    });
-  }, true);
+    setTimeout(() => {
+      const modalPreview = document.querySelector(".modal-overlay .user-profile-preview");
+      if (!modalPreview) return;
+
+      linkPreviewBlockIds();
+      syncPreviewStructureFromDraft(modalPreview, getDraftState());
+      const flatDraft = getDraft();
+      if (Object.keys(flatDraft).length > 0) {
+        applyDraftToPreview(flatDraft);
+      }
+
+      const modalVideo = modalPreview.querySelector(".back-video-bg");
+      if (modalVideo && modalVideo.style.display !== "none") {
+        modalVideo.muted = true;
+        modalVideo.playsInline = true;
+        modalVideo.play().catch(() => {});
+      }
+
+      document.dispatchEvent(new CustomEvent("contentUpdated"));
+      document.dispatchEvent(new CustomEvent("previewUpdated"));
+    }, 0);
+  });
 
   document.addEventListener("sortableUpdated", (e) => {
     if (!e.detail || !e.detail.container) return;

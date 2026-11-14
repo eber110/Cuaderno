@@ -59,7 +59,7 @@
             <div class="absolute m20 top right fadeIn pointer modal-close-button closed-modal-preview br50 p0 hpx30 wpx30 flex-column center-center">
               <?= svg("xmark")?>
             </div>
-            <div class="mobile-preview-mount flex-column center-center w100"></div>
+            <?php _component("UserPreview.userPreview", ["data" => $card])?>
           </div>
         </div>
       </div>

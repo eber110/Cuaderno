@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-11-10 22:49:18",
-    "total_routes": 48,
+    "generated_at": "2026-11-14 03:17:07",
+    "total_routes": 45,
     "static_routes": [
         {
             "method": "GET",
@@ -267,37 +267,6 @@
             "protect_at_controller": false,
             "action": "Closure",
             "middlewares": []
-        },
-        {
-            "method": "GET",
-            "uri": "/test/1",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "Closure",
-            "middlewares": [
-                "App\\Middleware\\TestMiddleware"
-            ]
-        },
-        {
-            "method": "GET",
-            "uri": "/test/2",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "App\\Controllers\\TestControllers@test2",
-            "middlewares": [
-                "App\\Middleware\\TestMiddleware"
-            ]
-        },
-        {
-            "method": "GET",
-            "uri": "/test/login-eber",
-            "has_variables": false,
-            "variables": [],
-            "protect_at_controller": false,
-            "action": "Closure",
-            "middlewares": []
         }
     ],
     "dynamic_routes": [
@@ -556,7 +525,7 @@
         }
     ],
     "summary_by_method": {
-        "GET": 31,
+        "GET": 28,
         "POST": 17
     }
 }

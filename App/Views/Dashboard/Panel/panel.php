@@ -35,24 +35,10 @@
         clikhub/<?= $card["profile"]?>
       </button>
 
-      <div id="preview-mount-desktop" class="flex-column center-center w100"></div>
+      <?php _component("UserPreview.userPreview", ["data" => $card])?>
 
     </div>
 
   </div>
-
-  <!-- Única renderización servidor del preview (inert en móvil/tablet hasta hidratar desktop o modal) -->
-  <template id="user-preview-template">
-    <?php _component("UserPreview.userPreview", ["data" => $card])?>
-  </template>
-  <script>
-    (function () {
-      var tpl = document.getElementById("user-preview-template");
-      var desktopMount = document.getElementById("preview-mount-desktop");
-      if (tpl && desktopMount && !desktopMount.querySelector(".user-profile-preview") && window.matchMedia("(min-width: 993px)").matches) {
-        desktopMount.appendChild(tpl.content.cloneNode(true));
-      }
-    })();
-  </script>
 
 </div>

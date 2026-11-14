@@ -432,6 +432,16 @@ frame lang:import <archivo>          # Importa traducciones desde JSON/CSV (comp
 - JS del proyecto en `App/Public/Js/` (se minifica a `Min/Js`).
 - Sin dependencias; si necesitas GSAP está en `App/Rsc/Library/Gsap`.
 
+### Comportamiento del JS nativo del Framework (`Resources/Js/`)
+- **Visibilidad responsiva (`querys.js` — `no-phone`, `no-tablet`, `no-desk`, `no-dark-mode`, `no-light-mode`)**:
+  No son simples clases CSS. `querys.js` vacía físicamente el `innerHTML` (`element.innerHTML = ''`) de los contenedores ocultos según el viewport activo y restaura su HTML inicial al cambiar de breakpoint.
+  - **Regla**: Nunca elimines componentes de contenedores `.no-desk` o `.no-tablet.no-phone` asumiendo que están duplicados en el DOM vivo; `querys.js` ya garantiza que solo exista en el DOM la versión del viewport activo.
+- **Modales (`modal.js` — `.modal-btn` + `.hidden`)**:
+  Al hacer clic en `.modal-btn` (fase *bubble*), `modal.js` copia síncronamente el `innerHTML` del hermano inmediato (`btnModal.nextElementSibling`, que debe ser `<div class="hidden">`) hacia `.modal-overlay .modal-content-area`.
+  - **Regla**: El contenido base del modal debe existir siempre dentro de `<div class="hidden">`. Si necesitas sincronizar estado dinámico dentro del modal recién abierto, hazlo en un macrotask posterior (`setTimeout(..., 0)`), nunca con `queueMicrotask` en fase *capture*.
+- **Sincronización de inputs por `[name]`**:
+  Al sincronizar programáticamente inputs con el mismo atributo `name`, excluir siempre `type="radio"` y `type="checkbox"` de asignaciones `.value = ...` (usar `.checked = (inp.value === String(val))` para no sobrescribir los valores de las opciones de un grupo radio).
+
 ### CSS
 - Utilidades atómicas propias (`center`, `flex-row`, `gap10`, `w50`, `x25`, `bold600`, `br50`, `back8`, `color2`…) → compiladas por JIT a `jit-compiled.css`.
 - **`container`, `container-xl-mid`, `container-sml`** → estandarizan el ancho de cada vista en sus breakpoints (usar en la base de cada vista).

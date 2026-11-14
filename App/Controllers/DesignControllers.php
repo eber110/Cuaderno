@@ -139,50 +139,14 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      $isCompact = !empty($paramArr["compact"])
-        || !empty(\Base\Module\SecurityModule::post("compact", ""))
-        || !empty(\Base\Module\SecurityModule::get("compact", ""));
-
-      if ($isCompact) {
-        while (ob_get_level() > 0) {
-          ob_end_clean();
-        }
-
-        ResponseModule::json([
-          "success"           => true,
-          "compact"           => true,
-          "hasCustom"         => false,
-          "sidebarStatusHtml" => $sidebarStatusHtml,
-          "card"              => $cardData
-        ]);
-      }
-
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-
-      $uri = [
-        "formDesign"    => "/panel/{$userClean}/diseno",
-        "saveDesign"    => "/panel/{$userClean}/guardar",
-        "discardDesign" => "/panel/{$userClean}/descartar",
-        "simularDatos"  => "/panel/{$userClean}/simular-datos"
-      ];
-
-      $formHtml = _partToString("Dashboard.contentPanel", [
-        "card"    => $cardData,
-        "uri"     => $uri,
-        "user"    => $userClean,
-        "stats"   => [], // Optimización: no recalcular 20 queries de estadísticas al guardar
-        "session" => $sessionData
-      ]);
-
       while (ob_get_level() > 0) {
         ob_end_clean();
       }
 
       ResponseModule::json([
         "success"           => true,
+        "compact"           => true,
         "hasCustom"         => false,
-        "html"              => $previewHtml,
-        "formHtml"          => $formHtml,
         "sidebarStatusHtml" => $sidebarStatusHtml,
         "card"              => $cardData
       ]);
@@ -336,49 +300,14 @@ class DesignControllers extends Control {
         "session" => $sessionData
       ]);
 
-      $isCompact = !empty(\Base\Module\SecurityModule::post("compact", ""))
-        || !empty(\Base\Module\SecurityModule::get("compact", ""));
-
-      if ($isCompact) {
-        while (ob_get_level() > 0) {
-          ob_end_clean();
-        }
-
-        ResponseModule::json([
-          "success"           => true,
-          "compact"           => true,
-          "updated"           => true,
-          "sidebarStatusHtml" => $sidebarStatusHtml,
-          "card"              => $cardData
-        ]);
-      }
-
-      $previewHtml = _componentToString("UserPreview.userPreview", ["data" => $cardData]);
-
-      $uri = [
-        "formDesign"    => "/panel/{$userClean}/diseno",
-        "saveDesign"    => "/panel/{$userClean}/guardar",
-        "discardDesign" => "/panel/{$userClean}/descartar",
-        "simularDatos"  => "/panel/{$userClean}/simular-datos"
-      ];
-
-      $formHtml = _partToString("Dashboard.contentPanel", [
-        "card"    => $cardData,
-        "uri"     => $uri,
-        "user"    => $userClean,
-        "stats"   => [],
-        "session" => $sessionData
-      ]);
-
       while (ob_get_level() > 0) {
         ob_end_clean();
       }
 
       ResponseModule::json([
         "success"           => true,
+        "compact"           => true,
         "updated"           => true,
-        "html"              => $previewHtml,
-        "formHtml"          => $formHtml,
         "sidebarStatusHtml" => $sidebarStatusHtml,
         "card"              => $cardData
       ]);
