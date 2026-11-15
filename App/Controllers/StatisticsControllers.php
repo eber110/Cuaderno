@@ -128,8 +128,8 @@ class StatisticsControllers extends Control {
       "displayValues"  => $splineDisplayValues,
       "unit"           => "Visitas",
       "autoScale"      => true,
-      "color"          => "texto",
-      "axisLabel"      => "color-secondary",
+      "color"          => "color1",
+      "axisLabel"      => "texto",
       "transition"     => 450,
       "has_points"     => count($splineValues) > 0
     ];
@@ -205,7 +205,7 @@ class StatisticsControllers extends Control {
       "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
       "displayValue" => $monthlyCtoRate . "%",
       "label"        => "Tasa de conversión",
-      "color"        => "texto",
+      "color"        => "color1",
       "colorLabel"   => "texto",
       "unit"         => "Tasa CTO",
       "transition"   => 450,
@@ -246,6 +246,8 @@ class StatisticsControllers extends Control {
     $monthlyEval  = self::evaluateMonthlyTrend($monthlyRaw);
     $ctoRaw       = $statsRaw["cto"] ?? StatisticsModels::getCtoData($indexUser);
     $ctoEval      = self::evaluateCtoMetrics($ctoRaw);
+    $statsRaw["monthly_views"] = $monthlyEval;
+    $statsRaw["cto"]           = $ctoEval;
     // Evaluar variables de entorno de producción y permisos de visualización
     $canViewDevGraphics = StatisticsModels::canViewDevGraphics($userClean);
     $canViewSubs        = StatisticsModels::canViewSubscriptions();

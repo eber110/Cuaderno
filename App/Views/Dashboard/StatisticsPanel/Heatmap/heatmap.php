@@ -75,15 +75,15 @@
   }
 ?>
 
-<div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
+<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
   <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row center-start gap10">
-      <span class="flex-row center-center color-secondary x20">
+    <div class="flex-row top-start gap10">
+      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
         <?= svg("calendar", "x20"); ?>
       </span>
       <div class="flex-column gap2">
         <p class="m0 bold600 texto">Actividad Semanal (Heatmap)</p>
-        <p class="m0 x13 color-secondary">Distribución de audiencia por días y franjas horarias para optimizar tus lanzamientos.</p>
+        <p class="m0 color-secondary">Distribución de audiencia por días y franjas horarias para optimizar tus lanzamientos.</p>
       </div>
     </div>
 
@@ -97,11 +97,11 @@
   <?php if ($isPremium): ?>
     <!-- Vista Desbloqueada (Premium): Recomendación + Matriz 5x7 -->
     <?php if (!empty($recommendation)): ?>
-      <div class="p15 br15 back-card-graphic shadow-card-graphic flex-row center-start gap12">
-        <span class="color-warning x24 flex-shrink-0"><?= svg("lightbulb", "x24"); ?></span>
+      <div class="p15 br15 back-card-graphic shadow-card-graphic flex-row top-start gap12">
+        <span class="flex-row center-center color-warning x24 hpx27 flex-shrink-0"><?= svg("lightbulb", "x24"); ?></span>
         <div class="flex-column gap2">
           <span class="bold700 texto">Recomendación inteligente</span>
-          <p class="m0 color-secondary leading-normal"><?= e($recommendation); ?></p>
+          <p class="m0 color-secondary line-h14"><?= e($recommendation); ?></p>
         </div>
       </div>
     <?php endif; ?>
@@ -116,9 +116,10 @@
 
         <div class="w100 flex-row center-center">
           <?= GraphicsModule::matrixHeatmap([
-            'rows'   => array_column($timeSlots, 'label'),
-            'cols'   => array_values($daysCols),
-            'matrix' => $matrixHeatmapData,
+            'rows'      => array_column($timeSlots, 'label'),
+            'cols'      => array_values($daysCols),
+            'matrix'    => $matrixHeatmapData,
+            'color'     => 'color1',
             'showAxisX' => true
           ]); ?>
         </div>
@@ -136,15 +137,15 @@
           <?= GraphicsModule::matrixHeatmap([
             'rows'  => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
             'cols'  => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            'color' => 'texto'
+            'color' => 'color1'
           ]); ?>
         </div>
       </div>
 
       <div class="premium-lock-overlay">
         <span class="color-warning x28 mb6"><?= svg("lock", "x28"); ?></span>
-        <h4 class="m0 x16 bold700 texto mb4">Encuentra tu Mejor Horario para Publicar</h4>
-        <p class="m0 color-secondary x13 max-wpx450 mb15">El Heatmap semanal te revela con exactitud los días y franjas horarias con mayor afluencia de tus seguidores.</p>
+        <h4 class="m0 x18 bold700 texto mb4">Encuentra tu Mejor Horario para Publicar</h4>
+        <p class="m0 color-secondary wpx-max-450 mb15">El Heatmap semanal te revela con exactitud los días y franjas horarias con mayor afluencia de tus seguidores.</p>
         <a href="/planes" class="btn-premium-unlock">
           <?= svg("lock", "x12"); ?>
           Desbloquear Heatmap Semanal

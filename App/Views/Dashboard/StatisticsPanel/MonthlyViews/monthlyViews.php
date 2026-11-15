@@ -23,12 +23,12 @@
   $hasSpline     = !empty($spline["values"]) && count($spline["values"]) > 0;
 ?>
 
-<div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
+<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
   
   <!-- Encabezado de la tarjeta -->
   <div class="flex-row center-between wrap gap10 w100">
     <div class="flex-row center-start gap10">
-      <span class="flex-row center-center color-secondary x20">
+      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
         <?= svg("chart", "x20"); ?>
       </span>
       <p class="m0 bold600 texto">Visitas del mes actual</p>
@@ -43,7 +43,7 @@
 
   <!-- Valor principal con indicador de flecha condicional -->
   <div class="flex-row center-start gap12 my5">
-    <span class="x45 bold700 texto leading-none"><?= e((string)$currentTotal); ?></span>
+    <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$currentTotal); ?></span>
     
     <?php if (!empty($arrow)): ?>
       <span class="flex-row center-center <?= e($arrowClass); ?> x28" title="<?= e($statusText); ?>" aria-label="<?= e($statusText); ?>">
@@ -75,7 +75,7 @@
         </div>
       <?php endif; ?>
     <?php else: ?>
-      <p class="m0 x14 color-secondary">
+      <p class="m0 color-secondary">
         Este es tu primer mes con registro de visitas. Con el paso de los meses se calculará el promedio para mostrar la tendencia.
       </p>
     <?php endif; ?>
@@ -97,7 +97,7 @@
 
       <!-- Renderizado SVG del gráfico vectorial Hybrid Spline -->
       <div class="flex-row center-center br15 w100">
-        <div class="overflow-hidden wpx600 w-mid-100 w-sml-100">
+        <div class="w100 wpx-max-650 overflow-hidden">
         <?= GraphicsModule::hybridSpline([
             "values"        => $spline["values"],
             "labels"        => $spline["labels"],
@@ -105,7 +105,7 @@
             "displayValues" => $spline["displayValues"] ?? [],
             "unit"          => $spline["unit"] ?? "Visitas",
             "autoScale"     => $spline["autoScale"] ?? true,
-            "color"         => $spline["color"] ?? "texto",
+            "color"         => $spline["color"] ?? "color1",
             "transition"    => $spline["transition"] ?? 450,
             "tooltip"       => true
           ]); 

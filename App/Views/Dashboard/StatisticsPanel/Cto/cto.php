@@ -47,7 +47,7 @@
     "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
     "displayValue" => $monthlyCtoRate . "%",
     "label"        => "Tasa de conversión",
-    "color"        => "texto",
+    "color"        => "color1",
     "colorLabel"   => "texto",
     "unit"         => "Tasa de conversión",
     "transition"   => 500,
@@ -56,12 +56,12 @@
   ];
 ?>
 
-<div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap20 w100">
+<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap20 w100">
 
   <!-- Encabezado de la tarjeta -->
   <div class="flex-row center-between wrap gap10 w100">
     <div class="flex-row top-start gap10">
-      <span class="flex-row center-center color-secondary x20">
+      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
         <?= svg("chart-column-solid", "x20"); ?>
       </span>
       <div class="flex-column gap2">
@@ -84,7 +84,7 @@
     <div class="flex-column gap12 back-card-graphic shadow-card-graphic |hover-scale-soft p20 br15 w100">
       <div class="flex-row center-between">
         <div class="flex-row center-start gap8">
-          <span class="color-success"><?= svg("chart", "color-success"); ?></span>
+          <span class="flex-row center-center color-success x20 flex-shrink-0"><?= svg("chart", "x20 color-success"); ?></span>
           <span class="color-secondary bold600">CTO del Mes (Clics / Visitas)</span>
         </div>
       </div>
@@ -117,7 +117,7 @@
           <span class="color-secondary bold500">Promedio Enlaces / Visitas</span>
         </div>
         <div class="flex-row center-start gap10 my5">
-          <span class="x36 bold700 texto leading-none"><?= e((string)$totalLinks); ?></span>
+          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$totalLinks); ?></span>
           <span class="color-secondary bold500">enlaces activos</span>
         </div>
         <p class="m0 color-secondary">
@@ -134,7 +134,7 @@
           <span class="color-secondary bold500">Clics Acumulados Históricos</span>
         </div>
         <div class="flex-row center-start gap10 my5">
-          <span class="x36 bold700 texto leading-none"><?= e((string)$allTimeClicks); ?></span>
+          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$allTimeClicks); ?></span>
           <span class="color-secondary bold500">clics totales</span>
         </div>
         <p class="m0 color-secondary">
@@ -151,7 +151,7 @@
   <!-- Sección: Índice de distribución Enlaces vs Redes Sociales -->
   <div class="flex-column gap15 back-card-graphic shadow-card-graphic |hover-scale-soft p15 br10 w100">
     
-    <div class="flex-row center-between wrap gap10 w100">
+    <div class="flex-column gap12 w100">
       <div class="flex-column gap3">
         <p class="m0 bold500 texto">Índice de Clics: Enlaces vs Redes Sociales</p>
         <p class="m0 color-secondary">
@@ -162,13 +162,13 @@
         </p>
       </div>
 
-      <div class="flex-row center-end gap15 x13">
+      <div class="flex-row center-between wrap gap10 w100">
         <span class="flex-row center-start gap5">
-          <span class="back-success" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
+          <span class="back-success br50" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
           <p class="color-secondary">Enlaces: <strong><?= e((string)$barPctEnlaces); ?>%</strong></p>
         </span>
         <span class="flex-row center-start gap5">
-          <span class="back8" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
+          <span class="back8 br50" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
           <p class="color-secondary">RRSS: <strong><?= e((string)$barPctRrss); ?>%</strong></p>
         </span>
       </div>
@@ -189,13 +189,13 @@
           <span class="flex-row center-start gap8 color-success bold500">
             Enlaces de Contenido
           </span>
-          <span class="badge p3 pl8 pr8 br8 x16 bold500 back-success textw">
+          <span class="badge p3 pl8 pr8 br8 bold500 back-success textw">
             <?= e((string)$barPctEnlaces); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
-          <span class="x28 bold700 texto"><?= e((string)$monthlyEnlaces); ?></span>
+          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$monthlyEnlaces); ?></span>
           <span class="color-secondary">clics este mes</span>
         </div>
 
@@ -210,13 +210,13 @@
           <span class="flex-row center-start gap8 bold500 texto">
             Redes Sociales (RRSS)
           </span>
-          <span class="badge p3 pl8 pr8 br8 x16 bold500 textc back8">
+          <span class="badge p3 pl8 pr8 br8 bold500 textc back8">
             <?= e((string)$barPctRrss); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
-          <span class="x28 bold700 texto"><?= e((string)$monthlyRrss); ?></span>
+          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$monthlyRrss); ?></span>
           <span class="color-secondary">clics este mes</span>
         </div>
 

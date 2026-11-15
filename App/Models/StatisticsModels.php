@@ -55,8 +55,8 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getCurrentMonthClicks(string $indexUser): int {
     try {
-      $startOfMonth = date("Y-m-01 00:00:00");
-      $endOfMonth   = date("Y-m-t 23:59:59");
+      $startOfMonth = gmdate("Y-m-01 00:00:00");
+      $endOfMonth   = gmdate("Y-m-t 23:59:59");
 
       return (int)(new self("link_clicks"))
         ->where("index_user", $indexUser)
@@ -77,8 +77,8 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getCurrentMonthClicksByType(string $indexUser): array {
     try {
-      $startOfMonth = date("Y-m-01 00:00:00");
-      $endOfMonth   = date("Y-m-t 23:59:59");
+      $startOfMonth = gmdate("Y-m-01 00:00:00");
+      $endOfMonth   = gmdate("Y-m-t 23:59:59");
 
       $enlaces = (int)(new self("link_clicks"))
         ->where("index_user", $indexUser)
@@ -238,8 +238,8 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getCurrentMonthViews(string $indexUser): int {
     try {
-      $startOfMonth = date("Y-m-01 00:00:00");
-      $endOfMonth   = date("Y-m-t 23:59:59");
+      $startOfMonth = gmdate("Y-m-01 00:00:00");
+      $endOfMonth   = gmdate("Y-m-t 23:59:59");
 
       return (int)(new self("profile_views"))
         ->where("index_user", $indexUser)
@@ -260,7 +260,7 @@ class StatisticsModels extends BuilderSqlite {
    */
   public static function getPreviousMonthsViews(string $indexUser): array {
     try {
-      $startOfMonth = date("Y-m-01 00:00:00");
+      $startOfMonth = gmdate("Y-m-01 00:00:00");
 
       $rows = (new self("profile_views"))
         ->select("strftime('%Y-%m', created_at) as mes")
@@ -598,6 +598,7 @@ class StatisticsModels extends BuilderSqlite {
         ->whereNotNull("country_code")
         ->where("country_code", "!=", "")
         ->where("country_code", "!=", "DEV")
+        ->where("country_code", "!=", "N/A")
         ->count();
 
       // 2. Ranking de Países
@@ -611,11 +612,25 @@ class StatisticsModels extends BuilderSqlite {
           AND country_code IS NOT NULL
           AND country_code != ''
           AND country_code != 'DEV'
+          AND country_code != 'N/A'
         GROUP BY country_code, country_name
         ORDER BY count DESC
         LIMIT ?
       ";
       $countryRows = (new self())->rawQuery($sqlCountries, [$cleanIndex, $cleanIndex, $limit]);
+
+      // Conteo real de países distintos sin el tope de LIMIT
+      $sqlUniqueCountries = "
+        SELECT COUNT(DISTINCT country_code) as total
+        FROM profile_views
+        WHERE (index_user = ? OR profile_id = ?)
+          AND country_code IS NOT NULL
+          AND country_code != ''
+          AND country_code != 'DEV'
+          AND country_code != 'N/A'
+      ";
+      $uniqueRows = (new self())->rawQuery($sqlUniqueCountries, [$cleanIndex, $cleanIndex]);
+      $uniqueCountries = (int)($uniqueRows[0]["total"] ?? count($countryRows));
 
       $countries = [];
       foreach ($countryRows as $row) {
@@ -644,8 +659,7 @@ class StatisticsModels extends BuilderSqlite {
         WHERE (index_user = ? OR profile_id = ?)
           AND city_name IS NOT NULL
           AND city_name != ''
-          AND city_name != 'Local'
-          AND city_name != 'Desconocida'
+          AND city_name NOT IN ('Local', 'Localhost', 'Desconocida', 'Desconocido', 'N/A')
         GROUP BY city_name, country_code
         ORDER BY count DESC
         LIMIT ?
@@ -667,7 +681,7 @@ class StatisticsModels extends BuilderSqlite {
 
       return [
         "total_geo_views"  => $totalGeo,
-        "unique_countries" => count($countries),
+        "unique_countries" => $uniqueCountries,
         "countries"        => $countries,
         "cities"           => $cities,
         "top_country"      => $countries[0] ?? null
@@ -938,6 +952,10 @@ class StatisticsModels extends BuilderSqlite {
         }
       }
 
+      if (!empty($card)) {
+        $card = UserModels::formatCardImages($card);
+      }
+
       $contentItems = is_array($card["content"] ?? null) ? $card["content"] : [];
       $rrssItems    = is_array($card["rrss"] ?? null) ? $card["rrss"] : [];
 
@@ -946,8 +964,8 @@ class StatisticsModels extends BuilderSqlite {
       $allTimeViews = (int)(new self("profile_views"))->where("index_user", $cleanIndex)->count();
 
       // 3. Consultar todos los clics agregados en SQLite por link_id
-      $startOfMonth = date("Y-m-01 00:00:00");
-      $endOfMonth   = date("Y-m-t 23:59:59");
+      $startOfMonth = gmdate("Y-m-01 00:00:00");
+      $endOfMonth   = gmdate("Y-m-t 23:59:59");
 
       $sql = "
         SELECT 
@@ -955,7 +973,7 @@ class StatisticsModels extends BuilderSqlite {
           COUNT(*) as all_time_clicks,
           SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 ELSE 0 END) as month_clicks,
           SUM(CASE WHEN device_type = 'mobile' THEN 1 ELSE 0 END) as mobile_clicks,
-          SUM(CASE WHEN device_type != 'mobile' THEN 1 ELSE 0 END) as desktop_clicks
+          SUM(CASE WHEN COALESCE(NULLIF(device_type, ''), 'desktop') != 'mobile' THEN 1 ELSE 0 END) as desktop_clicks
         FROM link_clicks
         WHERE (index_user = ? OR profile_id = ?)
         GROUP BY link_id
@@ -989,11 +1007,11 @@ class StatisticsModels extends BuilderSqlite {
         $totalDesktopClicks += $desk;
       }
 
-      // Helper para buscar clics en el mapa intentando varias claves (url, id, enlace_idx)
+      // Helper para buscar clics en el mapa usando únicamente referencias reales (url o id de bloque)
       $findClicks = function(array $candidateKeys) use ($clicksMap): array {
         foreach ($candidateKeys as $k) {
           $clean = mb_strtolower(trim((string)$k), "UTF-8");
-          if (!empty($clean) && isset($clicksMap[$clean])) {
+          if ($clean !== "" && $clean !== "#" && isset($clicksMap[$clean])) {
             return $clicksMap[$clean];
           }
         }
@@ -1005,19 +1023,94 @@ class StatisticsModels extends BuilderSqlite {
         ];
       };
 
-      // 4. Procesar enlaces de contenido
+      // Helper para extraer imagen válida de un ítem formateado (omitiendo placeholders por defecto)
+      $resolveThumb = function(array $entry): string {
+        $imgSrc = trim((string)($entry["imgSrc"] ?? ""));
+        if ($imgSrc !== "" && strpos($imgSrc, "no-image.webp") === false && strpos($imgSrc, "no-user.webp") === false) {
+          return $imgSrc;
+        }
+        return "";
+      };
+
+      // Helper para resolver título legible sin inventar placeholders posicionales ("Enlace N")
+      $resolveTitle = function(array $entry, string $url): string {
+        foreach (["title", "metaTitle", "text", "name"] as $tKey) {
+          $cand = trim((string)($entry[$tKey] ?? ""));
+          if ($cand !== "") {
+            return $cand;
+          }
+        }
+        $host = trim((string)parse_url($url, PHP_URL_HOST));
+        return $host !== "" ? $host : $url;
+      };
+
+      // 4. Construir lista normalizada de enlaces activos con referencia real en contenido
+      $nonLinkTypes = ["title", "text", "separator", "campaign"];
+      $linkEntries = [];
+
+      foreach ($contentItems as $idx => $item) {
+        if (!is_array($item)) {
+          continue;
+        }
+
+        $type = trim((string)($item["type"] ?? "link"));
+        if (in_array($type, $nonLinkTypes, true)) {
+          continue;
+        }
+
+        $rawActive = $item["active"] ?? true;
+        $isActive = ($rawActive === true || $rawActive === 1 || $rawActive === "1" || $rawActive === "true");
+        if (!$isActive) {
+          continue;
+        }
+
+        // Un grupo de productos activo aporta sus sub-productos individuales que tengan URL válida
+        if ($type === "product_group") {
+          $subProducts = is_array($item["products"] ?? null) ? $item["products"] : [];
+          foreach ($subProducts as $subProd) {
+            if (!is_array($subProd)) {
+              continue;
+            }
+            $subUrl = trim((string)($subProd["url"] ?? ""));
+            if ($subUrl === "" || $subUrl === "#") {
+              continue;
+            }
+            $linkEntries[] = [
+              "id"    => trim((string)($subProd["id"] ?? "")),
+              "url"   => $subUrl,
+              "title" => $resolveTitle($subProd, $subUrl),
+              "type"  => "product",
+              "img"   => $resolveThumb($subProd),
+            ];
+          }
+          continue;
+        }
+
+        $url = trim((string)($item["url"] ?? ""));
+        if ($url === "" || $url === "#") {
+          // Bloque sin referencia de enlace real no debe ingresar al ranking ni a Enlace Estrella
+          continue;
+        }
+
+        $linkEntries[] = [
+          "id"    => trim((string)($item["id"] ?? "")),
+          "url"   => $url,
+          "title" => $resolveTitle($item, $url),
+          "type"  => $type,
+          "img"   => $resolveThumb($item),
+        ];
+      }
+
+      // 5. Procesar métricas por cada enlace activo encontrado en contenido
       $processedItems = [];
       $highestClicks = -1;
       $starIndex = -1;
 
-      foreach ($contentItems as $idx => $item) {
-        $url       = $item["url"] ?? "";
-        $itemId    = $item["id"] ?? "";
-        $title     = $item["title"] ?? ($item["metaTitle"] ?? "Enlace " . ($idx + 1));
-        $type      = $item["type"] ?? "link";
-        $legacyKey = "enlace_" . ($idx + 1);
+      foreach ($linkEntries as $entryIdx => $entry) {
+        $url    = $entry["url"];
+        $itemId = $entry["id"];
 
-        $clickData = $findClicks([$url, $itemId, $legacyKey]);
+        $clickData = $findClicks([$url, rtrim($url, "/"), $itemId]);
         $mClicks   = $clickData["month_clicks"];
         $aClicks   = $clickData["all_time_clicks"];
         $mobClicks = $clickData["mobile_clicks"];
@@ -1037,12 +1130,13 @@ class StatisticsModels extends BuilderSqlite {
         }
 
         $processedItems[] = [
-          "index"              => $idx,
+          "index"              => $entryIdx,
           "id"                 => $itemId,
-          "title"              => $title,
+          "title"              => $entry["title"],
           "url"                => $url,
-          "type"               => $type,
-          "active"             => !empty($item["active"]),
+          "type"               => $entry["type"],
+          "img"                => $entry["img"],
+          "active"             => true,
           "month_clicks"       => $mClicks,
           "all_time_clicks"    => $aClicks,
           "ctr_month"          => $ctrMonth,
@@ -1055,12 +1149,18 @@ class StatisticsModels extends BuilderSqlite {
         ];
       }
 
-      // Asignar distinción de Enlace Estrella
+      // Asignar distinción de Enlace Estrella y ordenar el ranking por rendimiento
       $starLink = null;
       if ($starIndex >= 0 && isset($processedItems[$starIndex])) {
         $processedItems[$starIndex]["is_star"] = true;
         $starLink = $processedItems[$starIndex];
       }
+
+      usort($processedItems, function(array $a, array $b): int {
+        return ($b["month_clicks"] <=> $a["month_clicks"])
+          ?: ($b["all_time_clicks"] <=> $a["all_time_clicks"])
+          ?: ($a["index"] <=> $b["index"]);
+      });
 
       // 5. Procesar Redes Sociales (RRSS)
       $processedRrss = [];

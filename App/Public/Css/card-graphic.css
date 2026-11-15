@@ -223,5 +223,12 @@ input[type="checkbox"].checkbox-switch {
   stroke: transparent !important;
 }
 
+/* Fuerza la resolución de color1 (#0b101e) sobre el ciclo currentColor de charts.css */
+.mono-chart-svg.color1 {
+  --chart-base: var(--back-color, #0b101e) !important;
+  --chart-base-color: var(--back-color, #0b101e) !important;
+  color: var(--back-color, #0b101e) !important;
+}
+
 
 

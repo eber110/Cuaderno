@@ -43,15 +43,15 @@
   }
 ?>
 
-<div class="p25 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
+<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
   <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row center-start gap10">
-      <span class="flex-row center-center color-secondary x20">
+    <div class="flex-row top-start gap10">
+      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
         <?= svg("globe", "x20"); ?>
       </span>
       <div class="flex-column gap2">
         <p class="m0 bold600 texto">Geolocalización de Audiencia</p>
-        <p class="m0 x13 color-secondary">Distribución geográfica de las visitas a tu perfil analizadas por MaxMind GeoIP.</p>
+        <p class="m0 color-secondary">Distribución geográfica de las visitas a tu perfil analizadas por MaxMind GeoIP.</p>
       </div>
     </div>
 
@@ -66,10 +66,11 @@
     <!-- Vista Desbloqueada (Premium): Países con GraphicsModule::horizontalBars -->
     <?php if (!empty($countryBars)): ?>
       <div class="flex-column center-center gap10 w100">
-        <div class="w-mid-90 wpx-desk-650 w-sml-100">
+        <div class="w100 wpx-max-650">
           <?= GraphicsModule::horizontalBars([
             'bars'        => $countryBars,
             'width'       => 650,
+            'color'       => 'color1',
             'valueSuffix' => '%',
             'showAxisY'   => true,
             'showAxisX'   => true
@@ -78,7 +79,7 @@
 
         <?php if (!empty($cities)): ?>
           <div class="pt15 mt10 flex-column gap12 w100" style="border-top: 1px solid rgba(128,128,128,0.15);">
-            <p class="m0 bold600 x14 color-secondary">Principales Ciudades detectadas</p>
+            <p class="m0 bold600 color-secondary">Principales Ciudades detectadas</p>
             <div class="flex-row wrap gap10">
               <?php foreach ($cities as $ct): ?>
                 <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl12 pr12 br10">
@@ -86,7 +87,7 @@
                     <span><?= $countryFlagEmoji($ct['country_code']); ?></span>
                     <strong class="texto bold500"><?= e($ct['city_name']); ?></strong>
                   </span>
-                  <span class="color-secondary x12"><?= e((string)$ct['count']); ?> (<?= e((string)$ct['percentage']); ?>%)</span>
+                  <span class="color-secondary"><?= e((string)$ct['count']); ?> (<?= e((string)$ct['percentage']); ?>%)</span>
                 </div>
               <?php endforeach; ?>
             </div>
@@ -97,7 +98,7 @@
       <div class="flex-column center p30 gap10 text-center">
         <span class="color-secondary x30"><?= svg("globe", "x30"); ?></span>
         <p class="m0 bold600 texto">Sin registros de ubicación aún</p>
-        <p class="m0 x13 color-secondary">A medida que recibas visitas públicas se procesarán automáticamente sus países y ciudades.</p>
+        <p class="m0 color-secondary">A medida que recibas visitas públicas se procesarán automáticamente sus países y ciudades.</p>
       </div>
     <?php endif; ?>
 
@@ -108,18 +109,18 @@
         <div class="p15 br15 back-card-graphic shadow-card-graphic flex-column gap10">
           <div class="flex-row center-between wrap gap8">
             <div class="flex-row center-start gap8">
-              <span class="x22 leading-none"><?= $countryFlagEmoji($countries[0]['country_code']); ?></span>
+              <span class="x22 line-h1"><?= $countryFlagEmoji($countries[0]['country_code']); ?></span>
               <div>
                 <strong class="texto bold600"><?= e($countries[0]['country_name']); ?></strong>
-                <span class="x11 color-success bold600 ml5">Tu país principal #1</span>
+                <span class="color-success bold600 ml5">Tu país principal #1</span>
               </div>
             </div>
             <div class="flex-row center-end gap10">
               <span class="bold600 texto"><?= e((string)$countries[0]['count']); ?> visitas</span>
-              <span class="x12 color-secondary bold500"><?= e((string)$countries[0]['percentage']); ?>%</span>
+              <span class="color-secondary bold500"><?= e((string)$countries[0]['percentage']); ?>%</span>
             </div>
           </div>
-          <div class="w100 max-wpx600">
+          <div class="w100 wpx-max-600">
             <?= GraphicsModule::horizontalBars([
               'bars' => [
                 [
@@ -128,10 +129,9 @@
                   'display' => $countries[0]['count'] . ' visitas (' . $countries[0]['percentage'] . '%)'
                 ]
               ],
-              'color'       => 'texto',
+              'color'       => 'color1',
               'valueSuffix' => '%',
-              'maxVal'      => 100,
-              'barHeight'   => 12
+              'maxVal'      => 100
             ]); ?>
           </div>
         </div>
@@ -140,7 +140,7 @@
 
     <div class="premium-blur-container w100 mt10">
       <div class="premium-blur-content flex-column gap12 w100 pt5">
-        <div class="w100 max-wpx650 mx-auto">
+        <div class="w100 wpx-max-650 mx-auto">
           <?= GraphicsModule::horizontalBars([
             'bars' => [
               ['label' => 'España', 'value' => 35.0, 'display' => '35%'],
@@ -150,7 +150,7 @@
               ['label' => 'Chile', 'value' => 10.0, 'display' => '10%'],
             ],
             'width'       => 650,
-            'color'       => 'texto',
+            'color'       => 'color1',
             'valueSuffix' => '%'
           ]); ?>
         </div>
@@ -158,8 +158,8 @@
 
       <div class="premium-lock-overlay">
         <span class="color-warning x28 mb6"><?= svg("lock", "x28"); ?></span>
-        <h4 class="m0 x16 bold700 texto mb4">Ranking Completo de Países y Ciudades</h4>
-        <p class="m0 color-secondary x13 max-wpx450 mb15">Desbloquea el mapa analítico detallado con todas las naciones y ciudades de donde provienen tus visitantes.</p>
+        <h4 class="m0 x18 bold700 texto mb4">Ranking Completo de Países y Ciudades</h4>
+        <p class="m0 color-secondary wpx-max-450 mb15">Desbloquea el mapa analítico detallado con todas las naciones y ciudades de donde provienen tus visitantes.</p>
         <a href="/planes" class="btn-premium-unlock">
           <?= svg("lock", "x12"); ?>
           Desbloquear con Premium
