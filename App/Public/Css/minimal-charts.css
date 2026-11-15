@@ -732,15 +732,18 @@
   transition: opacity 0.3s ease;
 }
 
+/* Escala suave desde el centro propio de cada celda (fill-box), evitando desplazamientos ni lavado de color */
 .mono-chart-svg .mono-matrix-cell {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              filter 0.2s ease,
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: none;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
               opacity 0.3s ease;
 }
 
 .mono-chart-svg:not([data-tooltip="false"]) .mono-matrix-cell:hover {
-  filter: brightness(1.28);
-  transform: scale(1.10);
+  filter: none;
+  transform: scale(1.08);
   cursor: pointer;
 }
 
