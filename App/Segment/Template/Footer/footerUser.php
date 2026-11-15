@@ -1,3 +1,3 @@
-<footer class="w100 flex-column center-center p20">
-  <p>clickhub - 2026</p>
+<footer class="w100 flex-row center-center p20">
+  <p>&copy;  Clikhub - 2026</p>
 </footer>

@@ -15,5 +15,9 @@
     </div>
   </div>
 
-  <?php _template("Footer.footerRegister");?>
+  <footer class="w100">
+    <?php
+      _template("Footer.footerUser")
+    ?>
+  </footer>
 </main>
