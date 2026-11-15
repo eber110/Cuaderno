@@ -66,10 +66,10 @@
                 <strong class="bold700 texto line-h12"><?= e($starLink['title']); ?></strong>
               </div>
               <?php if (!empty($starLink['url'])): ?>
-                <a href="<?= eUrl($starLink['url']); ?>" target="_blank" rel="noopener noreferrer" class="color-secondary hover-underline flex-row center-start gap6">
+                <p class="m0 color-secondary flex-row center-start gap6">
                   <span class="flex-row center-center x16 flex-shrink-0"><?= svg("link", "x16"); ?></span>
                   <span class="truncate"><?= e(mb_strimwidth($starLink['url'], 0, 60, '...')); ?></span>
-                </a>
+                </p>
               <?php endif; ?>
             </div>
           </div>

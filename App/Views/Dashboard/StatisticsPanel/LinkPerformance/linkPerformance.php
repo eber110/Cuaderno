@@ -67,10 +67,10 @@
                     <?php endif; ?>
                   </div>
                   <?php if (!empty($it['url'])): ?>
-                    <a href="<?= eUrl($it['url']); ?>" target="_blank" rel="noopener noreferrer" class="color-secondary hover-underline flex-row center-start gap6">
+                    <p class="m0 color-secondary flex-row center-start gap6">
                       <span class="flex-row center-center x16 flex-shrink-0"><?= svg("link", "x16"); ?></span>
                       <span class="truncate"><?= e(mb_strimwidth($it['url'], 0, 50, '...')); ?></span>
-                    </a>
+                    </p>
                   <?php endif; ?>
                 </div>
               </div>
