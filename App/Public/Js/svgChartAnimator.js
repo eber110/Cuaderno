@@ -315,21 +315,57 @@ function animateTileFade(tile, { delay = 0, duration = 400, fromOpacity = 0, toO
 }
 
 /**
+ * Resuelve los elementos DOM de un gráfico Arc Meter (soporta .mono-chart-card y svg[data-chart="arc-meter"]).
+ *
+ * @param {HTMLElement|SVGElement} container Tarjeta contenedora o elemento SVG del arco.
+ * @returns {{ svg: SVGElement|null, meterVal: SVGElement|null, numberText: SVGElement|null, headlineNum: HTMLElement|null, centerLabel: SVGElement|null, isCard: boolean }}
+ */
+function resolveArcMeterElements(container) {
+  if (!container) {
+    return { svg: null, meterVal: null, numberText: null, headlineNum: null, centerLabel: null, isCard: false };
+  }
+  const isCard = !!(container.classList && container.classList.contains("mono-chart-card"));
+  const svg = container.matches && container.matches('svg[data-chart="arc-meter"]')
+    ? container
+    : container.querySelector('svg[data-chart="arc-meter"], svg');
+  const scope = svg || container;
+  const meterVal = scope.querySelector(".mono-arc-meter-val");
+  const numberText = scope.querySelector(".mono-arc-center-number");
+  const headlineNum = isCard ? container.querySelector(".mono-chart-value-big") : null;
+  const centerLabel = scope.querySelector(".mono-arc-center-label");
+
+  return { svg, meterVal, numberText, headlineNum, centerLabel, isCard };
+}
+
+/**
+ * Formatea el texto final del contador central de Arc Meter conservando decimales o displayValue cuando existen.
+ *
+ * @param {number} targetPct Porcentaje objetivo (0 a 100).
+ * @param {string|null} displayText Valor textual explícito (ej. "25%" o "150%").
+ * @returns {string}
+ */
+function formatArcMeterFinalText(targetPct, displayText = null) {
+  if (typeof displayText === "string" && displayText.trim() !== "") {
+    return displayText.trim();
+  }
+  const rounded = Number.isInteger(targetPct) ? targetPct : Number(targetPct.toFixed(2));
+  return `${rounded}%`;
+}
+
+/**
  * Anima el valor del Arc Meter mediante interpolación frame a frame con RAF y curva easeInOutCubic.
  * Garantiza un recorrido visual continuo y suave desde 0% (o desde el valor previo) hasta el porcentaje objetivo.
  * 
- * @param {HTMLElement} card Elemento de la tarjeta de Arc Meter.
+ * @param {HTMLElement|SVGElement} card Elemento contenedor o SVG de Arc Meter.
  * @param {number} targetPct Porcentaje objetivo (0 a 100).
  * @param {Object} [options={}] Opciones de animación.
  * @param {number} [options.duration=400] Duración del recorrido en ms.
  * @param {boolean} [options.fromCurrent=false] Si parte del porcentaje actual en vez de cero.
  * @param {number} [options.delay=0] Retardo antes de arrancar en ms.
+ * @param {string|null} [options.displayText=null] Texto final exacto a mostrar al terminar (ej. data-val).
  */
-export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurrent = false, delay = 0 } = {}) {
-  const meterVal = card.querySelector(".mono-arc-meter-val");
-  const numberText = card.querySelector(".mono-arc-center-number");
-  const headlineNum = card.querySelector(".mono-chart-value-big");
-  const centerLabel = card.querySelector(".mono-arc-center-label");
+export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurrent = false, delay = 0, displayText = null } = {}) {
+  const { svg, meterVal, numberText, headlineNum, centerLabel, isCard } = resolveArcMeterElements(card);
 
   if (!meterVal) return;
 
@@ -343,8 +379,9 @@ export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurr
     card._arcMeterTimeout = null;
   }
 
-  // Longitud perimétrica real del arco semicircular (radio 80 -> pi * 80 ~= 251.33)
-  const perimeter = meterVal.getTotalLength ? meterVal.getTotalLength() : 251.33;
+  // Longitud perimétrica real del arco semicircular (usa getTotalLength para evitar desajustes de radio en SVG)
+  const rawLen = meterVal.getTotalLength ? meterVal.getTotalLength() : 0;
+  const perimeter = rawLen > 0 ? rawLen : 282.74;
   meterVal.style.strokeDasharray = `${perimeter} ${perimeter}`;
   meterVal.setAttribute("stroke-dasharray", `${perimeter} ${perimeter}`);
   meterVal.style.transition = "none";
@@ -361,12 +398,18 @@ export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurr
     if (headlineNum) headlineNum.textContent = "0%";
   }
 
-  // Actualizar etiqueta contextual según el porcentaje dinámico
-  if (centerLabel) {
+  // En tarjetas sandbox antiguas sin data-target-pct se mantiene la etiqueta contextual dinámica;
+  // en gráficos generados por GraphicsModule se respeta siempre la etiqueta provista desde PHP.
+  const isNativeGraphicsArc = !!(svg && svg.hasAttribute("data-target-pct"));
+  if (centerLabel && isCard && !isNativeGraphicsArc) {
     if (targetPct <= 30) centerLabel.textContent = "Optimal Load";
     else if (targetPct <= 75) centerLabel.textContent = "Moderate Load";
     else centerLabel.textContent = "High Capacity";
   }
+
+  const finalFormatted = isNativeGraphicsArc
+    ? formatArcMeterFinalText(targetPct, displayText)
+    : `${Math.round(targetPct)}%`;
 
   // Lanzar bucle de animación con RAF
   const launchAnim = () => {
@@ -406,7 +449,6 @@ export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurr
         meterVal.style.strokeDashoffset = finalOffset.toFixed(2);
         meterVal.setAttribute("stroke-dashoffset", finalOffset.toFixed(2));
         meterVal.style.opacity = targetPct > 0 ? "1" : "0";
-        const finalFormatted = `${Math.round(targetPct)}%`;
         if (numberText) numberText.textContent = finalFormatted;
         if (headlineNum) headlineNum.textContent = finalFormatted;
       }
@@ -431,17 +473,16 @@ export function animateArcMeterValue(card, targetPct, { duration = 400, fromCurr
  * visible y continuo desde 0 hasta el porcentaje correspondiente (con curva ease-in-out).
  * Permite además alternar interactivamente porcentajes dinámicos (20%, 70%, 100%).
  * 
- * @param {HTMLElement} card Elemento de la tarjeta.
+ * @param {HTMLElement|SVGElement} card Elemento contenedor o SVG del arco.
  * @param {boolean} [playEntry=true] Si debe ejecutar la animación de entrada.
  */
 export function initArcMeter(card, playEntry = true) {
-  const meterVal = card.querySelector(".mono-arc-meter-val");
-  const numberText = card.querySelector(".mono-arc-center-number");
-  const headlineNum = card.querySelector(".mono-chart-value-big");
+  const { svg, meterVal, numberText, headlineNum, isCard } = resolveArcMeterElements(card);
 
   if (!meterVal) return;
 
-  const perimeter = meterVal.getTotalLength ? meterVal.getTotalLength() : 251.33;
+  const rawLen = meterVal.getTotalLength ? meterVal.getTotalLength() : 0;
+  const perimeter = rawLen > 0 ? rawLen : 282.74;
   meterVal.style.strokeDasharray = `${perimeter} ${perimeter}`;
   meterVal.setAttribute("stroke-dasharray", `${perimeter} ${perimeter}`);
   meterVal.style.transition = "none";
@@ -455,6 +496,9 @@ export function initArcMeter(card, playEntry = true) {
         const newTarget = parseFloat(pill.dataset.arcTarget || "20");
         pillBtns.forEach((p) => p.classList.toggle("active", p === pill));
         meterVal.dataset.value = newTarget.toString();
+        if (svg && svg.hasAttribute("data-target-pct")) {
+          svg.setAttribute("data-target-pct", newTarget.toString());
+        }
         if (headlineNum) headlineNum.dataset.target = newTarget.toString();
         card.classList.remove("is-exiting");
         animateArcMeterValue(card, newTarget, { duration: 400, fromCurrent: true, delay: 0 });
@@ -462,11 +506,28 @@ export function initArcMeter(card, playEntry = true) {
     }
   });
 
-  const targetPct = parseFloat(meterVal.dataset.value || "20");
+  const isNativeGraphicsArc = !!(svg && svg.hasAttribute("data-target-pct"));
+  const rawTarget = isNativeGraphicsArc
+    ? svg.getAttribute("data-target-pct")
+    : (meterVal.dataset.value ?? "20");
+  const parsedTarget = parseFloat(rawTarget);
+  const targetPct = Number.isFinite(parsedTarget) ? Math.max(0, Math.min(100, parsedTarget)) : 0;
+
+  const rawDuration = svg ? parseInt(svg.getAttribute("data-duration") || "400", 10) : 400;
+  const duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 400;
+  const displayVal = isNativeGraphicsArc ? (meterVal.getAttribute("data-val") || "").trim() : "";
+  const finalFormatted = isNativeGraphicsArc
+    ? formatArcMeterFinalText(targetPct, displayVal)
+    : `${Math.round(targetPct)}%`;
 
   if (playEntry) {
     card.classList.remove("is-exiting");
-    animateArcMeterValue(card, targetPct, { duration: 400, fromCurrent: false, delay: 0 });
+    animateArcMeterValue(card, targetPct, {
+      duration,
+      fromCurrent: false,
+      delay: 0,
+      displayText: isNativeGraphicsArc ? finalFormatted : null
+    });
   } else {
     if (meterVal._arcAnimRaf) cancelAnimationFrame(meterVal._arcAnimRaf);
     if (card._arcMeterTimeout) clearTimeout(card._arcMeterTimeout);
@@ -475,21 +536,23 @@ export function initArcMeter(card, playEntry = true) {
     meterVal.setAttribute("stroke-dashoffset", finalOffset.toFixed(2));
     meterVal.style.opacity = targetPct > 0 ? "1" : "0";
     meterVal._currentPct = targetPct;
-    const finalFormatted = `${Math.round(targetPct)}%`;
     if (numberText) numberText.textContent = finalFormatted;
     if (headlineNum) headlineNum.textContent = finalFormatted;
   }
 
-  // Interacción de tooltip
-  meterVal.onmouseenter = (e) => {
-    const curVal = Math.round(typeof meterVal._currentPct === "number" ? meterVal._currentPct : targetPct);
-    showChartTooltip(card, `Carga del sistema: <strong>${curVal}%</strong>`, e.clientX, e.clientY);
-  };
-  meterVal.onmousemove = (e) => {
-    const curVal = Math.round(typeof meterVal._currentPct === "number" ? meterVal._currentPct : targetPct);
-    showChartTooltip(card, `Carga del sistema: <strong>${curVal}%</strong>`, e.clientX, e.clientY);
-  };
-  meterVal.onmouseleave = () => hideChartTooltip(card);
+  // En tarjetas sandbox sin GraphicsModule se conserva el tooltip local legacy;
+  // en gráficos GraphicsModule el tooltip delegado proviene de Charts/tooltip.js.
+  if (isCard && !isNativeGraphicsArc) {
+    meterVal.onmouseenter = (e) => {
+      const curVal = Math.round(typeof meterVal._currentPct === "number" ? meterVal._currentPct : targetPct);
+      showChartTooltip(card, `Carga del sistema: <strong>${curVal}%</strong>`, e.clientX, e.clientY);
+    };
+    meterVal.onmousemove = (e) => {
+      const curVal = Math.round(typeof meterVal._currentPct === "number" ? meterVal._currentPct : targetPct);
+      showChartTooltip(card, `Carga del sistema: <strong>${curVal}%</strong>`, e.clientX, e.clientY);
+    };
+    meterVal.onmouseleave = () => hideChartTooltip(card);
+  }
 }
 
 /**
@@ -873,6 +936,122 @@ export function initPillPillars(card, playEntry = true) {
   });
 }
 
+let svgChartTooltipsPromise = null;
+
+/**
+ * Inicializa el controlador delegado de tooltips flotantes para gráficos de GraphicsModule.
+ */
+function ensureChartsTooltips() {
+  if (typeof document === "undefined") return;
+  if (typeof window.Charts?.initChartTooltips === "function") {
+    window.Charts.initChartTooltips();
+    return;
+  }
+  if (svgChartTooltipsPromise) return;
+
+  const tooltipScript = document.querySelector('script[src*="/Library/Charts/tooltip.js"]');
+  if (tooltipScript && tooltipScript.src) {
+    svgChartTooltipsPromise = import(tooltipScript.src)
+      .then((mod) => {
+        if (mod && typeof mod.initChartTooltips === "function") {
+          mod.initChartTooltips();
+        }
+      })
+      .catch(() => {});
+  }
+}
+
+/**
+ * Mapa de inicializadores por atributo [data-chart] para gráficos nativos de GraphicsModule.
+ * Excluye intencionalmente matrix-heatmap para preservar su interacción hover pura por CSS.
+ */
+const NATIVE_CHART_INITIALIZERS = {
+  "arc-meter": (el, playEntry) => {
+    initArcMeter(el, playEntry);
+    return true;
+  },
+  "hybrid-spline": (el) => {
+    if (typeof window.initHybridSpline !== "function") return false;
+    window.initHybridSpline(el);
+    return true;
+  },
+  "horizontal-bars": (el) => {
+    if (typeof window.initHorizontalBars !== "function") return false;
+    window.initHorizontalBars(el);
+    return true;
+  },
+  "stacked-tones": (el) => {
+    if (typeof window.initStackedTones !== "function") return false;
+    window.initStackedTones(el);
+    return true;
+  },
+  "tile-treemap": (el) => {
+    if (typeof window.initTileTreemap !== "function") return false;
+    window.initTileTreemap(el);
+    return true;
+  },
+  "pill-pillars": (el) => {
+    if (typeof window.initPillPillars !== "function") return false;
+    window.initPillPillars(el);
+    return true;
+  },
+  "simple-bars": (el) => {
+    if (typeof window.initSimpleBars !== "function") return false;
+    window.initSimpleBars(el);
+    return true;
+  },
+  "bullet-target": (el) => {
+    if (typeof window.initBulletTarget !== "function") return false;
+    window.initBulletTarget(el);
+    return true;
+  },
+  "rounded-donut": (el) => {
+    if (typeof window.initRoundedDonut !== "function") return false;
+    window.initRoundedDonut(el);
+    return true;
+  },
+  "pyramid-stack": (el) => {
+    if (typeof window.initPyramidStack !== "function") return false;
+    window.initPyramidStack(el);
+    return true;
+  },
+  "spline-dynamics": (el) => {
+    if (typeof window.initSplineDynamics !== "function") return false;
+    window.initSplineDynamics(el);
+    return true;
+  }
+};
+
+/**
+ * Inicializa los gráficos nativos de GraphicsModule ([data-chart]) visibles dentro de un ámbito.
+ *
+ * @param {Document|HTMLElement} context Ámbito de búsqueda.
+ * @param {boolean} playEntry Si debe reproducir animaciones de entrada.
+ */
+function initNativeGraphicsCharts(context, playEntry) {
+  if (!context || !context.querySelectorAll) return;
+
+  const charts = context.querySelectorAll("[data-chart]");
+  if (charts.length === 0) return;
+
+  ensureChartsTooltips();
+
+  charts.forEach((chartEl) => {
+    if (chartEl.closest(".mono-chart-card")) return;
+    if (chartEl.closest(".hidden")) return;
+    if (chartEl.dataset.chartInitialized === "true") return;
+
+    const chartType = chartEl.getAttribute("data-chart") || "";
+    const handler = NATIVE_CHART_INITIALIZERS[chartType];
+    if (!handler) return;
+
+    const initialized = handler(chartEl, playEntry);
+    if (initialized) {
+      chartEl.dataset.chartInitialized = "true";
+    }
+  });
+}
+
 /**
  * Inicializa todos los gráficos SVG dentro de un contenedor o documento.
  * 
@@ -917,6 +1096,8 @@ export function initAllSvgCharts(context = document, playEntry = true) {
         break;
     }
   });
+
+  initNativeGraphicsCharts(context, playEntry);
 }
 
 /**

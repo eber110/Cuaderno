@@ -534,22 +534,15 @@ export function saveButtonController() {
           }
         }
 
-        // Marcar wrappers pendientes de animación SVG si están ocultos al inyectarse
-        if (generalWrapper) {
-          generalWrapper.dataset.chartsAnimated = generalRemote && !generalRemote.classList.contains("hidden") ? "true" : "false";
-        }
-        if (linksWrapper) {
-          linksWrapper.dataset.chartsAnimated = linksRemote && !linksRemote.classList.contains("hidden") ? "true" : "false";
-        }
-
-        if (window.SvgChartAnimator && typeof window.SvgChartAnimator.initAllSvgCharts === "function") {
-          if (generalWrapper && generalRemote && !generalRemote.classList.contains("hidden")) {
-            window.SvgChartAnimator.initAllSvgCharts(generalWrapper, true);
-          }
-          if (linksWrapper && linksRemote && !linksRemote.classList.contains("hidden")) {
-            window.SvgChartAnimator.initAllSvgCharts(linksWrapper, true);
-          }
-        }
+        // Preparar animación SVG al volverse visible cada panel (respetando transiciones GSAP de remoteContent)
+        [
+          [generalRemote, generalWrapper],
+          [linksRemote, linksWrapper],
+          [legacyRemote, legacyRemote ? (document.getElementById("statistics-remote-wrapper") || legacyRemote) : null]
+        ].forEach(([panelEl, wrapperEl]) => {
+          if (wrapperEl) wrapperEl.dataset.chartsAnimated = "false";
+          if (panelEl && wrapperEl) scheduleChartsAnimation(panelEl, wrapperEl);
+        });
 
         document.dispatchEvent(new CustomEvent("statsLoaded", { detail: data }));
       }
@@ -562,21 +555,57 @@ export function saveButtonController() {
     }
   }
 
+  /**
+   * Anima los gráficos SVG de un panel de estadísticas en cuanto deja de tener la clase .hidden.
+   *
+   * @param {HTMLElement|null} panel Contenedor .remote-content del panel.
+   * @param {HTMLElement|null} wrapper Contenedor interno donde residen los gráficos.
+   */
+  function scheduleChartsAnimation(panel, wrapper) {
+    if (!wrapper || !panel || panel.dataset.loaded !== "true" || wrapper.dataset.chartsAnimated === "true") {
+      return;
+    }
+
+    const triggerNow = () => {
+      if (wrapper.dataset.chartsAnimated === "true" || panel.classList.contains("hidden")) {
+        return false;
+      }
+      wrapper.dataset.chartsAnimated = "true";
+      window.SvgChartAnimator?.initAllSvgCharts?.(wrapper, true);
+      return true;
+    };
+
+    if (triggerNow()) return;
+
+    if (panel._chartsVisibilityObserver) {
+      panel._chartsVisibilityObserver.disconnect();
+      panel._chartsVisibilityObserver = null;
+    }
+
+    const observer = new MutationObserver(() => {
+      if (triggerNow()) {
+        observer.disconnect();
+        if (panel._chartsVisibilityObserver === observer) {
+          panel._chartsVisibilityObserver = null;
+        }
+      }
+    });
+    panel._chartsVisibilityObserver = observer;
+    observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
+  }
+
   // Detectar clic en cualquier botón de estadísticas para carga bajo demanda
   document.addEventListener("click", (e) => {
     const btn = e.target.closest('.remote-btn[data-remote="stats-general-remote"], .remote-btn[data-remote="stats-links-remote"], .remote-btn[data-remote="statistics-remote"]');
     if (btn) {
       loadStatisticsIfNeeded();
 
-      // Animar gráficos SVG si la pestaña ya estaba cargada por AJAX pero permanecía oculta
+      // Programar animación SVG al completarse la transición de visibilidad del panel
       const targetId = btn.dataset.remote;
       requestAnimationFrame(() => {
         const panel = targetId ? document.getElementById(targetId) : null;
         const wrapper = panel ? (document.getElementById(`${targetId}-wrapper`) || panel) : null;
-        if (wrapper && panel && panel.dataset.loaded === "true" && wrapper.dataset.chartsAnimated !== "true") {
-          wrapper.dataset.chartsAnimated = "true";
-          window.SvgChartAnimator?.initAllSvgCharts?.(wrapper, true);
-        }
+        scheduleChartsAnimation(panel, wrapper);
       });
     }
   });
@@ -584,7 +613,11 @@ export function saveButtonController() {
   // Si la pestaña activa al cargar es de estadísticas, solicitar los datos
   const currentActiveBtn = getActiveRemoteBtn();
   const statsRemoteIds = ["stats-general-remote", "stats-links-remote", "statistics-remote"];
-  if (currentActiveBtn && statsRemoteIds.includes(currentActiveBtn.dataset.remote)) {
+  const hasVisibleStatsPanel = statsRemoteIds.some((id) => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains("hidden");
+  });
+  if ((currentActiveBtn && statsRemoteIds.includes(currentActiveBtn.dataset.remote)) || hasVisibleStatsPanel) {
     loadStatisticsIfNeeded();
   }
 
