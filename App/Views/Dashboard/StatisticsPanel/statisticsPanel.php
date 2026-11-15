@@ -34,7 +34,7 @@
     "axisLabel"     => "texto",
     "axisLabelSize" => "16",
     "barWidth"      => "20",
-    "color"         => "color8",
+    "color"         => "color1",
     "transition"    => 500,
     "tooltip"       => true
   ]);
