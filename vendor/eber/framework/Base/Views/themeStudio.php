@@ -359,7 +359,7 @@
     }
     .ts-tabs {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       background: var(--ts-bg);
       border-bottom: 1px solid var(--ts-border);
       padding: 6px;
@@ -1701,6 +1701,326 @@
       white-space: pre;
       tab-size: 2;
     }
+
+    /* ==============================================================
+       ICON STUDIO (GALERÍA VISUAL DE SVG POR CARPETAS)
+       ============================================================== */
+    #iconSandboxView {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: var(--body, #ffffff);
+      color: var(--text-primary, #0f172a);
+      font-family: var(--font, system-ui, sans-serif);
+    }
+    .is-search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 170px;
+    }
+    .is-search-input {
+      width: 100%;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: #f8fafc;
+      padding: 6px 28px 6px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .is-search-input:focus {
+      border-color: var(--ts-primary);
+    }
+    .is-search-clear {
+      position: absolute;
+      right: 6px;
+      background: transparent;
+      border: none;
+      color: var(--ts-muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 2px 4px;
+      display: none;
+      line-height: 1;
+    }
+    .is-search-clear.visible {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .is-search-clear:hover {
+      color: #fff;
+    }
+    .is-size-segmented {
+      display: inline-flex;
+      align-items: center;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .is-size-btn {
+      background: transparent;
+      border: none;
+      color: var(--ts-muted);
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      transition: all 0.12s ease;
+    }
+    .is-size-btn.active {
+      background: var(--ts-surface-hover);
+      color: var(--ts-primary);
+    }
+    .is-sandbox-stage {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px;
+      background-color: var(--body, #ffffff);
+      color: var(--text-primary, #0f172a);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      font-family: var(--ts-font);
+    }
+    .is-folders-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .is-folder-section {
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(128, 128, 128, 0.22);
+      background: rgba(128, 128, 128, 0.04);
+    }
+    .is-folder-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed rgba(128, 128, 128, 0.22);
+    }
+    .is-folder-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .is-folder-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .is-folder-path {
+      font-family: monospace;
+      font-size: 0.72rem;
+      opacity: 0.7;
+    }
+    .is-folder-count {
+      font-family: monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #0284c7;
+    }
+    #iconSandboxView[data-surface-dark="1"] .is-folder-count {
+      color: #7dd3fc;
+    }
+    .is-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 10px;
+    }
+    .is-icon-card {
+      position: relative;
+      border-radius: 10px;
+      padding: 12px 8px 9px;
+      border: 1px solid rgba(128, 128, 128, 0.22);
+      background: rgba(128, 128, 128, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease;
+      min-width: 0;
+      user-select: none;
+    }
+    .is-icon-card:hover {
+      border-color: var(--ts-primary);
+      background: rgba(56, 189, 248, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    .is-icon-card.selected {
+      border-color: var(--ts-primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+    }
+    .is-icon-card.copied {
+      border-color: var(--ts-success);
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
+    }
+    .is-icon-glyph {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      font-size: var(--is-preview-size, 28px);
+      line-height: 1;
+      transition: transform 0.14s ease, color 0.14s ease;
+    }
+    .is-icon-card:hover .is-icon-glyph {
+      transform: scale(1.08);
+    }
+    .is-icon-name {
+      width: 100%;
+      font-size: 0.7rem;
+      font-family: monospace;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.9;
+    }
+    .is-icon-copy-pill {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--ts-surface);
+      color: var(--ts-primary);
+      border: 1px solid var(--ts-border);
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      pointer-events: none;
+    }
+    .is-icon-card:hover .is-icon-copy-pill {
+      opacity: 1;
+    }
+    .is-icon-card.copied .is-icon-copy-pill {
+      opacity: 1;
+      background: var(--ts-success);
+      border-color: var(--ts-success);
+      color: #fff;
+    }
+    .is-empty-folder {
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px dashed rgba(128, 128, 128, 0.32);
+      font-size: 0.78rem;
+      opacity: 0.82;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .is-empty-search {
+      text-align: center;
+      padding: 40px 20px;
+      border-radius: 12px;
+      border: 1px dashed rgba(128, 128, 128, 0.32);
+      font-size: 0.88rem;
+      opacity: 0.85;
+    }
+
+    /* Sidebar Icon Studio */
+    .is-inspector-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--ts-border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .is-inspector-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .is-inspector-preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      flex-shrink: 0;
+    }
+    .is-inspector-meta {
+      min-width: 0;
+      flex: 1;
+    }
+    .is-inspector-name {
+      font-size: 0.86rem;
+      font-weight: 700;
+      font-family: monospace;
+      color: #fff;
+      word-break: break-all;
+      margin-bottom: 3px;
+    }
+    .is-inspector-sub {
+      font-size: 0.71rem;
+      color: var(--ts-muted);
+      line-height: 1.35;
+    }
+    .is-folder-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .is-folder-pill {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 0.71rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.12s ease;
+    }
+    .is-folder-pill:hover {
+      border-color: var(--ts-primary);
+      color: #fff;
+    }
+    .is-folder-pill.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+    }
+    .is-folder-pill-count {
+      font-family: monospace;
+      font-size: 0.66rem;
+      opacity: 0.78;
+    }
   </style>
   <style id="ts-charts-core-css"><?= $chartsCss ?? '' ?></style>
 </head>
@@ -1769,6 +2089,7 @@
         <button type="button" class="ts-tab-btn" onclick="switchTab('dark', this)">🌙 Oscuro</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
         <button type="button" class="ts-tab-btn" id="tabBtnCharts" onclick="switchTab('charts', this)">📊 Gráficos</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnIcons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('json', this)">📋 JSON</button>
@@ -2562,6 +2883,80 @@
         </div>
       </div>
 
+      <!-- TAB 5.8: GALERÍA DE ICONOS SVG (/Ico) -->
+      <div id="tab-icons" class="ts-tab-content">
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>1. Explorador de Iconos (/Ico)</span>
+            <button type="button" class="ts-btn ts-btn-secondary" style="padding:3px 8px; font-size:0.72rem;" onclick="refreshIconsCatalog(true)" title="Volver a escanear carpetas de /Ico en disco">
+              🔄 Re-escanear
+            </button>
+          </div>
+
+          <div class="ts-field" style="margin-bottom:10px;">
+            <label for="isSearchInput">Buscar icono o carpeta</label>
+            <div class="is-search-wrap">
+              <input type="text" id="isSearchInput" class="is-search-input" placeholder="ej. asterisk, arrow, Separator..." oninput="onIconSearchChange(this.value, 'sidebar')">
+              <button type="button" id="isSearchClearSidebar" class="is-search-clear" onclick="onIconSearchChange('', 'clear')" title="Limpiar búsqueda">✕</button>
+            </div>
+          </div>
+
+          <div class="ts-field" style="margin-bottom:6px;">
+            <label>Carpetas detectadas (<span id="isSidebarFolderCount">0</span>)</label>
+            <div id="isSidebarFolderPills" class="is-folder-pills">
+              <!-- Renderizado dinámico vía JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>2. Inspector &amp; Constructor PHP</span>
+            <button type="button" class="ts-btn ts-btn-secondary" style="padding:3px 8px; font-size:0.7rem;" onclick="resetIconBuilderOptions()" title="Limpiar clases y volver a svg(&quot;nombre&quot;);">
+              ↺ Limpiar
+            </button>
+          </div>
+
+          <div class="is-inspector-card" id="isInspectorCard">
+            <div class="is-inspector-top">
+              <div class="is-inspector-preview" id="isInspectorPreview"></div>
+              <div class="is-inspector-meta">
+                <div class="is-inspector-name" id="isInspectorName">Selecciona un icono</div>
+                <div class="is-inspector-sub" id="isInspectorMeta">Haz clic en cualquier SVG de la grilla para copiar su código PHP.</div>
+              </div>
+            </div>
+            <code id="isInspectorCodePreview" class="cs-syntax-badge" style="margin-top:0; margin-bottom:8px;">svg("asterisk");</code>
+            <button type="button" class="ts-btn ts-btn-primary" style="width:100%; justify-content:center; padding:7px; font-size:0.8rem;" onclick="copySelectedIconCode()">
+              📋 Copiar Código PHP
+            </button>
+          </div>
+
+          <div class="ts-field">
+            <label for="isCopyFormatSelect">Formato al hacer clic en un icono</label>
+            <select id="isCopyFormatSelect" class="ts-select" onchange="setIconCopyFormat(this.value)">
+              <option value="php">svg("nombre"); (Por defecto)</option>
+              <option value="echo">&lt;?= svg("nombre") ?&gt; (En vista HTML)</option>
+              <option value="phpEcho">&lt;?php echo svg("nombre"); ?&gt;</option>
+              <option value="js">await svg("nombre"); (JS aaSvgStore)</option>
+            </select>
+          </div>
+
+          <div class="cs-color-control">
+            <div class="cs-color-header">
+              <span>Clase CSS opcional (<code>$class</code>)</span>
+              <span style="font-size:0.68rem; color:var(--ts-muted);">opcional</span>
+            </div>
+            <div class="cs-color-chips" id="isClassColorChips"></div>
+            <input type="text" id="isCustomClassInput" class="ts-input-text" style="font-family:monospace; font-size:0.76rem; padding:6px 8px;" placeholder="ej. color2 x25 (vacío = solo nombre)" oninput="onIconBuilderOptionChange()">
+          </div>
+
+          <div class="ts-field" style="margin-bottom:0;">
+            <label for="isCustomTransformInput">Transformación SVG opcional (<code>$transform</code>)</label>
+            <input type="text" id="isCustomTransformInput" class="ts-input-text" style="font-family:monospace; font-size:0.76rem; padding:6px 8px;" placeholder="ej. rotate(90) o scale(-1, 1)" oninput="onIconBuilderOptionChange()">
+          </div>
+        </div>
+      </div>
+
       <!-- TAB 6: JSON CRUDO -->
       <div id="tab-json" class="ts-tab-content">
         <div class="ts-section">
@@ -2588,12 +2983,15 @@
             ◀ Panel
           </button>
 
-          <div class="ts-stage-switcher" title="Cambiar entre vista real del sitio y laboratorio de gráficos">
+          <div class="ts-stage-switcher" title="Cambiar entre vista real del sitio, laboratorio de gráficos y galería de iconos SVG">
             <button type="button" class="ts-stage-btn active" id="btnStageSite" onclick="setStageMode('site')">
               🌐 <span>Sitio</span>
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageCharts" onclick="setStageMode('charts')">
               📊 <span>Gráficos</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageIcons" onclick="setStageMode('icons')">
+              🖼️ <span>Iconos</span>
             </button>
           </div>
 
@@ -2616,6 +3014,11 @@
           <div id="chartBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🧪 Chart Studio</span>
             <span id="csActiveChartBadge" class="ts-badge">horizontalBars</span>
+          </div>
+
+          <div id="iconBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>🖼️ Galería SVG (/Ico)</span>
+            <span id="isTotalBadge" class="ts-badge">0 iconos</span>
           </div>
         </div>
 
@@ -2725,6 +3128,85 @@
               </div>
             </div>
           </div>
+
+          <!-- Galería Visual Interactiva de Iconos SVG (/Ico) -->
+          <div id="iconSandboxView">
+            <div class="cs-toolbar">
+              <div class="cs-toolbar-group" style="flex:1; min-width:220px;">
+                <div class="is-search-wrap">
+                  <input type="text" id="isStageSearchInput" class="is-search-input" placeholder="🔍 Filtrar SVG por nombre o carpeta..." oninput="onIconSearchChange(this.value, 'stage')">
+                  <button type="button" id="isSearchClearStage" class="is-search-clear" onclick="onIconSearchChange('', 'clear')" title="Limpiar búsqueda">✕</button>
+                </div>
+
+                <select id="isFolderFilterSelect" class="cs-toolbar-select" onchange="setIconFolderFilter(this.value)" title="Filtrar por carpeta dentro de /Ico">
+                  <option value="__all__">Todas las carpetas</option>
+                </select>
+              </div>
+
+              <div class="cs-toolbar-group">
+                <select id="isSurfaceSelect" class="cs-toolbar-select" onchange="setIconStageSurface(this.value)" title="Fondo simulado de la galería">
+                  <option value="var(--body)">Fondo: --body</option>
+                  <option value="var(--back-color)">Fondo: back1</option>
+                  <option value="var(--back-color2)">Fondo: back2</option>
+                  <option value="var(--back-color3)">Fondo: back3</option>
+                  <option value="#0c0c0e">Fondo: #0C0C0E</option>
+                  <option value="#ffffff">Fondo: #FFFFFF</option>
+                </select>
+
+                <select id="isPreviewColorSelect" class="cs-toolbar-select" onchange="setIconPreviewColorToken(this.value)" title="Color visual de previsualización de los SVG">
+                  <option value="auto">Color: Auto</option>
+                  <option value="texto">Color: texto</option>
+                  <option value="textc">Color: textc</option>
+                  <option value="textw">Color: textw</option>
+                  <option value="color1">Color: color1</option>
+                  <option value="color2">Color: color2</option>
+                  <option value="color3">Color: color3</option>
+                </select>
+
+                <div class="is-size-segmented" title="Tamaño de previsualización en la grilla">
+                  <button type="button" class="is-size-btn" data-size="20" onclick="setIconPreviewSize(20, this)">S</button>
+                  <button type="button" class="is-size-btn active" data-size="28" onclick="setIconPreviewSize(28, this)">M</button>
+                  <button type="button" class="is-size-btn" data-size="38" onclick="setIconPreviewSize(38, this)">L</button>
+                </div>
+
+                <button type="button" class="ts-btn ts-btn-secondary" style="padding:5px 10px; font-size:0.76rem;" onclick="refreshIconsCatalog(true)" title="Re-escanear carpetas y archivos SVG nuevos en /Ico">
+                  🔄 <span>Actualizar</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="is-sandbox-stage" id="iconSandboxStage">
+              <div id="isFoldersContainer" class="is-folders-stack">
+                <!-- Secciones por carpeta y grillas de SVG generadas dinámicamente por JS -->
+              </div>
+            </div>
+
+            <!-- Dock Inferior de Código PHP "Copy & Paste" para el SVG seleccionado -->
+            <div class="cs-code-dock" id="isCodeDock">
+              <div class="cs-code-header">
+                <div class="cs-code-tabs">
+                  <button type="button" class="cs-code-tab active" id="isCodeTab_php" onclick="setIconCopyFormat('php')">svg("...");</button>
+                  <button type="button" class="cs-code-tab" id="isCodeTab_echo" onclick="setIconCopyFormat('echo')">&lt;?= svg(...) ?&gt;</button>
+                  <button type="button" class="cs-code-tab" id="isCodeTab_phpEcho" onclick="setIconCopyFormat('phpEcho')">&lt;?php echo ... ?&gt;</button>
+                  <button type="button" class="cs-code-tab" id="isCodeTab_js" onclick="setIconCopyFormat('js')">JS svg()</button>
+                </div>
+
+                <div style="font-size:0.74rem; color:var(--ts-muted); font-family:monospace;" id="isDockHint">
+                  Haz clic en cualquier SVG para copiar al portapapeles
+                </div>
+
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button type="button" class="ts-icon-btn" id="btnToggleIconCodeDock" onclick="toggleIconCodeDock()" title="Colapsar / Expandir visor de código">▾</button>
+                  <button type="button" class="ts-btn ts-btn-primary" style="padding:5px 11px; font-size:0.76rem;" onclick="copySelectedIconCode()">
+                    📋 <span>Copiar PHP</span>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-code-body" style="padding:10px 14px;">
+                <pre class="cs-code-pre"><code id="iconPhpCodeOutput">svg("asterisk");</code></pre>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -2822,6 +3304,7 @@
     const initialFullConfig = <?= $rawFullJson ?? json_encode(['activeTheme' => 'default', 'themes' => ['default' => $config]]) ?>;
     const initialChartsHtmlMap = <?= json_encode($initialChartsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialChartsSampleData = <?= json_encode($initialChartsSampleData ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const initialIconsCatalog = <?= json_encode($initialIconsCatalog ?? ['totalIcons' => 0, 'totalFolders' => 0, 'primaryDir' => 'Resources/Ico', 'folders' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     let fullThemeConfig = JSON.parse(JSON.stringify(initialFullConfig));
     let activeThemeSlug = '<?= $activeThemeSlug ?? "default" ?>';
@@ -2976,6 +3459,8 @@
       syncFormValues();
       // 5.5. Inicializar Chart Studio (panel y caché inicial)
       initChartStudio();
+      // 5.8. Inicializar Icon Studio (galería visual de SVG en /Ico)
+      initIconStudio();
       // 6. Configurar iframe de vista real del proyecto
       setupProjectIframe();
       // 7. Inyectar variables en vivo
@@ -4396,6 +4881,14 @@
         renderChartColorChips();
       }
 
+      // Actualizar variables CSS en tiempo real dentro de la galería de iconos SVG (0 ms)
+      if (typeof injectLiveThemeIntoIconSandbox === 'function') {
+        injectLiveThemeIntoIconSandbox();
+      }
+      if (typeof renderIconColorChips === 'function') {
+        renderIconColorChips();
+      }
+
       // Sincronizar el color de la barra de scroll flotante del iframe
       updateIframeFloatingScrollColor();
 
@@ -4599,6 +5092,8 @@
         updateJsonViewer();
       } else if (tabId === 'charts') {
         setStageMode('charts');
+      } else if (tabId === 'icons') {
+        setStageMode('icons');
       }
     }
 
@@ -5504,21 +5999,27 @@
     }
 
     function setStageMode(mode) {
-      currentStageMode = (mode === 'charts') ? 'charts' : 'site';
+      currentStageMode = (mode === 'charts' || mode === 'icons') ? mode : 'site';
       const btnSite = document.getElementById('btnStageSite');
       const btnCharts = document.getElementById('btnStageCharts');
+      const btnIcons = document.getElementById('btnStageIcons');
       const iframe = document.getElementById('projectPreviewFrame');
       const chartView = document.getElementById('chartSandboxView');
+      const iconView = document.getElementById('iconSandboxView');
       const routeBar = document.getElementById('projectRouteBar');
       const chartStatus = document.getElementById('chartBarStatus');
+      const iconStatus = document.getElementById('iconBarStatus');
 
       if (btnSite) btnSite.classList.toggle('active', currentStageMode === 'site');
       if (btnCharts) btnCharts.classList.toggle('active', currentStageMode === 'charts');
+      if (btnIcons) btnIcons.classList.toggle('active', currentStageMode === 'icons');
 
       if (iframe) iframe.style.display = currentStageMode === 'site' ? 'block' : 'none';
       if (chartView) chartView.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+      if (iconView) iconView.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
       if (routeBar) routeBar.style.display = currentStageMode === 'site' ? 'flex' : 'none';
       if (chartStatus) chartStatus.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+      if (iconStatus) iconStatus.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
 
       if (currentStageMode === 'charts') {
         injectLiveThemeIntoChartSandbox();
@@ -5527,6 +6028,9 @@
           const stage = document.getElementById('chartSandboxStage');
           initRenderedCharts(stage);
         }, 20);
+      } else if (currentStageMode === 'icons') {
+        injectLiveThemeIntoIconSandbox();
+        refreshIconsCatalog(false);
       }
     }
 
@@ -6605,21 +7109,24 @@
       outEl.textContent = code;
     }
 
-    function copyChartPhpCode() {
-      const outEl = document.getElementById('chartPhpCodeOutput');
-      const code = outEl ? outEl.textContent : '';
-      if (!code) return;
-
+    function copyTextToClipboard(text, successMsg = '📋 Código PHP copiado al portapapeles') {
+      if (!text) return;
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(code).then(() => {
-          showToast('📋 Código PHP copiado al portapapeles');
-        }).catch(() => fallbackCopyText(code));
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => fallbackCopyText(text, successMsg));
       } else {
-        fallbackCopyText(code);
+        fallbackCopyText(text, successMsg);
       }
     }
 
-    function fallbackCopyText(text) {
+    function copyChartPhpCode() {
+      const outEl = document.getElementById('chartPhpCodeOutput');
+      const code = outEl ? outEl.textContent : '';
+      copyTextToClipboard(code);
+    }
+
+    function fallbackCopyText(text, successMsg = '📋 Código PHP copiado al portapapeles') {
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -6628,12 +7135,634 @@
       ta.select();
       try {
         document.execCommand('copy');
-        showToast('📋 Código PHP copiado al portapapeles');
+        showToast(successMsg);
       } catch (e) {
         showToast('❌ No se pudo copiar automáticamente', 'error');
       }
       document.body.removeChild(ta);
     }
+
+    // ==============================================================
+    // ICON STUDIO (GALERÍA VISUAL DE SVG EN /Ico POR CARPETAS)
+    // ==============================================================
+
+    let iconsCatalog = normalizeIconsCatalog(initialIconsCatalog);
+    let iconsByName = new Map();
+    let selectedIconName = '';
+    let iconSearchQuery = '';
+    let iconFolderFilter = '__all__';
+    let iconStageSurface = 'var(--body)';
+    let iconPreviewColorToken = 'auto';
+    let iconPreviewSize = 28;
+    let iconCopyFormat = 'php';
+    let iconCustomClass = '';
+    let iconCustomTransform = '';
+    let iconCatalogSignature = '';
+    let iconRefreshInFlight = false;
+    let lastIconRefreshAt = 0;
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function normalizeIconsCatalog(raw) {
+      const cat = (raw && typeof raw === 'object') ? raw : {};
+      const folders = Array.isArray(cat.folders) ? cat.folders : [];
+      return {
+        totalIcons: Number(cat.totalIcons || 0),
+        totalFolders: Number(cat.totalFolders || folders.length || 0),
+        primaryDir: String(cat.primaryDir || 'Resources/Ico'),
+        folders: folders.map(f => ({
+          key: String(f.key ?? ''),
+          label: String(f.label ?? (f.key || 'Raíz (/Ico)')),
+          path: String(f.path ?? 'Ico/'),
+          count: Number(f.count ?? (Array.isArray(f.icons) ? f.icons.length : 0)),
+          icons: Array.isArray(f.icons) ? f.icons : []
+        }))
+      };
+    }
+
+    function computeIconCatalogSignature(cat) {
+      return cat.folders
+        .map(f => `${f.key}:${f.icons.map(i => `${i.name}@${i.sizeBytes}`).join(',')}`)
+        .join('|');
+    }
+
+    function rebuildIconLookup() {
+      iconsByName = new Map();
+      let defaultCandidate = '';
+      for (const folder of iconsCatalog.folders) {
+        for (const icon of folder.icons) {
+          iconsByName.set(icon.name, icon);
+          if (!defaultCandidate) defaultCandidate = icon.name;
+          if (icon.name === 'asterisk') defaultCandidate = 'asterisk';
+        }
+      }
+      if (!selectedIconName || !iconsByName.has(selectedIconName)) {
+        selectedIconName = defaultCandidate;
+      }
+      iconCatalogSignature = computeIconCatalogSignature(iconsCatalog);
+    }
+
+    function initIconStudio() {
+      rebuildIconLookup();
+      bindIconGalleryEvents();
+      renderIconColorChips();
+      renderIconFolderFilters();
+      renderIconGallery();
+      syncIconInspector();
+      injectLiveThemeIntoIconSandbox();
+    }
+
+    function bindIconGalleryEvents() {
+      const container = document.getElementById('isFoldersContainer');
+      if (!container || container.dataset.bound === '1') return;
+      container.dataset.bound = '1';
+
+      container.addEventListener('click', (e) => {
+        const card = e.target.closest('.is-icon-card[data-icon-name]');
+        if (!card) return;
+        const iconName = card.getAttribute('data-icon-name') || '';
+        if (iconName) {
+          onIconCardClick(iconName, card);
+        }
+      });
+    }
+
+    function getFolderFilterKeyValue(folderKey) {
+      return folderKey === '' ? '__root__' : folderKey;
+    }
+
+    function renderIconFolderFilters() {
+      const totalBadge = document.getElementById('isTotalBadge');
+      const sidebarCount = document.getElementById('isSidebarFolderCount');
+      const pillsContainer = document.getElementById('isSidebarFolderPills');
+      const selectEl = document.getElementById('isFolderFilterSelect');
+
+      const folders = iconsCatalog.folders;
+      if (totalBadge) {
+        totalBadge.textContent = `${iconsCatalog.totalIcons} iconos · ${folders.length} carpetas`;
+      }
+      if (sidebarCount) {
+        sidebarCount.textContent = String(folders.length);
+      }
+
+      if (iconFolderFilter !== '__all__') {
+        const stillExists = folders.some(f => getFolderFilterKeyValue(f.key) === iconFolderFilter);
+        if (!stillExists) iconFolderFilter = '__all__';
+      }
+
+      if (pillsContainer) {
+        const allPill = `
+          <button type="button" class="is-folder-pill ${iconFolderFilter === '__all__' ? 'active' : ''}" data-folder-filter="__all__" onclick="setIconFolderFilter('__all__')">
+            <span>Todas</span>
+            <span class="is-folder-pill-count">${iconsCatalog.totalIcons}</span>
+          </button>
+        `;
+        const folderPills = folders.map(f => {
+          const val = getFolderFilterKeyValue(f.key);
+          const active = iconFolderFilter === val ? 'active' : '';
+          return `
+            <button type="button" class="is-folder-pill ${active}" data-folder-filter="${escapeHtml(val)}" onclick="setIconFolderFilter(this.dataset.folderFilter)" title="${escapeHtml(f.path)}">
+              <span>${f.key === '' ? '📂' : '📁'} ${escapeHtml(f.label)}</span>
+              <span class="is-folder-pill-count">${f.count}</span>
+            </button>
+          `;
+        }).join('');
+        pillsContainer.innerHTML = allPill + folderPills;
+      }
+
+      if (selectEl) {
+        const prev = iconFolderFilter;
+        selectEl.innerHTML = `<option value="__all__">Todas las carpetas (${iconsCatalog.totalIcons})</option>` +
+          folders.map(f => {
+            const val = getFolderFilterKeyValue(f.key);
+            return `<option value="${escapeHtml(val)}">${escapeHtml(f.label)} (${f.count})</option>`;
+          }).join('');
+        selectEl.value = prev;
+      }
+    }
+
+    function setIconFolderFilter(filterVal) {
+      iconFolderFilter = filterVal || '__all__';
+      renderIconFolderFilters();
+      renderIconGallery();
+    }
+
+    function onIconSearchChange(val, source) {
+      iconSearchQuery = String(val ?? '');
+      const sideIn = document.getElementById('isSearchInput');
+      const stageIn = document.getElementById('isStageSearchInput');
+      if (source !== 'sidebar' && sideIn) sideIn.value = iconSearchQuery;
+      if (source !== 'stage' && stageIn) stageIn.value = iconSearchQuery;
+
+      const hasQuery = iconSearchQuery.trim() !== '';
+      const clrSide = document.getElementById('isSearchClearSidebar');
+      const clrStage = document.getElementById('isSearchClearStage');
+      if (clrSide) clrSide.classList.toggle('visible', hasQuery);
+      if (clrStage) clrStage.classList.toggle('visible', hasQuery);
+
+      renderIconGallery();
+    }
+
+    function setIconStageSurface(surfaceVal) {
+      iconStageSurface = surfaceVal || 'var(--body)';
+      injectLiveThemeIntoIconSandbox();
+    }
+
+    function setIconPreviewColorToken(token) {
+      iconPreviewColorToken = token || 'auto';
+      injectLiveThemeIntoIconSandbox();
+    }
+
+    function setIconPreviewSize(px, btnEl) {
+      iconPreviewSize = Math.max(16, Math.min(64, parseInt(px, 10) || 28));
+      document.querySelectorAll('.is-size-btn').forEach(b => {
+        b.classList.toggle('active', Number(b.dataset.size) === iconPreviewSize);
+      });
+      if (btnEl) btnEl.classList.add('active');
+      injectLiveThemeIntoIconSandbox();
+    }
+
+    function renderIconColorChips() {
+      const { colors, textPrimary, textSecondary } = getActiveThemePaletteForCharts();
+      const tokens = [
+        { token: 'texto', dot: textPrimary },
+        { token: 'textc', dot: textSecondary },
+        { token: 'textw', dot: '#FFFFFF' },
+        ...colors.slice(0, 8).map((hex, idx) => ({ token: `color${idx + 1}`, dot: hex }))
+      ];
+
+      const chipsEl = document.getElementById('isClassColorChips');
+      if (chipsEl) {
+        const currentTokens = iconCustomClass.trim().split(/\s+/).filter(Boolean);
+        chipsEl.innerHTML = tokens.map(item => `
+          <button type="button" class="cs-color-chip ${currentTokens.includes(item.token) ? 'active' : ''}" onclick="toggleIconClassChip('${item.token}')" title="Agregar o quitar clase .${item.token}">
+            <span class="cs-chip-dot" style="background:${item.dot};"></span>
+            <span>${item.token}</span>
+          </button>
+        `).join('');
+      }
+
+      const previewSelect = document.getElementById('isPreviewColorSelect');
+      if (previewSelect) {
+        const prev = iconPreviewColorToken;
+        const dynamicOpts = [
+          `<option value="auto">Color: Auto</option>`,
+          `<option value="texto">Color: texto</option>`,
+          `<option value="textc">Color: textc</option>`,
+          `<option value="textw">Color: textw</option>`,
+          `<option value="textb">Color: textb</option>`,
+          ...colors.map((_, i) => `<option value="color${i + 1}">Color: color${i + 1}</option>`),
+          `<option value="color-success">Color: success</option>`,
+          `<option value="color-caution">Color: caution</option>`,
+          `<option value="color-danger">Color: danger</option>`
+        ];
+        previewSelect.innerHTML = dynamicOpts.join('');
+        previewSelect.value = previewSelect.querySelector(`option[value="${prev}"]`) ? prev : 'auto';
+      }
+    }
+
+    function toggleIconClassChip(token) {
+      const input = document.getElementById('isCustomClassInput');
+      const current = String(input ? input.value : iconCustomClass).trim().split(/\s+/).filter(Boolean);
+      const idx = current.indexOf(token);
+      if (idx >= 0) {
+        current.splice(idx, 1);
+      } else {
+        // Reemplazar otra clase de color previo para mantener limpio el snippet
+        const filtered = current.filter(t => !/^color\d+$|^texto$|^textc$|^textw$|^textb$/.test(t));
+        filtered.unshift(token);
+        current.splice(0, current.length, ...filtered);
+      }
+      if (input) input.value = current.join(' ');
+      onIconBuilderOptionChange();
+    }
+
+    function onIconBuilderOptionChange() {
+      const clsIn = document.getElementById('isCustomClassInput');
+      const trIn = document.getElementById('isCustomTransformInput');
+      iconCustomClass = clsIn ? clsIn.value.trim() : '';
+      iconCustomTransform = trIn ? trIn.value.trim() : '';
+      renderIconColorChips();
+      syncIconInspector();
+    }
+
+    function resetIconBuilderOptions() {
+      const clsIn = document.getElementById('isCustomClassInput');
+      const trIn = document.getElementById('isCustomTransformInput');
+      if (clsIn) clsIn.value = '';
+      if (trIn) trIn.value = '';
+      iconCustomClass = '';
+      iconCustomTransform = '';
+      setIconCopyFormat('php');
+      renderIconColorChips();
+      syncIconInspector();
+    }
+
+    function setIconCopyFormat(fmt) {
+      iconCopyFormat = ['php', 'echo', 'phpEcho', 'js'].includes(fmt) ? fmt : 'php';
+      const sel = document.getElementById('isCopyFormatSelect');
+      if (sel && sel.value !== iconCopyFormat) sel.value = iconCopyFormat;
+      ['php', 'echo', 'phpEcho', 'js'].forEach(key => {
+        const tab = document.getElementById(`isCodeTab_${key}`);
+        if (tab) tab.classList.toggle('active', iconCopyFormat === key);
+      });
+      syncIconInspector();
+    }
+
+    function toggleIconCodeDock() {
+      const dock = document.getElementById('isCodeDock');
+      const btn = document.getElementById('btnToggleIconCodeDock');
+      if (!dock) return;
+      const collapsed = dock.classList.toggle('collapsed');
+      if (btn) btn.textContent = collapsed ? '▸' : '▾';
+    }
+
+    function escapePhpDoubleQuoted(val) {
+      return String(val ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\$/g, '\\$');
+    }
+
+    function buildIconCodeSnippet(iconName) {
+      const cleanName = String(iconName || 'asterisk');
+      const args = [`"${escapePhpDoubleQuoted(cleanName)}"`];
+      if (iconCustomClass !== '') {
+        args.push(`"${escapePhpDoubleQuoted(iconCustomClass)}"`);
+      } else if (iconCustomTransform !== '') {
+        args.push('""');
+      }
+      if (iconCustomTransform !== '') {
+        args.push(`"${escapePhpDoubleQuoted(iconCustomTransform)}"`);
+      }
+
+      const callExpr = `svg(${args.join(', ')})`;
+      if (iconCopyFormat === 'echo') {
+        return `<` + `?= ${callExpr} ?` + `>`;
+      }
+      if (iconCopyFormat === 'phpEcho') {
+        return `<` + `?php echo ${callExpr}; ?` + `>`;
+      }
+      if (iconCopyFormat === 'js') {
+        return `await ${callExpr};`;
+      }
+      return `${callExpr};`;
+    }
+
+    function renderIconGallery() {
+      const container = document.getElementById('isFoldersContainer');
+      if (!container) return;
+
+      const query = iconSearchQuery.trim().toLowerCase();
+      const visibleFolders = [];
+
+      for (const folder of iconsCatalog.folders) {
+        const filterKey = getFolderFilterKeyValue(folder.key);
+        if (iconFolderFilter !== '__all__' && iconFolderFilter !== filterKey) {
+          continue;
+        }
+
+        const matchedIcons = query === ''
+          ? folder.icons
+          : folder.icons.filter(icon =>
+              icon.name.toLowerCase().includes(query) ||
+              icon.filename.toLowerCase().includes(query) ||
+              folder.label.toLowerCase().includes(query)
+            );
+
+        // Si hay búsqueda activa, ocultar carpetas sin coincidencias
+        if (query !== '' && matchedIcons.length === 0) {
+          continue;
+        }
+
+        visibleFolders.push({
+          folder,
+          matchedIcons,
+        });
+      }
+
+      if (visibleFolders.length === 0) {
+        container.innerHTML = `
+          <div class="is-empty-search">
+            <div style="font-size:1.8rem; margin-bottom:8px;">🔍</div>
+            <div style="font-weight:700; margin-bottom:6px;">No se encontraron iconos SVG para "${escapeHtml(iconSearchQuery)}"</div>
+            <div style="font-size:0.78rem; opacity:0.75; margin-bottom:12px;">Prueba con otro nombre o limpia los filtros activos.</div>
+            <button type="button" class="ts-btn ts-btn-secondary" onclick="onIconSearchChange('', 'clear'); setIconFolderFilter('__all__');">
+              ↺ Mostrar todos los iconos
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = visibleFolders.map(({ folder, matchedIcons }) => {
+        const countText = query !== ''
+          ? `${matchedIcons.length} / ${folder.count}`
+          : `${folder.count} ${folder.count === 1 ? 'icono' : 'iconos'}`;
+
+        const bodyHtml = matchedIcons.length === 0
+          ? `
+            <div class="is-empty-folder">
+              <span>Carpeta vacía. Agrega archivos <code>.svg</code> en <code>${escapeHtml(folder.path)}</code> para que aparezcan aquí automáticamente.</span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:4px 10px; font-size:0.72rem;" onclick="refreshIconsCatalog(true)">
+                🔄 Escanear ahora
+              </button>
+            </div>
+          `
+          : `
+            <div class="is-icon-grid">
+              ${matchedIcons.map(icon => {
+                const isSelected = icon.name === selectedIconName;
+                const glyphHtml = icon.valid && icon.svgHtml
+                  ? icon.svgHtml
+                  : '<span style="font-size:1rem; opacity:0.6;" title="SVG inválido">⚠️</span>';
+                const tooltip = `${icon.name} — Clic para copiar ${buildIconCodeSnippet(icon.name)}`;
+                return `
+                  <button type="button" class="is-icon-card ${isSelected ? 'selected' : ''}" data-icon-name="${escapeHtml(icon.name)}" title="${escapeHtml(tooltip)}">
+                    <span class="is-icon-copy-pill">Copiar</span>
+                    <div class="is-icon-glyph">${glyphHtml}</div>
+                    <div class="is-icon-name">${escapeHtml(icon.filename)}</div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+
+        return `
+          <section class="is-folder-section" data-folder-key="${escapeHtml(folder.key)}">
+            <div class="is-folder-header">
+              <div class="is-folder-title-wrap">
+                <span class="is-folder-title">${folder.key === '' ? '📂' : '📁'} ${escapeHtml(folder.label)}</span>
+                <span class="is-folder-path">${escapeHtml(folder.path)}</span>
+              </div>
+              <span class="is-folder-count">${escapeHtml(countText)}</span>
+            </div>
+            ${bodyHtml}
+          </section>
+        `;
+      }).join('');
+    }
+
+    function syncIconInspector() {
+      const icon = iconsByName.get(selectedIconName);
+      const previewEl = document.getElementById('isInspectorPreview');
+      const nameEl = document.getElementById('isInspectorName');
+      const metaEl = document.getElementById('isInspectorMeta');
+      const sideCodeEl = document.getElementById('isInspectorCodePreview');
+      const dockCodeEl = document.getElementById('iconPhpCodeOutput');
+
+      if (!icon) {
+        if (previewEl) previewEl.innerHTML = '🖼️';
+        if (nameEl) nameEl.textContent = 'Sin iconos';
+        if (metaEl) metaEl.textContent = 'Agrega archivos .svg en la carpeta /Ico para comenzar.';
+        if (sideCodeEl) sideCodeEl.textContent = 'svg("nombre");';
+        if (dockCodeEl) dockCodeEl.textContent = 'svg("nombre");';
+        return;
+      }
+
+      const snippet = buildIconCodeSnippet(icon.name);
+      if (previewEl) {
+        previewEl.innerHTML = icon.valid && icon.svgHtml ? icon.svgHtml : '⚠️';
+      }
+      if (nameEl) nameEl.textContent = icon.name;
+      if (metaEl) {
+        const folderLabel = icon.folder === '' ? 'Raíz (/Ico)' : icon.folder;
+        metaEl.textContent = `Carpeta: ${folderLabel} · ${icon.sizeBytes} B · viewBox: ${icon.viewBox}`;
+      }
+      if (sideCodeEl) sideCodeEl.textContent = snippet;
+      if (dockCodeEl) dockCodeEl.textContent = snippet;
+    }
+
+    function onIconCardClick(iconName, cardEl) {
+      if (!iconsByName.has(iconName)) return;
+      selectedIconName = iconName;
+
+      document.querySelectorAll('#isFoldersContainer .is-icon-card').forEach(el => {
+        el.classList.toggle('selected', el.getAttribute('data-icon-name') === iconName);
+      });
+
+      if (cardEl) {
+        cardEl.classList.remove('copied');
+        void cardEl.offsetWidth;
+        cardEl.classList.add('copied');
+        const pill = cardEl.querySelector('.is-icon-copy-pill');
+        if (pill) pill.textContent = '✓ Copiado';
+        clearTimeout(cardEl.__copyTimer);
+        cardEl.__copyTimer = setTimeout(() => {
+          cardEl.classList.remove('copied');
+          if (pill) pill.textContent = 'Copiar';
+        }, 1400);
+      }
+
+      syncIconInspector();
+
+      const snippet = buildIconCodeSnippet(iconName);
+      copyTextToClipboard(snippet, `📋 Copiado: ${snippet}`);
+    }
+
+    function copySelectedIconCode() {
+      const iconName = selectedIconName || 'asterisk';
+      const snippet = buildIconCodeSnippet(iconName);
+      copyTextToClipboard(snippet, `📋 Copiado: ${snippet}`);
+    }
+
+    async function refreshIconsCatalog(notify = false) {
+      if (iconRefreshInFlight) return;
+      iconRefreshInFlight = true;
+      lastIconRefreshAt = Date.now();
+
+      try {
+        const res = await fetch(`/_frame/theme-studio/icons?t=${Date.now()}`, {
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok) {
+          if (notify) showToast('❌ No se pudo re-escanear /Ico', 'error');
+          return;
+        }
+        const data = await res.json();
+        if (!data || !data.success || !data.catalog) {
+          if (notify) showToast('❌ Respuesta inválida al escanear /Ico', 'error');
+          return;
+        }
+
+        const nextCatalog = normalizeIconsCatalog(data.catalog);
+        const nextSig = computeIconCatalogSignature(nextCatalog);
+        const changed = nextSig !== iconCatalogSignature;
+
+        if (changed) {
+          iconsCatalog = nextCatalog;
+          rebuildIconLookup();
+          renderIconFolderFilters();
+          renderIconGallery();
+          syncIconInspector();
+          injectLiveThemeIntoIconSandbox();
+          showToast(`🔄 Catálogo /Ico actualizado: ${iconsCatalog.totalIcons} iconos en ${iconsCatalog.totalFolders} carpetas`);
+        } else if (notify) {
+          showToast(`✅ Catálogo /Ico al día (${iconsCatalog.totalIcons} iconos)`);
+        }
+      } catch (e) {
+        if (notify) showToast('❌ Error de conexión al re-escanear /Ico', 'error');
+      } finally {
+        iconRefreshInFlight = false;
+      }
+    }
+
+    function resolveIconPreviewColorValue(token, fallbackHeadColor) {
+      if (!token || token === 'auto') return fallbackHeadColor;
+      if (token === 'texto') return 'var(--text-primary)';
+      if (token === 'textc') return 'var(--text-secondary)';
+      if (token === 'textw') return '#ffffff';
+      if (token === 'textb') return '#000000';
+      if (token === 'color-success') return 'var(--success)';
+      if (token === 'color-caution') return 'var(--caution)';
+      if (token === 'color-danger') return 'var(--danger)';
+      const m = token.match(/^color(\d+)$/);
+      if (m) {
+        const idx = parseInt(m[1], 10);
+        return idx === 1 ? 'var(--back-color)' : `var(--back-color${idx})`;
+      }
+      return fallbackHeadColor;
+    }
+
+    function injectLiveThemeIntoIconSandbox() {
+      const view = document.getElementById('iconSandboxView');
+      if (!view) return;
+
+      const isDark = (currentPreviewMode === 'dark');
+      if (isDark) {
+        view.setAttribute('data-theme', 'dark');
+      } else {
+        view.removeAttribute('data-theme');
+      }
+
+      const lightColors = themeConfig.light.colors || [];
+      const darkColors = (themeConfig.dark.colors && themeConfig.dark.colors.length)
+        ? themeConfig.dark.colors
+        : lightColors.map(c => invertToDarkHex(c));
+
+      const activeBody = isDark ? themeConfig.dark.body : themeConfig.light.body;
+      const activeTextPrimary = isDark ? themeConfig.dark.text.primary : themeConfig.light.text.primary;
+      const activeTextSecondary = isDark ? themeConfig.dark.text.secondary : themeConfig.light.text.secondary;
+      const activeTextInactive = isDark ? themeConfig.dark.text.inactive : themeConfig.light.text.inactive;
+      const activeColors = isDark ? darkColors : lightColors;
+
+      let surfaceHex = activeBody;
+      let headTextColor = 'var(--text-primary)';
+      if (iconStageSurface === '#0c0c0e') {
+        surfaceHex = '#0c0c0e';
+        headTextColor = '#e2e8f0';
+      } else if (iconStageSurface === '#ffffff') {
+        surfaceHex = '#ffffff';
+        headTextColor = '#0f172a';
+      } else if (iconStageSurface.startsWith('var(--back-color')) {
+        surfaceHex = resolveColorTokenPreviewHex(iconStageSurface);
+        headTextColor = getRelativeLuminance(surfaceHex) < 0.35 ? '#f8fafc' : '#0f172a';
+      }
+
+      const isSurfaceDark = getRelativeLuminance(surfaceHex) < 0.35;
+      view.setAttribute('data-surface-dark', isSurfaceDark ? '1' : '0');
+
+      const glyphColor = resolveIconPreviewColorValue(iconPreviewColorToken, headTextColor);
+
+      let css = `#iconSandboxView {\n`;
+      css += `  --font: ${themeConfig.layout.font};\n`;
+      css += `  --font-size: ${themeConfig.layout.fontSize};\n`;
+      css += `  --body: ${activeBody};\n`;
+      css += `  --text-primary: ${activeTextPrimary};\n`;
+      css += `  --text-secondary: ${activeTextSecondary};\n`;
+      css += `  --text-inactive: ${activeTextInactive};\n`;
+      css += `  --success: ${themeConfig.status.success};\n`;
+      css += `  --caution: ${themeConfig.status.caution};\n`;
+      css += `  --danger: ${themeConfig.status.danger};\n`;
+      css += `  --is-preview-size: ${iconPreviewSize}px;\n`;
+
+      activeColors.forEach((hex, i) => {
+        const vName = i === 0 ? '--back-color' : `--back-color${i + 1}`;
+        css += `  ${vName}: ${hex};\n`;
+        if (i === 0) css += `  --back-color1: ${hex};\n`;
+      });
+      css += `}\n`;
+
+      css += `#iconSandboxStage {\n`;
+      css += `  background-color: ${iconStageSurface};\n`;
+      css += `  color: ${headTextColor};\n`;
+      css += `}\n`;
+      css += `#iconSandboxView .is-icon-card {\n`;
+      css += `  color: ${headTextColor};\n`;
+      css += `}\n`;
+      css += `#iconSandboxView .is-icon-glyph {\n`;
+      css += `  color: ${glyphColor};\n`;
+      css += `}\n`;
+
+      const inspectorPrev = document.getElementById('isInspectorPreview');
+      if (inspectorPrev) {
+        inspectorPrev.style.backgroundColor = iconStageSurface;
+        inspectorPrev.style.color = glyphColor;
+      }
+
+      let styleEl = document.getElementById('frame-theme-studio-icon-vars');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'frame-theme-studio-icon-vars';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = css;
+    }
+
+    // Re-escanear /Ico automáticamente al volver a enfocar la ventana mientras se ve la galería de iconos
+    window.addEventListener('focus', () => {
+      if (currentStageMode === 'icons' && (Date.now() - lastIconRefreshAt) > 2000) {
+        refreshIconsCatalog(false);
+      }
+    });
 
     // Iniciar estudio al cargar el DOM
     document.addEventListener('DOMContentLoaded', initStudio);

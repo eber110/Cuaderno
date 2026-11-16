@@ -51,6 +51,7 @@ class ThemeStudioControl extends Control
     \Core\Route::post('/_frame/theme-studio/delete-theme', [self::class, 'deleteThemeEndpoint']);
     \Core\Route::post('/_frame/theme-studio/render-chart', [self::class, 'renderChart']);
     \Core\Route::get('/_frame/theme-studio/fonts', [self::class, 'fonts']);
+    \Core\Route::get('/_frame/theme-studio/icons', [self::class, 'icons']);
   }
 
   /**
@@ -240,6 +241,7 @@ class ThemeStudioControl extends Control
     $fonts = self::getInstalledFonts();
     $projectRoutes = self::getProjectRoutes();
     $chartsAssets = self::getChartsLibraryAssets($basePath);
+    $initialIconsCatalog = self::getIconsCatalog($basePath);
     $initialChartsGlobal = isset($config['charts']) && is_array($config['charts'])
       ? $config['charts']
       : ThemeModule::getDefaultChartsConfig();
@@ -271,6 +273,7 @@ class ThemeStudioControl extends Control
       'chartsJs' => $chartsAssets['js'],
       'initialChartsHtmlMap' => $initialChartsRender['charts'] ?? [],
       'initialChartsSampleData' => $initialChartsRender['sampleData'] ?? [],
+      'initialIconsCatalog' => $initialIconsCatalog,
       'rawJson' => json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
       'rawFullJson' => json_encode($fullConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
       'rawDefaultJson' => json_encode($defaultCssConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
@@ -1198,6 +1201,200 @@ class ThemeStudioControl extends Control
     $result = self::renderChartPayload($data);
     $status = !empty($result['success']) ? 200 : 400;
     $this->json($result, $status);
+  }
+
+  /**
+   * Escanea los directorios de iconos (/Ico) del proyecto y del framework,
+   * agrupando todos los archivos SVG por carpeta y generando su vista previa y código PHP.
+   *
+   * @param string|null $basePath Directorio base del proyecto (opcional)
+   * @return array{totalIcons: int, totalFolders: int, primaryDir: string, folders: array<int, array>}
+   */
+  public static function getIconsCatalog(?string $basePath = null): array
+  {
+    if (!function_exists('renderSvgFile')) {
+      $svgHelper = dirname(__DIR__) . '/Helpers/Svg.php';
+      if (is_file($svgHelper)) {
+        require_once $svgHelper;
+      }
+    }
+
+    $base = ThemeModule::resolveBasePath($basePath);
+    $appIcoDir = $base . '/App/Rsc/Ico';
+    $vendorIcoDir = $base . '/vendor/eber/framework/Resources/Ico';
+    $localResIcoDir = $base . '/Resources/Ico';
+
+    $sources = [];
+    if (is_dir($appIcoDir)) {
+      $sources[] = ['dir' => $appIcoDir, 'label' => 'App/Rsc/Ico'];
+    }
+    if (is_dir($vendorIcoDir)) {
+      $sources[] = ['dir' => $vendorIcoDir, 'label' => 'Resources/Ico'];
+    } elseif (is_dir($localResIcoDir)) {
+      $sources[] = ['dir' => $localResIcoDir, 'label' => 'Resources/Ico'];
+    } elseif ($basePath === null && defined('FRAMEWORK_PATH')) {
+      $fwResIco = rtrim(str_replace('\\', '/', (string)FRAMEWORK_PATH), '/') . '/Resources/Ico';
+      if (is_dir($fwResIco)) {
+        $sources[] = ['dir' => $fwResIco, 'label' => 'Resources/Ico'];
+      }
+    }
+
+    $primaryDir = is_dir($appIcoDir) ? 'App/Rsc/Ico' : 'Resources/Ico';
+
+    $foldersMap = [
+      '' => [
+        'key' => '',
+        'label' => 'Raíz (/Ico)',
+        'path' => $primaryDir . '/',
+        'icons' => [],
+      ],
+    ];
+    $folderKeyLookup = [];
+    $seenIcons = [];
+
+    foreach ($sources as $src) {
+      $baseDirNorm = rtrim(str_replace('\\', '/', $src['dir']), '/');
+      if (!is_dir($baseDirNorm)) {
+        continue;
+      }
+
+      $iterator = new \RecursiveIteratorIterator(
+        new \RecursiveDirectoryIterator($baseDirNorm, \FilesystemIterator::SKIP_DOTS),
+        \RecursiveIteratorIterator::SELF_FIRST
+      );
+
+      foreach ($iterator as $entry) {
+        $entryPath = str_replace('\\', '/', $entry->getPathname());
+        if (!str_starts_with($entryPath, $baseDirNorm . '/')) {
+          continue;
+        }
+        $relPath = substr($entryPath, strlen($baseDirNorm) + 1);
+        if ($relPath === '') {
+          continue;
+        }
+
+        // Ignorar archivos o directorios ocultos (ej. .gitkeep, .DS_Store)
+        $segments = explode('/', $relPath);
+        $hasHiddenSegment = false;
+        foreach ($segments as $seg) {
+          if ($seg === '' || str_starts_with($seg, '.')) {
+            $hasHiddenSegment = true;
+            break;
+          }
+        }
+        if ($hasHiddenSegment) {
+          continue;
+        }
+
+        if ($entry->isDir()) {
+          $folderKey = trim($relPath, '/');
+          $folderLower = mb_strtolower($folderKey, 'UTF-8');
+          if (!isset($folderKeyLookup[$folderLower])) {
+            $folderKeyLookup[$folderLower] = $folderKey;
+            $foldersMap[$folderKey] = [
+              'key' => $folderKey,
+              'label' => $folderKey,
+              'path' => $primaryDir . '/' . $folderKey . '/',
+              'icons' => [],
+            ];
+          }
+          continue;
+        }
+
+        if (!$entry->isFile() || strtolower($entry->getExtension()) !== 'svg') {
+          continue;
+        }
+
+        $relNoExt = substr($relPath, 0, -4);
+        $iconLower = mb_strtolower($relNoExt, 'UTF-8');
+        if (isset($seenIcons[$iconLower])) {
+          continue;
+        }
+        $seenIcons[$iconLower] = true;
+
+        $rawFolder = str_contains($relNoExt, '/') ? dirname($relNoExt) : '';
+        if ($rawFolder === '.' || $rawFolder === '/') {
+          $rawFolder = '';
+        }
+
+        $canonicalFolder = '';
+        if ($rawFolder !== '') {
+          $folderLower = mb_strtolower($rawFolder, 'UTF-8');
+          if (!isset($folderKeyLookup[$folderLower])) {
+            $folderKeyLookup[$folderLower] = $rawFolder;
+            $foldersMap[$rawFolder] = [
+              'key' => $rawFolder,
+              'label' => $rawFolder,
+              'path' => $primaryDir . '/' . $rawFolder . '/',
+              'icons' => [],
+            ];
+          }
+          $canonicalFolder = $folderKeyLookup[$folderLower];
+        }
+
+        $svgHtml = function_exists('renderSvgFile') ? renderSvgFile($entryPath) : '?!';
+        $isValid = ($svgHtml !== '?!');
+        $viewBox = '0 0 24 24';
+        if ($isValid && preg_match('/viewBox="([^"]+)"/', $svgHtml, $vbMatch)) {
+          $viewBox = $vbMatch[1];
+        }
+
+        $foldersMap[$canonicalFolder]['icons'][] = [
+          'name' => $relNoExt,
+          'filename' => pathinfo($relPath, PATHINFO_FILENAME),
+          'folder' => $canonicalFolder,
+          'phpCode' => 'svg("' . $relNoExt . '");',
+          'source' => $src['label'],
+          'sizeBytes' => (int)$entry->getSize(),
+          'viewBox' => $viewBox,
+          'valid' => $isValid,
+          'svgHtml' => $isValid ? $svgHtml : '',
+        ];
+      }
+    }
+
+    // Ordenar carpetas: raíz primero, luego subcarpetas alfabéticamente
+    $subfolderKeys = array_values(array_filter(array_keys($foldersMap), static fn(string $k): bool => $k !== ''));
+    usort($subfolderKeys, 'strnatcasecmp');
+    $orderedKeys = array_merge([''], $subfolderKeys);
+
+    $folders = [];
+    $totalIcons = 0;
+
+    foreach ($orderedKeys as $key) {
+      $folderData = $foldersMap[$key];
+      usort($folderData['icons'], static fn(array $a, array $b): int => strnatcasecmp($a['filename'], $b['filename']));
+      $count = count($folderData['icons']);
+      $totalIcons += $count;
+      $folderData['count'] = $count;
+      $folders[] = $folderData;
+    }
+
+    return [
+      'totalIcons' => $totalIcons,
+      'totalFolders' => count($folders),
+      'primaryDir' => $primaryDir,
+      'folders' => $folders,
+    ];
+  }
+
+  /**
+   * Devuelve el catálogo completo de iconos SVG agrupados por carpeta en formato JSON.
+   */
+  public function icons(): void
+  {
+    if (!self::isDevEnvironment()) {
+      $this->json([
+        'success' => false,
+        'message' => 'Acceso restringido: la galería de iconos solo está disponible en entorno de desarrollo.'
+      ], 403);
+      return;
+    }
+
+    $this->json([
+      'success' => true,
+      'catalog' => self::getIconsCatalog()
+    ]);
   }
 
   /**
