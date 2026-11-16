@@ -8,7 +8,57 @@
  * @module PyramidStack
  */
 
-import { easeInOutCubic } from "./arcMeter.js";
+import { easeInOutCubic, getChartContainerWidth, observeChartResize } from "./arcMeter.js";
+
+/**
+ * Ajusta el viewBox y centra cada nivel de Pyramid Stack en `cx = containerW / 2`
+ * para mantener escala 1:1 y preservar la altura exacta (`barWidth`/`barHeight`) en píxeles.
+ *
+ * @param {SVGElement|HTMLElement} target Elemento SVG o contenedor.
+ * @param {number} [explicitWidth] Ancho explícito en píxeles.
+ */
+export function fitPyramidStackToContainer(target, explicitWidth = 0) {
+  if (!target) return;
+  const svg = target.matches && target.matches("svg") ? target : (target.querySelector ? target.querySelector("svg") : null);
+  if (!svg) return;
+
+  const containerW = explicitWidth > 0 ? Math.round(explicitWidth) : getChartContainerWidth(svg);
+  if (containerW <= 0) return;
+
+  const vbParts = (svg.getAttribute("viewBox") || "0 0 320 180").trim().split(/\s+/);
+  const vbH = parseFloat(vbParts[3] || "180") || 180;
+  svg.setAttribute("viewBox", `0 0 ${containerW} ${vbH}`);
+  svg._lastFitWidth = containerW;
+
+  const cx = containerW / 2;
+
+  svg.querySelectorAll(".mono-pyramid-tier").forEach((tier) => {
+    const rect = tier.querySelector(".mono-pyramid-rect");
+    const text = tier.querySelector(".mono-pyramid-text");
+
+    if (rect) {
+      if (typeof rect._origTargetW !== "number") {
+        rect._origTargetW = parseFloat(rect.getAttribute("data-target-w") || rect.getAttribute("width") || "100");
+      }
+      const targetW = Math.min(rect._origTargetW, Math.max(40, containerW - 16));
+      const targetX = cx - targetW / 2;
+
+      rect.setAttribute("data-target-w", targetW.toFixed(1));
+      rect.setAttribute("data-target-x", targetX.toFixed(1));
+      rect._pyramidTargetW = targetW;
+      rect._pyramidCx = cx;
+
+      if (!rect._isAnimating) {
+        rect.setAttribute("width", targetW.toFixed(1));
+        rect.setAttribute("x", targetX.toFixed(1));
+      }
+    }
+
+    if (text) {
+      text.setAttribute("x", cx.toFixed(1));
+    }
+  });
+}
 
 /**
  * Anima una cápsula de nivel de pirámide desde el centro hacia su ancho objetivo.
@@ -26,14 +76,20 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
   const text = group.querySelector(".mono-pyramid-text");
   if (!rect) return { cancel: () => {} };
 
+  if (rect._pyramidAnimCancel) {
+    rect._pyramidAnimCancel();
+  }
+
   const targetW = parseFloat(rect.getAttribute("data-target-w") || rect.getAttribute("width") || "100");
   const targetX = parseFloat(rect.getAttribute("data-target-x") || rect.getAttribute("x") || "50");
-  const cx = targetX + (targetW / 2);
+  const initialCx = targetX + (targetW / 2);
+
+  rect._pyramidTargetW = targetW;
+  rect._pyramidCx = initialCx;
+  rect._isAnimating = true;
 
   const startW = isExit ? targetW : 0;
-  const endW = isExit ? 0 : targetW;
-  const startX = isExit ? targetX : cx;
-  const endX = isExit ? cx : targetX;
+  const startX = isExit ? targetX : initialCx;
 
   rect.setAttribute("width", startW.toFixed(1));
   rect.setAttribute("x", startX.toFixed(1));
@@ -49,8 +105,14 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
     const progress = Math.max(0, Math.min(elapsed / duration, 1));
     const ease = easeInOutCubic(progress);
 
-    const currentW = startW + ((endW - startW) * ease);
-    const currentX = cx - (currentW / 2);
+    const liveTargetW = typeof rect._pyramidTargetW === "number" ? rect._pyramidTargetW : targetW;
+    const liveCx = typeof rect._pyramidCx === "number" ? rect._pyramidCx : initialCx;
+    const liveStartW = isExit ? liveTargetW : 0;
+    const liveEndW = isExit ? 0 : liveTargetW;
+    const liveEndX = isExit ? liveCx : (liveCx - liveTargetW / 2);
+
+    const currentW = liveStartW + ((liveEndW - liveStartW) * ease);
+    const currentX = liveCx - (currentW / 2);
 
     rect.setAttribute("width", Math.max(0, currentW).toFixed(1));
     rect.setAttribute("x", currentX.toFixed(1));
@@ -62,19 +124,23 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
     if (progress < 1) {
       rafId = requestAnimationFrame(step);
     } else {
-      rect.setAttribute("width", endW.toFixed(1));
-      rect.setAttribute("x", endX.toFixed(1));
+      rect._isAnimating = false;
+      rect.setAttribute("width", liveEndW.toFixed(1));
+      rect.setAttribute("x", liveEndX.toFixed(1));
       if (text) text.style.opacity = isExit ? "0" : "1";
+      rect._pyramidAnimCancel = null;
     }
   }
 
   rafId = requestAnimationFrame(step);
-  return {
-    cancel: () => {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-    }
+  const cancel = () => {
+    isCancelled = true;
+    rect._isAnimating = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rect._pyramidAnimCancel = null;
   };
+  rect._pyramidAnimCancel = cancel;
+  return { cancel };
 }
 
 /**
@@ -91,6 +157,8 @@ export function initPyramidStack(target, options = {}) {
     const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
     if (!svg) return;
 
+    observeChartResize(svg, fitPyramidStackToContainer);
+
     const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
     const isExit = svg.classList.contains("is-exiting");
     const tiers = svg.querySelectorAll(".mono-pyramid-tier");
@@ -104,4 +172,5 @@ export function initPyramidStack(target, options = {}) {
 if (typeof window !== "undefined") {
   window.initPyramidStack = initPyramidStack;
   window.animatePyramidTier = animatePyramidTier;
+  window.fitPyramidStackToContainer = fitPyramidStackToContainer;
 }

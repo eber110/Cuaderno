@@ -8,16 +8,16 @@
  */
 
 import { easeInOutCubic, animateArcMeterValue, initArcMeter } from "./arcMeter.js";
-import { initStackedTones } from "./stackedTones.js";
+import { initStackedTones, fitStackedTonesToContainer } from "./stackedTones.js";
 import { initTileTreemap } from "./tileTreemap.js";
-import { initHybridSpline } from "./hybridSpline.js";
-import { initPillPillars } from "./pillPillars.js";
-import { initSimpleBars } from "./simpleBars.js";
+import { initHybridSpline, fitHybridSplineToContainer } from "./hybridSpline.js";
+import { initPillPillars, fitPillPillarsToContainer } from "./pillPillars.js";
+import { initSimpleBars, fitSimpleBarsToContainer } from "./simpleBars.js";
 import { initHorizontalBars, fitHorizontalBarsToContainer } from "./horizontalBars.js";
-import { initBulletTarget } from "./bulletTarget.js";
+import { initBulletTarget, fitBulletTargetToContainer } from "./bulletTarget.js";
 import { initRoundedDonut, animateDonutSegment } from "./roundedDonut.js";
-import { initPyramidStack, animatePyramidTier } from "./pyramidStack.js";
-import { initSplineDynamics, animateSplineDynamics, setSplineDynamicsMode } from "./splineDynamics.js";
+import { initPyramidStack, animatePyramidTier, fitPyramidStackToContainer } from "./pyramidStack.js";
+import { initSplineDynamics, animateSplineDynamics, setSplineDynamicsMode, fitSplineDynamicsToContainer } from "./splineDynamics.js";
 import { initMatrixHeatmap, animateMatrixHeatmap } from "./matrixHeatmap.js";
 import { initChartTooltips } from "./tooltip.js";
 
@@ -26,95 +26,122 @@ export {
   animateArcMeterValue,
   initArcMeter,
   initStackedTones,
+  fitStackedTonesToContainer,
   initTileTreemap,
   initHybridSpline,
+  fitHybridSplineToContainer,
   initPillPillars,
+  fitPillPillarsToContainer,
   initSimpleBars,
+  fitSimpleBarsToContainer,
   initHorizontalBars,
   fitHorizontalBarsToContainer,
   initBulletTarget,
+  fitBulletTargetToContainer,
   initRoundedDonut,
   animateDonutSegment,
   initPyramidStack,
   animatePyramidTier,
+  fitPyramidStackToContainer,
   initSplineDynamics,
   animateSplineDynamics,
   setSplineDynamicsMode,
+  fitSplineDynamicsToContainer,
   initMatrixHeatmap,
   animateMatrixHeatmap,
   initChartTooltips
 };
 
+const CHART_HANDLERS = {
+  "arc-meter": initArcMeter,
+  "stacked-tones": initStackedTones,
+  "tile-treemap": initTileTreemap,
+  "hybrid-spline": initHybridSpline,
+  "pill-pillars": initPillPillars,
+  "simple-bars": initSimpleBars,
+  "horizontal-bars": initHorizontalBars,
+  "bullet-target": initBulletTarget,
+  "rounded-donut": initRoundedDonut,
+  "pyramid-stack": initPyramidStack,
+  "spline-dynamics": initSplineDynamics,
+  "matrix-heatmap": initMatrixHeatmap
+};
+
+const initializedCharts = typeof WeakSet !== "undefined" ? new WeakSet() : null;
+let observersAttached = false;
+
+/**
+ * Inicializa un nodo de gráfico individual si corresponde y no ha sido procesado.
+ *
+ * @param {Element} el Elemento con atributo `data-chart`.
+ * @param {boolean} [force=false] Si fuerza la reinicialización.
+ */
+function initChartElement(el, force = false) {
+  if (!el || !el.getAttribute) return;
+  const type = el.getAttribute("data-chart");
+  const handler = type ? CHART_HANDLERS[type] : null;
+  if (!handler) return;
+  if (!force && initializedCharts && initializedCharts.has(el)) return;
+
+  if (initializedCharts) {
+    initializedCharts.add(el);
+  }
+  handler(el);
+}
+
+/**
+ * Conecta MutationObserver y escucha `functionalityReconnect` (querie.js) para inicializar
+ * gráficos agregados dinámicamente o restaurados al cambiar de dispositivo/media query.
+ */
+function ensureDynamicChartObservers() {
+  if (typeof document === "undefined" || observersAttached) return;
+  observersAttached = true;
+
+  document.addEventListener("functionalityReconnect", (event) => {
+    const newEl = event && event.detail ? event.detail.newElement : null;
+    if (newEl) {
+      initCharts(newEl, { force: true });
+    }
+  });
+
+  if (typeof MutationObserver !== "undefined" && document.body) {
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type !== "childList" || !m.addedNodes || m.addedNodes.length === 0) continue;
+        for (const node of m.addedNodes) {
+          if (!node || node.nodeType !== 1) continue;
+          if ((node.matches && node.matches("[data-chart]")) || (node.querySelector && node.querySelector("[data-chart]"))) {
+            initCharts(node);
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
 /**
  * Inicializa todos los gráficos presentes en el documento o contenedor.
  * 
- * @param {Document|HTMLElement} [container=document] Contenedor raíz a escanear.
+ * @param {Document|HTMLElement|SVGElement} [container=document] Contenedor raíz a escanear.
+ * @param {Object} [options={}] Opciones de inicialización (`force`).
  */
-export function initCharts(container = document) {
-  if (!container || !container.querySelectorAll) return;
+export function initCharts(container = document, options = {}) {
+  if (!container) return;
+  const force = Boolean(options && options.force);
 
-  // 1. Arc Meter
-  container.querySelectorAll('[data-chart="arc-meter"]').forEach((el) => {
-    initArcMeter(el);
-  });
+  if (container.matches && container.matches("[data-chart]")) {
+    initChartElement(container, force);
+  }
 
-  // 2. Stacked Tones
-  container.querySelectorAll('[data-chart="stacked-tones"]').forEach((el) => {
-    initStackedTones(el);
-  });
+  if (container.querySelectorAll) {
+    container.querySelectorAll("[data-chart]").forEach((el) => {
+      initChartElement(el, force);
+    });
+  }
 
-  // 3. Tile Treemap
-  container.querySelectorAll('[data-chart="tile-treemap"]').forEach((el) => {
-    initTileTreemap(el);
-  });
-
-  // 4. Hybrid Spline
-  container.querySelectorAll('[data-chart="hybrid-spline"]').forEach((el) => {
-    initHybridSpline(el);
-  });
-
-  // 5. Pill Pillars
-  container.querySelectorAll('[data-chart="pill-pillars"]').forEach((el) => {
-    initPillPillars(el);
-  });
-
-  // 6. Simple Bars (Barras verticales)
-  container.querySelectorAll('[data-chart="simple-bars"]').forEach((el) => {
-    initSimpleBars(el);
-  });
-
-  // 7. Horizontal Bars (Barras horizontales)
-  container.querySelectorAll('[data-chart="horizontal-bars"]').forEach((el) => {
-    initHorizontalBars(el);
-  });
-
-  // 8. Bullet Target (Barras de comparación con benchmark)
-  container.querySelectorAll('[data-chart="bullet-target"]').forEach((el) => {
-    initBulletTarget(el);
-  });
-
-  // 9. Rounded Donut (Rosca con Soft Arc Caps)
-  container.querySelectorAll('[data-chart="rounded-donut"]').forEach((el) => {
-    initRoundedDonut(el);
-  });
-
-  // 10. Pyramid Stack (Pila Jerárquica Piramidal)
-  container.querySelectorAll('[data-chart="pyramid-stack"]').forEach((el) => {
-    initPyramidStack(el);
-  });
-
-  // 11. Spline Dynamics (Curva Dinámica Dual / Single)
-  container.querySelectorAll('[data-chart="spline-dynamics"]').forEach((el) => {
-    initSplineDynamics(el);
-  });
-
-  // 12. Matrix Heatmap (Mapa de Calor de Actividad 7x5)
-  container.querySelectorAll('[data-chart="matrix-heatmap"]').forEach((el) => {
-    initMatrixHeatmap(el);
-  });
-
-  // 13. Tooltips interactivos
   initChartTooltips();
+  ensureDynamicChartObservers();
 }
 
 // Inicialización automática al cargar el DOM
@@ -134,19 +161,27 @@ if (typeof window !== "undefined") {
     animateArcMeterValue,
     initArcMeter,
     initStackedTones,
+    fitStackedTonesToContainer,
     initTileTreemap,
     initHybridSpline,
+    fitHybridSplineToContainer,
     initPillPillars,
+    fitPillPillarsToContainer,
     initSimpleBars,
+    fitSimpleBarsToContainer,
     initHorizontalBars,
+    fitHorizontalBarsToContainer,
     initBulletTarget,
+    fitBulletTargetToContainer,
     initRoundedDonut,
     animateDonutSegment,
     initPyramidStack,
     animatePyramidTier,
+    fitPyramidStackToContainer,
     initSplineDynamics,
     animateSplineDynamics,
     setSplineDynamicsMode,
+    fitSplineDynamicsToContainer,
     initMatrixHeatmap,
     animateMatrixHeatmap,
     initChartTooltips,

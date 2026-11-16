@@ -393,9 +393,6 @@
       font-weight: 700;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     }
-    .ts-tab-btn:nth-child(7) {
-      grid-column: span 2;
-    }
     .ts-tab-content {
       flex: 1;
       overflow-y: auto;
@@ -1137,7 +1134,575 @@
       color: var(--ts-muted);
       font-family: monospace;
     }
+
+    /* ==============================================================
+       CHART STUDIO (CREADOR Y CONFIGURADOR DE GRÁFICOS)
+       ============================================================== */
+    .ts-stage-switcher {
+      display: flex;
+      align-items: center;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      border-radius: 7px;
+      padding: 2px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .ts-stage-btn {
+      background: transparent;
+      border: none;
+      color: var(--ts-muted);
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .ts-stage-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .ts-stage-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--ts-primary);
+      font-weight: 700;
+    }
+
+    /* Controles en Sidebar #tab-charts */
+    .cs-scope-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--ts-bg);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--ts-border);
+      margin-bottom: 10px;
+    }
+    .cs-scope-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--ts-muted);
+      padding: 7px 6px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .cs-scope-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--ts-primary);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+    .cs-chart-type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .cs-type-btn {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--ts-border);
+      color: #cbd5e1;
+      border-radius: 7px;
+      padding: 7px 8px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-align: left;
+      transition: all 0.15s ease;
+      min-width: 0;
+    }
+    .cs-type-btn:hover {
+      background: var(--ts-surface-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .cs-type-btn.active {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: var(--ts-primary);
+      color: #fff;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+    .cs-type-btn-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .cs-type-btn-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+    .cs-type-btn-method {
+      font-size: 0.64rem;
+      font-family: monospace;
+      color: var(--ts-muted);
+      font-weight: 400;
+    }
+
+    .cs-color-control {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      margin-bottom: 10px;
+    }
+    .cs-color-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .cs-color-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 7px;
+    }
+    .cs-color-chip {
+      border: 1px solid var(--ts-border);
+      background: var(--ts-bg);
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 0.67rem;
+      font-family: monospace;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+    }
+    .cs-color-chip:hover {
+      border-color: var(--ts-primary);
+      color: #fff;
+    }
+    .cs-color-chip.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--ts-primary);
+      color: #fff;
+      font-weight: 700;
+    }
+    .cs-chip-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      flex-shrink: 0;
+    }
+    .cs-color-input-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cs-color-input-row .ts-input-text {
+      padding: 5px 8px;
+      font-size: 0.78rem;
+      font-family: monospace;
+    }
+
+    .cs-measure-row {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      margin-bottom: 9px;
+    }
+    .cs-measure-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .cs-measure-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .cs-num-input {
+      width: 62px;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-primary);
+      padding: 4px 6px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-family: monospace;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+    }
+    .cs-num-input:focus {
+      border-color: var(--ts-primary);
+    }
+    .cs-auto-btn {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-muted);
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s ease;
+    }
+    .cs-auto-btn:hover,
+    .cs-auto-btn.active {
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .cs-seg-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+    .cs-seg-btn {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-muted);
+      padding: 6px 4px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      text-align: center;
+    }
+    .cs-seg-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .cs-seg-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+    }
+    .cs-split-bar-preview {
+      display: flex;
+      height: 22px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--ts-border);
+      background: var(--ts-bg);
+      margin-top: 8px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: monospace;
+    }
+    .cs-split-seg-label {
+      background: rgba(56, 189, 248, 0.28);
+      color: #e0f2fe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: width 0.15s ease;
+    }
+    .cs-split-seg-gap {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--ts-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: width 0.15s ease;
+    }
+    .cs-split-seg-chart {
+      background: rgba(34, 197, 94, 0.28);
+      color: #dcfce7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: width 0.15s ease;
+    }
+    .cs-syntax-badge {
+      display: block;
+      margin-top: 8px;
+      background: #020617;
+      border: 1px solid var(--ts-border);
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-family: monospace;
+      font-size: 0.74rem;
+      color: var(--ts-primary);
+      word-break: break-all;
+    }
+    .cs-local-badge {
+      font-size: 0.64rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+    .cs-local-badge.is-local {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .cs-local-badge.is-global {
+      background: rgba(56, 189, 248, 0.14);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .cs-check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .cs-check-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    /* Escenario Derecho: Chart Sandbox View */
+    #chartSandboxView {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: var(--body, #ffffff);
+      color: var(--text-primary, #0f172a);
+      font-family: var(--font, system-ui, sans-serif);
+    }
+    .cs-toolbar {
+      background: var(--ts-surface);
+      border-bottom: 1px solid var(--ts-border);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex-shrink: 0;
+      font-family: var(--ts-font);
+      color: var(--ts-text);
+    }
+    .cs-toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cs-toolbar-select {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: #f8fafc;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .cs-sandbox-stage {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px;
+      background-color: var(--body, #ffffff);
+      color: var(--text-primary, #0f172a);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .cs-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: stretch;
+    }
+    .cs-chart-card {
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(128, 128, 128, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+      cursor: pointer;
+      min-width: 0;
+      position: relative;
+    }
+    .cs-chart-card:hover {
+      border-color: rgba(56, 189, 248, 0.65);
+    }
+    .cs-chart-card.active {
+      border-color: var(--ts-primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+    }
+    .cs-chart-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .cs-chart-card-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cs-chart-card-method {
+      font-family: monospace;
+      font-size: 0.68rem;
+      opacity: 0.72;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .cs-chart-card-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 150px;
+      width: 100%;
+      min-width: 0;
+    }
+    .cs-chart-card-body > svg,
+    .cs-chart-card-body > .mono-chart-svg {
+      width: 100%;
+      max-width: 100%;
+    }
+    .cs-focused-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .cs-focused-card {
+      width: 100%;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(128, 128, 128, 0.25);
+      transition: max-width 0.25s ease, background-color 0.2s ease;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+    }
+    .cs-focused-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.73rem;
+      font-family: monospace;
+      opacity: 0.85;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(128, 128, 128, 0.25);
+    }
+
+    /* Dock de Código PHP Copy & Paste */
+    .cs-code-dock {
+      background: #0b1120;
+      border-top: 1px solid var(--ts-border);
+      color: var(--ts-text);
+      font-family: var(--ts-font);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--ts-surface);
+      border-bottom: 1px solid var(--ts-border);
+    }
+    .cs-code-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cs-code-tab {
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-muted);
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .cs-code-tab.active {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+    }
+    .cs-code-options {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.74rem;
+      color: #cbd5e1;
+    }
+    .cs-code-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .cs-code-body {
+      max-height: 205px;
+      overflow: auto;
+      padding: 12px 14px;
+      transition: max-height 0.2s ease, padding 0.2s ease;
+    }
+    .cs-code-dock.collapsed .cs-code-body {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+    .cs-code-pre {
+      margin: 0;
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.48;
+      color: #e2e8f0;
+      white-space: pre;
+      tab-size: 2;
+    }
   </style>
+  <style id="ts-charts-core-css"><?= $chartsCss ?? '' ?></style>
 </head>
 <body>
 
@@ -1203,6 +1768,7 @@
         <button type="button" class="ts-tab-btn" onclick="switchTab('colors', this)">🎨 Colores</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('dark', this)">🌙 Oscuro</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnCharts" onclick="switchTab('charts', this)">📊 Gráficos</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('json', this)">📋 JSON</button>
@@ -1565,6 +2131,437 @@
         </div>
       </div>
 
+      <!-- TAB 5.5: CREADOR Y CONFIGURADOR DE GRÁFICOS (CHART STUDIO) -->
+      <div id="tab-charts" class="ts-tab-content">
+        <!-- Bloque 1: Alcance y Selector de Gráfico -->
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>1. Alcance y Tipo de Gráfico</span>
+            <span id="csScopeInfo" class="cs-local-badge is-global">Global</span>
+          </div>
+          <div class="cs-scope-bar">
+            <button type="button" class="cs-scope-btn active" id="btnScopeGlobal" onclick="setChartScope('global')">
+              🌍 Global (configStyle)
+            </button>
+            <button type="button" class="cs-scope-btn" id="btnScopeLocal" onclick="setChartScope('local')">
+              🎯 Individual (Local)
+            </button>
+          </div>
+          <div id="csLocalActions" style="display:none; margin-bottom:10px;">
+            <button type="button" class="ts-btn ts-btn-secondary" style="width:100%; justify-content:center; padding:5px 8px; font-size:0.74rem;" onclick="clearActiveChartLocalOverrides()">
+              ↺ Restablecer overrides locales de este gráfico
+            </button>
+          </div>
+          <div id="csChartTypeGrid" class="cs-chart-type-grid">
+            <!-- Generado dinámicamente vía JS -->
+          </div>
+        </div>
+
+        <!-- Bloque 2: Colores del Gráfico (Vinculados a la Paleta del Tema) -->
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>2. Colores del Gráfico</span>
+            <span style="font-size:0.7rem; color:var(--ts-muted);">Paleta viva</span>
+          </div>
+
+          <div class="cs-color-control">
+            <div class="cs-color-header">
+              <span>Color Base (<code>color</code>)</span>
+              <span id="csColorBadge_color" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-color-chips" id="csColorChips_color"></div>
+            <div class="cs-color-input-row">
+              <input type="color" id="csColorPicker_color" class="ts-color-swatch-input" oninput="onChartColorInput('color', this.value)" title="Elegir HEX">
+              <input type="text" id="csColorInput_color" class="ts-input-text" placeholder="texto, color1, var(--back-color1), #38bdf8" oninput="onChartColorInput('color', this.value)">
+            </div>
+          </div>
+
+          <div class="cs-color-control">
+            <div class="cs-color-header">
+              <span>Etiquetas y Centro (<code>colorLabel</code>)</span>
+              <span id="csColorBadge_colorLabel" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-color-chips" id="csColorChips_colorLabel"></div>
+            <div class="cs-color-input-row">
+              <input type="color" id="csColorPicker_colorLabel" class="ts-color-swatch-input" oninput="onChartColorInput('colorLabel', this.value)" title="Elegir HEX">
+              <input type="text" id="csColorInput_colorLabel" class="ts-input-text" placeholder="textw, texto, color2, #ffffff" oninput="onChartColorInput('colorLabel', this.value)">
+            </div>
+          </div>
+
+          <div class="cs-color-control">
+            <div class="cs-color-header">
+              <span>Ejes X / Y (<code>axisLabel</code>)</span>
+              <span id="csColorBadge_axisLabel" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-color-chips" id="csColorChips_axisLabel"></div>
+            <div class="cs-color-input-row">
+              <input type="color" id="csColorPicker_axisLabel" class="ts-color-swatch-input" oninput="onChartColorInput('axisLabel', this.value)" title="Elegir HEX">
+              <input type="text" id="csColorInput_axisLabel" class="ts-input-text" placeholder="texto, textc, color1, #94a3b8" oninput="onChartColorInput('axisLabel', this.value)">
+            </div>
+          </div>
+
+          <div class="cs-color-control" id="csTargetColorGroup" style="display:none;">
+            <div class="cs-color-header">
+              <span>Marcador Meta (<code>targetColor</code>)</span>
+              <span class="cs-local-badge is-local">Local</span>
+            </div>
+            <div class="cs-color-chips" id="csColorChips_targetColor"></div>
+            <div class="cs-color-input-row">
+              <input type="color" id="csColorPicker_targetColor" class="ts-color-swatch-input" oninput="onChartLocalColorInput('targetColor', this.value)" title="Elegir HEX">
+              <input type="text" id="csColorInput_targetColor" class="ts-input-text" placeholder="#10b981" oninput="onChartLocalColorInput('targetColor', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque 3: Medidas Exactas (Pixel-Perfect) y Contextuales -->
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>3. Medidas Exactas (Pixel-Perfect)</span>
+            <span style="font-size:0.7rem; color:var(--ts-muted);">px exactos</span>
+          </div>
+
+          <div class="cs-measure-row">
+            <div class="cs-measure-top">
+              <span>Grosor de Barra (<code>barWidth</code>)</span>
+              <span id="csBarWidthBadge" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-measure-controls">
+              <input type="range" id="csBarWidthRange" min="4" max="60" step="1" value="18" class="ts-range-input" oninput="onChartScopedMeasure('barWidth', this.value)">
+              <input type="number" id="csBarWidthNum" min="4" max="60" placeholder="Auto" class="cs-num-input" oninput="onChartScopedMeasure('barWidth', this.value)">
+              <button type="button" id="csBarWidthAuto" class="cs-auto-btn active" onclick="onChartScopedMeasure('barWidth', null)">Auto</button>
+            </div>
+          </div>
+
+          <div class="cs-measure-row">
+            <div class="cs-measure-top">
+              <span>Tamaño de Etiquetas (<code>axisLabelSize</code>)</span>
+              <span id="csAxisSizeBadge" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-measure-controls">
+              <input type="range" id="csAxisSizeRange" min="8" max="24" step="1" value="12" class="ts-range-input" oninput="onChartScopedMeasure('axisLabelSize', this.value)">
+              <input type="number" id="csAxisSizeNum" min="8" max="24" placeholder="Auto" class="cs-num-input" oninput="onChartScopedMeasure('axisLabelSize', this.value)">
+              <button type="button" id="csAxisSizeAuto" class="cs-auto-btn active" onclick="onChartScopedMeasure('axisLabelSize', null)">Auto</button>
+            </div>
+          </div>
+
+          <div class="cs-measure-row" id="csRxWrapper">
+            <div class="cs-measure-top">
+              <span>Radio Esquinas (<code>rx</code>)</span>
+              <span class="cs-local-badge is-local">Local</span>
+            </div>
+            <div class="cs-measure-controls">
+              <input type="range" id="csRxRange" min="0" max="30" step="1" value="9" class="ts-range-input" oninput="onChartLocalParam('rx', Number(this.value))">
+              <input type="number" id="csRxNum" min="0" max="30" placeholder="Auto" class="cs-num-input" oninput="onChartLocalParam('rx', this.value === '' ? null : Number(this.value))">
+              <button type="button" id="csRxAuto" class="cs-auto-btn active" onclick="onChartLocalParam('rx', null)">Auto</button>
+            </div>
+          </div>
+
+          <div class="cs-measure-row" id="csDimensionsWrapper">
+            <div class="cs-measure-top">
+              <span>Dimensiones ViewBox (<code>width</code> / <code>height</code>)</span>
+              <span id="csDimBadge" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="ts-mq-grid" style="margin-bottom:0;">
+              <div class="ts-mq-field">
+                <label>Ancho (width)</label>
+                <div style="display:flex; gap:4px;">
+                  <input type="number" id="csWidthNum" min="100" max="1200" placeholder="Auto" class="cs-num-input" style="flex:1;" oninput="onChartScopedMeasure('width', this.value)">
+                  <button type="button" id="csWidthAuto" class="cs-auto-btn active" onclick="onChartScopedMeasure('width', null)">Auto</button>
+                </div>
+              </div>
+              <div class="ts-mq-field">
+                <label>Alto (height)</label>
+                <div style="display:flex; gap:4px;">
+                  <input type="number" id="csHeightNum" min="60" max="900" placeholder="Auto" class="cs-num-input" style="flex:1;" oninput="onChartScopedMeasure('height', this.value)">
+                  <button type="button" id="csHeightAuto" class="cs-auto-btn active" onclick="onChartScopedMeasure('height', null)">Auto</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controles Contextuales por Tipo de Gráfico -->
+          <div id="csContextualFields">
+            <!-- arcMeter -->
+            <div id="csCtxArcMeter" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Arc Meter</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label>Valor (<code>value</code> %)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csArcValueRange" min="0" max="100" step="1" class="ts-range-input" oninput="onChartLocalParam('value', Number(this.value))">
+                  <input type="number" id="csArcValueNum" min="0" max="100" class="cs-num-input" oninput="onChartLocalParam('value', Number(this.value))">
+                </div>
+              </div>
+              <div class="ts-field" style="margin-bottom:6px;">
+                <label>Etiqueta Central (<code>label</code>)</label>
+                <input type="text" id="csArcLabel" class="ts-input-text" placeholder="Optimal Load" oninput="onChartLocalParam('label', this.value)">
+              </div>
+              <div class="cs-check-grid">
+                <label class="cs-check-item"><input type="checkbox" id="csArcShowNumber" checked onchange="onChartLocalParam('showNumber', this.checked)"> showNumber</label>
+                <label class="cs-check-item"><input type="checkbox" id="csArcShowLabel" checked onchange="onChartLocalParam('showLabel', this.checked)"> showLabel</label>
+              </div>
+            </div>
+
+            <!-- pillPillars -->
+            <div id="csCtxPillPillars" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Pill Pillars (<code>pillarGap</code>)</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="cs-measure-controls">
+                <input type="range" id="csPillarGapRange" min="1" max="20" step="1" value="4" class="ts-range-input" oninput="onChartLocalParam('pillarGap', Number(this.value))">
+                <input type="number" id="csPillarGapNum" min="1" max="20" placeholder="Auto" class="cs-num-input" oninput="onChartLocalParam('pillarGap', this.value === '' ? null : Number(this.value))">
+                <button type="button" id="csPillarGapAuto" class="cs-auto-btn active" onclick="onChartLocalParam('pillarGap', null)">Auto</button>
+              </div>
+            </div>
+
+            <!-- pyramidStack -->
+            <div id="csCtxPyramidStack" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Pyramid Stack</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label>Espacio Vertical (<code>gapY</code>)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csPyramidGapYRange" min="0" max="24" step="1" value="9" class="ts-range-input" oninput="onChartLocalParam('gapY', Number(this.value))">
+                  <input type="number" id="csPyramidGapYNum" min="0" max="24" class="cs-num-input" oninput="onChartLocalParam('gapY', this.value === '' ? null : Number(this.value))">
+                </div>
+              </div>
+              <div class="ts-mq-grid" style="margin-bottom:0;">
+                <div class="ts-mq-field">
+                  <label>minWidth (px)</label>
+                  <input type="number" id="csPyramidMinW" min="30" max="220" placeholder="84" class="ts-mq-input" oninput="onChartLocalParam('minWidth', this.value === '' ? null : Number(this.value))">
+                </div>
+                <div class="ts-mq-field">
+                  <label>maxWidth (px)</label>
+                  <input type="number" id="csPyramidMaxW" min="100" max="310" placeholder="254" class="ts-mq-input" oninput="onChartLocalParam('maxWidth', this.value === '' ? null : Number(this.value))">
+                </div>
+              </div>
+            </div>
+
+            <!-- matrixHeatmap -->
+            <div id="csCtxMatrixHeatmap" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Matrix Heatmap</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label>Tamaño Celda (<code>cellSize</code>)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csMatrixCellSizeRange" min="10" max="42" step="1" value="24" class="ts-range-input" oninput="onChartLocalParam('cellSize', Number(this.value))">
+                  <input type="number" id="csMatrixCellSizeNum" min="10" max="42" placeholder="Auto" class="cs-num-input" oninput="onChartLocalParam('cellSize', this.value === '' ? null : Number(this.value))">
+                  <button type="button" id="csMatrixCellSizeAuto" class="cs-auto-btn active" onclick="onChartLocalParam('cellSize', null)">Auto</button>
+                </div>
+              </div>
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label>Separación Celdas (<code>cellGap</code>)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csMatrixCellGapRange" min="1" max="16" step="1" value="6" class="ts-range-input" oninput="onChartLocalParam('cellGap', Number(this.value))">
+                  <input type="number" id="csMatrixCellGapNum" min="1" max="16" placeholder="Auto" class="cs-num-input" oninput="onChartLocalParam('cellGap', this.value === '' ? null : Number(this.value))">
+                  <button type="button" id="csMatrixCellGapAuto" class="cs-auto-btn active" onclick="onChartLocalParam('cellGap', null)">Auto</button>
+                </div>
+              </div>
+              <div class="ts-mq-grid" style="margin-bottom:0; align-items:end;">
+                <div class="ts-mq-field">
+                  <label>Posición Eje X (<code>colLabelPosition</code>)</label>
+                  <select id="csMatrixColPos" class="ts-select" style="padding:5px 7px; font-size:0.78rem;" onchange="onChartLocalParam('colLabelPosition', this.value)">
+                    <option value="bottom">bottom (Inferior)</option>
+                    <option value="top">top (Superior)</option>
+                  </select>
+                </div>
+                <label class="cs-check-item" style="padding-bottom:6px;">
+                  <input type="checkbox" id="csMatrixInterpolate" onchange="onChartLocalParam('interpolate', this.checked)"> Suavizado continuo
+                </label>
+              </div>
+            </div>
+
+            <!-- hybridSpline / splineDynamics tension -->
+            <div id="csCtxTension" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Curvatura Spline (<code>tension</code>)</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="cs-measure-controls">
+                <input type="range" id="csTensionRange" min="0" max="0.5" step="0.05" value="0.25" class="ts-range-input" oninput="onChartLocalParam('tension', Number(this.value))">
+                <input type="number" id="csTensionNum" min="0" max="0.5" step="0.05" class="cs-num-input" oninput="onChartLocalParam('tension', this.value === '' ? null : Number(this.value))">
+              </div>
+            </div>
+
+            <!-- splineDynamics toggles -->
+            <div id="csCtxSplineDyn" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Elementos Spline Dynamics</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="cs-check-grid" style="margin-top:0;">
+                <label class="cs-check-item"><input type="checkbox" id="csSplineShowSecondary" checked onchange="onChartLocalParam('showSecondary', this.checked)"> Serie secundaria</label>
+                <label class="cs-check-item"><input type="checkbox" id="csSplineShowPoints" checked onchange="onChartLocalParam('showPoints', this.checked)"> Puntos / Nodos</label>
+              </div>
+            </div>
+
+            <!-- roundedDonut -->
+            <div id="csCtxDonut" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Rounded Donut</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="ts-field" style="margin-bottom:8px;">
+                <label>Ángulo Inicial (<code>startAngle</code>°)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csDonutStartAngleRange" min="-180" max="180" step="5" value="-135" class="ts-range-input" oninput="onChartLocalParam('startAngle', Number(this.value))">
+                  <input type="number" id="csDonutStartAngleNum" min="-180" max="180" class="cs-num-input" oninput="onChartLocalParam('startAngle', this.value === '' ? null : Number(this.value))">
+                </div>
+              </div>
+              <div class="ts-mq-grid" style="margin-bottom:6px;">
+                <div class="ts-mq-field">
+                  <label>centerValue</label>
+                  <input type="text" id="csDonutCenterValue" placeholder="Auto (100%)" class="ts-mq-input" oninput="onChartLocalParam('centerValue', this.value)">
+                </div>
+                <div class="ts-mq-field">
+                  <label>centerLabel</label>
+                  <input type="text" id="csDonutCenterLabel" placeholder="Mono Arc" class="ts-mq-input" oninput="onChartLocalParam('centerLabel', this.value)">
+                </div>
+              </div>
+              <div class="cs-check-grid">
+                <label class="cs-check-item"><input type="checkbox" id="csDonutShowCenter" checked onchange="onChartLocalParam('showCenter', this.checked)"> showCenter</label>
+                <label class="cs-check-item"><input type="checkbox" id="csDonutShowLegend" checked onchange="onChartLocalParam('showLegend', this.checked)"> showLegend</label>
+              </div>
+            </div>
+
+            <!-- tileTreemap -->
+            <div id="csCtxTreemap" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Tile Treemap (<code>gap</code>)</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="cs-measure-controls">
+                <input type="range" id="csTreemapGapRange" min="2" max="20" step="1" value="8" class="ts-range-input" oninput="onChartLocalParam('gap', Number(this.value))">
+                <input type="number" id="csTreemapGapNum" min="2" max="20" class="cs-num-input" oninput="onChartLocalParam('gap', this.value === '' ? null : Number(this.value))">
+              </div>
+            </div>
+
+            <!-- Ejes Y / X y Sufijo -->
+            <div id="csCtxAxes" class="cs-measure-row" style="display:none;">
+              <div class="cs-measure-top">
+                <span>⚙️ Ejes y Formato</span>
+                <span class="cs-local-badge is-local">Local</span>
+              </div>
+              <div class="cs-check-grid" style="margin-top:0; margin-bottom:8px;">
+                <label class="cs-check-item" id="csShowAxisYWrap"><input type="checkbox" id="csShowAxisY" checked onchange="onChartLocalParam('showAxisY', this.checked)"> showAxisY</label>
+                <label class="cs-check-item" id="csShowAxisXWrap"><input type="checkbox" id="csShowAxisX" checked onchange="onChartLocalParam('showAxisX', this.checked)"> showAxisX</label>
+              </div>
+              <div id="csValueSuffixWrap" class="ts-field" style="margin-bottom:0;">
+                <label>Sufijo de valor (<code>valueSuffix</code>)</label>
+                <input type="text" id="csValueSuffix" class="ts-input-text" placeholder="ej. %, h, hrs, ms" oninput="onChartLocalParam('valueSuffix', this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque 4: Constructor Visual yLabelPosition -->
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>4. Disposición y Eje Y (<code>yLabelPosition</code>)</span>
+            <span id="csYPosBadge" class="cs-local-badge is-global">Global</span>
+          </div>
+
+          <div class="cs-measure-row">
+            <div class="ts-field" style="margin-bottom:10px;">
+              <label>Alineación de Fila (<code>row</code>)</label>
+              <div class="cs-seg-grid" id="csYPosRowGrid">
+                <button type="button" class="cs-seg-btn active" data-row="default" onclick="setYPosRow('default')">default</button>
+                <button type="button" class="cs-seg-btn" data-row="between" onclick="setYPosRow('between')">between</button>
+                <button type="button" class="cs-seg-btn" data-row="around" onclick="setYPosRow('around')">around</button>
+                <button type="button" class="cs-seg-btn" data-row="start" onclick="setYPosRow('start')">start</button>
+                <button type="button" class="cs-seg-btn" data-row="center" onclick="setYPosRow('center')">center</button>
+                <button type="button" class="cs-seg-btn" data-row="end" onclick="setYPosRow('end')">end</button>
+              </div>
+            </div>
+
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.8rem; font-weight:600; margin-bottom:8px;">
+              <input type="checkbox" id="csYPosHasSplit" onchange="setYPosHasSplit(this.checked)">
+              Activar reparto porcentual (<code>labelPct / chartPct</code>)
+            </label>
+
+            <div id="csYPosSplitControls" style="display:none; margin-bottom:10px;">
+              <div class="ts-field" style="margin-bottom:7px;">
+                <label>% Nombres (<code>labelPct</code>)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csYPosLabelPctRange" min="10" max="85" step="1" value="50" class="ts-range-input" oninput="setYPosSplitPct('label', this.value)">
+                  <input type="number" id="csYPosLabelPctNum" min="10" max="85" value="50" class="cs-num-input" oninput="setYPosSplitPct('label', this.value)">
+                </div>
+              </div>
+              <div class="ts-field" style="margin-bottom:6px;">
+                <label>% Barras / Gráfico (<code>chartPct</code>)</label>
+                <div class="cs-measure-controls">
+                  <input type="range" id="csYPosChartPctRange" min="15" max="90" step="1" value="40" class="ts-range-input" oninput="setYPosSplitPct('chart', this.value)">
+                  <input type="number" id="csYPosChartPctNum" min="15" max="90" value="40" class="cs-num-input" oninput="setYPosSplitPct('chart', this.value)">
+                </div>
+              </div>
+              <div class="cs-split-bar-preview" title="Distribución porcentual en vivo">
+                <div id="csSplitSegLabel" class="cs-split-seg-label" style="width:50%;">50%</div>
+                <div id="csSplitSegGap" class="cs-split-seg-gap" style="width:10%;">10%</div>
+                <div id="csSplitSegChart" class="cs-split-seg-chart" style="width:40%;">40%</div>
+              </div>
+            </div>
+
+            <div class="ts-field" style="margin-bottom:6px;">
+              <label>Alineación del Texto (<code>align</code>)</label>
+              <div class="cs-seg-grid" id="csYPosAlignGrid">
+                <button type="button" class="cs-seg-btn active" data-align="start" onclick="setYPosAlign('start')">⬅️ start</button>
+                <button type="button" class="cs-seg-btn" data-align="center" onclick="setYPosAlign('center')">↔️ center</button>
+                <button type="button" class="cs-seg-btn" data-align="end" onclick="setYPosAlign('end')">➡️ end</button>
+              </div>
+            </div>
+
+            <code id="csYPosSyntaxPreview" class="cs-syntax-badge">default</code>
+          </div>
+        </div>
+
+        <!-- Bloque 5: Animación, Tooltips y Simulador de Datos -->
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>5. Animación, Tooltips y Datos</span>
+          </div>
+
+          <div class="cs-measure-row">
+            <div class="cs-measure-top">
+              <span>Transición (<code>transition</code> ms)</span>
+              <span id="csTransitionBadge" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="cs-measure-controls" style="margin-bottom:8px;">
+              <input type="range" id="csTransitionRange" min="0" max="2000" step="50" value="400" class="ts-range-input" oninput="onChartScopedMeasure('transition', this.value, true)">
+              <input type="number" id="csTransitionNum" min="0" max="2000" step="50" value="400" class="cs-num-input" oninput="onChartScopedMeasure('transition', this.value, true)">
+            </div>
+            <button type="button" class="ts-btn ts-btn-primary" style="width:100%; justify-content:center; padding:6px; font-size:0.78rem;" onclick="replayChartsAnimation()">
+              ▶️ Probar Animación en Vivo
+            </button>
+          </div>
+
+          <div class="cs-measure-row">
+            <div class="cs-measure-top" style="margin-bottom:6px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.8rem;">
+                <input type="checkbox" id="csTooltipCheck" checked onchange="onChartScopedBool('tooltip', this.checked)">
+                Habilitar Tooltips flotantes (<code>tooltip</code>)
+              </label>
+              <span id="csTooltipBadge" class="cs-local-badge is-global">Global</span>
+            </div>
+            <div class="ts-field" style="margin-bottom:0;">
+              <label for="csDatasetPresetSelect">Simulador de Datos (<code>datasetPreset</code>)</label>
+              <select id="csDatasetPresetSelect" class="ts-select" onchange="setChartDatasetPreset(this.value)">
+                <option value="standard">Estándar (Vista por defecto)</option>
+                <option value="compact">Pocos ítems (3 elementos)</option>
+                <option value="dense">Muchos ítems (8-10 elementos)</option>
+                <option value="long-labels">Etiquetas largas (Prueba de saltos)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- TAB 6: JSON CRUDO -->
       <div id="tab-json" class="ts-tab-content">
         <div class="ts-section">
@@ -1585,13 +2582,22 @@
       
       <!-- Barra Superior de Navegación del Canvas & Resoluciones Viewport -->
       <div class="ts-canvas-bar">
-        <!-- Izquierda: Toggle de Sidebar y Barra de Direcciones del Proyecto -->
+        <!-- Izquierda: Toggle de Sidebar, Conmutador de Escenario y Barra de Direcciones del Proyecto -->
         <div class="ts-canvas-nav">
           <button type="button" class="ts-sidebar-toggle-btn" id="btnToggleSidebar" onclick="toggleSidebar()" title="Ocultar / Mostrar panel lateral">
             ◀ Panel
           </button>
-          
-          <div class="ts-route-bar">
+
+          <div class="ts-stage-switcher" title="Cambiar entre vista real del sitio y laboratorio de gráficos">
+            <button type="button" class="ts-stage-btn active" id="btnStageSite" onclick="setStageMode('site')">
+              🌐 <span>Sitio</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageCharts" onclick="setStageMode('charts')">
+              📊 <span>Gráficos</span>
+            </button>
+          </div>
+
+          <div class="ts-route-bar" id="projectRouteBar">
             <span class="ts-canvas-label">🌐 Vista:</span>
             <select id="projectRouteSelect" class="ts-route-select" onchange="navigateProjectRoute(this.value)" title="Rutas GET detectadas en App/Route">
               <?php foreach (($projectRoutes ?? [['uri' => '/', 'label' => '/ (Vista Principal)']]) as $routeItem): ?>
@@ -1605,6 +2611,11 @@
             <button type="button" class="ts-icon-btn" onclick="openProjectInNewTab()" title="Abrir vista actual en nueva pestaña">
               ↗️
             </button>
+          </div>
+
+          <div id="chartBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>🧪 Chart Studio</span>
+            <span id="csActiveChartBadge" class="ts-badge">horizontalBars</span>
           </div>
         </div>
 
@@ -1629,6 +2640,91 @@
         <div id="sandbox">
           <!-- Renderizado en vivo de la vista real del proyecto (App/Route -> "/") con inyección dinámica de _configTheme.css -->
           <iframe id="projectPreviewFrame" src="/" title="Vista en vivo del proyecto"></iframe>
+
+          <!-- Laboratorio Interactivo de Gráficos (Chart Sandbox) -->
+          <div id="chartSandboxView">
+            <div class="cs-toolbar">
+              <div class="cs-toolbar-group">
+                <div class="ts-mode-segmented">
+                  <button type="button" class="ts-mode-btn active" id="btnCsViewGallery" onclick="setChartSandboxViewMode('gallery')">
+                    🔲 <span>Galería (12)</span>
+                  </button>
+                  <button type="button" class="ts-mode-btn" id="btnCsViewFocused" onclick="setChartSandboxViewMode('focused')">
+                    🎯 <span>Vista Enfocada (1)</span>
+                  </button>
+                </div>
+
+                <div id="csFocusedWidthWrap" style="display:none; align-items:center; gap:5px;">
+                  <span style="font-size:0.74rem; color:var(--ts-muted);">Ancho tarjeta:</span>
+                  <select id="csFocusedWidthSelect" class="cs-toolbar-select" onchange="setFocusedCardWidth(this.value)">
+                    <option value="100%">100% (Ancho completo)</option>
+                    <option value="640px">640px (Tarjeta amplia)</option>
+                    <option value="480px">480px (Columna media)</option>
+                    <option value="380px">380px (Tarjeta compacta)</option>
+                    <option value="280px">280px (Widget estrecho)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="cs-toolbar-group">
+                <select id="csSurfaceSelect" class="cs-toolbar-select" onchange="setChartCardSurface(this.value)" title="Fondo simulado de las tarjetas">
+                  <option value="var(--body)">Fondo: --body</option>
+                  <option value="var(--back-color)">Fondo: back1</option>
+                  <option value="var(--back-color2)">Fondo: back2</option>
+                  <option value="var(--back-color3)">Fondo: back3</option>
+                  <option value="#0c0c0e">Fondo: #0C0C0E</option>
+                  <option value="#ffffff">Fondo: #FFFFFF</option>
+                </select>
+
+                <select id="csToolbarPresetSelect" class="cs-toolbar-select" onchange="setChartDatasetPreset(this.value)" title="Preset de datos de prueba">
+                  <option value="standard">Datos: Estándar</option>
+                  <option value="compact">Datos: Pocos (3)</option>
+                  <option value="dense">Datos: Muchos (8-10)</option>
+                  <option value="long-labels">Datos: Nombres largos</option>
+                </select>
+
+                <button type="button" class="ts-btn ts-btn-secondary" style="padding:5px 10px; font-size:0.76rem;" onclick="replayChartsAnimation()" title="Reproducir animación de entrada">
+                  ▶️ <span>Animar</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="cs-sandbox-stage" id="chartSandboxStage">
+              <div id="csGalleryContainer" class="cs-gallery-grid">
+                <!-- Tarjetas de los 12 gráficos generadas por JS -->
+              </div>
+              <div id="csFocusedContainer" class="cs-focused-wrap" style="display:none;">
+                <!-- Vista enfocada de 1 gráfico generada por JS -->
+              </div>
+            </div>
+
+            <!-- Panel Generador de Código PHP "Copy & Paste" -->
+            <div class="cs-code-dock" id="csCodeDock">
+              <div class="cs-code-header">
+                <div class="cs-code-tabs">
+                  <button type="button" class="cs-code-tab active" id="csCodeTab_helper" onclick="setChartCodeFormat('helper')">_chart()</button>
+                  <button type="button" class="cs-code-tab" id="csCodeTab_module" onclick="setChartCodeFormat('module')">GraphicsModule</button>
+                  <button type="button" class="cs-code-tab" id="csCodeTab_global" onclick="setChartCodeFormat('global')">configStyle()</button>
+                </div>
+
+                <div class="cs-code-options">
+                  <label><input type="checkbox" id="csCodeOnlyModified" checked onchange="updateChartCodeOutput()"> Solo modificadas</label>
+                  <label id="csCodeIncludeDataLabel"><input type="checkbox" id="csCodeIncludeData" checked onchange="updateChartCodeOutput()"> Incluir datos</label>
+                  <label id="csCodeWrapLabel"><input type="checkbox" id="csCodeWrapContainer" onchange="updateChartCodeOutput()"> Envolver div</label>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button type="button" class="ts-icon-btn" id="btnToggleCodeDock" onclick="toggleChartCodeDock()" title="Colapsar / Expandir visor de código">▾</button>
+                  <button type="button" class="ts-btn ts-btn-primary" style="padding:5px 11px; font-size:0.76rem;" onclick="copyChartPhpCode()">
+                    📋 <span>Copiar Código</span>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-code-body">
+                <pre class="cs-code-pre"><code id="chartPhpCodeOutput"></code></pre>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -1714,6 +2810,9 @@
     <span id="toastMsg">Mensaje de notificación</span>
   </div>
 
+  <!-- Motor Charts (GraphicsModule) autocontenido para Chart Studio -->
+  <script id="ts-charts-core-js"><?= $chartsJs ?? '' ?></script>
+
   <!-- Pure Vanilla Client-Side JavaScript Engine -->
   <script>
     // Configuración base leída desde App/Public/Css/_configTheme.css del proyecto
@@ -1721,6 +2820,8 @@
     // Configuración activa (cargada desde theme.json o defaultCssConfig)
     const initialConfig = <?= $rawJson ?>;
     const initialFullConfig = <?= $rawFullJson ?? json_encode(['activeTheme' => 'default', 'themes' => ['default' => $config]]) ?>;
+    const initialChartsHtmlMap = <?= json_encode($initialChartsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const initialChartsSampleData = <?= json_encode($initialChartsSampleData ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     let fullThemeConfig = JSON.parse(JSON.stringify(initialFullConfig));
     let activeThemeSlug = '<?= $activeThemeSlug ?? "default" ?>';
@@ -1859,8 +2960,9 @@
     // ==============================================================
 
     function initStudio() {
-      // 0. Asegurar estructura de mediaQueries
+      // 0. Asegurar estructura de mediaQueries y charts
       ensureMediaQueries();
+      ensureChartsConfig();
       // 1. Renderizar lista de temas y selector
       renderThemesTab();
       // 2. Renderizar inputs de paleta clara
@@ -1872,6 +2974,8 @@
       renderViewportButtons();
       // 5. Inicializar valores de formulario
       syncFormValues();
+      // 5.5. Inicializar Chart Studio (panel y caché inicial)
+      initChartStudio();
       // 6. Configurar iframe de vista real del proyecto
       setupProjectIframe();
       // 7. Inyectar variables en vivo
@@ -3286,6 +4390,12 @@
       // Sobrescribir en tiempo real las variables de _configTheme.css dentro de la vista real del proyecto
       injectLiveThemeIntoIframe();
 
+      // Actualizar variables CSS en tiempo real dentro del laboratorio de gráficos (0 ms)
+      injectLiveThemeIntoChartSandbox();
+      if (typeof renderChartColorChips === 'function') {
+        renderChartColorChips();
+      }
+
       // Sincronizar el color de la barra de scroll flotante del iframe
       updateIframeFloatingScrollColor();
 
@@ -3467,6 +4577,10 @@
       if (iframeScrollInstance) {
         setTimeout(() => iframeScrollInstance.refresh(), 260);
       }
+      if (currentStageMode === 'charts') {
+        refitAllChartsInSandbox();
+        setTimeout(refitAllChartsInSandbox, 270);
+      }
     }
 
     function switchTab(tabId, btnEl) {
@@ -3483,6 +4597,8 @@
 
       if (tabId === 'json') {
         updateJsonViewer();
+      } else if (tabId === 'charts') {
+        setStageMode('charts');
       }
     }
 
@@ -3551,6 +4667,7 @@
           themeConfig.name = fullThemeConfig.themes[currentThemeSlug]?.name || 'Predeterminado';
           fullThemeConfig.themes[currentThemeSlug] = JSON.parse(JSON.stringify(themeConfig));
           initStudio();
+          requestChartRender('all', true);
           showToast('🔄 Colores restaurados a los de _configTheme.css');
         }
       });
@@ -3663,13 +4780,17 @@
       currentThemeSlug = slug;
       themeConfig = JSON.parse(JSON.stringify(fullThemeConfig.themes[slug]));
       if (!themeConfig.slug) themeConfig.slug = slug;
+      ensureChartsConfig();
 
       renderColorSlots('light');
       renderColorSlots('dark');
       syncFormValues();
+      syncChartStudioForm();
       renderThemesTab();
       applySandboxStyles();
       updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender('all', true);
 
       showToast(`🎨 Tema cargado: ${themeConfig.name || slug}`);
     }
@@ -4240,12 +5361,18 @@
         if (data.success) {
           if (data.fullConfig) {
             fullThemeConfig = data.fullConfig;
+            if (fullThemeConfig.themes && fullThemeConfig.themes[currentThemeSlug]) {
+              themeConfig = JSON.parse(JSON.stringify(fullThemeConfig.themes[currentThemeSlug]));
+              ensureChartsConfig();
+            }
           }
           if (data.activeThemeSlug) {
             activeThemeSlug = data.activeThemeSlug;
           }
           renderThemesTab();
+          syncChartStudioForm();
           applySandboxStyles();
+          updateJsonViewer();
           showToast('💾 ' + (data.message || 'Tema guardado en theme.json (modo aislado)'), 'success');
         } else {
           showToast('❌ ' + (data.message || 'Error al guardar'), 'error');
@@ -4288,6 +5415,1224 @@
       window.__toastTimer = setTimeout(() => {
         toast.className = 'ts-toast';
       }, 4000);
+    }
+
+    // ==============================================================
+    // CHART STUDIO (CREADOR Y CONFIGURADOR DE GRÁFICOS)
+    // ==============================================================
+
+    const CHART_CATALOG = [
+      { type: 'arcMeter', title: 'Arc Meter', icon: '🎯', dataKeys: ['value', 'label'], defaultBarWidth: 16, hasRx: false, hasAxes: false },
+      { type: 'stackedTones', title: 'Stacked Tones', icon: '📊', dataKeys: ['quarters'], defaultBarWidth: 24, hasRx: true, hasAxes: false },
+      { type: 'tileTreemap', title: 'Tile Treemap', icon: '🧱', dataKeys: ['tiles'], defaultBarWidth: 18, hasRx: false, hasAxes: false },
+      { type: 'hybridSpline', title: 'Hybrid Spline', icon: '📈', dataKeys: ['values', 'labels'], defaultBarWidth: 14, hasRx: true, hasAxes: false },
+      { type: 'pillPillars', title: 'Pill Pillars', icon: '🏛️', dataKeys: ['pairs'], defaultBarWidth: 12, hasRx: true, hasAxes: false },
+      { type: 'simpleBars', title: 'Simple Bars', icon: '📶', dataKeys: ['bars'], defaultBarWidth: 18, hasRx: true, hasAxes: true },
+      { type: 'horizontalBars', title: 'Horizontal Bars', icon: '📏', dataKeys: ['bars'], defaultBarWidth: 18, hasRx: true, hasAxes: true },
+      { type: 'bulletTarget', title: 'Bullet Target', icon: '🎚️', dataKeys: ['targets'], defaultBarWidth: 14, hasRx: true, hasAxes: false },
+      { type: 'roundedDonut', title: 'Rounded Donut', icon: '🍩', dataKeys: ['items'], defaultBarWidth: 20, hasRx: false, hasAxes: false },
+      { type: 'pyramidStack', title: 'Pyramid Stack', icon: '🔺', dataKeys: ['items'], defaultBarWidth: 26, hasRx: true, hasAxes: false },
+      { type: 'splineDynamics', title: 'Spline Dynamics', icon: '〰️', dataKeys: ['primary', 'secondary'], defaultBarWidth: 16, hasRx: false, hasAxes: false },
+      { type: 'matrixHeatmap', title: 'Matrix Heatmap', icon: '🟩', dataKeys: ['rows', 'cols', 'matrix'], defaultBarWidth: 24, hasRx: true, hasAxes: true },
+    ];
+
+    const DEFAULT_CHARTS_CONFIG = {
+      color: 'texto',
+      colorLabel: 'textw',
+      axisLabel: 'texto',
+      axisLabelSize: null,
+      transition: 400,
+      tooltip: true,
+      barWidth: null,
+      yLabelPosition: 'default',
+      width: null,
+      height: null,
+    };
+
+    const CHART_LOCAL_DEFAULTS = {
+      arcMeter: { value: 90, label: 'Optimal Load', showNumber: true, showLabel: true },
+      tileTreemap: { gap: 8 },
+      hybridSpline: { tension: 0.25 },
+      pillPillars: { pillarGap: null },
+      simpleBars: { showAxisY: true, showAxisX: true, valueSuffix: '' },
+      horizontalBars: { showAxisY: true, showAxisX: true, valueSuffix: '' },
+      bulletTarget: { targetColor: '#10b981' },
+      roundedDonut: { startAngle: -135, centerValue: '', centerLabel: 'Mono Arc', showCenter: true, showLegend: true },
+      pyramidStack: { gapY: 9, minWidth: 84, maxWidth: 254 },
+      splineDynamics: { tension: 0.25, showSecondary: true, showPoints: true },
+      matrixHeatmap: { cellSize: null, cellGap: null, interpolate: false, colLabelPosition: 'bottom', showAxisY: true, showAxisX: true },
+    };
+
+    let currentStageMode = 'site'; // 'site' | 'charts'
+    let chartScope = 'global'; // 'global' | 'local'
+    let activeChartType = 'horizontalBars';
+    let chartSandboxViewMode = 'gallery'; // 'gallery' | 'focused'
+    let chartDatasetPreset = 'standard';
+    let chartCardSurface = 'var(--body)';
+    let chartFocusedWidth = '100%';
+    let chartCodeFormat = 'helper'; // 'helper' | 'module' | 'global'
+
+    let chartsHtmlCache = Object.assign({}, initialChartsHtmlMap || {});
+    let chartsSampleDataCache = Object.assign({}, initialChartsSampleData || {});
+    let chartRenderTimer = null;
+    let chartRenderAbort = null;
+    let chartRenderSeq = 0;
+
+    function ensureChartsConfig() {
+      if (!themeConfig.charts || typeof themeConfig.charts !== 'object' || Array.isArray(themeConfig.charts)) {
+        themeConfig.charts = JSON.parse(JSON.stringify(DEFAULT_CHARTS_CONFIG));
+      } else {
+        for (const [k, v] of Object.entries(DEFAULT_CHARTS_CONFIG)) {
+          if (themeConfig.charts[k] === undefined) {
+            themeConfig.charts[k] = v;
+          }
+        }
+      }
+      if (!themeConfig.charts.localOverrides || typeof themeConfig.charts.localOverrides !== 'object') {
+        themeConfig.charts.localOverrides = {};
+      }
+      return themeConfig.charts;
+    }
+
+    function initChartStudio() {
+      ensureChartsConfig();
+      renderChartTypeGrid();
+      renderChartColorChips();
+      syncChartStudioForm();
+      renderChartSandboxFromCache();
+      updateChartCodeOutput();
+    }
+
+    function setStageMode(mode) {
+      currentStageMode = (mode === 'charts') ? 'charts' : 'site';
+      const btnSite = document.getElementById('btnStageSite');
+      const btnCharts = document.getElementById('btnStageCharts');
+      const iframe = document.getElementById('projectPreviewFrame');
+      const chartView = document.getElementById('chartSandboxView');
+      const routeBar = document.getElementById('projectRouteBar');
+      const chartStatus = document.getElementById('chartBarStatus');
+
+      if (btnSite) btnSite.classList.toggle('active', currentStageMode === 'site');
+      if (btnCharts) btnCharts.classList.toggle('active', currentStageMode === 'charts');
+
+      if (iframe) iframe.style.display = currentStageMode === 'site' ? 'block' : 'none';
+      if (chartView) chartView.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+      if (routeBar) routeBar.style.display = currentStageMode === 'site' ? 'flex' : 'none';
+      if (chartStatus) chartStatus.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+
+      if (currentStageMode === 'charts') {
+        injectLiveThemeIntoChartSandbox();
+        renderChartSandboxFromCache();
+        setTimeout(() => {
+          const stage = document.getElementById('chartSandboxStage');
+          initRenderedCharts(stage);
+        }, 20);
+      }
+    }
+
+    function setChartSandboxViewMode(viewMode) {
+      chartSandboxViewMode = (viewMode === 'focused') ? 'focused' : 'gallery';
+      const btnGallery = document.getElementById('btnCsViewGallery');
+      const btnFocused = document.getElementById('btnCsViewFocused');
+      const galleryEl = document.getElementById('csGalleryContainer');
+      const focusedEl = document.getElementById('csFocusedContainer');
+      const widthWrap = document.getElementById('csFocusedWidthWrap');
+
+      if (btnGallery) btnGallery.classList.toggle('active', chartSandboxViewMode === 'gallery');
+      if (btnFocused) btnFocused.classList.toggle('active', chartSandboxViewMode === 'focused');
+      if (galleryEl) galleryEl.style.display = chartSandboxViewMode === 'gallery' ? 'grid' : 'none';
+      if (focusedEl) focusedEl.style.display = chartSandboxViewMode === 'focused' ? 'flex' : 'none';
+      if (widthWrap) widthWrap.style.display = chartSandboxViewMode === 'focused' ? 'flex' : 'none';
+
+      renderChartSandboxFromCache();
+      setTimeout(() => {
+        const container = chartSandboxViewMode === 'gallery' ? galleryEl : focusedEl;
+        initRenderedCharts(container);
+      }, 20);
+    }
+
+    function setFocusedCardWidth(widthVal) {
+      chartFocusedWidth = widthVal || '100%';
+      const card = document.querySelector('#csFocusedContainer .cs-focused-card');
+      if (card) {
+        card.style.maxWidth = chartFocusedWidth;
+        refitAllChartsInSandbox(card);
+        setTimeout(() => refitAllChartsInSandbox(card), 270);
+      }
+    }
+
+    function setChartCardSurface(surfaceVal) {
+      chartCardSurface = surfaceVal || 'var(--body)';
+      injectLiveThemeIntoChartSandbox();
+    }
+
+    function setChartScope(scope) {
+      chartScope = (scope === 'local') ? 'local' : 'global';
+      const btnGlobal = document.getElementById('btnScopeGlobal');
+      const btnLocal = document.getElementById('btnScopeLocal');
+      const scopeInfo = document.getElementById('csScopeInfo');
+
+      if (btnGlobal) btnGlobal.classList.toggle('active', chartScope === 'global');
+      if (btnLocal) btnLocal.classList.toggle('active', chartScope === 'local');
+      if (scopeInfo) {
+        scopeInfo.textContent = chartScope === 'local' ? `Local: ${activeChartType}` : 'Global (configStyle)';
+        scopeInfo.className = `cs-local-badge ${chartScope === 'local' ? 'is-local' : 'is-global'}`;
+      }
+
+      syncChartStudioForm();
+      updateChartCodeOutput();
+    }
+
+    function selectActiveChart(chartType, autoFocusIfGallery = false) {
+      if (!CHART_CATALOG.some(c => c.type === chartType)) return;
+      activeChartType = chartType;
+
+      const badge = document.getElementById('csActiveChartBadge');
+      if (badge) badge.textContent = chartType;
+
+      const scopeInfo = document.getElementById('csScopeInfo');
+      if (scopeInfo && chartScope === 'local') {
+        scopeInfo.textContent = `Local: ${activeChartType}`;
+      }
+
+      renderChartTypeGrid();
+      syncChartStudioForm();
+      updateChartCodeOutput();
+
+      if (autoFocusIfGallery && chartSandboxViewMode === 'gallery') {
+        setChartSandboxViewMode('focused');
+      } else {
+        document.querySelectorAll('#csGalleryContainer .cs-chart-card').forEach(card => {
+          card.classList.toggle('active', card.dataset.chartType === activeChartType);
+        });
+        if (chartSandboxViewMode === 'focused') {
+          renderChartSandboxFromCache();
+          const focusedEl = document.getElementById('csFocusedContainer');
+          initRenderedCharts(focusedEl);
+        }
+      }
+    }
+
+    function getLocalOverridesMap(createIfMissing = false) {
+      const cfg = ensureChartsConfig();
+      if (!cfg.localOverrides[activeChartType]) {
+        if (!createIfMissing) return {};
+        cfg.localOverrides[activeChartType] = {};
+      }
+      return cfg.localOverrides[activeChartType];
+    }
+
+    function getEffectiveChartValue(prop) {
+      const cfg = ensureChartsConfig();
+      const localMap = cfg.localOverrides[activeChartType] || {};
+      if (localMap[prop] !== undefined) {
+        return { value: localMap[prop], isLocal: true };
+      }
+      return { value: cfg[prop] !== undefined ? cfg[prop] : DEFAULT_CHARTS_CONFIG[prop], isLocal: false };
+    }
+
+    function clearActiveChartLocalOverrides() {
+      const cfg = ensureChartsConfig();
+      delete cfg.localOverrides[activeChartType];
+      syncChartStudioForm();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(activeChartType, true);
+      showToast(`↺ Overrides locales de "${activeChartType}" limpiados`);
+    }
+
+    function renderChartTypeGrid() {
+      const grid = document.getElementById('csChartTypeGrid');
+      if (!grid) return;
+      const cfg = ensureChartsConfig();
+
+      grid.innerHTML = CHART_CATALOG.map(c => {
+        const hasOverrides = cfg.localOverrides[c.type] && Object.keys(cfg.localOverrides[c.type]).length > 0;
+        return `
+          <button type="button" class="cs-type-btn ${c.type === activeChartType ? 'active' : ''}" onclick="selectActiveChart('${c.type}')" title="Seleccionar ${c.title}">
+            <span>${c.icon}</span>
+            <span class="cs-type-btn-text">
+              <span class="cs-type-btn-name">${c.title}${hasOverrides ? ' •' : ''}</span>
+              <span class="cs-type-btn-method">${c.type}</span>
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function getActiveThemePaletteForCharts() {
+      const isDark = (currentPreviewMode === 'dark');
+      const lightColors = themeConfig.light.colors || [];
+      const colors = isDark
+        ? (themeConfig.dark.colors && themeConfig.dark.colors.length ? themeConfig.dark.colors : lightColors.map(c => invertToDarkHex(c)))
+        : lightColors;
+      const textPrimary = isDark ? themeConfig.dark.text.primary : themeConfig.light.text.primary;
+      const textSecondary = isDark ? themeConfig.dark.text.secondary : themeConfig.light.text.secondary;
+      return { colors, textPrimary, textSecondary };
+    }
+
+    function resolveColorTokenPreviewHex(rawToken) {
+      const token = String(rawToken || '').trim();
+      if (/^#[0-9A-Fa-f]{6}$/.test(token)) return token.toUpperCase();
+      if (/^#[0-9A-Fa-f]{3}$/.test(token)) {
+        return ('#' + token[1] + token[1] + token[2] + token[2] + token[3] + token[3]).toUpperCase();
+      }
+
+      const { colors, textPrimary, textSecondary } = getActiveThemePaletteForCharts();
+      const lower = token.replace(/^\./, '').toLowerCase();
+      if (lower === 'texto') return textPrimary || '#00124D';
+      if (lower === 'textc') return textSecondary || '#FFF9E5';
+      if (lower === 'textw') return '#FFFFFF';
+      if (lower === 'textb') return '#000000';
+      if (lower === 'color') return colors[0] || '#38BDF8';
+
+      const colorClassMatch = lower.match(/^color(\d+)$/);
+      if (colorClassMatch) {
+        const idx = parseInt(colorClassMatch[1], 10) - 1;
+        return colors[idx] || colors[0] || '#38BDF8';
+      }
+
+      const varMatch = token.match(/^var\(--back-color(\d*)\)$/i);
+      if (varMatch) {
+        const idx = varMatch[1] ? (parseInt(varMatch[1], 10) - 1) : 0;
+        return colors[idx] || colors[0] || '#38BDF8';
+      }
+
+      return '#38BDF8';
+    }
+
+    function renderChartColorChips() {
+      const { colors, textPrimary, textSecondary } = getActiveThemePaletteForCharts();
+      const baseTokens = [
+        { token: 'texto', dot: textPrimary },
+        { token: 'textw', dot: '#FFFFFF' },
+        { token: 'textc', dot: textSecondary },
+        { token: 'textb', dot: '#000000' },
+      ];
+      colors.forEach((hex, idx) => {
+        baseTokens.push({ token: `color${idx + 1}`, dot: hex });
+      });
+
+      ['color', 'colorLabel', 'axisLabel'].forEach(prop => {
+        const container = document.getElementById(`csColorChips_${prop}`);
+        if (!container) return;
+        const currentVal = String(getEffectiveChartValue(prop).value || '').replace(/^\./, '');
+        container.innerHTML = baseTokens.map(item => `
+          <button type="button" class="cs-color-chip ${currentVal === item.token ? 'active' : ''}" onclick="onChartColorInput('${prop}', '${item.token}')" title="Usar clase .${item.token}">
+            <span class="cs-chip-dot" style="background:${item.dot};"></span>
+            <span>${item.token}</span>
+          </button>
+        `).join('');
+      });
+
+      const tgtContainer = document.getElementById('csColorChips_targetColor');
+      if (tgtContainer) {
+        const localTgt = String(getLocalOverridesMap(false).targetColor || '#10b981').replace(/^\./, '');
+        const tgtTokens = [
+          { token: '#10b981', dot: '#10b981' },
+          { token: themeConfig.status?.success || '#00B900', dot: themeConfig.status?.success || '#00B900' },
+          { token: themeConfig.status?.caution || '#FF8C00', dot: themeConfig.status?.caution || '#FF8C00' },
+          { token: themeConfig.status?.danger || '#FF0000', dot: themeConfig.status?.danger || '#FF0000' },
+          ...colors.slice(0, 6).map((hex, i) => ({ token: `var(--back-color${i === 0 ? '' : i + 1})`, label: `back${i + 1}`, dot: hex }))
+        ];
+        tgtContainer.innerHTML = tgtTokens.map(item => `
+          <button type="button" class="cs-color-chip ${localTgt === item.token ? 'active' : ''}" onclick="onChartLocalColorInput('targetColor', '${item.token}')">
+            <span class="cs-chip-dot" style="background:${item.dot};"></span>
+            <span>${item.label || item.token}</span>
+          </button>
+        `).join('');
+      }
+    }
+
+    function setScopedChartProperty(prop, value) {
+      const cfg = ensureChartsConfig();
+      if (chartScope === 'local') {
+        const localMap = getLocalOverridesMap(true);
+        localMap[prop] = value;
+      } else {
+        cfg[prop] = value;
+        if (cfg.localOverrides[activeChartType] && cfg.localOverrides[activeChartType][prop] !== undefined) {
+          delete cfg.localOverrides[activeChartType][prop];
+        }
+      }
+    }
+
+    function onChartColorInput(prop, val) {
+      const trimmed = String(val ?? '').trim() || DEFAULT_CHARTS_CONFIG[prop];
+      setScopedChartProperty(prop, trimmed);
+
+      const inputEl = document.getElementById(`csColorInput_${prop}`);
+      const pickerEl = document.getElementById(`csColorPicker_${prop}`);
+      if (inputEl && inputEl.value !== trimmed) inputEl.value = trimmed;
+      if (pickerEl) pickerEl.value = resolveColorTokenPreviewHex(trimmed);
+
+      updateScopeBadge(`csColorBadge_${prop}`, getEffectiveChartValue(prop).isLocal);
+      renderChartColorChips();
+      renderChartTypeGrid();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(chartScope === 'local' ? activeChartType : 'all');
+    }
+
+    function onChartLocalColorInput(prop, val) {
+      const trimmed = String(val ?? '').trim();
+      onChartLocalParam(prop, trimmed === '' ? null : trimmed);
+      renderChartColorChips();
+    }
+
+    function onChartScopedMeasure(prop, rawVal, keepZero = false) {
+      let parsed = null;
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const num = Number(rawVal);
+        if (Number.isFinite(num) && (keepZero ? num >= 0 : num > 0)) {
+          parsed = Math.round(num);
+        }
+      }
+      setScopedChartProperty(prop, parsed);
+      syncChartStudioForm();
+      renderChartTypeGrid();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(chartScope === 'local' ? activeChartType : 'all');
+    }
+
+    function onChartScopedBool(prop, checked) {
+      setScopedChartProperty(prop, !!checked);
+      syncChartStudioForm();
+      renderChartTypeGrid();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(chartScope === 'local' ? activeChartType : 'all');
+    }
+
+    function onChartLocalParam(prop, val) {
+      const cfg = ensureChartsConfig();
+      if (val === null || val === undefined || val === '') {
+        if (cfg.localOverrides[activeChartType]) {
+          delete cfg.localOverrides[activeChartType][prop];
+          if (Object.keys(cfg.localOverrides[activeChartType]).length === 0) {
+            delete cfg.localOverrides[activeChartType];
+          }
+        }
+      } else {
+        const localMap = getLocalOverridesMap(true);
+        localMap[prop] = val;
+      }
+
+      syncChartStudioForm();
+      renderChartTypeGrid();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(activeChartType);
+    }
+
+    function setChartDatasetPreset(preset) {
+      chartDatasetPreset = ['standard', 'compact', 'dense', 'long-labels'].includes(preset) ? preset : 'standard';
+      const s1 = document.getElementById('csDatasetPresetSelect');
+      const s2 = document.getElementById('csToolbarPresetSelect');
+      if (s1) s1.value = chartDatasetPreset;
+      if (s2) s2.value = chartDatasetPreset;
+      updateChartCodeOutput();
+      requestChartRender('all', true);
+    }
+
+    // ==============================================================
+    // CONSTRUCTOR VISUAL yLabelPosition
+    // ==============================================================
+
+    function parseYLabelPositionJs(raw) {
+      const def = { row: 'default', labelPct: 50, chartPct: 50, align: 'start', hasSplit: false };
+      if (!raw || raw === 'default') return def;
+
+      const rowAligns = ['default', 'between', 'around', 'start', 'left', 'center', 'end', 'right'];
+      const textAligns = ['start', 'left', 'center', 'middle', 'end', 'right'];
+
+      if (typeof raw === 'object' && !Array.isArray(raw)) {
+        const out = { ...def };
+        if (raw.row) out.row = String(raw.row).toLowerCase();
+        if (Array.isArray(raw.split) && raw.split.length >= 2) {
+          out.labelPct = parseFloat(raw.split[0]) || 50;
+          out.chartPct = parseFloat(raw.split[1]) || 50;
+          out.hasSplit = true;
+        } else if (raw.labelPct !== undefined && raw.chartPct !== undefined) {
+          out.labelPct = parseFloat(raw.labelPct) || 50;
+          out.chartPct = parseFloat(raw.chartPct) || 50;
+          out.hasSplit = true;
+        }
+        if (raw.align) out.align = String(raw.align).toLowerCase();
+        return out;
+      }
+
+      const str = String(raw).trim();
+      const res = { ...def };
+      let rowSet = false;
+      const pctMatch = str.match(/(?:\[\s*)?(\d+(?:\.\d+)?)\s*%?\s*,\s*(\d+(?:\.\d+)?)\s*%?(?:\s*,\s*([a-zA-Z]+))?(?:\s*\])?/);
+      if (pctMatch) {
+        res.labelPct = parseFloat(pctMatch[1]) || 50;
+        res.chartPct = parseFloat(pctMatch[2]) || 50;
+        res.hasSplit = true;
+        if (pctMatch[3] && textAligns.includes(pctMatch[3].toLowerCase())) {
+          res.align = pctMatch[3].toLowerCase();
+        }
+        const before = str.slice(0, pctMatch.index).split(/[\[\],\s]+/).filter(Boolean);
+        const after = str.slice(pctMatch.index + pctMatch[0].length).split(/[\[\],\s]+/).filter(Boolean);
+        before.forEach(tk => {
+          const t = tk.toLowerCase();
+          if (!rowSet && rowAligns.includes(t)) { res.row = t; rowSet = true; }
+          else if (textAligns.includes(t)) res.align = t;
+        });
+        after.forEach(tk => {
+          const t = tk.toLowerCase();
+          if (textAligns.includes(t)) res.align = t;
+          else if (!rowSet && rowAligns.includes(t)) { res.row = t; rowSet = true; }
+        });
+      } else {
+        const tokens = str.split(/[\[\],\s]+/).filter(Boolean);
+        tokens.forEach(tk => {
+          const t = tk.toLowerCase();
+          if (!rowSet && rowAligns.includes(t)) { res.row = t; rowSet = true; }
+          else if (textAligns.includes(t)) res.align = t;
+        });
+      }
+
+      if (res.row === 'left') res.row = 'start';
+      if (res.row === 'right') res.row = 'end';
+      if (res.align === 'left') res.align = 'start';
+      if (res.align === 'right') res.align = 'end';
+      if (res.align === 'middle') res.align = 'center';
+      return res;
+    }
+
+    function serializeYLabelPosition(parsed) {
+      const row = parsed.row || 'default';
+      const align = parsed.align || 'start';
+      if (!parsed.hasSplit) {
+        if (row === 'default' && align === 'start') return 'default';
+        if (align === 'start') return row;
+        return `[${row}],[${align}]`;
+      }
+      const lp = Math.max(10, Math.min(85, Math.round(parsed.labelPct || 50)));
+      const cp = Math.max(15, Math.min(90, Math.round(parsed.chartPct || 40)));
+      return `[${row}],[${lp}, ${cp}, ${align}]`;
+    }
+
+    function updateYLabelPositionState(mutator) {
+      const eff = getEffectiveChartValue('yLabelPosition');
+      const parsed = parseYLabelPositionJs(eff.value);
+      mutator(parsed);
+      const serialized = serializeYLabelPosition(parsed);
+      setScopedChartProperty('yLabelPosition', serialized);
+      syncYLabelPositionUi(serialized, chartScope === 'local');
+      renderChartTypeGrid();
+      updateJsonViewer();
+      updateChartCodeOutput();
+      requestChartRender(chartScope === 'local' ? activeChartType : 'all');
+    }
+
+    function setYPosRow(row) {
+      updateYLabelPositionState(p => { p.row = row; });
+    }
+
+    function setYPosHasSplit(checked) {
+      updateYLabelPositionState(p => {
+        p.hasSplit = !!checked;
+        if (p.hasSplit && p.labelPct + p.chartPct > 100) {
+          p.labelPct = 50;
+          p.chartPct = 40;
+        }
+      });
+    }
+
+    function setYPosSplitPct(which, rawVal) {
+      const val = Math.max(10, Math.min(90, parseInt(rawVal, 10) || 40));
+      updateYLabelPositionState(p => {
+        p.hasSplit = true;
+        if (which === 'label') {
+          p.labelPct = Math.min(85, val);
+          if (p.labelPct + p.chartPct > 100) {
+            p.chartPct = Math.max(15, 100 - p.labelPct);
+          }
+        } else {
+          p.chartPct = Math.min(90, Math.max(15, val));
+          if (p.labelPct + p.chartPct > 100) {
+            p.labelPct = Math.max(10, 100 - p.chartPct);
+          }
+        }
+      });
+    }
+
+    function setYPosAlign(align) {
+      updateYLabelPositionState(p => { p.align = align; });
+    }
+
+    function syncYLabelPositionUi(rawYPos, isLocal) {
+      const parsed = parseYLabelPositionJs(rawYPos);
+      const serialized = serializeYLabelPosition(parsed);
+
+      updateScopeBadge('csYPosBadge', isLocal);
+
+      document.querySelectorAll('#csYPosRowGrid .cs-seg-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.row === parsed.row);
+      });
+      document.querySelectorAll('#csYPosAlignGrid .cs-seg-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.align === parsed.align);
+      });
+
+      const chkSplit = document.getElementById('csYPosHasSplit');
+      const splitWrap = document.getElementById('csYPosSplitControls');
+      if (chkSplit) chkSplit.checked = !!parsed.hasSplit;
+      if (splitWrap) splitWrap.style.display = parsed.hasSplit ? 'block' : 'none';
+
+      const lp = Math.round(parsed.labelPct);
+      const cp = Math.round(parsed.chartPct);
+      const gap = Math.max(0, 100 - lp - cp);
+
+      const lpRange = document.getElementById('csYPosLabelPctRange');
+      const lpNum = document.getElementById('csYPosLabelPctNum');
+      const cpRange = document.getElementById('csYPosChartPctRange');
+      const cpNum = document.getElementById('csYPosChartPctNum');
+      if (lpRange) lpRange.value = lp;
+      if (lpNum) lpNum.value = lp;
+      if (cpRange) cpRange.value = cp;
+      if (cpNum) cpNum.value = cp;
+
+      const segL = document.getElementById('csSplitSegLabel');
+      const segG = document.getElementById('csSplitSegGap');
+      const segC = document.getElementById('csSplitSegChart');
+      if (segL) { segL.style.width = `${lp}%`; segL.textContent = `Nombres ${lp}%`; }
+      if (segG) { segG.style.width = `${gap}%`; segG.textContent = gap > 8 ? `${gap}%` : ''; }
+      if (segC) { segC.style.width = `${cp}%`; segC.textContent = `Barras ${cp}%`; }
+
+      const preview = document.getElementById('csYPosSyntaxPreview');
+      if (preview) preview.textContent = serialized;
+    }
+
+    function updateScopeBadge(elId, isLocal) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.textContent = isLocal ? 'Local' : 'Global';
+      el.className = `cs-local-badge ${isLocal ? 'is-local' : 'is-global'}`;
+    }
+
+    function syncChartStudioForm() {
+      const cfg = ensureChartsConfig();
+      const localMap = cfg.localOverrides[activeChartType] || {};
+      const hasAnyOverrides = Object.keys(localMap).length > 0;
+      const meta = CHART_CATALOG.find(c => c.type === activeChartType) || CHART_CATALOG[0];
+
+      const localActions = document.getElementById('csLocalActions');
+      if (localActions) {
+        localActions.style.display = (chartScope === 'local' || hasAnyOverrides) ? 'block' : 'none';
+      }
+
+      // Colores
+      ['color', 'colorLabel', 'axisLabel'].forEach(prop => {
+        const eff = getEffectiveChartValue(prop);
+        const inp = document.getElementById(`csColorInput_${prop}`);
+        const pick = document.getElementById(`csColorPicker_${prop}`);
+        if (inp) inp.value = eff.value || '';
+        if (pick) pick.value = resolveColorTokenPreviewHex(eff.value);
+        updateScopeBadge(`csColorBadge_${prop}`, eff.isLocal);
+      });
+
+      const tgtGroup = document.getElementById('csTargetColorGroup');
+      if (tgtGroup) {
+        tgtGroup.style.display = activeChartType === 'bulletTarget' ? 'block' : 'none';
+        const tgtVal = localMap.targetColor || '#10b981';
+        const tgtInp = document.getElementById('csColorInput_targetColor');
+        const tgtPick = document.getElementById('csColorPicker_targetColor');
+        if (tgtInp) tgtInp.value = tgtVal;
+        if (tgtPick) tgtPick.value = resolveColorTokenPreviewHex(tgtVal);
+      }
+      renderChartColorChips();
+
+      // barWidth
+      const bwEff = getEffectiveChartValue('barWidth');
+      const bwRange = document.getElementById('csBarWidthRange');
+      const bwNum = document.getElementById('csBarWidthNum');
+      const bwAuto = document.getElementById('csBarWidthAuto');
+      if (bwRange) bwRange.value = bwEff.value || meta.defaultBarWidth || 18;
+      if (bwNum) bwNum.value = bwEff.value !== null && bwEff.value !== '' ? bwEff.value : '';
+      if (bwAuto) bwAuto.classList.toggle('active', bwEff.value === null || bwEff.value === '');
+      updateScopeBadge('csBarWidthBadge', bwEff.isLocal);
+
+      // axisLabelSize
+      const asEff = getEffectiveChartValue('axisLabelSize');
+      const asRange = document.getElementById('csAxisSizeRange');
+      const asNum = document.getElementById('csAxisSizeNum');
+      const asAuto = document.getElementById('csAxisSizeAuto');
+      if (asRange) asRange.value = asEff.value || 12;
+      if (asNum) asNum.value = asEff.value !== null && asEff.value !== '' ? asEff.value : '';
+      if (asAuto) asAuto.classList.toggle('active', asEff.value === null || asEff.value === '');
+      updateScopeBadge('csAxisSizeBadge', asEff.isLocal);
+
+      // rx (local)
+      const rxWrap = document.getElementById('csRxWrapper');
+      if (rxWrap) rxWrap.style.display = meta.hasRx ? 'block' : 'none';
+      const rxRange = document.getElementById('csRxRange');
+      const rxNum = document.getElementById('csRxNum');
+      const rxAuto = document.getElementById('csRxAuto');
+      const rxVal = localMap.rx !== undefined ? localMap.rx : null;
+      const fallbackRx = Math.round((bwEff.value || meta.defaultBarWidth || 18) / 2);
+      if (rxRange) rxRange.value = rxVal !== null ? rxVal : fallbackRx;
+      if (rxNum) rxNum.value = rxVal !== null ? rxVal : '';
+      if (rxAuto) rxAuto.classList.toggle('active', rxVal === null);
+
+      // width / height
+      const wEff = getEffectiveChartValue('width');
+      const hEff = getEffectiveChartValue('height');
+      const wNum = document.getElementById('csWidthNum');
+      const hNum = document.getElementById('csHeightNum');
+      const wAuto = document.getElementById('csWidthAuto');
+      const hAuto = document.getElementById('csHeightAuto');
+      if (wNum) wNum.value = wEff.value || '';
+      if (hNum) hNum.value = hEff.value || '';
+      if (wAuto) wAuto.classList.toggle('active', !wEff.value);
+      if (hAuto) hAuto.classList.toggle('active', !hEff.value);
+      updateScopeBadge('csDimBadge', wEff.isLocal || hEff.isLocal);
+
+      // Controles contextuales por gráfico
+      const toggleCtx = (id, show) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = show ? 'block' : 'none';
+      };
+
+      toggleCtx('csCtxArcMeter', activeChartType === 'arcMeter');
+      if (activeChartType === 'arcMeter') {
+        const v = localMap.value !== undefined ? localMap.value : 90;
+        document.getElementById('csArcValueRange').value = v;
+        document.getElementById('csArcValueNum').value = v;
+        document.getElementById('csArcLabel').value = localMap.label !== undefined ? localMap.label : '';
+        document.getElementById('csArcShowNumber').checked = localMap.showNumber !== false;
+        document.getElementById('csArcShowLabel').checked = localMap.showLabel !== false;
+      }
+
+      toggleCtx('csCtxPillPillars', activeChartType === 'pillPillars');
+      if (activeChartType === 'pillPillars') {
+        const pg = localMap.pillarGap !== undefined ? localMap.pillarGap : null;
+        document.getElementById('csPillarGapRange').value = pg !== null ? pg : 4;
+        document.getElementById('csPillarGapNum').value = pg !== null ? pg : '';
+        document.getElementById('csPillarGapAuto').classList.toggle('active', pg === null);
+      }
+
+      toggleCtx('csCtxPyramidStack', activeChartType === 'pyramidStack');
+      if (activeChartType === 'pyramidStack') {
+        const gy = localMap.gapY !== undefined ? localMap.gapY : 9;
+        document.getElementById('csPyramidGapYRange').value = gy;
+        document.getElementById('csPyramidGapYNum').value = localMap.gapY !== undefined ? localMap.gapY : '';
+        document.getElementById('csPyramidMinW').value = localMap.minWidth !== undefined ? localMap.minWidth : '';
+        document.getElementById('csPyramidMaxW').value = localMap.maxWidth !== undefined ? localMap.maxWidth : '';
+      }
+
+      toggleCtx('csCtxMatrixHeatmap', activeChartType === 'matrixHeatmap');
+      if (activeChartType === 'matrixHeatmap') {
+        const cs = localMap.cellSize !== undefined ? localMap.cellSize : null;
+        const cg = localMap.cellGap !== undefined ? localMap.cellGap : null;
+        document.getElementById('csMatrixCellSizeRange').value = cs !== null ? cs : 24;
+        document.getElementById('csMatrixCellSizeNum').value = cs !== null ? cs : '';
+        document.getElementById('csMatrixCellSizeAuto').classList.toggle('active', cs === null);
+        document.getElementById('csMatrixCellGapRange').value = cg !== null ? cg : 6;
+        document.getElementById('csMatrixCellGapNum').value = cg !== null ? cg : '';
+        document.getElementById('csMatrixCellGapAuto').classList.toggle('active', cg === null);
+        document.getElementById('csMatrixColPos').value = localMap.colLabelPosition || 'bottom';
+        document.getElementById('csMatrixInterpolate').checked = !!localMap.interpolate;
+      }
+
+      toggleCtx('csCtxTension', activeChartType === 'hybridSpline' || activeChartType === 'splineDynamics');
+      if (activeChartType === 'hybridSpline' || activeChartType === 'splineDynamics') {
+        const ten = localMap.tension !== undefined ? localMap.tension : 0.25;
+        document.getElementById('csTensionRange').value = ten;
+        document.getElementById('csTensionNum').value = localMap.tension !== undefined ? localMap.tension : '';
+      }
+
+      toggleCtx('csCtxSplineDyn', activeChartType === 'splineDynamics');
+      if (activeChartType === 'splineDynamics') {
+        document.getElementById('csSplineShowSecondary').checked = localMap.showSecondary !== false;
+        document.getElementById('csSplineShowPoints').checked = localMap.showPoints !== false;
+      }
+
+      toggleCtx('csCtxDonut', activeChartType === 'roundedDonut');
+      if (activeChartType === 'roundedDonut') {
+        const sa = localMap.startAngle !== undefined ? localMap.startAngle : -135;
+        document.getElementById('csDonutStartAngleRange').value = sa;
+        document.getElementById('csDonutStartAngleNum').value = localMap.startAngle !== undefined ? localMap.startAngle : '';
+        document.getElementById('csDonutCenterValue').value = localMap.centerValue !== undefined ? localMap.centerValue : '';
+        document.getElementById('csDonutCenterLabel').value = localMap.centerLabel !== undefined ? localMap.centerLabel : '';
+        document.getElementById('csDonutShowCenter').checked = localMap.showCenter !== false;
+        document.getElementById('csDonutShowLegend').checked = localMap.showLegend !== false;
+      }
+
+      toggleCtx('csCtxTreemap', activeChartType === 'tileTreemap');
+      if (activeChartType === 'tileTreemap') {
+        const g = localMap.gap !== undefined ? localMap.gap : 8;
+        document.getElementById('csTreemapGapRange').value = g;
+        document.getElementById('csTreemapGapNum').value = localMap.gap !== undefined ? localMap.gap : '';
+      }
+
+      toggleCtx('csCtxAxes', meta.hasAxes);
+      if (meta.hasAxes) {
+        document.getElementById('csShowAxisY').checked = localMap.showAxisY !== false;
+        document.getElementById('csShowAxisX').checked = localMap.showAxisX !== false;
+        const suffixWrap = document.getElementById('csValueSuffixWrap');
+        if (suffixWrap) suffixWrap.style.display = (activeChartType === 'simpleBars' || activeChartType === 'horizontalBars') ? 'block' : 'none';
+        document.getElementById('csValueSuffix').value = localMap.valueSuffix !== undefined ? localMap.valueSuffix : '';
+      }
+
+      // yLabelPosition
+      const ypEff = getEffectiveChartValue('yLabelPosition');
+      syncYLabelPositionUi(ypEff.value, ypEff.isLocal);
+
+      // transition & tooltip
+      const trEff = getEffectiveChartValue('transition');
+      document.getElementById('csTransitionRange').value = trEff.value ?? 400;
+      document.getElementById('csTransitionNum').value = trEff.value ?? 400;
+      updateScopeBadge('csTransitionBadge', trEff.isLocal);
+
+      const ttEff = getEffectiveChartValue('tooltip');
+      document.getElementById('csTooltipCheck').checked = ttEff.value !== false;
+      updateScopeBadge('csTooltipBadge', ttEff.isLocal);
+    }
+
+    function injectLiveThemeIntoChartSandbox() {
+      const view = document.getElementById('chartSandboxView');
+      if (!view) return;
+
+      const isDark = (currentPreviewMode === 'dark');
+      if (isDark) {
+        view.setAttribute('data-theme', 'dark');
+      } else {
+        view.removeAttribute('data-theme');
+      }
+
+      const lightColors = themeConfig.light.colors || [];
+      const darkColors = (themeConfig.dark.colors && themeConfig.dark.colors.length)
+        ? themeConfig.dark.colors
+        : lightColors.map(c => invertToDarkHex(c));
+
+      const activeBody = isDark ? themeConfig.dark.body : themeConfig.light.body;
+      const activeTextPrimary = isDark ? themeConfig.dark.text.primary : themeConfig.light.text.primary;
+      const activeTextSecondary = isDark ? themeConfig.dark.text.secondary : themeConfig.light.text.secondary;
+      const activeTextInactive = isDark ? themeConfig.dark.text.inactive : themeConfig.light.text.inactive;
+      const activeColors = isDark ? darkColors : lightColors;
+
+      let css = `#chartSandboxView {\n`;
+      css += `  --font: ${themeConfig.layout.font};\n`;
+      css += `  --font-size: ${themeConfig.layout.fontSize};\n`;
+      css += `  --body: ${activeBody};\n`;
+      css += `  --text-primary: ${activeTextPrimary};\n`;
+      css += `  --text-secondary: ${activeTextSecondary};\n`;
+      css += `  --text-inactive: ${activeTextInactive};\n`;
+      css += `  --success: ${themeConfig.status.success};\n`;
+      css += `  --caution: ${themeConfig.status.caution};\n`;
+      css += `  --danger: ${themeConfig.status.danger};\n`;
+
+      activeColors.forEach((hex, i) => {
+        const vName = i === 0 ? '--back-color' : `--back-color${i + 1}`;
+        css += `  ${vName}: ${hex};\n`;
+        if (i === 0) css += `  --back-color1: ${hex};\n`;
+      });
+      css += `}\n`;
+
+      css += `#chartSandboxView .texto, #chartSandboxView .texto a { color: var(--text-primary) !important; }\n`;
+      css += `#chartSandboxView .textw, #chartSandboxView .textw a { color: #ffffff !important; }\n`;
+      css += `#chartSandboxView .textc, #chartSandboxView .textc a { color: var(--text-secondary) !important; }\n`;
+      css += `#chartSandboxView .textb, #chartSandboxView .textb a { color: #000000 !important; }\n`;
+      css += `#chartSandboxView .color-success { color: var(--success) !important; }\n`;
+      css += `#chartSandboxView .color-caution { color: var(--caution) !important; }\n`;
+      css += `#chartSandboxView .color-danger { color: var(--danger) !important; }\n`;
+
+      activeColors.forEach((_, i) => {
+        const idx = i + 1;
+        const vName = idx === 1 ? '--back-color' : `--back-color${idx}`;
+        css += `#chartSandboxView .back${idx} { background-color: var(${vName}) !important; }\n`;
+        css += `#chartSandboxView .color${idx}, #chartSandboxView .color${idx} a { color: var(${vName}) !important; }\n`;
+        css += `#chartSandboxView .border${idx} { border: 1px solid var(${vName}); }\n`;
+      });
+
+      // Superficie de tarjetas y contraste legible en las cabeceras de tarjeta
+      let headTextColor = 'var(--text-primary)';
+      if (chartCardSurface === '#0c0c0e') {
+        headTextColor = '#e2e8f0';
+      } else if (chartCardSurface === '#ffffff') {
+        headTextColor = '#0f172a';
+      } else if (chartCardSurface.startsWith('var(--back-color')) {
+        const resolvedSurface = resolveColorTokenPreviewHex(chartCardSurface);
+        const lum = getRelativeLuminance(resolvedSurface);
+        headTextColor = lum < 0.35 ? '#f8fafc' : '#0f172a';
+      }
+
+      css += `#chartSandboxView .cs-chart-card, #chartSandboxView .cs-focused-card {\n`;
+      css += `  background-color: ${chartCardSurface};\n`;
+      css += `}\n`;
+      css += `#chartSandboxView .cs-chart-card-head, #chartSandboxView .cs-focused-meta {\n`;
+      css += `  color: ${headTextColor};\n`;
+      css += `}\n`;
+
+      let styleEl = document.getElementById('frame-theme-studio-sandbox-vars');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'frame-theme-studio-sandbox-vars';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = css;
+    }
+
+    function getCleanGlobalChartsConfig() {
+      const cfg = ensureChartsConfig();
+      const clean = {};
+      for (const key of Object.keys(DEFAULT_CHARTS_CONFIG)) {
+        if (cfg[key] !== undefined && cfg[key] !== null && cfg[key] !== '') {
+          clean[key] = cfg[key];
+        }
+      }
+      return clean;
+    }
+
+    function requestChartRender(scope = 'all', immediate = false) {
+      clearTimeout(chartRenderTimer);
+      const delay = immediate ? 0 : 120;
+
+      chartRenderTimer = setTimeout(async () => {
+        const mySeq = ++chartRenderSeq;
+        if (chartRenderAbort) {
+          try { chartRenderAbort.abort(); } catch (e) {}
+        }
+        chartRenderAbort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+
+        const cfg = ensureChartsConfig();
+        const renderAll = (scope === 'all');
+        const payload = {
+          type: renderAll ? 'all' : activeChartType,
+          activeChart: activeChartType,
+          globalConfig: getCleanGlobalChartsConfig(),
+          localParamsByType: cfg.localOverrides || {},
+          localParams: (cfg.localOverrides && cfg.localOverrides[activeChartType]) || {},
+          datasetPreset: chartDatasetPreset
+        };
+
+        try {
+          const response = await fetch('/_frame/theme-studio/render-chart', {
+            method: 'POST',
+            headers: getStudioHeaders(),
+            body: JSON.stringify(payload),
+            signal: chartRenderAbort ? chartRenderAbort.signal : undefined
+          });
+          if (!response.ok) return;
+          const res = await response.json();
+          if (mySeq !== chartRenderSeq || !res || !res.success) return;
+
+          if (res.type === 'all' && res.charts) {
+            chartsHtmlCache = res.charts;
+            if (res.sampleData) chartsSampleDataCache = res.sampleData;
+            renderChartSandboxFromCache();
+            if (currentStageMode === 'charts') {
+              const stage = document.getElementById('chartSandboxStage');
+              initRenderedCharts(stage);
+            }
+          } else if (res.html) {
+            chartsHtmlCache[res.type] = res.html;
+            if (res.sampleData) chartsSampleDataCache[res.type] = res.sampleData;
+            updateSingleChartCardInDom(res.type, res.html);
+          }
+          updateChartCodeOutput();
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }, delay);
+    }
+
+    function updateSingleChartCardInDom(chartType, html) {
+      const cardBody = document.querySelector(`#csGalleryContainer .cs-chart-card[data-chart-type="${chartType}"] .cs-chart-card-body`);
+      if (cardBody) {
+        cardBody.innerHTML = html;
+        if (currentStageMode === 'charts' && chartSandboxViewMode === 'gallery') {
+          initRenderedCharts(cardBody);
+        }
+      }
+
+      if (chartSandboxViewMode === 'focused' && activeChartType === chartType) {
+        renderChartSandboxFromCache();
+        if (currentStageMode === 'charts') {
+          const focusedEl = document.getElementById('csFocusedContainer');
+          initRenderedCharts(focusedEl);
+        }
+      }
+    }
+
+    function renderChartSandboxFromCache() {
+      const galleryEl = document.getElementById('csGalleryContainer');
+      const focusedEl = document.getElementById('csFocusedContainer');
+      const cfg = ensureChartsConfig();
+
+      if (galleryEl && chartSandboxViewMode === 'gallery') {
+        galleryEl.innerHTML = CHART_CATALOG.map(meta => {
+          const html = chartsHtmlCache[meta.type] || '';
+          const hasLocal = cfg.localOverrides[meta.type] && Object.keys(cfg.localOverrides[meta.type]).length > 0;
+          return `
+            <div class="cs-chart-card ${meta.type === activeChartType ? 'active' : ''}" data-chart-type="${meta.type}" onclick="selectActiveChart('${meta.type}')">
+              <div class="cs-chart-card-head">
+                <span class="cs-chart-card-title">${meta.icon} ${meta.title}${hasLocal ? ' <span class="cs-local-badge is-local">Local</span>' : ''}</span>
+                <span class="cs-chart-card-method">${meta.type}</span>
+              </div>
+              <div class="cs-chart-card-body">${html}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (focusedEl && chartSandboxViewMode === 'focused') {
+        const meta = CHART_CATALOG.find(c => c.type === activeChartType) || CHART_CATALOG[0];
+        const html = chartsHtmlCache[meta.type] || '';
+        const effColor = getEffectiveChartValue('color').value;
+        const effLabel = getEffectiveChartValue('colorLabel').value;
+        const effAxis = getEffectiveChartValue('axisLabel').value;
+        const effBw = getEffectiveChartValue('barWidth').value;
+        const effAs = getEffectiveChartValue('axisLabelSize').value;
+        const effYPos = getEffectiveChartValue('yLabelPosition').value;
+
+        focusedEl.innerHTML = `
+          <div class="cs-focused-card" style="max-width: ${chartFocusedWidth};">
+            <div class="cs-chart-card-head" style="margin-bottom:14px;">
+              <span class="cs-chart-card-title" style="font-size:0.95rem;">${meta.icon} ${meta.title}</span>
+              <span class="cs-chart-card-method" style="font-size:0.76rem;">GraphicsModule::${meta.type}()</span>
+            </div>
+            <div class="cs-chart-card-body" style="min-height:220px;">${html}</div>
+            <div class="cs-focused-meta">
+              <span>color: <strong>${effColor}</strong></span>
+              <span>colorLabel: <strong>${effLabel}</strong></span>
+              <span>axisLabel: <strong>${effAxis}</strong></span>
+              <span>barWidth: <strong>${effBw ?? 'Auto'}</strong></span>
+              <span>axisLabelSize: <strong>${effAs ?? 'Auto'}</strong></span>
+              <span>yLabelPosition: <strong>${effYPos}</strong></span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function refitAllChartsInSandbox(rootEl) {
+      const root = rootEl || document.getElementById('chartSandboxStage');
+      if (!root || !window.Charts) return;
+
+      const fitters = [
+        ['[data-chart="stacked-tones"]', window.Charts.fitStackedTonesToContainer],
+        ['[data-chart="hybrid-spline"]', window.Charts.fitHybridSplineToContainer],
+        ['[data-chart="pill-pillars"]', window.Charts.fitPillPillarsToContainer],
+        ['[data-chart="simple-bars"]', window.Charts.fitSimpleBarsToContainer],
+        ['[data-chart="horizontal-bars"]', window.Charts.fitHorizontalBarsToContainer],
+        ['[data-chart="bullet-target"]', window.Charts.fitBulletTargetToContainer],
+        ['[data-chart="pyramid-stack"]', window.Charts.fitPyramidStackToContainer],
+        ['[data-chart="spline-dynamics"]', window.Charts.fitSplineDynamicsToContainer],
+      ];
+
+      fitters.forEach(([sel, fn]) => {
+        if (typeof fn !== 'function') return;
+        root.querySelectorAll(sel).forEach(el => {
+          try { fn(el); } catch (e) {}
+        });
+      });
+    }
+
+    function initRenderedCharts(rootEl) {
+      const root = rootEl || document.getElementById('chartSandboxStage');
+      if (!root) return;
+
+      root.querySelectorAll('[data-chart="matrix-heatmap"]').forEach(el => {
+        delete el.dataset.matrixHeatmapInitialized;
+      });
+
+      if (typeof window.initCharts === 'function') {
+        window.initCharts(root, { force: true });
+      }
+      refitAllChartsInSandbox(root);
+    }
+
+    function replayChartsAnimation() {
+      if (currentStageMode !== 'charts') {
+        setStageMode('charts');
+      }
+      const root = document.getElementById('chartSandboxStage');
+      initRenderedCharts(root);
+    }
+
+    // ==============================================================
+    // GENERADOR DE CÓDIGO PHP "COPY & PASTE"
+    // ==============================================================
+
+    function setChartCodeFormat(fmt) {
+      chartCodeFormat = ['helper', 'module', 'global'].includes(fmt) ? fmt : 'helper';
+      ['helper', 'module', 'global'].forEach(key => {
+        const tab = document.getElementById(`csCodeTab_${key}`);
+        if (tab) tab.classList.toggle('active', chartCodeFormat === key);
+      });
+
+      const includeDataLabel = document.getElementById('csCodeIncludeDataLabel');
+      const wrapLabel = document.getElementById('csCodeWrapLabel');
+      if (includeDataLabel) includeDataLabel.style.display = chartCodeFormat === 'global' ? 'none' : 'inline-flex';
+      if (wrapLabel) wrapLabel.style.display = chartCodeFormat === 'global' ? 'none' : 'inline-flex';
+
+      updateChartCodeOutput();
+    }
+
+    function toggleChartCodeDock() {
+      const dock = document.getElementById('csCodeDock');
+      const btn = document.getElementById('btnToggleCodeDock');
+      if (!dock) return;
+      const collapsed = dock.classList.toggle('collapsed');
+      if (btn) btn.textContent = collapsed ? '▸' : '▾';
+    }
+
+    function toPhpLiteral(val, indentLevel = 0) {
+      const pad = '  '.repeat(indentLevel);
+      const innerPad = '  '.repeat(indentLevel + 1);
+
+      if (val === null || val === undefined) return 'null';
+      if (typeof val === 'boolean') return val ? 'true' : 'false';
+      if (typeof val === 'number') return String(val);
+      if (typeof val === 'string') {
+        return `'${val.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+      }
+
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]';
+        const isSimpleScalarList = val.every(item => typeof item !== 'object' || item === null);
+        if (isSimpleScalarList && val.length <= 10) {
+          return `[${val.map(item => toPhpLiteral(item, 0)).join(', ')}]`;
+        }
+        const rows = val.map(item => `${innerPad}${toPhpLiteral(item, indentLevel + 1)},`);
+        return `[\n${rows.join('\n')}\n${pad}]`;
+      }
+
+      if (typeof val === 'object') {
+        const entries = Object.entries(val);
+        if (entries.length === 0) return '[]';
+        const isFlat = entries.every(([, v]) => typeof v !== 'object' || v === null);
+        if (isFlat && indentLevel >= 2 && entries.length <= 5) {
+          const inlinePairs = entries.map(([k, v]) => `${toPhpLiteral(k)} => ${toPhpLiteral(v, 0)}`);
+          return `[${inlinePairs.join(', ')}]`;
+        }
+        const rows = entries.map(([k, v]) => `${innerPad}${toPhpLiteral(k)} => ${toPhpLiteral(v, indentLevel + 1)},`);
+        return `[\n${rows.join('\n')}\n${pad}]`;
+      }
+
+      return 'null';
+    }
+
+    function buildChartCodeArrayObject(onlyModified, includeData) {
+      const cfg = ensureChartsConfig();
+      const localMap = cfg.localOverrides[activeChartType] || {};
+      const defaultLocal = CHART_LOCAL_DEFAULTS[activeChartType] || {};
+      const merged = {};
+
+      if (chartCodeFormat === 'global') {
+        for (const [key, defVal] of Object.entries(DEFAULT_CHARTS_CONFIG)) {
+          const val = cfg[key];
+          if (val === null || val === undefined || val === '') continue;
+          if (onlyModified && val === defVal) continue;
+          merged[key] = val;
+        }
+        return merged;
+      }
+
+      // Combinar estilo efectivo (global + local overrides)
+      const combinedStyle = {};
+      for (const [key, defVal] of Object.entries(DEFAULT_CHARTS_CONFIG)) {
+        const val = localMap[key] !== undefined ? localMap[key] : cfg[key];
+        if (val === null || val === undefined || val === '') continue;
+        if (onlyModified && val === defVal) continue;
+        combinedStyle[key] = val;
+      }
+
+      // Añadir parámetros locales específicos del gráfico
+      for (const [key, val] of Object.entries(localMap)) {
+        if (DEFAULT_CHARTS_CONFIG[key] !== undefined) continue;
+        if (val === null || val === undefined || val === '') continue;
+        if (onlyModified && defaultLocal[key] !== undefined && val === defaultLocal[key]) continue;
+        combinedStyle[key] = val;
+      }
+
+      Object.assign(merged, combinedStyle);
+
+      if (includeData) {
+        const sample = chartsSampleDataCache[activeChartType] || {};
+        for (const [dKey, dVal] of Object.entries(sample)) {
+          if (merged[dKey] === undefined) {
+            merged[dKey] = dVal;
+          }
+        }
+      }
+
+      return merged;
+    }
+
+    function updateChartCodeOutput() {
+      const outEl = document.getElementById('chartPhpCodeOutput');
+      if (!outEl) return;
+
+      const onlyModified = document.getElementById('csCodeOnlyModified')?.checked ?? true;
+      const includeData = document.getElementById('csCodeIncludeData')?.checked ?? true;
+      const wrapDiv = document.getElementById('csCodeWrapContainer')?.checked ?? false;
+
+      const paramsObj = buildChartCodeArrayObject(onlyModified, includeData);
+      const hasParams = Object.keys(paramsObj).length > 0;
+      const arrayPhp = hasParams ? toPhpLiteral(paramsObj, 0) : '';
+
+      const phpOpen = '<' + '?php';
+      const phpEcho = '<' + '?=';
+      const phpClose = '?' + '>';
+
+      let code = '';
+      if (chartCodeFormat === 'global') {
+        const globalArgs = hasParams ? arrayPhp : '[]';
+        code = `${phpOpen} \\Base\\Module\\GraphicsModule::configStyle(${globalArgs}); ${phpClose}`;
+      } else if (chartCodeFormat === 'module') {
+        const call = hasParams
+          ? `\\Base\\Module\\GraphicsModule::${activeChartType}(${arrayPhp})`
+          : `\\Base\\Module\\GraphicsModule::${activeChartType}()`;
+        code = `${phpEcho} ${call} ${phpClose}`;
+      } else {
+        const call = hasParams
+          ? `_chart('${activeChartType}', ${arrayPhp});`
+          : `_chart('${activeChartType}');`;
+        code = `${phpOpen} ${call} ${phpClose}`;
+      }
+
+      if (wrapDiv && chartCodeFormat !== 'global') {
+        const indented = code.split('\n').map(line => `  ${line}`).join('\n');
+        code = `<div class="p20 br15 back1">\n${indented}\n</div>`;
+      }
+
+      outEl.textContent = code;
+    }
+
+    function copyChartPhpCode() {
+      const outEl = document.getElementById('chartPhpCodeOutput');
+      const code = outEl ? outEl.textContent : '';
+      if (!code) return;
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(code).then(() => {
+          showToast('📋 Código PHP copiado al portapapeles');
+        }).catch(() => fallbackCopyText(code));
+      } else {
+        fallbackCopyText(code);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('📋 Código PHP copiado al portapapeles');
+      } catch (e) {
+        showToast('❌ No se pudo copiar automáticamente', 'error');
+      }
+      document.body.removeChild(ta);
     }
 
     // Iniciar estudio al cargar el DOM

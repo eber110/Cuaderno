@@ -362,7 +362,7 @@
   flex-direction: row;
   align-items: center;
   width: 100%;
-  gap: 12px;
+  gap: 0;
 }
 
 .mono-chart-svg .mono-hbar-item {
@@ -391,6 +391,8 @@
   position: relative;
   width: 100%;
   min-width: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
 }
@@ -419,6 +421,7 @@
   top: 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   background-color: var(--chart-grid-color);
   fill: var(--chart-grid-color);
   opacity: 0.85;
@@ -429,6 +432,7 @@
 .mono-chart-svg .mono-hbar-rect {
   position: relative;
   height: 100%;
+  box-sizing: border-box;
   background-color: var(--chart-tone-1);
   fill: var(--chart-tone-1);
   z-index: 2;
@@ -559,7 +563,6 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 190px;
 }
 
 .mono-chart-svg .mono-pyramid-tier {
@@ -640,7 +643,6 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 200px;
 }
 
 .mono-chart-svg .mono-matrix-panel {

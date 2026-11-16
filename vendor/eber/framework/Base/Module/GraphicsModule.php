@@ -43,6 +43,8 @@ class GraphicsModule
     'tooltip'        => true,
     'barWidth'       => null,
     'yLabelPosition' => 'default',
+    'width'          => null,
+    'height'         => null,
   ];
 
   /**
@@ -92,10 +94,11 @@ class GraphicsModule
       self::$globalConfig['tooltip'] = filter_var($config['tooltip'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $config['tooltip'];
     }
 
-    if (isset($config['barWidth']) && $config['barWidth'] !== null && $config['barWidth'] !== '') {
-      if (is_numeric($config['barWidth'])) {
-        self::$globalConfig['barWidth'] = (float) $config['barWidth'];
-      } elseif (is_string($config['barWidth']) && preg_match('/^([0-9.]+)/', trim($config['barWidth']), $m)) {
+    $barWidthInput = $config['barWidth'] ?? ($config['barHeight'] ?? ($config['pillarWidth'] ?? ($config['strokeWidth'] ?? null)));
+    if ($barWidthInput !== null && $barWidthInput !== '') {
+      if (is_numeric($barWidthInput)) {
+        self::$globalConfig['barWidth'] = (float) $barWidthInput;
+      } elseif (is_string($barWidthInput) && preg_match('/^([0-9.]+)/', trim($barWidthInput), $m)) {
         self::$globalConfig['barWidth'] = (float) $m[1];
       }
     }
@@ -104,6 +107,20 @@ class GraphicsModule
       self::$globalConfig['yLabelPosition'] = $config['yLabelPosition'];
     } elseif (isset($config['xLabelPosition'])) {
       self::$globalConfig['yLabelPosition'] = $config['xLabelPosition'];
+    } elseif (isset($config['labelPosition'])) {
+      self::$globalConfig['yLabelPosition'] = $config['labelPosition'];
+    }
+
+    if (isset($config['width']) && $config['width'] !== null && $config['width'] !== '') {
+      self::$globalConfig['width'] = $config['width'];
+    } elseif (isset($config['viewBoxW']) && $config['viewBoxW'] !== null && $config['viewBoxW'] !== '') {
+      self::$globalConfig['width'] = $config['viewBoxW'];
+    }
+
+    if (isset($config['height']) && $config['height'] !== null && $config['height'] !== '') {
+      self::$globalConfig['height'] = $config['height'];
+    } elseif (isset($config['viewBoxH']) && $config['viewBoxH'] !== null && $config['viewBoxH'] !== '') {
+      self::$globalConfig['height'] = $config['viewBoxH'];
     }
   }
 
@@ -133,6 +150,8 @@ class GraphicsModule
       'tooltip'        => true,
       'barWidth'       => null,
       'yLabelPosition' => 'default',
+      'width'          => null,
+      'height'         => null,
     ];
   }
 
@@ -245,7 +264,7 @@ class GraphicsModule
       : (self::$globalConfig['tooltip'] ?? true);
 
     // Grosor de barras unificado (barWidth): exacto en píxeles
-    $barWidthRaw = $params['barWidth'] ?? (self::$globalConfig['barWidth'] ?? null);
+    $barWidthRaw = $params['barWidth'] ?? ($params['barHeight'] ?? ($params['pillarWidth'] ?? ($params['strokeWidth'] ?? (self::$globalConfig['barWidth'] ?? null))));
     $barWidth = null;
     if ($barWidthRaw !== null && $barWidthRaw !== '') {
       if (is_numeric($barWidthRaw)) {
@@ -253,6 +272,9 @@ class GraphicsModule
       } elseif (is_string($barWidthRaw) && preg_match('/^([0-9.]+)/', trim($barWidthRaw), $m)) {
         $barWidth = (float) $m[1];
       }
+    }
+    if ($barWidth !== null && $barWidth > 0) {
+      $styleParts[] = "--chart-bar-width: {$barWidth}px;";
     }
 
     // Tamaño de fuente de etiquetas de ejes (axisLabelSize): exacto en píxeles
@@ -279,7 +301,7 @@ class GraphicsModule
       $styleParts[] = "--chart-axis-font-size: {$axisLabelSizeCss};";
     }
 
-    $yLabelPositionRaw = $params['yLabelPosition'] ?? ($params['xLabelPosition'] ?? (self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? null)));
+    $yLabelPositionRaw = $params['yLabelPosition'] ?? ($params['xLabelPosition'] ?? ($params['labelPosition'] ?? (self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? (self::$globalConfig['labelPosition'] ?? null)))));
     $yLabelPosition = self::parseYLabelPosition($yLabelPositionRaw);
 
     // Ancho específico del contenedor o gráfico (width / viewBoxW)
@@ -290,6 +312,17 @@ class GraphicsModule
         $width = (float) $widthRaw;
       } elseif (is_string($widthRaw) && preg_match('/^([0-9.]+)/', trim($widthRaw), $m)) {
         $width = (float) $m[1];
+      }
+    }
+
+    // Alto específico del contenedor o gráfico (height / viewBoxH)
+    $heightRaw = $params['height'] ?? ($params['viewBoxH'] ?? (self::$globalConfig['height'] ?? (self::$globalConfig['viewBoxH'] ?? null)));
+    $height = null;
+    if ($heightRaw !== null && $heightRaw !== '') {
+      if (is_numeric($heightRaw)) {
+        $height = (float) $heightRaw;
+      } elseif (is_string($heightRaw) && preg_match('/^([0-9.]+)/', trim($heightRaw), $m)) {
+        $height = (float) $m[1];
       }
     }
 
@@ -312,6 +345,8 @@ class GraphicsModule
       'xLabelPosition'   => $yLabelPosition,
       'width'            => $width,
       'viewBoxW'         => $width,
+      'height'           => $height,
+      'viewBoxH'         => $height,
     ];
   }
 
@@ -362,7 +397,7 @@ class GraphicsModule
     ];
 
     if ($raw === null || $raw === '') {
-      $raw = self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? 'default');
+      $raw = self::$globalConfig['yLabelPosition'] ?? (self::$globalConfig['xLabelPosition'] ?? (self::$globalConfig['labelPosition'] ?? 'default'));
     }
 
     if ($raw === null || $raw === '' || $raw === 'default') {
@@ -372,72 +407,142 @@ class GraphicsModule
     $result = $default;
     $result['isCustom'] = true;
 
+    $extractNum = static function (mixed $val): ?float {
+      if (is_int($val) || is_float($val)) {
+        return (float) $val;
+      }
+      if (is_string($val) && preg_match('/^(\d+(?:\.\d+)?)\s*%?$/', trim($val), $m)) {
+        return (float) $m[1];
+      }
+      return null;
+    };
+
     if (is_array($raw)) {
       if (isset($raw['row'])) {
         $result['row'] = strtolower(trim((string) $raw['row']));
       }
       if (isset($raw['split']) && is_array($raw['split']) && count($raw['split']) >= 2) {
-        $result['labelPct'] = (float) $raw['split'][0];
-        $result['chartPct'] = (float) $raw['split'][1];
-        $result['hasSplit'] = true;
+        $n0 = $extractNum($raw['split'][0]);
+        $n1 = $extractNum($raw['split'][1]);
+        if ($n0 !== null && $n1 !== null) {
+          $result['labelPct'] = $n0;
+          $result['chartPct'] = $n1;
+          $result['hasSplit'] = true;
+        }
       } elseif (isset($raw['labelPct'], $raw['chartPct'])) {
-        $result['labelPct'] = (float) $raw['labelPct'];
-        $result['chartPct'] = (float) $raw['chartPct'];
-        $result['hasSplit'] = true;
+        $n0 = $extractNum($raw['labelPct']);
+        $n1 = $extractNum($raw['chartPct']);
+        if ($n0 !== null && $n1 !== null) {
+          $result['labelPct'] = $n0;
+          $result['chartPct'] = $n1;
+          $result['hasSplit'] = true;
+        }
       }
       if (isset($raw['align'])) {
         $result['align'] = strtolower(trim((string) $raw['align']));
       }
 
-      // Arrays indexados tipo ['between', [50, 50], 'start'] o ['between', 50, 50, 'start']
+      // Arrays indexados: [50, 40], [50, 40, 'end'], ['between', [50, 50], 'start'] o ['between', 50, 50, 'start']
       $rowAligns = ['default', 'between', 'around', 'start', 'left', 'center', 'end', 'right'];
       $textAligns = ['start', 'left', 'center', 'middle', 'end', 'right'];
 
-      if (isset($raw[0]) && is_string($raw[0]) && in_array(strtolower(trim($raw[0])), $rowAligns)) {
-        $result['row'] = strtolower(trim($raw[0]));
-      }
-      if (isset($raw[1]) && is_array($raw[1]) && count($raw[1]) >= 2) {
-        $result['labelPct'] = (float) $raw[1][0];
-        $result['chartPct'] = (float) $raw[1][1];
+      $n0 = isset($raw[0]) ? $extractNum($raw[0]) : null;
+      $n1 = isset($raw[1]) ? $extractNum($raw[1]) : null;
+
+      if ($n0 !== null && $n1 !== null) {
+        $result['labelPct'] = $n0;
+        $result['chartPct'] = $n1;
         $result['hasSplit'] = true;
-        if (isset($raw[1][2]) && is_string($raw[1][2])) {
-          $result['align'] = strtolower(trim($raw[1][2]));
+        if (isset($raw[2]) && is_string($raw[2]) && in_array(strtolower(trim($raw[2])), $textAligns, true)) {
+          $result['align'] = strtolower(trim($raw[2]));
         }
-      } elseif (isset($raw[1], $raw[2]) && is_numeric($raw[1]) && is_numeric($raw[2])) {
-        $result['labelPct'] = (float) $raw[1];
-        $result['chartPct'] = (float) $raw[2];
-        $result['hasSplit'] = true;
-        if (isset($raw[3]) && is_string($raw[3])) {
-          $result['align'] = strtolower(trim($raw[3]));
+      } else {
+        if (isset($raw[0]) && is_string($raw[0]) && in_array(strtolower(trim($raw[0])), $rowAligns, true)) {
+          $result['row'] = strtolower(trim($raw[0]));
         }
-      }
-      if (isset($raw[2]) && is_string($raw[2]) && in_array(strtolower(trim($raw[2])), $textAligns)) {
-        $result['align'] = strtolower(trim($raw[2]));
+        if (isset($raw[1]) && is_array($raw[1]) && count($raw[1]) >= 2) {
+          $a0 = $extractNum($raw[1][0]);
+          $a1 = $extractNum($raw[1][1]);
+          if ($a0 !== null && $a1 !== null) {
+            $result['labelPct'] = $a0;
+            $result['chartPct'] = $a1;
+            $result['hasSplit'] = true;
+          }
+          if (isset($raw[1][2]) && is_string($raw[1][2]) && in_array(strtolower(trim($raw[1][2])), $textAligns, true)) {
+            $result['align'] = strtolower(trim($raw[1][2]));
+          }
+        } elseif (isset($raw[1], $raw[2])) {
+          $b1 = $extractNum($raw[1]);
+          $b2 = $extractNum($raw[2]);
+          if ($b1 !== null && $b2 !== null) {
+            $result['labelPct'] = $b1;
+            $result['chartPct'] = $b2;
+            $result['hasSplit'] = true;
+            if (isset($raw[3]) && is_string($raw[3]) && in_array(strtolower(trim($raw[3])), $textAligns, true)) {
+              $result['align'] = strtolower(trim($raw[3]));
+            }
+          }
+        }
+        if (isset($raw[2]) && is_string($raw[2]) && in_array(strtolower(trim($raw[2])), $textAligns, true)) {
+          $result['align'] = strtolower(trim($raw[2]));
+        }
       }
     } elseif (is_string($raw)) {
       $str = trim($raw);
-
-      // 1. Extraer los dos números de porcentaje (ej: 50, 50 o [40, 60] o 10,90)
-      if (preg_match('/(?:\[|\b)(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\]|\b)/', $str, $pctMatch)) {
-        $result['labelPct'] = (float) $pctMatch[1];
-        $result['chartPct'] = (float) $pctMatch[2];
-        $result['hasSplit'] = true;
-        $remaining = str_replace($pctMatch[0], ' ', $str);
-      } else {
-        $remaining = $str;
-      }
-
-      // 2. Extraer tokens de palabras para alineación row y align de etiquetas
-      $tokens = preg_split('/[\[\],\s]+/', trim($remaining), -1, PREG_SPLIT_NO_EMPTY);
       $rowAligns = ['default', 'between', 'around', 'start', 'left', 'center', 'end', 'right'];
       $textAligns = ['start', 'left', 'center', 'middle', 'end', 'right'];
+      $rowSet = false;
 
-      foreach ($tokens as $tk) {
-        $t = strtolower(trim($tk));
-        if (in_array($t, $rowAligns) && $result['row'] === 'default') {
-          $result['row'] = $t;
-        } elseif (in_array($t, $textAligns)) {
-          $result['align'] = $t;
+      // 1. Extraer los dos números de porcentaje (ej: 50, 40 | 50%, 40% | [50, 40, end])
+      if (preg_match('/(?:\[\s*)?(\d+(?:\.\d+)?)\s*%?\s*,\s*(\d+(?:\.\d+)?)\s*%?(?:\s*,\s*([a-zA-Z]+))?(?:\s*\])?/', $str, $pctMatch, PREG_OFFSET_CAPTURE)) {
+        $result['labelPct'] = (float) $pctMatch[1][0];
+        $result['chartPct'] = (float) $pctMatch[2][0];
+        $result['hasSplit'] = true;
+
+        if (!empty($pctMatch[3][0])) {
+          $inlineAlign = strtolower(trim($pctMatch[3][0]));
+          if (in_array($inlineAlign, $textAligns, true)) {
+            $result['align'] = $inlineAlign;
+          }
+        }
+
+        $matchStart = (int) $pctMatch[0][1];
+        $matchLen = strlen($pctMatch[0][0]);
+        $beforeStr = substr($str, 0, $matchStart);
+        $afterStr = substr($str, $matchStart + $matchLen);
+
+        $beforeTokens = preg_split('/[\[\],\s]+/', trim($beforeStr), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        foreach ($beforeTokens as $tk) {
+          $t = strtolower(trim($tk));
+          if (!$rowSet && in_array($t, $rowAligns, true)) {
+            $result['row'] = $t;
+            $rowSet = true;
+          } elseif (in_array($t, $textAligns, true)) {
+            $result['align'] = $t;
+          }
+        }
+
+        $afterTokens = preg_split('/[\[\],\s]+/', trim($afterStr), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        foreach ($afterTokens as $tk) {
+          $t = strtolower(trim($tk));
+          if (in_array($t, $textAligns, true)) {
+            $result['align'] = $t;
+          } elseif (!$rowSet && in_array($t, $rowAligns, true)) {
+            $result['row'] = $t;
+            $rowSet = true;
+          }
+        }
+      } else {
+        // 2. Extraer tokens de palabras para alineación row y align de etiquetas sin split numérico
+        $tokens = preg_split('/[\[\],\s]+/', trim($str), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        foreach ($tokens as $tk) {
+          $t = strtolower(trim($tk));
+          if (!$rowSet && in_array($t, $rowAligns, true)) {
+            $result['row'] = $t;
+            $rowSet = true;
+          } elseif (in_array($t, $textAligns, true)) {
+            $result['align'] = $t;
+          }
         }
       }
     }
@@ -663,8 +768,8 @@ class GraphicsModule
     $barWidthVal = $style['barWidth'] ?? null;
     $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
       ? (float) $barWidthVal
-      : min(36.0, max(12.0, $slotWidth * 0.58));
-    $rx = min(16.0, $barWidth / 2);
+      : 24.0;
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($barWidth / 2.0);
 
     $gridX1 = 36;
     $gridX2 = 306;
@@ -689,7 +794,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="stacked-tones" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 190" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="stacked-tones" data-bar-width="<?= number_format($barWidth, 2, '.', '') ?>"<?= isset($params['rx']) ? ' data-rx="' . number_format($rx, 2, '.', '') . '"' : '' ?> <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <defs>
         <?php foreach ($quarters as $idx => $q): 
           $cx = $plotX1 + ($idx + 0.5) * $slotWidth;
@@ -790,8 +895,8 @@ class GraphicsModule
 
     $labelClass = !empty($style['labelClass']) ? ' ' . htmlspecialchars($style['labelClass'], ENT_QUOTES, 'UTF-8') : '';
 
-    $viewW = isset($params['width']) ? max(100.0, (float)$params['width']) : 320.0;
-    $viewH = isset($params['height']) ? max(60.0, (float)$params['height']) : 190.0;
+    $viewW = $style['width'] !== null ? max(100.0, (float)$style['width']) : 320.0;
+    $viewH = $style['height'] !== null ? max(60.0, (float)$style['height']) : 190.0;
     $gap   = isset($params['gap']) ? max(2.0, (float)$params['gap']) : 8.0;
 
     // Cálculo dinámico de rectángulos para el Treemap
@@ -1066,18 +1171,15 @@ class GraphicsModule
     $availableWidth = $plotX2 - $plotX1;
     $step = $count > 1 ? ($availableWidth / ($count - 1)) : 0.0;
     
-    // En Hybrid Spline, las barras translúcidas de fondo son indicadores bajo la curva.
-    // Para salvaguardar la estética y proporciones frente a cualquier densidad de puntos (ej. 10-12 meses),
-    // su ancho se calcula dinámicamente según el paso horizontal, respetando barWidth solo si se define localmente.
-    $localBarWidth = isset($params['barWidth']) && $params['barWidth'] !== null && $params['barWidth'] !== ''
-      ? (float) $params['barWidth']
-      : null;
-    $maxSafeBarWidth = ($availableWidth / max(1, $count)) * 0.50;
-    $barWidth = $localBarWidth !== null
-      ? min($maxSafeBarWidth, $localBarWidth)
-      : min(20.0, max(6.0, $maxSafeBarWidth));
+    // En Hybrid Spline, se respeta barWidth exacto en píxeles (global o local) sin recortes.
+    $barWidthVal = $style['barWidth'] ?? null;
+    $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
+      ? (float) $barWidthVal
+      : 14.0;
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($barWidth / 2.0);
     $baselineY = 155.0;
     $maxH = 120.0;
+    $tension = isset($params['tension']) && is_numeric($params['tension']) ? (float) $params['tension'] : 0.25;
 
     $points = [];
     $xCoords = [];
@@ -1088,23 +1190,22 @@ class GraphicsModule
       $h = $ratio * $maxH;
       $y = $baselineY - $h;
       $points[] = [
-        'x'   => $x,
-        'y'   => $y,
-        'val' => $val,
-        'h'   => $h
+        'x'     => $x,
+        'y'     => $y,
+        'val'   => $val,
+        'h'     => $h,
+        'ratio' => $ratio,
       ];
     }
 
     // Cálculo matemático de Spline Bézier Catmull-Rom a Cúbica
-    $pathD = self::computeSplinePath($points, 0.25);
+    $pathD = self::computeSplinePath($points, $tension);
     $areaD = $pathD . ' L ' . end($points)['x'] . ',' . $baselineY . ' L ' . $points[0]['x'] . ',' . $baselineY . ' Z';
 
-    // Si se pasa axisLabelSize localmente, se respeta; si proviene de la configuración global,
-    // se calcula un tamaño adaptativo proporcional al paso entre puntos para evitar colisiones
-    // y solapamientos de texto en ejes densos con viewBox fijo.
-    if (isset($params['axisLabelSize']) && $params['axisLabelSize'] !== null && $params['axisLabelSize'] !== '') {
-      $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
-      $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+    // Respetar axisLabelSize tanto global como local; si no se define, usar tamaño adaptativo.
+    if (!empty($style['axisLabelSizeCss'])) {
+      $axisSizeStyle = " font-size: {$style['axisLabelSizeCss']};";
+      $axisSizeAttr = " font-size=\"{$style['axisLabelSizeCss']}\"";
     } else {
       $adaptiveFontSize = round(min(11.0, max(8.5, ($step > 0 ? $step * 0.40 : 10.0))), 1);
       $axisSizeStyle = " font-size: {$adaptiveFontSize}px;";
@@ -1113,7 +1214,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="hybrid-spline" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="hybrid-spline" data-bar-width="<?= number_format($barWidth, 2, '.', '') ?>"<?= isset($params['rx']) ? ' data-rx="' . number_format($rx, 2, '.', '') . '"' : '' ?> data-baseline-y="<?= number_format($baselineY, 2, '.', '') ?>" data-max-h="<?= number_format($maxH, 2, '.', '') ?>" data-tension="<?= number_format($tension, 2, '.', '') ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="<?= $uid ?>-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="var(--chart-base)" stop-opacity="0.35" />
@@ -1132,11 +1233,10 @@ class GraphicsModule
         $barX = $pt['x'] - ($barWidth / 2);
         $barH = $pt['h'];
         $barY = $baselineY - $barH;
-        $rx = min(8.0, $barWidth / 2);
         $barLabel = htmlspecialchars((string) ($displayLabels[$idx] ?? $labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
         $dataVal = htmlspecialchars((string) ($displayValues[$idx] ?? (isset($params['valueSuffix']) ? $pt['val'] . ' ' . $params['valueSuffix'] : $pt['val'])), ENT_QUOTES, 'UTF-8');
       ?>
-      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-label="<?= $barLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
+      <rect x="<?= number_format($barX, 2, '.', '') ?>" y="<?= number_format($barY, 2, '.', '') ?>" width="<?= number_format($barWidth, 2, '.', '') ?>" height="<?= number_format($barH, 2, '.', '') ?>" rx="<?= number_format($rx, 2, '.', '') ?>" class="mono-spline-bar-rect" data-index="<?= $idx ?>" data-ratio="<?= number_format($pt['ratio'], 4, '.', '') ?>" data-label="<?= $barLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> data-target-h="<?= number_format($barH, 2, '.', '') ?>" data-target-y="<?= number_format($barY, 2, '.', '') ?>" />
       <?php endforeach; ?>
 
       <!-- Área degradada de la curva -->
@@ -1150,7 +1250,7 @@ class GraphicsModule
         $dotLabel = htmlspecialchars((string) ($displayLabels[$idx] ?? $labels[$idx] ?? ''), ENT_QUOTES, 'UTF-8');
         $dataVal = htmlspecialchars((string) ($displayValues[$idx] ?? (isset($params['valueSuffix']) ? $pt['val'] . ' ' . $params['valueSuffix'] : $pt['val'])), ENT_QUOTES, 'UTF-8');
       ?>
-        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-label="<?= $dotLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> />
+        <circle cx="<?= number_format($pt['x'], 2, '.', '') ?>" cy="<?= number_format($pt['y'], 2, '.', '') ?>" r="5" class="mono-spline-dot" data-index="<?= $idx ?>" data-ratio="<?= number_format($pt['ratio'], 4, '.', '') ?>" data-label="<?= $dotLabel ?>" data-val="<?= $dataVal ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> />
       <?php endforeach; ?>
 
       <!-- Etiquetas del eje X con axisLabel distribuidas dinámicamente -->
@@ -1225,16 +1325,16 @@ class GraphicsModule
     $barWidthVal = $style['barWidth'] ?? ($params['pillarWidth'] ?? null);
     $pillarWidth = $barWidthVal !== null && (float) $barWidthVal > 0
       ? (float) $barWidthVal
-      : min(16.0, max(6.0, $slotWidth * 0.22));
-    $pillarGap = min(4.0, max(2.0, $pillarWidth * 0.25));
-    $rx = min(7.0, $pillarWidth / 2);
+      : 12.0;
+    $pillarGap = isset($params['pillarGap']) ? (float) $params['pillarGap'] : min(6.0, max(2.0, $pillarWidth * 0.25));
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($pillarWidth / 2.0);
 
     $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
     $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pill-pillars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pill-pillars" data-bar-width="<?= number_format($pillarWidth, 2, '.', '') ?>" data-pillar-gap="<?= number_format($pillarGap, 2, '.', '') ?>"<?= isset($params['rx']) ? ' data-rx="' . number_format($rx, 2, '.', '') . '"' : '' ?> <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Rejilla punteada horizontal -->
       <line x1="28" y1="30" x2="306" y2="30" class="mono-svg-grid-line" />
       <line x1="28" y1="72" x2="306" y2="72" class="mono-svg-grid-line" />
@@ -1390,8 +1490,8 @@ class GraphicsModule
     $barWidthVal = $style['barWidth'] ?? null;
     $barWidth = $barWidthVal !== null && (float) $barWidthVal > 0
       ? (float) $barWidthVal
-      : min(32.0, max(8.0, $slotWidth * 0.54));
-    $rx = min(8.0, $barWidth / 2);
+      : 18.0;
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($barWidth / 2.0);
 
     // Escala del eje Y
     $maxInData = 0.0;
@@ -1446,7 +1546,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="simple-bars" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="simple-bars" data-bar-width="<?= number_format($barWidth, 2, '.', '') ?>"<?= isset($params['rx']) ? ' data-rx="' . number_format($rx, 2, '.', '') . '"' : '' ?> data-show-axis-y="<?= $showAxisY ? '1' : '0' ?>" data-show-axis-x="<?= $showAxisX ? '1' : '0' ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Rejilla punteada horizontal -->
       <?php foreach ($yTicks as $tick): ?>
       <line x1="<?= $gridX1 ?>" y1="<?= number_format($tick['y'], 2, '.', '') ?>" x2="<?= $gridX2 ?>" y2="<?= number_format($tick['y'], 2, '.', '') ?>" class="mono-svg-grid-line" />
@@ -1589,7 +1689,7 @@ class GraphicsModule
     $barHeight = $barThickness !== null && (float) $barThickness > 0
       ? (float) $barThickness
       : 18.0;
-    $ry = min(8.0, $barHeight / 2.0);
+    $ry = isset($params['rx']) ? (float) $params['rx'] : ($barHeight / 2.0);
 
     // Modo de distribución de columnas (Grid auto-ajustado vs Flexbox porcentual)
     $flexJustify = 'flex-start';
@@ -1598,7 +1698,7 @@ class GraphicsModule
 
     if (!$showAxisY) {
       $bodyModeClass = 'mono-hbar-no-axis-y';
-    } elseif ($yPos['row'] === 'default' && !$yPos['hasSplit']) {
+    } elseif (!$yPos['hasSplit'] && $yPos['row'] === 'default') {
       $bodyModeClass = 'mono-hbar-mode-default';
     } else {
       $bodyModeClass = 'mono-hbar-mode-custom';
@@ -1609,8 +1709,8 @@ class GraphicsModule
         'end'     => 'flex-end',
         default   => 'flex-start',
       };
-      $labelPct = max(5.0, min(90.0, (float) $yPos['labelPct']));
-      $chartPct = max(10.0, min(95.0, (float) $yPos['chartPct']));
+      $labelPct = max(0.0, min(100.0, (float) $yPos['labelPct']));
+      $chartPct = max(0.0, min(100.0, (float) $yPos['chartPct']));
     }
 
     // Escala del eje X
@@ -1656,6 +1756,7 @@ class GraphicsModule
     <div class="<?= $classNames ?>"
          style="<?= $style['styleAttr'] ?>"
          data-chart="horizontal-bars"
+         data-bar-width="<?= number_format($barHeight, 2, '.', '') ?>"
          data-max-val="<?= $maxVal ?>"
          data-show-axis-y="<?= $showAxisY ? '1' : '0' ?>"
          data-show-axis-x="<?= $showAxisX ? '1' : '0' ?>"
@@ -1675,11 +1776,13 @@ class GraphicsModule
 
           $rowStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "justify-content: {$flexJustify};" : "";
           $labelColStyle = "font-size: {$fontSizeCss}; text-align: {$textAlignCss};{$axisColorInline}";
-          $plotColStyle = "height: " . number_format($barHeight, 2, '.', '') . "px;";
+          $barHeightPx = number_format($barHeight, 2, '.', '');
+          $plotColStyle = "height: {$barHeightPx}px; min-height: {$barHeightPx}px; max-height: {$barHeightPx}px;";
 
           if ($bodyModeClass === 'mono-hbar-mode-custom') {
-            $labelColStyle .= " flex: 0 0 calc({$labelPct}% - 6px); width: calc({$labelPct}% - 6px); max-width: calc({$labelPct}% - 6px);";
-            $plotColStyle .= " flex: 0 0 calc({$chartPct}% - 6px); width: calc({$chartPct}% - 6px); max-width: calc({$chartPct}% - 6px);";
+            $labelPadStyle = ($labelPct + $chartPct >= 98.0 && $yPos['row'] !== 'between') ? ' padding-right: 8px;' : '';
+            $labelColStyle .= " flex: 0 0 {$labelPct}%; width: {$labelPct}%; max-width: {$labelPct}%; box-sizing: border-box;{$labelPadStyle}";
+            $plotColStyle .= " flex: 0 0 {$chartPct}%; width: {$chartPct}%; max-width: {$chartPct}%; box-sizing: border-box;";
           }
         ?>
         <div class="<?= $rowClasses ?>" data-label="<?= $lbl ?>" data-val="<?= $displayVal ?>" data-num-val="<?= $itVal ?>"<?= $rowStyle !== '' ? ' style="' . $rowStyle . '"' : '' ?>>
@@ -1692,18 +1795,18 @@ class GraphicsModule
             <?php foreach ($xTicks as $tick): ?>
             <span class="mono-hbar-grid-line" style="left: <?= number_format($tick['ratio'] * 100, 2, '.', '') ?>%;" data-ratio="<?= number_format($tick['ratio'], 4, '.', '') ?>"></span>
             <?php endforeach; ?>
-            <div class="mono-hbar-track" style="height: <?= number_format($barHeight, 2, '.', '') ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
-            <div class="mono-hbar-rect" data-target-w="<?= number_format($barPct, 2, '.', '') ?>" data-ratio="<?= number_format($barRatio, 4, '.', '') ?>" data-num-val="<?= $itVal ?>" style="width: <?= number_format($barPct, 2, '.', '') ?>%; height: <?= number_format($barHeight, 2, '.', '') ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
+            <div class="mono-hbar-track" style="height: <?= $barHeightPx ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
+            <div class="mono-hbar-rect" data-target-w="<?= number_format($barPct, 2, '.', '') ?>" data-ratio="<?= number_format($barRatio, 4, '.', '') ?>" data-num-val="<?= $itVal ?>" style="width: <?= number_format($barPct, 2, '.', '') ?>%; height: <?= $barHeightPx ?>px; border-radius: <?= number_format($ry, 2, '.', '') ?>px;"></div>
           </div>
         </div>
         <?php endforeach; ?>
 
         <?php if ($showAxisX):
           $axisRowStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "justify-content: {$flexJustify};" : "";
-          $spacerStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "flex: 0 0 calc({$labelPct}% - 6px); width: calc({$labelPct}% - 6px); max-width: calc({$labelPct}% - 6px);" : "";
+          $spacerStyle = ($bodyModeClass === 'mono-hbar-mode-custom') ? "flex: 0 0 {$labelPct}%; width: {$labelPct}%; max-width: {$labelPct}%; box-sizing: border-box;" : "";
           $axisXBoxStyle = "height: " . round($axisSizeNum * 1.35) . "px;";
           if ($bodyModeClass === 'mono-hbar-mode-custom') {
-            $axisXBoxStyle .= " flex: 0 0 calc({$chartPct}% - 6px); width: calc({$chartPct}% - 6px); max-width: calc({$chartPct}% - 6px);";
+            $axisXBoxStyle .= " flex: 0 0 {$chartPct}%; width: {$chartPct}%; max-width: {$chartPct}%; box-sizing: border-box;";
           }
           $lastTickIdx = count($xTicks) - 1;
         ?>
@@ -1802,32 +1905,84 @@ class GraphicsModule
     $targetColorCss = $targetToken['cssValue'] !== 'currentColor' ? $targetToken['cssValue'] : '#10b981';
 
     // Dimensiones y distribución de las filas
-    $trackX = 14.0;
-    $trackW = 292.0;
+    $padL = 14.0;
+    $padR = 14.0;
+    $netW = 320.0 - $padL - $padR;
     $barWidthVal = $style['barWidth'] ?? ($params['barHeight'] ?? null);
     $barH = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 14.0;
-    $rx = min(8.0, $barH / 2.0);
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($barH / 2.0);
 
     $yPos = $style['yLabelPosition'];
+    $hasSplit = !empty($yPos['hasSplit']);
+    $labelPct = max(0.0, min(100.0, (float) $yPos['labelPct']));
+    $chartPct = max(0.0, min(100.0, (float) $yPos['chartPct']));
+    $rowAlign = $yPos['row'];
     $labelAnchor = ($yPos['align'] === 'center') ? 'middle' : (($yPos['align'] === 'end') ? 'end' : 'start');
-    $labelX = ($labelAnchor === 'middle') ? ($trackX + $trackW / 2.0) : (($labelAnchor === 'end') ? ($trackX + $trackW) : $trackX);
 
-    $totalH = 180.0;
     $paddingTop = 14.0;
     $paddingBottom = 16.0;
+    $minSlotH = max(44.0, $barH + 28.0);
+    $totalH = max(180.0, ceil($paddingTop + $paddingBottom + ($count * $minSlotH)));
     $availableH = $totalH - $paddingTop - $paddingBottom;
     $slotH = $availableH / $count;
+
+    if ($hasSplit) {
+      $labelBoxW = ($labelPct / 100.0) * $netW;
+      $chartBoxW = ($chartPct / 100.0) * $netW;
+      $freeSpace = max(0.0, $netW - $labelBoxW - $chartBoxW);
+      if ($rowAlign === 'between') {
+        $labelBoxX = $padL;
+        $trackX = $padL + $netW - $chartBoxW;
+      } elseif ($rowAlign === 'around') {
+        $gapAround = $freeSpace / 2.0;
+        $labelBoxX = $padL + ($gapAround / 2.0);
+        $trackX = $labelBoxX + $labelBoxW + $gapAround;
+      } elseif ($rowAlign === 'center') {
+        $labelBoxX = $padL + ($freeSpace / 2.0);
+        $trackX = $labelBoxX + $labelBoxW;
+      } elseif ($rowAlign === 'end') {
+        $labelBoxX = $padL + $freeSpace;
+        $trackX = $labelBoxX + $labelBoxW;
+      } else {
+        $labelBoxX = $padL;
+        $trackX = $labelBoxX + $labelBoxW;
+      }
+      $trackW = max(20.0, $chartBoxW);
+      $labelRightEdge = ($labelPct + $chartPct >= 98.0 && $rowAlign !== 'between')
+        ? ($labelBoxX + max(0.0, $labelBoxW - 8.0))
+        : ($labelBoxX + $labelBoxW);
+      $labelX = ($labelAnchor === 'middle')
+        ? ($labelBoxX + ($labelBoxW / 2.0))
+        : (($labelAnchor === 'end') ? $labelRightEdge : $labelBoxX);
+      $valAnchor = 'end';
+      $valX = $trackX + $trackW;
+    } else {
+      $trackX = $padL;
+      $trackW = $netW;
+      $labelX = ($labelAnchor === 'middle')
+        ? ($trackX + $trackW / 2.0)
+        : (($labelAnchor === 'end') ? ($trackX + $trackW) : $trackX);
+      $valAnchor = ($labelAnchor === 'end') ? 'start' : 'end';
+      $valX = ($labelAnchor === 'end') ? $trackX : ($trackX + $trackW);
+    }
 
     $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
     $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>; --chart-bullet-target: <?= $targetColorCss ?>;" data-chart="bullet-target" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 <?= (int) $totalH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>; --chart-bullet-target: <?= $targetColorCss ?>;" data-chart="bullet-target" data-bar-width="<?= number_format($barH, 2, '.', '') ?>"<?= isset($params['rx']) ? ' data-rx="' . number_format($rx, 2, '.', '') . '"' : '' ?> data-has-split="<?= $hasSplit ? '1' : '0' ?>" data-label-pct="<?= number_format($labelPct, 2, '.', '') ?>" data-chart-pct="<?= number_format($chartPct, 2, '.', '') ?>" data-row-align="<?= htmlspecialchars($rowAlign, ENT_QUOTES, 'UTF-8') ?>" data-text-align="<?= htmlspecialchars($yPos['align'], ENT_QUOTES, 'UTF-8') ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php foreach ($items as $idx => $it): 
         $slotY = $paddingTop + ($idx * $slotH);
-        $textY = $slotY + 12.0;
-        $barY = $slotY + 20.0;
+        if ($hasSplit) {
+          $textY = $slotY + 12.0;
+          $barY = $slotY + 18.0;
+          $labelY = $barY + ($barH / 2.0) + 4.0;
+        } else {
+          $textY = $slotY + 12.0;
+          $labelY = $textY;
+          $barY = $slotY + 20.0;
+        }
 
         $maxVal = $it['max'] > 0 ? $it['max'] : 100.0;
         $ratioVal = max(0.0, min(1.0, $it['val'] / $maxVal));
@@ -1843,10 +1998,10 @@ class GraphicsModule
 
         $lbl = htmlspecialchars($it['label'], ENT_QUOTES, 'UTF-8');
       ?>
-      <g class="mono-bullet-row" data-label="<?= $lbl ?>" data-val="<?= $valStr ?>" data-target="<?= $tgtStr ?>" data-diff="<?= $diffStr ?>">
-        <!-- Textos superiores: Etiqueta a la izquierda y Valor/Benchmark a la derecha -->
-        <text x="<?= number_format($labelX, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="<?= $labelAnchor ?>" style="text-anchor: <?= $labelAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?> class="mono-bullet-label<?= $labelClass ?>"><?= $lbl ?></text>
-        <text x="<?= number_format($trackX + $trackW, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="end" style="<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?> class="mono-bullet-val<?= $labelClass ?>">
+      <g class="mono-bullet-row" data-label="<?= $lbl ?>" data-val="<?= $valStr ?>" data-target="<?= $tgtStr ?>" data-diff="<?= $diffStr ?>" data-ratio-val="<?= number_format($ratioVal, 4, '.', '') ?>" data-ratio-tgt="<?= number_format($ratioTgt, 4, '.', '') ?>">
+        <!-- Textos superiores / laterales: Etiqueta y Valor/Benchmark -->
+        <text x="<?= number_format($labelX, 1, '.', '') ?>" y="<?= number_format($labelY, 1, '.', '') ?>" text-anchor="<?= $labelAnchor ?>" style="text-anchor: <?= $labelAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?> class="mono-bullet-label<?= $labelClass ?>"><?= $lbl ?></text>
+        <text x="<?= number_format($valX, 1, '.', '') ?>" y="<?= number_format($textY, 1, '.', '') ?>" text-anchor="<?= $valAnchor ?>" style="text-anchor: <?= $valAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?> class="mono-bullet-val<?= $labelClass ?>">
           <tspan font-weight="700"><?= $valStr ?></tspan>
           <tspan font-weight="400" opacity="0.65"> / <?= $tgtStr ?></tspan>
         </text>
@@ -2141,17 +2296,18 @@ class GraphicsModule
     $barWidthVal = $style['barWidth'] ?? ($params['barHeight'] ?? null);
     $barH = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 26.0;
     $gapY = isset($params['gapY']) && (float) $params['gapY'] >= 0 ? (float) $params['gapY'] : 9.0;
-    $rx = $barH / 2.0;
+    $rx = isset($params['rx']) ? (float) $params['rx'] : ($barH / 2.0);
 
     $totalStackH = ($count * $barH) + (($count - 1) * $gapY);
-    $startY = round((180.0 - $totalStackH) / 2.0, 1);
+    $viewH = max(180.0, ceil($totalStackH + 20.0));
+    $startY = round(($viewH - $totalStackH) / 2.0, 1);
 
     $minW = isset($params['minWidth']) && (float) $params['minWidth'] > 0 ? (float) $params['minWidth'] : 84.0;
     $maxW = isset($params['maxWidth']) && (float) $params['maxWidth'] > 0 ? (float) $params['maxWidth'] : 254.0;
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pyramid-stack" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 <?= (int) $viewH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="pyramid-stack" data-bar-width="<?= number_format($barH, 2, '.', '') ?>" data-min-w="<?= number_format($minW, 1, '.', '') ?>" data-max-w="<?= number_format($maxW, 1, '.', '') ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php foreach ($items as $idx => $it): 
         $ratio = $count > 1 ? ($idx / ($count - 1)) : 1.0;
         $w = round($minW + ($ratio * ($maxW - $minW)), 1);
@@ -2373,7 +2529,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="spline-dynamics" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 320 180" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="spline-dynamics" data-tension="<?= number_format($tension, 2, '.', '') ?>" data-pad-l="<?= number_format($padL, 1, '.', '') ?>" data-pad-r="<?= number_format($padR, 1, '.', '') ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Rejilla Horizontal Punteada y Marcas Eje Y -->
       <g class="mono-spline-dyn-grid">
         <?php for ($j = 0; $j < $yCount; $j++): 
@@ -2400,7 +2556,7 @@ class GraphicsModule
           $val = $pt['val'] . 'k';
           $secVal = isset($secPoints[$k]['val']) ? ($secPoints[$k]['val'] . 'k') : '';
         ?>
-        <g class="mono-spline-dyn-node" data-label="<?= $lbl ?>" data-val="<?= $val ?>" data-ref="<?= $secVal ?>">
+        <g class="mono-spline-dyn-node" data-index="<?= $k ?>" data-py="<?= number_format($pt['y'], 1, '.', '') ?>" data-sec-py="<?= number_format($secPoints[$k]['y'] ?? $pt['y'], 1, '.', '') ?>" data-label="<?= $lbl ?>" data-val="<?= $val ?>" data-ref="<?= $secVal ?>">
           <circle cx="<?= number_format($pt['x'], 1, '.', '') ?>" cy="<?= number_format($pt['y'], 1, '.', '') ?>" r="4.5" fill="var(--chart-tone-1, #ffffff)" stroke="#0c0c0e" stroke-width="2" class="mono-spline-dyn-dot" />
           <!-- Zona invisible de activación de tooltip -->
           <circle cx="<?= number_format($pt['x'], 1, '.', '') ?>" cy="<?= number_format($pt['y'], 1, '.', '') ?>" r="14.0" fill="transparent" class="mono-spline-dyn-hit" />
@@ -2545,46 +2701,95 @@ class GraphicsModule
     $axisClass = !empty($style['axisClass']) ? ' ' . htmlspecialchars($style['axisClass'], ENT_QUOTES, 'UTF-8') : '';
 
     // Geometría del contenedor SVG y panel interno
-    $viewBoxW = 320.0;
-    $viewBoxH = 180.0;
-
-    $panelX = 1.0;
-    $panelY = 1.0;
-    $panelW = 318.0;
-    $panelH = 178.0;
-    $panelRx = 16.0;
+    $defaultCellSize = ($showAxisX && !empty($colLabels)) ? 24.0 : 26.0;
+    $cellSize = isset($params['cellSize'])
+      ? (float)$params['cellSize']
+      : (($style['barWidth'] !== null && (float)$style['barWidth'] > 0) ? (float)$style['barWidth'] : $defaultCellSize);
+    $cellGap = isset($params['cellGap']) ? (float)$params['cellGap'] : (($showAxisX && !empty($colLabels)) ? 6.0 : 7.5);
+    $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
+    $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
 
     if ($showAxisX && !empty($colLabels)) {
-      $cellSize = isset($params['cellSize']) ? (float)$params['cellSize'] : 24.0;
-      $cellGap = isset($params['cellGap']) ? (float)$params['cellGap'] : 6.0;
-      $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
-      $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
-
       if ($colPosition === 'top') {
         $gridStartY = 24.0;
         $colLabelY = 15.0;
+        $viewBoxH = max(180.0, ceil($gridStartY + $gridH + 12.0));
       } else {
         $gridStartY = 10.0;
         $colLabelY = round($gridStartY + $gridH + 15.0, 1);
+        $viewBoxH = max(180.0, ceil($colLabelY + 14.0));
       }
     } else {
-      $cellSize = isset($params['cellSize']) ? (float)$params['cellSize'] : 26.0;
-      $cellGap = isset($params['cellGap']) ? (float)$params['cellGap'] : 7.5;
-      $gridW = ($colCount * $cellSize) + (($colCount - 1) * $cellGap);
-      $gridH = ($rowCount * $cellSize) + (($rowCount - 1) * $cellGap);
-      $gridStartY = round($panelY + (($panelH - $gridH) / 2.0), 1);
+      $viewBoxH = max(180.0, ceil($gridH + 20.0));
+      $gridStartY = round(($viewBoxH - $gridH) / 2.0, 1);
       $colLabelY = 0.0;
     }
 
     $rx = isset($params['rx']) ? (float)$params['rx'] : min(8.0, round($cellSize * 0.32, 1));
+    $viewBoxW = max(320.0, ceil($gridW + ($showAxisY ? 70.0 : 32.0)));
 
-    $padRight = 16.0;
-    $gridStartX = round($panelX + $panelW - $padRight - $gridW, 1);
-    $labelAnchorX = round($gridStartX - 12.0, 1);
+    $yPos = $style['yLabelPosition'];
+    if (!empty($yPos['isCustom']) && !empty($yPos['hasSplit']) && $showAxisY) {
+      $padL = 12.0;
+      $padR = 12.0;
+      $chartPctVal = max(10.0, (float)$yPos['chartPct']);
+      $minNetForGrid = $gridW / ($chartPctVal / 100.0);
+      $viewBoxW = max($viewBoxW, ceil($minNetForGrid + $padL + $padR));
+      $netW = $viewBoxW - $padL - $padR;
+      $labelZoneW = ((float)$yPos['labelPct'] / 100.0) * $netW;
+      $chartZoneW = ($chartPctVal / 100.0) * $netW;
+      $freeSpace = max(0.0, $netW - $labelZoneW - $chartZoneW);
 
-    if (isset($params['axisLabelSize']) && $params['axisLabelSize'] !== null && $params['axisLabelSize'] !== '') {
-      $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
-      $axisSizeAttr = !empty($style['axisLabelSizeCss']) ? " font-size=\"{$style['axisLabelSizeCss']}\"" : "";
+      if ($yPos['row'] === 'between') {
+        $labelBoxX = $padL;
+        $chartBoxX = $padL + $netW - $chartZoneW;
+      } elseif ($yPos['row'] === 'around') {
+        $gapAround = $freeSpace / 2.0;
+        $labelBoxX = $padL + ($gapAround / 2.0);
+        $chartBoxX = $labelBoxX + $labelZoneW + $gapAround;
+      } elseif ($yPos['row'] === 'center') {
+        $labelBoxX = $padL + ($freeSpace / 2.0);
+        $chartBoxX = $labelBoxX + $labelZoneW;
+      } elseif ($yPos['row'] === 'end') {
+        $labelBoxX = $padL + $freeSpace;
+        $chartBoxX = $labelBoxX + $labelZoneW;
+      } else {
+        $labelBoxX = $padL;
+        $chartBoxX = $labelBoxX + $labelZoneW;
+      }
+
+      $gridStartX = round($chartBoxX + max(0.0, ($chartZoneW - $gridW) / 2.0), 1);
+      $rowTextAnchor = ($yPos['align'] === 'center') ? 'middle' : (($yPos['align'] === 'start') ? 'start' : 'end');
+      $labelRightEdge = ($yPos['labelPct'] + $chartPctVal >= 98.0 && $yPos['row'] !== 'between')
+        ? ($labelBoxX + max(0.0, $labelZoneW - 8.0))
+        : ($labelBoxX + $labelZoneW);
+      $labelAnchorX = ($rowTextAnchor === 'middle')
+        ? round($labelBoxX + ($labelZoneW / 2.0), 1)
+        : (($rowTextAnchor === 'start') ? round($labelBoxX, 1) : round($labelRightEdge, 1));
+    } else {
+      $padRight = 16.0;
+      $gridStartX = round($viewBoxW - $padRight - $gridW, 1);
+      if (!empty($yPos['isCustom']) && $yPos['align'] === 'start') {
+        $rowTextAnchor = 'start';
+        $labelAnchorX = 12.0;
+      } elseif (!empty($yPos['isCustom']) && $yPos['align'] === 'center') {
+        $rowTextAnchor = 'middle';
+        $labelAnchorX = round(max(20.0, ($gridStartX - 8.0) / 2.0), 1);
+      } else {
+        $rowTextAnchor = 'end';
+        $labelAnchorX = round($gridStartX - 12.0, 1);
+      }
+    }
+
+    $panelX = 1.0;
+    $panelY = 1.0;
+    $panelW = $viewBoxW - 2.0;
+    $panelH = $viewBoxH - 2.0;
+    $panelRx = 16.0;
+
+    if (!empty($style['axisLabelSizeCss'])) {
+      $axisSizeStyle = " font-size: {$style['axisLabelSizeCss']};";
+      $axisSizeAttr = " font-size=\"{$style['axisLabelSizeCss']}\"";
       $colAxisSizeStyle = $axisSizeStyle;
       $colAxisSizeAttr = $axisSizeAttr;
     } else {
@@ -2599,7 +2804,7 @@ class GraphicsModule
 
     ob_start();
     ?>
-    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="matrix-heatmap" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 <?= $viewBoxW ?> <?= $viewBoxH ?>" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="matrix-heatmap" data-cell-size="<?= number_format($cellSize, 1, '.', '') ?>" <?= $style['tooltipAttr'] ?> data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <?php if (!empty($params['showPanel'])): ?>
       <!-- Panel de fondo opcional (desactivado por defecto para transparencia nativa) -->
       <rect x="<?= number_format($panelX, 1, '.', '') ?>" y="<?= number_format($panelY, 1, '.', '') ?>" width="<?= number_format($panelW, 1, '.', '') ?>" height="<?= number_format($panelH, 1, '.', '') ?>" rx="<?= number_format($panelRx, 1, '.', '') ?>" class="mono-matrix-panel" fill="transparent" />
@@ -2612,7 +2817,7 @@ class GraphicsModule
           $rowName = htmlspecialchars($rowLabels[$r], ENT_QUOTES, 'UTF-8');
           $rowCenterY = round($gridStartY + ($r * ($cellSize + $cellGap)) + ($cellSize / 2.0) + 3.5, 1);
         ?>
-        <text x="<?= number_format($labelAnchorX, 1, '.', '') ?>" y="<?= number_format($rowCenterY, 1, '.', '') ?>" text-anchor="end" class="mono-matrix-row-label<?= $axisClass ?>" style="<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?>><?= $rowName ?></text>
+        <text x="<?= number_format($labelAnchorX, 1, '.', '') ?>" y="<?= number_format($rowCenterY, 1, '.', '') ?>" text-anchor="<?= $rowTextAnchor ?>" class="mono-matrix-row-label<?= $axisClass ?>" style="text-anchor: <?= $rowTextAnchor ?>;<?= $axisSizeStyle ?>"<?= $axisSizeAttr ?>><?= $rowName ?></text>
         <?php endfor; ?>
       </g>
       <?php endif; ?>

@@ -191,6 +191,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .bold700 { font-weight: 700; }
 .bold800 { font-weight: 800; }
 .bold900 { font-weight: 900; }
+.break-all { word-break: break-all; }
 .capitalize { text-transform: capitalize !important; }
 .capitalize-first::first-letter { text-transform: uppercase !important; }
 .capitalize-p::first-letter { text-transform: uppercase !important; }

@@ -20,6 +20,93 @@ export function easeInOutCubic(t) {
 }
 
 /**
+ * Obtiene el ancho real renderizado en píxeles de un elemento SVG o su contenedor padre.
+ *
+ * @param {SVGElement} svg Elemento SVG del gráfico.
+ * @returns {number} Ancho en píxeles (0 si el elemento está oculto).
+ */
+export function getChartContainerWidth(svg) {
+  if (!svg) return 0;
+  const parent = svg.parentElement;
+  const rectW = svg.getBoundingClientRect ? svg.getBoundingClientRect().width : 0;
+  const rawW = svg.clientWidth || rectW || (parent ? parent.clientWidth : 0);
+  return Math.round(rawW);
+}
+
+/**
+ * Ejecuta una función de ajuste 1:1 en el render inicial y ante redimensionamientos reales,
+ * evitando bucles de ResizeObserver y desconectando observadores de nodos removidos.
+ *
+ * @param {SVGElement} svg Elemento SVG del gráfico.
+ * @param {Function} fitFn Función de ajuste que recibe `(svg, containerWidth)`.
+ */
+export function observeChartResize(svg, fitFn) {
+  if (!svg || typeof fitFn !== "function") return;
+
+  const runFit = () => {
+    if (!svg.isConnected) {
+      if (svg._chartResizeObserver) {
+        svg._chartResizeObserver.disconnect();
+        svg._chartResizeObserver = null;
+      }
+      return;
+    }
+    const w = getChartContainerWidth(svg);
+    if (w <= 0) return;
+    if (svg._lastFitWidth && Math.abs(w - svg._lastFitWidth) < 1) return;
+    svg._lastFitWidth = w;
+    fitFn(svg, w);
+  };
+
+  runFit();
+
+  if (typeof ResizeObserver !== "undefined" && !svg._chartResizeObserver) {
+    const target = svg.parentElement || svg;
+    let rafPending = false;
+    const ro = new ResizeObserver(() => {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        runFit();
+      });
+    });
+    ro.observe(target);
+    svg._chartResizeObserver = ro;
+  }
+}
+
+/**
+ * Calcula los comandos SVG de una curva Spline Bézier cúbica continua (Catmull-Rom).
+ *
+ * @param {Array<{x: number, y: number}>} points Puntos ordenados.
+ * @param {number} [tension=0.25] Tensión de curvatura.
+ * @returns {string} Comando path `M ... C ...`.
+ */
+export function computeSplinePath(points, tension = 0.25) {
+  const count = points.length;
+  if (count === 0) return "";
+  if (count === 1) return `M ${points[0].x},${points[0].y}`;
+
+  let d = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+  for (let i = 0; i < count - 1; i++) {
+    const p0 = i > 0 ? points[i - 1] : points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = i < count - 2 ? points[i + 2] : p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) * tension;
+    const cp1y = p1.y + (p2.y - p0.y) * tension;
+    const cp2x = p2.x - (p3.x - p1.x) * tension;
+    const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+    d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+
+  return d;
+}
+
+/**
  * Anima el recorrido perimétrico del arco y su contador numérico central.
  * 
  * @param {SVGElement|HTMLElement} svgElement Elemento SVG del arco o contenedor.

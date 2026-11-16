@@ -211,6 +211,116 @@ class ThemeModule
   }
 
   /**
+   * Devuelve la configuración global por defecto para los gráficos (GraphicsModule).
+   *
+   * @return array Configuración base de gráficos
+   */
+  public static function getDefaultChartsConfig(): array
+  {
+    return [
+      "color" => "texto",
+      "colorLabel" => "textw",
+      "axisLabel" => "texto",
+      "axisLabelSize" => null,
+      "transition" => 400,
+      "tooltip" => true,
+      "barWidth" => null,
+      "yLabelPosition" => "default",
+      "width" => null,
+      "height" => null,
+    ];
+  }
+
+  /**
+   * Normaliza y valida la configuración de gráficos guardada para un tema.
+   *
+   * @param array $raw Datos crudos de la sección charts
+   * @return array Configuración de gráficos normalizada
+   */
+  public static function normalizeChartsConfig(array $raw): array
+  {
+    $defaults = self::getDefaultChartsConfig();
+
+    $parseOptionalNumber = static function (mixed $value): int|float|null {
+      if ($value === null || $value === "" || $value === false) {
+        return null;
+      }
+      if (is_int($value) || is_float($value)) {
+        $num = (float)$value;
+        return $num > 0 ? ((floor($num) == $num) ? (int)$num : $num) : null;
+      }
+      if (is_string($value) && preg_match('/^([0-9]+(?:\.[0-9]+)?)/', trim($value), $m)) {
+        $num = (float)$m[1];
+        return $num > 0 ? ((floor($num) == $num) ? (int)$num : $num) : null;
+      }
+      return null;
+    };
+
+    $color = isset($raw["color"]) && is_string($raw["color"]) && trim($raw["color"]) !== ""
+      ? trim($raw["color"])
+      : $defaults["color"];
+
+    $colorLabel = isset($raw["colorLabel"]) && is_string($raw["colorLabel"]) && trim($raw["colorLabel"]) !== ""
+      ? trim($raw["colorLabel"])
+      : $defaults["colorLabel"];
+
+    $axisLabel = isset($raw["axisLabel"]) && is_string($raw["axisLabel"]) && trim($raw["axisLabel"]) !== ""
+      ? trim($raw["axisLabel"])
+      : $defaults["axisLabel"];
+
+    $axisLabelSize = $parseOptionalNumber($raw["axisLabelSize"] ?? null);
+
+    $transition = isset($raw["transition"]) && is_numeric($raw["transition"])
+      ? max(0, min(10000, (int)$raw["transition"]))
+      : $defaults["transition"];
+
+    $tooltip = isset($raw["tooltip"])
+      ? (filter_var($raw["tooltip"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool)$raw["tooltip"])
+      : $defaults["tooltip"];
+
+    $barWidth = $parseOptionalNumber($raw["barWidth"] ?? null);
+    $width = $parseOptionalNumber($raw["width"] ?? null);
+    $height = $parseOptionalNumber($raw["height"] ?? null);
+
+    $yLabelPosition = $defaults["yLabelPosition"];
+    if (isset($raw["yLabelPosition"])) {
+      if (is_string($raw["yLabelPosition"])) {
+        $trimmedY = trim($raw["yLabelPosition"]);
+        $yLabelPosition = $trimmedY !== "" ? $trimmedY : "default";
+      } elseif (is_array($raw["yLabelPosition"])) {
+        $yLabelPosition = $raw["yLabelPosition"];
+      }
+    }
+
+    $normalized = [
+      "color" => $color,
+      "colorLabel" => $colorLabel,
+      "axisLabel" => $axisLabel,
+      "axisLabelSize" => $axisLabelSize,
+      "transition" => $transition,
+      "tooltip" => $tooltip,
+      "barWidth" => $barWidth,
+      "yLabelPosition" => $yLabelPosition,
+      "width" => $width,
+      "height" => $height,
+    ];
+
+    if (isset($raw["localOverrides"]) && is_array($raw["localOverrides"])) {
+      $cleanOverrides = [];
+      foreach ($raw["localOverrides"] as $chartKey => $chartParams) {
+        if (is_string($chartKey) && preg_match('/^[a-zA-Z0-9_-]+$/', $chartKey) && is_array($chartParams) && !empty($chartParams)) {
+          $cleanOverrides[$chartKey] = $chartParams;
+        }
+      }
+      if (!empty($cleanOverrides)) {
+        $normalized["localOverrides"] = $cleanOverrides;
+      }
+    }
+
+    return $normalized;
+  }
+
+  /**
    * Obtiene la estructura y valores predeterminados para un tema individual en theme.json.
    *
    * @param string $slug Identificador del tema
@@ -262,6 +372,7 @@ class ThemeModule
         "danger" => "#ff0000",
         "hoverDanger" => "#fc6161",
       ],
+      "charts" => self::getDefaultChartsConfig(),
     ];
   }
 
@@ -642,6 +753,8 @@ class ThemeModule
       $status["hoverDanger"] = self::calculateHoverHex((string)$status["danger"]);
     }
 
+    $charts = self::normalizeChartsConfig((array)($data["charts"] ?? []));
+
     return [
       "name" => $themeName,
       "slug" => $themeSlug,
@@ -659,6 +772,7 @@ class ThemeModule
         "colors" => $darkColors,
       ],
       "status" => $status,
+      "charts" => $charts,
     ];
   }
 

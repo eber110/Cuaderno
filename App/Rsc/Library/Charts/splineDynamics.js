@@ -8,7 +8,96 @@
  * @module SplineDynamics
  */
 
-import { easeInOutCubic } from "./arcMeter.js";
+import { easeInOutCubic, getChartContainerWidth, observeChartResize, computeSplinePath } from "./arcMeter.js";
+
+/**
+ * Ajusta el viewBox, rejilla, curvas primaria/secundaria, nodos y etiquetas de Spline Dynamics
+ * para mantener escala 1:1 en píxeles en cualquier dispositivo.
+ *
+ * @param {SVGElement|HTMLElement} target Elemento SVG o contenedor.
+ * @param {number} [explicitWidth] Ancho explícito en píxeles.
+ */
+export function fitSplineDynamicsToContainer(target, explicitWidth = 0) {
+  if (!target) return;
+  const svg = target.matches && target.matches("svg") ? target : (target.querySelector ? target.querySelector("svg") : null);
+  if (!svg) return;
+
+  const containerW = explicitWidth > 0 ? Math.round(explicitWidth) : getChartContainerWidth(svg);
+  if (containerW <= 0) return;
+
+  const vbParts = (svg.getAttribute("viewBox") || "0 0 320 180").trim().split(/\s+/);
+  const vbH = parseFloat(vbParts[3] || "180") || 180;
+  svg.setAttribute("viewBox", `0 0 ${containerW} ${vbH}`);
+  svg._lastFitWidth = containerW;
+
+  const padL = parseFloat(svg.getAttribute("data-pad-l") || "36");
+  const padR = parseFloat(svg.getAttribute("data-pad-r") || "18");
+  const tension = parseFloat(svg.getAttribute("data-tension") || "0.25");
+  const plotW = Math.max(40, containerW - padL - padR);
+
+  svg.querySelectorAll(".mono-spline-dyn-grid line").forEach((line) => {
+    line.setAttribute("x1", padL.toFixed(1));
+    line.setAttribute("x2", (padL + plotW).toFixed(1));
+  });
+
+  const nodes = svg.querySelectorAll(".mono-spline-dyn-node");
+  const xLabels = svg.querySelectorAll(".mono-spline-dyn-x-label");
+  const count = nodes.length || xLabels.length;
+  if (count === 0) return;
+
+  const stepX = count > 1 ? plotW / (count - 1) : plotW;
+  const primPoints = [];
+  const secPoints = [];
+
+  for (let i = 0; i < count; i++) {
+    const px = padL + i * stepX;
+
+    if (nodes[i]) {
+      const dot = nodes[i].querySelector(".mono-spline-dyn-dot");
+      const hit = nodes[i].querySelector(".mono-spline-dyn-hit");
+      const pyPrim = parseFloat(nodes[i].getAttribute("data-py") || (dot ? dot.getAttribute("cy") : "90"));
+      const pySec = parseFloat(nodes[i].getAttribute("data-sec-py") || String(pyPrim));
+
+      primPoints.push({ x: px, y: pyPrim });
+      secPoints.push({ x: px, y: pySec });
+
+      if (dot) {
+        dot.setAttribute("cx", px.toFixed(1));
+        dot.style.transformOrigin = `${px.toFixed(1)}px ${pyPrim.toFixed(1)}px`;
+      }
+      if (hit) {
+        hit.setAttribute("cx", px.toFixed(1));
+      }
+    } else if (xLabels[i]) {
+      // Caso showPoints === false: recalcular igual la X de las etiquetas
+    }
+
+    if (xLabels[i]) {
+      xLabels[i].setAttribute("x", px.toFixed(1));
+    }
+  }
+
+  const primPath = svg.querySelector(".mono-spline-primary-path");
+  if (primPath && primPoints.length > 0) {
+    primPath.setAttribute("d", computeSplinePath(primPoints, tension));
+    if (primPath.getTotalLength) {
+      const len = primPath.getTotalLength();
+      primPath.setAttribute("data-length", len.toFixed(1));
+      primPath._currentPathLen = len;
+      if (!primPath._isAnimating) {
+        primPath.style.strokeDasharray = "none";
+        primPath.style.strokeDashoffset = "0";
+      } else {
+        primPath.style.strokeDasharray = `${len} ${len}`;
+      }
+    }
+  }
+
+  const secPath = svg.querySelector(".mono-spline-secondary-path");
+  if (secPath && secPoints.length > 0) {
+    secPath.setAttribute("d", computeSplinePath(secPoints, tension));
+  }
+}
 
 /**
  * Anima la curva spline primaria y sus nodos circulares.
@@ -22,17 +111,19 @@ import { easeInOutCubic } from "./arcMeter.js";
 export function animateSplineDynamics(svg, { duration = 400, isExit = false } = {}) {
   if (!svg) return { cancel: () => {} };
 
+  if (svg._splineDynCancel) {
+    svg._splineDynCancel();
+  }
+
   const primPath = svg.querySelector(".mono-spline-primary-path");
-  const secPath = svg.querySelector(".mono-spline-secondary-path");
   const dots = svg.querySelectorAll(".mono-spline-dyn-dot");
 
-  const pathLen = primPath ? parseFloat(primPath.getAttribute("data-length") || "320") : 320;
-  const startOffset = isExit ? 0 : pathLen;
-  const targetOffset = isExit ? pathLen : 0;
-
+  const initialLen = primPath ? (primPath.getTotalLength ? primPath.getTotalLength() : parseFloat(primPath.getAttribute("data-length") || "320")) : 320;
   if (primPath) {
-    primPath.style.strokeDasharray = `${pathLen} ${pathLen}`;
-    primPath.style.strokeDashoffset = `${startOffset}`;
+    primPath._currentPathLen = initialLen;
+    primPath._isAnimating = true;
+    primPath.style.strokeDasharray = `${initialLen} ${initialLen}`;
+    primPath.style.strokeDashoffset = `${isExit ? 0 : initialLen}`;
   }
 
   dots.forEach((dot) => {
@@ -52,7 +143,11 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
     const ease = easeInOutCubic(progress);
 
     if (primPath) {
+      const len = primPath._currentPathLen || initialLen;
+      const startOffset = isExit ? 0 : len;
+      const targetOffset = isExit ? len : 0;
       const currentOffset = startOffset + ((targetOffset - startOffset) * ease);
+      primPath.style.strokeDasharray = `${len} ${len}`;
       primPath.style.strokeDashoffset = currentOffset.toFixed(1);
     }
 
@@ -65,21 +160,33 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
     if (progress < 1) {
       rafId = requestAnimationFrame(step);
     } else {
-      if (primPath) primPath.style.strokeDashoffset = `${targetOffset}`;
+      if (primPath) {
+        primPath._isAnimating = false;
+        if (isExit) {
+          const len = primPath._currentPathLen || initialLen;
+          primPath.style.strokeDashoffset = `${len}`;
+        } else {
+          primPath.style.strokeDasharray = "none";
+          primPath.style.strokeDashoffset = "0";
+        }
+      }
       dots.forEach((dot) => {
         dot.style.transform = isExit ? "scale(0)" : "scale(1)";
         dot.style.opacity = isExit ? "0" : "1";
       });
+      svg._splineDynCancel = null;
     }
   }
 
   rafId = requestAnimationFrame(step);
-  return {
-    cancel: () => {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-    }
+  const cancel = () => {
+    isCancelled = true;
+    if (primPath) primPath._isAnimating = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    svg._splineDynCancel = null;
   };
+  svg._splineDynCancel = cancel;
+  return { cancel };
 }
 
 /**
@@ -116,6 +223,8 @@ export function initSplineDynamics(target, options = {}) {
     const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
     if (!svg) return;
 
+    observeChartResize(svg, fitSplineDynamicsToContainer);
+
     const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
     const isExit = svg.classList.contains("is-exiting");
 
@@ -144,4 +253,5 @@ if (typeof window !== "undefined") {
   window.initSplineDynamics = initSplineDynamics;
   window.animateSplineDynamics = animateSplineDynamics;
   window.setSplineDynamicsMode = setSplineDynamicsMode;
+  window.fitSplineDynamicsToContainer = fitSplineDynamicsToContainer;
 }

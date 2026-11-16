@@ -103,6 +103,31 @@ $fontCssPath = ROOT_PATH . '/App/Public/Css/font-project.css';
 $preloadJsonPath = ROOT_PATH . '/App/Config/preloadFonts.json';
 JitCssModule::generatePreloadFontsConfig($words, $fontCssPath, $preloadJsonPath);
 
+// Sincronizar automáticamente librería Charts en App/Rsc/Library/Charts desde Resources/Library/Charts
+$appChartsDir = ROOT_PATH . '/App/Rsc/Library/Charts';
+$srcChartsDir = is_dir(ROOT_PATH . '/vendor/eber/framework/Resources/Library/Charts')
+    ? ROOT_PATH . '/vendor/eber/framework/Resources/Library/Charts'
+    : ROOT_PATH . '/Resources/Library/Charts';
+if (is_dir($appChartsDir) && is_dir($srcChartsDir)) {
+    $chartFiles = scandir($srcChartsDir) ?: [];
+    $syncedCharts = 0;
+    foreach ($chartFiles as $chartFile) {
+        if ($chartFile === '.' || $chartFile === '..') {
+            continue;
+        }
+        $srcFile = $srcChartsDir . '/' . $chartFile;
+        $destFile = $appChartsDir . '/' . $chartFile;
+        if (is_file($srcFile) && (!is_file($destFile) || md5_file($srcFile) !== md5_file($destFile))) {
+            if (@copy($srcFile, $destFile)) {
+                $syncedCharts++;
+            }
+        }
+    }
+    if ($syncedCharts > 0) {
+        echo "📊 Charts sincronizado: {$syncedCharts} archivo(s) actualizado(s) en App/Rsc/Library/Charts\n";
+    }
+}
+
 // Flujo original de minificación
 MinifyModule::minifyCss(
     $cssPaths,
