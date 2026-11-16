@@ -7,9 +7,45 @@
  * Este archivo define constantes derivadas y de estructura.
  */
 
+// ==================== ENV HELPERS ====================
+$envReadRaw = static function (string $key): ?string {
+    $val = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+    if ($val === false || $val === null) {
+        return null;
+    }
+    return (string)$val;
+};
+
+$envStr = static function (string $key, string $default = '') use ($envReadRaw): string {
+    $val = $envReadRaw($key);
+    if ($val === null || trim($val) === '') {
+        return $default;
+    }
+    return $val;
+};
+
+$envBool = static function (string $key, bool $default) use ($envReadRaw): bool {
+    $val = $envReadRaw($key);
+    if ($val === null || trim($val) === '') {
+        return $default;
+    }
+    return filter_var($val, FILTER_VALIDATE_BOOLEAN);
+};
+
+$envInt = static function (string $key, int $default) use ($envReadRaw): int {
+    $val = $envReadRaw($key);
+    if ($val === null) {
+        return $default;
+    }
+    $trimmed = trim($val);
+    return ($trimmed !== '' && is_numeric($trimmed)) ? (int)$trimmed : $default;
+};
+
 // ==================== ROOT PATH ====================
 if (!defined('ROOT_PATH')) {
-    $rootPath = file_exists(dirname(__DIR__, 3) . '/vendor')
+    $isInstalledInVendor = basename(dirname(__DIR__)) === 'eber'
+        && basename(dirname(__DIR__, 2)) === 'vendor';
+    $rootPath = ($isInstalledInVendor && file_exists(dirname(__DIR__, 3) . '/vendor'))
         ? dirname(__DIR__, 3)
         : __DIR__;
     define('ROOT_PATH', str_replace('\\', '/', $rootPath));
@@ -21,18 +57,18 @@ if (!defined('FRAMEWORK_PATH')) {
 }
 
 // ==================== DATABASE ====================
-if (!defined('NAMESERVER')) define('NAMESERVER', $_ENV['DB_HOST'] ?? '127.0.0.1');
+if (!defined('NAMESERVER')) define('NAMESERVER', $envStr('DB_HOST', '127.0.0.1'));
 if (!defined('DB_HOST')) define('DB_HOST', NAMESERVER);
-if (!defined('DB_PORT')) define('DB_PORT', $_ENV['DB_PORT'] ?? '');
-if (!defined('USER')) define('USER', $_ENV['DB_USERNAME'] ?? 'root');
+if (!defined('DB_PORT')) define('DB_PORT', $envStr('DB_PORT', ''));
+if (!defined('USER')) define('USER', $envStr('DB_USERNAME', 'root'));
 if (!defined('DB_USERNAME')) define('DB_USERNAME', USER);
-if (!defined('PASS')) define('PASS', $_ENV['DB_PASSWORD'] ?? '');
+if (!defined('PASS')) define('PASS', $envStr('DB_PASSWORD', ''));
 if (!defined('DB_PASSWORD')) define('DB_PASSWORD', PASS);
-if (!defined('BD')) define('BD', $_ENV['DB_DATABASE'] ?? '');
+if (!defined('BD')) define('BD', $envStr('DB_DATABASE', ''));
 if (!defined('DB_DATABASE')) define('DB_DATABASE', BD);
-if (!defined('CHARSET')) define('CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
+if (!defined('CHARSET')) define('CHARSET', $envStr('DB_CHARSET', 'utf8mb4'));
 if (!defined('DB_CHARSET')) define('DB_CHARSET', CHARSET);
-if (!defined('DB_DRIVER')) define('DB_DRIVER', $_ENV['DB_CONNECTION'] ?? 'mysql');
+if (!defined('DB_DRIVER')) define('DB_DRIVER', $envStr('DB_CONNECTION', 'mysql'));
 if (!defined('DB_CONNECTION')) define('DB_CONNECTION', DB_DRIVER);
 
 // ==================== ENVIRONMENT & SECURITY ====================
@@ -66,48 +102,48 @@ if (class_exists('\Base\Module\SecurityModule')) {
     \Base\Module\SecurityModule::configureErrorHandling();
 }
 
-if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', filter_var($_ENV['CSRF_PROTECTION'] ?? $_SERVER['CSRF_PROTECTION'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('DB_POOLING')) define('DB_POOLING', filter_var($_ENV['DB_POOLING'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('USE_CACHE')) define('USE_CACHE', filter_var($_ENV['USE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('CSS_INLINE')) define('CSS_INLINE', filter_var($_ENV['CSS_INLINE'] ?? false, FILTER_VALIDATE_BOOLEAN));
-
-// Configuración de sesión segura (antes de session_start)
-if (session_status() !== PHP_SESSION_ACTIVE) {
-	@ini_set('session.cookie_httponly', '1');
-	@ini_set('session.cookie_secure', '1');
-	@ini_set('session.use_strict_mode', '1');
-	@ini_set('session.use_only_cookies', '1');
-	@ini_set('session.upload_progress.enabled', '0');
-}
+if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', $envBool('CSRF_PROTECTION', true));
+if (!defined('DB_POOLING')) define('DB_POOLING', $envBool('DB_POOLING', true));
+if (!defined('USE_CACHE')) define('USE_CACHE', $envBool('USE_CACHE', true));
+if (!defined('CSS_INLINE')) define('CSS_INLINE', $envBool('CSS_INLINE', false));
 
 // Límite de lectura para cuerpos crudos JSON/PUT/PATCH/DELETE en php://input (10 MB por defecto; no afecta $_FILES)
 if (!defined('MAX_INPUT_BYTES')) {
-	define('MAX_INPUT_BYTES', (int)($_ENV['MAX_INPUT_BYTES'] ?? 10485760));
+    define('MAX_INPUT_BYTES', $envInt('MAX_INPUT_BYTES', 10485760));
 }
 
 // Whitelist de tablas SQL y proxies/hosts confiables
 if (!defined('ALLOWED_TABLES')) {
-	define('ALLOWED_TABLES', []);
+    define('ALLOWED_TABLES', []);
 }
 if (!defined('TRUSTED_PROXIES')) {
-	define('TRUSTED_PROXIES', (string)($_ENV['TRUSTED_PROXIES'] ?? $_SERVER['TRUSTED_PROXIES'] ?? ''));
+    define('TRUSTED_PROXIES', $envStr('TRUSTED_PROXIES', ''));
 }
 if (!defined('FORCE_DOMAIN')) {
-	define('FORCE_DOMAIN', trim((string)($_ENV['FORCE_DOMAIN'] ?? $_SERVER['FORCE_DOMAIN'] ?? '')));
+    define('FORCE_DOMAIN', trim($envStr('FORCE_DOMAIN', '')));
 }
 if (!defined('ALLOWED_HOSTS')) {
-	$rawAllowedHosts = (string)($_ENV['ALLOWED_HOSTS'] ?? $_SERVER['ALLOWED_HOSTS'] ?? '');
-	$parsedAllowed = array_values(array_filter(array_map(
-		static fn(string $h): string => strtolower(trim($h)),
-		explode(',', $rawAllowedHosts)
-	)));
-	define('ALLOWED_HOSTS', $parsedAllowed);
+    $rawAllowedHosts = $envStr('ALLOWED_HOSTS', '');
+    $parsedAllowed = array_values(array_filter(array_map(
+        static fn(string $h): string => strtolower(trim($h)),
+        explode(',', $rawAllowedHosts)
+    )));
+    define('ALLOWED_HOSTS', $parsedAllowed);
 }
 
 // ==================== URL & SCHEME ====================
 $isHttps = class_exists('\Base\Module\SecurityModule')
-	? \Base\Module\SecurityModule::isHttpsRequest()
-	: ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443));
+    ? \Base\Module\SecurityModule::isHttpsRequest()
+    : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443));
+
+// Configuración de sesión segura acorde al protocolo activo (antes de session_start)
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @ini_set('session.cookie_httponly', '1');
+    @ini_set('session.cookie_secure', $isHttps ? '1' : '0');
+    @ini_set('session.use_strict_mode', '1');
+    @ini_set('session.use_only_cookies', '1');
+    @ini_set('session.upload_progress.enabled', '0');
+}
 
 $request_scheme = $isHttps ? 'https' : 'http';
 if (!defined('SCHEME')) define('SCHEME', $request_scheme . '://');
@@ -143,7 +179,7 @@ if (!defined('ROOT')) define('ROOT', trim(URL, '/') . $app);
 if (!defined('HOST')) define('HOST', $server_name);
 
 // Hosts (subdominios) a no indexar
-$noIndexHosts = $_ENV['NO_INDEX_HOSTS'] ?? '';
+$noIndexHosts = $envStr('NO_INDEX_HOSTS', '');
 if (!defined('NO_INDEX_HOSTS')) define('NO_INDEX_HOSTS', array_filter(array_map('trim', explode(',', $noIndexHosts))));
 
 // URLs noIndex para SEO por defecto
@@ -194,21 +230,21 @@ if (!defined('ROUTE_LANG')) define('ROUTE_LANG', ROOT_PATH . '/App/Lang/');
 
 // ==================== IDIOMA (i18n) ====================
 if (!defined('MULTILANG')) {
-  define('MULTILANG', filter_var($_ENV['APP_MULTILANG'] ?? false, FILTER_VALIDATE_BOOLEAN));
+  define('MULTILANG', $envBool('APP_MULTILANG', false));
 }
 if (!defined('LANG_DEFAULT')) {
-  $rawDefaultLocale = trim((string)($_ENV['APP_LOCALE'] ?? 'es'));
+  $rawDefaultLocale = trim($envStr('APP_LOCALE', 'es'));
   define('LANG_DEFAULT', preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $rawDefaultLocale) ? $rawDefaultLocale : 'es');
 }
 if (!defined('LANG_FALLBACK')) {
-  $rawFallbackLocale = trim((string)($_ENV['APP_FALLBACK_LOCALE'] ?? LANG_DEFAULT));
+  $rawFallbackLocale = trim($envStr('APP_FALLBACK_LOCALE', LANG_DEFAULT));
   define('LANG_FALLBACK', preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $rawFallbackLocale) ? $rawFallbackLocale : LANG_DEFAULT);
 }
 if (!defined('LANG_AVAILABLE')) {
   if (!MULTILANG) {
     define('LANG_AVAILABLE', [LANG_DEFAULT]);
   } else {
-    $rawLocales = explode(',', (string)($_ENV['APP_LOCALES'] ?? 'es,en'));
+    $rawLocales = explode(',', $envStr('APP_LOCALES', 'es,en'));
     $validLocales = [];
     foreach ($rawLocales as $loc) {
       $loc = trim($loc);
@@ -230,25 +266,25 @@ if (!defined('URL_IMG_PUBLIC')) define('URL_IMG_PUBLIC', '/App/Public/Img/');
 if (!defined('URL_ICON')) define('URL_ICON', '/App/Rsc/Ico/');
 
 // ==================== SITE INFO (desde .env) ====================
-if (!defined('NAME_SITE')) define('NAME_SITE', $_ENV['APP_NAME'] ?? 'Mi Sitio');
-if (!defined('DESCRIPTION')) define('DESCRIPTION', $_ENV['APP_DESCRIPTION'] ?? '');
+if (!defined('NAME_SITE')) define('NAME_SITE', $envStr('APP_NAME', 'Mi Sitio'));
+if (!defined('DESCRIPTION')) define('DESCRIPTION', $envStr('APP_DESCRIPTION', ''));
 if (!defined('LOGO')) define('LOGO', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo.webp');
 if (!defined('LOGOPAG')) define('LOGOPAG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'logo-pag.webp');
 if (!defined('IMG_OG')) define('IMG_OG', rtrim(DOMAIN, '/') . '/' . ltrim(URL_IMG, '/') . 'img-og.webp');
 if (!defined('DIR_IMG_APP')) define('DIR_IMG_APP', URL_IMG);
 
 // ==================== GEOLOCATION (desde .env) ====================
-if (!defined('GEO_API_PRIMARY')) define('GEO_API_PRIMARY', $_ENV['GEO_API_PRIMARY'] ?? 'https://ip.guide/');
-if (!defined('GEO_API_FALLBACK')) define('GEO_API_FALLBACK', $_ENV['GEO_API_FALLBACK'] ?? 'https://api.ipquery.io/');
-if (!defined('GEO_CONNECT_TIMEOUT')) define('GEO_CONNECT_TIMEOUT', (int)($_ENV['GEO_CONNECT_TIMEOUT'] ?? 3));
-if (!defined('GEO_REQUEST_TIMEOUT')) define('GEO_REQUEST_TIMEOUT', (int)($_ENV['GEO_REQUEST_TIMEOUT'] ?? 5));
+if (!defined('GEO_API_PRIMARY')) define('GEO_API_PRIMARY', $envStr('GEO_API_PRIMARY', 'https://ip.guide/'));
+if (!defined('GEO_API_FALLBACK')) define('GEO_API_FALLBACK', $envStr('GEO_API_FALLBACK', 'https://api.ipquery.io/'));
+if (!defined('GEO_CONNECT_TIMEOUT')) define('GEO_CONNECT_TIMEOUT', max(1, $envInt('GEO_CONNECT_TIMEOUT', 3)));
+if (!defined('GEO_REQUEST_TIMEOUT')) define('GEO_REQUEST_TIMEOUT', max(1, $envInt('GEO_REQUEST_TIMEOUT', 5)));
 
 // ==================== SEO LOCALE (desde .env) ====================
-if (!defined('OG_LOCALE')) define('OG_LOCALE', $_ENV['OG_LOCALE'] ?? 'es');
-if (!defined('SEO_PERSON_NAME')) define('SEO_PERSON_NAME', $_ENV['SEO_PERSON_NAME'] ?? '');
-if (!defined('SEO_PERSON_URL')) define('SEO_PERSON_URL', $_ENV['SEO_PERSON_URL'] ?? '');
-if (!defined('SEO_PERSON_JOB')) define('SEO_PERSON_JOB', $_ENV['SEO_PERSON_JOB'] ?? '');
-if (!defined('SEO_PERSON_KNOWS')) define('SEO_PERSON_KNOWS', $_ENV['SEO_PERSON_KNOWS'] ?? '');
+if (!defined('OG_LOCALE')) define('OG_LOCALE', $envStr('OG_LOCALE', 'es'));
+if (!defined('SEO_PERSON_NAME')) define('SEO_PERSON_NAME', $envStr('SEO_PERSON_NAME', ''));
+if (!defined('SEO_PERSON_URL')) define('SEO_PERSON_URL', $envStr('SEO_PERSON_URL', ''));
+if (!defined('SEO_PERSON_JOB')) define('SEO_PERSON_JOB', $envStr('SEO_PERSON_JOB', ''));
+if (!defined('SEO_PERSON_KNOWS')) define('SEO_PERSON_KNOWS', $envStr('SEO_PERSON_KNOWS', ''));
 
 // ==================== IMAGE PROCESSING ====================
 if (!defined('IMG_ADMITTED')) {
@@ -268,53 +304,55 @@ if (!defined('IMG_ADMITTED')) {
 	]);
 }
 
-if (!defined('DIR_UPLOAD_MEDIA')) {
-	$envUpload = $_ENV['DIR_UPLOAD_MEDIA'] ?? '';
-	if (empty($envUpload) || $envUpload === '/Uploads/' || $envUpload === 'Uploads/' || $envUpload === '/Uploads' || $envUpload === 'Uploads') {
-		define('DIR_UPLOAD_MEDIA', ROOT_PATH . '/Uploads/');
-	} elseif (!str_contains($envUpload, ':') && str_starts_with($envUpload, '/')) {
-		define('DIR_UPLOAD_MEDIA', ROOT_PATH . $envUpload);
-	} else {
-		define('DIR_UPLOAD_MEDIA', rtrim($envUpload, '/\\') . '/');
+$resolveUploadPath = static function (string $envValue): string {
+	$clean = trim(str_replace('\\', '/', $envValue));
+	$normalized = trim($clean, '/');
+	if ($clean === '' || strcasecmp($normalized, 'Uploads') === 0) {
+		return ROOT_PATH . '/Uploads/';
 	}
+	if (preg_match('/^[a-zA-Z]:\//', $clean) || str_starts_with($clean, ROOT_PATH . '/')) {
+		return rtrim($clean, '/') . '/';
+	}
+	if (str_starts_with($clean, '/')) {
+		return ROOT_PATH . '/' . ltrim($clean, '/') . (str_ends_with($clean, '/') ? '' : '/');
+	}
+	return ROOT_PATH . '/' . trim($clean, '/') . '/';
+};
+
+if (!defined('DIR_UPLOAD_MEDIA')) {
+	define('DIR_UPLOAD_MEDIA', $resolveUploadPath($envStr('DIR_UPLOAD_MEDIA', '')));
 }
 
 if (!defined('DIR_UPLOAD_GIF')) {
-	$envGif = $_ENV['DIR_UPLOAD_GIF'] ?? '';
-	if (empty($envGif) || $envGif === '/Uploads/' || $envGif === 'Uploads/' || $envGif === '/Uploads' || $envGif === 'Uploads') {
-		define('DIR_UPLOAD_GIF', ROOT_PATH . '/Uploads/');
-	} elseif (!str_contains($envGif, ':') && str_starts_with($envGif, '/')) {
-		define('DIR_UPLOAD_GIF', ROOT_PATH . $envGif);
-	} else {
-		define('DIR_UPLOAD_GIF', rtrim($envGif, '/\\') . '/');
-	}
+	define('DIR_UPLOAD_GIF', $resolveUploadPath($envStr('DIR_UPLOAD_GIF', '')));
 }
 
 if (!defined('DIR_SHOW_MEDIA')) {
-	$envShow = $_ENV['DIR_SHOW_MEDIA'] ?? '';
-	if (empty($envShow) || $envShow === '/Uploads/' || $envShow === 'Uploads/' || $envShow === '/Uploads' || $envShow === 'Uploads') {
+	$envShow = trim(str_replace('\\', '/', $envStr('DIR_SHOW_MEDIA', '')));
+	$showTrim = trim($envShow, '/');
+	if ($envShow === '' || strcasecmp($showTrim, 'Uploads') === 0) {
 		define('DIR_SHOW_MEDIA', ROOT . '/Uploads/');
-	} elseif (str_starts_with($envShow, 'http')) {
+	} elseif (preg_match('#^https?://#i', $envShow)) {
 		define('DIR_SHOW_MEDIA', rtrim($envShow, '/') . '/');
 	} else {
-		define('DIR_SHOW_MEDIA', ROOT . '/' . ltrim($envShow, '/'));
+		define('DIR_SHOW_MEDIA', ROOT . '/' . $showTrim . '/');
 	}
 }
 
 if (!defined('DIR_IMG_SHOW_STATIC')) define('DIR_IMG_SHOW_STATIC', ROOT . '/App/Public/Img/');
 if (!defined('DIR_UPLOAD_MEDIA_STATIC')) define('DIR_UPLOAD_MEDIA_STATIC', ROOT . '/App/Public/Img/');
 
-if (!defined('COMPRESS_IMAGE')) define('COMPRESS_IMAGE', filter_var($_ENV['COMPRESS_IMAGE'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('MAX_IMAGE_KB')) define('MAX_IMAGE_KB', (int)($_ENV['MAX_IMAGE_KB'] ?? 0));
-if (!defined('OUTPUT_FORMAT')) define('OUTPUT_FORMAT', $_ENV['IMAGE_FORMAT'] ?? 'webp');
-if (!defined('SMART_COMPRESSION')) define('SMART_COMPRESSION', filter_var($_ENV['SMART_COMPRESSION'] ?? true, FILTER_VALIDATE_BOOLEAN));
-if (!defined('MAX_IMAGE_WIDTH')) define('MAX_IMAGE_WIDTH', (int)($_ENV['MAX_IMAGE_WIDTH'] ?? 1920));
-if (!defined('MAX_IMAGE_HEIGHT')) define('MAX_IMAGE_HEIGHT', (int)($_ENV['MAX_IMAGE_HEIGHT'] ?? 1080));
-if (!defined('MAX_IMAGE_PIXELS')) define('MAX_IMAGE_PIXELS', (int)($_ENV['MAX_IMAGE_PIXELS'] ?? 50000000));
-if (!defined('MAX_GIF_FRAMES')) define('MAX_GIF_FRAMES', (int)($_ENV['MAX_GIF_FRAMES'] ?? 600));
-if (!defined('MIN_QUALITY')) define('MIN_QUALITY', (int)($_ENV['MIN_QUALITY'] ?? 20));
-if (!defined('QUALITY_STEP')) define('QUALITY_STEP', (int)($_ENV['QUALITY_STEP'] ?? 5));
-if (!defined('LAZY_LOAD_IMAGES')) define('LAZY_LOAD_IMAGES', filter_var($_ENV['LAZY_LOAD_IMAGES'] ?? true, FILTER_VALIDATE_BOOLEAN));
+if (!defined('COMPRESS_IMAGE')) define('COMPRESS_IMAGE', $envBool('COMPRESS_IMAGE', true));
+if (!defined('MAX_IMAGE_KB')) define('MAX_IMAGE_KB', max(0, $envInt('MAX_IMAGE_KB', 0)));
+if (!defined('OUTPUT_FORMAT')) define('OUTPUT_FORMAT', $envStr('IMAGE_FORMAT', 'webp'));
+if (!defined('SMART_COMPRESSION')) define('SMART_COMPRESSION', $envBool('SMART_COMPRESSION', true));
+if (!defined('MAX_IMAGE_WIDTH')) define('MAX_IMAGE_WIDTH', max(1, $envInt('MAX_IMAGE_WIDTH', 1920)));
+if (!defined('MAX_IMAGE_HEIGHT')) define('MAX_IMAGE_HEIGHT', max(1, $envInt('MAX_IMAGE_HEIGHT', 1080)));
+if (!defined('MAX_IMAGE_PIXELS')) define('MAX_IMAGE_PIXELS', max(1, $envInt('MAX_IMAGE_PIXELS', 50000000)));
+if (!defined('MAX_GIF_FRAMES')) define('MAX_GIF_FRAMES', max(1, $envInt('MAX_GIF_FRAMES', 600)));
+if (!defined('MIN_QUALITY')) define('MIN_QUALITY', max(1, $envInt('MIN_QUALITY', 20)));
+if (!defined('QUALITY_STEP')) define('QUALITY_STEP', max(1, $envInt('QUALITY_STEP', 5)));
+if (!defined('LAZY_LOAD_IMAGES')) define('LAZY_LOAD_IMAGES', $envBool('LAZY_LOAD_IMAGES', true));
 
 // Calidad de compresión - Landscape
 if (!defined('XL_QUALITY')) define('XL_QUALITY', 65);

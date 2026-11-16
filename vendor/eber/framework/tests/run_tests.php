@@ -1659,6 +1659,61 @@ PHP);
     "LoadViewStyle::library() debe autopublicar librerías de vendor/ hacia App/Rsc/Library/ y nunca emitir URLs /vendor/"
   );
   $cleanLoadDir($tmpProj);
+
+  // 7. AccessBlocker no debe auto-bloquear loopback localhost en desarrollo ni ante falsos positivos repetidos
+  $runner->assert(
+    \Base\Module\Security\AccessBlocker::recordIntrusionAttempt('::1', 'Dev test', 1, 60) === false &&
+    \Base\Module\Security\AccessBlocker::recordIntrusionAttempt('127.0.0.1', 'Dev test', 1, 60) === false,
+    "AccessBlocker::recordIntrusionAttempt() no debe auto-bloquear 127.0.0.1 ni ::1 en desarrollo"
+  );
+
+  // 8. config.php con valores vacíos "" en .env conserva defaults seguros (CSRF_PROTECTION=true, timeouts/dimensiones válidas)
+  $rootLit = var_export(ROOT_PATH, true);
+  $resEmptyEnv = $runSecSubprocess(<<<PHP
+\$_ENV = [
+  'APP_ENV' => '',
+  'CSRF_PROTECTION' => '',
+  'DB_POOLING' => '',
+  'DB_CONNECTION' => '',
+  'MAX_IMAGE_WIDTH' => '',
+  'MAX_IMAGE_HEIGHT' => '',
+  'MAX_IMAGE_KB' => '0',
+  'QUALITY_STEP' => '',
+  'GEO_API_PRIMARY' => '',
+  'GEO_REQUEST_TIMEOUT' => '',
+  'IMAGE_FORMAT' => '',
+];
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+echo json_encode([
+  'csrf' => CSRF_PROTECTION,
+  'pooling' => DB_POOLING,
+  'driver' => DB_DRIVER,
+  'maxW' => MAX_IMAGE_WIDTH,
+  'maxKb' => MAX_IMAGE_KB,
+  'step' => QUALITY_STEP,
+  'geoPrimary' => GEO_API_PRIMARY,
+  'geoTimeout' => GEO_REQUEST_TIMEOUT,
+  'fmt' => OUTPUT_FORMAT,
+  'cookieSecureHttp' => (string)ini_get('session.cookie_secure'),
+]);
+PHP);
+  $emptyData = json_decode(trim($resEmptyEnv['output']), true);
+  $runner->assert(
+    is_array($emptyData) &&
+    $emptyData['csrf'] === true &&
+    $emptyData['pooling'] === true &&
+    $emptyData['driver'] === 'mysql' &&
+    $emptyData['maxW'] === 1920 &&
+    $emptyData['maxKb'] === 0 &&
+    $emptyData['step'] === 5 &&
+    $emptyData['geoPrimary'] === 'https://ip.guide/' &&
+    $emptyData['geoTimeout'] === 5 &&
+    $emptyData['fmt'] === 'webp' &&
+    $emptyData['cookieSecureHttp'] === '0',
+    "config.php debe preservar defaults seguros aunque .env tenga cadenas vacías ''"
+  );
 });
 
 // Limpiar /App y carpetas de proyecto en el repositorio del framework
