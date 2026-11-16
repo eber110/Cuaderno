@@ -1,3 +1,9 @@
+<?php
+if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::class) || !\Base\Control\ThemeStudioControl::isDevEnvironment()) {
+  http_response_code(404);
+  exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

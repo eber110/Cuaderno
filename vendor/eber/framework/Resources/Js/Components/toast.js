@@ -35,9 +35,13 @@ export function toast(message, type = 'info', duration = 3000, animated = false)
     document.body.appendChild(container);
   }
 
+  // Validar tipo en lista blanca para evitar inyección de clases arbitrarias
+  const validTypes = ['success', 'error', 'warning', 'info'];
+  const safeType = validTypes.includes(type) ? type : 'info';
+
   // Crear toast
   const toastEl = document.createElement('div');
-  toastEl.className = `toast toast-${type} p15 br10 flex row-direction center-y gap10`;
+  toastEl.className = `toast toast-${safeType} p15 br10 flex row-direction center-y gap10`;
 
   // Estilos según tipo
   const styles = {
@@ -46,7 +50,7 @@ export function toast(message, type = 'info', duration = 3000, animated = false)
     warning: 'back-caution color1',
     info: 'back1 color2'
   };
-  toastEl.classList.add(...(styles[type] || styles.info).split(' '));
+  toastEl.classList.add(...styles[safeType].split(' '));
 
   // Iconos según tipo
   const icons = {
@@ -56,11 +60,24 @@ export function toast(message, type = 'info', duration = 3000, animated = false)
     info: 'ℹ'
   };
 
-  toastEl.innerHTML = `
-    <span class="toast-icon x18 bold700">${icons[type] || icons.info}</span>
-    <span class="toast-message">${message}</span>
-    <button class="toast-close ml10 pointer x16 bold700" style="background:none;border:none;color:inherit;">✕</button>
-  `;
+  // Construcción DOM segura evitando innerHTML con mensajes dinámicos
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon x18 bold700';
+  iconSpan.textContent = icons[safeType];
+
+  const messageSpan = document.createElement('span');
+  messageSpan.className = 'toast-message';
+  messageSpan.textContent = String(message ?? '');
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'toast-close ml10 pointer x16 bold700';
+  closeBtn.style.cssText = 'background:none;border:none;color:inherit;';
+  closeBtn.textContent = '✕';
+
+  toastEl.appendChild(iconSpan);
+  toastEl.appendChild(messageSpan);
+  toastEl.appendChild(closeBtn);
 
   container.appendChild(toastEl);
 

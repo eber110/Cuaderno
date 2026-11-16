@@ -2,6 +2,32 @@
 
 const svgCache = new Map();
 
+function escapeSvgAttr(val) {
+  return String(val ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function sanitizeSvgClasses(classNames) {
+  return String(classNames ?? '')
+    .split(/\s+/)
+    .filter(c => /^[a-zA-Z0-9_-]+$/.test(c))
+    .join(' ');
+}
+
+function isSafeIconName(name) {
+  if (typeof name !== 'string' || name.length === 0 || name.length > 120) {
+    return false;
+  }
+  if (name.includes('..') || name.startsWith('/') || name.includes('\\')) {
+    return false;
+  }
+  return /^[a-zA-Z0-9_/-]+$/.test(name);
+}
+
 /**
  * Construye el HTML de icono de error SVG de respaldo.
  *
@@ -9,8 +35,9 @@ const svgCache = new Map();
  * @returns {string} HTML del SVG de error
  */
 function buildErrorSvg(classNames = '') {
+  const safeClasses = sanitizeSvgClasses(classNames);
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="svg-error-icon ${safeClasses}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
       <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"></circle>
       <line x1="15" y1="9" x2="9" y2="15" stroke="red" stroke-width="2"></line>
       <line x1="9" y1="9" x2="15" y2="15" stroke="red" stroke-width="2"></line>
@@ -25,6 +52,9 @@ function buildErrorSvg(classNames = '') {
  * @returns {Promise<{viewBox: string, pathData: string}|null>}
  */
 async function loadSvgData(name_icon) {
+  if (!isSafeIconName(name_icon)) {
+    return null;
+  }
   if (svgCache.has(name_icon)) {
     return svgCache.get(name_icon);
   }
@@ -93,10 +123,15 @@ export async function svg(name_icon, classNames = '', transform = '') {
       return buildErrorSvg(classNames);
     }
 
+    const safeClasses = sanitizeSvgClasses(classNames);
+    const safeViewBox = escapeSvgAttr(data.viewBox);
+    const safePath = escapeSvgAttr(data.pathData);
+    const safeTransform = transform ? escapeSvgAttr(transform) : '';
+
     return `
       <svg xmlns="http://www.w3.org/2000/svg"
-           viewBox="${data.viewBox}" fill="currentColor" class="svg-style ${classNames}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
-        <path ${transform ? `transform="${transform}"` : ''} d="${data.pathData}" />
+           viewBox="${safeViewBox}" fill="currentColor" class="svg-style ${safeClasses}" style="width: 1em;height: 1em;vertical-align: middle;display: inline-block;flex-shrink: 0;">
+        <path ${safeTransform ? `transform="${safeTransform}"` : ''} d="${safePath}" />
       </svg>`;
   } catch (error) {
     console.error(`Error procesando SVG '${name_icon}':`, error);

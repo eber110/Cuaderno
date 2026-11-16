@@ -709,12 +709,29 @@ class ThemeModule
     }
 
     $layout = array_merge($defaults["layout"], (array)($data["layout"] ?? []));
+    $layout["font"] = self::sanitizeCssValue((string)($layout["font"] ?? ""), (string)$defaults["layout"]["font"]);
+    $layout["fontSize"] = self::sanitizeCssValue((string)($layout["fontSize"] ?? ""), (string)$defaults["layout"]["fontSize"]);
+    $layout["widthWindow"] = self::sanitizeCssValue((string)($layout["widthWindow"] ?? ""), (string)$defaults["layout"]["widthWindow"]);
+    $layout["scrollbarWidth"] = self::sanitizeCssValue((string)($layout["scrollbarWidth"] ?? ""), (string)$defaults["layout"]["scrollbarWidth"]);
+    $layout["scrollbarHide"] = self::sanitizeCssValue((string)($layout["scrollbarHide"] ?? ""), (string)$defaults["layout"]["scrollbarHide"]);
     $layout["mediaQueries"] = self::normalizeMediaQueries((array)($layout["mediaQueries"] ?? []));
 
+    $sanitizeColorList = static function (array $colors, string $fallbackColor = "#FFFFFF"): array {
+      return array_values(array_map(
+        static fn(string $c): string => self::sanitizeCssValue($c, $fallbackColor),
+        $colors
+      ));
+    };
+
     $lightData = (array)($data["light"] ?? []);
-    $lightText = array_merge($defaults["light"]["text"], (array)($lightData["text"] ?? []));
+    $lightTextRaw = array_merge($defaults["light"]["text"], (array)($lightData["text"] ?? []));
+    $lightText = [
+      "primary" => self::sanitizeCssValue((string)($lightTextRaw["primary"] ?? ""), (string)$defaults["light"]["text"]["primary"]),
+      "secondary" => self::sanitizeCssValue((string)($lightTextRaw["secondary"] ?? ""), (string)$defaults["light"]["text"]["secondary"]),
+      "inactive" => self::sanitizeCssValue((string)($lightTextRaw["inactive"] ?? ""), (string)$defaults["light"]["text"]["inactive"]),
+    ];
     $lightColors = !empty($lightData["colors"]) && is_array($lightData["colors"])
-      ? array_values(array_filter($lightData["colors"], "is_string"))
+      ? $sanitizeColorList(array_filter($lightData["colors"], "is_string"))
       : $defaults["light"]["colors"];
 
     if (empty($lightColors)) {
@@ -732,16 +749,27 @@ class ThemeModule
     }
 
     $darkData = (array)($data["dark"] ?? []);
-    $darkText = array_merge($defaults["dark"]["text"], (array)($darkData["text"] ?? []));
+    $darkTextRaw = array_merge($defaults["dark"]["text"], (array)($darkData["text"] ?? []));
+    $darkText = [
+      "primary" => self::sanitizeCssValue((string)($darkTextRaw["primary"] ?? ""), (string)$defaults["dark"]["text"]["primary"]),
+      "secondary" => self::sanitizeCssValue((string)($darkTextRaw["secondary"] ?? ""), (string)$defaults["dark"]["text"]["secondary"]),
+      "inactive" => self::sanitizeCssValue((string)($darkTextRaw["inactive"] ?? ""), (string)$defaults["dark"]["text"]["inactive"]),
+    ];
     $darkColors = !empty($darkData["colors"]) && is_array($darkData["colors"])
-      ? array_values(array_filter($darkData["colors"], "is_string"))
+      ? $sanitizeColorList(array_filter($darkData["colors"], "is_string"))
       : [];
 
     if (!empty($darkColors) && count($darkColors) > 20) {
       $darkColors = array_slice($darkColors, 0, 20);
     }
 
-    $status = array_merge($defaults["status"], (array)($data["status"] ?? []));
+    $statusRaw = array_merge($defaults["status"], (array)($data["status"] ?? []));
+    $status = [];
+    foreach ($defaults["status"] as $sKey => $sDef) {
+      $status[$sKey] = isset($statusRaw[$sKey]) && is_string($statusRaw[$sKey]) && trim($statusRaw[$sKey]) !== ""
+        ? self::sanitizeCssValue($statusRaw[$sKey], (string)$sDef)
+        : "";
+    }
 
     if (empty($status["hoverSuccess"])) {
       $status["hoverSuccess"] = self::calculateHoverHex((string)$status["success"]);
@@ -761,13 +789,13 @@ class ThemeModule
       "schedule" => $schedule,
       "layout" => $layout,
       "light" => [
-        "body" => (string)($lightData["body"] ?? $defaults["light"]["body"]),
+        "body" => self::sanitizeCssValue((string)($lightData["body"] ?? $defaults["light"]["body"]), (string)$defaults["light"]["body"]),
         "text" => $lightText,
         "colors" => $lightColors,
       ],
       "dark" => [
         "auto" => isset($darkData["auto"]) ? (bool)$darkData["auto"] : true,
-        "body" => (string)($darkData["body"] ?? $defaults["dark"]["body"]),
+        "body" => self::sanitizeCssValue((string)($darkData["body"] ?? $defaults["dark"]["body"]), (string)$defaults["dark"]["body"]),
         "text" => $darkText,
         "colors" => $darkColors,
       ],
@@ -835,6 +863,18 @@ class ThemeModule
     }
 
     return self::normalizeSingleTheme($data);
+  }
+
+  /**
+   * Sanitiza un valor CSS para evitar inyección de declaraciones arbitrarias o escape de <style>.
+   */
+  public static function sanitizeCssValue(string $value, string $fallback = ''): string
+  {
+    $clean = preg_replace('/[\x00-\x1F\x7F{};<>]/', '', trim($value)) ?? '';
+    if ($clean === '' || preg_match('/(?:expression\s*\(|javascript\s*:|vbscript\s*:|@import|<\/?style)/i', $clean)) {
+      return $fallback;
+    }
+    return $clean;
   }
 
   /**
@@ -1387,7 +1427,11 @@ class ThemeModule
             $hasAnimationHeader = true;
           }
         }
-        $lines[] = "  {$name}: {$value};";
+        $safeCustomName = preg_match('/^--[a-zA-Z0-9_-]+$/', (string)$name) ? $name : null;
+        $safeCustomVal = self::sanitizeCssValue((string)$value);
+        if ($safeCustomName !== null && $safeCustomVal !== "") {
+          $lines[] = "  {$safeCustomName}: {$safeCustomVal};";
+        }
       }
     }
 
@@ -1423,7 +1467,11 @@ class ThemeModule
       $lines[] = "";
       $lines[] = "  /* Variables adicionales en modo oscuro */";
       foreach ($customDarkVars as $name => $value) {
-        $lines[] = "  {$name}: {$value};";
+        $safeCustomName = preg_match('/^--[a-zA-Z0-9_-]+$/', (string)$name) ? $name : null;
+        $safeCustomVal = self::sanitizeCssValue((string)$value);
+        if ($safeCustomName !== null && $safeCustomVal !== "") {
+          $lines[] = "  {$safeCustomName}: {$safeCustomVal};";
+        }
       }
     }
 
@@ -1531,8 +1579,11 @@ class ThemeModule
     }
 
     if ($trailingCss !== "") {
-      $lines[] = "";
-      $lines[] = trim($trailingCss);
+      $safeTrailing = preg_replace('/<\/?\s*style\b[^>]*>/i', '', trim($trailingCss)) ?? '';
+      if ($safeTrailing !== '') {
+        $lines[] = "";
+        $lines[] = $safeTrailing;
+      }
     }
 
     return implode("\n", $lines) . "\n";

@@ -69,7 +69,7 @@ class ImgProcessModule
   }
 
   /**
-   * Asegura que el directorio de subida exista y tenga permisos de escritura (0777).
+   * Asegura que el directorio de subida exista y tenga permisos seguros (0755).
    * Crea el directorio recursivamente si no existe.
    * Esto evita tener que configurar permisos manualmente en servidores Linux.
    *
@@ -80,28 +80,16 @@ class ImgProcessModule
 
     $dir = $this->uploadImg;
 
-    // Crear el directorio si no existe, con permisos 0777 recursivamente
+    // Crear el directorio si no existe con permisos seguros (0755)
     if (!is_dir($dir)) {
-
-      // umask temporal en 0 para que mkdir respete los permisos 0777
-      $oldUmask = umask(0);
-      $created = mkdir($dir, 0777, true);
-      umask($oldUmask);
-
-      if (!$created) {
+      if (!@mkdir($dir, 0755, true)) {
         error_log("ImgProcessModule: No se pudo crear el directorio: {$dir}");
         return;
       }
     }
 
-    // Aplicar permisos 0777 al directorio si aún no los tiene
-    $currentPerms = fileperms($dir) & 0777;
-
-    if ($currentPerms !== 0777) {
-
-      if (!chmod($dir, 0777)) {
-        error_log("ImgProcessModule: No se pudieron establecer permisos 0777 en: {$dir}");
-      }
+    if (!is_writable($dir)) {
+      @chmod($dir, 0755);
     }
   }
 
@@ -1051,9 +1039,7 @@ class ImgProcessModule
     // Asegurar que el directorio de destino exista
     $destDir = dirname($destPath);
     if (!is_dir($destDir)) {
-      $oldUmask = umask(0);
-      @mkdir($destDir, 0777, true);
-      umask($oldUmask);
+      @mkdir($destDir, 0755, true);
     }
 
     $srcExt = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
@@ -1316,9 +1302,7 @@ class ImgProcessModule
       if ($destDirectory !== $srcDirNormalized) {
         $inPlace = false;
         if (!is_dir($destDirectory)) {
-          $oldUmask = umask(0);
-          @mkdir($destDirectory, 0777, true);
-          umask($oldUmask);
+          @mkdir($destDirectory, 0755, true);
         }
       }
     }
@@ -1443,9 +1427,7 @@ class ImgProcessModule
               );
               $targetDir = $destDirectory . $relativeSubDir;
               if (!is_dir($targetDir)) {
-                $oldUmask = umask(0);
-                @mkdir($targetDir, 0777, true);
-                umask($oldUmask);
+                @mkdir($targetDir, 0755, true);
               }
               $destPath = $targetDir . '/' . pathinfo($filePath, PATHINFO_FILENAME) . '.' . $outputFormat;
             } else {

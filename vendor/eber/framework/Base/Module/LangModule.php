@@ -686,14 +686,9 @@ class LangModule
   public static function detectFromGeoIp(?string $ip = null): ?string
   {
     if ($ip === null) {
-      $rawIp = $_SERVER['REMOTE_ADDR'] ?? '';
-      if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-        $rawIp = $_SERVER['HTTP_CF_CONNECTING_IP'];
-      } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $parts = explode(',', (string)$_SERVER['HTTP_X_FORWARDED_FOR']);
-        $rawIp = trim($parts[0]);
-      }
-      $ip = filter_var($rawIp, FILTER_VALIDATE_IP) ?: '';
+      $ip = class_exists(SecurityModule::class)
+        ? SecurityModule::resolveClientIp()
+        : (filter_var($_SERVER['REMOTE_ADDR'] ?? '', FILTER_VALIDATE_IP) ?: '');
     }
 
     if ($ip === '' || self::isLocalIp($ip)) {
@@ -875,10 +870,11 @@ class LangModule
     $candidate = is_string($redirectParam) && $redirectParam !== '' ? $redirectParam : (is_string($referer) ? $referer : '');
 
     if ($candidate !== '') {
-      // Limpiar CRLF
-      $candidate = str_replace(["\r", "\n", "%0d", "%0a", "%0D", "%0A"], '', $candidate);
-      $parsed = parse_url($candidate);
+      $safeCandidate = class_exists(SecurityModule::class)
+        ? SecurityModule::sanitizeRedirectUrl($candidate, true)
+        : str_replace(["\r", "\n", "\0"], '', $candidate);
 
+      $parsed = @parse_url($safeCandidate);
       $isSafeHost = true;
       if (!empty($parsed['host'])) {
         $currentHost = strtolower((string)($_SERVER['HTTP_HOST'] ?? (defined('HOST') ? HOST : 'localhost')));
@@ -887,10 +883,11 @@ class LangModule
         $isSafeHost = ($candidateHostClean === $currentHostClean);
       }
 
-      // Rechazar URLs relativas al protocolo (//evil.com) o esquemas peligrosos
-      if ($isSafeHost && !str_starts_with($candidate, '//') && empty($parsed['scheme']) || ($isSafeHost && in_array(strtolower($parsed['scheme'] ?? ''), ['http', 'https'], true))) {
-        $candPath = $parsed['path'] ?? '/';
-        if (!str_starts_with($candPath, '/lang/')) {
+      // Rechazar rutas protocol-relative (// o /\), backslashes o hosts externos
+      $hasDangerousPrefix = str_starts_with($safeCandidate, '//') || str_starts_with($safeCandidate, '/\\') || str_starts_with($safeCandidate, '\\');
+      if ($isSafeHost && !$hasDangerousPrefix && (empty($parsed['scheme']) || in_array(strtolower($parsed['scheme']), ['http', 'https'], true))) {
+        $candPath = '/' . ltrim((string)($parsed['path'] ?? '/'), '/');
+        if (!str_starts_with($candPath, '/lang/') && !str_contains($candPath, '\\')) {
           $targetPath = $candPath;
           if (!empty($parsed['query'])) {
             $qParams = [];

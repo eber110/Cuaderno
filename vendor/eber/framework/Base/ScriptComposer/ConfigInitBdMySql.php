@@ -1,5 +1,10 @@
 <?php
 
+if (php_sapi_name() !== 'cli') {
+  http_response_code(403);
+  exit("Acceso denegado: este script solo puede ejecutarse por CLI.\n");
+}
+
 // Asegurar autoloading y carga de configuración independientemente del directorio actual
 $baseDir = str_replace('\\', '/', getcwd());
 $frameworkDir = str_replace('\\', '/', dirname(__DIR__, 2));

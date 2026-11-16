@@ -175,6 +175,9 @@ function findFile(string $baseDir, string $module, string $filename): ?string
  */
 function resolvePath(string $rute, string $baseDir): ?string
 {
+  if ($rute === '' || str_contains($rute, "\0") || str_contains($rute, '..') || str_contains($rute, '\\') || str_contains($rute, ':')) {
+    return null;
+  }
 
   $parts = explode('.', $rute, 2);
   if (count($parts) < 2) {
@@ -182,11 +185,23 @@ function resolvePath(string $rute, string $baseDir): ?string
   }
 
   [$module, $filename] = $parts;
+  $cleanBase = rtrim(str_replace('\\', '/', $baseDir), '/') . '/';
+  $realBase = realpath($cleanBase);
+
+  $isInsideBase = static function (string $candidate) use ($realBase): bool {
+    $realCandidate = realpath($candidate);
+    if ($realCandidate === false || $realBase === false) {
+      return true; // Permite rutas aún no verificadas cuando realBase no existe
+    }
+    $normBase = rtrim(str_replace('\\', '/', $realBase), '/') . '/';
+    $normCand = str_replace('\\', '/', $realCandidate);
+    return str_starts_with($normCand, $normBase);
+  };
 
   // 1. Intento directo (estructura plana o con subcarpetas)
-  $directPath = $baseDir . str_replace('.', '/', $rute) . '.php';
+  $directPath = $cleanBase . str_replace('.', '/', $rute) . '.php';
   if (file_exists($directPath)) {
-    return $directPath;
+    return $isInsideBase($directPath) ? $directPath : null;
   }
 
   // 2. Si tiene "/" es una ruta con subcarpetas, extraer solo el filename
@@ -195,9 +210,12 @@ function resolvePath(string $rute, string $baseDir): ?string
   }
 
   // 3. Búsqueda recursiva con caché
-  $foundPath = findFile($baseDir, $module, $filename);
+  $foundPath = findFile($cleanBase, $module, $filename);
+  if ($foundPath !== null) {
+    return $isInsideBase($foundPath) ? $foundPath : null;
+  }
 
-  return $foundPath ?? $directPath;
+  return $isInsideBase($directPath) ? $directPath : null;
 }
 
 /**
@@ -280,6 +298,15 @@ function template(string $rute): ?string
  * @param bool $useViewData Si combinar con ViewData global
  * @return bool True si se incluyó correctamente
  */
+/**
+ * Incluye una plantilla de forma aislada evitando sobrescritura de ruta vía extract().
+ */
+function _isolatedInclude(string $templatePath, array $viewData): void
+{
+  extract($viewData, EXTR_SKIP);
+  include func_get_arg(0);
+}
+
 function includeView(?string $path, array $extraData = [], bool $useViewData = true): bool
 {
 
@@ -288,8 +315,7 @@ function includeView(?string $path, array $extraData = [], bool $useViewData = t
   }
 
   $data = $useViewData ? array_merge(ViewData::get(), $extraData) : $extraData;
-  extract($data);
-  include $path;
+  _isolatedInclude($path, $data);
 
   return true;
 }
@@ -312,8 +338,7 @@ function renderView(?string $path, array $extraData = [], bool $useViewData = tr
   $data = $useViewData ? array_merge(ViewData::get(), $extraData) : $extraData;
 
   ob_start();
-  extract($data);
-  include $path;
+  _isolatedInclude($path, $data);
   return ob_get_clean();
 }
 
@@ -616,17 +641,39 @@ function ee(?string $string): void
  */
 function eUrl(?string $url): string
 {
-  $u = trim((string)($url ?? ''));
+  $raw = (string)($url ?? '');
+  if (class_exists('\Base\Module\SecurityModule')) {
+    $safe = \Base\Module\SecurityModule::sanitizeRedirectUrl($raw, true);
+    return e($safe);
+  }
+
+  $u = trim(str_replace(["\r", "\n", "\0"], '', $raw));
   if ($u === '' || $u === '#') {
     return '#';
   }
-  if (str_starts_with($u, '/') && !str_starts_with($u, '//')) {
+  if (str_starts_with($u, '/') && !str_starts_with($u, '//') && !str_starts_with($u, '/\\')) {
     return e($u);
   }
   if (preg_match('#^(https?://|mailto:|tel:)#i', $u)) {
     return e($u);
   }
   return '#';
+}
+
+/**
+ * Imprime el campo input oculto con el token CSRF de sesión.
+ */
+function csrf_field(): string
+{
+  return class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '';
+}
+
+/**
+ * Devuelve el token CSRF activo de sesión.
+ */
+function csrf_token(): string
+{
+  return class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::getCsrfToken() : '';
 }
 
 /**
@@ -795,8 +842,7 @@ function _each(string $rute, array $items, string $itemKey = 'item', string $typ
       'odd' => $index % 2 !== 0,
     ]);
 
-    extract($data);
-    include $path;
+    _isolatedInclude($path, $data);
     $index++;
   }
 }
@@ -909,10 +955,15 @@ function hasSlot(string $name): bool
  */
 function dd(mixed $var, bool $die = true): void
 {
+  if (class_exists('\Base\Module\SecurityModule') && !\Base\Module\SecurityModule::isDevelopment()) {
+    return;
+  }
 
   echo '
           <pre style="background:#1e1e1e;color:#dcdcdc;padding:15px;border-radius:8px;font-size:12px;overflow:auto;">';
+  ob_start();
   var_dump($var);
+  echo e((string)ob_get_clean());
   echo '</pre>';
 
   if ($die) {
@@ -921,7 +972,7 @@ function dd(mixed $var, bool $die = true): void
 }
 
 /**
- * Dump de todas las variables de ViewData.
+ * Dump de todas las variables de ViewData (solo en desarrollo).
  */
 function ddViewData(): void
 {
@@ -929,7 +980,7 @@ function ddViewData(): void
 }
 
 /**
- * Muestra información de debug en un comentario HTML invisible.
+ * Muestra información de debug en un comentario HTML invisible (solo en desarrollo).
  * Útil para debug sin romper el layout.
  *
  * @param mixed $var Variable a inspeccionar
@@ -937,7 +988,13 @@ function ddViewData(): void
  */
 function debugComment(mixed $var, string $label = 'Debug'): void
 {
-  echo "\n<!-- {$label}: " . e(print_r($var, true)) . " -->\n";
+  if (class_exists('\Base\Module\SecurityModule') && !\Base\Module\SecurityModule::isDevelopment()) {
+    return;
+  }
+
+  $safeLabel = str_replace('--', '- -', e($label));
+  $safeBody = str_replace('--', '- -', e(print_r($var, true)));
+  echo "\n<!-- {$safeLabel}: {$safeBody} -->\n";
 }
 
 // ╔════════════════════════════════════════════╗

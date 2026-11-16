@@ -163,35 +163,51 @@ class AntiScraper
   public static function checkScrapingRateLimit(string $ip, int $maxRequestsPerMinute = 60): bool
   {
     $file = self::getRateStoragePath();
-    $data = [];
+    $currentCount = 0;
 
-    if (file_exists($file)) {
-      $content = file_get_contents($file);
-      $data = json_decode($content, true) ?? [];
-    }
+    $exceeded = (bool)AccessBlocker::updateJsonTransaction(
+      $file,
+      [],
+      static function (array &$data, bool &$dirty) use ($ip, $maxRequestsPerMinute, &$currentCount): bool {
+        $currentTime = time();
+        $window = 60;
 
-    $currentTime = time();
-    $window = 60;
+        // Poda global de registros expirados y tope de tamaño de IPs activas
+        foreach ($data as $kIp => $timestamps) {
+          if (!is_array($timestamps)) {
+            unset($data[$kIp]);
+            continue;
+          }
+          $recent = array_values(array_filter($timestamps, static fn($ts): bool => ($currentTime - (int)$ts) <= $window));
+          if (empty($recent)) {
+            unset($data[$kIp]);
+          } else {
+            $data[$kIp] = $recent;
+          }
+        }
 
-    if (!isset($data[$ip])) {
-      $data[$ip] = [];
-    }
+        if (!isset($data[$ip])) {
+          $data[$ip] = [];
+        }
+        $data[$ip][] = $currentTime;
 
-    $data[$ip] = array_values(array_filter($data[$ip], function ($timestamp) use ($currentTime, $window) {
-      return ($currentTime - $timestamp) <= $window;
-    }));
+        if (count($data) > 5000) {
+          $data = array_slice($data, -5000, null, true);
+        }
 
-    $data[$ip][] = $currentTime;
-    $exceeded = count($data[$ip]) > $maxRequestsPerMinute;
+        $currentCount = count($data[$ip] ?? []);
+        $dirty = true;
 
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
+        return $currentCount > $maxRequestsPerMinute;
+      }
+    );
 
     if ($exceeded && class_exists('\\Base\\Module\\Security\\AccessBlocker')) {
       AccessBlocker::blockIp($ip, "Límite de solicitudes de scraping superado ({$maxRequestsPerMinute}/min)", 3600);
       IntrusionLogger::log("IP bloqueada por tasa excesiva de scraping ({$maxRequestsPerMinute} req/min)", [
         'ip' => $ip,
-        'rate' => count($data[$ip])
-      ]);
+        'rate' => $currentCount
+      ], false);
     }
 
     return $exceeded;

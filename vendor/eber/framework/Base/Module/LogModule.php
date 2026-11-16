@@ -42,8 +42,12 @@ class LogModule
       return false;
     }
 
-    // 1. Normalizar y resolver el directorio
-    $fullPath = self::resolveFilePath($config['dir']);
+    // 1. Normalizar y resolver el directorio confinado dentro de ROOT_PATH/Logs
+    $fullPath = self::resolveFilePath($config['dir'], true);
+    if ($fullPath === null) {
+      error_log("LogModule [Security]: Ruta fuera de Logs/ rechazada: " . (string)$config['dir']);
+      return false;
+    }
 
     // 2. Asegurar que el directorio existe
     if (!is_dir($fullPath)) {
@@ -87,9 +91,8 @@ class LogModule
       return [];
     }
 
-    $fullPath = self::resolveFilePath($config['dir']);
-
-    if (!is_dir($fullPath)) {
+    $fullPath = self::resolveFilePath($config['dir'], true);
+    if ($fullPath === null || !is_dir($fullPath)) {
       return [];
     }
 
@@ -100,7 +103,7 @@ class LogModule
 
   /**
    * Lee un archivo de log (formato JSON Lines) y devuelve sus registros decodificados.
-   * Soporta tanto rutas completas absolutas como rutas relativas respecto a ROOT_PATH.
+   * Valida estrictamente que la ruta pertenezca a ROOT_PATH/Logs.
    * 
    * @param string $filePath Ruta del archivo de log.
    * @return array Lista de registros decodificados.
@@ -108,8 +111,7 @@ class LogModule
   public static function readLogLines(string $filePath): array
   {
     $resolvedPath = self::resolveFilePath($filePath);
-
-    if (!file_exists($resolvedPath) || !is_readable($resolvedPath)) {
+    if ($resolvedPath === null || !file_exists($resolvedPath) || !is_readable($resolvedPath)) {
       return [];
     }
 
@@ -130,8 +132,7 @@ class LogModule
   }
 
   /**
-   * Elimina un archivo de log.
-   * Soporta tanto rutas completas absolutas como rutas relativas respecto a ROOT_PATH.
+   * Elimina un archivo de log confinado en ROOT_PATH/Logs.
    * 
    * @param string $filePath Ruta del archivo a eliminar.
    * @return bool True si se eliminó correctamente, false en caso contrario.
@@ -139,17 +140,14 @@ class LogModule
   public static function deleteLog(string $filePath): bool
   {
     $resolvedPath = self::resolveFilePath($filePath);
-
-    if (file_exists($resolvedPath)) {
+    if ($resolvedPath !== null && file_exists($resolvedPath)) {
       return @unlink($resolvedPath);
     }
     return false;
   }
 
   /**
-   * Renombra o mueve un archivo de log.
-   * Soporta tanto rutas completas absolutas como rutas relativas respecto a ROOT_PATH.
-   * Si $newPathOrName es solo un nombre de archivo (sin diagonales), se mantendrá en el mismo directorio de origen.
+   * Renombra o mueve un archivo de log dentro de ROOT_PATH/Logs.
    * 
    * @param string $filePath Ruta del archivo de origen.
    * @param string $newPathOrName Nueva ruta o nuevo nombre del archivo.
@@ -158,16 +156,22 @@ class LogModule
   public static function renameLog(string $filePath, string $newPathOrName): bool
   {
     $resolvedSource = self::resolveFilePath($filePath);
-
-    if (!file_exists($resolvedSource)) {
+    if ($resolvedSource === null || !file_exists($resolvedSource)) {
       return false;
     }
 
     if (str_contains($newPathOrName, '/') || str_contains($newPathOrName, '\\')) {
       $resolvedTarget = self::resolveFilePath($newPathOrName);
+      if ($resolvedTarget === null) {
+        return false;
+      }
     } else {
+      $cleanName = basename(trim(str_replace(["\0", '..'], '', $newPathOrName)));
+      if ($cleanName === '' || $cleanName === '.' || $cleanName === '..') {
+        return false;
+      }
       $dir = dirname($resolvedSource);
-      $resolvedTarget = $dir . DIRECTORY_SEPARATOR . $newPathOrName;
+      $resolvedTarget = $dir . DIRECTORY_SEPARATOR . $cleanName;
     }
 
     $targetDir = dirname($resolvedTarget);
@@ -181,32 +185,98 @@ class LogModule
   }
 
   /**
-   * Resuelve una ruta (absoluta o relativa) a una ruta absoluta del sistema de archivos.
-   * Si es relativa (empieza con / o no), se resuelve respecto a la constante ROOT_PATH.
+   * Resuelve una ruta y verifica confinamiento estricto dentro de ROOT_PATH/Logs
+   * previniendo ataques de Path Traversal y lectura/eliminación arbitraria.
    * 
    * @param string $path Ruta a resolver.
-   * @return string Ruta absoluta normalizada.
+   * @param bool $allowNewDirectory Si permite directorios aún inexistentes bajo Logs/.
+   * @return string|null Ruta absoluta validada o null si intenta salir de Logs/.
    */
-  private static function resolveFilePath(string $path): string
+  private static function resolveFilePath(string $path, bool $allowNewDirectory = false): ?string
   {
-    $path = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, trim($path));
-    $isAbsolute = false;
+    $clean = trim($path);
+    if ($clean === '' || str_contains($clean, "\0") || preg_match('/^[a-zA-Z0-9+.-]+:\/\//', $clean)) {
+      return null;
+    }
 
-    if (DIRECTORY_SEPARATOR === '\\') {
-      if (preg_match('/^[a-zA-Z]:/', $path)) {
-        $isAbsolute = true;
+    $normalized = str_replace(['\\', '/'], '/', $clean);
+    $segments = explode('/', $normalized);
+    foreach ($segments as $seg) {
+      if ($seg === '..') {
+        return null;
+      }
+    }
+
+    $root = defined('ROOT_PATH') ? ROOT_PATH : getcwd();
+    $logsBase = rtrim(str_replace('\\', '/', (string)$root), '/') . '/Logs';
+    if (!is_dir($logsBase)) {
+      @mkdir($logsBase, 0755, true);
+    }
+    $realLogsBase = realpath($logsBase);
+    if ($realLogsBase === false) {
+      return null;
+    }
+    $realLogsNorm = rtrim(str_replace('\\', '/', $realLogsBase), '/');
+
+    $isAbsolute = (DIRECTORY_SEPARATOR === '\\')
+      ? (bool)preg_match('/^[a-zA-Z]:\//', $normalized)
+      : str_starts_with($normalized, '/');
+
+    // Interpretar "/Logs/foo" o "/foo" relativo a ROOT_PATH cuando no apunta ya a $realLogsNorm
+    if (str_starts_with($normalized, $realLogsNorm . '/') || $normalized === $realLogsNorm) {
+      $candidate = $normalized;
+    } elseif ($isAbsolute) {
+      // En Unix una ruta /Logs/... se resuelve respecto a ROOT_PATH si no existe como ruta bajo Logs reales
+      $trimmed = ltrim($normalized, '/');
+      if (str_starts_with($trimmed, 'Logs/') || $trimmed === 'Logs') {
+        $candidate = rtrim(str_replace('\\', '/', (string)$root), '/') . '/' . $trimmed;
+      } else {
+        return null;
       }
     } else {
-      if (str_starts_with($path, '/')) {
-        $isAbsolute = true;
+      $trimmed = ltrim($normalized, '/');
+      if (str_starts_with($trimmed, 'Logs/') || $trimmed === 'Logs') {
+        $candidate = rtrim(str_replace('\\', '/', (string)$root), '/') . '/' . $trimmed;
+      } else {
+        $candidate = $realLogsNorm . '/' . $trimmed;
       }
     }
 
-    if ($isAbsolute) {
-      return $path;
+    // Verificar confinamiento por realpath()
+    $candidateNative = str_replace('/', DIRECTORY_SEPARATOR, $candidate);
+    if (file_exists($candidateNative)) {
+      $realCandidate = realpath($candidateNative);
+      if ($realCandidate === false) {
+        return null;
+      }
+      $realCandNorm = str_replace('\\', '/', $realCandidate);
+      return ($realCandNorm === $realLogsNorm || str_starts_with($realCandNorm, $realLogsNorm . '/'))
+        ? $realCandidate
+        : null;
     }
 
-    return rtrim(ROOT_PATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, DIRECTORY_SEPARATOR);
+    // Para archivos o subdirectorios nuevos: verificar el ancestro existente más cercano
+    $probe = $candidateNative;
+    $pendingSegments = [];
+    while ($probe !== '' && !file_exists($probe)) {
+      $parent = dirname($probe);
+      if ($parent === $probe) {
+        return null;
+      }
+      array_unshift($pendingSegments, basename($probe));
+      $probe = $parent;
+    }
+
+    $realAncestor = realpath($probe);
+    if ($realAncestor === false) {
+      return null;
+    }
+    $realAncNorm = rtrim(str_replace('\\', '/', $realAncestor), '/');
+    if ($realAncNorm !== $realLogsNorm && !str_starts_with($realAncNorm, $realLogsNorm . '/')) {
+      return null;
+    }
+
+    return $candidateNative;
   }
 
   /**

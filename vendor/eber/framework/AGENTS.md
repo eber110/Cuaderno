@@ -99,10 +99,11 @@ frame/                         # Repositorio del framework (también es un proye
 5. **Constantes de ruta:** usa las definidas en `config.php` (`ROUTE_VIEW`, `ROUTE_CONTROLLER`, `ROUTE_ICO`, `TIME_DAY`, `TIME_HOUR`…) — no rutas literales.
 6. **Escribir en español** (código, docblocks, commits y docs). El framework está en español.
 7. **Sesión y autenticación:** usar `Base\Module\Session` para manejo de sesión y `Base\Module\AuthModule` para autenticación agnóstica de esquema (`AuthModule::attempt()`, `login()`, `check()`, `user()`, `logout()`, `hashPassword()`).
-8. **Seguridad:** no uses valores de `$_ENV`/`$_SERVER` sin sanitizarlos. El Builder ya escapa; NO concatenar SQL directamente.
+8. **Seguridad:** no uses valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizarlos. El Builder valida identificadores y usa *prepared statements*; NO concatenar SQL directamente ni pasar `$_POST` crudo a `create()`/`update()` (usar `fillable()`). Todas las rutas `POST`/`PUT`/`PATCH`/`DELETE` validan CSRF automáticamente cuando `CSRF_PROTECTION=true` (usar `Route::withoutCsrf()->post(...)` solo en webhooks firmados). Escapar vistas con `e()`, `eUrl()`, `safeCssColor()`.
 9. **Permisos de tablas (Zero-Config):** Por defecto el framework no restringe tablas con listas fijas y valida nombres con sintaxis SQL segura contra inyecciones (`/^[a-zA-Z0-9_]+$/`). Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 10. **No comitear** en el repositorio del framework: `/App/`, `.env`, `Logs/`, `Cache/`, `Uploads/`, `Database/*.sqlite`, `*.mmdb`, `dist/`.
 11. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) para permitir soporte multiidioma (`APP_MULTILANG` en `.env`) sin reescribir plantillas.
+12. **Entorno *fail-closed*:** `APP_ENV` vacío o desconocido opera como `'production'`; configurar `FORCE_DOMAIN` / `ALLOWED_HOSTS` y `TRUSTED_PROXIES` en producción (y reglas Nginx si aplica: `Docs/DEPLOY_NGINX.md`).
 
 ---
 

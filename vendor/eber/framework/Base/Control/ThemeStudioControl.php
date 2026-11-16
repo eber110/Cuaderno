@@ -3,6 +3,7 @@
 namespace Base\Control;
 
 use Base\Module\GraphicsModule;
+use Base\Module\SecurityModule;
 use Base\Module\ThemeModule;
 
 /**
@@ -39,7 +40,7 @@ class ThemeStudioControl extends Control
    */
   public static function registerRoutes(): void
   {
-    if (self::$routesRegistered) {
+    if (self::$routesRegistered || !self::isDevEnvironment()) {
       return;
     }
     self::$routesRegistered = true;
@@ -55,17 +56,62 @@ class ThemeStudioControl extends Control
   }
 
   /**
-   * Verifica si la ejecución actual se encuentra en un entorno de desarrollo seguro.
+   * Verifica si la ejecución actual se encuentra en un entorno de desarrollo seguro (fail-closed).
    *
-   * @return bool True si es local, dev o testing.
+   * @return bool True solo si ENVIRONMENT está definido explícitamente como local/dev/testing.
    */
   public static function isDevEnvironment(): bool
   {
-    if (!defined('ENVIRONMENT')) {
-      return true;
+    if (class_exists(SecurityModule::class)) {
+      return SecurityModule::isDevelopment();
     }
-    $env = strtolower((string)ENVIRONMENT);
+    if (!defined('ENVIRONMENT')) {
+      return false;
+    }
+    $env = strtolower(trim((string)ENVIRONMENT));
     return in_array($env, ['local', 'development', 'dev', 'testing', 'test'], true);
+  }
+
+  /**
+   * Valida entorno dev, origen loopback en HTTP y Content-Type + CSRF en mutaciones.
+   */
+  private function guardStudioRequest(bool $isMutation = false): bool
+  {
+    if (!self::isDevEnvironment()) {
+      if ($isMutation) {
+        $this->json(['success' => false, 'message' => 'Recurso no disponible.'], 404);
+      } else {
+        \Core\ErrorHandler::handleCode(404, 404, 'Página no encontrada');
+      }
+      return false;
+    }
+
+    if (php_sapi_name() !== 'cli') {
+      $allowRemote = filter_var($_ENV['FRAME_STUDIO_ALLOW_REMOTE'] ?? $_SERVER['FRAME_STUDIO_ALLOW_REMOTE'] ?? false, FILTER_VALIDATE_BOOLEAN);
+      $remoteAddr = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+      if (!$allowRemote && !in_array($remoteAddr, ['127.0.0.1', '::1'], true)) {
+        if ($isMutation) {
+          $this->json(['success' => false, 'message' => 'Acceso restringido al host local.'], 403);
+        } else {
+          \Core\ErrorHandler::handleCode(403, 403, 'Theme Studio solo admite conexiones locales (127.0.0.1 / ::1).');
+        }
+        return false;
+      }
+
+      if ($isMutation) {
+        $contentType = (string)($_SERVER['CONTENT_TYPE'] ?? '');
+        if (stripos($contentType, 'application/json') === false) {
+          $this->json(['success' => false, 'message' => 'Content-Type debe ser application/json.'], 415);
+          return false;
+        }
+        if (class_exists(SecurityModule::class) && !SecurityModule::verifyCsrf()) {
+          $this->json(['success' => false, 'message' => 'Token CSRF inválido o ausente.'], 403);
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -207,8 +253,7 @@ class ThemeStudioControl extends Control
    */
   public function index(): void
   {
-    if (!self::isDevEnvironment()) {
-      \Core\ErrorHandler::handleCode(403, 403, 'Theme Studio solo está disponible en entorno de desarrollo local.');
+    if (!$this->guardStudioRequest(false)) {
       return;
     }
 
@@ -288,11 +333,7 @@ class ThemeStudioControl extends Control
    */
   public function save(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json([
-        'success' => false,
-        'message' => 'Acceso restringido: Theme Studio no está disponible en producción.'
-      ], 403);
+    if (!$this->guardStudioRequest(true)) {
       return;
     }
 
@@ -344,8 +385,7 @@ class ThemeStudioControl extends Control
    */
   public function loadToSite(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json(['success' => false, 'message' => 'No autorizado'], 403);
+    if (!$this->guardStudioRequest(true)) {
       return;
     }
 
@@ -398,8 +438,7 @@ class ThemeStudioControl extends Control
    */
   public function deleteThemeEndpoint(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json(['success' => false, 'message' => 'No autorizado'], 403);
+    if (!$this->guardStudioRequest(true)) {
       return;
     }
 
@@ -1176,11 +1215,7 @@ class ThemeStudioControl extends Control
    */
   public function renderChart(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json([
-        'success' => false,
-        'message' => 'Acceso restringido: Chart Studio solo está disponible en entorno de desarrollo.'
-      ], 403);
+    if (!$this->guardStudioRequest(true)) {
       return;
     }
 
@@ -1383,11 +1418,7 @@ class ThemeStudioControl extends Control
    */
   public function icons(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json([
-        'success' => false,
-        'message' => 'Acceso restringido: la galería de iconos solo está disponible en entorno de desarrollo.'
-      ], 403);
+    if (!$this->guardStudioRequest(false)) {
       return;
     }
 
@@ -1402,8 +1433,7 @@ class ThemeStudioControl extends Control
    */
   public function fonts(): void
   {
-    if (!self::isDevEnvironment()) {
-      $this->json(['error' => 'No autorizado'], 403);
+    if (!$this->guardStudioRequest(false)) {
       return;
     }
 

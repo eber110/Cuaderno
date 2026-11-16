@@ -7,6 +7,7 @@ use Core\Conexion;
 use Core\ErrorHandler;
 use PDOException;
 use PDO;
+use Base\Module\SecurityModule;
 use Base\Module\Session;
 
 class Builder
@@ -36,6 +37,7 @@ class Builder
   protected $last_id;
   protected $rateLimitMaxAttempts = null;
   protected $rateLimitBlockSeconds = 60;
+  protected ?array $fillableColumns = null;
 
   /**
    * Constructor de la clase Builder.
@@ -46,7 +48,9 @@ class Builder
   public function __construct($table = null, ?PDO $pdo = null)
   {
     $this->pdo = $pdo ?? Conexion::getPdo();
-    (!is_null($table) ? $this->table = $table : null);
+    if ($table !== null && $table !== '') {
+      $this->table = $this->validateTableIdentifier((string)$table);
+    }
   }
 
   /**
@@ -57,7 +61,7 @@ class Builder
    */
   public function table(string $table): self
   {
-    $this->table = $table;
+    $this->table = $this->validateTableIdentifier($table);
     return $this;
   }
 
@@ -69,7 +73,23 @@ class Builder
    */
   public function from(string $table): self
   {
-    $this->table = $table;
+    $this->table = $this->validateTableIdentifier($table);
+    return $this;
+  }
+
+  /**
+   * Define una lista blanca explícita de columnas permitidas en escrituras (create/update).
+   *
+   * @param array<int, string> $columns
+   * @return self
+   */
+  public function fillable(array $columns): self
+  {
+    $validated = [];
+    foreach ($columns as $col) {
+      $validated[] = $this->validateSingleIdentifier((string)$col);
+    }
+    $this->fillableColumns = $validated;
     return $this;
   }
 
@@ -135,27 +155,7 @@ class Builder
       return true;
     }
 
-    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $trustedProxies = defined('TRUSTED_PROXIES') ? explode(',', TRUSTED_PROXIES) : [];
-    $isTrusted = false;
-    foreach ($trustedProxies as $proxy) {
-      if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
-        $isTrusted = true; break;
-      }
-    }
-    $ip = $remoteAddr;
-    if ($isTrusted) {
-      $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
-      foreach ($headers as $header) {
-        if (!empty($_SERVER[$header])) {
-          $ips = explode(',', $_SERVER[$header]);
-          $candidate = trim(end($ips));
-          if (filter_var($candidate, FILTER_VALIDATE_IP)) {
-            $ip = $candidate; break;
-          }
-        }
-      }
-    }
+    $ip = SecurityModule::resolveClientIp();
 
     $tableName = $this->resolveRateLimitsTable();
     if ($tableName === false) {
@@ -177,7 +177,7 @@ class Builder
           return $blockedTime - $now; // Segundos restantes
         } else {
           // El bloqueo ya expiró, reseteamos el contador
-          $this->clearRateLimit($actionKey);
+          $this->clearRateLimit($actionKey, $ip);
         }
       }
     }
@@ -197,27 +197,7 @@ class Builder
       return;
     }
 
-    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $trustedProxies = defined('TRUSTED_PROXIES') ? explode(',', TRUSTED_PROXIES) : [];
-    $isTrusted = false;
-    foreach ($trustedProxies as $proxy) {
-      if (!empty(trim($proxy)) && str_starts_with($remoteAddr, trim($proxy))) {
-        $isTrusted = true; break;
-      }
-    }
-    $ip = $remoteAddr;
-    if ($isTrusted) {
-      $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
-      foreach ($headers as $header) {
-        if (!empty($_SERVER[$header])) {
-          $ips = explode(',', $_SERVER[$header]);
-          $candidate = trim(end($ips));
-          if (filter_var($candidate, FILTER_VALIDATE_IP)) {
-            $ip = $candidate; break;
-          }
-        }
-      }
-    }
+    $ip = SecurityModule::resolveClientIp();
 
     $tableName = $this->resolveRateLimitsTable();
     if ($tableName === false) {
@@ -270,12 +250,12 @@ class Builder
    * Resetea/elimina el límite de tasa para la IP y acción dada.
    *
    * @param string $actionKey Identificador único.
-   * @param string|null $ip IP específica, o nulo para auto-detectar.
+   * @param string|null $ip IP específica, o nulo para auto-detectar usando TRUSTED_PROXIES.
    * @return void
    */
   public function clearRateLimit(string $actionKey, ?string $ip = null): void
   {
-    $ip = $ip ?? ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+    $ip = $ip ?? SecurityModule::resolveClientIp();
     $tableName = $this->resolveRateLimitsTable();
     if ($tableName === false) {
       return;
@@ -313,6 +293,114 @@ class Builder
    * @return string El identificador validado.
    * @throws \InvalidArgumentException Si el identificador contiene caracteres no permitidos.
    */
+  /**
+   * Valida un nombre de tabla aplicando sintaxis estricta y whitelist ALLOWED_TABLES si está activa.
+   */
+  protected function validateTableIdentifier(string $table): string
+  {
+    $table = trim($table);
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $table)) {
+      throw new \InvalidArgumentException("Nombre de tabla SQL inválido: {$table}");
+    }
+    if (class_exists(SecurityModule::class) && !SecurityModule::isAllowedTable($table)) {
+      throw new \InvalidArgumentException("Tabla '{$table}' no está permitida por ALLOWED_TABLES");
+    }
+    return $table;
+  }
+
+  /**
+   * Valida un identificador SQL único (`col` o `tabla.col`) sin comas, espacios ni expresiones.
+   */
+  protected function validateSingleIdentifier(string $identifier): string
+  {
+    $clean = trim($identifier);
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $clean)) {
+      throw new \InvalidArgumentException("Identificador SQL simple inválido: {$clean}");
+    }
+    return $clean;
+  }
+
+  /**
+   * Valida un alias SQL puro sin espacios ni operadores.
+   */
+  protected function validateAlias(string $alias): string
+  {
+    $clean = trim($alias);
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $clean)) {
+      throw new \InvalidArgumentException("Alias SQL inválido: {$clean}");
+    }
+    return $clean;
+  }
+
+  /**
+   * Valida un operador SQL permitido en cláusulas WHERE o HAVING.
+   */
+  protected function validateOperator(string $operator, bool $havingOnly = false): string
+  {
+    $op = strtoupper(trim((string)preg_replace('/\s+/', ' ', $operator)));
+    $allowed = $havingOnly
+      ? ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE']
+      : ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'ILIKE', 'IN', 'NOT IN', 'IS', 'IS NOT', 'IS NULL', 'IS NOT NULL', 'BETWEEN', 'NOT BETWEEN', 'REGEXP', 'NOT REGEXP'];
+
+    if (!in_array($op, $allowed, true)) {
+      throw new \InvalidArgumentException("Operador SQL no permitido: {$op}");
+    }
+    return $op;
+  }
+
+  /**
+   * Valida columnas y expresiones permitidas en select() bloqueando comentarios, subconsultas o stacked queries.
+   */
+  protected function validateSelectExpression(string $expr): string
+  {
+    $clean = trim($expr);
+    if ($clean === '') {
+      throw new \InvalidArgumentException("Expresión SELECT vacía.");
+    }
+    if (preg_match('/[;\x00#]|--|\/\*|\*\//', $clean)) {
+      throw new \InvalidArgumentException("Expresión SELECT no permitida: {$clean}");
+    }
+    if (preg_match('/\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|CREATE|EXEC|EXECUTE|SLEEP|BENCHMARK|LOAD_FILE|OUTFILE|DUMPFILE|INTO)\b/i', $clean)) {
+      throw new \InvalidArgumentException("Palabra clave SQL no permitida en SELECT: {$clean}");
+    }
+
+    $fnPattern = '/^(?:DISTINCT\s+)?(?:COUNT|SUM|AVG|MIN|MAX|COALESCE|IFNULL|NULLIF|LOWER|UPPER|TRIM|DATE|STRFTIME|DATE_FORMAT|YEAR|MONTH|DAY)\(\s*(?:DISTINCT\s+)?(?:\*|[a-zA-Z0-9_.,\'\s%:-]+)\s*\)(?:\s+(?:AS\s+)?[a-zA-Z_][a-zA-Z0-9_]*)?$/i';
+    if (preg_match($fnPattern, $clean)) {
+      return $clean;
+    }
+
+    return $this->validateIdentifier($clean);
+  }
+
+  /**
+   * Valida columnas o funciones agregadas permitidas en HAVING.
+   */
+  protected function validateHavingTarget(string $col): string
+  {
+    $clean = trim($col);
+    if (preg_match('/^(COUNT|SUM|AVG|MIN|MAX)\(\s*(\*|[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)\s*\)$/i', $clean)) {
+      return $clean;
+    }
+    return $this->validateSingleIdentifier($clean);
+  }
+
+  /**
+   * Valida y prepara separador SQL seguro para GROUP_CONCAT / STRING_AGG.
+   */
+  protected function quoteSeparatorLiteral(string $sep): string
+  {
+    $trimmed = trim($sep);
+    if (strlen($trimmed) >= 2 && (($trimmed[0] === "'" && str_ends_with($trimmed, "'")) || ($trimmed[0] === '"' && str_ends_with($trimmed, '"')))) {
+      $trimmed = substr($trimmed, 1, -1);
+    }
+    $trimmed = preg_replace('/[\x00-\x1F\x7F]/', '', $trimmed) ?? ',';
+    $pdo = $this->pdo_conexion();
+    if ($pdo !== null) {
+      return $pdo->quote($trimmed);
+    }
+    return "'" . str_replace(["\\", "'"], ["\\\\", "\\'"], $trimmed) . "'";
+  }
+
   protected function validateIdentifier($identifier)
   {
 
@@ -321,7 +409,7 @@ class Builder
     $pattern = '/^[a-zA-Z_][a-zA-Z0-9_\.]*(\s+(AS\s+)?[a-zA-Z_][a-zA-Z0-9_]*)?$/i';
 
     // Dividir por comas para manejar múltiples columnas
-    $parts = array_map('trim', explode(',', $identifier));
+    $parts = array_map('trim', explode(',', (string)$identifier));
 
     foreach ($parts as $part) {
 
@@ -429,13 +517,13 @@ class Builder
       // Registrar SIEMPRE el error real en los logs del servidor para diagnóstico (sin exponerlo al cliente en producción)
       error_log("[Builder Exception 1052] " . $e->getMessage() . " | SQL: " . ($sql ?? ''));
 
-      // Solo mostrar detalles en desarrollo, no en producción
-      $isDev = !defined('ENVIRONMENT') || in_array(strtolower((string)ENVIRONMENT), ['dev', 'development', 'local'], true);
-      if ($isDev) {
-
-        ErrorHandler::handle_code(500, 1052, "Error en builder() <br>" . $this->query_error['message'] . "<br> <div class='x16 color3'>" . $this->query_error['raw'] . "</div>" . "<br> <div class='x18 bold600 color2'>" . $sql . "</div>");
+      // Solo mostrar detalles en desarrollo explícito (fail-closed)
+      if (SecurityModule::isDevelopment()) {
+        $safeMsg = htmlspecialchars((string)$this->query_error['message'], ENT_QUOTES, 'UTF-8');
+        $safeRaw = htmlspecialchars((string)$this->query_error['raw'], ENT_QUOTES, 'UTF-8');
+        $safeSql = htmlspecialchars((string)$sql, ENT_QUOTES, 'UTF-8');
+        ErrorHandler::handle_code(500, 1052, "Error en builder() <br>" . $safeMsg . "<br> <div class='x16 color3'>" . $safeRaw . "</div>" . "<br> <div class='x18 bold600 color2'>" . $safeSql . "</div>");
       } else {
-
         // En producción, mensaje genérico sin exponer SQL
         ErrorHandler::handle_code(500, 1052, "Error en la consulta de base de datos. Por favor, contacte al administrador.");
       }
@@ -529,7 +617,10 @@ class Builder
   {
 
     // Validar el nombre de la tabla antes de usarlo
-    $this->validateIdentifier($table);
+    $table = trim((string)$table);
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $table)) {
+      throw new \InvalidArgumentException("Identificador de tabla SQL inválido: {$table}");
+    }
 
     if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
 
@@ -563,7 +654,7 @@ class Builder
   {
 
     if (empty($this->query)) {
-
+      $this->table = $this->validateTableIdentifier((string)$this->table);
       $sql = "SELECT {$this->select} {$this->concat} {$this->count} {$this->total_reg} FROM {$this->table} AS {$this->table}";
 
       if ($this->join) {
@@ -637,7 +728,7 @@ class Builder
   {
 
     if (empty($this->query)) {
-
+      $this->table = $this->validateTableIdentifier((string)$this->table);
       $sql = "SELECT {$this->select} {$this->concat} {$this->count} {$this->total_reg} FROM {$this->table} AS {$this->table}";
 
       if ($this->join) {
@@ -729,8 +820,9 @@ class Builder
    */
   public function find($col, $camp)
   {
-
-    $sql = "SELECT {$this->select} FROM {$this->table} WHERE {$col} = (?)";
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
+    $sql = "SELECT {$this->select} FROM {$table} WHERE {$col} = (?)";
     return $this->query($sql, [$camp])->get_all();
   }
 
@@ -742,9 +834,11 @@ class Builder
    */
   public function select(...$camp)
   {
-
-    $camp = implode(', ', $camp);
-    $this->select = "{$camp}";
+    $validated = [];
+    foreach ($camp as $item) {
+      $validated[] = $this->validateSelectExpression((string)$item);
+    }
+    $this->select = implode(', ', $validated);
     return $this;
   }
 
@@ -757,14 +851,19 @@ class Builder
    */
   public function non_select(...$camp)
   {
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $excluded = [];
+    foreach ($camp as $c) {
+      $excluded[] = $this->validateSingleIdentifier((string)$c);
+    }
+
+    $joinClause = $this->join ? " {$this->join}" : '';
 
     // Optimización: Agregar LIMIT 1 para evitar escaneo completo de tabla solo para obtener columnas
     if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
-
-      $sql = "SELECT * FROM {$this->table} {$this->join} LIMIT 1 OFFSET 0";
+      $sql = "SELECT * FROM {$table}{$joinClause} LIMIT 1 OFFSET 0";
     } else {
-
-      $sql = "SELECT * FROM {$this->table} {$this->join} LIMIT 1";
+      $sql = "SELECT * FROM {$table}{$joinClause} LIMIT 1";
     }
 
     $pdo = $this->pdo_conexion();
@@ -775,20 +874,23 @@ class Builder
     }
 
     $consul = $pdo->query($sql);
-    $data = $consul->fetch(PDO::FETCH_ASSOC);
+    $data = $consul ? $consul->fetch(PDO::FETCH_ASSOC) : false;
 
     if ($data) {
-
-      $data = array_keys($data);
-      $data = array_diff($data, $camp);
-      $data = implode(', ', $data);
-      $this->select = " {$data} ";
+      $cols = [];
+      foreach (array_keys($data) as $colName) {
+        if (!in_array($colName, $excluded, true)) {
+          $cols[] = $this->validateSingleIdentifier((string)$colName);
+        }
+      }
+      if (!empty($cols)) {
+        $this->select = ' ' . implode(', ', $cols) . ' ';
+      }
     }
 
     return $this;
   }
 
-  /**
   /**
    * Ejecuta un conteo directo y retorna el número total de filas.
    *
@@ -797,7 +899,9 @@ class Builder
    */
   public function countRows(string $col = '*'): int
   {
-    $sql = "SELECT COUNT({$col}) as aggregate FROM {$this->table}";
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = trim($col) === '*' ? '*' : $this->validateSingleIdentifier($col);
+    $sql = "SELECT COUNT({$col}) as aggregate FROM {$table}";
     if ($this->where) {
       $sql .= " {$this->where}";
     }
@@ -821,24 +925,20 @@ class Builder
       return $this->countRows('*');
     }
 
-    $countExpr = $distinct ? "COUNT(DISTINCT {$col})" : "COUNT({$col})";
+    $colClean = trim((string)$col) === '*' ? '*' : $this->validateSingleIdentifier((string)$col);
+    $countExpr = $distinct ? "COUNT(DISTINCT {$colClean})" : "COUNT({$colClean})";
 
     if ($alias != null) {
-
+      $safeAlias = $this->validateAlias((string)$alias);
       if ($this->count) {
-
-        $this->count .= " ,{$countExpr} as {$alias} ";
+        $this->count .= " ,{$countExpr} as {$safeAlias} ";
       } else {
-
-        $this->count = " ,{$countExpr} as {$alias} ";
+        $this->count = " ,{$countExpr} as {$safeAlias} ";
       }
     } else {
-
       if ($this->count) {
-
         $this->count .= " ,{$countExpr} ";
       } else {
-
         $this->count = " ,{$countExpr} ";
       }
     }
@@ -856,32 +956,29 @@ class Builder
    */
   public function group_concat($col, $sep, $alias = null)
   {
-
     if (is_null($alias)) {
-
       $alias = $sep;
       $sep = "','";
     }
 
+    $col = $this->validateSingleIdentifier((string)$col);
+    $safeAlias = $this->validateAlias((string)$alias);
+    $safeSep = $this->quoteSeparatorLiteral((string)$sep);
+
     if (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
-
       // PostgreSQL usa STRING_AGG
-      $fragment = " ,STRING_AGG({$col}::text, {$sep}) AS {$alias} ";
+      $fragment = " ,STRING_AGG({$col}::text, {$safeSep}) AS {$safeAlias} ";
     } elseif (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
-
       // SQLite usa GROUP_CONCAT(col, sep)
-      $fragment = " ,GROUP_CONCAT({$col}, {$sep}) AS {$alias} ";
+      $fragment = " ,GROUP_CONCAT({$col}, {$safeSep}) AS {$safeAlias} ";
     } else {
-
       // MySQL usa GROUP_CONCAT
-      $fragment = " ,GROUP_CONCAT({$col} SEPARATOR {$sep}) AS {$alias} ";
+      $fragment = " ,GROUP_CONCAT({$col} SEPARATOR {$safeSep}) AS {$safeAlias} ";
     }
 
     if ($this->concat) {
-
       $this->concat .= $fragment;
     } else {
-
       $this->concat = $fragment;
     }
 
@@ -950,7 +1047,7 @@ class Builder
     }
 
     // --- LÓGICA CORREGIDA PARA INTERPRETAR ARGUMENTOS ---
-    $column = $col;
+    $column = $this->validateSingleIdentifier((string)$col);
     $operator = $op;
     $value = $val;
 
@@ -976,7 +1073,7 @@ class Builder
     }
     // --- FIN DE LA LÓGICA DE INTERPRETACIÓN ---
 
-    $operator = strtoupper(trim($operator));
+    $operator = $this->validateOperator((string)$operator);
     $sql = '';
     $bindings = [];
 
@@ -1073,6 +1170,9 @@ class Builder
       $op = "=";
     }
 
+    $col = $this->validateHavingTarget((string)$col);
+    $op = $this->validateOperator((string)$op, true);
+
     if ($this->having) {
 
       // Si ya existe una cláusula having, se concatena con AND
@@ -1149,40 +1249,38 @@ class Builder
       return $this;
     }
 
+    if (!is_numeric($ini) || ($cant !== null && !is_numeric($cant))) {
+      throw new \InvalidArgumentException("Parámetros LIMIT/OFFSET deben ser numéricos.");
+    }
+
     if ($cant !== null) {
+      $offsetVal = max(0, (int)$ini);
+      $limitVal = max(0, (int)$cant);
 
       // $ini es el desplazamiento (offset), $cant es el conteo de límite
       if (defined('DB_DRIVER') && (DB_DRIVER === 'pgsql' || DB_DRIVER === 'sqlite')) {
 
-        $this->limit = " {$cant} OFFSET {$ini} ";
+        $this->limit = " {$limitVal} OFFSET {$offsetVal} ";
       } else {
 
-        $this->limit = " {$ini},{$cant} ";
+        $this->limit = " {$offsetVal},{$limitVal} ";
       }
     } else {
+      $limitVal = max(0, (int)$ini);
 
       // Solo se proporcionó $ini.
-      // En el código existente: $ini se trata como 'conteo', pero se almacena como "0, $ini" (Offset 0, Límite $ini)
       if (defined('DB_DRIVER') && (DB_DRIVER === 'pgsql' || DB_DRIVER === 'sqlite')) {
 
-        $this->limit = " {$ini} OFFSET 0 ";
+        $this->limit = " {$limitVal} OFFSET 0 ";
       } else {
 
-        $this->limit = " 0, {$ini} ";
+        $this->limit = " 0, {$limitVal} ";
       }
     }
 
     return $this;
   }
 
-  /**
-   * Agrega una cláusula LEFT JOIN a la consulta.
-   *
-   * @param string $second_table La segunda tabla para unir.
-   * @param string $id1          La columna de la tabla principal (this->table) para la unión.
-   * @param string $id2          La columna de la segunda tabla para la unión.
-   * @return self
-   */
   /**
    * Agrega una cláusula LEFT JOIN a la consulta.
    * Soporta sintaxis Legacy (3 args) y Smart (variadic args).
@@ -1194,7 +1292,7 @@ class Builder
   public function join($table, ...$params)
   {
 
-    $this->validateIdentifier($table);
+    $table = $this->validateTableIdentifier((string)$table);
     $condition = $this->_buildJoinCondition($table, $params);
 
     if ($this->join) {
@@ -1208,19 +1306,6 @@ class Builder
 
   /**
    * Agrega una cláusula LEFT JOIN a la consulta con especificación explícita de tablas.
-   * Permite unir tablas intermedias sin depender de $this->table.
-   *
-   * Ejemplo de uso:
-   * ->joinOn("categories", "blogpostcategories.category_id_cat", "categories.category_id")
-   *
-   * @param string $second_table La tabla a unir.
-   * @param string $condition1   La primera columna con formato "tabla.columna".
-   * @param string $condition2   La segunda columna con formato "tabla.columna".
-   * @return self
-   */
-  /**
-   * Agrega una cláusula LEFT JOIN a la consulta.
-   * Soporta sintaxis Legacy (3 args) y Smart (variadic args).
    *
    * @param string $table  La segunda tabla para unir.
    * @param mixed  ...$params Argumentos variables.
@@ -1228,27 +1313,28 @@ class Builder
    */
   public function joinOn($table, ...$params)
   {
-    $this->validateIdentifier($table);
+    $table = $this->validateTableIdentifier((string)$table);
     
-    // Logic specific for joinOn - usually explicit ON clauses
     // Check Legacy: joinOn($table, $cond1, $cond2) -> ON $cond1 = $cond2
-    if (count($params) === 2 && !str_contains($params[0], '=') && !str_contains($params[1], '=')) {
-        $this->validateIdentifier($params[0]);
-        $this->validateIdentifier($params[1]);
-        $condition = "ON {$params[0]} = {$params[1]}";
+    if (count($params) === 2 && !str_contains((string)$params[0], '=') && !str_contains((string)$params[1], '=')) {
+        $col1 = $this->validateSingleIdentifier((string)$params[0]);
+        $col2 = $this->validateSingleIdentifier((string)$params[1]);
+        $condition = "ON {$col1} = {$col2}";
     } else {
-        // Smart/Raw mode for joinOn
+        // Smart mode estricto: solo expresiones 't1.c1.t2.c2' o 't1.c1 = t2.c2' con identificadores simples
         $conditions = [];
         foreach ($params as $param) {
-            // Apply dot-to-equals sugar: "t1.c1.t2.c2" -> "t1.c1 = t2.c2"
-            // if param looks like identifier.identifier.identifier.identifier !!
-            // User requested: joinOn("cat", "blogpostcategories.category_id_cat", "categories.category_id") => ON ... = ...
-            // The smart loop below handles complex conditions joined by AND
-             if (preg_match('/^([a-zA-Z0-9_]+\.[a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+\.[a-zA-Z0-9_]+)$/', $param, $matches)) {
-                 $conditions[] = "{$matches[1]} = {$matches[2]}";
-             } else {
-                 $conditions[] = $param; 
-             }
+            $p = trim((string)$param);
+            if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)$/', $p, $matches)) {
+                $conditions[] = "{$matches[1]} = {$matches[2]}";
+            } elseif (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)$/', $p, $matches)) {
+                $conditions[] = "{$matches[1]} = {$matches[2]}";
+            } else {
+                throw new \InvalidArgumentException("Condición joinOn() inválida: {$p}");
+            }
+        }
+        if (empty($conditions)) {
+            throw new \InvalidArgumentException("joinOn() requiere al menos una condición válida.");
         }
         $condition = "ON " . implode(" AND ", $conditions);
     }
@@ -1266,14 +1352,6 @@ class Builder
 
   /**
    * Agrega una cláusula FULL JOIN a la consulta.
-   *
-   * @param string $second_table La segunda tabla para unir.
-   * @param string $id1          La columna de la tabla principal (this->table) para la unión.
-   * @param string $id2          La columna de la segunda tabla para la unión.
-   * @return self
-   */
-  /**
-   * Agrega una cláusula FULL JOIN a la consulta.
    * Soporta sintaxis Legacy (3 args) y Smart (variadic args).
    *
    * @param string $table  La segunda tabla para unir.
@@ -1283,7 +1361,7 @@ class Builder
   public function full_join($table, ...$params)
   {
 
-    $this->validateIdentifier($table);
+    $table = $this->validateTableIdentifier((string)$table);
     $condition = $this->_buildJoinCondition($table, $params);
 
     if ($this->full_join) {
@@ -1303,47 +1381,58 @@ class Builder
    * @param string|null $encoder (Opcional) El nombre de la columna donde se generará un ID único (hex).
    * @return string El ID del último registro insertado.
    */
+  /**
+   * Valida columnas y prepara datos para inserción/actualización (elimina atributos peligrosos si hay HTML permitido).
+   *
+   * @param array<string, mixed> $datas
+   * @param string|null $encoder
+   * @param int $encoderBytes
+   * @return array<string, mixed>
+   */
+  protected function prepareWriteData(array $datas, ?string $encoder = null, int $encoderBytes = 15): array
+  {
+    $dataOut = [];
+    foreach ($datas as $key => $value) {
+      $colName = $this->validateSingleIdentifier((string)$key);
+      if ($this->fillableColumns !== null && !in_array($colName, $this->fillableColumns, true)) {
+        continue;
+      }
+
+      if (is_string($value)) {
+        if (empty(TAGS_VALID_TEXT_INPUT)) {
+          $value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+        } else {
+          $value = SecurityModule::sanitizeRichHtml($value, (string)TAGS_VALID_TEXT_INPUT);
+        }
+      }
+
+      $dataOut[$colName] = $value;
+    }
+
+    if ($encoder !== null) {
+      $encoderCol = $this->validateSingleIdentifier((string)$encoder);
+      $dataOut[$encoderCol] = bin2hex(random_bytes($encoderBytes));
+    }
+
+    if (empty($dataOut)) {
+      throw new \InvalidArgumentException("No hay columnas válidas para escribir en la consulta.");
+    }
+
+    return $dataOut;
+  }
+
   public function create($datas, $encoder = null)
   {
-
-    //mantiene el formato de texto en la BD, codificando en caracteres especiales
-    foreach ($datas as $key => $value) {
-
-      if (gettype($value) == 'string') {
-
-        if (empty(TAGS_VALID_TEXT_INPUT)) {
-
-          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
-        } else {
-
-          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
-        }
-      } else {
-
-        $value = $value;
-      }
-
-      $data_out[$key] = $value;
-
-      if ($encoder !== null) {
-
-        $unique_id = random_bytes(15);
-        $unique_id = bin2hex($unique_id);
-        $data_out[$encoder] = $unique_id;
-      }
-    }
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $data_out = $this->prepareWriteData((array)$datas, $encoder, 15);
 
     $data = array_values($data_out);
     $keys_data = array_keys($data_out);
-
-    foreach ($data as $value) {
-
-      $values[] = '?';
-    }
+    $values = array_fill(0, count($data), '?');
 
     $key = implode(', ', $keys_data);
     $value = implode(', ', $values);
-    $sql = "INSERT INTO {$this->table} ( {$key} ) VALUES ( {$value} )";
+    $sql = "INSERT INTO {$table} ( {$key} ) VALUES ( {$value} )";
     $this->query($sql, $data);
 
     // Si generamos un ID único manualmente, retornarlo. Si no, usar lastInsertId.
@@ -1364,49 +1453,25 @@ class Builder
    */
   public function update($col, $camp, $datas, $encoder = null)
   {
-
-    //mantiene el formato de texto en la BD, codificando en caracteres especiales
-    foreach ($datas as $key => $value) {
-
-      if (gettype($value) == 'string') {
-
-        if (empty(TAGS_VALID_TEXT_INPUT)) {
-
-          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
-        } else {
-
-          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
-        }
-      } else {
-
-        $value = $value;
-      }
-
-      $data_out[$key] = $value;
-
-      if ($encoder !== null) {
-
-        $unique_id = random_bytes(10);
-        $unique_id = bin2hex($unique_id);
-        $data_out[$encoder] = $unique_id;
-      }
-    }
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
+    $data_out = $this->prepareWriteData((array)$datas, $encoder, 10);
 
     $data = array_values($data_out);
     $keys_data = array_keys($data_out);
     $count_datas = count($data);
 
     $bindings = [];
+    $data_field = [];
 
     for ($i = 0; $i < $count_datas; $i++) {
-
       $data_field[] = $keys_data[$i] . " = ?";
       $bindings[] = $data[$i];
     }
 
     $fields = implode(', ', $data_field);
 
-    $sql = "UPDATE {$this->table} SET {$fields} WHERE {$col} = ?";
+    $sql = "UPDATE {$table} SET {$fields} WHERE {$col} = ?";
     $bindings[] = $camp;
     $this->query($sql, $bindings);
     $this->reset();
@@ -1425,26 +1490,8 @@ class Builder
       throw new \InvalidArgumentException("updateWhere() requiere al menos una condición WHERE para evitar actualizaciones masivas accidentales.");
     }
 
-    $data_out = [];
-    foreach ($datas as $key => $value) {
-      if (gettype($value) == 'string') {
-        if (empty(TAGS_VALID_TEXT_INPUT)) {
-          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
-        } else {
-          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
-        }
-      } else {
-        $value = $value;
-      }
-
-      $data_out[$key] = $value;
-
-      if ($encoder !== null) {
-        $unique_id = random_bytes(10);
-        $unique_id = bin2hex($unique_id);
-        $data_out[$encoder] = $unique_id;
-      }
-    }
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $data_out = $this->prepareWriteData($datas, $encoder, 10);
 
     $data = array_values($data_out);
     $keys_data = array_keys($data_out);
@@ -1459,7 +1506,7 @@ class Builder
     }
 
     $fields = implode(', ', $data_field);
-    $sql = "UPDATE {$this->table} SET {$fields} {$this->where}";
+    $sql = "UPDATE {$table} SET {$fields} {$this->where}";
 
     // Concatenar los valores del WHERE
     $bindings = array_merge($bindings, $this->values);
@@ -1478,20 +1525,19 @@ class Builder
    */
   public function delete($col, $camp)
   {
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
 
     if (is_array($camp)) {
-
       foreach ($camp as $value) {
-
-        $sql = "DELETE FROM {$this->table} WHERE {$col} = ?";
+        $sql = "DELETE FROM {$table} WHERE {$col} = ?";
         $this->query($sql, [$value]);
       }
 
       $this->reset();
       return;
     } else {
-
-      $sql = "DELETE FROM {$this->table} WHERE {$col} = ?";
+      $sql = "DELETE FROM {$table} WHERE {$col} = ?";
       $this->query($sql, [$camp]);
       $this->reset();
       return;
@@ -1508,47 +1554,20 @@ class Builder
    */
   public function register($datas, $pass, $encoder = null)
   {
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $passCol = $this->validateSingleIdentifier((string)$pass);
 
-    //mantiene el formato de texto en la BD, codificando en caracteres especiales
-    foreach ($datas as $key => $value) {
+    $data_out = $this->prepareWriteData((array)$datas, $encoder, 15);
+    $rawPassword = (string)($datas[$passCol] ?? $data_out[$passCol] ?? '');
+    $data_out[$passCol] = password_hash($rawPassword, PASSWORD_DEFAULT);
 
-      if (gettype($value) == 'string') {
-
-        if (empty(TAGS_VALID_TEXT_INPUT)) {
-
-          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
-        } else {
-
-          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
-        }
-      } else {
-
-        $value = $value;
-      }
-
-      $data_out[$key] = $value;
-
-      if ($encoder !== null) {
-
-        $unique_id = random_bytes(15);
-        $unique_id = bin2hex($unique_id);
-        $data_out[$encoder] = $unique_id;
-      }
-    }
-
-    $password = $data_out[$pass];
-    $data_out[$pass] = password_hash($password, PASSWORD_DEFAULT);
     $data = array_values($data_out);
     $keys_data = array_keys($data_out);
-
-    foreach ($data as $value) {
-
-      $values[] = '?';
-    }
+    $values = array_fill(0, count($data), '?');
 
     $key = implode(', ', $keys_data);
     $value = implode(', ', $values);
-    $sql = "INSERT INTO {$this->table} ( {$key} ) VALUES ( {$value} )";
+    $sql = "INSERT INTO {$table} ( {$key} ) VALUES ( {$value} )";
     $this->query($sql, $data);
 
     // Si generamos un ID único manualmente, retornarlo. Si no, usar lastInsertId.
@@ -1570,50 +1589,28 @@ class Builder
    */
   public function register_update($col, $camp, $datas, $pass, $encoder = null)
   {
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
+    $passCol = $this->validateSingleIdentifier((string)$pass);
 
-    //mantiene el formato de texto en la BD, codificando en caracteres especiales
-    foreach ($datas as $key => $value) {
+    $data_out = $this->prepareWriteData((array)$datas, $encoder, 15);
+    $rawPassword = (string)($datas[$passCol] ?? $data_out[$passCol] ?? '');
+    $data_out[$passCol] = password_hash($rawPassword, PASSWORD_DEFAULT);
 
-      if (gettype($value) == 'string') {
-
-        if (empty(TAGS_VALID_TEXT_INPUT)) {
-
-          $value = htmlentities($value, ENT_QUOTES, "UTF-8");
-        } else {
-
-          $value = strip_tags($value, TAGS_VALID_TEXT_INPUT);
-        }
-      } else {
-
-        $value = $value;
-      }
-
-      $data_out[$key] = $value;
-
-      if ($encoder !== null) {
-
-        $unique_id = random_bytes(15);
-        $unique_id = bin2hex($unique_id);
-        $data_out[$encoder] = $unique_id;
-      }
-    }
-
-    $password = $data_out[$pass];
-    $data_out[$pass] = password_hash($password, PASSWORD_DEFAULT);
     $data = array_values($data_out);
     $keys_data = array_keys($data_out);
     $count_datas = count($data);
 
     $bindings = [];
+    $data_field = [];
 
     for ($i = 0; $i < $count_datas; $i++) {
-
       $data_field[] = $keys_data[$i] . " = ?";
       $bindings[] = $data[$i];
     }
 
     $fields = implode(', ', $data_field);
-    $sql = "UPDATE {$this->table} SET {$fields} WHERE {$col} = ?";
+    $sql = "UPDATE {$table} SET {$fields} WHERE {$col} = ?";
     $bindings[] = $camp;
     $this->query($sql, $bindings);
     $this->reset();
@@ -1635,6 +1632,9 @@ class Builder
    */
   public function login($col_pass, $pass, $camp, $cols = [], $noSelect = [])
   {
+    $this->validateTableIdentifier((string)$this->table);
+    $col_pass = $this->validateSingleIdentifier((string)$col_pass);
+
     // Guardar configuración localmente antes de que consultas internas puedan resetear el estado
     $maxAttempts = $this->rateLimitMaxAttempts;
     $blockSeconds = $this->rateLimitBlockSeconds;
@@ -1648,61 +1648,54 @@ class Builder
     }
 
     $no_data = false;
+    $foundRows = [];
 
     foreach ($cols as $value) {
-
-      $data[] = $this->find($value, $camp);
+      $safeCol = $this->validateSingleIdentifier((string)$value);
+      $foundRows[] = $this->find($safeCol, $camp);
     }
 
-    for ($i = 0; $i < count($data); $i++) {
-
-      if (!empty($data[$i])) {
-
-        $data = $data[$i];
+    for ($i = 0; $i < count($foundRows); $i++) {
+      if (!empty($foundRows[$i])) {
+        $data = $foundRows[$i];
         $no_data = true;
       }
     }
 
     if ($no_data) {
-
       $reg = $data[0];
     } else {
-
       // Restaurar rate limit antes de incrementar
       $this->rateLimitMaxAttempts = $maxAttempts;
       $this->rateLimitBlockSeconds = $blockSeconds;
       $this->incrementRateLimit($actionKey);
       $this->reset();
       return [false, 0]; // No existe el usuario
-
     }
 
-    $verify_pass = password_verify($pass, $reg[$col_pass]);
+    $storedHash = (string)($reg[$col_pass] ?? '');
+    $verify_pass = $storedHash !== '' && password_verify((string)$pass, $storedHash);
 
     if (!$verify_pass) {
-
-      if ($pass === $reg[$col_pass]) {
-
-        // Coincide con texto plano (no encriptado)
+      // Bloquear contraseñas en texto plano por defecto; solo permitir migración legacy bajo opt-in explícito
+      $allowLegacy = defined('ALLOW_LEGACY_PLAINTEXT_AUTH') && ALLOW_LEGACY_PLAINTEXT_AUTH === true;
+      if ($allowLegacy && $storedHash !== '' && !str_starts_with($storedHash, '$2y$') && !str_starts_with($storedHash, '$argon2') && hash_equals($storedHash, (string)$pass)) {
         $this->rateLimitMaxAttempts = $maxAttempts;
         $this->rateLimitBlockSeconds = $blockSeconds;
         $this->clearRateLimit($actionKey);
         Session::create_user_session($reg, $noSelect);
         $this->reset();
         return [true, 'encrypted' => false];
-      } else {
-
-        // Restaurar rate limit antes de incrementar
-        $this->rateLimitMaxAttempts = $maxAttempts;
-        $this->rateLimitBlockSeconds = $blockSeconds;
-        $this->incrementRateLimit($actionKey);
-        $this->reset();
-        return [false, 1]; // La clave no corresponde
-
       }
-    } else {
 
-      // Éxito con clave encriptada
+      // Restaurar rate limit antes de incrementar
+      $this->rateLimitMaxAttempts = $maxAttempts;
+      $this->rateLimitBlockSeconds = $blockSeconds;
+      $this->incrementRateLimit($actionKey);
+      $this->reset();
+      return [false, 1]; // La clave no corresponde
+    } else {
+      // Éxito con clave hasheada
       $this->rateLimitMaxAttempts = $maxAttempts;
       $this->rateLimitBlockSeconds = $blockSeconds;
       $this->clearRateLimit($actionKey);
@@ -1718,8 +1711,6 @@ class Builder
    *
    * @param int $cant     El número de registros por página.
    * @param int $inOffSet (Opcional) Número de registros iniciales a omitir del conjunto paginable.
-   *                      Por ejemplo, si hay 4 posts y usas pag(2, 1), se omite el primer post
-   *                      y se paginan los 3 restantes: página 1 muestra 2 posts, página 2 muestra 1 post.
    * @return array Un array con la estructura de paginación y los registros.
    */
   public function pag($cant, $inOffSet = 0)
@@ -1753,11 +1744,15 @@ class Builder
     // Calcular total de páginas
     $cant_pag = ($total > 0) ? (int)ceil($total / $cant) : 1;
 
-    // Limpiar base de URL
-    $url = $_SERVER["REDIRECT_URL"] ?? $_SERVER["PHP_SELF"];
+    // Sanitizar URL base contra Open Redirect / CRLF / XSS
+    $rawUrl = (string)($_SERVER["REDIRECT_URL"] ?? $_SERVER["PHP_SELF"] ?? '/');
+    $pathOnly = (string)(parse_url(str_replace(["\r", "\n", "\0"], '', $rawUrl), PHP_URL_PATH) ?? '/');
+    $url = SecurityModule::sanitizeRedirectUrl('/' . ltrim($pathOnly, '/'), false);
+    if ($url === '#' || $url === '') {
+      $url = '/';
+    }
 
     // --- LÓGICA DE REDIRECCIÓN ---
-    // Solo redirigir si el parámetro 'pag' está explícitamente presente en la URL
     if (isset($_GET['p'])) {
 
       $val = (int)$_GET['p'];
@@ -1989,7 +1984,7 @@ class Builder
   public function rightJoin($table, ...$params)
   {
 
-    $this->validateIdentifier($table);
+    $table = $this->validateTableIdentifier((string)$table);
     $condition = $this->_buildJoinCondition($table, $params);
 
     if ($this->join) {
@@ -2003,14 +1998,6 @@ class Builder
 
   /**
    * Agrega una cláusula INNER JOIN a la consulta.
-   *
-   * @param string $second_table La segunda tabla para unir.
-   * @param string $id1          La columna de la tabla principal.
-   * @param string $id2          La columna de la segunda tabla.
-   * @return self
-   */
-  /**
-   * Agrega una cláusula INNER JOIN a la consulta.
    * Soporta sintaxis Legacy (3 args) y Smart (variadic args).
    *
    * @param string $table  La segunda tabla para unir.
@@ -2020,7 +2007,7 @@ class Builder
   public function innerJoin($table, ...$params)
   {
 
-    $this->validateIdentifier($table);
+    $table = $this->validateTableIdentifier((string)$table);
     $condition = $this->_buildJoinCondition($table, $params);
 
     if ($this->join) {
@@ -2033,48 +2020,54 @@ class Builder
   }
 
   /**
-   * Construye la condición ON para los Joins.
+   * Construye la condición ON para los Joins de forma estrictamente validada.
    *
    * @param string $table  La tabla a unir.
    * @param array  $params Argumentos de condición.
-   * @return string Cláusula ON completa (ej. "ON t1.id = t2.id AND ...").
+   * @return string Cláusula ON completa.
    */
   protected function _buildJoinCondition($table, $params)
   {
-      // Legacy Check: Si hay exactamente 2 parámetros y son identificadores simples (sin puntos ni iguales)
-      // Asume: join('table', 'col1', 'col2') -> ON this.col1 = table.col2
-      if (count($params) === 2 && !str_contains($params[0], '.') && !str_contains($params[0], '=') && !str_contains($params[1], '=')) {
-          $this->validateIdentifier($params[0]);
-          $this->validateIdentifier($params[1]);
-          return "ON {$this->table}.{$params[0]} = {$table}.{$params[1]}";
+      $mainTable = $this->validateTableIdentifier((string)$this->table);
+      $table = $this->validateTableIdentifier((string)$table);
+
+      if (count($params) === 2 && !str_contains((string)$params[0], '.') && !str_contains((string)$params[0], '=') && !str_contains((string)$params[1], '=')) {
+          $c1 = $this->validateSingleIdentifier((string)$params[0]);
+          $c2 = $this->validateSingleIdentifier((string)$params[1]);
+          return "ON {$mainTable}.{$c1} = {$table}.{$c2}";
       }
 
-      // Smart Syntax
+      $pdo = $this->pdo_conexion();
       $conditions = [];
       foreach ($params as $param) {
-          
-          // Case 1: Literal String Comparison (e.g. "col.'value'" or "col.'value'")
-          // Matches: identifier . 'value' OR identifier . "value"
-          if (preg_match('/^([a-zA-Z0-9_]+)\.(["\'].+["\'])$/', $param, $matches)) {
-              // Assume column belongs to the JOINED table ($table) when comparing to a literal
-              $conditions[] = "{$table}.{$matches[1]} = {$matches[2]}";
+          $p = trim((string)$param);
+
+          // Case 1: Literal String Comparison (e.g. "col.'value'")
+          if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\.(["\'])(.*?)\2$/', $p, $matches)) {
+              $colName = $this->validateSingleIdentifier($matches[1]);
+              $literalVal = $matches[3];
+              $quoted = $pdo !== null ? $pdo->quote($literalVal) : ("'" . str_replace(["\\", "'"], ["\\\\", "\\'"], $literalVal) . "'");
+              $conditions[] = "{$table}.{$colName} = {$quoted}";
           }
           // Case 2: Literal Number Comparison (e.g. "col.123")
-          // Matches: identifier . digits
-          elseif (preg_match('/^([a-zA-Z0-9_]+)\.([0-9]+)$/', $param, $matches)) {
-               // Assume column belongs to the JOINED table
-               $conditions[] = "{$table}.{$matches[1]} = {$matches[2]}";
+          elseif (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\.([0-9]+)$/', $p, $matches)) {
+               $colName = $this->validateSingleIdentifier($matches[1]);
+               $conditions[] = "{$table}.{$colName} = " . (int)$matches[2];
           }
           // Case 3: Column to Column Relation (e.g. "col1.col2")
-          // Matches: identifier . identifier
-          elseif (preg_match('/^([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)$/', $param, $matches)) {
-              // Assume first col is THIS table, second col is JOINED table
-              $conditions[] = "{$this->table}.{$matches[1]} = {$table}.{$matches[2]}";
-          } 
-          // Case 4: Raw Condition
-          else {
-              $conditions[] = $param;
+          elseif (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)$/', $p, $matches)) {
+              $c1 = $this->validateSingleIdentifier($matches[1]);
+              $c2 = $this->validateSingleIdentifier($matches[2]);
+              $conditions[] = "{$mainTable}.{$c1} = {$table}.{$c2}";
           }
+          // Case 4: Rechazar fragmentos crudos no reconocidos
+          else {
+              throw new \InvalidArgumentException("Condición JOIN inválida: {$p}");
+          }
+      }
+
+      if (empty($conditions)) {
+          throw new \InvalidArgumentException("La cláusula JOIN requiere al menos una condición válida.");
       }
 
       return "ON " . implode(" AND ", $conditions);
@@ -2085,99 +2078,37 @@ class Builder
   // ============================================================================
 
   /**
-   * Agrega una función SUM() a la consulta.
-   *
-   * @param string      $col   La columna a sumar.
-   * @param string|null $alias Un alias opcional.
-   * @return self
+   * Registra una función agregada SQL sobre una columna validada.
    */
+  protected function addAggregateExpression(string $func, string $col, ?string $alias = null): self
+  {
+    $col = $this->validateSingleIdentifier($col);
+    $alias = $alias ?? (strtolower($func) . '_' . str_replace('.', '_', $col));
+    $safeAlias = $this->validateAlias($alias);
+
+    $fragment = " ,{$func}({$col}) AS {$safeAlias} ";
+    $this->count = $this->count ? ($this->count . $fragment) : $fragment;
+    return $this;
+  }
+
   public function sum($col, $alias = null)
   {
-
-    $alias = $alias ?? 'sum_' . $col;
-    $this->validateIdentifier($col);
-
-    if ($this->count) {
-
-      $this->count .= " ,SUM({$col}) AS {$alias} ";
-    } else {
-
-      $this->count = " ,SUM({$col}) AS {$alias} ";
-    }
-
-    return $this;
+    return $this->addAggregateExpression('SUM', (string)$col, $alias !== null ? (string)$alias : null);
   }
 
-  /**
-   * Agrega una función AVG() a la consulta.
-   *
-   * @param string      $col   La columna a promediar.
-   * @param string|null $alias Un alias opcional.
-   * @return self
-   */
   public function avg($col, $alias = null)
   {
-
-    $alias = $alias ?? 'avg_' . $col;
-    $this->validateIdentifier($col);
-
-    if ($this->count) {
-
-      $this->count .= " ,AVG({$col}) AS {$alias} ";
-    } else {
-
-      $this->count = " ,AVG({$col}) AS {$alias} ";
-    }
-
-    return $this;
+    return $this->addAggregateExpression('AVG', (string)$col, $alias !== null ? (string)$alias : null);
   }
 
-  /**
-   * Agrega una función MIN() a la consulta.
-   *
-   * @param string      $col   La columna.
-   * @param string|null $alias Un alias opcional.
-   * @return self
-   */
   public function min($col, $alias = null)
   {
-
-    $alias = $alias ?? 'min_' . $col;
-    $this->validateIdentifier($col);
-
-    if ($this->count) {
-
-      $this->count .= " ,MIN({$col}) AS {$alias} ";
-    } else {
-
-      $this->count = " ,MIN({$col}) AS {$alias} ";
-    }
-
-    return $this;
+    return $this->addAggregateExpression('MIN', (string)$col, $alias !== null ? (string)$alias : null);
   }
 
-  /**
-   * Agrega una función MAX() a la consulta.
-   *
-   * @param string      $col   La columna.
-   * @param string|null $alias Un alias opcional.
-   * @return self
-   */
   public function max($col, $alias = null)
   {
-
-    $alias = $alias ?? 'max_' . $col;
-    $this->validateIdentifier($col);
-
-    if ($this->count) {
-
-      $this->count .= " ,MAX({$col}) AS {$alias} ";
-    } else {
-
-      $this->count = " ,MAX({$col}) AS {$alias} ";
-    }
-
-    return $this;
+    return $this->addAggregateExpression('MAX', (string)$col, $alias !== null ? (string)$alias : null);
   }
 
   /**
@@ -2270,41 +2201,34 @@ class Builder
    */
   public function toSql()
   {
-
-    $sql = "SELECT {$this->select} {$this->concat} {$this->count} {$this->total_reg} FROM {$this->table} AS {$this->table}";
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $sql = "SELECT {$this->select} {$this->concat} {$this->count} {$this->total_reg} FROM {$table} AS {$table}";
 
     if ($this->join) {
-
       $sql .= " {$this->join}";
     }
 
     if ($this->full_join) {
-
       $sql .= " {$this->full_join} ";
     }
 
     if ($this->where) {
-
       $sql .= " {$this->where}";
     }
 
     if ($this->group) {
-
       $sql .= " GROUP BY {$this->group}";
     }
 
     if ($this->having) {
-
       $sql .= " {$this->having}";
     }
 
     if ($this->order) {
-
       $sql .= " ORDER BY {$this->order}";
     }
 
     if ($this->limit) {
-
       $sql .= " LIMIT {$this->limit}";
     }
 
@@ -2323,14 +2247,13 @@ class Builder
    */
   public function increment($col, $amount = 1)
   {
-
-    $this->validateIdentifier($col);
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
     $amount = (int)$amount;
 
-    $sql = "UPDATE {$this->table} SET {$col} = {$col} + ?";
+    $sql = "UPDATE {$table} SET {$col} = {$col} + ?";
 
     if ($this->where) {
-
       $sql .= " {$this->where}";
     }
 
@@ -2347,14 +2270,13 @@ class Builder
    */
   public function decrement($col, $amount = 1)
   {
-
-    $this->validateIdentifier($col);
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $col = $this->validateSingleIdentifier((string)$col);
     $amount = (int)$amount;
 
-    $sql = "UPDATE {$this->table} SET {$col} = {$col} - ?";
+    $sql = "UPDATE {$table} SET {$col} = {$col} - ?";
 
     if ($this->where) {
-
       $sql .= " {$this->where}";
     }
 
@@ -2370,21 +2292,19 @@ class Builder
    */
   public function truncate()
   {
+    $table = $this->validateTableIdentifier((string)$this->table);
 
     if (defined('DB_DRIVER') && DB_DRIVER === 'sqlite') {
-
-      $sql = "DELETE FROM {$this->table}";
+      $sql = "DELETE FROM {$table}";
       $this->query($sql);
       if ($this->table_exist('sqlite_sequence')) {
-        $this->query("DELETE FROM sqlite_sequence WHERE name = ?", [$this->table]);
+        $this->query("DELETE FROM sqlite_sequence WHERE name = ?", [$table]);
       }
     } elseif (defined('DB_DRIVER') && DB_DRIVER === 'pgsql') {
-
-      $sql = "TRUNCATE TABLE {$this->table} RESTART IDENTITY";
+      $sql = "TRUNCATE TABLE {$table} RESTART IDENTITY";
       $this->query($sql);
     } else {
-
-      $sql = "TRUNCATE TABLE {$this->table}";
+      $sql = "TRUNCATE TABLE {$table}";
       $this->query($sql);
     }
   }

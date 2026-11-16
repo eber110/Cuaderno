@@ -226,6 +226,7 @@ App/Views/Dashboard/StatisticsPanel/
 | `_if($condicion, "Home.banner")` | Incluye la parte solo si se cumple la condición |
 | `_partToString(...)` / `_componentToString(...)` | Version que retorna string en vez de imprimir |
 | `e()` / `ee()` | Escape HTML anti-XSS |
+| `eUrl()` / `csrf_field()` | Sanitiza URLs anti-Open Redirect / campo oculto CSRF en formularios |
 | `nd($number, $decimals = 2, $thousands = true)` | Formatea número con COMA decimal (`1.250,50`) (`Base/Helpers/Number.php`) |
 | `ndp($number, $decimals = 2, $thousands = true)` | Formatea número con PUNTO decimal (`1,250.50`) (`Base/Helpers/Number.php`) |
 | `__('grupo.clave', $replace)` / `t(...)` | Traduce texto con interpolación `:param` escapada (`Base/Helpers/Lang.php`) |
@@ -406,13 +407,14 @@ frame lang:import <archivo>          # Importa traducciones desde JSON/CSV (comp
 4. **No editar generados:** `App/Public/Min/*`, `App/Public/Css/jit-compiled.css`, `App/Config/preloadFonts.json` → se regeneran con `composer min-script`.
 5. **`.env` nunca se commitea** (gitignored). Usar `.env.example` como plantilla.
 6. **Constantes:** usar las de `config.php` del framework (`ROUTE_VIEW`, `ROUTE_ICO`, `TIME_DAY`, `URL_IMG`, `NAME_SITE`, `DOMAIN`…), nunca rutas literales.
-7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder ya escapa; NO concatenar SQL.
+7. **Seguridad:** no usar valores de `$_ENV`/`$_SERVER`/`$_GET`/`$_POST` sin sanitizar. El Builder valida identificadores y usa *prepared statements*; **prohibido concatenar SQL o pasar `$_POST`/`$requestData` crudo a `Builder::create()` / `update()`** (filtrar campos explícitamente o definir `$model->fillable([...])`).
 8. **Tablas nuevas (Zero-Config):** por defecto no requiere registrar tablas en listas fijas; valida sintaxis de identificador SQL seguro contra inyección. Si se define `ALLOWED_TABLES` con un array no vacío en `config.php`, opera en modo whitelist estricto opt-in.
 9. **Escribir en español** (código, docblocks, commits y docs).
 10. **Seguridad contra IDOR e inyección:** Prohibido terminantemente usar `extract()` sobre datos de usuario o arrays de parámetros de peticiones. Leer explícitamente cada campo.
-11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`.
-12. **Protección CSRF y métodos seguros:** Todas las operaciones con cambio de estado o mutación (guardar, editar, eliminar, salir/logout) deben ejecutarse por `POST` y validar token CSRF (`_token`, `csrf_token` o header `X-CSRF-TOKEN`).
-13. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) centralizando los diccionarios en `App/Lang/{locale}/`.
+11. **Escapado obligatorio en vistas (Anti-XSS):** Toda salida dinámica en plantillas o vistas debe escaparse: `e()` para texto HTML, `eUrl()` para URLs en `href` o `src`, y `safeCssColor()` para valores de color en estilos CSS en línea o bloques `<style>`. No confiar en `TAGS_VALID_TEXT_INPUT` (desactivado por defecto); para HTML enriquecido usar `SecurityModule::sanitizeRichHtml()`.
+12. **Protección CSRF y métodos seguros:** Todas las operaciones mutables (`POST`, `PUT`, `PATCH`, `DELETE`) validan CSRF automáticamente vía `Base\Middleware\CsrfMiddleware` cuando `CSRF_PROTECTION="true"`. Usar `csrf_field()` en formularios HTML, `<meta name="csrf-token">` / `X-CSRF-TOKEN` en `fetch()`, y reservar `Route::withoutCsrf()->post(...)` exclusivamente para webhooks externos verificados criptográficamente (HMAC).
+13. **Despliegue y Proxy en Producción:** Establecer `APP_ENV="production"` (cualquier valor vacío o desconocido actúa *fail-closed* como producción), definir `FORCE_DOMAIN` o `ALLOWED_HOSTS` (anti Host-Header Poisoning), configurar `TRUSTED_PROXIES` (IPs/CIDRs) detrás de Cloudflare/Nginx/ALB, y replicar reglas de bloqueo si se usa Nginx (`vendor/eber/framework/Docs/DEPLOY_NGINX.md`).
+14. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) centralizando los diccionarios en `App/Lang/{locale}/`.
 
 ---
 

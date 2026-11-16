@@ -201,6 +201,10 @@ class InitAppStructure
     echo "\n📊 Resumen:\n";
     echo "   Directorios creados: {$created}\n";
     echo "   Directorios existentes: {$skipped}\n";
+    if (!$this->isFrameworkRepo) {
+      echo "\n💡 Recuerda ejecutar 'composer min-script' (o 'frame min') para recompilar\n";
+      echo "   App/Public/Min/ con los últimos scripts JS y CSS endurecidos del framework.\n";
+    }
     echo "\n✨ ¡Estructura de /App lista!\n";
 
     return true;
@@ -506,7 +510,7 @@ class InitAppStructure
     if (file_exists($dest)) {
       if (file_exists($source)) {
         $content = (string)file_get_contents($dest);
-        if (!str_contains($content, '$dbDiagnostic') || !str_contains($content, "__('global.errors.")) {
+        if (!str_contains($content, '$dbDiagnostic') || !str_contains($content, "__('global.errors.") || str_contains($content, "=== 'eber'")) {
           if (!str_contains($content, '<!-- CUSTOM_ERROR_VIEW -->')) {
             @copy($source, $dest);
             echo "🔧 Actualizado: App/errorViews/HandlerError.php (diagnóstico seguro e i18n sincronizados)\n";
@@ -736,6 +740,28 @@ ENV;
         echo "🌍 Variable MAXMIND_LICENSE_KEY añadida a .env\n";
       }
 
+      // 6. Sincronizar variables de hardening (ALLOWED_HOSTS, TRUSTED_PROXIES, DEPLOY_ENABLED) si faltan
+      if (!str_contains($envContent, 'TRUSTED_PROXIES') || !str_contains($envContent, 'ALLOWED_HOSTS')) {
+        $secAdd = '';
+        if (!str_contains($envContent, 'ALLOWED_HOSTS')) {
+          $secAdd .= "\n# Lista blanca de hosts válidos en producción (anti Host Header Poisoning)\nALLOWED_HOSTS=\"\"\n";
+        }
+        if (!str_contains($envContent, 'TRUSTED_PROXIES')) {
+          $secAdd .= "\n# IPs/CIDRs de proxies inversos o CDNs confiables (separados por coma)\nTRUSTED_PROXIES=\"\"\n";
+        }
+        if ($secAdd !== '') {
+          $envContent = rtrim($envContent) . "\n" . $secAdd;
+          $modified = true;
+          echo "🛡️  Variables de proxy/host confiable sincronizadas en .env\n";
+        }
+      }
+
+      if (!str_contains($envContent, 'DEPLOY_ENABLED')) {
+        $envContent = rtrim($envContent) . "\n\n# Control de estado del receptor deploy.php en producción (\"true\" / \"false\")\nDEPLOY_ENABLED=\"false\"\nDEPLOY_ALLOWED_IPS=\"\"\n";
+        $modified = true;
+        echo "🚀 Variables DEPLOY_ENABLED y DEPLOY_ALLOWED_IPS añadidas a .env\n";
+      }
+
       if ($modified) {
         file_put_contents($envPath, $envContent);
       }
@@ -941,24 +967,113 @@ HTACCESS;
         }
       }
 
+      // 3. Asegurar bloqueo de archivos de configuración JSON del proyecto
+      if (!str_contains($updated, 'jsConfig\\.json') || !str_contains($updated, 'providers\\.json')) {
+        $legacyFilesMatch = '/<FilesMatch\s+"\^\(\\\.env.*?\)">\s*(.*?)\s*<\/FilesMatch>/s';
+        $hardenedFilesMatch = <<<'HTACCESS'
+<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+HTACCESS;
+        if (preg_match($legacyFilesMatch, $updated)) {
+          $updated = (string)preg_replace($legacyFilesMatch, $hardenedFilesMatch, $updated, 1);
+          $changed = true;
+        }
+      }
+
+      // 4. Asegurar bloqueo HTTP directo sobre App/*, Core/, Base/, Resources/ y Bootstrap/
+      if (!str_contains($updated, 'App/(Config|Controllers')) {
+        $internalRule = 'RewriteRule ^(Cache|Logs|Database|\.git|vendor|Bootstrap|Base|Core|Resources|App/(Config|Controllers|Models|Views|Middleware|Providers|Segment|Lang|Route|Safety|errorViews))(/|$) - [F,L,NC]';
+        if (preg_match('/^RewriteRule\s+\^\(Cache\|[^\r\n]+$/m', $updated)) {
+          $updated = (string)preg_replace('/^RewriteRule\s+\^\(Cache\|[^\r\n]+$/m', $internalRule, $updated, 1);
+          $changed = true;
+        } elseif (str_contains($updated, 'RewriteEngine On')) {
+          $updated = (string)preg_replace('/^(RewriteEngine\s+On\r?)$/m', "$1\n\n{$internalRule}", $updated, 1);
+          $changed = true;
+        }
+      }
+
       if ($changed && file_put_contents($htaccessPath, $updated) !== false) {
-        echo "🔧 Actualizado: .htaccess (mitigaciones CVE-2026-109618 y CVE-2026-109619 sincronizadas)\n";
+        echo "🔧 Actualizado: .htaccess (reglas de seguridad, CVE y bloqueo App/* sincronizados)\n";
       } else {
         echo "⏭️  Saltado: .htaccess (ya existe y está actualizado)\n";
       }
+
+      $this->createUploadsHtaccess();
       return;
     }
 
     $frameworkHtaccess = __DIR__ . '/../../.htaccess';
     if (file_exists($frameworkHtaccess) && @copy($frameworkHtaccess, $htaccessPath)) {
       echo "✅ Creado: .htaccess\n";
+    }
+
+    $this->createUploadsHtaccess();
+  }
+
+  /**
+   * Crea o asegura archivos .htaccess restrictivos en los directorios de subidas
+   * para impedir ejecución de scripts y neutralizar activos HTML/SVG heredados.
+   */
+  private function createUploadsHtaccess(): void
+  {
+    if ($this->isFrameworkRepo) {
       return;
+    }
+
+    $uploadsHtaccess = <<<'HTACCESS'
+# Protección de directorio de archivos subidos (desactivar ejecución de scripts)
+Options -Indexes -ExecCGI
+
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+
+<FilesMatch "\.(?i:php[0-9]?|phtml|phar|pl|py|jsp|asp|sh|cgi|htaccess)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  <FilesMatch "\.(?i:svg|svgz|html|htm|xhtml|xml|js|mjs)$">
+    Header set Content-Disposition "attachment"
+    Header set Content-Security-Policy "sandbox"
+  </FilesMatch>
+</IfModule>
+HTACCESS;
+
+    foreach (['Uploads', 'App/Public/Uploads'] as $relDir) {
+      $dir = $this->basePath . '/' . $relDir;
+      if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+      }
+      $file = $dir . '/.htaccess';
+      if (!file_exists($file) || !str_contains((string)@file_get_contents($file), 'php_flag engine off')) {
+        if (@file_put_contents($file, $uploadsHtaccess) !== false) {
+          echo "🛡️  Protegido: {$relDir}/.htaccess\n";
+        }
+      }
     }
   }
 
   /**
    * Crea o actualiza index.php aplicando protecciones de seguridad
-   * (como sanitización anti-CRLF en FORCE_DOMAIN) respetando el código existente.
+   * (como sanitización anti-CRLF en FORCE_DOMAIN y Trusted Proxies) respetando el código existente.
    */
   private function createIndexPhp(): void
   {
@@ -999,18 +1114,44 @@ PHP;
         }
       }
 
-      // 3. Normalización para admitir 'prod' y 'production' en ENVIRONMENT
-      if (str_contains($updated, "ENVIRONMENT === 'production'")) {
-        $updated = str_replace(
-          "ENVIRONMENT === 'production'",
-          "in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true)",
-          $updated
-        );
-        $changed = true;
+      // 3. Migrar detección HTTPS/producción antigua a helpers fail-closed de SecurityModule
+      if (!str_contains($updated, 'SecurityModule::isHttpsRequest') && str_contains($updated, 'HTTP_X_FORWARDED_PROTO')) {
+        $httpsPattern = '/\$isHttps\s*=\s*.*?(?:HTTP_X_FORWARDED_SSL|SERVER_PORT).*?;/s';
+        $httpsReplacement = <<<'PHP'
+$isHttps = class_exists(\Base\Module\SecurityModule::class)
+    ? \Base\Module\SecurityModule::isHttpsRequest()
+    : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443));
+PHP;
+        $replaced = (string)preg_replace($httpsPattern, $httpsReplacement, $updated, 1);
+        if ($replaced !== $updated) {
+          $updated = $replaced;
+          $changed = true;
+        }
+      }
+
+      if (!str_contains($updated, 'SecurityModule::isProduction')) {
+        $prodPattern = '/\$isProd\s*=\s*defined\([\'"]ENVIRONMENT[\'"]\)[^;]+;/';
+        $prodReplacement = <<<'PHP'
+$isProd = class_exists(\Base\Module\SecurityModule::class)
+    ? \Base\Module\SecurityModule::isProduction()
+    : (defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true));
+PHP;
+        $replaced = (string)preg_replace($prodPattern, $prodReplacement, $updated, 1);
+        if ($replaced !== $updated) {
+          $updated = $replaced;
+          $changed = true;
+        } elseif (str_contains($updated, "ENVIRONMENT === 'production'")) {
+          $updated = str_replace(
+            "ENVIRONMENT === 'production'",
+            "in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true)",
+            $updated
+          );
+          $changed = true;
+        }
       }
 
       if ($changed && file_put_contents($indexPath, $updated)) {
-        echo "🔧 Actualizado: index.php (seguridad y redirecciones sincronizadas)\n";
+        echo "🔧 Actualizado: index.php (HTTPS TrustedProxy, fail-closed y redirecciones sincronizadas)\n";
       } else {
         echo "⏭️  Saltado: index.php (ya existe y está actualizado)\n";
       }
@@ -1026,12 +1167,13 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/App/Config/config.php';
 
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
-    || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
+$isHttps = class_exists(\Base\Module\SecurityModule::class)
+    ? \Base\Module\SecurityModule::isHttpsRequest()
+    : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443));
 
-$isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
+$isProd = class_exists(\Base\Module\SecurityModule::class)
+    ? \Base\Module\SecurityModule::isProduction()
+    : (defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true));
 if ($isProd && defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
     $currentHost = $_SERVER['HTTP_HOST'] ?? '';
     if ($currentHost !== FORCE_DOMAIN) {
@@ -1210,7 +1352,13 @@ GITIGNORE;
 
     $deployFile = $this->basePath . '/deploy.php';
     if (file_exists($deployFile)) {
-      echo "⏭️  Saltado: deploy.php (ya existe)\n";
+      $deployContent = (string)@file_get_contents($deployFile);
+      if (!str_contains($deployContent, 'DEPLOY_ENABLED') || !str_contains($deployContent, 'OPSYS_UNIX')) {
+        echo "⚠️  Aviso de seguridad: Tu 'deploy.php' existente proviene de una versión anterior sin bloqueo GET 404, rate-limiting ni validación anti-symlinks/ZipBomb.\n";
+        echo "   Recomendado: elimínalo y ejecuta 'frame init' para regenerarlo, o agrega DEPLOY_ENABLED=\"false\" en tu .env de producción.\n";
+      } else {
+        echo "⏭️  Saltado: deploy.php (ya existe)\n";
+      }
       return;
     }
 

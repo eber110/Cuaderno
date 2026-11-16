@@ -259,7 +259,10 @@ class SeoModule
    *   - type: string - Tipo (article, website). Default: website
    * @return void
    */
-  public static function setOpenGraph(array $config): void
+  /**
+   * Construye el bloque HTML de etiquetas Open Graph y Twitter Cards con escape consistente.
+   */
+  private static function renderOpenGraphBlock(array $config, bool $hasOverride = true): string
   {
     $logo = defined('LOGO') ? LOGO : '';
     $linkOg = defined('LINK_OG') ? LINK_OG : (defined('DOMAIN') ? DOMAIN : '');
@@ -267,35 +270,45 @@ class SeoModule
     $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Sitio Web';
     $description = defined('DESCRIPTION') ? DESCRIPTION : '';
 
-    $siteNameRaw = $config['site_name'] ?? $config['siteName'] ?? $nameSite;
-    $siteName = htmlspecialchars(strip_tags($siteNameRaw), ENT_QUOTES, 'UTF-8');
-
-    $localeRaw = class_exists(LangModule::class) && LangModule::isMultilang()
+    $defaultOgLocale = class_exists(LangModule::class) && LangModule::isMultilang()
       ? LangModule::getOgLocale()
       : (defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL');
-    $locale = htmlspecialchars(strip_tags($config['locale'] ?? $localeRaw), ENT_QUOTES, 'UTF-8');
 
+    $siteNameRaw = $hasOverride ? ($config['site_name'] ?? $config['siteName'] ?? $nameSite) : $nameSite;
+    $localeRaw = $hasOverride ? ($config['locale'] ?? $defaultOgLocale) : $defaultOgLocale;
+    $titleRaw = $hasOverride ? ($config['title'] ?? $nameSite) : $nameSite;
+    $contentRaw = $hasOverride ? ($config['content'] ?? $config['description'] ?? $description) : $description;
+    $rawImage = $hasOverride ? ($config['image'] ?? $imgOg) : $imgOg;
+    $rawLink = $hasOverride ? ($config['link'] ?? $config['url'] ?? $linkOg) : $linkOg;
+    $typeRaw = $hasOverride ? ($config['type'] ?? 'website') : 'website';
+
+    $widthRaw = $hasOverride
+      ? ($config['image_width'] ?? $config['img_width'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][0] ?? '1200') : ($config['image_size'] ?? '1200')))
+      : '1200';
+    $heightRaw = $hasOverride
+      ? ($config['image_height'] ?? $config['img_height'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][1] ?? '630') : ($config['image_size'] ?? '630')))
+      : '630';
+
+    $esc = static fn(mixed $val): string => htmlspecialchars(strip_tags((string)$val), ENT_QUOTES, 'UTF-8');
+
+    $siteName = $esc($siteNameRaw);
+    $locale = $esc($localeRaw);
+    $title = $esc($titleRaw);
+    $content = $esc($contentRaw);
     $alternateTags = self::buildOgLocaleAlternateTags();
+    $image = !empty($rawImage) ? $esc(self::makeAbsoluteUrl((string)$rawImage)) : '';
+    $link = $esc(self::makeAbsoluteUrl((string)$rawLink));
+    $logoAbs = !empty($logo) ? $esc(self::makeAbsoluteUrl((string)$logo)) : '';
+    $imageWidth = $esc((string)$widthRaw);
+    $imageHeight = $esc((string)$heightRaw);
+    $type = $esc($typeRaw);
+    $rawLinkAbs = self::makeAbsoluteUrl((string)$rawLink);
+    $domainHostRaw = !empty($rawLinkAbs) ? (string)(parse_url($rawLinkAbs, PHP_URL_HOST) ?? '') : (defined('DOMAIN') ? (string)(parse_url((string)DOMAIN, PHP_URL_HOST) ?? '') : '');
+    $domainHost = $esc($domainHostRaw);
 
-    $title = htmlspecialchars(strip_tags($config['title'] ?? $nameSite), ENT_QUOTES, 'UTF-8');
-    $contentRaw = $config['content'] ?? $config['description'] ?? $description;
-    $content = htmlspecialchars(strip_tags($contentRaw), ENT_QUOTES, 'UTF-8');
-    
-    $rawImage = $config['image'] ?? $imgOg;
-    $image = self::makeAbsoluteUrl($rawImage);
-
-    $imageWidth = $config['image_width'] ?? $config['img_width'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][0] ?? '1200') : ($config['image_size'] ?? '1200'));
-    $imageHeight = $config['image_height'] ?? $config['img_height'] ?? (is_array($config['image_size'] ?? null) ? ($config['image_size'][1] ?? '630') : ($config['image_size'] ?? '630'));
-
-    $rawLink = $config['link'] ?? $config['url'] ?? $linkOg;
-    $link = self::makeAbsoluteUrl($rawLink);
-
-    $type = $config['type'] ?? 'website';
-    $domainHost = !empty($link) ? parse_url($link, PHP_URL_HOST) : (defined('DOMAIN') ? parse_url(DOMAIN, PHP_URL_HOST) : '');
-
-    self::$openGraphTags = '<meta property="og:site_name" content="' . $siteName . '" />
+    return '<meta property="og:site_name" content="' . $siteName . '" />
         <meta property="og:locale" content="' . $locale . '" />' . $alternateTags . '
-        ' . (!empty($logo) ? '<meta property="og:logo" content="' . self::makeAbsoluteUrl($logo) . '" />' : '') . '
+        ' . (!empty($logoAbs) ? '<meta property="og:logo" content="' . $logoAbs . '" />' : '') . '
         <meta property="og:title" content="' . $title . '" />
         <meta property="og:description" content="' . $content . '" />
         ' . (!empty($image) ? '<meta property="og:image" content="' . $image . '" />' : '') . '
@@ -310,6 +323,11 @@ class SeoModule
         <meta name="twitter:description" content="' . $content . '" />
         ' . (!empty($image) ? '<meta name="twitter:image" content="' . $image . '" />' : '') . '
         <meta name="twitter:url" content="' . $link . '" />';
+  }
+
+  public static function setOpenGraph(array $config): void
+  {
+    self::$openGraphTags = self::renderOpenGraphBlock($config, true);
   }
 
   /**
@@ -328,62 +346,7 @@ class SeoModule
       return self::$openGraphTags;
     }
 
-    $logo = defined('LOGO') ? LOGO : '';
-    $linkOg = defined('LINK_OG') ? LINK_OG : (defined('DOMAIN') ? DOMAIN : '');
-    $imgOg = defined('IMG_OG') ? IMG_OG : '';
-    $nameSite = defined('NAME_SITE') && !empty(NAME_SITE) ? NAME_SITE : 'Sitio Web';
-    $description = defined('DESCRIPTION') ? DESCRIPTION : '';
-
-    $defaultOgLocale = class_exists(LangModule::class) && LangModule::isMultilang()
-      ? LangModule::getOgLocale()
-      : (defined('OG_LOCALE') && !empty(OG_LOCALE) ? OG_LOCALE : 'es_CL');
-
-    if ($override !== null) {
-      $siteNameRaw = $override['site_name'] ?? $override['siteName'] ?? $nameSite;
-      $localeRaw = $override['locale'] ?? $defaultOgLocale;
-      $title = htmlspecialchars(strip_tags($override['title'] ?? $nameSite), ENT_QUOTES, 'UTF-8');
-      $content = htmlspecialchars(strip_tags($override['content'] ?? $override['description'] ?? $description), ENT_QUOTES, 'UTF-8');
-      $rawImage = $override['image'] ?? $imgOg;
-      $imageWidth = $override['image_width'] ?? $override['img_width'] ?? (is_array($override['image_size'] ?? null) ? ($override['image_size'][0] ?? '1200') : ($override['image_size'] ?? '1200'));
-      $imageHeight = $override['image_height'] ?? $override['img_height'] ?? (is_array($override['image_size'] ?? null) ? ($override['image_size'][1] ?? '630') : ($override['image_size'] ?? '630'));
-      $rawLink = $override['link'] ?? $override['url'] ?? $linkOg;
-      $type = $override['type'] ?? 'website';
-    } else {
-      $siteNameRaw = $nameSite;
-      $localeRaw = $defaultOgLocale;
-      $title = $nameSite;
-      $content = htmlspecialchars(strip_tags($description), ENT_QUOTES, 'UTF-8');
-      $rawImage = $imgOg;
-      $imageWidth = '1200';
-      $imageHeight = '630';
-      $rawLink = $linkOg;
-      $type = 'website';
-    }
-
-    $siteName = htmlspecialchars(strip_tags($siteNameRaw), ENT_QUOTES, 'UTF-8');
-    $locale = htmlspecialchars(strip_tags($localeRaw), ENT_QUOTES, 'UTF-8');
-    $alternateTags = self::buildOgLocaleAlternateTags();
-    $image = self::makeAbsoluteUrl($rawImage);
-    $link = self::makeAbsoluteUrl($rawLink);
-    $domainHost = !empty($link) ? parse_url($link, PHP_URL_HOST) : (defined('DOMAIN') ? parse_url(DOMAIN, PHP_URL_HOST) : '');
-
-    $tags = '<meta property="og:site_name" content="' . $siteName . '" />
-        <meta property="og:locale" content="' . $locale . '" />' . $alternateTags . '
-        ' . (!empty($logo) ? '<meta property="og:logo" content="' . self::makeAbsoluteUrl($logo) . '" />' : '') . '
-        <meta property="og:title" content="' . $title . '" />
-        <meta property="og:description" content="' . $content . '" />
-        ' . (!empty($image) ? '<meta property="og:image" content="' . $image . '" />' : '') . '
-        ' . (!empty($image) ? '<meta property="og:image:width" content="' . $imageWidth . '" />' : '') . '
-        ' . (!empty($image) ? '<meta property="og:image:height" content="' . $imageHeight . '" />' : '') . '
-        <meta property="og:url" content="' . $link . '" />
-        <meta property="og:type" content="' . $type . '" />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        ' . (!empty($domainHost) ? '<meta name="twitter:domain" content="' . $domainHost . '" />' : '') . '
-        <meta name="twitter:title" content="' . $title . '" />
-        <meta name="twitter:description" content="' . $content . '" />
-        ' . (!empty($image) ? '<meta name="twitter:image" content="' . $image . '" />' : '') . '
-        <meta name="twitter:url" content="' . $link . '" />';
+    $tags = self::renderOpenGraphBlock($override ?? [], $override !== null);
 
     // Solo guardar si es default
     if ($override === null) {
@@ -970,7 +933,7 @@ class SeoModule
     if (empty($schemaData)) {
       return '';
     }
-    return "\n" . '<script type="application/ld+json">' . "\n" . json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n";
+    return "\n" . '<script type="application/ld+json">' . "\n" . json_encode($schemaData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n";
   }
 
   /**

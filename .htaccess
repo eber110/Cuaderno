@@ -70,7 +70,7 @@ RewriteCond %{HTTP_COOKIE} PHP_SESSION_UPLOAD_PROGRESS [NC]
 RewriteRule ^ - [F,L]
 
 # Bloquear acceso web directo a carpetas sensibles del sistema
-RewriteRule ^(Cache|Logs|Database|\.git|vendor|App/Safety)(/|$) - [F,L,NC]
+RewriteRule ^(Cache|Logs|Database|\.git|vendor|Bootstrap|Base|Core|Resources|App/(Config|Controllers|Models|Views|Middleware|Providers|Segment|Lang|Route|Safety|errorViews))(/|$) - [F,L,NC]
 
 # --- PROTECCIÓN CONTRA ESCANEOS Y BOTS (HTTP 418 I'm a teapot 🫖) ---
 # ErrorDocument 418 "418 I'm a teapot. This server is a teapot, not WordPress 🫖"

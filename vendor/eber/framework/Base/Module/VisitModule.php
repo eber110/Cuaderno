@@ -129,17 +129,13 @@ class VisitModule
    */
   public static function getClientIp(): ?string
   {
-    // Verificar headers de proxy primero
-    $headers = ['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'];
-
-    foreach ($headers as $header) {
-      if (!empty($_SERVER[$header])) {
-        $ips = explode(',', $_SERVER[$header]);
-        return trim($ips[0]);
-      }
+    if (class_exists(SecurityModule::class)) {
+      return SecurityModule::resolveClientIp();
     }
 
-    return $_SERVER['REMOTE_ADDR'] ?? null;
+    return isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)
+      ? $_SERVER['REMOTE_ADDR']
+      : null;
   }
 
   /**
@@ -282,17 +278,26 @@ class VisitModule
   {
     $ch = curl_init();
 
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $apiUrl . $ip,
+    $curlOpts = [
+      CURLOPT_URL => $apiUrl . rawurlencode($ip),
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_CONNECTTIMEOUT => self::getConnectTimeout(),
       CURLOPT_TIMEOUT => self::getRequestTimeout(),
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-      CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      CURLOPT_SSL_VERIFYPEER => false,
-      CURLOPT_SSL_VERIFYHOST => 0
-    ]);
+      CURLOPT_FOLLOWLOCATION => false,
+      CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+      CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; FrameGeoClient/1.0)',
+      CURLOPT_SSL_VERIFYPEER => true,
+      CURLOPT_SSL_VERIFYHOST => 2
+    ];
+
+    if (class_exists('\\Composer\\CaBundle\\CaBundle')) {
+      $caBundle = \Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+      if ($caBundle && file_exists($caBundle)) {
+        $curlOpts[CURLOPT_CAINFO] = $caBundle;
+      }
+    }
+
+    curl_setopt_array($ch, $curlOpts);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

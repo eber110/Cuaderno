@@ -38,9 +38,7 @@ class AnimatedGifToWebp
 
     $destDir = dirname($destWebpPath);
     if (!is_dir($destDir)) {
-      $oldUmask = umask(0);
-      @mkdir($destDir, 0777, true);
-      umask($oldUmask);
+      @mkdir($destDir, 0755, true);
     }
 
     $frameStep = max(1, $frameStep);

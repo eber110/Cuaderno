@@ -54,40 +54,39 @@ export async function notification(optionalClass = "") {
   notificationMsg.id = "notificationMsg";
   const classNotification = "p15 pl25 pr45 br15";
 
-  // Extraer clases de formato de texto de optionalClass para aplicarlas directamente al mensaje
+  // Extraer clases de formato seguras de optionalClass para aplicarlas directamente al mensaje
   const textFormattingClasses = [];
-  if (optionalClass) {
-    optionalClass.split(' ').forEach(cls => {
-      if (!cls) return;
+  if (typeof optionalClass === 'string' && optionalClass.trim() !== '') {
+    optionalClass.split(/\s+/).forEach(cls => {
+      if (!cls || !/^[a-zA-Z0-9_-]+$/.test(cls)) return;
       if (
-        cls.startsWith('text') || 
-        cls.startsWith('color') || 
-        cls.startsWith('bold') || 
+        cls.startsWith('text') ||
+        cls.startsWith('color') ||
+        cls.startsWith('bold') ||
         cls.startsWith('x')
       ) {
         textFormattingClasses.push(cls);
       }
     });
   }
+  const safeOptionalClasses = (typeof optionalClass === 'string')
+    ? optionalClass.split(/\s+/).filter(cls => cls && /^[a-zA-Z0-9_-]+$/.test(cls)).join(' ')
+    : '';
   const textOptClasses = textFormattingClasses.join(' ');
 
-  if (errors) {
-    containerNotification.className = `back-danger ${classNotification} ${optionalClass}`;
-    notificationMsg.className = textOptClasses;
-    notificationMsg.innerHTML = errors;
-  } else if (success) {
-    containerNotification.className = `back-success ${classNotification} ${optionalClass}`;
-    notificationMsg.className = textOptClasses;
-    notificationMsg.innerHTML = success;
-  } else if (warning) {
-    containerNotification.className = `back-caution ${classNotification} ${optionalClass}`;
-    notificationMsg.className = textOptClasses;
-    notificationMsg.innerHTML = warning;
-  } else if (danger) {
-    containerNotification.className = `back-danger ${classNotification} ${optionalClass}`;
-    notificationMsg.className = textOptClasses;
-    notificationMsg.innerHTML = danger;
-  }
+  const notificationEntries = [
+    { value: errors, bgClass: 'back-danger' },
+    { value: success, bgClass: 'back-success' },
+    { value: warning, bgClass: 'back-caution' },
+    { value: danger, bgClass: 'back-danger' }
+  ];
+
+  const activeEntry = notificationEntries.find(item => typeof item.value === 'string' && item.value.length > 0);
+  if (!activeEntry) return;
+
+  containerNotification.className = `${activeEntry.bgClass} ${classNotification}${safeOptionalClasses ? ' ' + safeOptionalClasses : ''}`;
+  notificationMsg.className = textOptClasses;
+  notificationMsg.textContent = activeEntry.value.slice(0, 500);
 
 
   containerNotification.appendChild(closeNotification);

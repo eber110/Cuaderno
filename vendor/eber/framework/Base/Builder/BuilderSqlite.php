@@ -28,7 +28,10 @@ class BuilderSqlite extends Builder
    */
   public function table_exist($table): bool
   {
-    $this->validateIdentifier($table);
+    $table = trim((string)$table);
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $table)) {
+      throw new \InvalidArgumentException("Identificador de tabla SQL inválido: {$table}");
+    }
     $sql = "SELECT name FROM sqlite_master WHERE type='table' AND name = ?";
     $query = $this->query_foreign($sql, [$table])->get_all();
 
@@ -42,11 +45,12 @@ class BuilderSqlite extends Builder
    */
   public function truncate()
   {
-    $sql = "DELETE FROM {$this->table}";
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $sql = "DELETE FROM {$table}";
     $this->query_foreign($sql);
 
     if ($this->table_exist("sqlite_sequence")) {
-      $this->query_foreign("DELETE FROM sqlite_sequence WHERE name = ?", [$this->table]);
+      $this->query_foreign("DELETE FROM sqlite_sequence WHERE name = ?", [$table]);
     }
   }
 
@@ -65,7 +69,11 @@ class BuilderSqlite extends Builder
       $sep = "','";
     }
 
-    $fragment = " ,GROUP_CONCAT({$col}, {$sep}) AS {$alias} ";
+    $col = $this->validateSingleIdentifier((string)$col);
+    $alias = $alias !== null ? $this->validateAlias((string)$alias) : ('group_' . str_replace('.', '_', $col));
+    $safeSep = $this->quoteSeparatorLiteral((string)$sep);
+
+    $fragment = " ,GROUP_CONCAT({$col}, {$safeSep}) AS {$alias} ";
 
     if ($this->concat) {
       $this->concat .= $fragment;
@@ -90,10 +98,17 @@ class BuilderSqlite extends Builder
       return $this;
     }
 
+    if (!is_numeric($ini) || ($cant !== null && !is_numeric($cant))) {
+      throw new \InvalidArgumentException("Parámetros LIMIT/OFFSET deben ser numéricos.");
+    }
+
     if ($cant !== null) {
-      $this->limit = " {$cant} OFFSET {$ini} ";
+      $offsetVal = max(0, (int)$ini);
+      $limitVal = max(0, (int)$cant);
+      $this->limit = " {$limitVal} OFFSET {$offsetVal} ";
     } else {
-      $this->limit = " {$ini} OFFSET 0 ";
+      $limitVal = max(0, (int)$ini);
+      $this->limit = " {$limitVal} OFFSET 0 ";
     }
 
     return $this;
@@ -107,7 +122,14 @@ class BuilderSqlite extends Builder
    */
   public function non_select(...$camp)
   {
-    $sql = "SELECT * FROM {$this->table} {$this->join} LIMIT 1 OFFSET 0";
+    $table = $this->validateTableIdentifier((string)$this->table);
+    $excluded = [];
+    foreach ($camp as $c) {
+      $excluded[] = $this->validateSingleIdentifier((string)$c);
+    }
+
+    $joinClause = $this->join ? " {$this->join}" : '';
+    $sql = "SELECT * FROM {$table}{$joinClause} LIMIT 1 OFFSET 0";
     $pdo = $this->pdo_conexion();
     if ($pdo === null) {
       $lastError = class_exists(\Core\Conexion::class) ? \Core\Conexion::getLastError() : null;
@@ -118,10 +140,15 @@ class BuilderSqlite extends Builder
     $data = $consul ? $consul->fetch(PDO::FETCH_ASSOC) : false;
 
     if ($data) {
-      $data = array_keys($data);
-      $data = array_diff($data, $camp);
-      $data = implode(', ', $data);
-      $this->select = " {$data} ";
+      $cols = [];
+      foreach (array_keys($data) as $colName) {
+        if (!in_array($colName, $excluded, true)) {
+          $cols[] = $this->validateSingleIdentifier((string)$colName);
+        }
+      }
+      if (!empty($cols)) {
+        $this->select = ' ' . implode(', ', $cols) . ' ';
+      }
     }
 
     return $this;

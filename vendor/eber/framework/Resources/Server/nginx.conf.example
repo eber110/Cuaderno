@@ -1,0 +1,69 @@
+# Plantilla de configuración segura para Nginx — Eber Framework y Proyectos Derivados
+# Reemplaza las reglas de .htaccess (Apache) cuando se despliega sobre Nginx.
+
+server {
+    listen 80;
+    # listen 443 ssl http2;
+    server_name ejemplo.com www.ejemplo.com;
+
+    root /var/www/tu-proyecto;
+    index index.php;
+
+    # Cabeceras de seguridad estándar
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
+
+    # Bloquear archivos ocultos, variables de entorno, backups, logs y configuraciones raíz
+    location ~* ^/(\.env(\..*)?|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.(sql|sqlite|sqlite-wal|sqlite-shm|log|cache))$ {
+        deny all;
+        return 403;
+    }
+
+    # Bloquear acceso directo HTTP a código fuente, almacenamiento interno y configuración
+    location ~* ^/(Cache|Logs|Database|vendor|Bootstrap|Base|Core|Resources|App/(Config|Controllers|Models|Views|Middleware|Providers|Segment|Lang|Route|Safety|errorViews))(/|$) {
+        deny all;
+        return 403;
+    }
+
+    # Deshabilitar ejecución PHP en directorios de subidas de usuarios
+    location ~* ^/(Uploads|App/Public/Uploads)/.*\.ph(p[0-9]?|t|ar|tml)$ {
+        deny all;
+        return 403;
+    }
+
+    # Bloquear vectores PHP_SESSION_UPLOAD_PROGRESS (CVE-2026-109619)
+    if ($args ~* "PHP_SESSION_UPLOAD_PROGRESS") {
+        return 403;
+    }
+    if ($http_cookie ~* "PHP_SESSION_UPLOAD_PROGRESS") {
+        return 403;
+    }
+
+    # Evitar que archivos estáticos inexistentes caigan al front controller
+    location ~* \.(webp|jpg|jpeg|png|gif|svg|avif|ico|mp4|webm|woff2|woff|ttf|css|js|map)$ {
+        try_files $uri =404;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Front controller único
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Solo permitir ejecución PHP sobre index.php (y deploy.php si está temporalmente habilitado)
+    location ~ ^/(index|deploy)\.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    # Denegar cualquier otro script PHP arbitrario
+    location ~ \.php$ {
+        deny all;
+        return 404;
+    }
+}

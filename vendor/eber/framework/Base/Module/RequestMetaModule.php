@@ -2,6 +2,7 @@
 
 namespace Base\Module;
 
+use Base\Module\Security\SafeHttpClient;
 use DOMDocument;
 use Exception;
 
@@ -9,6 +10,7 @@ class RequestMetaModule
 {
     /**
      * Extrae las meta etiquetas principales (título, descripción, keywords, og:meta y twitter:meta) de un sitio web.
+     * Utiliza SafeHttpClient con protección anti-SSRF (IPv4/IPv6 + CURLOPT_RESOLVE) y tope de tamaño.
      *
      * @param string $url La URL del sitio web a consultar.
      * @return array|false Retorna un arreglo con los metadatos estructurados o false en caso de error.
@@ -20,44 +22,18 @@ class RequestMetaModule
             $url = "https://" . $url;
         }
 
-        $parsed = parse_url($url);
-        $host = strtolower($parsed['host'] ?? '');
-        if (empty($host)) {
+        $res = SafeHttpClient::fetch($url, [
+            'timeout' => 4,
+            'connectTimeout' => 3,
+            'maxBytes' => 2097152, // 2 MB límite para parseo seguro de <head>
+            'userAgent' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        ]);
+
+        if (empty($res['success']) || empty($res['body'])) {
             return false;
         }
 
-        // Prevenir SSRF bloqueando rangos privados y reservados
-        $ips = @gethostbynamel($host);
-        if ($ips === false || empty($ips)) {
-            return false;
-        }
-        foreach ($ips as $ip) {
-            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                return false;
-            }
-        }
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        // Usar el User-Agent del crawler de Facebook. 
-        // Sitios como LinkedIn, Twitter o Instagram bloquean peticiones automatizadas con User-Agents genéricos (HTTP 999),
-        // pero tienen listas blancas (whitelist) para los bots de redes sociales y así poder mostrar las "cards" al compartir enlaces.
-        curl_setopt($ch, CURLOPT_USERAGENT, 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)');
-
-        $html = curl_exec($ch);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        if ($error || empty($html)) {
-            return false;
-        }
+        $html = $res['body'];
 
         $metaTags = [
             'title' => '',
@@ -67,13 +43,12 @@ class RequestMetaModule
             'twitter' => []
         ];
 
-        // Solución para parsear correctamente los caracteres UTF-8 en DOMDocument
+        // Solución para parsear correctamente los caracteres UTF-8 en DOMDocument sin red externa
         $html = '<?xml encoding="UTF-8">' . $html;
 
         libxml_use_internal_errors(true);
         $doc = new DOMDocument();
-        // Cargar el HTML supresionando las advertencias (ya que el HTML moderno casi nunca es XML válido)
-        $doc->loadHTML($html);
+        $doc->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
         libxml_clear_errors();
 
         // Extraer la etiqueta <title>

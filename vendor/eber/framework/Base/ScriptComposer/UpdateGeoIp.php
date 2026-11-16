@@ -1,6 +1,11 @@
 <?php
 namespace Base\ScriptComposer;
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("Acceso denegado: este script solo puede ejecutarse por CLI.\n");
+}
+
 // Asegurar autoloading correcto sin importar si se corre desde la raíz o dentro de vendor
 $baseDir = getcwd();
 if (file_exists($baseDir . '/vendor/autoload.php')) {

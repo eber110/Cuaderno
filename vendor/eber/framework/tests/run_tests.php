@@ -19,6 +19,11 @@
 
 define('ROOT_PATH', str_replace('\\', '/', dirname(__DIR__)));
 
+if (!defined('ENVIRONMENT')) {
+  $_ENV['APP_ENV'] = 'testing';
+  $_SERVER['APP_ENV'] = 'testing';
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../Base/ScriptComposer/MakeCli.php';
@@ -842,6 +847,764 @@ $runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de
   $runner->assert(file_exists($floatingJsPath), "Resources/Js/Components/floatingScroll.js debe existir");
   $floatingJsContent = (string)file_get_contents($floatingJsPath);
   $runner->assert(str_contains($floatingJsContent, 'targetWindow') && str_contains($floatingJsContent, 'targetDocument'), "floatingScroll.js debe soportar targetWindow y targetDocument para previsualizaciones e iframes");
+});
+
+// =========================================================================
+// 18. CHART STUDIO - RENDERIZADO, PERSISTENCIA Y GENERADOR DE GRÁFICOS
+// =========================================================================
+$runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persistencia y UI", function () use ($runner) {
+  // 1. Verificar ruta POST /_frame/theme-studio/render-chart
+  \Base\Control\ThemeStudioControl::registerRoutes();
+  $routes = \Core\Route::getRoutes();
+  $foundRenderChart = false;
+  foreach ($routes as $route) {
+    if (($route['uri'] ?? '') === '/_frame/theme-studio/render-chart' && ($route['method'] ?? '') === 'POST') {
+      $foundRenderChart = true;
+      break;
+    }
+  }
+  $runner->assert($foundRenderChart, "Debe registrarse la ruta POST /_frame/theme-studio/render-chart");
+
+  // 2. Verificar bundle autocontenido CSS/JS de Charts
+  $assets = \Base\Control\ThemeStudioControl::getChartsLibraryAssets(ROOT_PATH);
+  $runner->assert(!empty($assets['css']) && str_contains($assets['css'], '.mono-chart-svg'), "getChartsLibraryAssets debe cargar charts.css");
+  $runner->assert(!empty($assets['js']) && str_contains($assets['js'], 'window.initCharts'), "getChartsLibraryAssets debe generar el bundle JS con window.initCharts");
+
+  // 3. Renderizar vista 'all' con los 12 gráficos
+  $allRes = \Base\Control\ThemeStudioControl::renderChartPayload([
+    'type' => 'all',
+    'globalConfig' => [
+      'color' => 'color1',
+      'colorLabel' => 'textw',
+      'axisLabel' => 'texto',
+      'axisLabelSize' => 14,
+      'barWidth' => 25,
+      'yLabelPosition' => '[between],[50, 40, start]',
+      'transition' => 450,
+      'tooltip' => true,
+    ],
+    'datasetPreset' => 'standard',
+  ]);
+  $runner->assert(!empty($allRes['success']), "renderChartPayload('all') debe retornar success=true");
+  $runner->assert(isset($allRes['charts']) && count($allRes['charts']) === 12, "renderChartPayload('all') debe renderizar exactamente los 12 tipos de gráficos");
+  foreach (\Base\Control\ThemeStudioControl::CHART_TYPES as $chartType) {
+    $runner->assert(!empty($allRes['charts'][$chartType]), "Debe renderizarse el gráfico '{$chartType}'");
+  }
+
+  // 4. Verificar render individual y aplicación exacta de barWidth, axisLabelSize, yLabelPosition y tooltip
+  $hbarRes = \Base\Control\ThemeStudioControl::renderChartPayload([
+    'type' => 'horizontalBars',
+    'globalConfig' => [
+      'color' => 'color2',
+      'axisLabel' => 'texto',
+      'axisLabelSize' => 14,
+      'barWidth' => 25,
+      'yLabelPosition' => '[between],[50, 40, start]',
+      'tooltip' => false,
+    ],
+    'datasetPreset' => 'long-labels',
+  ]);
+  $runner->assert(!empty($hbarRes['success']) && !empty($hbarRes['html']), "horizontalBars debe renderizarse correctamente");
+  $hbarHtml = $hbarRes['html'];
+  $runner->assert(str_contains($hbarHtml, 'height: 25.00px'), "horizontalBars debe respetar barWidth=25");
+  $runner->assert(str_contains($hbarHtml, 'font-size: 14px'), "horizontalBars debe respetar axisLabelSize=14");
+  $runner->assert(str_contains($hbarHtml, 'justify-content: space-between'), "horizontalBars debe aplicar row='between' de yLabelPosition");
+  $runner->assert(str_contains($hbarHtml, 'flex: 0 0 50%') && str_contains($hbarHtml, 'flex: 0 0 40%'), "horizontalBars debe aplicar reparto 50% / 40%");
+  $runner->assert(str_contains($hbarHtml, 'data-tooltip="false"'), "horizontalBars debe reflejar tooltip=false");
+  $runner->assert(str_contains($hbarHtml, 'Autenticación y Control de Acceso'), "Preset long-labels debe inyectar etiquetas largas");
+
+  // Verificar presets compact y dense
+  $compactData = \Base\Control\ThemeStudioControl::getPresetDataset('horizontalBars', 'compact');
+  $denseData = \Base\Control\ThemeStudioControl::getPresetDataset('horizontalBars', 'dense');
+  $runner->assert(count($compactData['bars']) === 3, "Preset compact de horizontalBars debe tener 3 ítems");
+  $runner->assert(count($denseData['bars']) >= 8, "Preset dense de horizontalBars debe tener al menos 8 ítems");
+
+  // Verificar tipo inválido
+  $badRes = \Base\Control\ThemeStudioControl::renderChartPayload(['type' => 'graficoInexistente']);
+  $runner->assert(empty($badRes['success']), "renderChartPayload debe rechazar tipos desconocidos");
+
+  // 5. Persistencia de configuración charts en ThemeModule y theme.json
+  $defCfg = \Base\Module\ThemeModule::getDefaultConfig();
+  $runner->assert(isset($defCfg['charts']) && $defCfg['charts']['color'] === 'texto', "getDefaultConfig debe incluir la sección charts con defaults");
+
+  $tempChartsDir = ROOT_PATH . '/tests/temp_chart_theme_test';
+  @mkdir($tempChartsDir . '/App/Config', 0755, true);
+  $tempJson = $tempChartsDir . '/App/Config/theme.json';
+
+  $customTheme = \Base\Module\ThemeModule::getDefaultConfig('default', 'Predeterminado');
+  $customTheme['charts'] = [
+    'color' => 'color1',
+    'colorLabel' => 'textw',
+    'axisLabel' => 'texto',
+    'axisLabelSize' => 14,
+    'transition' => 600,
+    'tooltip' => false,
+    'barWidth' => 25,
+    'yLabelPosition' => '[between],[50, 40, start]',
+    'localOverrides' => [
+      'bulletTarget' => ['targetColor' => '#38bdf8'],
+    ],
+  ];
+
+  $saved = \Base\Module\ThemeModule::saveConfig($customTheme, $tempJson);
+  $runner->assert($saved === true, "saveConfig debe guardar theme.json con configuración de charts");
+
+  $reloaded = \Base\Module\ThemeModule::loadConfig($tempJson);
+  $runner->assert(isset($reloaded['charts']), "loadConfig debe conservar la sección charts");
+  $runner->assert($reloaded['charts']['color'] === 'color1', "charts.color debe persistirse");
+  $runner->assert((int)$reloaded['charts']['barWidth'] === 25, "charts.barWidth debe persistirse");
+  $runner->assert($reloaded['charts']['yLabelPosition'] === '[between],[50, 40, start]', "charts.yLabelPosition debe persistirse");
+  $runner->assert($reloaded['charts']['tooltip'] === false, "charts.tooltip=false debe persistirse");
+  $runner->assert(($reloaded['charts']['localOverrides']['bulletTarget']['targetColor'] ?? '') === '#38bdf8', "charts.localOverrides debe persistirse");
+
+  // Verificar que compileToCss sigue funcionando sin afectar _configTheme.css
+  $cssOut = \Base\Module\ThemeModule::compileToCss($reloaded);
+  $runner->assert(str_contains($cssOut, ':root {') && !str_contains($cssOut, 'localOverrides'), "compileToCss no debe filtrar claves JSON de charts al CSS");
+
+  @unlink($tempJson);
+  @rmdir($tempChartsDir . '/App/Config');
+  @rmdir($tempChartsDir . '/App');
+  @rmdir($tempChartsDir);
+
+  // 6. Verificar elementos clave de Chart Studio en Base/Views/themeStudio.php
+  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  $runner->assert(str_contains($viewContent, 'id="tab-charts"'), "themeStudio.php debe incluir la pestaña #tab-charts");
+  $runner->assert(str_contains($viewContent, 'id="chartSandboxView"'), "themeStudio.php debe incluir el escenario #chartSandboxView");
+  $runner->assert(str_contains($viewContent, 'setStageMode('), "themeStudio.php debe incluir setStageMode para alternar Sitio / Gráficos");
+  $runner->assert(str_contains($viewContent, 'serializeYLabelPosition') && str_contains($viewContent, 'csYPosRowGrid'), "themeStudio.php debe incluir el constructor visual de yLabelPosition");
+  $runner->assert(str_contains($viewContent, 'updateChartCodeOutput') && str_contains($viewContent, '_chart(') && str_contains($viewContent, 'GraphicsModule') && str_contains($viewContent, 'configStyle('), "themeStudio.php debe incluir el generador de código PHP Copy & Paste");
+});
+
+// =========================================================================
+// 19. ICON STUDIO - GALERÍA SVG POR CARPETAS, ESCANEO DINÁMICO Y HELPER svg()
+// =========================================================================
+$runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y helper svg()", function () use ($runner) {
+  // 1. Verificar ruta GET /_frame/theme-studio/icons
+  \Base\Control\ThemeStudioControl::registerRoutes();
+  $routes = \Core\Route::getRoutes();
+  $foundIconsRoute = false;
+  foreach ($routes as $route) {
+    if (($route['uri'] ?? '') === '/_frame/theme-studio/icons' && ($route['method'] ?? '') === 'GET') {
+      $foundIconsRoute = true;
+      break;
+    }
+  }
+  $runner->assert($foundIconsRoute, "Debe registrarse la ruta GET /_frame/theme-studio/icons");
+
+  // 2. Verificar catálogo base en Resources/Ico/ separado por carpetas (Raíz, Custom, Separator)
+  $baseCatalog = \Base\Control\ThemeStudioControl::getIconsCatalog(ROOT_PATH);
+  $runner->assert($baseCatalog['totalIcons'] >= 142, "El catálogo base debe detectar al menos 142 iconos SVG");
+  $folderMap = [];
+  foreach ($baseCatalog['folders'] as $f) {
+    $folderMap[$f['key']] = $f;
+  }
+  $runner->assert(isset($folderMap['']), "Debe existir la sección raíz (/Ico)");
+  $runner->assert(isset($folderMap['Custom']), "Debe existir la sección de carpeta Custom");
+  $runner->assert(isset($folderMap['Separator']) && $folderMap['Separator']['count'] >= 20, "Debe existir la sección de carpeta Separator con sus SVG");
+
+  $foundAsterisk = false;
+  foreach ($folderMap['']['icons'] as $ico) {
+    if ($ico['name'] === 'asterisk') {
+      $foundAsterisk = true;
+      $runner->assert($ico['phpCode'] === 'svg("asterisk");', "El código PHP copiable para asterisk debe ser svg(\"asterisk\");");
+      $runner->assert(str_contains($ico['svgHtml'], '<svg') && str_contains($ico['svgHtml'], '<path'), "asterisk debe incluir su markup <svg> renderizado");
+      break;
+    }
+  }
+  $runner->assert($foundAsterisk, "El catálogo raíz debe incluir el icono asterisk");
+
+  // 3. Verificar resolución de helper svg() en raíz, subcarpetas con mayúsculas y bloqueo de traversal
+  $rootSvg = svg('asterisk');
+  $sepSvg = svg('Separator/fire-solid-full');
+  $traversalSvg = svg('../composer.json');
+  $runner->assert($rootSvg !== '?!' && str_contains($rootSvg, '<svg'), "svg('asterisk') debe renderizar un SVG válido");
+  $runner->assert($sepSvg !== '?!' && str_contains($sepSvg, '<svg'), "svg('Separator/fire-solid-full') debe resolver la subcarpeta Separator");
+  $runner->assert($traversalSvg === '?!', "svg() debe rechazar rutas con '..'");
+
+  // 4. Verificar escaneo dinámico al agregar nuevos SVG y carpetas en App/Rsc/Ico/
+  $tempIcoBase = ROOT_PATH . '/tests/temp_ico_gallery_test';
+  @mkdir($tempIcoBase . '/App/Rsc/Ico/Custom', 0755, true);
+  @mkdir($tempIcoBase . '/App/Rsc/Ico/Separator', 0755, true);
+  @mkdir($tempIcoBase . '/App/Rsc/Ico/Brand', 0755, true);
+
+  file_put_contents(
+    $tempIcoBase . '/App/Rsc/Ico/root-demo.svg',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>'
+  );
+  file_put_contents(
+    $tempIcoBase . '/App/Rsc/Ico/Custom/outline-ring.svg',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'
+  );
+  file_put_contents(
+    $tempIcoBase . '/App/Rsc/Ico/Separator/wave.svg',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 12h20"/></svg>'
+  );
+  file_put_contents(
+    $tempIcoBase . '/App/Rsc/Ico/Brand/badge.svg',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>'
+  );
+
+  $dynCatalog1 = \Base\Control\ThemeStudioControl::getIconsCatalog($tempIcoBase);
+  $runner->assert($dynCatalog1['totalIcons'] === 4, "El catálogo dinámico inicial debe contar 4 iconos en el proyecto temporal");
+  $runner->assert($dynCatalog1['totalFolders'] === 4, "El catálogo dinámico debe detectar 4 secciones (Raíz, Brand, Custom, Separator)");
+
+  $dynFolders = [];
+  foreach ($dynCatalog1['folders'] as $f) {
+    $dynFolders[$f['key']] = $f;
+  }
+  $runner->assert($dynFolders['Custom']['count'] === 1 && $dynFolders['Custom']['icons'][0]['phpCode'] === 'svg("Custom/outline-ring");', "Custom debe listar su icono con phpCode svg(\"Custom/outline-ring\");");
+  $runner->assert(str_contains($dynFolders['Custom']['icons'][0]['svgHtml'], '<circle') && str_contains($dynFolders['Custom']['icons'][0]['svgHtml'], 'fill="none"'), "renderSvgFile debe soportar iconos outline y figuras <circle> en Custom");
+  $runner->assert($dynFolders['Brand']['count'] === 1 && str_contains($dynFolders['Brand']['icons'][0]['svgHtml'], '<rect'), "Nueva carpeta Brand debe ser detectada y soportar <rect>");
+
+  // Agregar un nuevo SVG dinámicamente y comprobar reflejo inmediato
+  file_put_contents(
+    $tempIcoBase . '/App/Rsc/Ico/Custom/second-icon.svg',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L2 22h20z"/></svg>'
+  );
+  $dynCatalog2 = \Base\Control\ThemeStudioControl::getIconsCatalog($tempIcoBase);
+  $runner->assert($dynCatalog2['totalIcons'] === 5, "Al agregar un nuevo SVG en Custom debe reflejarse inmediatamente (5 iconos)");
+
+  // Limpiar directorio temporal
+  $cleanTemp = function (string $dir) use (&$cleanTemp): void {
+    if (!is_dir($dir)) return;
+    foreach (scandir($dir) ?: [] as $entry) {
+      if ($entry === '.' || $entry === '..') continue;
+      $p = $dir . '/' . $entry;
+      is_dir($p) ? $cleanTemp($p) : @unlink($p);
+    }
+    @rmdir($dir);
+  };
+  $cleanTemp($tempIcoBase);
+
+  // 5. Verificar elementos de Icon Studio en Base/Views/themeStudio.php
+  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  $runner->assert(str_contains($viewContent, 'id="tab-icons"') && str_contains($viewContent, 'id="tabBtnIcons"'), "themeStudio.php debe incluir la pestaña #tab-icons");
+  $runner->assert(str_contains($viewContent, 'id="btnStageIcons"') && str_contains($viewContent, 'id="iconSandboxView"'), "themeStudio.php debe incluir el conmutador y escenario #iconSandboxView");
+  $runner->assert(str_contains($viewContent, 'id="isFoldersContainer"'), "themeStudio.php debe incluir el contenedor de grillas por carpeta #isFoldersContainer");
+  $runner->assert(str_contains($viewContent, 'initIconStudio') && str_contains($viewContent, 'refreshIconsCatalog') && str_contains($viewContent, 'buildIconCodeSnippet'), "themeStudio.php debe incluir el motor JS de Icon Studio");
+});
+
+// Helper interno para ejecutar pruebas de regresión de seguridad en subproceso PHP aislado
+$runSecSubprocess = static function (string $phpCode): array {
+  $tmpScript = tempnam(sys_get_temp_dir(), 'frame_sec_test_');
+  if ($tmpScript === false) {
+    return ['code' => 1, 'output' => 'No se pudo crear script temporal'];
+  }
+  $scriptPath = $tmpScript . '.php';
+  @rename($tmpScript, $scriptPath);
+  file_put_contents($scriptPath, "<?php\n" . $phpCode);
+  $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($scriptPath) . ' 2>&1';
+  $out = [];
+  $exitCode = 1;
+  exec($cmd, $out, $exitCode);
+  @unlink($scriptPath);
+  return ['code' => $exitCode, 'output' => implode("\n", $out)];
+};
+
+// =========================================================================
+// 20. SEGURIDAD (SEC-01 / SEC-15 / SEC-16) - ENTORNO FAIL-CLOSED Y BACKDOOR
+// =========================================================================
+$runner->runTest("Seguridad SEC-01/15/16 - Entorno fail-closed, HandlerError sin backdoor y display_errors", function () use ($runner, $runSecSubprocess) {
+  $rootLit = var_export(ROOT_PATH, true);
+
+  foreach (['', 'production ', 'staging', 'INVALIDO'] as $envVal) {
+    $envLit = var_export($envVal, true);
+    $res = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => {$envLit}];
+\$_SERVER['APP_ENV'] = {$envLit};
+putenv('APP_ENV=' . {$envLit});
+@ini_set('display_errors', '1');
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+echo json_encode([
+  'env' => ENVIRONMENT,
+  'isProd' => \\Base\\Module\\SecurityModule::isProduction(),
+  'isDev' => \\Base\\Module\\SecurityModule::isDevelopment(),
+  'studioDev' => \\Base\\Control\\ThemeStudioControl::isDevEnvironment(),
+  'errDev' => \\Core\\ErrorHandler::isDev(),
+  'displayErrors' => (string)ini_get('display_errors'),
+]);
+PHP);
+    $data = json_decode(trim($res['output']), true);
+    $runner->assert(is_array($data), "Subproceso fail-closed para APP_ENV='{$envVal}' debe responder JSON válido: " . $res['output']);
+    $runner->assert(($data['env'] ?? '') === 'production', "APP_ENV='{$envVal}' debe resolver ENVIRONMENT='production' fail-closed");
+    $runner->assert(($data['isProd'] ?? false) === true && ($data['isDev'] ?? true) === false, "isProduction() debe ser true e isDevelopment() false para '{$envVal}'");
+    $runner->assert(($data['studioDev'] ?? true) === false && ($data['errDev'] ?? true) === false, "ThemeStudioControl y ErrorHandler deben ser false para '{$envVal}'");
+    $runner->assert(($data['displayErrors'] ?? '1') === '0', "configureErrorHandling() debe forzar display_errors=0 fuera de desarrollo");
+  }
+
+  // Verificar retrocompatibilidad con APP_ENV="DEV"
+  $resDev = $runSecSubprocess(<<<PHP
+\$_ENV = [];
+\$_SERVER['APP_ENV'] = 'DEV';
+putenv('APP_ENV=DEV');
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+echo json_encode([
+  'env' => ENVIRONMENT,
+  'isDev' => \\Base\\Module\\SecurityModule::isDevelopment(),
+]);
+PHP);
+  $devData = json_decode(trim($resDev['output']), true);
+  $runner->assert(($devData['env'] ?? '') === 'development' && ($devData['isDev'] ?? false) === true, "APP_ENV='DEV' debe ser reconocido como development");
+
+  // Verificar eliminación del backdoor 'eber' y escape XSS en HandlerError.php en producción
+  $resErr = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production'];
+\$_SERVER['APP_ENV'] = 'production';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+\$_SESSION['user_session'] = ['username' => 'eber', 'role_id' => 2];
+\$num_error = 1052;
+\$msg = ['', 'Err', '<script>alert(1)</script>', 'javascript:alert(1)', '<b>SQL_SECRET</b>'];
+\$dbDiagnostic = ['engine' => 'sqlite', 'path' => '/var/www/Database/secreta.sqlite', 'error' => 'PDO_SECRET_TRACE'];
+ob_start();
+require ROOT_PATH . '/Base/Error/HandlerError.php';
+echo (string)ob_get_clean();
+PHP);
+  $errOut = $resErr['output'];
+  $runner->assert(!str_contains($errOut, 'eber'), "HandlerError.php no debe mencionar ni privilegiar el usuario 'eber'");
+  $runner->assert(!str_contains($errOut, 'secreta.sqlite') && !str_contains($errOut, 'PDO_SECRET_TRACE'), "Usuario 'eber' no admin en producción no debe ver diagnóstico BD");
+  $runner->assert(!str_contains($errOut, '<script>alert(1)</script>'), "HandlerError.php debe escapar HTML potencialmente malicioso en \$msg");
+});
+
+// =========================================================================
+// 21. SEGURIDAD (SEC-02 / SEC-03) - THEME STUDIO, /_frame Y CSS INJECTION
+// =========================================================================
+$runner->runTest("Seguridad SEC-02/03 - Theme Studio 404 en prod, vista directa y sanitización CSS", function () use ($runner, $runSecSubprocess) {
+  $rootLit = var_export(ROOT_PATH, true);
+
+  // 1. Inclusión directa de themeStudio.php sin ROOT_PATH
+  $resView = $runSecSubprocess(<<<PHP
+register_shutdown_function(function () {
+  echo '|HTTP_CODE:' . http_response_code();
+});
+require {$rootLit} . '/Base/Views/themeStudio.php';
+PHP);
+  $runner->assert(str_contains($resView['output'], '|HTTP_CODE:404') && !str_contains($resView['output'], '<html'), "Base/Views/themeStudio.php sin ROOT_PATH debe terminar con HTTP 404 sin contenido");
+
+  // 2. En producción, Route no registra /_frame/* y ThemeStudioControl::save() responde 404 JSON
+  $resProdRoute = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production'];
+\$_SERVER['APP_ENV'] = 'production';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+\\Core\\Route::reset();
+\\Base\\Control\\ThemeStudioControl::registerRoutes();
+\$routes = \\Core\\Route::getRoutes();
+\$hasFrame = false;
+foreach (\$routes as \$r) {
+  if (str_contains(\$r['uri'] ?? '', '_frame')) {
+    \$hasFrame = true;
+  }
+}
+echo json_encode(['hasFrame' => \$hasFrame]);
+PHP);
+  $prodRouteData = json_decode(trim($resProdRoute['output']), true);
+  $runner->assert(isset($prodRouteData['hasFrame']) && $prodRouteData['hasFrame'] === false, "ThemeStudioControl::registerRoutes() no debe registrar rutas /_frame en producción");
+
+  // 3. Sanitización de valores CSS en ThemeModule
+  $badCssVal = \Base\Module\ThemeModule::sanitizeCssValue("#ff0000; } body { background: url(javascript:alert(1)) } </style><script>", '#112233');
+  $runner->assert(!str_contains($badCssVal, '}') && !str_contains($badCssVal, '</style') && !str_contains($badCssVal, 'javascript:'), "ThemeModule::sanitizeCssValue debe neutralizar rupturas de regla CSS y </style>");
+  $exprCss = \Base\Module\ThemeModule::sanitizeCssValue("expression(alert(1))", '#000000');
+  $runner->assert(!str_contains(strtolower($exprCss), 'expression('), "ThemeModule::sanitizeCssValue debe rechazar expression()");
+});
+
+// =========================================================================
+// 22. SEGURIDAD (SEC-12 / SEC-11 / SEC-06) - UPLOADS, EXTR_SKIP, LOGS Y CONFVIEW
+// =========================================================================
+$runner->runTest("Seguridad SEC-12/11/06 - Control::file() MIME real/SVG, EXTR_SKIP, LogModule y SeoModule/confView", function () use ($runner) {
+  $ctrl = new \Base\Control\Control();
+  $tmpDir = ROOT_PATH . '/tests/tmp_sec_uploads';
+  @mkdir($tmpDir, 0755, true);
+
+  // 1. Subida con MIME falsificado en cabecera cliente ($file['type'] = 'image/png') pero cuerpo HTML/PHP
+  $fakePng = $tmpDir . '/payload.png';
+  file_put_contents($fakePng, "<?php echo 'hack'; ?><html><body><script>alert(1)</script></body></html>");
+  $resSpoof = $ctrl->file([
+    'name' => 'avatar.png',
+    'type' => 'image/png',
+    'tmp_name' => $fakePng,
+    'error' => UPLOAD_ERR_OK,
+    'size' => filesize($fakePng),
+  ], 'Uploads/sec_test', ['image/png']);
+  $runner->assert(isset($resSpoof['error']), "Control::file() debe rechazar MIME falsificado si finfo no confirma image/png");
+
+  // 2. Subida SVG bloqueada incluso si se intenta incluir
+  $svgFile = $tmpDir . '/xss.svg';
+  file_put_contents($svgFile, '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>');
+  $resSvg = $ctrl->file([
+    'name' => 'icon.svg',
+    'type' => 'image/svg+xml',
+    'tmp_name' => $svgFile,
+    'error' => UPLOAD_ERR_OK,
+    'size' => filesize($svgFile),
+  ], 'Uploads/sec_test', ['image/svg+xml', 'image/png']);
+  $runner->assert(isset($resSvg['error']), "Control::file() debe bloquear archivos SVG activos siempre");
+
+  // 3. Subida PNG válida genera nombre aleatorio y crea .htaccess protector
+  $validPng = $tmpDir . '/real.png';
+  $pngBytes = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+  file_put_contents($validPng, $pngBytes);
+  $resOk = $ctrl->file([
+    'name' => 'Mi Foto Original.png',
+    'type' => 'image/png',
+    'tmp_name' => $validPng,
+    'error' => UPLOAD_ERR_OK,
+    'size' => strlen($pngBytes),
+  ], 'Uploads/sec_test', ['image/png']);
+  $runner->assert(!empty($resOk['success']), "PNG válido debe subirse correctamente en CLI");
+  $runner->assert(($resOk['filename'] ?? '') !== 'Mi Foto Original.png', "Control::file() debe aleatorizar el nombre final");
+  $runner->assert(file_exists(ROOT_PATH . '/Uploads/sec_test/.htaccess'), "Control::file() debe crear .htaccess restrictivo en el destino");
+
+  // 4. Control::viewClean() aislado con EXTR_SKIP (no sobrescribe $templatePath ni $filePath)
+  @mkdir(ROOT_PATH . '/App/Views/SecTest', 0755, true);
+  file_put_contents(ROOT_PATH . '/App/Views/SecTest/isolated.php', 'VISTA_SEGURA:<?= e($val ?? "") ?>');
+  $viewOut = $ctrl->viewClean('SecTest.isolated', [
+    'templatePath' => ROOT_PATH . '/composer.json',
+    'filePath' => ROOT_PATH . '/composer.json',
+    'val' => 'OK_AISLADO',
+  ]);
+  $runner->assert(str_contains($viewOut, 'VISTA_SEGURA:OK_AISLADO') && !str_contains($viewOut, 'eber/framework'), "viewClean() debe aislar extract(EXTR_SKIP) frente a colisión de templatePath/filePath");
+
+  // 5. Part::resolvePath y LogModule confinados
+  $runner->assert(\resolvePath('../composer.json', ROUTE_VIEW) === null, "Part resolvePath() debe rechazar traversal '..'");
+  $runner->assert(\Base\Module\LogModule::simpleLog(['dir' => '../../App', 'name' => 'evil', 'content' => ['a' => 1]]) === false, "LogModule::simpleLog() debe rechazar salidas fuera de Logs/");
+  $runner->assert(\Base\Module\LogModule::readLogLines('../../composer.json') === [], "LogModule::readLogLines() debe rechazar rutas traversal fuera de Logs/");
+
+  // 6. Escape JSON-LD y OpenGraph en SeoModule
+  $jsonLd = \Base\Module\SeoModule::schemaJson(['name' => '</script><script>alert(1)</script>']);
+  $runner->assert(!str_contains($jsonLd, '</script><script>alert(1)'), "SeoModule::schemaJson() debe codificar etiquetas HTML con JSON_HEX_TAG");
+  $ogHtml = \Base\Module\SeoModule::openGraph(['title' => 'Hola" onmouseover="alert(1)', 'image' => 'https://example.com/a.png" onerror="x']);
+  $runner->assert(!str_contains($ogHtml, '" onmouseover="'), "SeoModule::openGraph() debe escapar atributos con htmlspecialchars");
+
+  // Limpiar artefactos temporales locales de este test
+  @unlink($fakePng);
+  @unlink($svgFile);
+  @unlink($validPng);
+  @rmdir($tmpDir);
+});
+
+// =========================================================================
+// 23. SEGURIDAD (SEC-10) - BUILDER Y BUILDERSQLITE ANTI-SQLI Y ALLOWED_TABLES
+// =========================================================================
+$runner->runTest("Seguridad SEC-10 - Validación estructural en Builder / BuilderSqlite y ALLOWED_TABLES", function () use ($runner, $runSecSubprocess) {
+  $pdo = new \PDO('sqlite::memory:');
+  $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+  $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, role TEXT)');
+  $pdo->exec("INSERT INTO users (name, role) VALUES ('Alice', 'user')");
+
+  $threw = static function (callable $fn): bool {
+    try {
+      $fn();
+      return false;
+    } catch (\InvalidArgumentException|\Throwable $e) {
+      return true;
+    }
+  };
+
+  // Identificador de tabla malicioso
+  $runner->assert($threw(fn() => new \Base\Builder\Builder('users; DROP TABLE users--', $pdo)), "Builder debe rechazar SQLi en nombre de tabla");
+
+  // Clave de columna maliciosa en insert()/update()
+  $runner->assert($threw(fn() => (new \Base\Builder\Builder('users', $pdo))->insert(['name = "x"; DROP TABLE users--' => 'hack'])), "Builder::insert() debe rechazar claves de columna con SQLi");
+  $runner->assert($threw(fn() => (new \Base\Builder\Builder('users', $pdo))->update('id; --', 1, ['name' => 'Bob'])), "Builder::update() debe rechazar columna filtro inválida");
+
+  // Operador inválido en where()
+  $runner->assert($threw(fn() => (new \Base\Builder\Builder('users', $pdo))->where('id', '= 1 OR 1=1 --', 1)), "Builder::where() debe rechazar operadores fuera de lista blanca");
+
+  // Proyección Select maliciosa vs agregación legítima
+  $runner->assert($threw(fn() => (new \Base\Builder\Builder('users', $pdo))->select('id, (SELECT 1) AS x; DROP TABLE users')->get()), "Builder::select() debe rechazar comentarios/stacked queries");
+  $aggRes = (new \Base\Builder\Builder('users', $pdo))->select('COUNT(DISTINCT id) AS total')->get();
+  $runner->assert((int)($aggRes[0]['total'] ?? 0) === 1, "Builder::select() debe conservar compatibilidad con COUNT(DISTINCT col) AS alias");
+
+  // limit() seguro ante strings no numéricos
+  $runner->assert($threw(fn() => (new \Base\Builder\Builder('users', $pdo))->select('*')->limit('1; DROP TABLE users')), "Builder::limit() debe rechazar valores no numéricos");
+
+  // fillable() filtra campos no permitidos contra mass-assignment
+  $bFill = (new \Base\Builder\Builder('users', $pdo))->fillable(['name']);
+  $bFill->insert(['name' => 'Carol', 'role' => 'admin']);
+  $carol = (new \Base\Builder\Builder('users', $pdo))->where('name', 'Carol')->first();
+  $runner->assert($carol && ($carol['role'] ?? null) === null, "fillable() debe ignorar columnas no autorizadas como 'role'");
+
+  // BuilderSqlite limit() inválido
+  $sqliteFile = ROOT_PATH . '/tests/sec_builder.sqlite';
+  $sqliteDb = new \PDO('sqlite:' . $sqliteFile);
+  $sqliteDb->exec('CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, title TEXT)');
+  $bSqlite = new \Base\Builder\BuilderSqlite('items');
+  $runner->assert($threw(fn() => $bSqlite->limit('1 UNION SELECT 1')), "BuilderSqlite::limit() debe rechazar strings no numéricos");
+  $bSqlite = null;
+  $sqliteDb = null;
+  @unlink($sqliteFile);
+
+  // ALLOWED_TABLES whitelist estricta opt-in (subproceso)
+  $rootLit = var_export(ROOT_PATH, true);
+  $resWhitelist = $runSecSubprocess(<<<PHP
+define('ROOT_PATH', {$rootLit});
+define('ALLOWED_TABLES', ['users']);
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+\$pdo = new PDO('sqlite::memory:');
+try {
+  new \\Base\\Builder\\Builder('posts', \$pdo);
+  echo 'NO_EXCEPTION';
+} catch (\\Throwable \$e) {
+  echo 'THREW:' . \$e->getMessage();
+}
+PHP);
+  $runner->assert(str_starts_with(trim($resWhitelist['output']), 'THREW:'), "ALLOWED_TABLES definido debe rechazar tablas fuera de la whitelist ('posts')");
+});
+
+// =========================================================================
+// 24. SEGURIDAD (SEC-14 / SEC-15) - CSRF GLOBAL, JWT AUTHMODULE Y PLAINTEXT
+// =========================================================================
+$runner->runTest("Seguridad SEC-14/15 - CSRF en POST/PUT/PATCH/DELETE/_method y AuthModule JWT", function () use ($runner, $runSecSubprocess) {
+  $token = \Base\Module\SecurityModule::getCsrfToken();
+  $runner->assert(strlen($token) >= 32, "getCsrfToken() debe generar un token criptográfico");
+
+  // Sin token, POST/PUT/PATCH/DELETE y POST + _method=PUT deben fallar
+  $_POST = [];
+  $_SERVER['HTTP_X_CSRF_TOKEN'] = '';
+  $runner->assert(\Base\Module\SecurityModule::verifyCsrf(false, 'POST', []) === false, "verifyCsrf() debe fallar en POST sin token");
+  $runner->assert(\Base\Module\SecurityModule::verifyCsrf(false, 'DELETE', []) === false, "verifyCsrf() debe fallar en DELETE sin token");
+  $runner->assert(\Base\Module\SecurityModule::verifyCsrf(false, 'POST', ['_method' => 'PUT']) === false, "verifyCsrf() debe fallar en POST + _method=PUT sin token");
+
+  // Con token válido en _token o header HTTP_X_CSRF_TOKEN debe aprobar
+  $runner->assert(\Base\Module\SecurityModule::verifyCsrf(false, 'POST', ['_token' => $token]) === true, "verifyCsrf() debe aprobar _token válido");
+  $_SERVER['HTTP_X_CSRF_TOKEN'] = $token;
+  $runner->assert(\Base\Module\SecurityModule::verifyCsrf(false, 'PATCH', []) === true, "verifyCsrf() debe aprobar PATCH con X-CSRF-TOKEN válido");
+  unset($_SERVER['HTTP_X_CSRF_TOKEN']);
+
+  // Route::withoutCsrf() debe marcar exención explícita en la ruta y CsrfMiddleware respetarla
+  \Core\Route::reset();
+  \Core\Route::withoutCsrf()->post('/webhook-test', static function (): string {
+    return 'HOOK_OK';
+  });
+  \Core\Route::post('/form-test', static function (): string {
+    return 'FORM_OK';
+  });
+  $routes = \Core\Route::getRoutes();
+  $hookExempt = false;
+  $formExempt = false;
+  foreach ($routes as $r) {
+    if ($r['uri'] === '/webhook-test') {
+      $hookExempt = in_array(\Base\Middleware\CsrfMiddleware::class, $r['exclude_middlewares'] ?? [], true);
+    }
+    if ($r['uri'] === '/form-test') {
+      $formExempt = in_array(\Base\Middleware\CsrfMiddleware::class, $r['exclude_middlewares'] ?? [], true);
+    }
+  }
+  $runner->assert($hookExempt === true && $formExempt === false, "Route::withoutCsrf() debe excluir CsrfMiddleware únicamente de esa ruta");
+  \Core\Route::reset();
+
+  // JWT AuthModule + rechazo de contraseñas en texto plano + tolerancia SEED ausente
+  $rootLit = var_export(ROOT_PATH, true);
+  $resJwt = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'testing', 'SEED' => '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'];
+\$_SERVER['APP_ENV'] = 'testing';
+\$_SERVER['SEED'] = \$_ENV['SEED'];
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+
+// 1. Builder::login() rechaza contraseña en texto plano
+\$pdo = new PDO('sqlite::memory:');
+\$pdo->exec('CREATE TABLE accounts (id INTEGER PRIMARY KEY, username TEXT, password TEXT, role INTEGER, status TEXT)');
+\$pdo->exec("INSERT INTO accounts (id, username, password, role, status) VALUES (1, 'plainuser', '123456', 2, 'active')");
+\$hashed = password_hash('SecretPass123!', PASSWORD_BCRYPT);
+\$stmt = \$pdo->prepare("INSERT INTO accounts (id, username, password, role, status) VALUES (2, 'hashuser', ?, 2, 'active')");
+\$stmt->execute([\$hashed]);
+
+\$bPlain = new \\Base\\Builder\\Builder('accounts', \$pdo);
+\$plainAttempt = \$bPlain->login('password', '123456', 'plainuser', ['username'], []);
+\$bHash = new \\Base\\Builder\\Builder('accounts', \$pdo);
+\$hashAttempt = \$bHash->login('password', 'SecretPass123!', 'hashuser', ['username'], []);
+
+// 2. AuthModule::login() genera JWT compacto sin password y valida con validateJWT()
+\\Base\\Module\\AuthModule::login(['id' => 2, 'username' => 'hashuser', 'password' => \$hashed, 'role' => 2, 'status' => 'active']);
+\$sessionUser = \\Base\\Module\\AuthModule::user();
+\$jwtCookie = \$_COOKIE['auth_token'] ?? '';
+\$claims = \$jwtCookie !== '' ? \\Base\\Module\\TokenModule::validateJWT(\$jwtCookie) : false;
+
+// 3. Simular nueva petición solo con cookie auth_token + comprobar restauración por Session::start()
+\$_SESSION = [];
+if (session_status() === PHP_SESSION_ACTIVE) {
+  session_write_close();
+}
+\\Base\\Module\\Session::start();
+\$restoredActive = \\Base\\Module\\Session::session_active();
+
+echo json_encode([
+  'plainRejected' => is_array(\$plainAttempt) && (\$plainAttempt[0] ?? true) === false,
+  'hashAccepted' => is_array(\$hashAttempt) && (\$hashAttempt[0] ?? false) === true,
+  'noPassInSession' => is_array(\$sessionUser) && !array_key_exists('password', \$sessionUser),
+  'jwtHasStatus' => is_array(\$claims) && (\$claims['status'] ?? '') === 'active' && !array_key_exists('password', \$claims),
+  'restoredActive' => \$restoredActive,
+]);
+PHP);
+  $jwtData = json_decode(trim($resJwt['output']), true);
+  $runner->assert(is_array($jwtData), "Subproceso AuthModule/JWT debe retornar JSON válido: " . $resJwt['output']);
+  $runner->assert(($jwtData['plainRejected'] ?? false) === true, "Builder::login() debe rechazar contraseñas en texto plano");
+  $runner->assert(($jwtData['hashAccepted'] ?? false) === true, "Builder::login() debe aceptar password_hash válido");
+  $runner->assert(($jwtData['noPassInSession'] ?? false) === true && ($jwtData['jwtHasStatus'] ?? false) === true, "Sesión y JWT no deben exponer 'password' y sí alinear 'status'");
+  $runner->assert(($jwtData['restoredActive'] ?? false) === true, "Session::start() debe validar cookie JWT generada por AuthModule::login()");
+
+  // Token corrupto con SEED ausente no debe provocar fatal en Session::start()
+  $resNoSeed = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production', 'SEED' => ''];
+\$_SERVER['APP_ENV'] = 'production';
+\$_COOKIE['auth_token'] = 'header.payload.invalid_sig';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+\\Base\\Module\\Session::start();
+echo 'SURVIVED';
+PHP);
+  $runner->assert(str_contains($resNoSeed['output'], 'SURVIVED'), "Cookie JWT corrupta con SEED vacío no debe lanzar error fatal 500");
+});
+
+// =========================================================================
+// 25. SEGURIDAD (SEC-07 / SEC-08 / SEC-09 / SEC-13) - XSS, REDIRECTS, DD Y PERMISOS
+// =========================================================================
+$runner->runTest("Seguridad SEC-07/08/09/13 - TextModule, Redirects /\\, dd() prod y ausencia de 0777", function () use ($runner, $runSecSubprocess) {
+  // 1. TextModule::clean() decodifica entidades ANTES de eliminar scripts/atributos
+  $cleaned = \Base\Module\TextModule::clean('&lt;script&gt;alert(1)&lt;/script&gt;<p onclick="evil()">Hola</p>');
+  $runner->assert(!str_contains(strtolower($cleaned), '<script') && !str_contains(strtolower($cleaned), 'onclick') && str_contains($cleaned, 'Hola'), "TextModule::clean() debe neutralizar etiquetas codificadas y atributos de evento");
+
+  // 2. sanitizeRichHtml conserva etiqueta permitida pero elimina atributos peligrosos y <script>
+  $rich = \Base\Module\SecurityModule::sanitizeRichHtml('<p onclick="alert(1)" style="position:fixed">Texto</p><script>x()</script><a href="javascript:alert(1)">Link</a>', '<p><a>');
+  $runner->assert(!str_contains($rich, '<script') && !str_contains($rich, 'onclick') && !str_contains($rich, 'style=') && !str_contains($rich, 'javascript:'), "sanitizeRichHtml() debe limpiar scripts, on*, style y javascript:");
+
+  // 3. sanitizeRedirectUrl bloquea /\, //, URLs externas y CRLF
+  $runner->assert(\Base\Module\SecurityModule::sanitizeRedirectUrl('/\\evil.example') === '/', "sanitizeRedirectUrl debe bloquear /\\");
+  $runner->assert(\Base\Module\SecurityModule::sanitizeRedirectUrl('%2f%5cevil.example') === '/', "sanitizeRedirectUrl debe bloquear %2f%5c");
+  $runner->assert(\Base\Module\SecurityModule::sanitizeRedirectUrl('//evil.example/a') === '/', "sanitizeRedirectUrl debe bloquear protocol-relative //");
+  $runner->assert(\Base\Module\SecurityModule::sanitizeRedirectUrl('https://evil.example/phish') === '/', "sanitizeRedirectUrl debe bloquear dominios externos");
+  $runner->assert(!str_contains(\Base\Module\SecurityModule::sanitizeRedirectUrl("/ok\r\nSet-Cookie: a=b"), "\r"), "sanitizeRedirectUrl debe eliminar CRLF");
+  $runner->assert(\Base\Module\SecurityModule::sanitizeRedirectUrl('/panel/perfil?tab=2') === '/panel/perfil?tab=2', "sanitizeRedirectUrl debe conservar rutas locales seguras");
+
+  // 4. dd() y debugComment() sin salida en producción
+  $rootLit = var_export(ROOT_PATH, true);
+  $resDd = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production'];
+\$_SERVER['APP_ENV'] = 'production';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+ob_start();
+dd(['db_pass' => 'secret'], false);
+debugComment('hidden', 'dbg');
+echo ob_get_clean();
+PHP);
+  $runner->assert(trim($resDd['output']) === '', "dd() y debugComment() no deben imprimir nada en producción");
+
+  // 5. Verificar ausencia de umask(0) y 0777 en Base/Module/ y Base/Exec/
+  $hasPermIssue = false;
+  foreach ([ROOT_PATH . '/Base/Module', ROOT_PATH . '/Base/Exec'] as $scanDir) {
+    $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($scanDir, \RecursiveDirectoryIterator::SKIP_DOTS));
+    foreach ($it as $file) {
+      if ($file->getExtension() !== 'php') continue;
+      $src = (string)file_get_contents($file->getPathname());
+      if (str_contains($src, 'umask(0)') || preg_match('/\b0777\b/', $src)) {
+        $hasPermIssue = true;
+      }
+    }
+  }
+  $runner->assert(!$hasPermIssue, "Base/Module y Base/Exec no deben contener umask(0) ni permisos 0777");
+});
+
+// =========================================================================
+// 26. SEGURIDAD (SEC-17 / SEC-18 / SEC-19 / SEC-04) - SSRF, PROXY CIDR, JSON ATOMICO Y DEPLOY
+// =========================================================================
+$runner->runTest("Seguridad SEC-17/18/19/04 - SafeHttpClient IPv6, Proxy CIDR, concurrencia flock y deploy.php", function () use ($runner, $runSecSubprocess) {
+  // 1. SafeHttpClient::isPublicIp y validateUrlAndResolve
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('127.0.0.1') === false, "Loopback IPv4 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('169.254.169.254') === false, "Cloud Metadata IPv4 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('100.64.0.1') === false, "CGNAT IPv4 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('::1') === false, "Loopback IPv6 ::1 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('fc00::1') === false, "ULA IPv6 fc00::/7 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('fe80::1') === false, "Link-local IPv6 fe80::/10 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('::ffff:127.0.0.1') === false, "IPv4-mapped IPv6 ::ffff:127.0.0.1 debe ser bloqueado");
+  $runner->assert(\Base\Module\Security\SafeHttpClient::isPublicIp('8.8.8.8') === true, "IPv4 pública 8.8.8.8 debe ser aceptada");
+
+  $ssrfMapped = \Base\Module\Security\SafeHttpClient::validateUrlAndResolve('http://[::ffff:127.0.0.1]/admin');
+  $ssrfScheme = \Base\Module\Security\SafeHttpClient::validateUrlAndResolve('file:///etc/passwd');
+  $runner->assert(empty($ssrfMapped['ok']) && empty($ssrfScheme['ok']), "SafeHttpClient debe bloquear esquema file:// e IP mapeada privada");
+
+  // 2. TRUSTED_PROXIES CIDR real (sin prefix spoofing) y X-Forwarded-Proto bloqueado sin proxy confiable
+  $rootLit = var_export(ROOT_PATH, true);
+  $resProxy = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production', 'TRUSTED_PROXIES' => '10.0.0.0/24'];
+\$_SERVER['APP_ENV'] = 'production';
+\$_SERVER['TRUSTED_PROXIES'] = '10.0.0.0/24';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+
+// Caso A: IP externa spoofeando X-Forwarded-*
+\$_SERVER['REMOTE_ADDR'] = '203.0.113.99';
+\$_SERVER['HTTP_X_FORWARDED_FOR'] = '8.8.8.8';
+\$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+\$ipA = \\Base\\Module\\SecurityModule::resolveClientIp();
+\$httpsA = \\Base\\Module\\SecurityModule::isHttpsRequest();
+
+// Caso B: IP fuera de 10.0.0.0/24 si TRUSTED_PROXIES fuera 10.0.0.2/32 (verificar CIDR 10.0.0.0/29)
+\$match29False = \\Base\\Module\\SecurityModule::isIpInCidr('10.0.0.25', '10.0.0.0/29');
+\$match29True  = \\Base\\Module\\SecurityModule::isIpInCidr('10.0.0.5', '10.0.0.0/29');
+
+// Caso C: Proxy confiable dentro de 10.0.0.0/24 sí resuelve cliente real y HTTPS
+\$_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+\$_SERVER['HTTP_X_FORWARDED_FOR'] = '198.51.100.10, 10.0.0.5';
+\$ipC = \\Base\\Module\\SecurityModule::resolveClientIp();
+\$httpsC = \\Base\\Module\\SecurityModule::isHttpsRequest();
+
+echo json_encode([
+  'ipA' => \$ipA,
+  'httpsA' => \$httpsA,
+  'match29False' => \$match29False,
+  'match29True' => \$match29True,
+  'ipC' => \$ipC,
+  'httpsC' => \$httpsC,
+]);
+PHP);
+  $proxyData = json_decode(trim($resProxy['output']), true);
+  $runner->assert(($proxyData['ipA'] ?? '') === '203.0.113.99' && ($proxyData['httpsA'] ?? true) === false, "Cliente no confiable no puede falsificar IP ni HTTPS");
+  $runner->assert(($proxyData['match29False'] ?? true) === false && ($proxyData['match29True'] ?? false) === true, "isIpInCidr debe validar máscara CIDR binaria sin coincidencia de prefijo string");
+  $runner->assert(($proxyData['ipC'] ?? '') === '198.51.100.10' && ($proxyData['httpsC'] ?? false) === true, "Proxy dentro de TRUSTED_PROXIES debe resolver la IP real y HTTPS");
+
+  // 3. Concurrencia/integridad JSON atómica en AccessBlocker y AntiScraper
+  for ($i = 0; $i < 25; $i++) {
+    \Base\Module\Security\AccessBlocker::recordIntrusionAttempt("198.51.100." . ($i % 5), 'Test intento', 100, 3600);
+    \Base\Module\Security\AntiScraper::checkScrapingRateLimit("198.51.100." . ($i % 5), 200);
+  }
+  $blockerJson = json_decode((string)@file_get_contents(\Base\Module\Security\AccessBlocker::getStorageFilePath()), true);
+  $scraperJson = json_decode((string)@file_get_contents(\Base\Module\Security\AntiScraper::getRateStoragePath()), true);
+  $runner->assert(is_array($blockerJson) && is_array($scraperJson), "AccessBlocker y AntiScraper deben preservar JSON íntegro tras escrituras repetidas");
+
+  // 4. Plantilla deploy.php oculta huella en GET y contiene guardias ZipSlip/Symlinks
+  if (!class_exists('DeployPackage', false)) {
+    require_once ROOT_PATH . '/Base/ScriptComposer/DeployPackage.php';
+  }
+  $tpl = \DeployPackage::getDeployReceiverTemplate('abcdef0123456789abcdef0123456789');
+  $runner->assert(!str_contains($tpl, 'Frame Deploy Receiver'), "deploy.php no debe exponer banner identificativo");
+  $runner->assert(str_contains($tpl, 'DEPLOY_ENABLED') && str_contains($tpl, 'OPSYS_UNIX') && str_contains($tpl, 'DEPLOY_ALLOWED_IPS'), "deploy.php debe validar DEPLOY_ENABLED, symlinks Unix y lista de IPs");
+
+  $tmpDeploy = tempnam(sys_get_temp_dir(), 'frame_deploy_tpl_') . '.php';
+  file_put_contents($tmpDeploy, $tpl);
+  $tmpDeployLit = var_export($tmpDeploy, true);
+  $resGetDeploy = $runSecSubprocess(<<<PHP
+\$_SERVER['REQUEST_METHOD'] = 'GET';
+register_shutdown_function(function () {
+  echo '|HTTP:' . http_response_code();
+});
+require {$tmpDeployLit};
+PHP);
+  @unlink($tmpDeploy);
+  $runner->assert(str_contains($resGetDeploy['output'], '|HTTP:404') && str_contains($resGetDeploy['output'], 'Not found'), "GET /deploy.php debe responder 404 genérico");
 });
 
 // Limpiar /App y carpetas de proyecto en el repositorio del framework

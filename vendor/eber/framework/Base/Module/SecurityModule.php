@@ -171,6 +171,196 @@ class SecurityModule
     return htmlspecialchars($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
   }
 
+  /**
+   * Sanitiza HTML enriquecido mediante árbol DOM conservando solo las etiquetas permitidas
+   * y eliminando todos los manejadores de eventos (`on*`), `style`, scripts y URIs peligrosas.
+   *
+   * @param string $html Entrada HTML potencialmente insegura.
+   * @param string $allowedTagsSpec Lista de etiquetas estilo strip_tags (ej. '<p><strong><ul><li>').
+   * @return string HTML seguro sin atributos ni etiquetas peligrosas.
+   */
+  public static function sanitizeRichHtml(string $html, string $allowedTagsSpec = ''): string
+  {
+    if (!str_contains($html, '<')) {
+      return $html;
+    }
+
+    preg_match_all('/<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/', strtolower($allowedTagsSpec), $tagMatches);
+    $allowedTags = array_values(array_unique($tagMatches[1] ?? []));
+
+    if (empty($allowedTags)) {
+      return strip_tags($html);
+    }
+
+    if (!class_exists(\DOMDocument::class)) {
+      return htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    $dangerousTags = [
+      'script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet',
+      'svg', 'math', 'link', 'meta', 'base', 'form', 'input', 'textarea', 'select', 'button', 'noscript'
+    ];
+
+    $prevErrors = libxml_use_internal_errors(true);
+    $dom = new \DOMDocument('1.0', 'UTF-8');
+    $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="__frame_root__">' . $html . '</div></body></html>';
+    $loaded = @$dom->loadHTML($wrapped, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prevErrors);
+
+    if (!$loaded) {
+      return htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    $root = $dom->getElementById('__frame_root__');
+    if (!$root instanceof \DOMElement) {
+      return '';
+    }
+
+    self::cleanDomNode($root, $allowedTags, $dangerousTags);
+
+    $out = '';
+    foreach ($root->childNodes as $child) {
+      $out .= $dom->saveHTML($child);
+    }
+    return $out;
+  }
+
+  /**
+   * Recorre recursivamente nodos DOM eliminando elementos peligrosos y atributos no permitidos.
+   */
+  private static function cleanDomNode(\DOMNode $parent, array $allowedTags, array $dangerousTags): void
+  {
+    $children = [];
+    foreach ($parent->childNodes as $child) {
+      $children[] = $child;
+    }
+
+    foreach ($children as $child) {
+      if ($child instanceof \DOMComment || $child instanceof \DOMProcessingInstruction) {
+        $parent->removeChild($child);
+        continue;
+      }
+
+      if (!($child instanceof \DOMElement)) {
+        continue;
+      }
+
+      $tagName = strtolower($child->tagName);
+
+      if (in_array($tagName, $dangerousTags, true)) {
+        $parent->removeChild($child);
+        continue;
+      }
+
+      self::cleanDomNode($child, $allowedTags, $dangerousTags);
+
+      if (!in_array($tagName, $allowedTags, true)) {
+        while ($child->firstChild !== null) {
+          $parent->insertBefore($child->firstChild, $child);
+        }
+        $parent->removeChild($child);
+        continue;
+      }
+
+      $attrNames = [];
+      if ($child->hasAttributes()) {
+        foreach ($child->attributes as $attr) {
+          $attrNames[] = $attr->name;
+        }
+      }
+
+      foreach ($attrNames as $attrName) {
+        $lowerAttr = strtolower($attrName);
+        if ($tagName === 'a' && $lowerAttr === 'href') {
+          $safeHref = self::sanitizeRedirectUrl($child->getAttribute($attrName), true);
+          if ($safeHref === '#') {
+            $child->removeAttribute($attrName);
+          } else {
+            $child->setAttribute('href', $safeHref);
+            $child->setAttribute('rel', 'noopener noreferrer');
+          }
+          continue;
+        }
+        $child->removeAttribute($attrName);
+      }
+    }
+  }
+
+  /**
+   * Sanitiza una URL de destino o redirección bloqueando CRLF, esquemas peligrosos,
+   * rutas protocol-relative (`//`, `/\`, `\/`, `\\`) y redirecciones abiertas no autorizadas.
+   */
+  public static function sanitizeRedirectUrl(string $url, bool $allowExternal = false, array $allowedHosts = []): string
+  {
+    $clean = str_replace(["\r", "\n", "\0"], '', trim($url));
+    $clean = preg_replace('/[\x00-\x1F\x7F]/', '', $clean) ?? '';
+    $clean = preg_replace('/%0[ad]/i', '', $clean) ?? '';
+
+    if ($clean === '' || $clean === '#') {
+      return '#';
+    }
+
+    // Bloquear rutas ambiguas o protocol-relative (incluyendo barras invertidas /\ o \/ codificadas)
+    $decodedPrefix = strtolower(rawurldecode(substr($clean, 0, 12)));
+    if (
+      str_starts_with($clean, '//') ||
+      str_starts_with($clean, '/\\') ||
+      str_starts_with($clean, '\\') ||
+      str_starts_with($decodedPrefix, '//') ||
+      str_starts_with($decodedPrefix, '/\\') ||
+      str_starts_with($decodedPrefix, '\\')
+    ) {
+      return '/';
+    }
+
+    // Rutas relativas seguras dentro del mismo origen (una sola / inicial)
+    if (str_starts_with($clean, '/') && !str_contains($clean, '\\')) {
+      return $clean;
+    }
+
+    // Permitir mailto: y tel: solo en contextos de enlace cuando $allowExternal = true
+    if ($allowExternal && preg_match('#^(mailto|tel):[^\s<>]+$#i', $clean)) {
+      return $clean;
+    }
+
+    $parts = @parse_url($clean);
+    if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+      return $allowExternal ? '#' : '/';
+    }
+
+    $scheme = strtolower((string)$parts['scheme']);
+    if (!in_array($scheme, ['http', 'https'], true)) {
+      return $allowExternal ? '#' : '/';
+    }
+
+    if ($allowExternal && empty($allowedHosts)) {
+      return $clean;
+    }
+
+    $targetHost = strtolower(trim((string)$parts['host']));
+    $validHosts = array_map(static fn($h) => strtolower(trim((string)$h)), $allowedHosts);
+
+    if (defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
+      $validHosts[] = strtolower(trim((string)FORCE_DOMAIN));
+    } elseif (defined('DOMAIN') && !empty(DOMAIN)) {
+      $domHost = @parse_url((string)DOMAIN, PHP_URL_HOST);
+      if (is_string($domHost) && $domHost !== '') {
+        $validHosts[] = strtolower($domHost);
+      }
+    }
+
+    if (!empty($_SERVER['HTTP_HOST'])) {
+      $curHost = strtolower(preg_replace('/:\d+$/', '', (string)$_SERVER['HTTP_HOST']));
+      if ($curHost !== '') {
+        $validHosts[] = $curHost;
+      }
+    }
+
+    $validHosts = array_values(array_unique(array_filter($validHosts)));
+    return in_array($targetHost, $validHosts, true) ? $clean : '/';
+  }
+
     // =========================================================================
     // PROTECCIÓN CSRF
     // =========================================================================
@@ -258,21 +448,35 @@ class SecurityModule
   }
 
   /**
-   * Verifica el token CSRF para peticiones POST.
+   * Verifica el token CSRF para peticiones que modifican estado (POST, PUT, PATCH, DELETE).
+   *
+   * @param bool $throwException Si lanza RuntimeException cuando falla.
+   * @param string|null $methodOverride Método HTTP efectivo opcional.
+   * @param array|null $bodyData Cuerpo parseado opcional (p. ej. payload JSON).
    */
-  public static function verifyCsrf(bool $throwException = false): bool
+  public static function verifyCsrf(bool $throwException = false, ?string $methodOverride = null, ?array $bodyData = null): bool
   {
-    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    $method = strtoupper(trim((string)($methodOverride ?? $_SERVER['REQUEST_METHOD'] ?? 'GET')));
+    if ($method === 'POST' && isset($_POST['_method'])) {
+      $submitted = strtoupper(trim((string)$_POST['_method']));
+      if (in_array($submitted, ['PUT', 'PATCH', 'DELETE'], true)) {
+        $method = $submitted;
+      }
+    }
+
+    if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
       return true;
     }
 
-    $token = $_POST['_token'] 
-      ?? $_POST['csrf_token'] 
-      ?? $_SERVER['HTTP_X_CSRF_TOKEN'] 
-      ?? $_SERVER['HTTP_X_XSRF_TOKEN'] 
+    $token = $_POST['_token']
+      ?? $_POST['csrf_token']
+      ?? ($bodyData['_token'] ?? null)
+      ?? ($bodyData['csrf_token'] ?? null)
+      ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+      ?? $_SERVER['HTTP_X_XSRF_TOKEN']
       ?? null;
 
-    if (!self::validateCsrfToken($token)) {
+    if (!is_string($token) || !self::validateCsrfToken($token)) {
       if ($throwException) {
         throw new \RuntimeException('Token CSRF inválido o expirado');
       }
@@ -484,33 +688,65 @@ class SecurityModule
     }
   }
 
+  /**
+   * Resuelve el entorno actual con política estricta fail-closed.
+   * Cualquier valor ausente, vacío o ambiguo se normaliza a 'production'.
+   */
+  public static function resolveEnvironment(): string
+  {
+    if (defined('ENVIRONMENT')) {
+      $normalized = strtolower(trim((string)ENVIRONMENT));
+      if (in_array($normalized, ['testing', 'test'], true)) {
+        return 'testing';
+      }
+      if (in_array($normalized, ['dev', 'development', 'local'], true)) {
+        return 'development';
+      }
+      return 'production';
+    }
+
+    foreach (['APP_ENV', 'ENVIRONMENT'] as $varName) {
+      foreach ([$_ENV[$varName] ?? null, $_SERVER[$varName] ?? null, getenv($varName)] as $raw) {
+        if ($raw === false || $raw === null) {
+          continue;
+        }
+        $normalized = strtolower(trim((string)$raw));
+        if ($normalized === '') {
+          continue;
+        }
+        if (in_array($normalized, ['testing', 'test'], true)) {
+          return 'testing';
+        }
+        if (in_array($normalized, ['dev', 'development', 'local'], true)) {
+          return 'development';
+        }
+        return 'production';
+      }
+    }
+
+    return 'production';
+  }
+
   public static function isProduction(): bool
   {
-    if (!defined('ENVIRONMENT')) {
-      return false;
-    }
-    $env = strtolower((string)ENVIRONMENT);
-    return in_array($env, ['production', 'prod'], true);
+    return self::resolveEnvironment() === 'production';
   }
 
   public static function isDevelopment(): bool
   {
-    if (!defined('ENVIRONMENT')) {
-      return true;
-    }
-    $env = strtolower((string)ENVIRONMENT);
-    return in_array($env, ['dev', 'development', 'local'], true);
+    return in_array(self::resolveEnvironment(), ['development', 'testing'], true);
   }
 
   public static function configureErrorHandling(): void
   {
+    @ini_set('log_errors', '1');
     if (self::isProduction()) {
-      ini_set('display_errors', '0');
-      ini_set('display_startup_errors', '0');
+      @ini_set('display_errors', '0');
+      @ini_set('display_startup_errors', '0');
       error_reporting(0);
     } else {
-      ini_set('display_errors', '1');
-      ini_set('display_startup_errors', '1');
+      @ini_set('display_errors', '1');
+      @ini_set('display_startup_errors', '1');
       error_reporting(E_ALL);
     }
   }
@@ -532,5 +768,170 @@ class SecurityModule
   public static function generateToken(int $length = 32): string
   {
     return bin2hex(random_bytes($length));
+  }
+
+  // =========================================================================
+  // RESOLUCIÓN DE IP, PROXIES CONFIABLES (CIDR), HTTPS Y HOST VALIDADO
+  // =========================================================================
+
+  /**
+   * Obtiene la lista de IPs/CIDRs de proxies confiables desde configuración o entorno.
+   *
+   * @return array<int, string>
+   */
+  public static function getTrustedProxies(): array
+  {
+    $raw = defined('TRUSTED_PROXIES')
+      ? TRUSTED_PROXIES
+      : ($_ENV['TRUSTED_PROXIES'] ?? $_SERVER['TRUSTED_PROXIES'] ?? getenv('TRUSTED_PROXIES') ?: '');
+
+    if (is_array($raw)) {
+      $entries = $raw;
+    } else {
+      $entries = explode(',', (string)$raw);
+    }
+
+    return array_values(array_filter(array_map('trim', $entries), static fn(string $v): bool => $v !== ''));
+  }
+
+  /**
+   * Comprueba si una IP pertenece a una IP exacta o rango CIDR IPv4/IPv6 mediante máscara binaria.
+   */
+  public static function isIpInCidr(string $ip, string $cidr): bool
+  {
+    $ip = trim($ip);
+    $cidr = trim($cidr);
+    if ($ip === '' || $cidr === '') {
+      return false;
+    }
+
+    if (!str_contains($cidr, '/')) {
+      $binIp = @inet_pton($ip);
+      $binTarget = @inet_pton($cidr);
+      return $binIp !== false && $binTarget !== false && $binIp === $binTarget;
+    }
+
+    [$subnet, $prefixRaw] = explode('/', $cidr, 2);
+    if (!is_numeric($prefixRaw)) {
+      return false;
+    }
+    $prefix = (int)$prefixRaw;
+
+    $binIp = @inet_pton($ip);
+    $binSubnet = @inet_pton(trim($subnet));
+    if ($binIp === false || $binSubnet === false || strlen($binIp) !== strlen($binSubnet)) {
+      return false;
+    }
+
+    $maxBits = strlen($binIp) * 8;
+    if ($prefix < 0 || $prefix > $maxBits) {
+      return false;
+    }
+
+    $fullBytes = intdiv($prefix, 8);
+    $remainderBits = $prefix % 8;
+
+    if ($fullBytes > 0 && substr($binIp, 0, $fullBytes) !== substr($binSubnet, 0, $fullBytes)) {
+      return false;
+    }
+
+    if ($remainderBits > 0) {
+      $mask = (0xFF << (8 - $remainderBits)) & 0xFF;
+      if ((ord($binIp[$fullBytes]) & $mask) !== (ord($binSubnet[$fullBytes]) & $mask)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Indica si REMOTE_ADDR (o la IP provista) corresponde a un proxy inverso confiable.
+   */
+  public static function isTrustedProxy(?string $remoteAddr = null): bool
+  {
+    $addr = trim((string)($remoteAddr ?? $_SERVER['REMOTE_ADDR'] ?? ''));
+    if ($addr === '' || filter_var($addr, FILTER_VALIDATE_IP) === false) {
+      return false;
+    }
+
+    foreach (self::getTrustedProxies() as $trusted) {
+      if (self::isIpInCidr($addr, $trusted)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Resuelve la IP real del cliente validando cabeceras de reenvío únicamente si
+   * REMOTE_ADDR pertenece a TRUSTED_PROXIES (previene IP spoofing).
+   */
+  public static function resolveClientIp(): string
+  {
+    $remoteAddr = trim((string)($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'));
+    if (filter_var($remoteAddr, FILTER_VALIDATE_IP) === false) {
+      $remoteAddr = '127.0.0.1';
+    }
+
+    $proxies = self::getTrustedProxies();
+    if (empty($proxies) || !self::isTrustedProxy($remoteAddr)) {
+      return $remoteAddr;
+    }
+
+    // Priorizar cadenas de proxy evaluando de derecha a izquierda para saltar proxies confiables internos
+    $forwardedFor = (string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+    if ($forwardedFor !== '') {
+      $chain = array_reverse(array_map('trim', explode(',', $forwardedFor)));
+      foreach ($chain as $candidate) {
+        if (filter_var($candidate, FILTER_VALIDATE_IP) === false) {
+          continue;
+        }
+        $isProxy = false;
+        foreach ($proxies as $trusted) {
+          if (self::isIpInCidr($candidate, $trusted)) {
+            $isProxy = true;
+            break;
+          }
+        }
+        if (!$isProxy) {
+          return $candidate;
+        }
+      }
+    }
+
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_REAL_IP', 'HTTP_CLIENT_IP'] as $header) {
+      $candidate = trim((string)($_SERVER[$header] ?? ''));
+      if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
+        return $candidate;
+      }
+    }
+
+    return $remoteAddr;
+  }
+
+  /**
+   * Determina si la petición actual usa HTTPS, aceptando cabeceras X-Forwarded-Proto/SSL
+   * únicamente cuando proviene de un proxy configurado en TRUSTED_PROXIES.
+   */
+  public static function isHttpsRequest(): bool
+  {
+    if ((!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off')
+      || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
+    ) {
+      return true;
+    }
+
+    if (self::isTrustedProxy()) {
+      if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower(trim((string)$_SERVER['HTTP_X_FORWARDED_PROTO'])) === 'https') {
+        return true;
+      }
+      if (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower(trim((string)$_SERVER['HTTP_X_FORWARDED_SSL'])) === 'on') {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

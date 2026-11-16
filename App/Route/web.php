@@ -51,7 +51,7 @@ Route::prefix("/lemon-squeezy")->group(function(){
   Route::get("/test", [LemonSqueezyControllers::class, "testApi"]);
   Route::get("/checkout", [LemonSqueezyControllers::class, "checkout"]);
   Route::post("/checkout", [LemonSqueezyControllers::class, "checkout"]);
-  Route::post("/webhook", [LemonSqueezyControllers::class, "webhook"]);
+  Route::withoutCsrf()->post("/webhook", [LemonSqueezyControllers::class, "webhook"]);
   Route::get("/success", [LemonSqueezyControllers::class, "success"]);
   Route::get("/cancel", [LemonSqueezyControllers::class, "cancel"]);
   Route::get("/init-db", function(){
@@ -158,7 +158,7 @@ Route::get("/op/check", function(){
   ResponseModule::error("Página no encontrada", 404);
 });
 
-Route::post("/op/track-view", function(){
+Route::withoutCsrf()->post("/op/track-view", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
   $decoded  = json_decode($rawInput, true);
@@ -172,7 +172,7 @@ Route::post("/op/track-view", function(){
   exit;
 });
 
-Route::post("/op/track-click", function(){
+Route::withoutCsrf()->post("/op/track-click", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
   $decoded  = json_decode($rawInput, true);
@@ -190,7 +190,7 @@ Route::post("/op/track-click", function(){
   exit;
 });
 
-Route::post("/op/active-viewers", function(){
+Route::withoutCsrf()->post("/op/active-viewers", function(){
   header('Content-Type: application/json');
   $rawInput = file_get_contents('php://input');
   $decoded  = json_decode($rawInput, true);

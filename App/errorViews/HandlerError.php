@@ -20,11 +20,19 @@
 
   }
 
-  // Detección de sesión para diagnóstico administrativo seguro de BD
+  // Detección de sesión y entorno para diagnóstico administrativo seguro de BD (sin usuarios hardcodeados)
   $isDevOrAdmin = false;
-  if (class_exists('\Base\Module\Session')) {
-    $sessionUser = \Base\Module\Session::session_data('username');
-    if ($sessionUser === 'eber' || \Base\Module\Session::role() === 'admin' || (defined('ENVIRONMENT') && in_array(ENVIRONMENT, ['dev', 'development', 'local'], true))) {
+  $isDevEnv = class_exists('\Base\Module\SecurityModule')
+    ? \Base\Module\SecurityModule::isDevelopment()
+    : (defined('ENVIRONMENT') && in_array(strtolower(trim((string)ENVIRONMENT)), ['dev', 'development', 'local', 'testing', 'test'], true));
+
+  if ($isDevEnv) {
+    $isDevOrAdmin = true;
+  } elseif (class_exists('\Base\Module\Session') && \Base\Module\Session::session_active()) {
+    $roleData = \Base\Module\Session::role();
+    $roleName = is_array($roleData) ? strtolower(trim((string)($roleData['role_name'] ?? ''))) : strtolower(trim((string)$roleData));
+    $roleId = is_array($roleData) ? (int)($roleData['role_id'] ?? 0) : 0;
+    if ($roleName === 'admin' || $roleName === 'administrador' || $roleId === 1) {
       $isDevOrAdmin = true;
     }
   }
@@ -64,7 +72,7 @@
 
 ?>
 
-<div id="error-<?= $msg[1]?>" class="container-xl h-dvh flex-column center-center">
+<div id="error-<?= e((string)($msg[1] ?? '')) ?>" class="container-xl h-dvh flex-column center-center">
   <div class="card back8 br0 w100 flex-column center-center">
 
     <div class="w50 w-mid-90 w-sml-100 flex-between-column">
@@ -72,9 +80,9 @@
       <div class="text-center color2 x50 bold600 flex-row center-start gap10">
         <p class="x50 bold600 flex-row center-center"><?= $svg?></p>
         <p class="x50 bold600"><?= e($errorLabel) ?></p>
-        <p class="x50 bold600"><?= $msg[1]?>!</p>
+        <p class="x50 bold600"><?= e((string)($msg[1] ?? '')) ?>!</p>
       </div>
-      <p class="mb10 m0 x25 color2 no-indent pt10 pb10"><?= $msg[2]?></p>
+      <p class="mb10 m0 x25 color2 no-indent pt10 pb10"><?= htmlspecialchars((string)($msg[2] ?? ''), ENT_QUOTES, 'UTF-8', false) ?></p>
 
       <?php if (!empty($dbDiagnostic) && $isDevOrAdmin) : ?>
         <div class="p15 br10 back-card mt10 mb15 w100 text-left color3 x14" style="border: 1px solid rgba(255,100,100,0.3); font-family: monospace;">
@@ -94,9 +102,9 @@
         </div>
       <?php endif; ?>
 
-      <?php if ($msg[3] != '') : ?>
+      <?php if (!empty($msg[3])) : ?>
         <div class="btn-cancel x20 br50 bold400 mb5">
-          <a href="<?= $msg[3]?>"><?= $msg[4]?></a>
+          <a href="<?= eUrl((string)$msg[3]) ?>"><?= e((string)($msg[4] ?? '')) ?></a>
         </div>
       <?php endif;?>
 

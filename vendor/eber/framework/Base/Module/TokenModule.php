@@ -175,6 +175,11 @@ class TokenModule
 
     list($encodedHeader, $encodedPayload, $encodedSignature) = $parts;
 
+    $header = json_decode(self::base64UrlDecode($encodedHeader), true);
+    if (!is_array($header) || strtoupper((string)($header['alg'] ?? '')) !== 'HS256') {
+      return false;
+    }
+
     $secret = self::getSeed();
     $signature = hash_hmac('sha256', $encodedHeader . '.' . $encodedPayload, $secret, true);
     $expectedSignature = self::base64UrlEncode($signature);

@@ -154,12 +154,34 @@ export function autoSubmitForm() {
 
       const action = form.action || window.location.href;
 
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+      const requestHeaders = {
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      if (csrfToken) {
+        requestHeaders['X-CSRF-TOKEN'] = csrfToken;
+      }
+
+      const sanitizeHtmlFragment = (rawHtml) => {
+        const doc = new DOMParser().parseFromString(String(rawHtml ?? ''), 'text/html');
+        doc.querySelectorAll('script, iframe, object, embed, base, meta').forEach((node) => node.remove());
+        doc.querySelectorAll('*').forEach((el) => {
+          Array.from(el.attributes).forEach((attr) => {
+            const name = attr.name.toLowerCase();
+            const val = attr.value.trim().toLowerCase();
+            if (name.startsWith('on') || ((name === 'href' || name === 'src' || name === 'action') && (val.startsWith('javascript:') || val.startsWith('data:text/html')))) {
+              el.removeAttribute(attr.name);
+            }
+          });
+        });
+        return doc.body;
+      };
+
       const response = await fetch(action, {
         method: form.method || 'POST',
         body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: requestHeaders
       });
 
       if (!response.ok) {
@@ -172,8 +194,9 @@ export function autoSubmitForm() {
       if (data && data.success) {
         // 1. Actualizar el banner de estado del perfil en el sidebar (escritorio y móvil)
         if (data.sidebarStatusHtml) {
+          const cleanBody = sanitizeHtmlFragment(data.sidebarStatusHtml);
           document.querySelectorAll('.sidebar-profile-status').forEach((el) => {
-            el.innerHTML = data.sidebarStatusHtml;
+            el.replaceChildren(...Array.from(cleanBody.cloneNode(true).childNodes));
           });
         }
 
@@ -181,21 +204,22 @@ export function autoSubmitForm() {
         if (data.statsHtml) {
           const statsRemote = document.getElementById('statistics-remote');
           if (statsRemote) {
-            statsRemote.innerHTML = data.statsHtml;
+            const cleanBody = sanitizeHtmlFragment(data.statsHtml);
+            statsRemote.replaceChildren(...Array.from(cleanBody.childNodes));
           }
         }
 
         // 3. Actualizar la vista previa (.user-profile-preview) sin recargar
         if (data.html) {
+          const cleanBody = sanitizeHtmlFragment(data.html.trim());
           const previewContainers = document.querySelectorAll('.user-profile-preview');
           previewContainers.forEach((container) => {
-            const temp = document.createElement('div');
-            temp.innerHTML = data.html.trim();
-            const targetPreview = temp.querySelector('.user-profile-preview') || temp.firstElementChild;
+            const clone = cleanBody.cloneNode(true);
+            const targetPreview = clone.querySelector('.user-profile-preview') || clone.firstElementChild;
             if (targetPreview && container.parentNode) {
               container.parentNode.replaceChild(targetPreview, container);
             } else {
-              container.innerHTML = data.html;
+              container.replaceChildren(...Array.from(clone.childNodes));
             }
           });
         }
@@ -208,11 +232,10 @@ export function autoSubmitForm() {
           if (!isTypingInForm) {
             const activeRemoteContent = form.closest('.remote-content') || document.querySelector('.remote-content.active');
             if (activeRemoteContent && activeRemoteContent.id) {
-              const tempForm = document.createElement('div');
-              tempForm.innerHTML = data.formHtml.trim();
-              const matchingNewContent = tempForm.querySelector('#' + CSS.escape(activeRemoteContent.id));
+              const cleanBody = sanitizeHtmlFragment(data.formHtml.trim());
+              const matchingNewContent = cleanBody.querySelector('#' + CSS.escape(activeRemoteContent.id));
               if (matchingNewContent) {
-                activeRemoteContent.innerHTML = matchingNewContent.innerHTML;
+                activeRemoteContent.replaceChildren(...Array.from(matchingNewContent.cloneNode(true).childNodes));
               }
             }
           }

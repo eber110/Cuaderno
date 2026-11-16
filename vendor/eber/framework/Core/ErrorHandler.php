@@ -21,15 +21,18 @@ use Base\Module\SeoModule;
 class ErrorHandler
 {
     /**
-     * Indica si estamos en desarrollo.
+     * Indica si estamos en desarrollo (fail-closed: retorna false si no hay entorno explícito dev/testing).
      */
     public static function isDev(): bool
     {
-        if (!defined('ENVIRONMENT')) {
-            return true;
+        if (class_exists('\\Base\\Module\\SecurityModule')) {
+            return \Base\Module\SecurityModule::isDevelopment();
         }
-        $env = strtolower((string)ENVIRONMENT);
-        return in_array($env, ['dev', 'development', 'local'], true);
+        if (!defined('ENVIRONMENT')) {
+            return false;
+        }
+        $env = strtolower(trim((string)ENVIRONMENT));
+        return in_array($env, ['dev', 'development', 'local', 'testing', 'test'], true);
     }
 
     /**
@@ -37,9 +40,11 @@ class ErrorHandler
      */
     private static function log(int $code, string $message, array $context = []): void
     {
-        $uri = $_SERVER['REQUEST_URI'] ?? 'unknown';
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
+        $uri = (string)($_SERVER['REQUEST_URI'] ?? 'unknown');
+        $ip = class_exists('\\Base\\Module\\SecurityModule')
+            ? \Base\Module\SecurityModule::resolveClientIp()
+            : (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $method = (string)($_SERVER['REQUEST_METHOD'] ?? 'unknown');
 
         $logData = [
             'time' => date('Y-m-d H:i:s'),
@@ -56,13 +61,15 @@ class ErrorHandler
 
         error_log('[ErrorHandler] ' . json_encode($logData, JSON_UNESCAPED_SLASHES));
 
-        // Registrar intrusión si el error es de seguridad (403, 405) o si la ruta es sospechosa
+        // Registrar intrusión; incrementar contador de auto-baneo únicamente ante rutas sospechosas reales
+        // (evita DoS por auto-baneo sobre IPs de proxy/CDN ante errores 403/405 de navegación normal)
         if (class_exists('\\Base\\Module\\SecurityModule')) {
             $isSuspicious = \Base\Module\SecurityModule::isSuspiciousPath($uri);
             if ($code === 403 || $code === 405 || $isSuspicious) {
-                \Base\Module\SecurityModule::logIntrusion(
+                \Base\Module\Security\IntrusionLogger::log(
                     "HTTP Error {$code} ({$message})" . ($isSuspicious ? " [Ruta Sospechosa]" : ""),
-                    $logData
+                    $logData,
+                    $isSuspicious
                 );
             }
         }

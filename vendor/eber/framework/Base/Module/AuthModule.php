@@ -114,7 +114,17 @@ class AuthModule
 
     Session::regenerateId(true);
 
-    // Normalizar ID de usuario para Session
+    // Normalizar ID de usuario y eliminar campos sensibles antes de guardar en sesión/JWT
+    unset(
+      $userData['password'],
+      $userData['pass'],
+      $userData['password_hash'],
+      $userData['pwd'],
+      $userData['secret'],
+      $userData['two_factor_secret'],
+      $userData['recovery_codes']
+    );
+
     $userId = $userData['id'] ?? $userData['id_user'] ?? $userData['user_id'] ?? null;
     if ($userId !== null && !isset($userData['user_id'])) {
       $userData['user_id'] = $userId;
@@ -122,19 +132,27 @@ class AuthModule
 
     $_SESSION['user'] = $userData;
 
-    // Sincronizar token JWT persistente si TokenModule está configurado
+    // Sincronizar token JWT persistente con claims mínimos y compatibles con Session::checkJwtSession()
     if (class_exists(TokenModule::class) && !empty($userId)) {
       try {
-        $jwt = TokenModule::configJWT(['user_id' => $userId]);
+        $jwtClaims = array_filter([
+          'user_id' => $userId,
+          'id' => $userData['id'] ?? $userId,
+          'username' => $userData['username'] ?? null,
+          'status' => $userData['status'] ?? $userData['user_status'] ?? 'active',
+        ], static fn($v): bool => $v !== null);
+
+        $jwt = TokenModule::configJWT($jwtClaims);
         if ($jwt) {
           CookieModule::set('auth_token', [
             'value'    => $jwt,
             'httponly' => true,
-            'secure'   => defined('SSL_SESSION') ? SSL_SESSION : false
+            'secure'   => defined('SSL_SESSION') ? SSL_SESSION : SecurityModule::isHttpsRequest(),
+            'samesite' => 'Lax',
           ]);
         }
-      } catch (Exception $e) {
-        // Token opcional
+      } catch (\Throwable $e) {
+        // Token opcional o SEED no configurado
       }
     }
   }

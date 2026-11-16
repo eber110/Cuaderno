@@ -36,12 +36,37 @@ if (!defined('DB_DRIVER')) define('DB_DRIVER', $_ENV['DB_CONNECTION'] ?? 'mysql'
 if (!defined('DB_CONNECTION')) define('DB_CONNECTION', DB_DRIVER);
 
 // ==================== ENVIRONMENT & SECURITY ====================
-$rawEnv = strtolower($_ENV['APP_ENV'] ?? $_ENV['ENVIRONMENT'] ?? 'development');
-$normalizedEnv = in_array($rawEnv, ['prod', 'production'], true) ? 'production' : 'development';
+$envCandidates = [
+    $_ENV['APP_ENV'] ?? null,
+    $_SERVER['APP_ENV'] ?? null,
+    getenv('APP_ENV') !== false ? getenv('APP_ENV') : null,
+    $_ENV['ENVIRONMENT'] ?? null,
+    $_SERVER['ENVIRONMENT'] ?? null,
+    getenv('ENVIRONMENT') !== false ? getenv('ENVIRONMENT') : null,
+];
+$rawEnv = '';
+foreach ($envCandidates as $candidate) {
+    if ($candidate !== null && trim((string)$candidate) !== '') {
+        $rawEnv = strtolower(trim((string)$candidate));
+        break;
+    }
+}
+if (in_array($rawEnv, ['testing', 'test'], true)) {
+    $normalizedEnv = 'testing';
+} elseif (in_array($rawEnv, ['dev', 'development', 'local'], true)) {
+    $normalizedEnv = 'development';
+} else {
+    // Fail-closed: valores vacíos, desconocidos o erróneos operan en modo producción
+    $normalizedEnv = 'production';
+}
 if (!defined('ENVIRONMENT')) define('ENVIRONMENT', $normalizedEnv);
 if (!defined('APP_ENV')) define('APP_ENV', $normalizedEnv);
 
-if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', filter_var($_ENV['CSRF_PROTECTION'] ?? true, FILTER_VALIDATE_BOOLEAN));
+if (class_exists('\Base\Module\SecurityModule')) {
+    \Base\Module\SecurityModule::configureErrorHandling();
+}
+
+if (!defined('CSRF_PROTECTION')) define('CSRF_PROTECTION', filter_var($_ENV['CSRF_PROTECTION'] ?? $_SERVER['CSRF_PROTECTION'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('DB_POOLING')) define('DB_POOLING', filter_var($_ENV['DB_POOLING'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('USE_CACHE')) define('USE_CACHE', filter_var($_ENV['USE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN));
 if (!defined('CSS_INLINE')) define('CSS_INLINE', filter_var($_ENV['CSS_INLINE'] ?? false, FILTER_VALIDATE_BOOLEAN));
@@ -60,25 +85,54 @@ if (!defined('MAX_INPUT_BYTES')) {
 	define('MAX_INPUT_BYTES', (int)($_ENV['MAX_INPUT_BYTES'] ?? 10485760));
 }
 
-// Whitelist de tablas SQL (Zero-Config: array vacío permite cualquier tabla con identificador SQL seguro)
+// Whitelist de tablas SQL y proxies/hosts confiables
 if (!defined('ALLOWED_TABLES')) {
 	define('ALLOWED_TABLES', []);
 }
+if (!defined('TRUSTED_PROXIES')) {
+	define('TRUSTED_PROXIES', (string)($_ENV['TRUSTED_PROXIES'] ?? $_SERVER['TRUSTED_PROXIES'] ?? ''));
+}
+if (!defined('FORCE_DOMAIN')) {
+	define('FORCE_DOMAIN', trim((string)($_ENV['FORCE_DOMAIN'] ?? $_SERVER['FORCE_DOMAIN'] ?? '')));
+}
+if (!defined('ALLOWED_HOSTS')) {
+	$rawAllowedHosts = (string)($_ENV['ALLOWED_HOSTS'] ?? $_SERVER['ALLOWED_HOSTS'] ?? '');
+	$parsedAllowed = array_values(array_filter(array_map(
+		static fn(string $h): string => strtolower(trim($h)),
+		explode(',', $rawAllowedHosts)
+	)));
+	define('ALLOWED_HOSTS', $parsedAllowed);
+}
 
 // ==================== URL & SCHEME ====================
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-	|| (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-	|| (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
-	|| (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
+$isHttps = class_exists('\Base\Module\SecurityModule')
+	? \Base\Module\SecurityModule::isHttpsRequest()
+	: ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443));
 
-$request_scheme = $_SERVER['REQUEST_SCHEME'] ?? ($isHttps ? 'https' : 'http');
+$request_scheme = $isHttps ? 'https' : 'http';
 if (!defined('SCHEME')) define('SCHEME', $request_scheme . '://');
 
-$rawHost = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
-$server_name = preg_replace('/[^a-zA-Z0-9.\-:\[\]]/', '', (string) $rawHost) ?: 'localhost';
-if (!str_contains($server_name, ':') && !empty($_SERVER['SERVER_PORT']) && !in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
-	$server_name .= ':' . (int)$_SERVER['SERVER_PORT'];
+$rawHttpHost = preg_replace('/[^a-zA-Z0-9.\-:\[\]]/', '', (string)($_SERVER['HTTP_HOST'] ?? '')) ?: '';
+$rawServerName = preg_replace('/[^a-zA-Z0-9.\-:\[\]]/', '', (string)($_SERVER['SERVER_NAME'] ?? '')) ?: '';
+$isProdEnv = class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::isProduction() : true;
+
+if ($isProdEnv && FORCE_DOMAIN !== '') {
+	$server_name = preg_replace('/[^a-zA-Z0-9.\-:\[\]]/', '', FORCE_DOMAIN) ?: 'localhost';
+} elseif ($isProdEnv && !empty(ALLOWED_HOSTS)) {
+	$httpHostNoPort = strtolower((string)preg_replace('/:\d+$/', '', $rawHttpHost));
+	$server_name = in_array($httpHostNoPort, ALLOWED_HOSTS, true) ? $rawHttpHost : ALLOWED_HOSTS[0];
+} elseif ($isProdEnv && $rawServerName !== '' && $rawServerName !== '_' && $rawServerName !== '*') {
+	$server_name = $rawServerName;
+	if (!str_contains($server_name, ':') && !empty($_SERVER['SERVER_PORT']) && !in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
+		$server_name .= ':' . (int)$_SERVER['SERVER_PORT'];
+	}
+} else {
+	$server_name = $rawHttpHost !== '' ? $rawHttpHost : ($rawServerName !== '' ? $rawServerName : 'localhost');
+	if (!str_contains($server_name, ':') && !empty($_SERVER['SERVER_PORT']) && !in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
+		$server_name .= ':' . (int)$_SERVER['SERVER_PORT'];
+	}
 }
+
 if (!defined('URL')) define('URL', SCHEME . trim((string) $server_name, '/') . '/');
 if (!defined('APP')) define('APP', '');
 if (!defined('LINK')) define('LINK', trim((string) URL, '/'));
@@ -86,14 +140,11 @@ if (!defined('LINK')) define('LINK', trim((string) URL, '/'));
 $app = (APP !== '') ? '/' . APP : '';
 if (!defined('DOMAIN')) define('DOMAIN', trim(URL, '/') . $app . '/');
 if (!defined('ROOT')) define('ROOT', trim(URL, '/') . $app);
-if (!defined('HOST')) define('HOST', $_SERVER['HTTP_HOST'] ?? $server_name);
+if (!defined('HOST')) define('HOST', $server_name);
 
 // Hosts (subdominios) a no indexar
 $noIndexHosts = $_ENV['NO_INDEX_HOSTS'] ?? '';
 if (!defined('NO_INDEX_HOSTS')) define('NO_INDEX_HOSTS', array_filter(array_map('trim', explode(',', $noIndexHosts))));
-
-// Dominio forzado en producción
-if (!defined('FORCE_DOMAIN')) define('FORCE_DOMAIN', $_ENV['FORCE_DOMAIN'] ?? '');
 
 // URLs noIndex para SEO por defecto
 if (!defined('NO_INDEX')) {

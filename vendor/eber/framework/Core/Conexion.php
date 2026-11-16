@@ -140,9 +140,7 @@ class Conexion
    */
   private function getSecureErrorMessage(PDOException $e): string
   {
-    // En producción, no mostrar detalles del error
-    $isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
-    if ($isProd) {
+    if (!ErrorHandler::isDev()) {
       return 'Error de conexión a la base de datos';
     }
 
@@ -155,9 +153,8 @@ class Conexion
    */
   private function handleConnectionError(PDOException $e): void
   {
-    // Solo mostrar errores detallados en desarrollo
-    $isProd = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['production', 'prod'], true);
-    $showDetails = !$isProd;
+    // Solo mostrar errores detallados en desarrollo explícito (fail-closed)
+    $showDetails = ErrorHandler::isDev();
 
     if ($e->getCode() == 1049) {
       $message = $showDetails

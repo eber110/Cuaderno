@@ -66,7 +66,17 @@ class ResponseModule
       $route = substr($route, 0, strpos($route, '?'));
     }
 
-    // Normalizar ruta para evitar barras dobles
+    // Sanitizar ruta de destino evitando Open Redirect, CRLF injection y variantes protocol-relative (// o /\)
+    $allowExternal = defined('ALLOW_EXTERNAL_REDIRECTS') && ALLOW_EXTERNAL_REDIRECTS === true;
+    $route = class_exists(SecurityModule::class)
+      ? SecurityModule::sanitizeRedirectUrl($route, $allowExternal)
+      : '/' . ltrim(str_replace(["\r", "\n", "\0", '\\'], '', $route), '/');
+
+    if ($route === '#' || $route === '') {
+      $route = '/';
+    }
+
+    // Normalizar barras múltiples tras protocolo
     if (str_starts_with($route, 'http://') || str_starts_with($route, 'https://')) {
       $route = preg_replace('#(?<!:)//+#', '/', $route);
     } else {

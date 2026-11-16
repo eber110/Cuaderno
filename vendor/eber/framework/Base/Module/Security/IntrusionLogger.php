@@ -39,7 +39,7 @@ class IntrusionLogger
    */
   public static function log(string $reason, array $context = [], bool $incrementCount = true): void
   {
-    $ip = $context['ip'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $ip = $context['ip'] ?? (\Base\Module\SecurityModule::resolveClientIp());
     $uri = $context['url'] ?? $context['uri'] ?? $_SERVER['REQUEST_URI'] ?? 'unknown';
     $method = $context['method'] ?? $_SERVER['REQUEST_METHOD'] ?? 'unknown';
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
@@ -71,19 +71,19 @@ class IntrusionLogger
     }
     @file_put_contents($logFile, $formattedMessage, FILE_APPEND | LOCK_EX);
 
-    // 2. Guardar en App/Safety/intrusions.json
+    // 2. Guardar en App/Safety/intrusions.json usando transacción atómica flock
     $jsonFile = self::getLogFilePath('json');
-    $jsonList = [];
-    if (file_exists($jsonFile)) {
-      $jsonContent = file_get_contents($jsonFile);
-      $jsonList = json_decode($jsonContent, true) ?? [];
+    if (class_exists('\\Base\\Module\\Security\\AccessBlocker')) {
+      AccessBlocker::updateJsonTransaction($jsonFile, [], static function (array &$jsonList, bool &$dirty) use ($logEntry): void {
+        $jsonList[] = $logEntry;
+        if (count($jsonList) > 500) {
+          $jsonList = array_slice($jsonList, -500);
+        }
+        $dirty = true;
+      });
+    } else {
+      @file_put_contents($jsonFile, json_encode([$logEntry], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
     }
-    $jsonList[] = $logEntry;
-    // Mantener los últimos 500 registros en JSON
-    if (count($jsonList) > 500) {
-      $jsonList = array_slice($jsonList, -500);
-    }
-    @file_put_contents($jsonFile, json_encode($jsonList, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
     if ($incrementCount && class_exists('\\Base\\Module\\Security\\AccessBlocker')) {
       AccessBlocker::recordIntrusionAttempt($ip, $reason);

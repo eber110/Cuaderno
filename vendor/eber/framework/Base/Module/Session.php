@@ -85,6 +85,40 @@ class Session
   }
 
   /**
+   * Callback opcional para revalidar estado/revocación de usuario en BD al restaurar sesión JWT.
+   *
+   * @var callable|null
+   */
+  private static $userRevalidator = null;
+
+  /**
+   * Campos sensibles que nunca deben serializarse en JWT de cookie ni en sesión por defecto.
+   */
+  private const DEFAULT_SENSITIVE_FIELDS = [
+    'password',
+    'pass',
+    'password_hash',
+    'pwd',
+    'secret',
+    'two_factor_secret',
+    'two_factor_recovery_codes',
+    'recovery_codes',
+    'remember_token',
+    'email_verification_token',
+    'password_reset_token',
+    'reset_token',
+    'api_token',
+  ];
+
+  /**
+   * Registra un callback opcional que recibe los claims del JWT y devuelve el usuario vigente o false si fue revocado.
+   */
+  public static function setUserRevalidator(?callable $resolver): void
+  {
+    self::$userRevalidator = $resolver;
+  }
+
+  /**
    * Verifica si $_SESSION['user'] está vacía y la restaura usando el JWT firmado con SEED.
    */
   private static function checkJwtSession(): void
@@ -92,14 +126,39 @@ class Session
     if (empty($_SESSION['user']) && class_exists('\Base\Module\CookieModule') && class_exists('\Base\Module\TokenModule')) {
       $jwtToken = CookieModule::get('auth_token');
       if ($jwtToken) {
-        $userData = TokenModule::validateJWT($jwtToken);
+        try {
+          $userData = TokenModule::validateJWT((string)$jwtToken);
+        } catch (\Throwable $e) {
+          // Si falta SEED o el token está corrupto, limpiar cookie de forma segura sin interrumpir la carga
+          CookieModule::delete('auth_token');
+          error_log('[Session::checkJwtSession] Error validando auth_token: ' . $e->getMessage());
+          return;
+        }
+
         if ($userData !== false && is_array($userData)) {
-          $status = $userData['user_status'] ?? $userData['status'] ?? '';
-          if (!in_array($status, ['active', '1', 1, true], true)) {
+          if (isset($userData['user_status']) || isset($userData['status'])) {
+            $status = $userData['user_status'] ?? $userData['status'] ?? '';
+            if (!in_array($status, ['active', '1', 1, true], true)) {
+              CookieModule::delete('auth_token');
+              return;
+            }
+          } elseif (empty($userData['user_id']) && empty($userData['id']) && empty($userData['id_user'])) {
             CookieModule::delete('auth_token');
             return;
           }
+
+          if (is_callable(self::$userRevalidator)) {
+            $revalidated = call_user_func(self::$userRevalidator, $userData);
+            if ($revalidated === false || !is_array($revalidated)) {
+              CookieModule::delete('auth_token');
+              return;
+            }
+            $userData = array_diff_key($revalidated, array_flip(self::DEFAULT_SENSITIVE_FIELDS));
+          }
+
           $_SESSION['user'] = $userData;
+        } else {
+          CookieModule::delete('auth_token');
         }
       }
     }
@@ -138,33 +197,46 @@ class Session
       $data = $data[0];
     }
 
-    if ($noSelect != null) {
-      $noSelectOut = [];
-      foreach ($noSelect as $value) {
-        $noSelectOut[$value] = $value;
-      }
-      $data = array_diff_key($data, $noSelectOut);
+    $excluded = self::DEFAULT_SENSITIVE_FIELDS;
+    if (is_array($noSelect) && !empty($noSelect)) {
+      $excluded = array_merge($excluded, $noSelect);
     }
+    $data = array_diff_key((array)$data, array_flip($excluded));
 
     $_SESSION['user'] = $data;
 
-    // Crear cookie JWT para persistencia de sesión con el SEED de .env
+    // Crear cookie JWT con payload mínimo seguro para persistencia (evitar volcar filas completas en cookie)
     if (class_exists('\Base\Module\TokenModule') && class_exists('\Base\Module\CookieModule')) {
-      $jwtToken = TokenModule::configJWT($data);
-      $expiration = defined('TIME_MONTH_S') ? TIME_MONTH_S : (86400 * 30);
-      $path = defined('PATH_SESSION') ? PATH_SESSION : '/';
-      $domain = defined('DOMAIN_SESSION') ? DOMAIN_SESSION : '';
-      $secure = defined('SSL_SESSION') ? SSL_SESSION : false;
+      try {
+        $jwtPayload = $data;
+        if ($noSelect === null) {
+          // Por defecto almacenar solo identificadores y estado mínimo si el caller no definió proyección explícita
+          $jwtPayload = array_filter([
+            'user_id' => $data['user_id'] ?? $data['id_user'] ?? $data['id'] ?? null,
+            'id' => $data['id'] ?? $data['user_id'] ?? null,
+            'username' => $data['username'] ?? null,
+            'status' => $data['status'] ?? $data['user_status'] ?? 'active',
+          ], static fn($v): bool => $v !== null);
+        }
 
-      CookieModule::set('auth_token', [
-        'value' => $jwtToken,
-        'expired' => $expiration,
-        'path' => $path,
-        'domain' => $domain,
-        'secure' => $secure,
-        'httponly' => true,
-        'samesite' => 'Lax'
-      ]);
+        $jwtToken = TokenModule::configJWT($jwtPayload);
+        $expiration = defined('TIME_MONTH_S') ? TIME_MONTH_S : (86400 * 30);
+        $path = defined('PATH_SESSION') ? PATH_SESSION : '/';
+        $domain = defined('DOMAIN_SESSION') ? DOMAIN_SESSION : '';
+        $secure = defined('SSL_SESSION') ? SSL_SESSION : SecurityModule::isHttpsRequest();
+
+        CookieModule::set('auth_token', [
+          'value' => $jwtToken,
+          'expired' => $expiration,
+          'path' => $path,
+          'domain' => $domain,
+          'secure' => $secure,
+          'httponly' => true,
+          'samesite' => 'Lax'
+        ]);
+      } catch (\Throwable $e) {
+        error_log('[Session::create_user_session] No se pudo emitir JWT persistente: ' . $e->getMessage());
+      }
     }
   }
 

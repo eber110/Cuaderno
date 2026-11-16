@@ -52,7 +52,7 @@ DirectoryIndex index.php
 </IfModule>
 
 # Ficheros sensibles: denegar acceso directo por HTTP
-<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
+<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -69,8 +69,8 @@ RewriteCond %{QUERY_STRING} PHP_SESSION_UPLOAD_PROGRESS [NC,OR]
 RewriteCond %{HTTP_COOKIE} PHP_SESSION_UPLOAD_PROGRESS [NC]
 RewriteRule ^ - [F,L]
 
-# Bloquear acceso web directo a carpetas sensibles del sistema
-RewriteRule ^(Cache|Logs|Database|\.git|vendor|App/Safety)(/|$) - [F,L,NC]
+# Bloquear acceso web directo a carpetas internas del sistema y código de aplicación
+RewriteRule ^(Cache|Logs|Database|\.git|vendor|Bootstrap|Base|Core|Resources|App/(Config|Controllers|Models|Views|Middleware|Providers|Segment|Lang|Route|Safety|errorViews))(/|$) - [F,L,NC]
 
 # --- PROTECCIÓN CONTRA HOTLINKING ---
 # Evita que otros sitios web roben ancho de banda incrustando tus imágenes.

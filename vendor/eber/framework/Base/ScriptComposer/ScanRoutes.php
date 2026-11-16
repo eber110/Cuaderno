@@ -1,5 +1,10 @@
 <?php
 
+if (php_sapi_name() !== 'cli') {
+  http_response_code(403);
+  exit("Acceso denegado: este script solo puede ejecutarse por CLI.\n");
+}
+
 // Buscar el autoloader de Composer en el proyecto o framework
 if (file_exists(getcwd() . '/vendor/autoload.php')) {
   require_once getcwd() . '/vendor/autoload.php';

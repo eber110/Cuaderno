@@ -134,9 +134,21 @@ class Control
    * @param array $data Datos a pasar a la vista.
    * @return string Contenido renderizado.
    */
+  /**
+   * Incluye un archivo de vista de forma aislada evitando sobrescritura de rutas vía extract().
+   */
+  private static function requireIsolatedView(string $templatePath, array $viewData = [], ?string $content = null): void
+  {
+    if (!empty($viewData)) {
+      extract($viewData, EXTR_SKIP);
+    }
+    require func_get_arg(0);
+  }
+
   public function viewClean(string $route, array $data = []): string
   {
     \ViewData::set($data);
+    $route = str_replace(['..', '\\', "\0"], '', $route);
     $route = str_replace('.', '/', $route);
     $route = ltrim($route, '/');
     $filePath = ROUTE_VIEW . $route . '.php';
@@ -148,10 +160,7 @@ class Control
 
     ob_start();
     try {
-      if (!empty($data)) {
-        extract($data);
-      }
-      require $filePath;
+      self::requireIsolatedView($filePath, $data);
       return (string)ob_get_clean();
     } catch (\Exception $e) {
       ob_end_clean();
@@ -169,6 +178,7 @@ class Control
    */
   private function viewPart($route, $data = [], ?string $layout = null)
   {
+    $route = str_replace(['..', '\\', "\0"], '', (string)$route);
     $route = str_replace('.', '/', $route);
     $route = ltrim($route, '/');
     $filePath = ROUTE_VIEW . $route . '.php';
@@ -177,22 +187,21 @@ class Control
       ob_start();
 
       try {
-        if (isset($data['data']) && is_array($data['data'])) {
-          extract($data['data']);
-        }
+        $viewData = (isset($data['data']) && is_array($data['data'])) ? $data['data'] : [];
 
         if ($layout !== null) {
-          $layoutPath = ROUTE_VIEW . str_replace('.', '/', ltrim($layout, '/')) . '.php';
+          $cleanLayout = str_replace(['..', '\\', "\0"], '', ltrim($layout, '/'));
+          $layoutPath = ROUTE_VIEW . str_replace('.', '/', $cleanLayout) . '.php';
           if (file_exists($layoutPath)) {
             // Renderizar la vista interna en la variable $content
             ob_start();
-            require $filePath;
+            self::requireIsolatedView($filePath, $viewData);
             $content = ob_get_clean();
 
             $activeTheme = function_exists('theme_name') ? theme_name() : 'default';
             $this->confView();
             print '<body class="theme-' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
-            require $layoutPath;
+            self::requireIsolatedView($layoutPath, $viewData, $content);
             print '</body>';
             print '</html>';
             return ob_get_clean();
@@ -202,7 +211,7 @@ class Control
         $activeTheme = function_exists('theme_name') ? theme_name() : 'default';
         $this->confView();
         print '<body class="theme-' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '" data-theme-name="' . htmlspecialchars($activeTheme, ENT_QUOTES, 'UTF-8') . '">';
-        require_once $filePath;
+        self::requireIsolatedView($filePath, $viewData);
         print '</body>';
         print '</html>';
         return ob_get_clean();
@@ -240,14 +249,15 @@ class Control
     }
     echo SeoModule::metaDescription();
     
-    // Canónico dinámico libre de parámetros query
+    // Canónico dinámico libre de parámetros query y escapado contra XSS
     $currentUri = $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?? '/';
+    $currentUri = str_replace(["\r", "\n", "\0"], '', (string)$currentUri);
     if (($qPos = strpos($currentUri, '?')) !== false) {
         $currentUri = substr($currentUri, 0, $qPos);
     }
     $canonicalUrl = rtrim(DOMAIN, '/') . '/' . ltrim($currentUri, '/');
     $canonicalUrl = preg_replace('#(?<!:)//+#', '/', $canonicalUrl);
-    echo '<link rel="canonical" href="' . $canonicalUrl . '">';
+    echo '<link rel="canonical" href="' . htmlspecialchars((string)$canonicalUrl, ENT_QUOTES, 'UTF-8') . '">';
     if (method_exists(SeoModule::class, 'hreflang')) {
       echo SeoModule::hreflang($currentUri);
     }
@@ -272,7 +282,7 @@ class Control
     require_once FRAMEWORK_PATH . 'Core/ConfigLoader/LoadStyle.php';
 
     // Script inline sincrónico: aplica el tema guardado o valor por defecto antes del primer paint (evita FOUC)
-    $defaultTheme = $_ENV['DEFAULT_THEME'] ?? 'system';
+    $defaultTheme = (string)($_ENV['DEFAULT_THEME'] ?? 'system');
     $mediaQueries = class_exists('\\Base\\Module\\ThemeModule')
       ? \Base\Module\ThemeModule::getMediaQueries()
       : [
@@ -283,7 +293,7 @@ class Control
     echo "<script>\n";
     echo "(function() {\n";
     echo "  document.documentElement.classList.add('js-loading');\n";
-    echo "  var defaultTheme = '" . $defaultTheme . "';\n";
+    echo "  var defaultTheme = " . json_encode($defaultTheme, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ";\n";
     echo "  var theme = localStorage.getItem('fme-theme');\n";
     echo "  if (!theme) {\n";
     echo "    if (defaultTheme === 'dark') {\n";
@@ -300,7 +310,7 @@ class Control
     echo "    document.documentElement.removeAttribute('data-theme');\n";
     echo "  }\n";
     echo "  window.fmeDefaultTheme = defaultTheme;\n";
-    echo "  window.fmeMediaQueries = " . json_encode($mediaQueries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ";\n";
+    echo "  window.fmeMediaQueries = " . json_encode($mediaQueries, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ";\n";
     echo "})();\n";
     echo "</script>\n";
     echo "<style>\n";
@@ -318,8 +328,8 @@ class Control
     echo "    opacity: 0 !important;\n";
     echo "  }\n";
     foreach ($mediaQueries as $mq) {
-      $q = $mq['query'] ?? '';
-      $s = $mq['slug'] ?? '';
+      $q = preg_replace('/[^a-zA-Z0-9\s():.\-_]/', '', (string)($mq['query'] ?? '')) ?? '';
+      $s = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($mq['slug'] ?? '')) ?? '';
       if ($q !== '' && $s !== '') {
         echo "  @media screen and {$q} {\n";
         echo "    .no-{$s}:not([data-responsive-processed]), .no-{$s}-css { display: none !important; }\n";
@@ -328,7 +338,7 @@ class Control
     }
     echo "</style>\n";
 
-    echo '<link rel="shortcut icon" type="image/x-icon" href="' . LOGO . '">';
+    echo '<link rel="shortcut icon" type="image/x-icon" href="' . htmlspecialchars((string)LOGO, ENT_QUOTES, 'UTF-8') . '">';
     echo '</head>';
   }
 
@@ -479,13 +489,53 @@ class Control
       return ['error' => 'Archivo subido no válido'];
     }
 
-    // Detectar MIME real del archivo en el servidor en lugar de confiar solo en la cabecera del cliente
-    $realMime = @mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
-    if (!empty($allowed_types) && !in_array($realMime, $allowed_types, true) && !in_array($file['type'], $allowed_types, true)) {
-      return ['error' => 'Tipo de archivo no permitido'];
+    // Detectar MIME real del archivo exclusivamente en el servidor (ignorar cabecera manipulable $file['type'])
+    $realMime = '';
+    if (function_exists('finfo_open')) {
+      $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+      if ($finfo) {
+        $detected = @finfo_file($finfo, $file['tmp_name']);
+        @finfo_close($finfo);
+        if (is_string($detected)) {
+          $realMime = strtolower(trim($detected));
+        }
+      }
+    }
+    if ($realMime === '' && function_exists('mime_content_type')) {
+      $detected = @mime_content_type($file['tmp_name']);
+      if (is_string($detected)) {
+        $realMime = strtolower(trim($detected));
+      }
     }
 
-    // Prohibir extensiones ejecutables en el servidor (prevención de RCE por subida de archivos)
+    // Bloquear siempre tipos MIME activos o ejecutables en origen web (SVG, HTML, JS, PHP)
+    $forbiddenMimes = [
+      'image/svg+xml',
+      'text/html',
+      'application/xhtml+xml',
+      'application/xml',
+      'text/xml',
+      'application/javascript',
+      'text/javascript',
+      'application/x-javascript',
+      'application/x-httpd-php',
+      'text/x-php',
+      'application/x-php',
+      'application/x-sh',
+      'application/x-executable'
+    ];
+    if ($realMime !== '' && in_array($realMime, $forbiddenMimes, true)) {
+      return ['error' => 'Tipo de archivo no permitido por seguridad'];
+    }
+
+    if (!empty($allowed_types)) {
+      $normalizedAllowed = array_map(static fn($m) => strtolower(trim((string)$m)), $allowed_types);
+      if ($realMime === '' || !in_array($realMime, $normalizedAllowed, true)) {
+        return ['error' => 'Tipo de archivo no permitido'];
+      }
+    }
+
+    // Prohibir extensiones ejecutables y de contenido activo en origen (RCE y Stored XSS)
     $origName = basename((string)($file['name'] ?? 'archivo'));
     $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
     $baseNameOnly = pathinfo($origName, PATHINFO_FILENAME);
@@ -493,27 +543,66 @@ class Control
     $forbiddenExtensions = [
       'php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'php8',
       'phps', 'pht', 'pgif', 'shtml', 'htaccess', 'htpasswd', 'ini',
-      'cgi', 'pl', 'py', 'sh', 'bash', 'exe', 'bat', 'cmd', 'vbs', 'jsp', 'asp', 'aspx'
+      'cgi', 'fcgi', 'pl', 'py', 'rb', 'sh', 'bash', 'exe', 'dll',
+      'bat', 'cmd', 'com', 'vbs', 'vbe', 'jsp', 'asp', 'aspx', 'asa', 'asax',
+      'svg', 'svgz', 'html', 'htm', 'xhtml', 'xml', 'xsl', 'xslt',
+      'js', 'mjs', 'cjs', 'css', 'swf', 'jar', 'inc', 'tpl'
     ];
 
     if ($ext !== '' && in_array($ext, $forbiddenExtensions, true)) {
       return ['error' => 'Extensión de archivo no permitida por seguridad'];
     }
 
-    $upload_path = ROOT_PATH . '/' . trim($destination, '/') . '/';
+    // Verificar coherencia entre MIME real y extensión cuando se conoce el tipo
+    $mimeExtMap = [
+      'image/jpeg'      => ['jpg', 'jpeg'],
+      'image/png'       => ['png'],
+      'image/gif'       => ['gif'],
+      'image/webp'      => ['webp'],
+      'image/avif'      => ['avif'],
+      'application/pdf' => ['pdf'],
+      'text/plain'      => ['txt'],
+      'application/json'=> ['json'],
+    ];
+    if ($realMime !== '' && isset($mimeExtMap[$realMime])) {
+      if ($ext === '' || !in_array($ext, $mimeExtMap[$realMime], true)) {
+        return ['error' => 'La extensión del archivo no corresponde con su contenido real'];
+      }
+    }
+
+    // Confinar destino dentro de ROOT_PATH para prevenir path traversal
+    $cleanDest = trim(str_replace(['..', '\\', "\0"], ['', '/', ''], (string)$destination), '/');
+    if ($cleanDest === '') {
+      $cleanDest = 'App/Public/Uploads';
+    }
+    $upload_path = rtrim(ROOT_PATH, '/') . '/' . $cleanDest . '/';
     if (!is_dir($upload_path)) {
       mkdir($upload_path, 0755, true);
     }
 
-    $safeBase = TextModule::toSlug($baseNameOnly) ?: bin2hex(random_bytes(8));
+    // Proteger el directorio de subidas contra ejecución de scripts PHP/CGI si no existe .htaccess
+    $uploadHtaccess = $upload_path . '.htaccess';
+    if (!file_exists($uploadHtaccess)) {
+      @file_put_contents($uploadHtaccess, "Options -Indexes -ExecCGI\n<FilesMatch \"\\.ph(p[0-9]?|t|ar|tml)|\\.(svg|svgz|html?|xhtml|js|cgi|pl|py|sh)$\">\n  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n  <IfModule !mod_authz_core.c>\n    Order deny,allow\n    Deny from all\n  </IfModule>\n</FilesMatch>\n");
+    }
+
+    $safeBase = TextModule::toSlug($baseNameOnly);
+    $randomId = bin2hex(random_bytes(12));
+    $safeName = $safeBase !== '' ? ($safeBase . '-' . $randomId) : $randomId;
     $filename = ($ext !== '' && preg_match('/^[a-z0-9]{1,10}$/', $ext))
-      ? $safeBase . '.' . $ext
-      : $safeBase;
+      ? $safeName . '.' . $ext
+      : $safeName;
     $filepath = $upload_path . $filename;
 
-    if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+    $moved = (php_sapi_name() === 'cli' && !is_uploaded_file($file['tmp_name']))
+      ? @copy($file['tmp_name'], $filepath)
+      : move_uploaded_file($file['tmp_name'], $filepath);
+
+    if (!$moved) {
       return ['error' => 'Error al mover el archivo'];
     }
+
+    @chmod($filepath, 0644);
 
     return [
       'success' => true,
@@ -521,7 +610,7 @@ class Control
       'filepath' => $filepath,
       'filesize' => $file['size'],
       'filetype' => $realMime,
-      'url' => $destination . $filename
+      'url' => $cleanDest . '/' . $filename
     ];
   }
 

@@ -218,8 +218,16 @@ class Route
    */
   public static function except(array $middlewares): static
   {
-    self::$excludeMiddlewareForNextRoute = $middlewares;
+    self::$excludeMiddlewareForNextRoute = array_merge(self::$excludeMiddlewareForNextRoute, $middlewares);
     return new static();
+  }
+
+  /**
+   * Excluye la siguiente ruta de la verificación automática CSRF (p. ej. webhooks externos firmados).
+   */
+  public static function withoutCsrf(): static
+  {
+    return self::except([\Base\Middleware\CsrfMiddleware::class]);
   }
 
   /**
@@ -285,8 +293,12 @@ class Route
       }
     }
 
-    // Registrar herramientas internas de desarrollo del framework (Theme Studio)
-    if (class_exists('\\Base\\Control\\ThemeStudioControl')) {
+    // Registrar herramientas internas de desarrollo del framework solo en entorno dev explícito (fail-closed)
+    if (
+      class_exists('\\Base\\Module\\SecurityModule')
+      && \Base\Module\SecurityModule::isDevelopment()
+      && class_exists('\\Base\\Control\\ThemeStudioControl')
+    ) {
       \Base\Control\ThemeStudioControl::registerRoutes();
     }
 
@@ -336,10 +348,13 @@ class Route
 
     if ($matchedRoute) {
       try {
-        // MODIFICADO: Lógica para combinar y excluir middlewares.
-        $isInternalFrameRoute = str_starts_with($matchedRoute['uri'] ?? '', '/_frame/');
-        $applicableGlobalMiddlewares = $isInternalFrameRoute ? [] : self::$globalMiddlewares;
-        $allMiddlewares = array_merge($applicableGlobalMiddlewares, $matchedRoute['middlewares']);
+        // Combinar middlewares globales, protección CSRF global (si está habilitada) y específicos de ruta
+        $effectiveGlobals = self::$globalMiddlewares;
+        $csrfActive = defined('CSRF_PROTECTION') && (CSRF_PROTECTION === true || CSRF_PROTECTION === 'true' || CSRF_PROTECTION === 1 || CSRF_PROTECTION === '1');
+        if ($csrfActive && class_exists('\\Base\\Middleware\\CsrfMiddleware') && !in_array('\\Base\\Middleware\\CsrfMiddleware', $effectiveGlobals, true) && !in_array(\Base\Middleware\CsrfMiddleware::class, $effectiveGlobals, true)) {
+          array_unshift($effectiveGlobals, \Base\Middleware\CsrfMiddleware::class);
+        }
+        $allMiddlewares = array_merge($effectiveGlobals, $matchedRoute['middlewares']);
         $excludedMiddlewares = $matchedRoute['exclude_middlewares'] ?? [];
         $middlewaresToRun = array_diff($allMiddlewares, $excludedMiddlewares);
 

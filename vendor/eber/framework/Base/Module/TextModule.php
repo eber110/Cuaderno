@@ -89,18 +89,28 @@ class TextModule
   }
 
   /**
-   * Sanitiza texto eliminando HTML y decodificando entidades.
+   * Sanitiza texto eliminando etiquetas HTML tras decodificar entidades HTML iterativamente
+   * para evitar bypass mediante entidades doblemente codificadas.
    * 
    * @param string $text Texto a limpiar.
-   * @return string Texto limpio.
+   * @return string Texto plano limpio sin etiquetas HTML.
    */
   public static function clean(string $text): string
   {
-    $text = strip_tags($text);
-    $text = htmlspecialchars_decode($text);
-    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $prev = null;
+    $current = $text;
+    $iterations = 0;
 
-    return $text;
+    // Decodificar entidades antes de eliminar HTML (con tope para evitar ciclos)
+    while ($current !== $prev && $iterations < 3) {
+      $prev = $current;
+      $current = html_entity_decode($current, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+      $iterations++;
+    }
+
+    // Eliminar bloques script/style completos y cualquier etiqueta restante
+    $current = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $current) ?? $current;
+    return strip_tags($current);
   }
 
   /**
@@ -109,8 +119,9 @@ class TextModule
    * @param string $text Texto a procesar.
    * @param int|null $wordCount Cantidad de palabras (opcional).
    * @param array $options Opciones de formato:
-   *   - strip_tags: bool - Eliminar etiquetas HTML (default: false)
-   *   - decode_html: bool - Decodificar entidades HTML (default: true)
+   *   - strip_tags: bool - Eliminar etiquetas HTML (default: true)
+   *   - decode_html: bool - Decodificar entidades HTML antes de limpiar (default: false)
+   *   - escape_html: bool - Escapar HTML en salida segura (default: true)
    *   - nl2br: bool - Convertir saltos de línea (default: true)
    *   - suffix: string - Sufijo a concatenar si excede el límite de palabras (default: '')
    * @return string Texto procesado.
@@ -118,18 +129,20 @@ class TextModule
   public static function process(string $text, ?int $wordCount = null, array $options = []): string
   {
     $options = array_merge([
-      'strip_tags' => false,
-      'decode_html' => true,
+      'strip_tags' => true,
+      'decode_html' => false,
+      'escape_html' => true,
       'nl2br' => true,
       'suffix' => ''
     ], $options);
 
-    if ($options['strip_tags']) {
-      $text = strip_tags($text);
-    }
-
     if ($options['decode_html']) {
       $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    if ($options['strip_tags']) {
+      $text = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $text) ?? $text;
+      $text = strip_tags($text);
     }
 
     if ($wordCount !== null && $wordCount >= 0) {
@@ -142,6 +155,10 @@ class TextModule
       }
     }
 
+    if ($options['escape_html']) {
+      $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
     if ($options['nl2br']) {
       $text = nl2br($text);
     }
@@ -150,17 +167,19 @@ class TextModule
   }
 
   /**
-   * Trunca texto a un número específico de palabras.
+   * Trunca texto a un número específico de palabras de forma segura contra XSS.
    * 
    * @param string $text Texto a truncar.
    * @param int|null $wordCount Cantidad de palabras.
    * @param string $suffix Texto o sufijo a concatenar solo si el texto excede la cantidad de palabras (ej: '...', ' leer más').
-   * @return string Texto truncado.
+   * @return string Texto truncado seguro para imprimir en HTML.
    */
   public static function truncate(string $text, ?int $wordCount = null, string $suffix = ''): string
   {
     return self::process($text, $wordCount, [
-      'decode_html' => true,
+      'strip_tags'  => true,
+      'decode_html' => false,
+      'escape_html' => true,
       'nl2br'       => true,
       'suffix'      => $suffix
     ]);

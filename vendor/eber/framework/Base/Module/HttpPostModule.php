@@ -31,55 +31,81 @@ class HttpPostModule
    */
   private static function getBaseUrl(): string
   {
-    if (self::$baseUrl === null) {
-      $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-      $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-      self::$baseUrl = $protocol . '://' . $host;
+    if (self::$baseUrl !== null) {
+      return rtrim(self::$baseUrl, '/');
     }
-    return self::$baseUrl;
+
+    if (defined('FORCE_DOMAIN') && !empty(FORCE_DOMAIN)) {
+      $proto = SecurityModule::isHttpsRequest() ? 'https://' : 'http://';
+      return $proto . trim((string)FORCE_DOMAIN, '/');
+    }
+
+    $appUrl = trim((string)($_ENV['APP_URL'] ?? $_SERVER['APP_URL'] ?? ''));
+    if ($appUrl !== '' && preg_match('#^https?://[a-zA-Z0-9.\-:]+#i', $appUrl)) {
+      return rtrim($appUrl, '/');
+    }
+
+    if (defined('DOMAIN') && !empty(DOMAIN)) {
+      return rtrim((string)DOMAIN, '/');
+    }
+
+    return 'http://127.0.0.1';
   }
 
   /**
-   * Envía datos POST a una ruta interna.
+   * Envía datos POST a una ruta interna segura con TLS estricto y sin redirecciones automáticas.
    * 
    * @param array $data Array de datos a enviar.
    * @param string $route Ruta destino (ej: '/mi-ruta').
-   * @param array $options Opciones adicionales ['timeout' => 30, 'headers' => []].
+   * @param array $options Opciones adicionales ['timeout' => 30, 'headers' => [], 'baseUrl' => ...].
    * @return array ['success' => bool, 'response' => mixed, 'httpCode' => int, 'error' => string|null]
-   * 
-   * @example
-   * // Enviar a ruta interna
-   * $resultado = HttpPostModule::postData(['user_id' => 1, 'action' => 'like'], '/interaccion');
-   * 
-   * if ($resultado['success']) {
-   *     echo "Datos enviados correctamente";
-   * }
    */
   public static function postData(array $data, string $route, array $options = []): array
   {
-    $timeout = $options['timeout'] ?? 30;
-    $headers = $options['headers'] ?? [];
+    $timeout = (int)($options['timeout'] ?? 30);
+    $headers = (array)($options['headers'] ?? []);
 
-    // Construir URL completa
-    $url = self::getBaseUrl() . '/' . ltrim($route, '/');
+    // Validar ruta interna estricta evitando SSRF hacia esquemas/hosts arbitrarios
+    $cleanRoute = str_replace(["\r", "\n", "\0"], '', trim($route));
+    if (preg_match('#^(https?:)?//#i', $cleanRoute) || str_starts_with($cleanRoute, '/\\') || str_contains($cleanRoute, '\\')) {
+      return [
+        'success' => false,
+        'response' => false,
+        'httpCode' => 0,
+        'error' => 'Ruta destino inválida para HttpPostModule'
+      ];
+    }
 
-    // Inicializar cURL
+    $base = !empty($options['baseUrl']) ? rtrim((string)$options['baseUrl'], '/') : self::getBaseUrl();
+    $url = $base . '/' . ltrim($cleanRoute, '/');
+
+    // Inicializar cURL con verificación TLS activa
     $ch = curl_init();
 
-    curl_setopt_array($ch, [
+    $curlOpts = [
       CURLOPT_URL => $url,
       CURLOPT_POST => true,
       CURLOPT_POSTFIELDS => http_build_query($data),
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_TIMEOUT => $timeout,
-      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_FOLLOWLOCATION => false,
+      CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+      CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
       CURLOPT_HTTPHEADER => array_merge([
         'Content-Type: application/x-www-form-urlencoded'
       ], $headers),
-      // Para desarrollo local, permite certificados autofirmados
-      CURLOPT_SSL_VERIFYPEER => false,
-      CURLOPT_SSL_VERIFYHOST => false,
-    ]);
+      CURLOPT_SSL_VERIFYPEER => true,
+      CURLOPT_SSL_VERIFYHOST => 2,
+    ];
+
+    if (class_exists('\\Composer\\CaBundle\\CaBundle')) {
+      $caBundle = \Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+      if ($caBundle && file_exists($caBundle)) {
+        $curlOpts[CURLOPT_CAINFO] = $caBundle;
+      }
+    }
+
+    curl_setopt_array($ch, $curlOpts);
 
     // Ejecutar petición
     $response = curl_exec($ch);

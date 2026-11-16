@@ -83,12 +83,15 @@ class GeminiModule
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
 
-    // En desarrollo local en Windows, relajar verificación SSL si es necesario
-    $isDev = defined('ENVIRONMENT') && in_array(strtolower((string)ENVIRONMENT), ['dev', 'development', 'local'], true);
-    if ($isDev) {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    if (class_exists('\\Composer\\CaBundle\\CaBundle')) {
+      $caBundle = \Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+      if ($caBundle && file_exists($caBundle)) {
+        curl_setopt($ch, CURLOPT_CAINFO, $caBundle);
+      }
     }
 
     $response = curl_exec($ch);
