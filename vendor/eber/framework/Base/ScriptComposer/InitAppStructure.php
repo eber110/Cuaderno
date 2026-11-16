@@ -52,6 +52,7 @@ class InitAppStructure
     'App/Rsc/Ico',
     'App/Rsc/Ico/Custom',
     'App/Rsc/Ico/Separator',
+    'App/Rsc/JsLoad',
     'App/Rsc/Library',
     'App/Rsc/Library/Charts',
     'App/Rsc/Library/Gsap',
@@ -233,18 +234,18 @@ class InitAppStructure
     $skipped = 0;
     $updated = 0;
 
-    foreach (['Fonts', 'Helper', 'Ico', 'Library'] as $folder) {
+    foreach (['Fonts', 'Helper', 'Ico', 'JsLoad', 'Library'] as $folder) {
       $src = $this->frameworkResources . '/' . $folder;
       $dest = $projectRsc . '/' . $folder;
-      // Permitir actualización automática de recursos provistos por el framework (Library e Ico)
-      $updateIfDifferent = ($folder === 'Library' || $folder === 'Ico');
+      // Permitir actualización automática de recursos provistos por el framework (Library, Ico y JsLoad)
+      $updateIfDifferent = ($folder === 'Library' || $folder === 'Ico' || $folder === 'JsLoad');
       if (is_dir($src)) {
         $this->copyDirectory($src, $dest, $copied, $skipped, $updated, $updateIfDifferent);
       }
     }
 
     $detail = "{$copied} copiados, {$updated} actualizados, {$skipped} al día";
-    echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico y Library): {$detail}\n";
+    echo "\n📦 Recursos en App/Rsc (Fonts, Helper, Ico, JsLoad y Library): {$detail}\n";
   }
 
   /**

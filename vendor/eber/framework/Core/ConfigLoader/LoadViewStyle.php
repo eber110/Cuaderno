@@ -227,15 +227,20 @@ class LoadViewStyle
   {
     $files = $this->getDirectoryFiles($rute);
     $urlPath = $this->fsPathToUrl($rute);
+    $baseDir = rtrim(str_replace('\\', '/', (string)$rute), '/');
 
     foreach ($files as $file) {
       $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+      $fullFilePath = $baseDir . '/' . $file;
+      $v = file_exists($fullFilePath) ? '?v=' . filemtime($fullFilePath) : '';
+      $assetUrl = htmlspecialchars(DOMAIN . ltrim($urlPath, '/') . $file . $v, ENT_QUOTES, 'UTF-8');
+
       if ($extension === 'css') {
-        $tag = '<link rel="stylesheet" href="' . DOMAIN . ltrim($urlPath, '/') . $file . '"' .
+        $tag = '<link rel="stylesheet" href="' . $assetUrl . '"' .
           ($param ? ' ' . $param : '') . ' fetchpriority="high">';
         print $tag;
       } elseif ($extension === 'js') {
-        $tag = '<script src="' . DOMAIN . ltrim($urlPath, '/') . $file . '"' .
+        $tag = '<script src="' . $assetUrl . '"' .
           ($param ? ' ' . $param : '') . ' fetchpriority="high"></script>';
         print $tag;
       }

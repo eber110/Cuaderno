@@ -1605,6 +1605,35 @@ require {$tmpDeployLit};
 PHP);
   @unlink($tmpDeploy);
   $runner->assert(str_contains($resGetDeploy['output'], '|HTTP:404') && str_contains($resGetDeploy['output'], 'Not found'), "GET /deploy.php debe responder 404 genérico");
+
+  // 5. LoadStyle carga loader.js desde ruta pública App/Rsc/JsLoad/ y nunca desde /vendor/
+  $tmpProj = ROOT_PATH . '/tests/tmp_loadstyle_test';
+  @mkdir($tmpProj . '/App/Public/Min/Js', 0755, true);
+  @mkdir($tmpProj . '/App/Public/Min/Css', 0755, true);
+  file_put_contents($tmpProj . '/jsConfig.json', '{"functions":{}}');
+  $tmpProjLit = var_export(str_replace('\\', '/', $tmpProj), true);
+  $rootLit = var_export(ROOT_PATH, true);
+  $resLoader = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production'];
+\$_SERVER['APP_ENV'] = 'production';
+define('ROOT_PATH', {$tmpProjLit});
+require_once {$rootLit} . '/vendor/autoload.php';
+require_once {$rootLit} . '/config.php';
+ob_start();
+require {$rootLit} . '/Core/ConfigLoader/LoadStyle.php';
+echo ob_get_clean();
+PHP);
+  $cleanLoadDir = function (string $d) use (&$cleanLoadDir): void {
+    if (!is_dir($d)) return;
+    foreach (scandir($d) ?: [] as $e) {
+      if ($e === '.' || $e === '..') continue;
+      $p = $d . '/' . $e;
+      is_dir($p) ? $cleanLoadDir($p) : @unlink($p);
+    }
+    @rmdir($d);
+  };
+  $runner->assert(str_contains($resLoader['output'], '/App/Rsc/JsLoad/loader.js?v=') && !str_contains($resLoader['output'], '/vendor/'), "LoadStyle debe servir loader.js desde /App/Rsc/JsLoad/ y nunca desde /vendor/");
+  $cleanLoadDir($tmpProj);
 });
 
 // Limpiar /App y carpetas de proyecto en el repositorio del framework

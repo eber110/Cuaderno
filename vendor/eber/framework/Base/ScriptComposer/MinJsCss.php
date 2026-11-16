@@ -108,6 +108,21 @@ $fontCssPath = ROOT_PATH . '/App/Public/Css/font-project.css';
 $preloadJsonPath = ROOT_PATH . '/App/Config/preloadFonts.json';
 JitCssModule::generatePreloadFontsConfig($words, $fontCssPath, $preloadJsonPath);
 
+// Sincronizar automáticamente JsLoad (loader.js) en App/Rsc/JsLoad/ para no servir desde vendor/
+$appJsLoadDir = ROOT_PATH . '/App/Rsc/JsLoad';
+$srcJsLoadFile = is_file(ROOT_PATH . '/vendor/eber/framework/Resources/JsLoad/loader.js')
+    ? ROOT_PATH . '/vendor/eber/framework/Resources/JsLoad/loader.js'
+    : ROOT_PATH . '/Resources/JsLoad/loader.js';
+if (is_file($srcJsLoadFile)) {
+    if (!is_dir($appJsLoadDir)) {
+        @mkdir($appJsLoadDir, 0755, true);
+    }
+    $destJsLoadFile = $appJsLoadDir . '/loader.js';
+    if (!is_file($destJsLoadFile) || md5_file($srcJsLoadFile) !== md5_file($destJsLoadFile)) {
+        @copy($srcJsLoadFile, $destJsLoadFile);
+    }
+}
+
 // Sincronizar automáticamente librería Charts en App/Rsc/Library/Charts desde Resources/Library/Charts
 $appChartsDir = ROOT_PATH . '/App/Rsc/Library/Charts';
 $srcChartsDir = is_dir(ROOT_PATH . '/vendor/eber/framework/Resources/Library/Charts')
