@@ -403,6 +403,9 @@ class ThemeStudioControl extends Control
     if (is_file($cssThemePath) && class_exists('\\Base\\Module\\JitCssModule') && class_exists('\\Base\\Module\\MinifyModule')) {
       ob_start();
       try {
+        if (class_exists('\\Base\\LibraryCssJit\\JitRuleBase')) {
+          \Base\LibraryCssJit\JitRuleBase::resetCache();
+        }
         \Base\Module\JitCssModule::syncThemeConfigVariables($cssThemePath, false);
 
         $cssPaths = [];

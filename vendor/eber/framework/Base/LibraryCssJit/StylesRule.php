@@ -18,12 +18,6 @@ class StylesRule extends JitRuleBase
     $statics = [
       "textareaResize" => ".textareaResize { field-sizing: content; }\n",
       "logo" => ".logo { height: 40px; width: auto; margin-right: 10px; padding: 5px 0px; object-fit: cover; }\n",
-      "no-desk" => "@media screen and (min-width: 993px) { .no-desk, .no-desk-css { display: none !important; } }\n",
-      "no-desk-css" => "@media screen and (min-width: 993px) { .no-desk, .no-desk-css { display: none !important; } }\n",
-      "no-tablet" => "@media screen and (min-width: 577px) and (max-width: 992px) { .no-tablet, .no-tablet-css { display: none !important; } }\n",
-      "no-tablet-css" => "@media screen and (min-width: 577px) and (max-width: 992px) { .no-tablet, .no-tablet-css { display: none !important; } }\n",
-      "no-phone" => "@media screen and (max-width: 576px) { .no-phone, .no-phone-css { display: none !important; } }\n",
-      "no-phone-css" => "@media screen and (max-width: 576px) { .no-phone, .no-phone-css { display: none !important; } }\n",
       "hidden" => ".hidden { display: none !important; }\n",
       "inline-block" => ".inline-block { display: inline-block !important; }\n",
       "inline" => ".inline { display: inline !important; }\n",
@@ -77,6 +71,18 @@ class StylesRule extends JitRuleBase
 
     if (isset($statics[$word])) {
       return $statics[$word];
+    }
+
+    // Visibilidad responsiva dinámica (.no-{slug}, .no-{slug}-css) desde ThemeModule
+    if (preg_match('/^no-([a-z0-9_-]+?)(-css)?$/', $word, $m)) {
+      $key = $m[1];
+      foreach (self::getProjectMediaQueries() as $mq) {
+        if (($mq["slug"] ?? "") === $key || ($mq["jit"] ?? "") === $key) {
+          $mqSlug = $mq["slug"];
+          $mqQuery = $mq["query"];
+          return "@media screen and {$mqQuery} { .no-{$mqSlug}, .no-{$mqSlug}-css { display: none !important; } }\n";
+        }
+      }
     }
 
     // Z-index con prefijo largo: .z-index-5, .z-index-10...

@@ -336,7 +336,8 @@ class FrameCli
   }
 
   /**
-   * Copia recursivamente los archivos nuevos o modificados de un directorio origen a destino.
+   * Sincroniza recursivamente un directorio origen hacia destino:
+   * copia archivos nuevos o modificados y elimina los archivos/carpetas obsoletos en destino.
    */
   private function syncDirectory(string $src, string $dst): void
   {
@@ -347,10 +348,13 @@ class FrameCli
     if (!is_array($items)) {
       return;
     }
+
+    $srcSet = [];
     foreach ($items as $item) {
       if ($item === '.' || $item === '..') {
         continue;
       }
+      $srcSet[$item] = true;
       $srcPath = $src . '/' . $item;
       $dstPath = $dst . '/' . $item;
       if (is_dir($srcPath)) {
@@ -361,6 +365,44 @@ class FrameCli
         }
       }
     }
+
+    // Eliminar archivos o carpetas en destino que ya no existen en origen
+    $dstItems = @scandir($dst);
+    if (is_array($dstItems)) {
+      foreach ($dstItems as $dstItem) {
+        if ($dstItem === '.' || $dstItem === '..' || isset($srcSet[$dstItem])) {
+          continue;
+        }
+        $obsoletePath = $dst . '/' . $dstItem;
+        if (is_dir($obsoletePath)) {
+          $this->removeDirectory($obsoletePath);
+        } elseif (is_file($obsoletePath)) {
+          @unlink($obsoletePath);
+        }
+      }
+    }
+  }
+
+  /**
+   * Elimina recursivamente un directorio obsoleto.
+   */
+  private function removeDirectory(string $dir): void
+  {
+    $items = @scandir($dir);
+    if (is_array($items)) {
+      foreach ($items as $item) {
+        if ($item === '.' || $item === '..') {
+          continue;
+        }
+        $path = $dir . '/' . $item;
+        if (is_dir($path)) {
+          $this->removeDirectory($path);
+        } elseif (is_file($path)) {
+          @unlink($path);
+        }
+      }
+    }
+    @rmdir($dir);
   }
 
   /**

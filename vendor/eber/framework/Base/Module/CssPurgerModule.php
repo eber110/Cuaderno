@@ -87,6 +87,7 @@ class CssPurgerModule
   private static array $safelistPatterns = [
     // Clases que terminan en -loaded
     '/.*-loaded$/',
+    '/^no-[a-z0-9_-]+(-css)?$/',
 
     // Containers
     '/^container(-xl)?(-desk|-mid|-sml)?$/',

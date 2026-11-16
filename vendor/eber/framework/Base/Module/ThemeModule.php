@@ -43,6 +43,174 @@ class ThemeModule
   ];
 
   /**
+   * Devuelve las media queries por defecto del framework.
+   *
+   * @return array<int, array{slug: string, jit: string, label: string, min: int|null, max: int|null, query: string}>
+   */
+  public static function getDefaultMediaQueries(): array
+  {
+    return [
+      [
+        "slug" => "phone",
+        "jit" => "sml",
+        "label" => "Móvil (Phone)",
+        "min" => null,
+        "max" => 576,
+        "query" => "(max-width: 576px)",
+      ],
+      [
+        "slug" => "tablet",
+        "jit" => "mid",
+        "label" => "Tablet",
+        "min" => 577,
+        "max" => 992,
+        "query" => "(min-width: 577px) and (max-width: 992px)",
+      ],
+      [
+        "slug" => "desk",
+        "jit" => "desk",
+        "label" => "Escritorio (Desktop)",
+        "min" => 993,
+        "max" => null,
+        "query" => "(min-width: 993px)",
+      ],
+    ];
+  }
+
+  /**
+   * Construye la expresión CSS de media query a partir de los anchos mínimo y máximo.
+   *
+   * @param int|null $min Ancho mínimo en px
+   * @param int|null $max Ancho máximo en px
+   * @return string Expresión de media query
+   */
+  public static function buildMediaQueryString(?int $min, ?int $max): string
+  {
+    $hasMin = ($min !== null && $min > 0);
+    $hasMax = ($max !== null && $max > 0);
+
+    if ($hasMin && $hasMax) {
+      if ($min > $max) {
+        [$min, $max] = [$max, $min];
+      }
+      return "(min-width: {$min}px) and (max-width: {$max}px)";
+    }
+
+    if ($hasMin) {
+      return "(min-width: {$min}px)";
+    }
+
+    if ($hasMax) {
+      return "(max-width: {$max}px)";
+    }
+
+    return "(min-width: 0px)";
+  }
+
+  /**
+   * Normaliza y valida una lista de media queries para un tema.
+   *
+   * @param array $rawList Lista cruda de media queries
+   * @return array<int, array{slug: string, jit: string, label: string, min: int|null, max: int|null, query: string}>
+   */
+  public static function normalizeMediaQueries(array $rawList): array
+  {
+    if (empty($rawList)) {
+      return self::getDefaultMediaQueries();
+    }
+
+    $defaultJitMap = [
+      "phone" => "sml",
+      "tablet" => "mid",
+      "desk" => "desk",
+    ];
+    $defaultBounds = [
+      "phone" => ["min" => null, "max" => 576],
+      "tablet" => ["min" => 577, "max" => 992],
+      "desk" => ["min" => 993, "max" => null],
+    ];
+
+    $normalized = [];
+    $seenSlugs = [];
+
+    foreach ($rawList as $item) {
+      if (!is_array($item)) {
+        continue;
+      }
+
+      $rawSlug = trim((string)($item["slug"] ?? ""));
+      if (str_starts_with(strtolower($rawSlug), "no-")) {
+        $rawSlug = substr($rawSlug, 3);
+      }
+
+      $slug = self::sanitizeSlug($rawSlug);
+      if ($slug === "" || $slug === "tema") {
+        // Si el usuario pasó un slug vacío no agregar basura
+        if ($rawSlug === "") {
+          continue;
+        }
+      }
+
+      if (isset($seenSlugs[$slug])) {
+        continue;
+      }
+
+      $rawJit = trim((string)($item["jit"] ?? ""));
+      $jit = $rawJit !== "" ? self::sanitizeSlug($rawJit) : ($defaultJitMap[$slug] ?? $slug);
+
+      $label = trim((string)($item["label"] ?? ""));
+      if ($label === "") {
+        $label = ucfirst($slug);
+      }
+
+      $min = (isset($item["min"]) && $item["min"] !== "" && $item["min"] !== null)
+        ? max(0, (int)$item["min"])
+        : null;
+      $max = (isset($item["max"]) && $item["max"] !== "" && $item["max"] !== null)
+        ? max(0, (int)$item["max"])
+        : null;
+
+      if ($min === null && $max === null) {
+        if (isset($defaultBounds[$slug])) {
+          $min = $defaultBounds[$slug]["min"];
+          $max = $defaultBounds[$slug]["max"];
+        } else {
+          continue;
+        }
+      }
+
+      if ($min !== null && $max !== null && $min > $max) {
+        [$min, $max] = [$max, $min];
+      }
+
+      $seenSlugs[$slug] = true;
+      $normalized[] = [
+        "slug" => $slug,
+        "jit" => $jit,
+        "label" => $label,
+        "min" => $min,
+        "max" => $max,
+        "query" => self::buildMediaQueryString($min, $max),
+      ];
+    }
+
+    return !empty($normalized) ? $normalized : self::getDefaultMediaQueries();
+  }
+
+  /**
+   * Obtiene las media queries activas configuradas en el proyecto.
+   *
+   * @param string|null $basePath Directorio base del proyecto
+   * @return array<int, array{slug: string, jit: string, label: string, min: int|null, max: int|null, query: string}>
+   */
+  public static function getMediaQueries(?string $basePath = null): array
+  {
+    $jsonPath = self::getThemeJsonPath($basePath);
+    $theme = self::loadConfig($jsonPath);
+    return self::normalizeMediaQueries((array)($theme["layout"]["mediaQueries"] ?? []));
+  }
+
+  /**
    * Obtiene la estructura y valores predeterminados para un tema individual en theme.json.
    *
    * @param string $slug Identificador del tema
@@ -61,6 +229,7 @@ class ThemeModule
         "widthWindow" => "1500px",
         "scrollbarWidth" => "thin",
         "scrollbarHide" => "none",
+        "mediaQueries" => self::getDefaultMediaQueries(),
       ],
       "light" => [
         "body" => "#FFF9E5",
@@ -429,6 +598,7 @@ class ThemeModule
     }
 
     $layout = array_merge($defaults["layout"], (array)($data["layout"] ?? []));
+    $layout["mediaQueries"] = self::normalizeMediaQueries((array)($layout["mediaQueries"] ?? []));
 
     $lightData = (array)($data["light"] ?? []);
     $lightText = array_merge($defaults["light"]["text"], (array)($lightData["text"] ?? []));
@@ -1051,6 +1221,13 @@ class ThemeModule
     $lines[] = "  --scrollbar-width: " . $layout["scrollbarWidth"] . ";";
     $lines[] = "  --scrollbar-hide: " . $layout["scrollbarHide"] . ";";
     $lines[] = "";
+    $lines[] = "  /* Media Queries del proyecto */";
+    foreach ((array)($layout["mediaQueries"] ?? []) as $mq) {
+      if (!empty($mq["slug"]) && !empty($mq["query"])) {
+        $lines[] = "  --mq-" . $mq["slug"] . ": " . $mq["query"] . ";";
+      }
+    }
+    $lines[] = "";
     $lines[] = "  --body: " . $light["body"] . ";";
     $lines[] = "";
     $lines[] = "  --text-primary:   " . $light["text"]["primary"] . ";";
@@ -1220,6 +1397,25 @@ class ThemeModule
       }
     }
 
+    // Generar bloque de media queries y visibilidad responsiva del proyecto
+    $activeMediaQueries = self::normalizeMediaQueries((array)($layout["mediaQueries"] ?? []));
+    if (!empty($activeMediaQueries)) {
+      $lines[] = "";
+      $lines[] = "/* ==============================================================";
+      $lines[] = "   MEDIA QUERIES Y VISIBILIDAD RESPONSIVA DEL PROYECTO";
+      $lines[] = "   ============================================================== */";
+      foreach ($activeMediaQueries as $mq) {
+        $mqSlug = $mq["slug"];
+        $mqQuery = $mq["query"];
+        $lines[] = "@media screen and {$mqQuery} {";
+        $lines[] = "  .no-{$mqSlug}:not([data-responsive-processed]),";
+        $lines[] = "  .no-{$mqSlug}-css {";
+        $lines[] = "    display: none !important;";
+        $lines[] = "  }";
+        $lines[] = "}";
+      }
+    }
+
     if ($trailingCss !== "") {
       $lines[] = "";
       $lines[] = trim($trailingCss);
@@ -1268,6 +1464,9 @@ class ThemeModule
           if (preg_match('/^--back-color\d*(-hover)?$/', $name)) {
             continue;
           }
+          if (str_starts_with($name, "--mq-")) {
+            continue;
+          }
 
           $vars[$name] = $value;
         }
@@ -1313,6 +1512,9 @@ class ThemeModule
           if (preg_match('/^--back-color\d*(-hover)?$/', $name)) {
             continue;
           }
+          if (str_starts_with($name, "--mq-")) {
+            continue;
+          }
 
           $vars[$name] = $value;
         }
@@ -1338,6 +1540,7 @@ class ThemeModule
     if (preg_match('/\[data-theme=["\']?dark["\']?\]\s*\{[^}]*\}\s*(.*)$/s', $css, $matches)) {
       $trailing = trim($matches[1]);
       $clean = preg_replace('/\/\*\s*=+\s*UTILIDADES CONDICIONALES POR TEMA[\s\S]*$/i', '', $trailing);
+      $clean = preg_replace('/\/\*\s*=+\s*MEDIA QUERIES Y VISIBILIDAD RESPONSIVA[\s\S]*$/i', '', (string)$clean);
       return trim((string)$clean);
     }
 

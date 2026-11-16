@@ -1,9 +1,7 @@
 {
     "priority": [
         "aaSvgStore.js",
-        "component.js",
-        "config.js",
-        "querys.js",
+        "querie.js",
         "scrollObserver.js",
         "menuMemory.js",
         "LivePreviewManager.js",

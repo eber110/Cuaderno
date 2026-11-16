@@ -594,6 +594,78 @@
       color: var(--ts-muted);
     }
 
+    /* Media Queries Cards */
+    .ts-mq-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .ts-mq-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .ts-mq-badges {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .ts-mq-class-badge {
+      font-size: 0.7rem;
+      font-family: monospace;
+      color: var(--ts-primary);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .ts-mq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .ts-mq-field label {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--ts-muted);
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    .ts-mq-input {
+      width: 100%;
+      background: var(--ts-bg);
+      border: 1px solid var(--ts-border);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .ts-mq-input:focus {
+      border-color: var(--ts-primary);
+    }
+    .ts-mq-input[readonly] {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+    .ts-mq-preview {
+      font-size: 0.7rem;
+      font-family: monospace;
+      color: #94a3b8;
+      background: rgba(2, 6, 23, 0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
     /* Range Sliders */
     .ts-range-box {
       display: flex;
@@ -1473,6 +1545,24 @@
             </select>
           </div>
         </div>
+
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>📱 Media Queries y Pantallas (querie.js)</span>
+          </div>
+          <p style="font-size:0.74rem; color:var(--ts-muted); margin-bottom:10px; line-height:1.4;">
+            Centraliza los puntos de quiebre del proyecto. Cada pantalla habilita automáticamente <code>.no-{slug}</code> (controlada por <strong>querie.js</strong>) y <code>.no-{slug}-css</code> (solo CSS).
+          </p>
+          <div id="mediaQueriesList">
+            <!-- Renderizado dinámico vía JS -->
+          </div>
+          <button type="button" class="ts-btn-add-color" onclick="addMediaQuerySlot()">
+            ➕ Agregar Pantalla / Media Query
+          </button>
+          <button type="button" class="ts-btn ts-btn-secondary" style="width:100%; justify-content:center; margin-top:8px; padding:7px; font-size:0.78rem;" onclick="resetDefaultMediaQueries()">
+            🔄 Restaurar Media Queries por defecto
+          </button>
+        </div>
       </div>
 
       <!-- TAB 6: JSON CRUDO -->
@@ -1518,8 +1608,8 @@
           </div>
         </div>
 
-        <!-- Derecha: Selector de Resolución y Dispositivos (100%, 1200px, 768px, 380px) -->
-        <div class="ts-viewport-bar">
+        <!-- Derecha: Selector de Resolución y Dispositivos (dinámico desde mediaQueries) -->
+        <div class="ts-viewport-bar" id="viewportBar">
           <button type="button" class="ts-view-btn active" onclick="setViewport('100%', this)" title="Escritorio Completo">
             🖥️ <span>100%</span>
           </button>
@@ -1637,7 +1727,14 @@
     let currentThemeSlug = '<?= $config["themeSlug"] ?? "default" ?>';
     let themeConfig = JSON.parse(JSON.stringify(initialConfig));
     let currentPreviewMode = 'light'; // 'light' o 'dark'
+    let currentViewportWidth = '100%';
     let iframeThemeObserver = null;
+
+    const DEFAULT_MEDIA_QUERIES = [
+      { slug: 'phone', jit: 'sml', label: 'Móvil (Phone)', min: null, max: 576 },
+      { slug: 'tablet', jit: 'mid', label: 'Tablet', min: 577, max: 992 },
+      { slug: 'desk', jit: 'desk', label: 'Escritorio (Desktop)', min: 993, max: null }
+    ];
 
     // ==============================================================
     // UTILIDADES DE COLOR (RGB, HSL, HOVER, WCAG 2.1)
@@ -1762,19 +1859,24 @@
     // ==============================================================
 
     function initStudio() {
-      // 0. Renderizar lista de temas y selector
+      // 0. Asegurar estructura de mediaQueries
+      ensureMediaQueries();
+      // 1. Renderizar lista de temas y selector
       renderThemesTab();
-      // 1. Renderizar inputs de paleta clara
+      // 2. Renderizar inputs de paleta clara
       renderColorSlots('light');
-      // 2. Renderizar inputs de paleta oscura
+      // 3. Renderizar inputs de paleta oscura
       renderColorSlots('dark');
-      // 3. Inicializar valores de formulario
+      // 4. Renderizar media queries y botones de viewport
+      renderMediaQueriesList();
+      renderViewportButtons();
+      // 5. Inicializar valores de formulario
       syncFormValues();
-      // 4. Configurar iframe de vista real del proyecto
+      // 6. Configurar iframe de vista real del proyecto
       setupProjectIframe();
-      // 5. Inyectar variables en vivo
+      // 7. Inyectar variables en vivo
       applySandboxStyles();
-      // 6. Actualizar visor JSON
+      // 8. Actualizar visor JSON
       updateJsonViewer();
     }
 
@@ -2493,6 +2595,246 @@
 
       document.getElementById('fontCustom').value = themeConfig.layout.font;
       document.getElementById('scrollbarWidthSelect').value = themeConfig.layout.scrollbarWidth || 'thin';
+
+      // Media Queries
+      ensureMediaQueries();
+      renderMediaQueriesList();
+      renderViewportButtons();
+    }
+
+    // ==============================================================
+    // GESTIÓN VISUAL DE MEDIA QUERIES Y PANTALLAS RESPONSIVAS
+    // ==============================================================
+
+    function buildMediaQueryExpr(min, max) {
+      const hasMin = Number.isFinite(min) && min > 0;
+      const hasMax = Number.isFinite(max) && max > 0;
+      if (hasMin && hasMax) {
+        const a = Math.min(min, max);
+        const b = Math.max(min, max);
+        return `(min-width: ${a}px) and (max-width: ${b}px)`;
+      }
+      if (hasMin) return `(min-width: ${min}px)`;
+      if (hasMax) return `(max-width: ${max}px)`;
+      return '(min-width: 0px)';
+    }
+
+    function sanitizeMediaSlug(raw) {
+      let s = String(raw || '').toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/^no-/, '')
+        .replace(/[^a-z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return s;
+    }
+
+    function ensureMediaQueries() {
+      if (!themeConfig.layout || typeof themeConfig.layout !== 'object') {
+        themeConfig.layout = {};
+      }
+      const list = themeConfig.layout.mediaQueries;
+      if (!Array.isArray(list) || list.length === 0) {
+        themeConfig.layout.mediaQueries = DEFAULT_MEDIA_QUERIES.map(item => ({
+          ...item,
+          query: buildMediaQueryExpr(item.min, item.max)
+        }));
+      } else {
+        const defaultJits = { phone: 'sml', tablet: 'mid', desk: 'desk' };
+        themeConfig.layout.mediaQueries = list.map((item, idx) => {
+          const slug = sanitizeMediaSlug(item.slug || `screen-${idx + 1}`) || `screen-${idx + 1}`;
+          const min = (item.min !== null && item.min !== '' && item.min !== undefined) ? Math.max(0, parseInt(item.min, 10) || 0) : null;
+          const max = (item.max !== null && item.max !== '' && item.max !== undefined) ? Math.max(0, parseInt(item.max, 10) || 0) : null;
+          const jit = item.jit ? sanitizeMediaSlug(item.jit) : (defaultJits[slug] || slug);
+          return {
+            slug,
+            jit,
+            label: (item.label && String(item.label).trim()) ? String(item.label).trim() : slug,
+            min,
+            max,
+            query: buildMediaQueryExpr(min, max)
+          };
+        });
+      }
+      return themeConfig.layout.mediaQueries;
+    }
+
+    function getViewportTestWidth(mq) {
+      const hasMin = mq.min !== null && mq.min > 0;
+      const hasMax = mq.max !== null && mq.max > 0;
+      if (hasMin && hasMax) return Math.round((mq.min + mq.max) / 2);
+      if (hasMax) return Math.min(mq.max, 380);
+      if (hasMin) return Math.max(mq.min, 1200);
+      return 1200;
+    }
+
+    function renderViewportButtons() {
+      const bar = document.getElementById('viewportBar');
+      if (!bar) return;
+      const list = ensureMediaQueries();
+
+      let html = `
+        <button type="button" class="ts-view-btn ${currentViewportWidth === '100%' ? 'active' : ''}" onclick="setViewport('100%', this)" title="Escritorio Completo">
+          🖥️ <span>100%</span>
+        </button>
+      `;
+
+      list.forEach(mq => {
+        const w = getViewportTestWidth(mq);
+        const widthStr = `${w}px`;
+        const icon = mq.slug === 'phone' ? '📲' : (mq.slug === 'tablet' ? '📱' : (mq.slug === 'desk' ? '💻' : '🖥️'));
+        const activeClass = currentViewportWidth === widthStr ? 'active' : '';
+        html += `
+          <button type="button" class="ts-view-btn ${activeClass}" onclick="setViewport('${widthStr}', this)" title="${mq.label} (${mq.query})">
+            ${icon} <span>${mq.slug} (${w}px)</span>
+          </button>
+        `;
+      });
+
+      bar.innerHTML = html;
+    }
+
+    function renderMediaQueriesList() {
+      const container = document.getElementById('mediaQueriesList');
+      if (!container) return;
+      const list = ensureMediaQueries();
+      const coreSlugs = ['phone', 'tablet', 'desk'];
+
+      container.innerHTML = '';
+
+      list.forEach((mq, index) => {
+        const isCore = coreSlugs.includes(mq.slug);
+        const card = document.createElement('div');
+        card.className = 'ts-mq-card';
+        card.innerHTML = `
+          <div class="ts-mq-header">
+            <div class="ts-mq-badges">
+              <span class="ts-mq-class-badge" id="mqBadge_${index}">.no-${mq.slug}</span>
+              <span class="ts-mq-class-badge" id="mqBadgeCss_${index}" style="opacity:0.75;">.no-${mq.slug}-css</span>
+            </div>
+            ${!isCore ? `
+              <button type="button" class="ts-btn-del-slot" onclick="removeMediaQuerySlot(${index})" title="Eliminar esta media query">✕</button>
+            ` : `<span style="font-size:0.68rem; color:var(--ts-muted);">Base</span>`}
+          </div>
+          <div class="ts-mq-grid">
+            <div class="ts-mq-field">
+              <label>Nombre / Etiqueta</label>
+              <input type="text" class="ts-mq-input" value="${String(mq.label).replace(/"/g, '&quot;')}" oninput="onMediaQueryChange(${index}, 'label', this.value)">
+            </div>
+            <div class="ts-mq-field">
+              <label>Slug (.no-slug)</label>
+              <input type="text" class="ts-mq-input" style="font-family:monospace;" value="${mq.slug}" ${isCore ? 'readonly title="Clase base del framework"' : `onchange="onMediaQueryChange(${index}, 'slug', this.value)"`}>
+            </div>
+            <div class="ts-mq-field">
+              <label>Mínimo (px)</label>
+              <input type="number" min="0" class="ts-mq-input" placeholder="Sin mín." value="${mq.min !== null ? mq.min : ''}" oninput="onMediaQueryChange(${index}, 'min', this.value)">
+            </div>
+            <div class="ts-mq-field">
+              <label>Máximo (px)</label>
+              <input type="number" min="0" class="ts-mq-input" placeholder="Sin máx." value="${mq.max !== null ? mq.max : ''}" oninput="onMediaQueryChange(${index}, 'max', this.value)">
+            </div>
+          </div>
+          <div class="ts-mq-preview" id="mqPreview_${index}">@media screen and ${mq.query}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function onMediaQueryChange(index, field, value) {
+      const list = ensureMediaQueries();
+      const mq = list[index];
+      if (!mq) return;
+
+      if (field === 'label') {
+        mq.label = String(value || '').trim() || mq.slug;
+      } else if (field === 'slug') {
+        let clean = sanitizeMediaSlug(value);
+        if (!clean) clean = `screen-${index + 1}`;
+        const duplicate = list.some((item, i) => i !== index && item.slug === clean);
+        if (duplicate) {
+          showToast(`⚠️ Ya existe una media query con el slug "${clean}"`, 'error');
+          renderMediaQueriesList();
+          return;
+        }
+        mq.slug = clean;
+        if (!['phone', 'tablet', 'desk'].includes(clean)) {
+          mq.jit = clean;
+        }
+        const badge = document.getElementById(`mqBadge_${index}`);
+        const badgeCss = document.getElementById(`mqBadgeCss_${index}`);
+        if (badge) badge.textContent = `.no-${mq.slug}`;
+        if (badgeCss) badgeCss.textContent = `.no-${mq.slug}-css`;
+      } else if (field === 'min' || field === 'max') {
+        const trimmed = String(value || '').trim();
+        mq[field] = trimmed === '' ? null : Math.max(0, parseInt(trimmed, 10) || 0);
+      }
+
+      mq.query = buildMediaQueryExpr(mq.min, mq.max);
+      const previewEl = document.getElementById(`mqPreview_${index}`);
+      if (previewEl) previewEl.textContent = `@media screen and ${mq.query}`;
+
+      renderViewportButtons();
+      applySandboxStyles();
+      updateJsonViewer();
+    }
+
+    function addMediaQuerySlot() {
+      const list = ensureMediaQueries();
+      let counter = 1;
+      let candidate = 'laptop';
+      const suggestions = ['laptop', 'tv', 'wide', 'mini'];
+      for (const s of suggestions) {
+        if (!list.some(item => item.slug === s)) {
+          candidate = s;
+          break;
+        }
+      }
+      while (list.some(item => item.slug === candidate)) {
+        candidate = `pantalla-${counter++}`;
+      }
+
+      list.push({
+        slug: candidate,
+        jit: candidate,
+        label: candidate.charAt(0).toUpperCase() + candidate.slice(1),
+        min: 1440,
+        max: null,
+        query: '(min-width: 1440px)'
+      });
+
+      renderMediaQueriesList();
+      renderViewportButtons();
+      applySandboxStyles();
+      updateJsonViewer();
+      showToast(`📱 Media query ".no-${candidate}" agregada`);
+    }
+
+    function removeMediaQuerySlot(index) {
+      const list = ensureMediaQueries();
+      const target = list[index];
+      if (!target) return;
+      if (['phone', 'tablet', 'desk'].includes(target.slug)) {
+        showToast('⚠️ Las pantallas base (phone, tablet, desk) no se pueden eliminar.', 'error');
+        return;
+      }
+
+      list.splice(index, 1);
+      renderMediaQueriesList();
+      renderViewportButtons();
+      applySandboxStyles();
+      updateJsonViewer();
+      showToast(`🗑️ Media query ".no-${target.slug}" eliminada`);
+    }
+
+    function resetDefaultMediaQueries() {
+      themeConfig.layout.mediaQueries = DEFAULT_MEDIA_QUERIES.map(item => ({
+        ...item,
+        query: buildMediaQueryExpr(item.min, item.max)
+      }));
+      renderMediaQueriesList();
+      renderViewportButtons();
+      applySandboxStyles();
+      updateJsonViewer();
+      showToast('🔄 Media Queries restauradas a los valores por defecto');
     }
 
     function onColorSlotChange(mode, index, hex) {
@@ -2777,6 +3119,11 @@
       css += `  --danger: ${themeConfig.status.danger} !important;\n`;
       css += `  --hover-danger: ${hoverDanger} !important;\n`;
 
+      const activeMediaQueries = ensureMediaQueries();
+      activeMediaQueries.forEach(mq => {
+        css += `  --mq-${mq.slug}: ${mq.query} !important;\n`;
+      });
+
       for (let i = 0; i < lightColors.length; i++) {
         const hex = lightColors[i] || '#000000';
         const varName = (i === 0) ? '--back-color' : `--back-color${i + 1}`;
@@ -2853,6 +3200,15 @@
         }
       }
 
+      // Reglas de Media Queries y Visibilidad Responsiva en vivo
+      const liveMediaQueries = ensureMediaQueries();
+      css += `\n/* Media Queries activas en vivo */\n`;
+      liveMediaQueries.forEach(mq => {
+        css += `@media screen and ${mq.query} {\n`;
+        css += `  .no-${mq.slug}:not([data-responsive-processed]), .no-${mq.slug}-css { display: none !important; }\n`;
+        css += `}\n`;
+      });
+
       // Eliminar barra de scroll nativa en el iframe de previsualización para usar floatingScroll
       css += `\n/* Ocultar barra nativa en el iframe para floatingScroll (sin reserva de gutter ni distorsión de ancho) */\n`;
       css += `html, body, html.has-floating-scroll, html.has-floating-scroll body {\n`;
@@ -2898,6 +3254,15 @@
         }
 
         styleEl.textContent = buildLiveThemeCssString();
+
+        // Sincronizar Media Queries con querie.js dentro del iframe si está cargado
+        const win = frame.contentWindow;
+        if (win) {
+          win.fmeMediaQueries = JSON.parse(JSON.stringify(ensureMediaQueries()));
+          if (win.responsiveVisibility && typeof win.responsiveVisibility.refreshMediaQueries === 'function') {
+            win.responsiveVisibility.refreshMediaQueries(win.fmeMediaQueries);
+          }
+        }
       } catch (e) {
         // El iframe aún está cargando o pertenece a otro origen
       }
@@ -3090,6 +3455,7 @@
     }
 
     function setViewport(width, btnEl) {
+      currentViewportWidth = width;
       const windowEl = document.getElementById('sandboxWindow');
       windowEl.style.maxWidth = width;
       document.querySelectorAll('.ts-view-btn').forEach(btn => btn.classList.remove('active'));

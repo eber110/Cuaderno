@@ -273,6 +273,13 @@ class Control
 
     // Script inline sincrónico: aplica el tema guardado o valor por defecto antes del primer paint (evita FOUC)
     $defaultTheme = $_ENV['DEFAULT_THEME'] ?? 'system';
+    $mediaQueries = class_exists('\\Base\\Module\\ThemeModule')
+      ? \Base\Module\ThemeModule::getMediaQueries()
+      : [
+          ['slug' => 'phone', 'jit' => 'sml', 'label' => 'Móvil (Phone)', 'min' => null, 'max' => 576, 'query' => '(max-width: 576px)'],
+          ['slug' => 'tablet', 'jit' => 'mid', 'label' => 'Tablet', 'min' => 577, 'max' => 992, 'query' => '(min-width: 577px) and (max-width: 992px)'],
+          ['slug' => 'desk', 'jit' => 'desk', 'label' => 'Escritorio (Desktop)', 'min' => 993, 'max' => null, 'query' => '(min-width: 993px)'],
+        ];
     echo "<script>\n";
     echo "(function() {\n";
     echo "  document.documentElement.classList.add('js-loading');\n";
@@ -293,6 +300,7 @@ class Control
     echo "    document.documentElement.removeAttribute('data-theme');\n";
     echo "  }\n";
     echo "  window.fmeDefaultTheme = defaultTheme;\n";
+    echo "  window.fmeMediaQueries = " . json_encode($mediaQueries, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ";\n";
     echo "})();\n";
     echo "</script>\n";
     echo "<style>\n";
@@ -309,15 +317,15 @@ class Control
     echo "  .cut-phrase-wrapper:not([data-cut-phrase-ready]) {\n";
     echo "    opacity: 0 !important;\n";
     echo "  }\n";
-    echo "  @media screen and (max-width: 576px) {\n";
-    echo "    .no-phone:not([data-responsive-processed]) { display: none !important; }\n";
-    echo "  }\n";
-    echo "  @media screen and (min-width: 577px) and (max-width: 992px) {\n";
-    echo "    .no-tablet:not([data-responsive-processed]) { display: none !important; }\n";
-    echo "  }\n";
-    echo "  @media screen and (min-width: 993px) {\n";
-    echo "    .no-desk:not([data-responsive-processed]) { display: none !important; }\n";
-    echo "  }\n";
+    foreach ($mediaQueries as $mq) {
+      $q = $mq['query'] ?? '';
+      $s = $mq['slug'] ?? '';
+      if ($q !== '' && $s !== '') {
+        echo "  @media screen and {$q} {\n";
+        echo "    .no-{$s}:not([data-responsive-processed]), .no-{$s}-css { display: none !important; }\n";
+        echo "  }\n";
+      }
+    }
     echo "</style>\n";
 
     echo '<link rel="shortcut icon" type="image/x-icon" href="' . LOGO . '">';

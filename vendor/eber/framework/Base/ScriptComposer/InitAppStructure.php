@@ -749,14 +749,60 @@ ENV;
     if (file_exists($jsConfigPath)) {
       $raw = (string)file_get_contents($jsConfigPath);
       $decoded = json_decode($raw, true);
-      if (is_array($decoded) && isset($decoded['priority']) && is_array($decoded['priority']) && !in_array('lang.js', $decoded['priority'], true)) {
-        $decoded['priority'][] = 'lang.js';
-        if (empty($decoded['functions']['async'])) {
-          $decoded['functions']['async'] = new \stdClass();
+      if (is_array($decoded)) {
+        $priority = isset($decoded['priority']) && is_array($decoded['priority'])
+          ? $decoded['priority']
+          : [];
+        $updated = false;
+        $changes = [];
+
+        // Reemplazar querys.js por querie.js si existía
+        $querysIdx = array_search('querys.js', $priority, true);
+        if ($querysIdx !== false) {
+          $priority[$querysIdx] = 'querie.js';
+          $updated = true;
+          $changes[] = "renombrado 'querys.js' a 'querie.js'";
         }
-        if (file_put_contents($jsConfigPath, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
-          echo "🔧 Actualizado: jsConfig.json (agregado 'lang.js' a priority)\n";
-          return;
+
+        // Eliminar archivos obsoletos de priority
+        foreach (['component.js', 'config.js'] as $obsolete) {
+          $obsIdx = array_search($obsolete, $priority, true);
+          if ($obsIdx !== false) {
+            unset($priority[$obsIdx]);
+            $updated = true;
+            $changes[] = "removido '{$obsolete}'";
+          }
+        }
+        $priority = array_values(array_unique($priority));
+
+        // Asegurar que querie.js siempre esté en priority
+        if (!in_array('querie.js', $priority, true)) {
+          $aaIdx = array_search('aaSvgStore.js', $priority, true);
+          if ($aaIdx !== false) {
+            array_splice($priority, $aaIdx + 1, 0, ['querie.js']);
+          } else {
+            array_unshift($priority, 'querie.js');
+          }
+          $updated = true;
+          $changes[] = "agregado 'querie.js' a priority";
+        }
+
+        // Asegurar que lang.js siempre esté en priority
+        if (!in_array('lang.js', $priority, true)) {
+          $priority[] = 'lang.js';
+          $updated = true;
+          $changes[] = "agregado 'lang.js' a priority";
+        }
+
+        if ($updated) {
+          $decoded['priority'] = $priority;
+          if (empty($decoded['functions']['async'])) {
+            $decoded['functions']['async'] = new \stdClass();
+          }
+          if (file_put_contents($jsConfigPath, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+            echo "🔧 Actualizado: jsConfig.json (" . implode(', ', $changes) . ")\n";
+            return;
+          }
         }
       }
       echo "⏭️  Saltado: jsConfig.json (ya existe)\n";
@@ -764,7 +810,7 @@ ENV;
     }
 
     $content = json_encode([
-      'priority' => ['aaSvgStore.js', 'component.js', 'config.js', 'querys.js', 'lang.js'],
+      'priority' => ['aaSvgStore.js', 'querie.js', 'lang.js'],
       'exclude' => [],
       'functions' => [
         'defer' => new \stdClass(),

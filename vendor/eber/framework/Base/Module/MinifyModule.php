@@ -65,11 +65,38 @@ class MinifyModule
     $priority = $config['priority'] ?? [];
     $exclude = $config['exclude'] ?? [];
 
+    // Compatibilidad automática querys.js -> querie.js y carga prioritaria garantizada de querie.js
+    $querysIdx = array_search('querys.js', $priority, true);
+    if ($querysIdx !== false) {
+      $priority[$querysIdx] = 'querie.js';
+    }
+    if (!in_array('querie.js', $priority, true)) {
+      $aaIdx = array_search('aaSvgStore.js', $priority, true);
+      if ($aaIdx !== false) {
+        array_splice($priority, $aaIdx + 1, 0, ['querie.js']);
+      } else {
+        array_unshift($priority, 'querie.js');
+      }
+    }
+    $priority = array_values(array_unique($priority));
+
     $deferModules = array_keys($config['functions']['defer'] ?? []);
     $asyncModules = array_keys($config['functions']['async'] ?? []);
 
+    // Detectar si querie.js existe físicamente en los archivos fuente
+    $hasQuerieJs = false;
+    foreach ($files as $f) {
+      if (basename($f) === 'querie.js') {
+        $hasQuerieJs = true;
+        break;
+      }
+    }
+
     // Construir lista de archivos permitidos
     $allowedFiles = $priority;
+    if (!$hasQuerieJs && !in_array('querys.js', $allowedFiles, true)) {
+      $allowedFiles[] = 'querys.js';
+    }
     foreach (array_merge($deferModules, $asyncModules) as $mod) {
         $filename = $mod . '.js';
         if (!in_array($filename, $allowedFiles)) {
@@ -80,6 +107,8 @@ class MinifyModule
             $allowedFiles[] = 'darkMode.js';
         } elseif ($mod === 'darkMode' && !in_array('initDarkMode.js', $allowedFiles)) {
             $allowedFiles[] = 'initDarkMode.js';
+        } elseif ($mod === 'initResponsiveVisibility' && !in_array('querie.js', $allowedFiles)) {
+            $allowedFiles[] = 'querie.js';
         }
     }
 
@@ -88,6 +117,11 @@ class MinifyModule
 
     foreach ($files as $file) {
       $basename = basename($file);
+
+      // Evitar duplicación con querys.js obsoleto cuando querie.js está disponible
+      if ($basename === 'querys.js' && $hasQuerieJs) {
+          continue;
+      }
 
       // Filtrado estricto: solo incluir archivos listados en jsConfig.json
       if (!in_array($basename, $allowedFiles)) {

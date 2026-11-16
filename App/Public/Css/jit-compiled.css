@@ -220,7 +220,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .font28 { font-family: var(--font) !important; }
 .font32 { font-family: var(--font) !important; }
 .indent-p, .indent { text-indent: 1.5em; }
-.ita, .italic { font-style: italic !important; }
 .font-light, .light { font-weight: 300 !important; }
 .line-h1 { line-height: 1em !important; }
 .line-h10 { line-height: 1.0em !important; }
@@ -318,7 +317,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .hpx800 { height: 800px; }
 .m-1 { margin: 1px; }
 .m0 { margin: 0px; }
-.m12 { margin: 12px; }
 .m20 { margin: 20px; }
 .m5 { margin: 5px; }
 .mb10 { margin-bottom: 10px; }
@@ -331,12 +329,10 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .mb6 { margin-bottom: 6px; }
 .mb8 { margin-bottom: 8px; }
 .ml10 { margin-left: 10px; }
-.ml20 { margin-left: 20px; }
 .ml5 { margin-left: 5px; }
 .ml80 { margin-left: 80px; }
 .mr10 { margin-right: 10px; }
 .mr15 { margin-right: 15px; }
-.mr20 { margin-right: 20px; }
 .mr5 { margin-right: 5px; }
 .mt0 { margin-top: 0px; }
 .mt10 { margin-top: 10px; }
@@ -468,7 +464,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .x30 { font-size: 30px; }
 .x32 { font-size: 32px; }
 .x36 { font-size: 36px; }
-.x4 { font-size: 4px; }
 .x40 { font-size: 40px; }
 .x42 { font-size: 42px; }
 .x50 { font-size: 50px; }

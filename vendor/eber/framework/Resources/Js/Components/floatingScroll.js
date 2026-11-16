@@ -6,7 +6,7 @@
  * salto al hacer clic en el carril, auto-ocultación si no hay contenido desplazable y actualización
  * reactiva ante cambios de DOM/tamaño).
  *
- * Compatible nativamente con las clases responsivas `no-desk`, `no-tablet`, `no-phone` (y `querys.js`)
+ * Compatible nativamente con las clases responsivas `no-desk`, `no-tablet`, `no-phone` (y `querie.js`)
  * así como con todas las clases de color compiladas por JIT (`color1`, `color2`, `color3`... `colorN`).
  *
  * @function floatingScroll
@@ -117,6 +117,10 @@ function resolveColorToken(token) {
  * @param {string|string[]} responsiveArg Tercer parámetro (`responsive`).
  * @returns {{ colorInfo: { className: string, cssColor: string }, responsiveList: string[] }}
  */
+function isResponsiveOrThemeClass(token) {
+  return RESPONSIVE_CLASSES.includes(token) || /^no-[a-z0-9_-]+(-css)?$/.test(token);
+}
+
 function parseColorAndResponsive(colorArg, responsiveArg) {
   const tokens = [];
 
@@ -138,7 +142,7 @@ function parseColorAndResponsive(colorArg, responsiveArg) {
   let chosenColorToken = "";
 
   for (const t of tokens) {
-    if (RESPONSIVE_CLASSES.includes(t)) {
+    if (isResponsiveOrThemeClass(t)) {
       responsiveSet.add(t);
     } else if (!chosenColorToken) {
       chosenColorToken = t;
@@ -279,7 +283,7 @@ export class FloatingScroll {
 
   /**
    * Garantiza que el elemento hijo `.floating-scroll-thumb` exista dentro del track
-   * (incluso después de que `querys.js` vacíe y restaure `innerHTML` en cambios de breakpoint).
+   * (incluso después de que `querie.js` vacíe y restaure `innerHTML` en cambios de breakpoint).
    *
    * @private
    */
@@ -518,7 +522,7 @@ export class FloatingScroll {
     this.win.addEventListener("pointerup", this._onPointerUp);
     this.win.addEventListener("pointercancel", this._onPointerUp);
 
-    // 5. Observar si querys.js (no-desk, no-tablet, no-phone) restaura el innerHTML del track al cambiar de breakpoint
+    // 5. Observar si querie.js (no-desk, no-tablet, no-phone, etc.) restaura el innerHTML del track al cambiar de breakpoint
     if (typeof MutationObserver !== "undefined") {
       this._trackObserver = new MutationObserver(() => {
         if (this.isDestroyed) return;

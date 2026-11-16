@@ -4,7 +4,30 @@
     "fontSize": "20px",
     "widthWindow": "1500px",
     "scrollbarWidth": "thin",
-    "scrollbarHide": "none"
+    "scrollbarHide": "none",
+    "mediaQueries": [
+      {
+        "slug": "phone",
+        "jit": "sml",
+        "label": "Móvil (Phone)",
+        "min": null,
+        "max": 576
+      },
+      {
+        "slug": "tablet",
+        "jit": "mid",
+        "label": "Tablet",
+        "min": 577,
+        "max": 992
+      },
+      {
+        "slug": "desk",
+        "jit": "desk",
+        "label": "Escritorio (Desktop)",
+        "min": 993,
+        "max": null
+      }
+    ]
   },
   "light": {
     "body": "#FFF9E5",

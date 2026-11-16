@@ -41,6 +41,13 @@ abstract class JitRuleBase implements JitRuleInterface
   protected static ?array $themeFonts = null;
 
   /**
+   * Cache estática de media queries activas del proyecto.
+   *
+   * @var array<int, array{slug: string, jit: string, label: string, min: int|null, max: int|null, query: string}>|null
+   */
+  protected static ?array $mediaQueries = null;
+
+  /**
    * Registro de bloques CSS compartidos ya emitidos para evitar duplicados en jit-compiled.css.
    *
    * @var array<string, bool>
@@ -206,14 +213,65 @@ abstract class JitRuleBase implements JitRuleInterface
   }
 
   /**
-   * Envuelve el CSS en media query si tiene sufijo responsive (desk, mid, sml).
+   * Obtiene las media queries configuradas en el proyecto (vía ThemeModule) con respaldo por defecto.
    *
-   * @param string $suffix Sufijo de breakpoint ('desk', 'mid', 'sml' o '')
+   * @return array<int, array{slug: string, jit: string, label: string, min: int|null, max: int|null, query: string}>
+   */
+  public static function getProjectMediaQueries(): array
+  {
+    if (self::$mediaQueries !== null) {
+      return self::$mediaQueries;
+    }
+
+    if (class_exists('\\Base\\Module\\ThemeModule')) {
+      $rootPath = defined("ROOT_PATH") ? ROOT_PATH : null;
+      self::$mediaQueries = \Base\Module\ThemeModule::getMediaQueries($rootPath);
+      return self::$mediaQueries;
+    }
+
+    self::$mediaQueries = [
+      ["slug" => "phone", "jit" => "sml", "label" => "Móvil (Phone)", "min" => null, "max" => 576, "query" => "(max-width: 576px)"],
+      ["slug" => "tablet", "jit" => "mid", "label" => "Tablet", "min" => 577, "max" => 992, "query" => "(min-width: 577px) and (max-width: 992px)"],
+      ["slug" => "desk", "jit" => "desk", "label" => "Escritorio (Desktop)", "min" => 993, "max" => null, "query" => "(min-width: 993px)"],
+    ];
+
+    return self::$mediaQueries;
+  }
+
+  /**
+   * Limpia la caché estática de tema y media queries (útil tras recompilaciones en vivo).
+   *
+   * @return void
+   */
+  public static function resetCache(): void
+  {
+    self::$themeColors = null;
+    self::$themeHoverColors = null;
+    self::$themeFonts = null;
+    self::$mediaQueries = null;
+  }
+
+  /**
+   * Envuelve el CSS en media query si tiene sufijo responsive (desk, mid, sml o slug personalizado).
+   *
+   * @param string $suffix Sufijo de breakpoint ('desk', 'mid', 'sml', slug o '')
    * @param string $rule Regla CSS a envolver
    * @return string
    */
   protected function wrapMediaQuery(string $suffix, string $rule): string
   {
+    if ($suffix === "") {
+      return $rule . "\n";
+    }
+
+    foreach (self::getProjectMediaQueries() as $mq) {
+      if (($mq["jit"] ?? "") === $suffix || ($mq["slug"] ?? "") === $suffix) {
+        if (!empty($mq["query"])) {
+          return "@media screen and {$mq['query']} {\n  $rule\n}\n";
+        }
+      }
+    }
+
     if ($suffix === "desk") {
       return "@media screen and (min-width: 993px) {\n  $rule\n}\n";
     } elseif ($suffix === "mid") {
