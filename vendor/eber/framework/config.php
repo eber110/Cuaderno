@@ -324,7 +324,8 @@ if (!defined('DIR_UPLOAD_MEDIA')) {
 }
 
 if (!defined('DIR_UPLOAD_GIF')) {
-	define('DIR_UPLOAD_GIF', $resolveUploadPath($envStr('DIR_UPLOAD_GIF', '')));
+	$envGif = $envStr('DIR_UPLOAD_GIF', '');
+	define('DIR_UPLOAD_GIF', $envGif !== '' ? $resolveUploadPath($envGif) : DIR_UPLOAD_MEDIA);
 }
 
 if (!defined('DIR_SHOW_MEDIA')) {
