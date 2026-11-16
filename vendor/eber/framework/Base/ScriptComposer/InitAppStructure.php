@@ -970,7 +970,7 @@ HTACCESS;
 
       // 3. Asegurar bloqueo de archivos de configuración JSON del proyecto
       if (!str_contains($updated, 'jsConfig\\.json') || !str_contains($updated, 'providers\\.json')) {
-        $legacyFilesMatch = '/<FilesMatch\s+"\^\(\\\.env.*?\)">\s*(.*?)\s*<\/FilesMatch>/s';
+        $legacyFilesMatch = '#<FilesMatch\s+"[^"]*\\\\\.env[^"]*">\s*.*?\s*</FilesMatch>#s';
         $hardenedFilesMatch = <<<'HTACCESS'
 <FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
   <IfModule mod_authz_core.c>
@@ -983,7 +983,10 @@ HTACCESS;
 </FilesMatch>
 HTACCESS;
         if (preg_match($legacyFilesMatch, $updated)) {
-          $updated = (string)preg_replace($legacyFilesMatch, $hardenedFilesMatch, $updated, 1);
+          $updated = (string)preg_replace_callback($legacyFilesMatch, static fn(): string => $hardenedFilesMatch, $updated, 1);
+          $changed = true;
+        } elseif (str_contains($updated, 'RewriteEngine On')) {
+          $updated = (string)preg_replace('/^(RewriteEngine\s+On\r?)$/m', $hardenedFilesMatch . "\n\n$1", $updated, 1);
           $changed = true;
         }
       }

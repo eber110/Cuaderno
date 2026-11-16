@@ -210,5 +210,466 @@
                 "redirect": ""
             }
         }
+    },
+    {
+        "timestamp": "2026-11-16 19:32:56",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-16 19:32:57",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-16 19:33:03",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-16 19:33:11",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-16 19:33:13",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-16 19:33:14",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:14",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio/render-chart",
+            "method": "POST"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:16",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/_frame/theme-studio",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:16",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:17",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/_frame/theme-studio",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:17",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:17",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/_frame/theme-studio",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:17",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:17",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/_frame/theme-studio",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:17",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/_frame/theme-studio",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:19",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/op/track-view",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:19",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/op/track-view",
+            "method": "POST"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:23",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:23",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:35",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:35",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:36",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:36",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:36",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:36",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:39",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:39",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:40",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:40",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:40",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:40",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:33:59",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:33:59",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:00",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:00",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:00",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:00",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:01",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:01",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:08",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:08",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:09",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:09",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:09",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:09",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:09",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:09",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:16",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:16",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:16",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:16",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:17",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/panel/tomas",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": {
+            "time": "2026-11-16 19:34:17",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/panel/tomas",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:23",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/",
+        "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CL) WindowsPowerShell/5.1.26100.9818",
+        "context": {
+            "time": "2026-11-16 19:34:23",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/",
+            "method": "GET"
+        }
+    },
+    {
+        "timestamp": "2026-11-16 19:34:39",
+        "reason": "HTTP Error 403 (Acceso denegado por motivos de seguridad.)",
+        "ip": "::1",
+        "method": "GET",
+        "uri": "/",
+        "user_agent": "curl/8.22.0",
+        "context": {
+            "time": "2026-11-16 19:34:39",
+            "code": 403,
+            "msg": "Acceso denegado por motivos de seguridad.",
+            "ip": "::1",
+            "url": "/",
+            "method": "GET"
+        }
     }
 ]

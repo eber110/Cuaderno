@@ -52,7 +52,7 @@ DirectoryIndex index.php
 </IfModule>
 
 # Ficheros sensibles: denegar acceso directo por HTTP
-<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
+<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.sql|.*\.sqlite|.*\.log|.*\.cache)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

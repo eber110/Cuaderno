@@ -55,7 +55,7 @@ class CsrfMiddleware
     }
 
     $uri = (string)($_SERVER['REQUEST_URI'] ?? '');
-    SecurityModule::logIntrusion("Fallo de verificación CSRF en {$method} {$uri}");
+    SecurityModule::logIntrusion("Fallo de verificación CSRF en {$method} {$uri}", [], false);
 
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
       || str_contains((string)($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')

@@ -248,31 +248,83 @@ class LoadViewStyle
   }
 
   /**
+   * Publica un recurso estático (archivo o directorio) desde carpetas internas (vendor/Resources)
+   * hacia App/Rsc/ para que sea accesible vía HTTP sin exponer /vendor/ ni /Resources/.
+   */
+  private function publishToPublicRsc(string $source, string $dest): bool
+  {
+    if (is_file($source)) {
+      $parent = dirname($dest);
+      if (!is_dir($parent)) {
+        @mkdir($parent, 0755, true);
+      }
+      return @copy($source, $dest);
+    }
+
+    if (!is_dir($source)) {
+      return false;
+    }
+
+    if (!is_dir($dest)) {
+      @mkdir($dest, 0755, true);
+    }
+
+    $entries = @scandir($source);
+    if (!is_array($entries)) {
+      return false;
+    }
+
+    foreach ($entries as $entry) {
+      if ($entry === '.' || $entry === '..') {
+        continue;
+      }
+      $srcItem = rtrim($source, '/\\') . '/' . $entry;
+      $destItem = rtrim($dest, '/\\') . '/' . $entry;
+      $this->publishToPublicRsc($srcItem, $destItem);
+    }
+
+    return is_dir($dest);
+  }
+
+  /**
    * Carga una librería (o conjunto de archivos CSS y JS) desde App/Rsc/Library/{$rute}
    * Escanea automáticamente la carpeta para detectar y cargar archivos .css y .js
-   * 
+   *
    * @param string $rute Nombre de la carpeta de la librería o archivo.
    * @param string|null $param Atributos adicionales para las etiquetas (ej. 'defer', 'async', etc.)
    */
   public function library(string $rute, ?string $param = null): void
   {
-    $ruteClean = trim($rute, '/\\');
-    
-    // Posibles rutas físicas de la librería
-    $searchPaths = [
-      ROOT_PATH . '/App/Rsc/Library/' . $ruteClean,
-      ROOT_PATH . '/App/Rcs/Library/' . $ruteClean,
-      ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $ruteClean,
-    ];
+    $ruteClean = trim(str_replace(['..', '\\', "\0"], ['', '/', ''], $rute), '/');
+    if ($ruteClean === '') {
+      return;
+    }
+
+    $publicDestDir = ROOT_PATH . '/App/Rsc/Library/' . $ruteClean;
+    $legacyPublicDir = ROOT_PATH . '/App/Rcs/Library/' . $ruteClean;
 
     $libDir = null;
     $urlBase = null;
 
-    foreach ($searchPaths as $path) {
-      if (is_dir($path)) {
-        $libDir = $path;
-        $urlBase = DOMAIN . ltrim($this->fsPathToUrl($path), '/') . '/';
-        break;
+    if (is_dir($publicDestDir)) {
+      $libDir = $publicDestDir;
+      $urlBase = DOMAIN . ltrim($this->fsPathToUrl($publicDestDir), '/') . '/';
+    } elseif (is_dir($legacyPublicDir)) {
+      $libDir = $legacyPublicDir;
+      $urlBase = DOMAIN . ltrim($this->fsPathToUrl($legacyPublicDir), '/') . '/';
+    } else {
+      $vendorCandidates = [
+        ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $ruteClean,
+      ];
+      if (defined('FRAMEWORK_PATH')) {
+        $vendorCandidates[] = rtrim(str_replace('\\', '/', (string)FRAMEWORK_PATH), '/') . '/Resources/Library/' . $ruteClean;
+      }
+      foreach ($vendorCandidates as $candidate) {
+        if (is_dir($candidate) && $this->publishToPublicRsc($candidate, $publicDestDir)) {
+          $libDir = $publicDestDir;
+          $urlBase = DOMAIN . ltrim($this->fsPathToUrl($publicDestDir), '/') . '/';
+          break;
+        }
       }
     }
 
@@ -368,17 +420,31 @@ class LoadViewStyle
 
     // Caso 2: Es un archivo directo o compatibilidad anterior
     $fileName = pathinfo($ruteClean, PATHINFO_EXTENSION) ? $ruteClean : $ruteClean . '.js';
-    $searchFiles = [
-      ROOT_PATH . '/App/Rsc/Library/' . $fileName,
-      ROOT_PATH . '/App/Rcs/Library/' . $fileName,
-      ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $fileName,
-    ];
+    $publicFile = ROOT_PATH . '/App/Rsc/Library/' . $fileName;
+    $legacyFile = ROOT_PATH . '/App/Rcs/Library/' . $fileName;
+
     $filePath = null;
-    foreach ($searchFiles as $sf) {
-      if (file_exists($sf)) {
-        $filePath = $sf;
-        break;
+    if (is_file($publicFile)) {
+      $filePath = $publicFile;
+    } elseif (is_file($legacyFile)) {
+      $filePath = $legacyFile;
+    } else {
+      $vendorFileCandidates = [
+        ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $fileName,
+      ];
+      if (defined('FRAMEWORK_PATH')) {
+        $vendorFileCandidates[] = rtrim(str_replace('\\', '/', (string)FRAMEWORK_PATH), '/') . '/Resources/Library/' . $fileName;
       }
+      foreach ($vendorFileCandidates as $candidate) {
+        if (is_file($candidate) && $this->publishToPublicRsc($candidate, $publicFile)) {
+          $filePath = $publicFile;
+          break;
+        }
+      }
+    }
+
+    if ($filePath === null) {
+      return;
     }
 
     $isModule = ($filePath !== null) ? $this->isEsModuleFile($filePath) : false;

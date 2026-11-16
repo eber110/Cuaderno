@@ -1633,6 +1633,31 @@ PHP);
     @rmdir($d);
   };
   $runner->assert(str_contains($resLoader['output'], '/App/Rsc/JsLoad/loader.js?v=') && !str_contains($resLoader['output'], '/vendor/'), "LoadStyle debe servir loader.js desde /App/Rsc/JsLoad/ y nunca desde /vendor/");
+
+  // 6. LoadViewStyle::library() publica librerías desde vendor/ hacia App/Rsc/Library/ sin emitir URLs a /vendor/
+  @mkdir($tmpProj . '/vendor/eber/framework/Resources/Library/DemoLib', 0755, true);
+  file_put_contents($tmpProj . '/vendor/eber/framework/Resources/Library/DemoLib/demoLib.js', 'console.log("ok");');
+  file_put_contents($tmpProj . '/vendor/eber/framework/Resources/Library/singleLib.js', 'console.log("single");');
+  $resLibs = $runSecSubprocess(<<<PHP
+\$_ENV = ['APP_ENV' => 'production'];
+\$_SERVER['APP_ENV'] = 'production';
+define('ROOT_PATH', {$tmpProjLit});
+require_once {$rootLit} . '/vendor/autoload.php';
+require_once {$rootLit} . '/config.php';
+\$lvs = new \\Core\\ConfigLoader\\LoadViewStyle();
+ob_start();
+\$lvs->library('DemoLib');
+\$lvs->library('singleLib');
+echo ob_get_clean();
+PHP);
+  $runner->assert(
+    str_contains($resLibs['output'], '/App/Rsc/Library/DemoLib/demoLib.js') &&
+    str_contains($resLibs['output'], '/App/Rsc/Library/singleLib.js') &&
+    is_file($tmpProj . '/App/Rsc/Library/DemoLib/demoLib.js') &&
+    is_file($tmpProj . '/App/Rsc/Library/singleLib.js') &&
+    !str_contains($resLibs['output'], '/vendor/'),
+    "LoadViewStyle::library() debe autopublicar librerías de vendor/ hacia App/Rsc/Library/ y nunca emitir URLs /vendor/"
+  );
   $cleanLoadDir($tmpProj);
 });
 

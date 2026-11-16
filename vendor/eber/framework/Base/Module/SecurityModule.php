@@ -610,11 +610,11 @@ class SecurityModule
     // =========================================================================
 
   /**
-   * Registra un intento de intrusión o amenaza en Logs/intrusions.log.
+   * Registra un intento de intrusión o amenaza en App/Safety/intrusions.log.
    */
-  public static function logIntrusion(string $reason, array $context = []): void
+  public static function logIntrusion(string $reason, array $context = [], bool $incrementCount = true): void
   {
-    IntrusionLogger::log($reason, $context);
+    IntrusionLogger::log($reason, $context, $incrementCount);
   }
 
     // =========================================================================

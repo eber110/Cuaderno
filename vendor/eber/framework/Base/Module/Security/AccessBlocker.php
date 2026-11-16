@@ -250,7 +250,14 @@ class AccessBlocker
    */
   public static function recordIntrusionAttempt(string $ip, string $reason, int $threshold = 5, int $windowSeconds = 3600): bool
   {
-    if ($ip === '' || $ip === 'unknown' || (class_exists(SecurityModule::class) && SecurityModule::isTrustedProxy($ip))) {
+    if (
+      $ip === '' ||
+      $ip === 'unknown' ||
+      (class_exists(SecurityModule::class) && (
+        SecurityModule::isTrustedProxy($ip) ||
+        (SecurityModule::isDevelopment() && in_array($ip, ['127.0.0.1', '::1'], true))
+      ))
+    ) {
       return false;
     }
 
