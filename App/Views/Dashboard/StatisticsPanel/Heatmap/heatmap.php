@@ -119,6 +119,7 @@
             'rows'      => array_column($timeSlots, 'label'),
             'cols'      => array_values($daysCols),
             'matrix'    => $matrixHeatmapData,
+            'axisLabelSize' => 14,
             'color'     => 'color1',
             'showAxisX' => true
           ]); ?>
@@ -137,6 +138,7 @@
           <?= GraphicsModule::matrixHeatmap([
             'rows'  => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
             'cols'  => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            'axisLabelSize' => 14,
             'color' => 'color1'
           ]); ?>
         </div>
