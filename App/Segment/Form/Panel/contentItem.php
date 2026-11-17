@@ -317,14 +317,16 @@
                           </button>
                         </div>
                       </div>
-                      <div class="br10 p5 back-card-graphic shadow-card-graphic hover-scale-soft">
-                        <input type="file" 
-                          name="content_img_<?= $i ?>_<?= $pIdx ?>" 
-                          class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
-                          placeholder="Subir imagen" 
+                      <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
+                        <input
+                          type="file"
+                          name="content_img_<?= $i ?>_<?= $pIdx ?>"
+                          accept="image/*"
+                          class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
+                          placeholder="Subir imagen"
                           cropping-size="500x500"
-                          box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                          box-btn-image="p8 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br10 pointer x12">
+                          crop-shape="square"
+                          style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
                       </div>
                     </div>
 
@@ -442,14 +444,16 @@
                     </button>
                   </div>
                 </div>
-                <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input type="file" 
-                    name="content_img_<?= $i ?>" 
-                    class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
-                    placeholder="Subir imagen" 
+                <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
+                  <input
+                    type="file"
+                    name="content_img_<?= $i ?>"
+                    accept="image/*"
+                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
+                    placeholder="Subir imagen"
                     cropping-size="500x500"
-                    box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                    box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+                    crop-shape="square"
+                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
                 </div>
               </div>
 
@@ -890,15 +894,17 @@
                       </button>
                     </div>
                   </div>
-                  <div id="banner-crop-btn-wrap-<?= $i ?>" class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft banner-crop-btn-wrapper <?= !$hasSize ? 'opacity-40 pointer-events-none' : '' ?>">
-                    <input type="file" 
+                  <div id="banner-crop-btn-wrap-<?= $i ?>" class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft banner-crop-btn-wrapper <?= !$hasSize ? 'opacity-40 pointer-events-none' : '' ?>">
+                    <input
+                      type="file"
                       id="content_img_banner_<?= $i ?>"
-                      name="content_img_<?= $i ?>" 
-                      class="selectAndCropImage btn-style-classes no-preview process-auto-submit banner-crop-input"
-                      placeholder="Subir imagen" 
+                      name="content_img_<?= $i ?>"
+                      accept="image/*"
+                      class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit banner-crop-input"
+                      placeholder="Subir imagen"
                       cropping-size="<?= e($hasSize ? $itemSize : '720x1024') ?>"
-                      box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                      box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer"
+                      crop-shape="square"
+                      style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;"
                       <?= !$hasSize ? 'disabled' : '' ?>>
                   </div>
                 </div>
@@ -1193,14 +1199,16 @@
                     </button>
                   </div>
                 </div>
-                <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input type="file" 
-                    name="content_img_<?= $i ?>" 
-                    class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
-                    placeholder="Subir imagen" 
+                <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
+                  <input
+                    type="file"
+                    name="content_img_<?= $i ?>"
+                    accept="image/*"
+                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
+                    placeholder="Subir imagen"
                     cropping-size="1280x720"
-                    box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                    box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+                    crop-shape="square"
+                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
                 </div>
               </div>
 
@@ -1241,14 +1249,16 @@
                     </button>
                   </div>
                 </div>
-                <div class="br15 p10 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input type="file" 
-                    name="content_img_<?= $i ?>" 
-                    class="selectAndCropImage btn-style-classes no-preview process-auto-submit"
-                    placeholder="Subir imagen" 
+                <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
+                  <input
+                    type="file"
+                    name="content_img_<?= $i ?>"
+                    accept="image/*"
+                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
+                    placeholder="Subir imagen"
                     cropping-size="500x500"
-                    box-image="back-menu-sidebar texto br15 back-card-graphic shadow-card-graphic hover-scale-soft p20 shadow-1"
-                    box-btn-image="p10 back7 back-card-graphic shadow-card-graphic hover-scale-soft texto br15 pointer">
+                    crop-shape="square"
+                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
                 </div>
               </div>
 
