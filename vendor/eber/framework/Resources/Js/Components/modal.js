@@ -139,6 +139,7 @@ export function modal() {
         background.appendChild(btnClosed);
         background.appendChild(modalContentContainer);
         body.appendChild(background);
+        body.style.overflow = 'hidden';
 
         // Remover flag de bindeo previo copiado por innerHTML para poder re-vincularlos en el modal
         modalContentContainer.querySelectorAll('[data-gsap-hover-bound]').forEach(el => {
@@ -173,11 +174,33 @@ export function modal() {
         const content = modalToClose.querySelector('.modal-content-area');
 
         if (useAnimation && content) {
-          animateClose(modalToClose, content, () => modalToClose.remove());
+          animateClose(modalToClose, content, () => {
+            modalToClose.remove();
+            if (!document.querySelector('.modal-overlay')) body.style.overflow = '';
+          });
         } else {
           modalToClose.remove();
+          if (!document.querySelector('.modal-overlay')) body.style.overflow = '';
         }
       }
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== 'Escape') return;
+    const overlays = document.querySelectorAll('.modal-overlay');
+    const lastOverlay = overlays[overlays.length - 1];
+    if (!lastOverlay) return;
+    const useAnimation = hasGsap && lastOverlay.dataset.animated === 'true';
+    const content = lastOverlay.querySelector('.modal-content-area');
+    if (useAnimation && content) {
+      animateClose(lastOverlay, content, () => {
+        lastOverlay.remove();
+        if (!document.querySelector('.modal-overlay')) body.style.overflow = '';
+      });
+    } else {
+      lastOverlay.remove();
+      if (!document.querySelector('.modal-overlay')) body.style.overflow = '';
     }
   });
 }

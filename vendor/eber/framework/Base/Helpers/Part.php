@@ -606,6 +606,39 @@ function _chartToString(string $type, array $params = []): string
 }
 
   // ╔════════════════════════════════════════════╗
+  // ║  4.2 INPUTS Y FORMULARIOS UI (FormUiModule)║
+  // ╚════════════════════════════════════════════╝
+
+/**
+ * Renderiza e imprime directamente un componente de formulario UI configurado.
+ *
+ * @param string $type Tipo de input ('cropImage', 'colorPicker', 'datePicker', etc.)
+ * @param array $params Parámetros de diseño y comportamiento
+ * @return void
+ * @example <?php _input('cropImage', ['name' => 'avatar', 'croppingSize' => '500x500']); ?>
+ */
+function _input(string $type, array $params = []): void
+{
+  echo _inputToString($type, $params);
+}
+
+/**
+ * Renderiza y retorna el HTML de un componente de formulario UI como string.
+ *
+ * @param string $type Tipo de input ('cropImage', 'colorPicker', 'datePicker', etc.)
+ * @param array $params Parámetros de diseño y comportamiento
+ * @return string HTML renderizado del componente
+ */
+function _inputToString(string $type, array $params = []): string
+{
+  if (!class_exists('\\Base\\Module\\FormUiModule')) {
+    return "<!-- FormUiModule not found -->";
+  }
+
+  return \Base\Module\FormUiModule::render($type, $params);
+}
+
+  // ╔════════════════════════════════════════════╗
   // ║ 5. UTILIDADES HTML ║
   // ╚════════════════════════════════════════════╝
 

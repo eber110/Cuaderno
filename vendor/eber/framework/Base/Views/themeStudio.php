@@ -2027,8 +2027,267 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       font-size: 0.66rem;
       opacity: 0.78;
     }
+
+    /* ==============================================================
+       UI / INPUT STUDIO (FORMUIMODULE SANDBOX & DESIGNER)
+       ============================================================== */
+    #inputSandboxView {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      background-color: var(--body, #f8fafc);
+      color: var(--text-primary, #0f172a);
+      overflow: hidden;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .iu-sandbox-stage {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: var(--iu-surface, var(--body, #f8fafc));
+      transition: background-color 0.2s ease;
+    }
+    .iu-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+    .iu-input-card {
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid rgba(128, 128, 128, 0.22);
+      background-color: var(--iu-card-bg, rgba(128, 128, 128, 0.04));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+    .iu-input-card.active {
+      border-color: var(--ts-primary, #38bdf8);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    }
+    .iu-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .iu-card-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .iu-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .iu-card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .iu-card-pill-btn {
+      border: 1px solid rgba(128, 128, 128, 0.35);
+      background: rgba(128, 128, 128, 0.1);
+      color: inherit;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .iu-card-pill-btn:hover {
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+    }
+    .iu-card-body {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .iu-focused-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .iu-focused-card {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(128, 128, 128, 0.24);
+      background-color: var(--iu-card-bg, rgba(128, 128, 128, 0.04));
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: max-width 0.22s ease;
+    }
+    .iu-inline-preview-panel {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 16px;
+      padding: 16px 20px 22px;
+      border: 1px dashed rgba(56, 189, 248, 0.45);
+      background: rgba(128, 128, 128, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: max-width 0.22s ease;
+      box-sizing: border-box;
+    }
+    .iu-inline-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      opacity: 0.86;
+    }
+    .iu-inline-preview-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--ts-primary, #38bdf8);
+    }
+    .iu-inline-preview-host {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-width: 0;
+    }
+    #inputSandboxView.is-touch-simulated .iu-focused-card,
+    #inputSandboxView.is-touch-simulated .iu-gallery-grid {
+      --ui-touch-size: 48px;
+    }
+    .iu-touch-btn.active {
+      background: rgba(56, 189, 248, 0.22) !important;
+      border-color: var(--ts-primary) !important;
+      color: var(--ts-primary) !important;
+    }
+    .iu-wcag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--ts-border);
+      font-size: 0.74rem;
+      margin-bottom: 8px;
+    }
+    .iu-wcag-badge {
+      font-family: monospace;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+    }
+    .iu-wcag-badge.pass {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+    .iu-wcag-badge.fail {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+    .iu-color-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .iu-token-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .iu-token-field label {
+      font-size: 0.72rem;
+      color: var(--ts-muted);
+    }
+    .iu-token-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .iu-token-control input[type="text"],
+    .iu-token-control select {
+      flex: 1;
+      min-width: 0;
+    }
+    .iu-token-picker {
+      width: 28px;
+      height: 28px;
+      padding: 1px;
+      border: 1px solid var(--ts-border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .iu-preset-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .iu-preset-btn {
+      padding: 6px 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 7px;
+      border: 1px solid var(--ts-border);
+      background: rgba(15, 23, 42, 0.55);
+      color: var(--ts-text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.14s ease;
+    }
+    .iu-preset-btn:hover {
+      border-color: var(--ts-primary);
+    }
+    .iu-preset-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+    }
+    .iu-code-options {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.72rem;
+      color: var(--ts-muted);
+    }
+    .iu-code-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
   </style>
   <style id="ts-charts-core-css"><?= $chartsCss ?? '' ?></style>
+  <style id="ts-inputs-core-css"><?= $inputsCss ?? '' ?></style>
 </head>
 <body>
 
@@ -2095,6 +2354,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         <button type="button" class="ts-tab-btn" onclick="switchTab('dark', this)">🌙 Oscuro</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
         <button type="button" class="ts-tab-btn" id="tabBtnCharts" onclick="switchTab('charts', this)">📊 Gráficos</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnInputs" onclick="switchTab('inputs', this)">🎛️ Inputs</button>
         <button type="button" class="ts-tab-btn" id="tabBtnIcons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
@@ -2889,6 +3149,274 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         </div>
       </div>
 
+      <!-- TAB 5.5: UI / INPUT STUDIO (FormUiModule) -->
+      <div id="tab-inputs" class="ts-tab-content">
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>1. Presets de Diseño UI</span>
+            <button type="button" class="ts-btn ts-btn-secondary" style="padding:3px 8px; font-size:0.72rem;" onclick="resetAllInputStyles()" title="Restaurar configuración por defecto de FormUiModule">
+              ↺ Reset
+            </button>
+          </div>
+          <div class="iu-preset-row" id="iuPresetRow">
+            <button type="button" class="iu-preset-btn active" data-preset="soft" onclick="applyInputPreset('soft')">Suave</button>
+            <button type="button" class="iu-preset-btn" data-preset="minimal" onclick="applyInputPreset('minimal')">Minimal</button>
+            <button type="button" class="iu-preset-btn" data-preset="glass" onclick="applyInputPreset('glass')">Glass</button>
+            <button type="button" class="iu-preset-btn" data-preset="pill" onclick="applyInputPreset('pill')">Pill</button>
+            <button type="button" class="iu-preset-btn" data-preset="elevated" onclick="applyInputPreset('elevated')">Elevado</button>
+          </div>
+        </div>
+
+        <div class="ts-section">
+          <div class="ts-section-title">
+            <span>2. Selecciona un Input (<span id="iuActiveTypeBadge">cropImage</span>)</span>
+          </div>
+          <div class="cs-type-grid" id="iuTypeGrid">
+            <!-- Rellenado dinámicamente por JS -->
+          </div>
+        </div>
+
+        <div class="ts-section">
+          <div class="cs-mini-tabs">
+            <button type="button" class="cs-mini-tab active" id="iuSubTab_global" onclick="switchInputSubTab('global')">🎨 Tokens (Global)</button>
+            <button type="button" class="cs-mini-tab" id="iuSubTab_local" onclick="switchInputSubTab('local')">🧩 Zonas (Local)</button>
+            <button type="button" class="cs-mini-tab" id="iuSubTab_attrs" onclick="switchInputSubTab('attrs')">⚙️ HTML</button>
+          </div>
+
+          <!-- Sub-panel 1: Tokens CSS Globales (--ui-*) -->
+          <div id="iuPanel_global" style="display:block;">
+            <div style="font-size:0.73rem; color:var(--ts-muted); margin-bottom:8px;">
+              Controla los Design Tokens compartidos en <code>_configTheme.css</code> (con 0ms de respuesta en vivo). Haz clic en un chip abajo para asignar al campo enfocado:
+            </div>
+            <div class="cs-color-chips" id="iuColorChips" style="margin-bottom:10px;"></div>
+
+            <div class="iu-wcag-row">
+              <span>Contraste Guardar: <span id="iuPrimaryWcagBadge" class="iu-wcag-badge pass">7.2:1 AA</span></span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="autoFixInputButtonContrast('primary')">✨ Auto</button>
+            </div>
+            <div class="iu-wcag-row">
+              <span>Contraste Cancelar: <span id="iuSecondaryWcagBadge" class="iu-wcag-badge pass">8.5:1 AA</span></span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="autoFixInputButtonContrast('secondary')">✨ Auto</button>
+            </div>
+
+            <div class="iu-color-pair" style="margin-bottom:8px;">
+              <div class="iu-token-field">
+                <label for="iu_triggerBg">Fondo Trigger</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_triggerBg" class="ts-input" data-iu-global="triggerBg" placeholder="back1">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerBg" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_triggerText">Texto Trigger</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_triggerText" class="ts-input" data-iu-global="triggerText" placeholder="texto">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerText" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_triggerBorder">Borde Trigger</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_triggerBorder" class="ts-input" data-iu-global="triggerBorder" placeholder="textc">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerBorder" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_surfaceBg">Fondo Modal/Popover</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_surfaceBg" class="ts-input" data-iu-global="surfaceBg" placeholder="back1">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceBg" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_surfaceText">Texto Modal/Popover</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_surfaceText" class="ts-input" data-iu-global="surfaceText" placeholder="texto">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceText" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_surfaceBorder">Borde Modal/Popover</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_surfaceBorder" class="ts-input" data-iu-global="surfaceBorder" placeholder="textc">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceBorder" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_btnPrimaryBg">Botón Guardar (Fondo)</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnPrimaryBg" class="ts-input" data-iu-global="btnPrimaryBg" placeholder="back6">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnPrimaryBg" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_btnPrimaryText">Botón Guardar (Texto)</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnPrimaryText" class="ts-input" data-iu-global="btnPrimaryText" placeholder="textw">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnPrimaryText" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_btnSecondaryBg">Botón Cancelar (Fondo)</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnSecondaryBg" class="ts-input" data-iu-global="btnSecondaryBg" placeholder="back2">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnSecondaryBg" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_btnSecondaryText">Botón Cancelar (Texto)</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnSecondaryText" class="ts-input" data-iu-global="btnSecondaryText" placeholder="texto">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnSecondaryText" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_accentColor">Color Acento / Activo</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_accentColor" class="ts-input" data-iu-global="accentColor" placeholder="color2">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_accentColor" title="Elegir color exacto">
+                </div>
+              </div>
+              <div class="iu-token-field">
+                <label for="iu_trackBg">Fondo Carril / Track</label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_trackBg" class="ts-input" data-iu-global="trackBg" placeholder="back2">
+                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_trackBg" title="Elegir color exacto">
+                </div>
+              </div>
+            </div>
+
+            <div class="ts-field">
+              <label for="iu_radius">Radio de bordes (<code>--ui-radius</code>: <strong id="iu_radiusVal">15px</strong>)</label>
+              <input type="range" id="iu_radius" min="0" max="32" step="1" value="15" oninput="onInputGlobalChange('radius', parseInt(this.value, 10))">
+            </div>
+
+            <div class="ts-field">
+              <label for="iu_touchSize">Área Táctil Mínima (<code>--ui-touch-size</code>: <strong id="iu_touchSizeVal">44px</strong>)</label>
+              <input type="range" id="iu_touchSize" min="36" max="56" step="2" value="44" oninput="onInputGlobalChange('touchSize', parseInt(this.value, 10))">
+            </div>
+
+            <div class="iu-color-pair" style="margin-bottom:8px;">
+              <div class="ts-field">
+                <label for="iu_shadow">Elevación / Sombra</label>
+                <select id="iu_shadow" class="ts-input" onchange="onInputGlobalChange('shadow', this.value)">
+                  <option value="soft">Soft (Suave)</option>
+                  <option value="medium">Medium (Elevada)</option>
+                  <option value="glass">Glass (Difuminada)</option>
+                  <option value="none">Sin sombra</option>
+                </select>
+              </div>
+              <div class="ts-field">
+                <label for="iu_blur">Backdrop Blur (<span id="iu_blurVal">10px</span>)</label>
+                <input type="range" id="iu_blur" min="0" max="24" step="1" value="10" oninput="onInputGlobalChange('blur', parseInt(this.value, 10))">
+              </div>
+            </div>
+
+            <label class="cs-check-row">
+              <input type="checkbox" id="iu_mobileSheet" checked onchange="onInputGlobalChange('mobileSheet', this.checked)">
+              <span>📱 Bottom-Sheet táctil automático en móvil (&lt;= 576px)</span>
+            </label>
+          </div>
+
+          <!-- Sub-panel 2: Overrides Locales y Clases por Zona -->
+          <div id="iuPanel_local" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.74rem; color:var(--ts-muted);">Estilos exclusivos para <strong id="iuLocalTypeLabel">cropImage</strong></span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="clearActiveInputLocalOverrides()">Limpiar local</button>
+            </div>
+
+            <div class="ts-field">
+              <label for="iuLocal_uiTrigger"><code>ui-trigger</code> (clases disparador/caja)</label>
+              <input type="text" id="iuLocal_uiTrigger" class="ts-input" data-iu-local="uiTrigger" placeholder="ej. br15 p15 shadow-1">
+            </div>
+            <div class="ts-field">
+              <label for="iuLocal_uiSurface"><code>ui-surface</code> (clases modal/popover)</label>
+              <input type="text" id="iuLocal_uiSurface" class="ts-input" data-iu-local="uiSurface" placeholder="ej. br20 shadow-2">
+            </div>
+            <div class="ts-field">
+              <label for="iuLocal_uiBtnPrimary"><code>ui-btn-primary</code> (botón Guardar/Aceptar)</label>
+              <input type="text" id="iuLocal_uiBtnPrimary" class="ts-input" data-iu-local="uiBtnPrimary" placeholder="ej. back6 textw br10 p10">
+            </div>
+            <div class="ts-field">
+              <label for="iuLocal_uiBtnSecondary"><code>ui-btn-secondary</code> (botón Cancelar)</label>
+              <input type="text" id="iuLocal_uiBtnSecondary" class="ts-input" data-iu-local="uiBtnSecondary" placeholder="ej. back2 texto br10 p10">
+            </div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuLocal_triggerBg">Override Fondo Trigger</label>
+                <input type="text" id="iuLocal_triggerBg" class="ts-input" data-iu-local="triggerBg" placeholder="hereda global">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_btnPrimaryBg">Override Botón Guardar</label>
+                <input type="text" id="iuLocal_btnPrimaryBg" class="ts-input" data-iu-local="btnPrimaryBg" placeholder="hereda global">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_accentColor">Override Acento</label>
+                <input type="text" id="iuLocal_accentColor" class="ts-input" data-iu-local="accentColor" placeholder="hereda global">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_radius">Override Radio (px)</label>
+                <input type="number" id="iuLocal_radius" class="ts-input" data-iu-local="radius" min="0" max="40" placeholder="hereda">
+              </div>
+            </div>
+            <div class="ts-field" style="margin-top:6px;">
+              <label for="iuLocal_class">Clases CSS / JIT extra en el elemento</label>
+              <input type="text" id="iuLocal_class" class="ts-input" data-iu-local="class" placeholder="ej. w100 touch-manipulation">
+            </div>
+            <div id="iuLegacyCompatGroup" style="margin-top:6px; border-top:1px dashed var(--ts-border); padding-top:8px;">
+              <div style="font-size:0.7rem; color:var(--ts-muted); margin-bottom:4px;">Compatibilidad clásica opcional (atributos legacy):</div>
+              <div class="ts-field">
+                <label for="iuLocal_boxImage"><code>box-image</code></label>
+                <input type="text" id="iuLocal_boxImage" class="ts-input" data-iu-local="boxImage" placeholder="Opcional (legacy)">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_boxBtnImage"><code>box-btn-image</code></label>
+                <input type="text" id="iuLocal_boxBtnImage" class="ts-input" data-iu-local="boxBtnImage" placeholder="Opcional (legacy)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-panel 3: Atributos HTML y Comportamiento -->
+          <div id="iuPanel_attrs" style="display:none;">
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuAttr_name">Atributo <code>name</code></label>
+                <input type="text" id="iuAttr_name" class="ts-input" data-iu-local="name" placeholder="avatar">
+              </div>
+              <div class="ts-field">
+                <label for="iuAttr_id">Atributo <code>id</code></label>
+                <input type="text" id="iuAttr_id" class="ts-input" data-iu-local="id" placeholder="opcional">
+              </div>
+            </div>
+            <div class="ts-field">
+              <label for="iuAttr_label">Texto de etiqueta (<code>&lt;label&gt;</code>)</label>
+              <input type="text" id="iuAttr_label" class="ts-input" data-iu-local="label" placeholder="Ej. Foto de perfil">
+            </div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuAttr_placeholder">Placeholder</label>
+                <input type="text" id="iuAttr_placeholder" class="ts-input" data-iu-local="placeholder" placeholder="Texto guía...">
+              </div>
+              <div class="ts-field">
+                <label for="iuAttr_value">Valor inicial</label>
+                <input type="text" id="iuAttr_value" class="ts-input" data-iu-local="value" placeholder="Opcional">
+              </div>
+            </div>
+            <div class="ts-field">
+              <label for="iuAttr_wrapperClass">Clase del <code>&lt;div&gt;</code> contenedor</label>
+              <input type="text" id="iuAttr_wrapperClass" class="ts-input" data-iu-local="wrapperClass" placeholder="br15 p15 ui-field-card">
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_required" onchange="onInputLocalChange('required', this.checked)"><span>required</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_autoSubmit" onchange="onInputLocalChange('autoSubmit', this.checked)"><span>autoSubmit</span></label>
+            </div>
+            <div id="iuSpecificAttrsContainer">
+              <!-- Controles específicos dinámicos según tipo seleccionado -->
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- TAB 5.8: GALERÍA DE ICONOS SVG (/Ico) -->
       <div id="tab-icons" class="ts-tab-content">
         <div class="ts-section">
@@ -2989,12 +3517,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
             ◀ Panel
           </button>
 
-          <div class="ts-stage-switcher" title="Cambiar entre vista real del sitio, laboratorio de gráficos y galería de iconos SVG">
+          <div class="ts-stage-switcher" title="Cambiar entre vista real del sitio, laboratorio de gráficos, diseñador de inputs y galería de iconos SVG">
             <button type="button" class="ts-stage-btn active" id="btnStageSite" onclick="setStageMode('site')">
               🌐 <span>Sitio</span>
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageCharts" onclick="setStageMode('charts')">
               📊 <span>Gráficos</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageInputs" onclick="setStageMode('inputs')">
+              🎛️ <span>Inputs</span>
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageIcons" onclick="setStageMode('icons')">
               🖼️ <span>Iconos</span>
@@ -3025,6 +3556,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           <div id="iconBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🖼️ Galería SVG (/Ico)</span>
             <span id="isTotalBadge" class="ts-badge">0 iconos</span>
+          </div>
+          <div id="inputBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>🎛️ UI / Input Studio</span>
+            <span class="ts-badge">16 componentes</span>
           </div>
         </div>
 
@@ -3213,6 +3748,86 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               </div>
             </div>
           </div>
+
+          <!-- Laboratorio Visual Interactivo de Inputs (FormUiModule) -->
+          <div id="inputSandboxView">
+            <div class="cs-toolbar">
+              <div class="cs-toolbar-group">
+                <div class="cs-mode-switch">
+                  <button type="button" class="ts-mode-btn active" id="btnIuViewGallery" onclick="setInputSandboxViewMode('gallery')">
+                    <span>🗂️ Todos (16)</span>
+                  </button>
+                  <button type="button" class="ts-mode-btn" id="btnIuViewFocused" onclick="setInputSandboxViewMode('focused')">
+                    <span>🔍 Enfoque</span>
+                  </button>
+                </div>
+
+                <button type="button" class="ts-btn ts-btn-secondary iu-touch-btn" id="btnIuTouchSim" style="padding:5px 10px; font-size:0.75rem;" onclick="toggleInputTouchSim()" title="Simular pantallas táctiles y modo Bottom-Sheet móvil">
+                  👆 <span>Simular Touch</span>
+                </button>
+
+                <button type="button" class="ts-btn ts-btn-secondary" style="padding:5px 10px; font-size:0.75rem;" onclick="openCropDemoFromStudio()" title="Abrir modal de recorte de imagen con imagen demo instantánea">
+                  ✂️ <span>Probar Recorte</span>
+                </button>
+              </div>
+
+              <div class="cs-toolbar-group">
+                <select id="iuSurfaceSelect" class="cs-toolbar-select" onchange="setInputStageSurface(this.value)" title="Fondo simulado de prueba">
+                  <option value="var(--body)">Fondo: --body</option>
+                  <option value="var(--back-color)">Fondo: back1</option>
+                  <option value="var(--back-color2)">Fondo: back2</option>
+                  <option value="#0c0c0e">Fondo: #0C0C0E</option>
+                  <option value="#ffffff">Fondo: #FFFFFF</option>
+                </select>
+
+                <div id="iuFocusedWidthWrap" style="display:none; align-items:center; gap:6px;">
+                  <span style="font-size:0.74rem; color:var(--ts-muted);">Ancho:</span>
+                  <select id="iuFocusedWidthSelect" class="cs-toolbar-select" onchange="setInputFocusedWidth(this.value)">
+                    <option value="100%">100%</option>
+                    <option value="540px">540px</option>
+                    <option value="375px">375px (Móvil)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="iu-sandbox-stage" id="inputSandboxStage">
+              <div id="iuGalleryContainer" class="iu-gallery-grid">
+                <!-- Tarjetas de los 16 inputs generadas desde initialInputsHtmlMap -->
+              </div>
+              <div id="iuFocusedContainer" class="iu-focused-wrap">
+                <!-- Vista enfocada del input activo -->
+              </div>
+            </div>
+
+            <!-- Dock Inferior de Código "Copy & Paste" (HTML Completo primero por defecto) -->
+            <div class="cs-code-dock" id="iuCodeDock">
+              <div class="cs-code-header">
+                <div class="cs-code-tabs">
+                  <button type="button" class="cs-code-tab active" id="iuCodeTab_html" onclick="setInputCopyFormat('html')">HTML Completo</button>
+                  <button type="button" class="cs-code-tab" id="iuCodeTab_php" onclick="setInputCopyFormat('php')">Helper _input()</button>
+                  <button type="button" class="cs-code-tab" id="iuCodeTab_global" onclick="setInputCopyFormat('global')">Global FormUiModule</button>
+                </div>
+
+                <div class="iu-code-options">
+                  <label><input type="checkbox" id="iuOptWrapContainer" checked onchange="onInputCodeOptionChange()"> <span>Envolver &lt;div&gt;</span></label>
+                  <label><input type="checkbox" id="iuOptIncludeLabel" checked onchange="onInputCodeOptionChange()"> <span>Incluir &lt;label&gt;</span></label>
+                  <label><input type="checkbox" id="iuOptInlineVars" onchange="onInputCodeOptionChange()"> <span>Vars --ui-* inline</span></label>
+                  <label><input type="checkbox" id="iuOptMultiline" checked onchange="onInputCodeOptionChange()"> <span>Multilínea</span></label>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button type="button" class="ts-icon-btn" id="btnToggleInputCodeDock" onclick="toggleInputCodeDock()" title="Colapsar / Expandir código">▾</button>
+                  <button type="button" class="ts-btn ts-btn-primary" style="padding:5px 11px; font-size:0.76rem;" onclick="copyInputCode()">
+                    📋 <span>Copiar Código</span>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-code-body" style="padding:10px 14px;">
+                <pre class="cs-code-pre"><code id="inputCodeOutput"></code></pre>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -3300,6 +3915,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
   <!-- Motor Charts (GraphicsModule) autocontenido para Chart Studio -->
   <script id="ts-charts-core-js"><?= $chartsJs ?? '' ?></script>
+  <!-- Motor FormUi autocontenido para UI / Input Studio -->
+  <script id="ts-inputs-core-js"><?= $inputsJs ?? '' ?></script>
 
   <!-- Pure Vanilla Client-Side JavaScript Engine -->
   <script>
@@ -3310,6 +3927,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     const initialFullConfig = <?= $rawFullJson ?? json_encode(['activeTheme' => 'default', 'themes' => ['default' => $config]]) ?>;
     const initialChartsHtmlMap = <?= json_encode($initialChartsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialChartsSampleData = <?= json_encode($initialChartsSampleData ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const initialInputsHtmlMap = <?= json_encode($initialInputsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialIconsCatalog = <?= json_encode($initialIconsCatalog ?? ['totalIcons' => 0, 'totalFolders' => 0, 'primaryDir' => 'Resources/Ico', 'folders' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     let fullThemeConfig = JSON.parse(JSON.stringify(initialFullConfig));
@@ -3449,9 +4067,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     // ==============================================================
 
     function initStudio() {
-      // 0. Asegurar estructura de mediaQueries y charts
+      // 0. Asegurar estructura de mediaQueries, charts e inputs
       ensureMediaQueries();
       ensureChartsConfig();
+      ensureInputsConfig();
       // 1. Renderizar lista de temas y selector
       renderThemesTab();
       // 2. Renderizar inputs de paleta clara
@@ -3465,6 +4084,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       syncFormValues();
       // 5.5. Inicializar Chart Studio (panel y caché inicial)
       initChartStudio();
+      // 5.6. Inicializar UI / Input Studio (panel, presets y caché inicial)
+      initInputStudio();
       // 5.8. Inicializar Icon Studio (galería visual de SVG en /Ico)
       initIconStudio();
       // 6. Configurar iframe de vista real del proyecto
@@ -4730,6 +5351,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           css += `  --back-color1-hover: oklch(from var(--back-color) calc(l * 1.2) calc(c - 0.02) h) !important;\n`;
         }
       }
+      if (typeof buildInputCssVarsBlock === 'function') {
+        css += buildInputCssVarsBlock(true);
+      }
       css += `}\n\n`;
 
       css += `html[data-theme="dark"], [data-theme="dark"] {\n`;
@@ -4760,6 +5384,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           css += `  --back-color1: ${hex} !important;\n`;
           css += `  --back-color1-hover: oklch(from var(--back-color) calc(l * 1.2) calc(c - 0.02) h) !important;\n`;
         }
+      }
+      if (typeof buildInputCssVarsBlock === 'function') {
+        css += buildInputCssVarsBlock(true);
       }
       css += `}\n\n`;
 
@@ -4885,6 +5512,17 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       injectLiveThemeIntoChartSandbox();
       if (typeof renderChartColorChips === 'function') {
         renderChartColorChips();
+      }
+
+      // Actualizar variables CSS --ui-* en tiempo real dentro del laboratorio de inputs (0 ms)
+      if (typeof injectLiveThemeIntoInputSandbox === 'function') {
+        injectLiveThemeIntoInputSandbox();
+      }
+      if (typeof renderInputColorChips === 'function') {
+        renderInputColorChips();
+      }
+      if (typeof updateInputWcagBadges === 'function') {
+        updateInputWcagBadges();
       }
 
       // Actualizar variables CSS en tiempo real dentro de la galería de iconos SVG (0 ms)
@@ -5079,6 +5717,13 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (currentStageMode === 'charts') {
         refitAllChartsInSandbox();
         setTimeout(refitAllChartsInSandbox, 270);
+      } else if (currentStageMode === 'inputs') {
+        const pxMatch = String(width || '').match(/^(\d+)px$/i);
+        const autoMobile = !!(pxMatch && parseInt(pxMatch[1], 10) <= 576);
+        const inputView = document.getElementById('inputSandboxView');
+        const activeTouch = inputSandboxTouchSim || autoMobile;
+        if (inputView) inputView.classList.toggle('is-touch-simulated', activeTouch);
+        document.body.classList.toggle('is-touch-simulated', activeTouch);
       }
     }
 
@@ -5098,6 +5743,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         updateJsonViewer();
       } else if (tabId === 'charts') {
         setStageMode('charts');
+      } else if (tabId === 'inputs') {
+        setStageMode('inputs');
       } else if (tabId === 'icons') {
         setStageMode('icons');
       }
@@ -5282,16 +5929,19 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       themeConfig = JSON.parse(JSON.stringify(fullThemeConfig.themes[slug]));
       if (!themeConfig.slug) themeConfig.slug = slug;
       ensureChartsConfig();
+      ensureInputsConfig();
 
       renderColorSlots('light');
       renderColorSlots('dark');
       syncFormValues();
       syncChartStudioForm();
+      syncInputStudioForm();
       renderThemesTab();
       applySandboxStyles();
       updateJsonViewer();
       updateChartCodeOutput();
       requestChartRender('all', true);
+      requestInputRender('all', true);
 
       showToast(`🎨 Tema cargado: ${themeConfig.name || slug}`);
     }
@@ -5865,6 +6515,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
             if (fullThemeConfig.themes && fullThemeConfig.themes[currentThemeSlug]) {
               themeConfig = JSON.parse(JSON.stringify(fullThemeConfig.themes[currentThemeSlug]));
               ensureChartsConfig();
+              ensureInputsConfig();
             }
           }
           if (data.activeThemeSlug) {
@@ -5872,6 +6523,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           }
           renderThemesTab();
           syncChartStudioForm();
+          syncInputStudioForm();
           applySandboxStyles();
           updateJsonViewer();
           showToast('💾 ' + (data.message || 'Tema guardado en theme.json (modo aislado)'), 'success');
@@ -6005,27 +6657,35 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function setStageMode(mode) {
-      currentStageMode = (mode === 'charts' || mode === 'icons') ? mode : 'site';
+      currentStageMode = (mode === 'charts' || mode === 'inputs' || mode === 'icons') ? mode : 'site';
       const btnSite = document.getElementById('btnStageSite');
       const btnCharts = document.getElementById('btnStageCharts');
+      const btnInputs = document.getElementById('btnStageInputs');
       const btnIcons = document.getElementById('btnStageIcons');
       const iframe = document.getElementById('projectPreviewFrame');
       const chartView = document.getElementById('chartSandboxView');
+      const inputView = document.getElementById('inputSandboxView');
       const iconView = document.getElementById('iconSandboxView');
       const routeBar = document.getElementById('projectRouteBar');
       const chartStatus = document.getElementById('chartBarStatus');
+      const inputStatus = document.getElementById('inputBarStatus');
       const iconStatus = document.getElementById('iconBarStatus');
 
       if (btnSite) btnSite.classList.toggle('active', currentStageMode === 'site');
       if (btnCharts) btnCharts.classList.toggle('active', currentStageMode === 'charts');
+      if (btnInputs) btnInputs.classList.toggle('active', currentStageMode === 'inputs');
       if (btnIcons) btnIcons.classList.toggle('active', currentStageMode === 'icons');
 
       if (iframe) iframe.style.display = currentStageMode === 'site' ? 'block' : 'none';
       if (chartView) chartView.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+      if (inputView) inputView.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconView) iconView.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
       if (routeBar) routeBar.style.display = currentStageMode === 'site' ? 'flex' : 'none';
       if (chartStatus) chartStatus.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
+      if (inputStatus) inputStatus.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconStatus) iconStatus.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
+
+      document.body.classList.toggle('is-touch-simulated', currentStageMode === 'inputs' && !!inputSandboxTouchSim);
 
       if (currentStageMode === 'charts') {
         injectLiveThemeIntoChartSandbox();
@@ -6033,6 +6693,12 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         setTimeout(() => {
           const stage = document.getElementById('chartSandboxStage');
           initRenderedCharts(stage);
+        }, 20);
+      } else if (currentStageMode === 'inputs') {
+        injectLiveThemeIntoInputSandbox();
+        renderInputSandboxFromCache();
+        setTimeout(() => {
+          initInputSandboxDom();
         }, 20);
       } else if (currentStageMode === 'icons') {
         injectLiveThemeIntoIconSandbox();
@@ -7769,6 +8435,999 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         refreshIconsCatalog(false);
       }
     });
+
+    // ==============================================================
+    // UI / INPUT STUDIO (DISEÑADOR DE COMPONENTES FORMUIMODULE)
+    // ==============================================================
+
+    const DEFAULT_INPUTS_CONFIG = {
+      preset: 'soft',
+      triggerBg: 'back1',
+      triggerText: 'texto',
+      triggerBorder: 'textc',
+      surfaceBg: 'back1',
+      surfaceText: 'texto',
+      surfaceMuted: 'text-inactive',
+      surfaceBorder: 'textc',
+      btnPrimaryBg: 'back6',
+      btnPrimaryText: 'textw',
+      btnSecondaryBg: 'back2',
+      btnSecondaryText: 'texto',
+      accentColor: 'color2',
+      accentText: 'textb',
+      trackBg: 'back2',
+      radius: 15,
+      touchSize: 44,
+      shadow: 'soft',
+      blur: 10,
+      mobileSheet: true,
+      transition: 250
+    };
+
+    const INPUT_PRESETS = {
+      soft: { preset: 'soft', radius: 15, shadow: 'soft', blur: 8, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      minimal: { preset: 'minimal', radius: 8, shadow: 'none', blur: 0, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      glass: { preset: 'glass', radius: 18, shadow: 'glass', blur: 16, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      pill: { preset: 'pill', radius: 28, shadow: 'soft', blur: 10, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      elevated: { preset: 'elevated', radius: 14, shadow: 'medium', blur: 12, touchSize: 44, triggerBorder: 'transparent', surfaceBorder: 'textc' }
+    };
+
+    const INPUT_SHADOW_MAP = {
+      none: 'none',
+      soft: '0 8px 24px rgba(0, 0, 0, 0.14)',
+      medium: '0 14px 36px rgba(0, 0, 0, 0.24)',
+      glass: '0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16)'
+    };
+
+    const INPUT_CATALOG = [
+      { type: 'cropImage', title: 'Recorte Imagen', icon: '✂️', legacyCompat: true, demoBtn: '✂️ Probar Modal Recorte', defaultLabel: 'Avatar / Imagen recortada', hasHiddenPreview: true, hiddenPreviewLabel: 'Modal de Recorte (Recortar Imagen)' },
+      { type: 'loadImgModern', title: 'Multi-Imagen', icon: '🖼️', legacyCompat: false, defaultLabel: 'Galería de imágenes', hasHiddenPreview: true, hiddenPreviewLabel: 'Miniaturas y botón de borrado' },
+      { type: 'colorPicker', title: 'Color Picker', icon: '🎨', legacyCompat: false, defaultLabel: 'Color del tema', hasHiddenPreview: true, hiddenPreviewLabel: 'Popover Selector de Color' },
+      { type: 'checkboxSwitch', title: 'Switch Táctil', icon: '🔘', legacyCompat: false, defaultLabel: 'Activar estado' },
+      { type: 'dropdown', title: 'Dropdown', icon: '▾', legacyCompat: false, defaultLabel: 'País / Categoría', hasHiddenPreview: true, hiddenPreviewLabel: 'Lista desplegable de opciones' },
+      { type: 'datePicker', title: 'Select Fecha', icon: '📅', legacyCompat: false, defaultLabel: 'Fecha del evento', hasHiddenPreview: true, hiddenPreviewLabel: 'Popover de Calendario' },
+      { type: 'timePicker', title: 'Select Hora', icon: '🕒', legacyCompat: false, defaultLabel: 'Hora programada', hasHiddenPreview: true, hiddenPreviewLabel: 'Popover Selector de Hora' },
+      { type: 'rangeSlider', title: 'Rango / Slider', icon: '🎚️', legacyCompat: false, defaultLabel: 'Presupuesto / Rango' },
+      { type: 'passwordInput', title: 'Contraseña', icon: '🔒', legacyCompat: false, defaultLabel: 'Contraseña segura' },
+      { type: 'otpCodeInput', title: 'Código OTP', icon: '🔢', legacyCompat: false, defaultLabel: 'Código de verificación' },
+      { type: 'tagsInput', title: 'Etiquetas', icon: '🏷️', legacyCompat: false, defaultLabel: 'Palabras clave' },
+      { type: 'stepperInput', title: 'Stepper ±', icon: '±', legacyCompat: false, defaultLabel: 'Cantidad' },
+      { type: 'ratingInput', title: 'Rating / Estrellas', icon: '★', legacyCompat: false, defaultLabel: 'Calificación' },
+      { type: 'fileDropzone', title: 'File Dropzone', icon: '📎', legacyCompat: false, defaultLabel: 'Adjuntar documentos', hasHiddenPreview: true, hiddenPreviewLabel: 'Lista de archivos adjuntos' },
+      { type: 'repeatCamp', title: 'Repetibles +', icon: '➕', legacyCompat: false, defaultLabel: 'Opciones dinámicas' },
+      { type: 'textLimiter', title: 'Límite Texto', icon: '📝', legacyCompat: false, defaultLabel: 'Descripción corta' }
+    ];
+
+    let activeInputType = 'cropImage';
+    let inputSandboxViewMode = 'gallery'; // 'gallery' | 'focused'
+    let inputSandboxTouchSim = false;
+    let inputStageSurface = 'var(--body)';
+    let inputFocusedWidth = '100%';
+    let inputCodeFormat = 'html'; // 'html' | 'php' | 'global'
+    let lastFocusedInputTokenEl = null;
+
+    let inputsHtmlCache = Object.assign({}, initialInputsHtmlMap || {});
+    let inputCodeCache = { htmlSnippet: '', phpSnippet: '', globalSnippet: '' };
+    let inputRenderTimer = null;
+    let inputRenderAbort = null;
+    let inputRenderSeq = 0;
+
+    function escIuHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function ensureInputsConfig() {
+      if (!themeConfig.inputs || typeof themeConfig.inputs !== 'object' || Array.isArray(themeConfig.inputs)) {
+        themeConfig.inputs = JSON.parse(JSON.stringify(DEFAULT_INPUTS_CONFIG));
+      } else {
+        for (const [k, v] of Object.entries(DEFAULT_INPUTS_CONFIG)) {
+          if (themeConfig.inputs[k] === undefined) {
+            themeConfig.inputs[k] = v;
+          }
+        }
+      }
+      if (!themeConfig.inputs.localOverrides || typeof themeConfig.inputs.localOverrides !== 'object') {
+        themeConfig.inputs.localOverrides = {};
+      }
+      return themeConfig.inputs;
+    }
+
+    function resolveUiTokenToCss(rawToken) {
+      const token = String(rawToken || '').replace(/^\./, '').trim();
+      if (!token) return 'transparent';
+      if (token === 'transparent') return 'transparent';
+
+      const numMatch = token.match(/^(?:back|color)(\d+)(-hover)?$/i);
+      if (numMatch) {
+        const idx = parseInt(numMatch[1], 10);
+        const vName = idx <= 1 ? '--back-color' : `--back-color${idx}`;
+        return numMatch[2] ? `var(${vName}-hover)` : `var(${vName})`;
+      }
+
+      if (/^border\d+$/i.test(token)) {
+        return 'color-mix(in srgb, var(--text-primary, #64748b) 18%, transparent)';
+      }
+
+      const map = {
+        body: 'var(--body)',
+        'body-back': 'var(--body)',
+        texto: 'var(--text-primary)',
+        textc: 'var(--text-secondary)',
+        textw: '#ffffff',
+        textb: '#000000',
+        'text-inactive': 'var(--text-inactive)',
+        success: 'var(--success)',
+        caution: 'var(--caution)',
+        danger: 'var(--danger)'
+      };
+      if (map[token]) return map[token];
+      return token;
+    }
+
+    function resolveUiTokenToHex(rawToken) {
+      const token = String(rawToken || '').replace(/^\./, '').trim();
+      const isDark = (currentPreviewMode === 'dark');
+      const colors = isDark
+        ? ((themeConfig.dark.colors && themeConfig.dark.colors.length)
+            ? themeConfig.dark.colors
+            : (themeConfig.light.colors || []).map(c => invertToDarkHex(c)))
+        : (themeConfig.light.colors || []);
+      const bodyHex = isDark ? (themeConfig.dark.body || '#0f172a') : (themeConfig.light.body || '#ffffff');
+      const textPrimary = isDark ? (themeConfig.dark.text?.primary || '#f8fafc') : (themeConfig.light.text?.primary || '#0f172a');
+      const textSecondary = isDark ? (themeConfig.dark.text?.secondary || '#cbd5e1') : (themeConfig.light.text?.secondary || '#475569');
+      const textInactive = isDark ? (themeConfig.dark.text?.inactive || '#94a3b8') : (themeConfig.light.text?.inactive || '#64748b');
+
+      if (!token || token === 'transparent') return bodyHex;
+      if (/^#[0-9a-f]{3,6}$/i.test(token)) return token;
+
+      const numMatch = token.match(/^(?:back|color|border)(\d+)/i);
+      if (numMatch) {
+        const idx = Math.max(0, parseInt(numMatch[1], 10) - 1);
+        return colors[idx] || colors[0] || '#3b82f6';
+      }
+
+      const map = {
+        body: bodyHex,
+        'body-back': bodyHex,
+        texto: textPrimary,
+        textc: textSecondary,
+        textw: '#FFFFFF',
+        textb: '#000000',
+        'text-inactive': textInactive,
+        success: themeConfig.status?.success || '#22c55e',
+        caution: themeConfig.status?.caution || '#f59e0b',
+        danger: themeConfig.status?.danger || '#ef4444'
+      };
+      return map[token] || '#3b82f6';
+    }
+
+    function buildInputCssVarsBlock(important = false) {
+      const cfg = ensureInputsConfig();
+      const imp = important ? ' !important' : '';
+      const shadowVal = INPUT_SHADOW_MAP[String(cfg.shadow || 'soft').toLowerCase()] || INPUT_SHADOW_MAP.soft;
+      const lines = [
+        `  --ui-trigger-bg: ${resolveUiTokenToCss(cfg.triggerBg)}${imp};`,
+        `  --ui-trigger-text: ${resolveUiTokenToCss(cfg.triggerText)}${imp};`,
+        `  --ui-trigger-border: ${resolveUiTokenToCss(cfg.triggerBorder)}${imp};`,
+        `  --ui-surface-bg: ${resolveUiTokenToCss(cfg.surfaceBg)}${imp};`,
+        `  --ui-surface-text: ${resolveUiTokenToCss(cfg.surfaceText)}${imp};`,
+        `  --ui-surface-muted: ${resolveUiTokenToCss(cfg.surfaceMuted || 'text-inactive')}${imp};`,
+        `  --ui-surface-border: ${resolveUiTokenToCss(cfg.surfaceBorder)}${imp};`,
+        `  --ui-surface-shadow: ${shadowVal}${imp};`,
+        `  --ui-btn-primary-bg: ${resolveUiTokenToCss(cfg.btnPrimaryBg)}${imp};`,
+        `  --ui-btn-primary-text: ${resolveUiTokenToCss(cfg.btnPrimaryText)}${imp};`,
+        `  --ui-btn-secondary-bg: ${resolveUiTokenToCss(cfg.btnSecondaryBg)}${imp};`,
+        `  --ui-btn-secondary-text: ${resolveUiTokenToCss(cfg.btnSecondaryText)}${imp};`,
+        `  --ui-accent: ${resolveUiTokenToCss(cfg.accentColor)}${imp};`,
+        `  --ui-accent-text: ${resolveUiTokenToCss(cfg.accentText || 'textb')}${imp};`,
+        `  --ui-track-bg: ${resolveUiTokenToCss(cfg.trackBg)}${imp};`,
+        `  --ui-radius: ${parseInt(cfg.radius ?? 15, 10) || 0}px${imp};`,
+        `  --ui-touch-size: ${parseInt(cfg.touchSize ?? 44, 10) || 44}px${imp};`,
+        `  --ui-overlay-blur: ${parseInt(cfg.blur ?? 10, 10) || 0}px${imp};`,
+        `  --ui-transition: ${parseInt(cfg.transition ?? 250, 10) || 250}ms${imp};`
+      ];
+      return lines.join('\n') + '\n';
+    }
+
+    function injectLiveThemeIntoInputSandbox() {
+      const view = document.getElementById('inputSandboxView');
+      if (!view) return;
+
+      const isDark = (currentPreviewMode === 'dark');
+      if (isDark) {
+        view.setAttribute('data-theme', 'dark');
+      } else {
+        view.removeAttribute('data-theme');
+      }
+
+      const lightColors = themeConfig.light.colors || [];
+      const darkColors = (themeConfig.dark.colors && themeConfig.dark.colors.length)
+        ? themeConfig.dark.colors
+        : lightColors.map(c => invertToDarkHex(c));
+
+      const activeBody = isDark ? themeConfig.dark.body : themeConfig.light.body;
+      const activeTextPrimary = isDark ? themeConfig.dark.text.primary : themeConfig.light.text.primary;
+      const activeTextSecondary = isDark ? themeConfig.dark.text.secondary : themeConfig.light.text.secondary;
+      const activeTextInactive = isDark ? themeConfig.dark.text.inactive : themeConfig.light.text.inactive;
+      const activeColors = isDark ? darkColors : lightColors;
+
+      let varsCss = '';
+      varsCss += `  --font: ${themeConfig.layout.font};\n`;
+      varsCss += `  --font-size: ${themeConfig.layout.fontSize};\n`;
+      varsCss += `  --body: ${activeBody};\n`;
+      varsCss += `  --text-primary: ${activeTextPrimary};\n`;
+      varsCss += `  --text-secondary: ${activeTextSecondary};\n`;
+      varsCss += `  --text-inactive: ${activeTextInactive};\n`;
+      varsCss += `  --success: ${themeConfig.status.success};\n`;
+      varsCss += `  --caution: ${themeConfig.status.caution};\n`;
+      varsCss += `  --danger: ${themeConfig.status.danger};\n`;
+      activeColors.forEach((hex, i) => {
+        const vName = i === 0 ? '--back-color' : `--back-color${i + 1}`;
+        varsCss += `  ${vName}: ${hex};\n`;
+        if (i === 0) varsCss += `  --back-color1: ${hex};\n`;
+      });
+      varsCss += buildInputCssVarsBlock(false);
+
+      let css = `#inputSandboxView,\n.ui-popover,\n.custom-color-picker-popover,\n.ui-dp-popover,\n.crop-modal-overlay,\n.dropdown-portal {\n${varsCss}}\n`;
+
+      css += `#inputSandboxView .iu-sandbox-stage {\n  background-color: ${inputStageSurface};\n}\n`;
+      css += `#inputSandboxView .texto { color: var(--text-primary); }\n`;
+      css += `#inputSandboxView .textw { color: #ffffff; }\n`;
+      css += `#inputSandboxView .textc { color: var(--text-secondary); }\n`;
+      css += `#inputSandboxView .textb { color: #000000; }\n`;
+
+      activeColors.forEach((_, i) => {
+        const idx = i + 1;
+        const vName = idx === 1 ? '--back-color' : `--back-color${idx}`;
+        css += `#inputSandboxView .back${idx} { background-color: var(${vName}); }\n`;
+        css += `#inputSandboxView .color${idx} { color: var(${vName}); }\n`;
+        css += `#inputSandboxView .border${idx} { border: 1px solid var(${vName}); }\n`;
+      });
+
+      let styleEl = document.getElementById('frame-theme-studio-inputs-vars');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'frame-theme-studio-inputs-vars';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = css;
+    }
+
+    function updateInputWcagBadges() {
+      const cfg = ensureInputsConfig();
+      const applyBadge = (badgeId, bgToken, txtToken) => {
+        const el = document.getElementById(badgeId);
+        if (!el) return;
+        const ratio = getContrastRatio(resolveUiTokenToHex(bgToken), resolveUiTokenToHex(txtToken));
+        const rating = getWcagRating(ratio);
+        el.textContent = `${ratio.toFixed(1)}:1 ${rating.level}`;
+        el.classList.toggle('pass', !!rating.pass);
+        el.classList.toggle('fail', !rating.pass);
+      };
+      applyBadge('iuPrimaryWcagBadge', cfg.btnPrimaryBg, cfg.btnPrimaryText);
+      applyBadge('iuSecondaryWcagBadge', cfg.btnSecondaryBg, cfg.btnSecondaryText);
+    }
+
+    function autoFixInputButtonContrast(kind) {
+      const cfg = ensureInputsConfig();
+      const bgKey = kind === 'secondary' ? 'btnSecondaryBg' : 'btnPrimaryBg';
+      const textKey = kind === 'secondary' ? 'btnSecondaryText' : 'btnPrimaryText';
+      const bgHex = resolveUiTokenToHex(cfg[bgKey]);
+      const ratioWhite = getContrastRatio(bgHex, '#FFFFFF');
+      const ratioDark = getContrastRatio(bgHex, '#0F172A');
+      const bestText = ratioWhite >= ratioDark ? 'textw' : '#0F172A';
+      onInputGlobalChange(textKey, bestText);
+      syncInputStudioForm();
+      showToast('✨ Contraste de botón ajustado automáticamente');
+    }
+
+    function renderInputTypeGrid() {
+      const grid = document.getElementById('iuTypeGrid');
+      if (!grid) return;
+      const cfg = ensureInputsConfig();
+      grid.innerHTML = '';
+
+      INPUT_CATALOG.forEach((item) => {
+        const hasLocal = !!(cfg.localOverrides && cfg.localOverrides[item.type] && Object.keys(cfg.localOverrides[item.type]).length > 0);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cs-type-btn' + (item.type === activeInputType ? ' active' : '');
+        btn.innerHTML = `<span>${item.icon}</span><span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escIuHtml(item.title)}</span>${hasLocal ? '<span title="Tiene overrides locales" style="color:var(--ts-primary);">●</span>' : ''}`;
+        btn.onclick = () => selectInputType(item.type, true);
+        grid.appendChild(btn);
+      });
+
+      const badge = document.getElementById('iuActiveTypeBadge');
+      const localLbl = document.getElementById('iuLocalTypeLabel');
+      if (badge) badge.textContent = activeInputType;
+      if (localLbl) localLbl.textContent = activeInputType;
+    }
+
+    function renderInputColorChips() {
+      const container = document.getElementById('iuColorChips');
+      if (!container) return;
+      const isDark = (currentPreviewMode === 'dark');
+      const colors = isDark
+        ? ((themeConfig.dark.colors && themeConfig.dark.colors.length)
+            ? themeConfig.dark.colors
+            : (themeConfig.light.colors || []).map(c => invertToDarkHex(c)))
+        : (themeConfig.light.colors || []);
+
+      const chips = [];
+      colors.forEach((hex, idx) => chips.push({ token: `back${idx + 1}`, hex }));
+      chips.push({ token: 'texto', hex: resolveUiTokenToHex('texto') });
+      chips.push({ token: 'textc', hex: resolveUiTokenToHex('textc') });
+      chips.push({ token: 'textw', hex: '#FFFFFF' });
+      chips.push({ token: 'textb', hex: '#000000' });
+      chips.push({ token: 'body', hex: resolveUiTokenToHex('body') });
+      chips.push({ token: 'success', hex: themeConfig.status?.success || '#22c55e' });
+      chips.push({ token: 'danger', hex: themeConfig.status?.danger || '#ef4444' });
+
+      container.innerHTML = '';
+      chips.forEach((ch) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'cs-color-chip';
+        el.title = `Aplicar token ${ch.token} (${ch.hex})`;
+        el.innerHTML = `<span class="cs-color-dot" style="background:${ch.hex}"></span><span>${ch.token}</span>`;
+        el.onclick = () => {
+          const targetEl = lastFocusedInputTokenEl || document.getElementById('iu_btnPrimaryBg');
+          if (!targetEl) return;
+          targetEl.value = ch.token;
+          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        container.appendChild(el);
+      });
+    }
+
+    function switchInputSubTab(tab) {
+      ['global', 'local', 'attrs'].forEach((name) => {
+        const btn = document.getElementById('iuSubTab_' + name);
+        const panel = document.getElementById('iuPanel_' + name);
+        if (btn) btn.classList.toggle('active', tab === name);
+        if (panel) panel.style.display = (tab === name) ? 'block' : 'none';
+      });
+    }
+
+    function getActiveInputLocalConfig() {
+      const cfg = ensureInputsConfig();
+      if (!cfg.localOverrides[activeInputType] || typeof cfg.localOverrides[activeInputType] !== 'object') {
+        return {};
+      }
+      return cfg.localOverrides[activeInputType];
+    }
+
+    function renderSpecificInputAttrsPanel() {
+      const box = document.getElementById('iuSpecificAttrsContainer');
+      if (!box) return;
+      const local = getActiveInputLocalConfig();
+
+      const textField = (key, label, placeholder = '') => {
+        const val = local[key] !== undefined ? String(local[key]) : '';
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="text" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value)"></div>`;
+      };
+      const numField = (key, label, placeholder = '') => {
+        const val = local[key] !== undefined ? String(local[key]) : '';
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="number" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value === '' ? null : Number(this.value))"></div>`;
+      };
+      const selectField = (key, label, opts, defVal) => {
+        const cur = local[key] !== undefined ? String(local[key]) : defVal;
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><select class="ts-input" onchange="onInputLocalChange('${key}', this.value)">${opts.map(o => `<option value="${escIuHtml(o.v)}" ${cur === o.v ? 'selected' : ''}>${escIuHtml(o.l)}</option>`).join('')}</select></div>`;
+      };
+      const checkField = (key, label, defChecked = false) => {
+        const checked = local[key] !== undefined ? !!local[key] : defChecked;
+        return `<label class="cs-check-row"><input type="checkbox" ${checked ? 'checked' : ''} onchange="onInputLocalChange('${key}', this.checked)"><span>${escIuHtml(label)}</span></label>`;
+      };
+
+      let html = '';
+      switch (activeInputType) {
+        case 'cropImage':
+          html = textField('croppingSize', 'Tamaño recorte (WxH)', '500x500')
+            + selectField('cropShape', 'Forma de recorte', [{ v: 'square', l: 'Cuadrado / Rectangular' }, { v: 'circle', l: 'Circular (Avatar)' }], 'square')
+            + checkField('allowRotate', 'Mostrar botones rotar 90°', true)
+            + checkField('noPreview', 'Ocultar miniatura previa (no-preview)', false);
+          break;
+        case 'loadImgModern':
+          html = numField('maxFiles', 'Máximo de archivos', '8')
+            + numField('maxSizeMb', 'Peso máximo (MB)', '10')
+            + checkField('dropzone', 'Modo Dropzone visual', true);
+          break;
+        case 'colorPicker':
+          html = textField('swatches', 'Muestras hex separadas por coma', '#EF4444,#F59E0B,#3B82F6')
+            + checkField('showAlpha', 'Mostrar slider de opacidad (Alpha)', false);
+          break;
+        case 'checkboxSwitch':
+          html = selectField('size', 'Tamaño', [{ v: 'sm', l: 'Pequeño (sm)' }, { v: 'md', l: 'Mediano (md)' }, { v: 'lg', l: 'Grande (lg)' }], 'md')
+            + `<div class="iu-color-pair">${textField('labelOn', 'Texto Activo', 'Sí')}${textField('labelOff', 'Texto Inactivo', 'No')}</div>`
+            + checkField('checked', 'Activo inicialmente', true);
+          break;
+        case 'dropdown':
+          html = checkField('searchable', 'Buscador interno', true)
+            + checkField('clearable', 'Botón limpiar selección', false)
+            + checkField('animated', 'Animación de entrada', false);
+          break;
+        case 'datePicker':
+          html = selectField('mode', 'Modo calendario', [{ v: 'single', l: 'Fecha única' }, { v: 'range', l: 'Rango de fechas' }], 'single')
+            + selectField('format', 'Formato salida', [{ v: 'YYYY-MM-DD', l: 'ISO (YYYY-MM-DD)' }, { v: 'DD/MM/YYYY', l: 'DD/MM/YYYY' }], 'YYYY-MM-DD')
+            + checkField('showPresets', 'Botones rápidos (Hoy / Últimos 7d)', true)
+            + checkField('showTime', 'Incluir selector de hora', false);
+          break;
+        case 'timePicker':
+          html = selectField('timeFormat', 'Formato reloj', [{ v: '24h', l: '24 Horas' }, { v: '12h', l: '12 Horas (AM/PM)' }], '24h')
+            + numField('step', 'Intervalo minutos', '15');
+          break;
+        case 'rangeSlider':
+          html = selectField('mode', 'Tipo de rango', [{ v: 'single', l: 'Un manejador' }, { v: 'range', l: 'Doble rango (mín-máx)' }], 'single')
+            + `<div class="iu-color-pair">${numField('min', 'Mínimo', '0')}${numField('max', 'Máximo', '100')}</div>`
+            + `<div class="iu-color-pair">${numField('step', 'Paso', '1')}${textField('suffix', 'Sufijo (ej. %, $)', '')}</div>`
+            + checkField('showTooltip', 'Burbuja flotante de valor', true);
+          break;
+        case 'passwordInput':
+          html = checkField('showStrength', 'Medidor de fortaleza de contraseña', true);
+          break;
+        case 'otpCodeInput':
+          html = selectField('length', 'Cantidad dígitos', [{ v: '4', l: '4 dígitos' }, { v: '6', l: '6 dígitos' }, { v: '8', l: '8 dígitos' }], '6')
+            + selectField('inputMode', 'Teclado móvil', [{ v: 'numeric', l: 'Numérico' }, { v: 'text', l: 'Alfanumérico' }], 'numeric');
+          break;
+        case 'tagsInput':
+          html = `<div class="iu-color-pair">${numField('maxTags', 'Máx. etiquetas', '10')}${textField('separator', 'Delimitador', ',')}</div>`;
+          break;
+        case 'stepperInput':
+          html = `<div class="iu-color-pair">${numField('min', 'Mínimo', '0')}${numField('max', 'Máximo', '99')}</div>`
+            + numField('step', 'Incremento / Paso', '1');
+          break;
+        case 'ratingInput':
+          html = `<div class="iu-color-pair">${numField('max', 'Estrellas máx.', '5')}${selectField('icon', 'Icono', [{ v: 'star', l: 'Estrella ★' }, { v: 'heart', l: 'Corazón ♥' }], 'star')}</div>`
+            + checkField('allowHalf', 'Permitir medias (0.5)', false);
+          break;
+        case 'fileDropzone':
+          html = textField('accept', 'MIME / Extensiones', '.pdf,.doc,.docx,.zip,image/*')
+            + `<div class="iu-color-pair">${numField('maxFiles', 'Máx. archivos', '5')}${numField('maxSizeMb', 'Máx. MB', '10')}</div>`;
+          break;
+        case 'repeatCamp':
+          html = numField('max', 'Máximo de filas clonables', '8');
+          break;
+        case 'textLimiter':
+          html = `<div class="iu-color-pair">${numField('limit', 'Límite máximo', '160')}${selectField('limitType', 'Unidad', [{ v: 'chars', l: 'Caracteres' }, { v: 'words', l: 'Palabras' }], 'chars')}</div>`
+            + numField('rows', 'Filas del textarea', '3');
+          break;
+      }
+      box.innerHTML = html;
+    }
+
+    function syncInputStudioForm() {
+      const cfg = ensureInputsConfig();
+      const activeMeta = INPUT_CATALOG.find(i => i.type === activeInputType) || INPUT_CATALOG[0];
+
+      document.querySelectorAll('.iu-preset-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.preset === (cfg.preset || 'soft'));
+      });
+
+      document.querySelectorAll('[data-iu-global]').forEach((el) => {
+        const k = el.getAttribute('data-iu-global');
+        if (cfg[k] !== undefined) el.value = cfg[k];
+      });
+
+      document.querySelectorAll('[data-iu-picker-for]').forEach((picker) => {
+        const targetId = picker.getAttribute('data-iu-picker-for');
+        const txtEl = document.getElementById(targetId);
+        if (txtEl) {
+          const hex = resolveUiTokenToHex(txtEl.value);
+          if (/^#[0-9a-f]{6}$/i.test(hex)) picker.value = hex;
+        }
+      });
+
+      const radEl = document.getElementById('iu_radius');
+      const radLbl = document.getElementById('iu_radiusVal');
+      if (radEl) radEl.value = cfg.radius ?? 15;
+      if (radLbl) radLbl.textContent = (cfg.radius ?? 15) + 'px';
+
+      const touchEl = document.getElementById('iu_touchSize');
+      const touchLbl = document.getElementById('iu_touchSizeVal');
+      if (touchEl) touchEl.value = cfg.touchSize ?? 44;
+      if (touchLbl) touchLbl.textContent = (cfg.touchSize ?? 44) + 'px';
+
+      const shadowEl = document.getElementById('iu_shadow');
+      if (shadowEl) shadowEl.value = cfg.shadow || 'soft';
+
+      const blurEl = document.getElementById('iu_blur');
+      const blurLbl = document.getElementById('iu_blurVal');
+      if (blurEl) blurEl.value = cfg.blur ?? 10;
+      if (blurLbl) blurLbl.textContent = (cfg.blur ?? 10) + 'px';
+
+      const sheetEl = document.getElementById('iu_mobileSheet');
+      if (sheetEl) sheetEl.checked = cfg.mobileSheet !== false;
+
+      const local = getActiveInputLocalConfig();
+      document.querySelectorAll('[data-iu-local]').forEach((el) => {
+        const k = el.getAttribute('data-iu-local');
+        el.value = local[k] !== undefined && local[k] !== null ? local[k] : '';
+      });
+
+      const reqEl = document.getElementById('iuAttr_required');
+      const subEl = document.getElementById('iuAttr_autoSubmit');
+      if (reqEl) reqEl.checked = !!local.required;
+      if (subEl) subEl.checked = !!local.autoSubmit;
+
+      const legacyBox = document.getElementById('iuLegacyCompatGroup');
+      if (legacyBox) {
+        legacyBox.style.display = activeMeta.legacyCompat ? 'block' : 'none';
+      }
+
+      renderSpecificInputAttrsPanel();
+      updateInputWcagBadges();
+    }
+
+    function onInputGlobalChange(key, value) {
+      const cfg = ensureInputsConfig();
+      cfg[key] = value;
+      injectLiveThemeIntoInputSandbox();
+      injectLiveThemeIntoIframe();
+      updateInputWcagBadges();
+      updateJsonViewer();
+      scheduleInputRender(activeInputType);
+    }
+
+    function onInputLocalChange(key, value) {
+      const cfg = ensureInputsConfig();
+      if (!cfg.localOverrides[activeInputType] || typeof cfg.localOverrides[activeInputType] !== 'object') {
+        cfg.localOverrides[activeInputType] = {};
+      }
+      if (value === null || value === '' || value === undefined) {
+        delete cfg.localOverrides[activeInputType][key];
+      } else {
+        cfg.localOverrides[activeInputType][key] = value;
+      }
+      if (Object.keys(cfg.localOverrides[activeInputType]).length === 0) {
+        delete cfg.localOverrides[activeInputType];
+      }
+      renderInputTypeGrid();
+      updateJsonViewer();
+      scheduleInputRender(activeInputType);
+    }
+
+    function applyInputPreset(presetName) {
+      const preset = INPUT_PRESETS[presetName];
+      if (!preset) return;
+      const cfg = ensureInputsConfig();
+      Object.assign(cfg, preset);
+      syncInputStudioForm();
+      injectLiveThemeIntoInputSandbox();
+      injectLiveThemeIntoIframe();
+      updateJsonViewer();
+      scheduleInputRender('all');
+    }
+
+    function resetAllInputStyles() {
+      themeConfig.inputs = JSON.parse(JSON.stringify(DEFAULT_INPUTS_CONFIG));
+      themeConfig.inputs.localOverrides = {};
+      syncInputStudioForm();
+      renderInputTypeGrid();
+      injectLiveThemeIntoInputSandbox();
+      injectLiveThemeIntoIframe();
+      updateJsonViewer();
+      requestInputRender('all', true);
+      showToast('↺ Estilos de Inputs restaurados a valores base');
+    }
+
+    function clearActiveInputLocalOverrides() {
+      const cfg = ensureInputsConfig();
+      if (cfg.localOverrides && cfg.localOverrides[activeInputType]) {
+        delete cfg.localOverrides[activeInputType];
+      }
+      syncInputStudioForm();
+      renderInputTypeGrid();
+      updateJsonViewer();
+      requestInputRender(activeInputType, true);
+    }
+
+    function selectInputType(type, autoFocusIfNeeded = false) {
+      if (!INPUT_CATALOG.some(i => i.type === type)) return;
+      activeInputType = type;
+      renderInputTypeGrid();
+      syncInputStudioForm();
+
+      document.querySelectorAll('#iuGalleryContainer .iu-input-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.inputType === type);
+      });
+
+      if (autoFocusIfNeeded && inputSandboxViewMode === 'focused') {
+        renderInputSandboxFromCache();
+        initInputSandboxDom();
+      }
+      requestInputRender(type, false);
+    }
+
+    function getInputCodeOptionsPayload() {
+      const activeMeta = INPUT_CATALOG.find(i => i.type === activeInputType) || INPUT_CATALOG[0];
+      const local = getActiveInputLocalConfig();
+      const wrapContainer = !!document.getElementById('iuOptWrapContainer')?.checked;
+      const includeLabel = !!document.getElementById('iuOptIncludeLabel')?.checked;
+      const inlineVars = !!document.getElementById('iuOptInlineVars')?.checked;
+      const multiline = !!document.getElementById('iuOptMultiline')?.checked;
+      const cfg = ensureInputsConfig();
+
+      const opts = {
+        wrapContainer,
+        inlineVars,
+        multiline,
+        label: includeLabel ? (local.label || activeMeta.defaultLabel || '') : ''
+      };
+      if (inlineVars) {
+        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnSecondaryBg', 'btnSecondaryText', 'accentColor', 'accentText', 'trackBg', 'radius', 'touchSize', 'shadow', 'blur', 'transition'];
+        styleKeys.forEach((sk) => {
+          if (local[sk] === undefined && cfg[sk] !== undefined) {
+            opts[sk] = cfg[sk];
+          }
+        });
+      }
+      return opts;
+    }
+
+    function cleanStaleInputPortals() {
+      document.querySelectorAll('.custom-color-picker-popover, .ui-dp-popover, .dropdown-portal, .ui-floating-backdrop').forEach((el) => {
+        if (el.classList.contains('is-inline-preview')) return;
+        if (el.classList.contains('hidden') || el.parentNode === document.body) {
+          el.remove();
+        }
+      });
+    }
+
+    function initInputSandboxDom() {
+      if (typeof window.initFormUiComponents === 'function') {
+        window.initFormUiComponents();
+      }
+      if (inputSandboxViewMode === 'focused') {
+        renderFocusedHiddenPreview();
+      }
+    }
+
+    function renderFocusedHiddenPreview() {
+      const host = document.getElementById('iuInlinePreviewHost');
+      const card = document.querySelector('#iuFocusedContainer .iu-focused-card');
+      if (!host || !card) return;
+      const target = card.querySelector('.ui-input-component');
+      if (!target) return;
+
+      const detail = { host };
+      if (activeInputType === 'cropImage') {
+        detail.imgUrl = createStudioDemoImageDataUrl();
+      }
+      target.dispatchEvent(new CustomEvent('fme:renderInlinePreview', { detail }));
+    }
+
+    function renderInputSandboxFromCache() {
+      const galleryEl = document.getElementById('iuGalleryContainer');
+      const focusedEl = document.getElementById('iuFocusedContainer');
+      if (!galleryEl || !focusedEl) return;
+
+      cleanStaleInputPortals();
+
+      if (inputSandboxViewMode === 'gallery') {
+        galleryEl.innerHTML = '';
+        INPUT_CATALOG.forEach((item) => {
+          const card = document.createElement('div');
+          card.className = 'iu-input-card' + (item.type === activeInputType ? ' active' : '');
+          card.dataset.inputType = item.type;
+
+          const head = document.createElement('div');
+          head.className = 'iu-card-head';
+          head.onclick = () => selectInputType(item.type, false);
+
+          const title = document.createElement('div');
+          title.className = 'iu-card-title';
+          title.innerHTML = `<span>${item.icon}</span><span>${escIuHtml(item.title)}</span>`;
+
+          const actions = document.createElement('div');
+          actions.className = 'iu-card-actions';
+
+          if (item.demoBtn) {
+            const demoBtn = document.createElement('button');
+            demoBtn.type = 'button';
+            demoBtn.className = 'iu-card-pill-btn';
+            demoBtn.textContent = item.demoBtn;
+            demoBtn.onclick = (e) => {
+              e.stopPropagation();
+              selectInputType(item.type, false);
+              openCropDemoFromStudio();
+            };
+            actions.appendChild(demoBtn);
+          }
+
+          const focusBtn = document.createElement('button');
+          focusBtn.type = 'button';
+          focusBtn.className = 'iu-card-pill-btn';
+          focusBtn.textContent = '🔍 Enfocar';
+          focusBtn.onclick = (e) => {
+            e.stopPropagation();
+            selectInputType(item.type, false);
+            setInputSandboxViewMode('focused');
+          };
+          actions.appendChild(focusBtn);
+
+          head.appendChild(title);
+          head.appendChild(actions);
+
+          const body = document.createElement('div');
+          body.className = 'iu-card-body';
+          body.innerHTML = inputsHtmlCache[item.type] || '<em>Cargando...</em>';
+
+          card.appendChild(head);
+          card.appendChild(body);
+          galleryEl.appendChild(card);
+        });
+      } else {
+        const item = INPUT_CATALOG.find(i => i.type === activeInputType) || INPUT_CATALOG[0];
+        focusedEl.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'iu-focused-card';
+        card.style.maxWidth = inputFocusedWidth;
+
+        const head = document.createElement('div');
+        head.className = 'iu-card-head';
+        head.innerHTML = `<div class="iu-card-title"><span>${item.icon}</span><span>${escIuHtml(item.title)} (<code>${escIuHtml(item.type)}</code>)</span></div>`;
+        if (item.demoBtn) {
+          const demoBtn = document.createElement('button');
+          demoBtn.type = 'button';
+          demoBtn.className = 'iu-card-pill-btn';
+          demoBtn.textContent = item.demoBtn;
+          demoBtn.onclick = () => openCropDemoFromStudio();
+          head.appendChild(demoBtn);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'iu-card-body';
+        body.innerHTML = inputsHtmlCache[item.type] || '<em>Cargando...</em>';
+
+        card.appendChild(head);
+        card.appendChild(body);
+        focusedEl.appendChild(card);
+
+        if (item.hasHiddenPreview) {
+          const previewPanel = document.createElement('div');
+          previewPanel.className = 'iu-inline-preview-panel';
+          previewPanel.style.maxWidth = inputFocusedWidth;
+          previewPanel.innerHTML = `<div class="iu-inline-preview-head"><span>👁️ ${escIuHtml(item.hiddenPreviewLabel || 'Vista previa oculta')}</span><span class="iu-inline-preview-badge">En vivo sin abrir</span></div><div class="iu-inline-preview-host" id="iuInlinePreviewHost"></div>`;
+          focusedEl.appendChild(previewPanel);
+        }
+      }
+
+      setTimeout(initInputSandboxDom, 0);
+    }
+
+    function setInputSandboxViewMode(viewMode) {
+      inputSandboxViewMode = (viewMode === 'focused') ? 'focused' : 'gallery';
+      const btnGallery = document.getElementById('btnIuViewGallery');
+      const btnFocused = document.getElementById('btnIuViewFocused');
+      const galleryEl = document.getElementById('iuGalleryContainer');
+      const focusedEl = document.getElementById('iuFocusedContainer');
+      const widthWrap = document.getElementById('iuFocusedWidthWrap');
+
+      if (btnGallery) btnGallery.classList.toggle('active', inputSandboxViewMode === 'gallery');
+      if (btnFocused) btnFocused.classList.toggle('active', inputSandboxViewMode === 'focused');
+      if (galleryEl) galleryEl.style.display = inputSandboxViewMode === 'gallery' ? 'grid' : 'none';
+      if (focusedEl) focusedEl.style.display = inputSandboxViewMode === 'focused' ? 'flex' : 'none';
+      if (widthWrap) widthWrap.style.display = inputSandboxViewMode === 'focused' ? 'flex' : 'none';
+
+      renderInputSandboxFromCache();
+    }
+
+    function toggleInputTouchSim() {
+      inputSandboxTouchSim = !inputSandboxTouchSim;
+      const btn = document.getElementById('btnIuTouchSim');
+      const view = document.getElementById('inputSandboxView');
+      if (btn) btn.classList.toggle('active', inputSandboxTouchSim);
+      if (view) view.classList.toggle('is-touch-simulated', inputSandboxTouchSim);
+      document.body.classList.toggle('is-touch-simulated', currentStageMode === 'inputs' && inputSandboxTouchSim);
+
+      if (inputSandboxTouchSim && inputSandboxViewMode === 'focused') {
+        setInputFocusedWidth('375px');
+        const sel = document.getElementById('iuFocusedWidthSelect');
+        if (sel) sel.value = '375px';
+      }
+      showToast(inputSandboxTouchSim ? '👆 Simulación Touch / Bottom-Sheet activada' : '🖥️ Simulación Touch desactivada');
+    }
+
+    function setInputStageSurface(surfaceVal) {
+      inputStageSurface = surfaceVal || 'var(--body)';
+      injectLiveThemeIntoInputSandbox();
+    }
+
+    function setInputFocusedWidth(widthVal) {
+      inputFocusedWidth = widthVal || '100%';
+      document.querySelectorAll('#iuFocusedContainer .iu-focused-card, #iuFocusedContainer .iu-inline-preview-panel').forEach((el) => {
+        el.style.maxWidth = inputFocusedWidth;
+      });
+      const autoMobile = (inputFocusedWidth === '375px') || inputSandboxTouchSim;
+      const view = document.getElementById('inputSandboxView');
+      if (view) view.classList.toggle('is-touch-simulated', autoMobile);
+      document.body.classList.toggle('is-touch-simulated', currentStageMode === 'inputs' && autoMobile);
+    }
+
+    function createStudioDemoImageDataUrl() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 640;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 640, 640);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.5, '#1e3a8a');
+      grad.addColorStop(1, '#0284c7');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 640);
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.beginPath();
+      ctx.arc(320, 260, 120, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(320, 560, 200, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 34px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('FRAME DEMO CROP', 320, 340);
+      return canvas.toDataURL('image/png');
+    }
+
+    function openCropDemoFromStudio() {
+      if (currentStageMode !== 'inputs') {
+        setStageMode('inputs');
+      }
+      const cropInput = document.querySelector('#inputSandboxView .selectAndCropImage');
+      if (!cropInput) {
+        showToast('Selecciona primero Recorte Imagen para probar el modal', 'error');
+        return;
+      }
+      cropInput.dispatchEvent(new CustomEvent('fme:openCropDemo', { bubbles: true, detail: { imgUrl: createStudioDemoImageDataUrl() } }));
+    }
+
+    function scheduleInputRender(type) {
+      clearTimeout(inputRenderTimer);
+      inputRenderTimer = setTimeout(() => {
+        requestInputRender(type, true);
+      }, 140);
+    }
+
+    async function requestInputRender(type = 'all', updateStage = true) {
+      const seq = ++inputRenderSeq;
+      if (inputRenderAbort) {
+        try { inputRenderAbort.abort(); } catch (_) {}
+      }
+      inputRenderAbort = new AbortController();
+
+      const cfg = ensureInputsConfig();
+      const cleanGlobal = {};
+      Object.keys(DEFAULT_INPUTS_CONFIG).forEach((k) => {
+        if (cfg[k] !== undefined && cfg[k] !== null && cfg[k] !== '') {
+          cleanGlobal[k] = cfg[k];
+        }
+      });
+
+      const payload = {
+        type: type || activeInputType,
+        activeInput: activeInputType,
+        globalConfig: cleanGlobal,
+        localParamsByType: cfg.localOverrides || {},
+        codeOptions: getInputCodeOptionsPayload()
+      };
+
+      try {
+        const res = await fetch('/_frame/theme-studio/render-input', {
+          method: 'POST',
+          headers: getStudioHeaders(),
+          body: JSON.stringify(payload),
+          signal: inputRenderAbort.signal
+        });
+        const data = await res.json();
+        if (seq !== inputRenderSeq || !data || !data.success) return;
+
+        if (data.type === 'all' && data.inputs) {
+          inputsHtmlCache = Object.assign({}, data.inputs);
+        } else if (data.type && data.html !== undefined) {
+          inputsHtmlCache[data.type] = data.html;
+        }
+
+        inputCodeCache = {
+          htmlSnippet: data.htmlSnippet || '',
+          phpSnippet: data.phpSnippet || '',
+          globalSnippet: data.globalSnippet || ''
+        };
+        updateInputCodeOutput();
+
+        if (updateStage && currentStageMode === 'inputs') {
+          renderInputSandboxFromCache();
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+
+    function updateInputCodeOutput() {
+      const codeEl = document.getElementById('inputCodeOutput');
+      if (!codeEl) return;
+      if (inputCodeFormat === 'php') {
+        codeEl.textContent = inputCodeCache.phpSnippet || `<?= _input('${activeInputType}') ?>`;
+      } else if (inputCodeFormat === 'global') {
+        codeEl.textContent = inputCodeCache.globalSnippet || '';
+      } else {
+        codeEl.textContent = inputCodeCache.htmlSnippet || inputsHtmlCache[activeInputType] || '';
+      }
+    }
+
+    function setInputCopyFormat(fmt) {
+      inputCodeFormat = (fmt === 'php' || fmt === 'global') ? fmt : 'html';
+      ['html', 'php', 'global'].forEach((k) => {
+        const tab = document.getElementById('iuCodeTab_' + k);
+        if (tab) tab.classList.toggle('active', k === inputCodeFormat);
+      });
+      updateInputCodeOutput();
+    }
+
+    function onInputCodeOptionChange() {
+      requestInputRender(activeInputType, false);
+    }
+
+    function toggleInputCodeDock() {
+      const dock = document.getElementById('iuCodeDock');
+      const btn = document.getElementById('btnToggleInputCodeDock');
+      if (!dock) return;
+      dock.classList.toggle('collapsed');
+      if (btn) btn.textContent = dock.classList.contains('collapsed') ? '▸' : '▾';
+    }
+
+    function copyInputCode() {
+      const codeEl = document.getElementById('inputCodeOutput');
+      const txt = codeEl ? codeEl.textContent : '';
+      if (!txt) return;
+      navigator.clipboard.writeText(txt).then(() => {
+        const label = inputCodeFormat === 'html' ? 'HTML' : (inputCodeFormat === 'php' ? 'Helper _input()' : 'PHP Global');
+        showToast(`📋 Código ${label} copiado al portapapeles`);
+      });
+    }
+
+    function initInputStudio() {
+      ensureInputsConfig();
+
+      document.querySelectorAll('[data-iu-global]').forEach((el) => {
+        if (el.dataset.iuBound) return;
+        el.dataset.iuBound = 'true';
+        el.addEventListener('focus', () => {
+          lastFocusedInputTokenEl = el;
+        });
+        el.addEventListener('input', () => {
+          onInputGlobalChange(el.getAttribute('data-iu-global'), el.value);
+        });
+      });
+
+      document.querySelectorAll('[data-iu-picker-for]').forEach((picker) => {
+        if (picker.dataset.iuBound) return;
+        picker.dataset.iuBound = 'true';
+        picker.addEventListener('input', () => {
+          const target = document.getElementById(picker.getAttribute('data-iu-picker-for'));
+          if (!target) return;
+          target.value = picker.value.toUpperCase();
+          onInputGlobalChange(target.getAttribute('data-iu-global'), target.value);
+        });
+      });
+
+      document.querySelectorAll('[data-iu-local]').forEach((el) => {
+        if (el.dataset.iuBound) return;
+        el.dataset.iuBound = 'true';
+        el.addEventListener('input', () => {
+          onInputLocalChange(el.getAttribute('data-iu-local'), el.value);
+        });
+      });
+
+      renderInputTypeGrid();
+      renderInputColorChips();
+      syncInputStudioForm();
+      renderInputSandboxFromCache();
+      requestInputRender(activeInputType, false);
+    }
 
     // Iniciar estudio al cargar el DOM
     document.addEventListener('DOMContentLoaded', initStudio);

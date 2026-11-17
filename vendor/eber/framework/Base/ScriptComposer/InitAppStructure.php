@@ -821,6 +821,49 @@ ENV;
           $changes[] = "agregado 'lang.js' a priority";
         }
 
+        // Asegurar que uiFormUtils.js esté en priority después de lang.js
+        if (!in_array('uiFormUtils.js', $priority, true)) {
+          $langIdx = array_search('lang.js', $priority, true);
+          if ($langIdx !== false) {
+            array_splice($priority, $langIdx + 1, 0, ['uiFormUtils.js']);
+          } else {
+            $priority[] = 'uiFormUtils.js';
+          }
+          $updated = true;
+          $changes[] = "agregado 'uiFormUtils.js' a priority";
+        }
+
+        // Registrar nuevos componentes de formulario en defer si formComponents está activo y no fueron excluidos
+        $excludeList = isset($decoded['exclude']) && is_array($decoded['exclude']) ? $decoded['exclude'] : [];
+        if (isset($decoded['functions']['defer']) && is_array($decoded['functions']['defer']) && array_key_exists('formComponents', $decoded['functions']['defer'])) {
+          $newFormComponents = [
+            'datePicker',
+            'timePicker',
+            'rangeSlider',
+            'passwordInput',
+            'otpCodeInput',
+            'tagsInput',
+            'stepperInput',
+            'ratingInput',
+            'fileDropzone',
+          ];
+          $addedComps = [];
+          foreach ($newFormComponents as $compFn) {
+            if (
+              !array_key_exists($compFn, $decoded['functions']['defer'])
+              && (!isset($decoded['functions']['async']) || !is_array($decoded['functions']['async']) || !array_key_exists($compFn, $decoded['functions']['async']))
+              && !in_array($compFn . '.js', $excludeList, true)
+            ) {
+              $decoded['functions']['defer'][$compFn] = [];
+              $addedComps[] = $compFn;
+            }
+          }
+          if (!empty($addedComps)) {
+            $updated = true;
+            $changes[] = 'agregados componentes UI: ' . implode(', ', $addedComps);
+          }
+        }
+
         if ($updated) {
           $decoded['priority'] = $priority;
           if (empty($decoded['functions']['async'])) {
@@ -837,7 +880,7 @@ ENV;
     }
 
     $content = json_encode([
-      'priority' => ['aaSvgStore.js', 'querie.js', 'lang.js'],
+      'priority' => ['aaSvgStore.js', 'querie.js', 'lang.js', 'uiFormUtils.js'],
       'exclude' => [],
       'functions' => [
         'defer' => new \stdClass(),

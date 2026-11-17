@@ -103,6 +103,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .back-danger-hover { position: relative; z-index: 1; }
 .back-danger-hover::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--danger, #ff0000); filter: var(--sepia, sepia(40%)) !important; transition: var(--transition, all 0.15s ease-in-out) !important; z-index: -1; }
 .back-danger-hover:hover::before { background-color: var(--hover-danger, #fc6161); filter: var(--sepia, sepia(40%)); }
+.back-none { background: none; }
 .back-success { position: relative; z-index: 1; }
 .back-success::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--success, #00b900); filter: var(--sepia, sepia(40%)) !important; z-index: -1; }
 .back1 { background-color: var(--back-color) !important; }
@@ -151,6 +152,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .border-none { border: none !important; }
 .border1 { border: 1px solid var(--back-color); }
 .border2 { border: 1px solid var(--back-color2); }
+.border8 { border: 1px solid var(--back-color8); }
 .container { max-width: 90%; width: var(--width-window); margin: 0 auto; }
 
 .container-xl { width: 100%; margin: 0px; max-width: none; }
@@ -264,6 +266,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .bottom { bottom: 0%; }
 .fixed { position: fixed !important; }
 .left { left: 0%; }
+.left-8 { left: 8%; }
 .left0 { left: 0%; }
 .relative { position: relative; }
 .right { right: 0%; }
@@ -292,6 +295,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .h-dvh { height: 100dvh; }
 .h1 { height: 1%; }
 .h100 { height: 100%; }
+.h12 { height: 12%; }
 .h2 { height: 2%; }
 .h3 { height: 3%; }
 .h4 { height: 4%; }
@@ -493,6 +497,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .overflowX { overflow-x: clip; }
 .pointer { cursor: pointer !important; }
 .scroll { overflow: scroll; }
+.touch-manipulation { touch-action: manipulation !important; }
 .transition { transition: var(--transition, all 0.15s ease-in-out) !important; }
 .z-index-1 { z-index: 1; }
 .z-index-10 { z-index: 10; }

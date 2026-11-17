@@ -145,41 +145,53 @@ export function tooltip() {
     }
   }
 
-  // Delegación de eventos robusta y libre de parpadeo (flicker-free)
+  // Delegación de eventos robusta, táctil y accesible
   document.addEventListener('mouseover', (e) => {
     if (!e.target || !e.target.closest) return;
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) return;
     const tooltipEl = e.target.closest('.tooltip[data-tooltip]');
-    
-    if (!tooltipEl) return;
-
-    // Si ya estamos mostrando el tooltip para este elemento, ignorar
-    if (activeElement === tooltipEl) return;
-
+    if (!tooltipEl || activeElement === tooltipEl) return;
     showTooltip(tooltipEl);
   });
 
   document.addEventListener('mouseout', (e) => {
     if (!activeElement) return;
-
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) return;
     const related = e.relatedTarget;
-    
-    // Si relatedTarget es válido y está dentro de activeElement (o es el tooltip mismo), ignorar
     if (related) {
-      if (activeElement.contains(related) || related === activeTooltip || activeTooltip?.contains(related)) {
-        return;
-      }
+      if (activeElement.contains(related) || related === activeTooltip || activeTooltip?.contains(related)) return;
     } else {
-      // Si relatedTarget es null (a veces pasa en movimientos rápidos o bordes de SVG/texto),
-      // verificamos si las coordenadas del cursor siguen dentro de las fronteras físicas de activeElement.
       const rect = activeElement.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        return;
-      }
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) return;
     }
-
     hideTooltip();
+  });
+
+  // Soporte táctil y foco por teclado
+  let lastTouchPointerAt = 0;
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target || !e.target.closest) return;
+    if (e.pointerType !== 'touch') return;
+    lastTouchPointerAt = Date.now();
+    const tooltipEl = e.target.closest('.tooltip[data-tooltip]');
+    if (!tooltipEl) {
+      hideTooltip();
+      return;
+    }
+    if (activeElement === tooltipEl) {
+      hideTooltip();
+    } else {
+      showTooltip(tooltipEl);
+    }
+  });
+
+  document.addEventListener('focusin', (e) => {
+    if (Date.now() - lastTouchPointerAt < 400) return;
+    const tooltipEl = e.target?.closest?.('.tooltip[data-tooltip]');
+    if (tooltipEl) showTooltip(tooltipEl);
+  });
+
+  document.addEventListener('focusout', () => {
+    if (activeElement && Date.now() - lastTouchPointerAt > 400) hideTooltip();
   });
 }

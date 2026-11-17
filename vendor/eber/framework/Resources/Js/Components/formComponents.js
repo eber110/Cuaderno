@@ -1,324 +1,49 @@
 /**
- * Componentes de Formulario HTML.
- * Agrupa comportamientos especiales para inputs, selects y otros controles de formulario.
- * 
+ * Componentes de Formulario HTML (Color Picker + Checkbox Switch).
+ * Refactorizado con soporte táctil completo (Pointer Events + Bottom-Sheet móvil),
+ * corrección de bugs de posicionamiento/HSL, tokens CSS (--ui-*) y modo oscuro [data-theme="dark"].
+ *
  * @function formComponents
- * @description Inicializa comportamientos especiales de los componentes de formulario,
- *              como la personalización y posicionamiento dinámico de selectores de color.
+ * @returns {void}
  */
-export function formComponents() {
-  
-  // 1. Inyectar estilos CSS para normalizar input[type="color"] y para el Custom Color Picker
-  if (!document.getElementById('default-color-picker-styles')) {
-    const style = document.createElement('style');
-    style.id = 'default-color-picker-styles';
-    style.textContent = `
-      input[type="color"].color-picker {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        outline: none;
-      }
-      input[type="color"].color-picker::-webkit-color-swatch-wrapper {
-        padding: 0;
-      }
-      input[type="color"].color-picker::-webkit-color-swatch {
-        border: none;
-        border-radius: inherit;
-        box-shadow: inherit;
-      }
-      input[type="color"].color-picker::-moz-color-swatch {
-        border: none;
-        border-radius: inherit;
-        box-shadow: inherit;
-      }
 
-      /* Estilos para el Selector de Color Personalizado (Popover) */
-      .custom-color-picker-popover {
-        position: fixed;
-        z-index: 1000300;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        animation: pickerFadeIn 0.2s ease-out;
-        font-family: inherit;
-      }
-      
-      /* Estilos base con especificidad 0 para facilitar la sobreescritura */
-      :where(.custom-color-picker-popover) {
-        width: 240px;
-        background: #ffffff;
-        border: 1px solid #dcdcdc;
-        padding: 15px;
-        border-radius: 15px;
-      }
-      :where(.dark-mode) :where(.custom-color-picker-popover) {
-        background: #1e1e1e;
-        border-color: #333333;
-      }
-      @keyframes pickerFadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .custom-picker-swatch {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: transform 0.1s ease, border-color 0.1s ease;
-      }
-      .custom-picker-swatch:hover {
-        transform: scale(1.1);
-      }
-      .custom-picker-swatch.active {
-        border-color: #007bff;
-        transform: scale(1.05);
-      }
-      .custom-hue-slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 12px;
-        border-radius: 6px;
-        background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-        cursor: pointer;
-        outline: none;
-        border: none;
-      }
-      .custom-hue-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #ffffff;
-        border: 2px solid #555;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
-      .custom-lightness-slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 12px;
-        border-radius: 6px;
-        background: linear-gradient(to right, #000000, #808080, #ffffff);
-        cursor: pointer;
-        outline: none;
-        border: none;
-      }
-      .custom-lightness-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #ffffff;
-        border: 2px solid #555;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
-      .custom-saturation-slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 12px;
-        border-radius: 6px;
-        background: linear-gradient(to right, #808080, #ff0000);
-        cursor: pointer;
-        outline: none;
-        border: none;
-      }
-      .custom-saturation-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #ffffff;
-        border: 2px solid #555;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
+export function colorPicker() {
+  if (window.__fmeColorPickerBound) return;
+  window.__fmeColorPickerBound = true;
 
-      /* Estilos para el Checkbox Switch */
-      .checkbox-switch-container {
-        display: inline-flex;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-        vertical-align: middle;
-      }
-      .checkbox-switch-track {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 24px;
-        background-color: #e0e0e0;
-        border-radius: 12px;
-        transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid #dcdcdc;
-      }
-      .checkbox-switch-thumb {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
-      }
-      input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track {
-        background-color: #4cd964;
-        border-color: #4cd964;
-      }
-      input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track .checkbox-switch-thumb {
-        transform: translateX(20px);
-      }
-      .dark-mode .checkbox-switch-track {
-        background-color: #333333;
-        border-color: #444444;
-      }
-      .dark-mode input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track {
-        background-color: #30d158;
-        border-color: #30d158;
-      }
-    `;
-    document.head.appendChild(style);
-  }
+  const ui = window.FmeUi || null;
+  const tr = (k, p, f) => (ui ? ui.t(k, p, f) : (typeof window.t === 'function' ? window.t(k, p, f) : f));
 
-  // 2. Procesar atributos style-color en inputs de tipo color
-  function styleColorPickers() {
-    const colorPickers = document.querySelectorAll('input[type="color"].color-picker');
-    colorPickers.forEach(input => {
-      // Clases para el propio input (círculo de color)
-      const styleClasses = input.getAttribute('style-color') || input.dataset.styleColor || '';
-      if (styleClasses) {
-        styleClasses.split(' ').forEach(cls => {
-          if (cls.trim() && !input.classList.contains(cls.trim())) {
-            input.classList.add(cls.trim());
-          }
-        });
-      }
-    });
-  }
+  const defaultPresets = [
+    '#FF4B4B', '#FF8E53', '#FFD369', '#4E9F3D', '#17B978',
+    '#3F72AF', '#3D84B8', '#3F51B5', '#8A39E1', '#D1345B',
+    '#111111', '#555555', '#888888', '#CCCCCC', '#FFFFFF'
+  ];
 
-  // 2b. Inicializar switches de tipo checkbox
-  function initCheckboxSwitches() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])');
-    checkboxes.forEach(input => {
-      input.setAttribute('data-switch-initialized', 'true');
-      
-      // Ocultar el checkbox original
-      input.style.display = 'none';
-      
-      // Parsear opciones (data-option="true,false")
-      const optionsAttr = input.getAttribute('data-option') || 'true,false';
-      const options = optionsAttr.split(',').map(opt => opt.trim());
-      const valActive = options[0] || 'true';    // ON (Checked, active="1")
-      const valInactive = options[1] || 'false'; // OFF (Unchecked, active="2")
-      
-      // Leer active actual
-      let active = input.getAttribute('active') || '1';
-      
-      // Configurar estado inicial
-      if (active === '1') {
-        input.checked = true;
-        input.value = valActive;
-      } else {
-        input.checked = false;
-        input.value = valActive; // El valor del input cuando está marcado
-      }
-      
-      // Crear input oculto previo para enviar el valor inactivo si está unchecked
-      let hiddenInput = null;
-      if (input.name) {
-        // Buscar si ya existe el input oculto (para evitar duplicados en actualizaciones)
-        let existingHidden = input.previousElementSibling;
-        if (existingHidden && existingHidden.tagName === 'INPUT' && existingHidden.type === 'hidden' && existingHidden.name === input.name) {
-          hiddenInput = existingHidden;
-        } else {
-          hiddenInput = document.createElement('input');
-          hiddenInput.type = 'hidden';
-          hiddenInput.name = input.name;
-          input.parentNode.insertBefore(hiddenInput, input);
-        }
-        hiddenInput.value = valInactive;
-        hiddenInput.disabled = input.checked;
-      }
-      
-      // Crear la estructura visual del switch
-      const wrapper = document.createElement('label');
-      wrapper.className = 'checkbox-switch-container';
-      
-      const track = document.createElement('span');
-      track.className = 'checkbox-switch-track';
-      
-      const thumb = document.createElement('span');
-      thumb.className = 'checkbox-switch-thumb';
-      
-      track.appendChild(thumb);
-      
-      // Insertar wrapper en lugar del input, e introducir el input y track dentro del wrapper
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-      wrapper.appendChild(track);
-      
-      // Evento de cambio
-      input.addEventListener('change', () => {
-        if (input.checked) {
-          input.setAttribute('active', '1');
-          if (hiddenInput) {
-            hiddenInput.disabled = true;
-          }
-        } else {
-          input.setAttribute('active', '2');
-          if (hiddenInput) {
-            hiddenInput.disabled = false;
-          }
-        }
-      });
-    });
-  }
-
-  // Inicializar componentes existentes
-  styleColorPickers();
-  initCheckboxSwitches();
-
-  document.addEventListener('previewUpdated', () => {
-    styleColorPickers();
-    initCheckboxSwitches();
-  });
-
-  // 3. Funciones Helper para conversión HSL y HEX
   function hslToHex(h, s, l) {
     l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
-    const f = n => {
+    const a = (s * Math.min(l, 1 - l)) / 100;
+    const f = (n) => {
       const k = (n + h / 30) % 12;
       const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
       return Math.round(255 * color).toString(16).padStart(2, '0');
     };
-    return `#${f(0)}${f(8)}${f(4)}`;
+    return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
   }
 
   function hexToHsl(hex) {
-    let r = parseInt(hex.slice(1, 3), 16) / 255;
-    let g = parseInt(hex.slice(3, 5), 16) / 255;
-    let b = parseInt(hex.slice(5, 7), 16) / 255;
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max === min) {
-      h = s = 0;
-    } else {
-      let d = max - min;
+    const clean = hex.replace('#', '').slice(0, 6);
+    const r = parseInt(clean.slice(0, 2), 16) / 255;
+    const g = parseInt(clean.slice(2, 4), 16) / 255;
+    const b = parseInt(clean.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
         case r: h = (g - b) / d + (g < b ? 6 : 0); break;
@@ -330,366 +55,527 @@ export function formComponents() {
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
   }
 
-  // Actualizar la vista previa en vivo en el cliente
+  function styleColorPickers() {
+    document.querySelectorAll('input[type="color"].color-picker:not([data-cp-styled])').forEach((input) => {
+      input.dataset.cpStyled = 'true';
+      const styleClasses = input.getAttribute('style-color') || input.getAttribute('ui-trigger') || input.dataset.styleColor || '';
+      if (styleClasses) {
+        styleClasses.split(/\s+/).filter(Boolean).forEach((cls) => input.classList.add(cls));
+      }
+      if (/^#[0-9a-f]{3,8}$/i.test(input.value || '')) {
+        input.style.backgroundColor = input.value;
+      }
+      input.addEventListener('fme:renderInlinePreview', (ev) => {
+        if (ev.detail?.host) {
+          openCustomColorPicker(input, input, { inlineHost: ev.detail.host });
+        }
+      });
+    });
+  }
+
   function updateLivePreviewColor(name, hex, inputElement = null) {
     if (!name || !hex) return;
+
+    const liveTargetSel = inputElement?.getAttribute('data-live-target');
+    if (liveTargetSel) {
+      const prop = inputElement.getAttribute('data-live-prop') || 'backgroundColor';
+      document.querySelectorAll(liveTargetSel).forEach((el) => {
+        el.style[prop] = hex;
+      });
+    }
+
     const preview = document.querySelector('.user-profile-preview');
     if (!preview) return;
 
     if (name === 'back_perfil') {
-      preview.querySelectorAll('.back-card').forEach(el => {
-        el.style.backgroundColor = hex;
-      });
-      preview.querySelectorAll('.back-card-container').forEach(el => {
+      preview.querySelectorAll('.back-card, .back-card-container').forEach((el) => {
         el.style.backgroundColor = hex;
       });
     } else if (name === 'colorText') {
-      preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini, p, .color-text').forEach(el => {
-        if (!el.closest('.theme-button')) {
-          el.style.color = hex;
-        }
+      preview.querySelectorAll('.desc-hero-regular, .desc-hero-big, .desc-hero-mini, p, .color-text').forEach((el) => {
+        if (!el.closest('.theme-button')) el.style.color = hex;
       });
     } else if (name === 'titleColor') {
-      preview.querySelectorAll('.title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach(el => {
+      preview.querySelectorAll('.title-hero-regular, .title-hero-big, .title-hero-mini, h1, h2, h3').forEach((el) => {
         el.style.color = hex;
       });
     } else if (name === 'back') {
-      preview.querySelectorAll('.theme-button').forEach(el => {
+      preview.querySelectorAll('.theme-button').forEach((el) => {
         el.style.backgroundColor = hex;
       });
     } else if (name === 'color') {
-      preview.querySelectorAll('.theme-button').forEach(el => {
+      preview.querySelectorAll('.theme-button').forEach((el) => {
         el.style.color = hex;
       });
     }
   }
 
-  // Paleta de colores predefinida premium (pasteles, primarios y neutros)
-  const presetColors = [
-    '#FF4B4B', '#FF8E53', '#FFD369', '#4E9F3D', '#17B978',
-    '#3F72AF', '#3D84B8', '#3F51B5', '#8A39E1', '#D1345B',
-    '#111111', '#555555', '#888888', '#CCCCCC', '#FFFFFF'
-  ];
-
   let activePopover = null;
+  let activeBackdrop = null;
   let activeInput = null;
 
-  // Cerrar selector de color y confirmar cambios
   function closeActivePopover(confirm = false) {
     if (!activePopover) return;
-    
     const inputRef = activeInput;
     const popoverRef = activePopover;
+    const backdropRef = activeBackdrop;
 
     activePopover = null;
     activeInput = null;
+    activeBackdrop = null;
 
-    if (popoverRef && popoverRef.parentNode) {
-      popoverRef.parentNode.removeChild(popoverRef);
-    }
+    if (popoverRef && popoverRef.parentNode) popoverRef.parentNode.removeChild(popoverRef);
+    if (backdropRef && backdropRef.parentNode) backdropRef.parentNode.removeChild(backdropRef);
 
     if (confirm && inputRef) {
       const currentInput = inputRef.id ? (document.getElementById(inputRef.id) || inputRef) : inputRef;
       const labelText = currentInput.closest('label')?.querySelector('p, span');
-      if (labelText && currentInput.value) {
-        labelText.textContent = currentInput.value;
-      }
-      // Disparar evento de cambio definitivo (indispensable para auto-submit)
-      const changeEvent = new Event('change', { bubbles: true });
-      currentInput.dispatchEvent(changeEvent);
+      if (labelText && currentInput.value) labelText.textContent = currentInput.value;
+      currentInput.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 
-  // Abrir selector de color personalizado
-  function openCustomColorPicker(input, trigger) {
-    if (activePopover && activeInput === input) {
+  function createColorTrack(initialPct, gradientCss, onRatio) {
+    const track = document.createElement('div');
+    track.className = 'ui-color-track';
+    track.style.background = gradientCss;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'ui-color-track-thumb';
+    thumb.style.left = `${Math.max(0, Math.min(100, initialPct))}%`;
+    track.appendChild(thumb);
+
+    const setRatio = (r) => {
+      thumb.style.left = `${Math.round(r * 1000) / 10}%`;
+      onRatio(r);
+    };
+
+    if (ui && typeof ui.bindDragValue === 'function') {
+      ui.bindDragValue(track, setRatio);
+    } else {
+      track.addEventListener('pointerdown', (e) => {
+        const rect = track.getBoundingClientRect();
+        const r = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        setRatio(r);
+      });
+    }
+
+    return { track, thumb };
+  }
+
+  function openCustomColorPicker(input, trigger, options = {}) {
+    const inlineHost = options.inlineHost || null;
+    const isInline = !!inlineHost;
+
+    if (!isInline && activePopover && activeInput === input) {
       closeActivePopover(true);
       return;
     }
 
-    closeActivePopover(true);
-
-    activeInput = input;
+    if (!isInline) {
+      closeActivePopover(true);
+      activeInput = input;
+    }
     const inputId = input.id;
+    const showAlpha = input.getAttribute('data-alpha') === 'true';
+    const customSwatchesRaw = input.getAttribute('data-swatches') || '';
+    const palette = customSwatchesRaw
+      ? customSwatchesRaw.split(',').map((c) => c.trim()).filter((c) => /^#[0-9a-f]{3,8}$/i.test(c))
+      : defaultPresets;
 
     function getLiveInput() {
       if (inputId) {
         const live = document.getElementById(inputId);
         if (live) return live;
       }
-      return activeInput || input;
+      return input;
     }
 
-    // Crear contenedor del popover
     const popover = document.createElement('div');
-    popover.className = 'custom-color-picker-popover';
-    
-    // Obtener clases personalizadas de style-box y aplicarlas al popover
-    const boxClasses = input.getAttribute('style-box') || input.dataset.styleBox || '';
+    popover.className = isInline
+      ? 'custom-color-picker-popover ui-popover is-inline-preview'
+      : 'custom-color-picker-popover ui-popover';
+    if (ui) ui.copyUiVars(input, popover);
+
+    const boxClasses = input.getAttribute('ui-surface') || input.getAttribute('style-box') || input.dataset.styleBox || '';
     if (boxClasses) {
-      boxClasses.split(' ').forEach(cls => {
-        if (cls.trim()) {
-          popover.classList.add(cls.trim());
-        }
-      });
+      if (ui) ui.applyClasses(popover, boxClasses);
+      else boxClasses.split(/\s+/).filter(Boolean).forEach((cls) => popover.classList.add(cls));
     }
-    
-    // Evitar burbujeo al hacer clic dentro del popover
+
     popover.addEventListener('click', (e) => e.stopPropagation());
+    popover.addEventListener('pointerdown', (e) => e.stopPropagation());
+    if (ui) popover.appendChild(ui.createSheetHandle());
 
-    // 1. Grid de colores predefinidos (swatches)
+    let currentValue = (input.value || '#3B82F6').toUpperCase();
+    if (!/^#[0-9A-F]{6}$/i.test(currentValue)) currentValue = '#3B82F6';
+    const hslState = hexToHsl(currentValue);
+    let alphaVal = 100;
+
     const grid = document.createElement('div');
-    grid.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 5px;';
-    
-    let currentValue = (input.value || '#000000').toUpperCase();
-    if (!currentValue.startsWith('#') || currentValue.length !== 7) {
-      currentValue = '#000000';
-    }
+    grid.className = 'ui-color-grid';
 
-    presetColors.forEach(color => {
-      const swatch = document.createElement('div');
-      swatch.className = 'custom-picker-swatch';
-      swatch.style.backgroundColor = color;
-      if (color === currentValue) {
-        swatch.classList.add('active');
+    const syncUiState = (hex, emitLive = true) => {
+      const liveInput = getLiveInput();
+      const baseHex = hex.slice(0, 7).toUpperCase();
+      liveInput.value = baseHex;
+      liveInput.style.backgroundColor = baseHex;
+      if (showAlpha) liveInput.dataset.alpha = String(alphaVal);
+
+      const displayColor = showAlpha && alphaVal < 100
+        ? `color-mix(in srgb, ${baseHex} ${alphaVal}%, transparent)`
+        : baseHex;
+
+      hexInput.value = baseHex;
+      preview.style.background = displayColor;
+
+      const labelText = liveInput.closest('label')?.querySelector('p, span');
+      if (labelText) labelText.textContent = baseHex;
+
+      satTrackObj.track.style.background = `linear-gradient(to right, ${hslToHex(hslState.h, 0, hslState.l)}, ${hslToHex(hslState.h, 100, hslState.l)})`;
+      lightTrackObj.track.style.background = `linear-gradient(to right, ${hslToHex(hslState.h, hslState.s, 0)}, ${hslToHex(hslState.h, hslState.s, 50)}, ${hslToHex(hslState.h, hslState.s, 100)})`;
+      if (alphaTrackObj) {
+        alphaTrackObj.track.style.background = `linear-gradient(to right, transparent, ${baseHex})`;
       }
 
+      updateLivePreviewColor(liveInput.name, baseHex, liveInput);
+      if (emitLive) liveInput.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    (palette.length ? palette : defaultPresets).forEach((color) => {
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.className = 'custom-picker-swatch';
+      swatch.style.backgroundColor = color;
+      swatch.setAttribute('aria-label', color);
+      if (color.toUpperCase() === currentValue) swatch.classList.add('active');
+
       swatch.addEventListener('click', () => {
-        popover.querySelectorAll('.custom-picker-swatch').forEach(s => s.classList.remove('active'));
+        popover.querySelectorAll('.custom-picker-swatch').forEach((s) => s.classList.remove('active'));
         swatch.classList.add('active');
-        
-        const liveInput = getLiveInput();
-
-        // Actualizar inputs y sliders
-        liveInput.value = color;
-        hexInput.value = color;
-        preview.style.backgroundColor = color;
-
-        const labelText = liveInput.closest('label')?.querySelector('p, span');
-        if (labelText) {
-          labelText.textContent = color;
-        }
-
-        const hsl = hexToHsl(color);
-        hueSlider.value = hsl.h;
-        satSlider.value = hsl.s;
-        lightSlider.value = hsl.l;
-        satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
-        lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
-
-        updateLivePreviewColor(liveInput.name, color, liveInput);
-
-        // Disparar evento input para cambios en tiempo real
-        const inputEvent = new Event('input', { bubbles: true });
-        liveInput.dispatchEvent(inputEvent);
+        const parsed = hexToHsl(color);
+        hslState.h = parsed.h;
+        hslState.s = parsed.s;
+        hslState.l = parsed.l;
+        hueTrackObj.thumb.style.left = `${(hslState.h / 360) * 100}%`;
+        satTrackObj.thumb.style.left = `${hslState.s}%`;
+        lightTrackObj.thumb.style.left = `${hslState.l}%`;
+        syncUiState(color, true);
       });
-
       grid.appendChild(swatch);
     });
-
     popover.appendChild(grid);
 
-    // 2. Sliders de espectro cromático HSL
     const slidersContainer = document.createElement('div');
-    slidersContainer.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+    slidersContainer.className = 'ui-color-slider-group';
 
-    const hslStart = hexToHsl(currentValue);
-
-    // Tono (Hue)
     const hueLabel = document.createElement('div');
-    hueLabel.className = 'x12 bold500 textb';
-    hueLabel.textContent = typeof t === 'function' ? t('hue', {}, 'Tono') : 'Tono';
+    hueLabel.className = 'ui-color-label';
+    hueLabel.textContent = tr('hue', {}, 'Tono');
     slidersContainer.appendChild(hueLabel);
 
-    const hueSlider = document.createElement('input');
-    hueSlider.type = 'range';
-    hueSlider.className = 'custom-hue-slider';
-    hueSlider.min = '0';
-    hueSlider.max = '360';
-    hueSlider.value = hslStart.h;
-    slidersContainer.appendChild(hueSlider);
+    const hueTrackObj = createColorTrack(
+      (hslState.h / 360) * 100,
+      'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
+      (r) => {
+        hslState.h = Math.round(r * 360);
+        popover.querySelectorAll('.custom-picker-swatch').forEach((s) => s.classList.remove('active'));
+        syncUiState(hslToHex(hslState.h, hslState.s, hslState.l), true);
+      }
+    );
+    slidersContainer.appendChild(hueTrackObj.track);
 
-    // Saturación (Saturation)
     const satLabel = document.createElement('div');
-    satLabel.className = 'x12 bold500 textb';
-    satLabel.textContent = typeof t === 'function' ? t('saturation', {}, 'Saturación') : 'Saturación';
+    satLabel.className = 'ui-color-label';
+    satLabel.textContent = tr('saturation', {}, 'Saturación');
     slidersContainer.appendChild(satLabel);
 
-    const satSlider = document.createElement('input');
-    satSlider.type = 'range';
-    satSlider.className = 'custom-saturation-slider';
-    satSlider.min = '0';
-    satSlider.max = '100';
-    satSlider.value = hslStart.s;
-    satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hslStart.h, 0, hslStart.l)}, ${hslToHex(hslStart.h, 100, hslStart.l)})`;
-    slidersContainer.appendChild(satSlider);
+    const satTrackObj = createColorTrack(
+      hslState.s,
+      `linear-gradient(to right, ${hslToHex(hslState.h, 0, hslState.l)}, ${hslToHex(hslState.h, 100, hslState.l)})`,
+      (r) => {
+        hslState.s = Math.round(r * 100);
+        popover.querySelectorAll('.custom-picker-swatch').forEach((s) => s.classList.remove('active'));
+        syncUiState(hslToHex(hslState.h, hslState.s, hslState.l), true);
+      }
+    );
+    slidersContainer.appendChild(satTrackObj.track);
 
-    // Luminosidad (Lightness)
     const lightLabel = document.createElement('div');
-    lightLabel.className = 'x12 bold500 textb';
-    lightLabel.textContent = typeof t === 'function' ? t('lightness', {}, 'Brillo') : 'Brillo';
+    lightLabel.className = 'ui-color-label';
+    lightLabel.textContent = tr('lightness', {}, 'Brillo');
     slidersContainer.appendChild(lightLabel);
-    
-    const lightSlider = document.createElement('input');
-    lightSlider.type = 'range';
-    lightSlider.className = 'custom-lightness-slider';
-    lightSlider.min = '5';
-    lightSlider.max = '95';
-    lightSlider.value = hslStart.l;
-    lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hslStart.h, hslStart.s, 0)}, ${hslToHex(hslStart.h, hslStart.s, 50)}, ${hslToHex(hslStart.h, hsl.s, 100)})`;
-    slidersContainer.appendChild(lightSlider);
 
-    // 3. Footer con Preview y Campo Hexadecimal
+    const lightTrackObj = createColorTrack(
+      hslState.l,
+      `linear-gradient(to right, ${hslToHex(hslState.h, hslState.s, 0)}, ${hslToHex(hslState.h, hslState.s, 50)}, ${hslToHex(hslState.h, hslState.s, 100)})`,
+      (r) => {
+        hslState.l = Math.round(5 + r * 90);
+        popover.querySelectorAll('.custom-picker-swatch').forEach((s) => s.classList.remove('active'));
+        syncUiState(hslToHex(hslState.h, hslState.s, hslState.l), true);
+      }
+    );
+    slidersContainer.appendChild(lightTrackObj.track);
+
+    let alphaTrackObj = null;
+    if (showAlpha) {
+      const alphaLabel = document.createElement('div');
+      alphaLabel.className = 'ui-color-label';
+      alphaLabel.textContent = tr('opacity', {}, 'Opacidad');
+      slidersContainer.appendChild(alphaLabel);
+
+      const alphaChecker = document.createElement('div');
+      alphaChecker.className = 'ui-color-alpha-checker';
+      alphaChecker.style.borderRadius = '999px';
+      alphaTrackObj = createColorTrack(
+        alphaVal,
+        `linear-gradient(to right, transparent, ${currentValue})`,
+        (r) => {
+          alphaVal = Math.round(r * 100);
+          syncUiState(hslToHex(hslState.h, hslState.s, hslState.l), true);
+        }
+      );
+      alphaChecker.appendChild(alphaTrackObj.track);
+      slidersContainer.appendChild(alphaChecker);
+    }
+
+    popover.appendChild(slidersContainer);
+
     const footer = document.createElement('div');
-    footer.style.cssText = 'display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 8px;';
+    footer.className = 'ui-color-footer';
 
     const preview = document.createElement('div');
-    preview.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; flex-shrink: 0;';
+    preview.className = 'ui-color-preview-dot';
     preview.style.backgroundColor = currentValue;
 
     const hexInput = document.createElement('input');
     hexInput.type = 'text';
-    hexInput.className = 'textb p5 br5 border text-center x14 w100';
-    hexInput.style.cssText = 'text-transform: uppercase; max-width: 90px;';
+    hexInput.className = 'ui-hex-input';
     hexInput.value = currentValue;
+    hexInput.maxLength = 7;
 
-    function updateColorFromSliders() {
-      const liveInput = getLiveInput();
-      const h = parseInt(hueSlider.value);
-      const s = parseInt(satSlider.value);
-      const l = parseInt(lightSlider.value);
-
-      // Actualizar degradados de saturación y brillo basados en la selección
-      satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(h, 0, l)}, ${hslToHex(h, 100, l)})`;
-      lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(h, s, 0)}, ${hslToHex(h, s, 50)}, ${hslToHex(h, s, 100)})`;
-
-      const hex = hslToHex(h, s, l).toUpperCase();
-      liveInput.value = hex;
-      hexInput.value = hex;
-      preview.style.backgroundColor = hex;
-
-      const labelText = liveInput.closest('label')?.querySelector('p, span');
-      if (labelText) {
-        labelText.textContent = hex;
-      }
-
-      // Quitar marcador activo de la paleta
-      popover.querySelectorAll('.custom-picker-swatch').forEach(s => s.classList.remove('active'));
-
-      updateLivePreviewColor(liveInput.name, hex, liveInput);
-
-      // Disparar evento input para cambios en tiempo real
-      const inputEvent = new Event('input', { bubbles: true });
-      liveInput.dispatchEvent(inputEvent);
-    }
-
-    hueSlider.addEventListener('input', updateColorFromSliders);
-    satSlider.addEventListener('input', updateColorFromSliders);
-    lightSlider.addEventListener('input', updateColorFromSliders);
-
-    // Input manual por texto
     hexInput.addEventListener('input', () => {
-      let hex = hexInput.value;
+      let hex = hexInput.value.trim();
       if (!hex.startsWith('#')) hex = '#' + hex;
       if (/^#[0-9A-F]{6}$/i.test(hex)) {
-        const liveInput = getLiveInput();
-        liveInput.value = hex;
-        preview.style.backgroundColor = hex;
-
-        const labelText = liveInput.closest('label')?.querySelector('p, span');
-        if (labelText) {
-          labelText.textContent = hex;
-        }
-
-        const hsl = hexToHsl(hex);
-        hueSlider.value = hsl.h;
-        satSlider.value = hsl.s;
-        lightSlider.value = hsl.l;
-        satSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, 0, hsl.l)}, ${hslToHex(hsl.h, 100, hsl.l)})`;
-        lightSlider.style.backgroundImage = `linear-gradient(to right, ${hslToHex(hsl.h, hsl.s, 0)}, ${hslToHex(hsl.h, hsl.s, 50)}, ${hslToHex(hsl.h, hsl.s, 100)})`;
-
-        updateLivePreviewColor(liveInput.name, hex, liveInput);
-
-        const inputEvent = new Event('input', { bubbles: true });
-        liveInput.dispatchEvent(inputEvent);
+        const parsed = hexToHsl(hex);
+        hslState.h = parsed.h;
+        hslState.s = parsed.s;
+        hslState.l = parsed.l;
+        hueTrackObj.thumb.style.left = `${(hslState.h / 360) * 100}%`;
+        satTrackObj.thumb.style.left = `${hslState.s}%`;
+        lightTrackObj.thumb.style.left = `${hslState.l}%`;
+        syncUiState(hex.toUpperCase(), true);
       }
     });
 
-    popover.appendChild(slidersContainer);
+    const btnClasses = ['ui-btn', 'ui-btn-primary'];
+    const customBtnCls = input.getAttribute('ui-btn-primary') || input.getAttribute('ui-btn-save') || '';
+    if (customBtnCls) btnClasses.push(...customBtnCls.split(/\s+/).filter(Boolean));
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.type = 'button';
+    acceptBtn.className = btnClasses.join(' ');
+    acceptBtn.style.minHeight = '38px';
+    acceptBtn.style.padding = '6px 14px';
+    acceptBtn.textContent = tr('accept', {}, 'Aceptar');
+    acceptBtn.addEventListener('click', () => {
+      if (isInline) {
+        getLiveInput().dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+      }
+      closeActivePopover(true);
+    });
+
     footer.appendChild(preview);
     footer.appendChild(hexInput);
-
-    // Botón Aceptar
-    const acceptBtn = document.createElement('button');
-    acceptBtn.className = 'btn-success p5 br5 x14 textw pointer';
-    acceptBtn.style.cssText = 'padding: 6px 12px; border: none; font-weight: 500;';
-    acceptBtn.textContent = typeof t === 'function' ? t('accept', {}, 'Aceptar') : 'Aceptar';
-    acceptBtn.addEventListener('click', () => closeActivePopover(true));
     footer.appendChild(acceptBtn);
-
     popover.appendChild(footer);
 
-    // Añadir al DOM
+    if (isInline) {
+      inlineHost.innerHTML = '';
+      inlineHost.appendChild(popover);
+      return;
+    }
+
     document.body.appendChild(popover);
 
-    // Posicionar el popover relativo al trigger
-    const rect = trigger.getBoundingClientRect();
-    let top = rect.bottom + window.scrollY + 8;
-    let left = rect.left + window.scrollX;
-
-    // Ajustes por si se desborda de la pantalla
-    if (left + 240 > window.innerWidth) {
-      left = window.innerWidth - 250;
+    if (ui && typeof ui.positionFloating === 'function') {
+      const pos = ui.positionFloating(popover, trigger, {
+        sourceEl: input,
+        fallbackWidth: 272,
+        fallbackHeight: 350,
+        onBackdropClick: () => closeActivePopover(true)
+      });
+      activeBackdrop = pos.backdrop;
+    } else {
+      const rect = trigger.getBoundingClientRect();
+      let top = rect.bottom + 8;
+      let left = rect.left;
+      if (left + 272 > window.innerWidth) left = Math.max(10, window.innerWidth - 282);
+      if (top + 350 > window.innerHeight && rect.top - 350 > 10) top = rect.top - 350;
+      popover.style.top = `${top}px`;
+      popover.style.left = `${left}px`;
     }
-    if (top + 340 > window.innerHeight + window.scrollY) {
-      top = rect.top + window.scrollY - 360; // Colocar arriba si no cabe abajo
-    }
-
-    popover.style.top = `${top}px`;
-    popover.style.left = `${left}px`;
 
     activePopover = popover;
   }
 
-  // 4. Interceptar clics globales en disparadores y labels
   document.addEventListener('click', (e) => {
-    // Si hace clic dentro del popover activo, ignorar
-    if (e.target.closest('.custom-color-picker-popover')) {
-      return;
-    }
+    if (e.target.closest('.custom-color-picker-popover')) return;
 
-    // Si hace clic en un label o disparador de color picker
     const trigger = e.target.closest('label, [data-trigger-color], input[type="color"].color-picker');
-    
-    // Si no hizo clic en el picker o en su disparador, y hay un popover abierto, cerrarlo
     if (!trigger) {
-      if (activePopover) {
-        closeActivePopover(true);
-      }
+      if (activePopover) closeActivePopover(true);
       return;
     }
 
     let colorInput = null;
-    let targetElement = trigger;
-
     if (trigger.tagName === 'INPUT' && trigger.type === 'color') {
       colorInput = trigger;
     } else if (trigger.tagName === 'LABEL') {
       const forId = trigger.getAttribute('for');
       colorInput = forId ? document.getElementById(forId) : trigger.querySelector('input[type="color"]');
     } else {
-      const inputId = trigger.getAttribute('data-trigger-color');
-      colorInput = document.getElementById(inputId);
+      colorInput = document.getElementById(trigger.getAttribute('data-trigger-color'));
     }
 
-    // Si encontramos un input de color elegible que use nuestra clase color-picker
     if (colorInput && colorInput.classList.contains('color-picker')) {
-      e.preventDefault(); // Cancelar el selector nativo del navegador
-      openCustomColorPicker(colorInput, targetElement);
-    } else {
-      if (activePopover) {
-        closeActivePopover(true);
-      }
+      e.preventDefault();
+      openCustomColorPicker(colorInput, trigger);
+    } else if (activePopover) {
+      closeActivePopover(true);
     }
   });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && activePopover) closeActivePopover(false);
+  });
+
+  if (ui && typeof ui.observeDynamic === 'function') {
+    ui.observeDynamic(styleColorPickers);
+  } else {
+    styleColorPickers();
+    document.addEventListener('previewUpdated', styleColorPickers);
+  }
+}
+
+export function switchInput() {
+  if (window.__fmeSwitchInputBound) return;
+  window.__fmeSwitchInputBound = true;
+
+  const ui = window.FmeUi || null;
+
+  function initCheckboxSwitches() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"].checkbox-switch:not([data-switch-initialized])');
+    checkboxes.forEach((input) => {
+      input.setAttribute('data-switch-initialized', 'true');
+      input.style.display = 'none';
+
+      const optionsAttr = input.getAttribute('data-option') || 'true,false';
+      const options = optionsAttr.split(',').map((opt) => opt.trim());
+      const valActive = options[0] || 'true';
+      const valInactive = options[1] || 'false';
+      const active = input.getAttribute('active') || '1';
+
+      input.checked = active === '1';
+      input.value = valActive;
+
+      let hiddenInput = null;
+      if (input.name) {
+        const existingHidden = input.previousElementSibling;
+        if (
+          existingHidden &&
+          existingHidden.tagName === 'INPUT' &&
+          existingHidden.type === 'hidden' &&
+          existingHidden.name === input.name
+        ) {
+          hiddenInput = existingHidden;
+        } else {
+          hiddenInput = document.createElement('input');
+          hiddenInput.type = 'hidden';
+          hiddenInput.name = input.name;
+          input.parentNode.insertBefore(hiddenInput, input);
+        }
+        hiddenInput.value = valInactive;
+        hiddenInput.disabled = input.checked;
+      }
+
+      const sizeAttr = (input.getAttribute('ui-size') || 'md').toLowerCase();
+      const sizeClass = sizeAttr === 'sm' ? 'switch-sm' : (sizeAttr === 'lg' ? 'switch-lg' : '');
+
+      const wrapper = document.createElement('label');
+      wrapper.className = `checkbox-switch-container ${sizeClass}`.trim();
+      wrapper.setAttribute('role', 'switch');
+      wrapper.setAttribute('aria-checked', input.checked ? 'true' : 'false');
+      wrapper.setAttribute('tabindex', '0');
+      if (ui) ui.copyUiVars(input, wrapper);
+
+      const track = document.createElement('span');
+      track.className = 'checkbox-switch-track';
+      const thumb = document.createElement('span');
+      thumb.className = 'checkbox-switch-thumb';
+      track.appendChild(thumb);
+
+      const labelOn = input.getAttribute('data-label-on') || '';
+      const labelOff = input.getAttribute('data-label-off') || '';
+      let stateLabel = null;
+      if (labelOn || labelOff) {
+        stateLabel = document.createElement('span');
+        stateLabel.className = 'checkbox-switch-label';
+        stateLabel.textContent = input.checked ? (labelOn || labelOff) : (labelOff || labelOn);
+      }
+
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+      wrapper.appendChild(track);
+      if (stateLabel) wrapper.appendChild(stateLabel);
+
+      const syncState = () => {
+        input.setAttribute('active', input.checked ? '1' : '2');
+        wrapper.setAttribute('aria-checked', input.checked ? 'true' : 'false');
+        if (hiddenInput) hiddenInput.disabled = input.checked;
+        if (stateLabel) stateLabel.textContent = input.checked ? (labelOn || labelOff) : (labelOff || labelOn);
+      };
+
+      input.addEventListener('change', syncState);
+
+      wrapper.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+
+      let swipeStartX = null;
+      wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) swipeStartX = e.touches[0].clientX;
+      }, { passive: true });
+      wrapper.addEventListener('touchend', (e) => {
+        if (swipeStartX === null || !e.changedTouches || !e.changedTouches.length) return;
+        const dx = e.changedTouches[0].clientX - swipeStartX;
+        swipeStartX = null;
+        if (Math.abs(dx) > 16) {
+          const wantChecked = dx > 0;
+          if (input.checked !== wantChecked) {
+            input.checked = wantChecked;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+      }, { passive: true });
+    });
+  }
+
+  if (ui && typeof ui.observeDynamic === 'function') {
+    ui.observeDynamic(initCheckboxSwitches);
+  } else {
+    initCheckboxSwitches();
+    document.addEventListener('previewUpdated', initCheckboxSwitches);
+  }
+}
+
+export function formComponents() {
+  colorPicker();
+  switchInput();
 }

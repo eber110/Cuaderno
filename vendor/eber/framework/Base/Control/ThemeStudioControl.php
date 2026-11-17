@@ -2,6 +2,7 @@
 
 namespace Base\Control;
 
+use Base\Module\FormUiModule;
 use Base\Module\GraphicsModule;
 use Base\Module\SecurityModule;
 use Base\Module\ThemeModule;
@@ -36,6 +37,11 @@ class ThemeStudioControl extends Control
   ];
 
   /**
+   * Lista canónica de los 16 componentes de formulario soportados por FormUiModule.
+   */
+  public const INPUT_TYPES = FormUiModule::COMPONENT_TYPES;
+
+  /**
    * Registra las rutas de desarrollo para Theme Studio si aún no han sido registradas.
    */
   public static function registerRoutes(): void
@@ -51,6 +57,7 @@ class ThemeStudioControl extends Control
     \Core\Route::post('/_frame/theme-studio/set-active', [self::class, 'setActive']);
     \Core\Route::post('/_frame/theme-studio/delete-theme', [self::class, 'deleteThemeEndpoint']);
     \Core\Route::post('/_frame/theme-studio/render-chart', [self::class, 'renderChart']);
+    \Core\Route::post('/_frame/theme-studio/render-input', [self::class, 'renderInput']);
     \Core\Route::get('/_frame/theme-studio/fonts', [self::class, 'fonts']);
     \Core\Route::get('/_frame/theme-studio/icons', [self::class, 'icons']);
   }
@@ -286,6 +293,7 @@ class ThemeStudioControl extends Control
     $fonts = self::getInstalledFonts();
     $projectRoutes = self::getProjectRoutes();
     $chartsAssets = self::getChartsLibraryAssets($basePath);
+    $inputsAssets = self::getInputsStudioAssets($basePath);
     $initialIconsCatalog = self::getIconsCatalog($basePath);
     $initialChartsGlobal = isset($config['charts']) && is_array($config['charts'])
       ? $config['charts']
@@ -298,6 +306,18 @@ class ThemeStudioControl extends Control
       'globalConfig' => $initialChartsGlobal,
       'localParamsByType' => $initialChartsLocalMap,
       'datasetPreset' => 'standard',
+    ]);
+
+    $initialInputsGlobal = isset($config['inputs']) && is_array($config['inputs'])
+      ? $config['inputs']
+      : ThemeModule::getDefaultInputsConfig();
+    $initialInputsLocalMap = isset($initialInputsGlobal['localOverrides']) && is_array($initialInputsGlobal['localOverrides'])
+      ? $initialInputsGlobal['localOverrides']
+      : [];
+    $initialInputsRender = self::renderInputPayload([
+      'type' => 'all',
+      'globalConfig' => $initialInputsGlobal,
+      'localParamsByType' => $initialInputsLocalMap,
     ]);
 
     $viewPath = dirname(__DIR__) . '/Views/themeStudio.php';
@@ -316,8 +336,11 @@ class ThemeStudioControl extends Control
       'projectRoutes' => $projectRoutes,
       'chartsCss' => $chartsAssets['css'],
       'chartsJs' => $chartsAssets['js'],
+      'inputsCss' => $inputsAssets['css'],
+      'inputsJs' => $inputsAssets['js'],
       'initialChartsHtmlMap' => $initialChartsRender['charts'] ?? [],
       'initialChartsSampleData' => $initialChartsRender['sampleData'] ?? [],
+      'initialInputsHtmlMap' => $initialInputsRender['inputs'] ?? [],
       'initialIconsCatalog' => $initialIconsCatalog,
       'rawJson' => json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
       'rawFullJson' => json_encode($fullConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
@@ -1234,6 +1257,362 @@ class ThemeStudioControl extends Control
     }
 
     $result = self::renderChartPayload($data);
+    $status = !empty($result['success']) ? 200 : 400;
+    $this->json($result, $status);
+  }
+
+  /**
+   * Recopila los assets autocontenidos de CSS y JS de componentes UI de formulario
+   * para el laboratorio interactivo (UI / Input Studio) dentro de Theme Studio.
+   *
+   * @param string|null $basePath Directorio base del proyecto (opcional).
+   * @return array{css: string, js: string}
+   */
+  public static function getInputsStudioAssets(?string $basePath = null): array
+  {
+    $base = ThemeModule::resolveBasePath($basePath);
+    $candidates = [
+      $base . '/Resources',
+      $base . '/vendor/eber/framework/Resources',
+    ];
+    if (defined('FRAMEWORK_PATH')) {
+      $candidates[] = rtrim(str_replace('\\', '/', (string)FRAMEWORK_PATH), '/') . '/Resources';
+    }
+
+    $resDir = null;
+    foreach ($candidates as $dir) {
+      if (is_dir($dir) && is_file($dir . '/Css/formComponents.css') && is_file($dir . '/Js/uiFormUtils.js')) {
+        $resDir = $dir;
+        break;
+      }
+    }
+
+    if ($resDir === null) {
+      return ['css' => '', 'js' => ''];
+    }
+
+    $cssParts = [
+      ".selectAndCropImage, .loadImgModern, .file-dropzone { display: none; }",
+      (string)@file_get_contents($resDir . '/Css/formComponents.css'),
+    ];
+    $css = str_ireplace('</style', '<\/style', implode("\n\n", $cssParts));
+
+    $componentFiles = [
+      'cropImage.js' => 'cropImage',
+      'loadImgModern.js' => 'loadImgModern',
+      'formComponents.js' => 'formComponents',
+      'dropdown.js' => 'dropdown',
+      'repeat_camp.js' => 'repeat_camp',
+      'textLimiter.js' => 'textLimiter',
+      'datePicker.js' => 'datePicker',
+      'timePicker.js' => 'timePicker',
+      'rangeSlider.js' => 'rangeSlider',
+      'passwordInput.js' => 'passwordInput',
+      'otpCodeInput.js' => 'otpCodeInput',
+      'tagsInput.js' => 'tagsInput',
+      'stepperInput.js' => 'stepperInput',
+      'ratingInput.js' => 'ratingInput',
+      'fileDropzone.js' => 'fileDropzone',
+    ];
+
+    $bundleParts = [
+      "(function() {\n\"use strict\";",
+      "window.__FmeStudioInits = window.__FmeStudioInits || {};",
+    ];
+
+    $utilsPath = $resDir . '/Js/uiFormUtils.js';
+    if (is_file($utilsPath)) {
+      $utilsCode = str_ireplace('</script', '<\/script', (string)@file_get_contents($utilsPath));
+      $bundleParts[] = "// --- uiFormUtils.js ---\n" . trim($utilsCode);
+    }
+
+    foreach ($componentFiles as $file => $fnName) {
+      $filePath = $resDir . '/Js/Components/' . $file;
+      if (!is_file($filePath)) {
+        continue;
+      }
+      $code = (string)@file_get_contents($filePath);
+      $code = (string)preg_replace('/^\s*import\s+[\s\S]*?from\s+["\'][^"\']+["\'];?\s*$/m', '', $code);
+      $code = (string)preg_replace('/^\s*export\s+\{[\s\S]*?\};?\s*$/m', '', $code);
+      $code = (string)preg_replace('/^\s*export\s+(?=(?:async\s+)?function\b|const\b|let\b|var\b|class\b)/m', '', $code);
+      $code = str_ireplace('</script', '<\/script', $code);
+      $bundleParts[] = "// --- {$file} ---\n(function() {\n" . trim($code) . "\nif (typeof {$fnName} === 'function') { window.__FmeStudioInits['{$fnName}'] = {$fnName}; }\n})();";
+    }
+
+    $bundleParts[] = <<<'JS'
+window.initFormUiComponents = function() {
+  var inits = window.__FmeStudioInits || {};
+  Object.keys(inits).forEach(function(fn) {
+    try { inits[fn](); } catch (err) { console.warn('Input Studio init error [' + fn + ']:', err); }
+  });
+  try {
+    document.dispatchEvent(new Event('previewUpdated'));
+  } catch (_) {}
+};
+})();
+JS;
+
+    return [
+      'css' => $css,
+      'js' => implode("\n\n", $bundleParts),
+    ];
+  }
+
+  /**
+   * Limpia y normaliza parámetros globales/locales de FormUiModule enviados desde Input Studio.
+   *
+   * @param array<string, mixed> $rawParams Parámetros crudos desde el cliente.
+   * @return array<string, mixed>
+   */
+  private static function cleanInputParams(array $rawParams): array
+  {
+    $boolKeys = [
+      'mobileSheet',
+      'wrapContainer',
+      'multiline',
+      'inlineVars',
+      'required',
+      'autoSubmit',
+      'noPreview',
+      'allowRotate',
+      'dropzone',
+      'showAlpha',
+      'checked',
+      'animated',
+      'searchable',
+      'clearable',
+      'showTime',
+      'showPresets',
+      'showTooltip',
+      'showStrength',
+      'allowHalf',
+      'multiple',
+    ];
+    $numKeys = [
+      'radius',
+      'touchSize',
+      'blur',
+      'transition',
+      'maxFiles',
+      'maxSizeMb',
+      'step',
+      'min',
+      'max',
+      'length',
+      'maxTags',
+      'rows',
+      'limit',
+    ];
+    $floatKeys = ['maxSizeMb', 'min', 'max', 'step'];
+
+    $clean = [];
+    foreach ($rawParams as $key => $val) {
+      if (!is_string($key) || !preg_match('/^[a-zA-Z0-9_]+$/', $key)) {
+        continue;
+      }
+      if ($val === null || $val === '') {
+        continue;
+      }
+      if (in_array($key, $boolKeys, true)) {
+        $parsedBool = filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $clean[$key] = $parsedBool ?? (bool)$val;
+        continue;
+      }
+      if (in_array($key, $numKeys, true) && is_numeric($val)) {
+        $f = (float)$val;
+        $clean[$key] = (!in_array($key, $floatKeys, true) || floor($f) == $f) ? (int)$f : $f;
+        continue;
+      }
+      if (is_string($val)) {
+        $clean[$key] = trim($val);
+      } else {
+        $clean[$key] = $val;
+      }
+    }
+
+    return $clean;
+  }
+
+  /**
+   * Construye el snippet PHP equivalente para `_input()` y `FormUiModule::configStyle()`.
+   *
+   * @param string $type Tipo de componente.
+   * @param array<string, mixed> $globalConfig Configuración global.
+   * @param array<string, mixed> $localParams Parámetros locales del componente.
+   * @return array{phpSnippet: string, globalSnippet: string}
+   */
+  private static function buildInputPhpSnippets(string $type, array $globalConfig, array $localParams): array
+  {
+    $exportArr = static function (array $arr, string $indent = '  '): string {
+      if (empty($arr)) {
+        return '[]';
+      }
+      $lines = ['['];
+      foreach ($arr as $k => $v) {
+        $kStr = "'" . addslashes((string)$k) . "'";
+        if (is_bool($v)) {
+          $vStr = $v ? 'true' : 'false';
+        } elseif (is_int($v) || is_float($v)) {
+          $vStr = (string)$v;
+        } else {
+          $vStr = "'" . addslashes((string)$v) . "'";
+        }
+        $lines[] = "{$indent}{$kStr} => {$vStr},";
+      }
+      $lines[] = ']';
+      return implode("\n", $lines);
+    };
+
+    $phpParams = $localParams;
+    unset($phpParams['multiline'], $phpParams['id']);
+    $phpSnippet = empty($phpParams)
+      ? "<?= _input('{$type}') ?>"
+      : "<?= _input('{$type}', " . $exportArr($phpParams, '  ') . ") ?>";
+
+    $defaults = FormUiModule::getDefaultConfig();
+    $diffGlobal = [];
+    foreach ($globalConfig as $k => $v) {
+      if ($k === 'localOverrides') {
+        continue;
+      }
+      if (!array_key_exists($k, $defaults) || $defaults[$k] !== $v) {
+        $diffGlobal[$k] = $v;
+      }
+    }
+    $targetGlobal = !empty($diffGlobal) ? $diffGlobal : $globalConfig;
+    unset($targetGlobal['localOverrides']);
+
+    $globalSnippet = "<?php\nuse Base\\Module\\FormUiModule;\n\nFormUiModule::configStyle(" . $exportArr($targetGlobal, '  ') . ");\n";
+
+    return [
+      'phpSnippet' => $phpSnippet,
+      'globalSnippet' => $globalSnippet,
+    ];
+  }
+
+  /**
+   * Renderiza uno o los 16 componentes de formulario de FormUiModule desde Input Studio.
+   *
+   * @param array<string, mixed> $data Payload con type, globalConfig, localParams, localParamsByType y codeOptions.
+   * @return array{success: bool, type?: string, html?: string, inputs?: array, htmlSnippet?: string, phpSnippet?: string, globalSnippet?: string, message?: string}
+   */
+  public static function renderInputPayload(array $data): array
+  {
+    $type = trim((string)($data['type'] ?? 'all'));
+    if ($type !== 'all' && !in_array($type, self::INPUT_TYPES, true)) {
+      return [
+        'success' => false,
+        'message' => "Tipo de componente no soportado: {$type}",
+      ];
+    }
+
+    $rawGlobal = is_array($data['globalConfig'] ?? null) ? $data['globalConfig'] : [];
+    unset($rawGlobal['localOverrides']);
+    $globalConfig = self::cleanInputParams($rawGlobal);
+    $localParams = is_array($data['localParams'] ?? null) ? self::cleanInputParams($data['localParams']) : [];
+    $localParamsByType = is_array($data['localParamsByType'] ?? null) ? $data['localParamsByType'] : [];
+    $rawCodeOptions = is_array($data['codeOptions'] ?? null) ? $data['codeOptions'] : [];
+    $codeOptions = !empty($rawCodeOptions) ? self::cleanInputParams($rawCodeOptions) : [];
+    $hideLabelExplicit = array_key_exists('label', $rawCodeOptions) && (string)$rawCodeOptions['label'] === '';
+    $activeInput = trim((string)($data['activeInput'] ?? 'cropImage'));
+    if (!in_array($activeInput, self::INPUT_TYPES, true)) {
+      $activeInput = 'cropImage';
+    }
+
+    FormUiModule::resetConfig();
+    try {
+      FormUiModule::configStyle($globalConfig);
+
+      if ($type === 'all') {
+        $inputs = [];
+        $activeSnippetParams = [];
+
+        foreach (self::INPUT_TYPES as $inputType) {
+          $typeLocal = is_array($localParamsByType[$inputType] ?? null)
+            ? self::cleanInputParams($localParamsByType[$inputType])
+            : [];
+          if ($inputType === $activeInput && !empty($localParams)) {
+            $typeLocal = array_merge($typeLocal, $localParams);
+          }
+
+          $previewParams = array_merge([
+            'id' => 'studio_preview_' . $inputType,
+            'inlineVars' => false,
+          ], $typeLocal);
+          $inputs[$inputType] = FormUiModule::render($inputType, $previewParams);
+
+          if ($inputType === $activeInput) {
+            $activeSnippetParams = $typeLocal;
+          }
+        }
+
+        $snippetParams = array_merge($activeSnippetParams, $codeOptions);
+        if ($hideLabelExplicit) {
+          unset($snippetParams['label']);
+        }
+        $phpSnippets = self::buildInputPhpSnippets($activeInput, $globalConfig, $snippetParams);
+
+        return [
+          'success' => true,
+          'type' => 'all',
+          'inputs' => $inputs,
+          'htmlSnippet' => FormUiModule::buildHtmlSnippet($activeInput, $snippetParams),
+          'phpSnippet' => $phpSnippets['phpSnippet'],
+          'globalSnippet' => $phpSnippets['globalSnippet'],
+        ];
+      }
+
+      $typeLocalFromMap = is_array($localParamsByType[$type] ?? null)
+        ? self::cleanInputParams($localParamsByType[$type])
+        : [];
+      $mergedLocal = array_merge($typeLocalFromMap, $localParams);
+      $previewParams = array_merge([
+        'id' => 'studio_preview_' . $type,
+        'inlineVars' => false,
+      ], $mergedLocal);
+      $snippetParams = array_merge($mergedLocal, $codeOptions);
+      if ($hideLabelExplicit) {
+        unset($snippetParams['label']);
+      }
+      $phpSnippets = self::buildInputPhpSnippets($type, $globalConfig, $snippetParams);
+
+      return [
+        'success' => true,
+        'type' => $type,
+        'html' => FormUiModule::render($type, $previewParams),
+        'htmlSnippet' => FormUiModule::buildHtmlSnippet($type, $snippetParams),
+        'phpSnippet' => $phpSnippets['phpSnippet'],
+        'globalSnippet' => $phpSnippets['globalSnippet'],
+      ];
+    } finally {
+      FormUiModule::resetConfig();
+    }
+  }
+
+  /**
+   * Endpoint API para renderizar componentes UI en vivo desde Input Studio (POST /_frame/theme-studio/render-input).
+   */
+  public function renderInput(): void
+  {
+    if (!$this->guardStudioRequest(true)) {
+      return;
+    }
+
+    $rawInput = (string)file_get_contents('php://input');
+    $data = [];
+    if (trim($rawInput) !== '') {
+      $decoded = json_decode($rawInput, true);
+      if (!is_array($decoded)) {
+        $this->json([
+          'success' => false,
+          'message' => 'Formato JSON no válido.'
+        ], 400);
+        return;
+      }
+      $data = $decoded;
+    }
+
+    $result = self::renderInputPayload($data);
     $status = !empty($result['success']) ? 200 : 400;
     $this->json($result, $status);
   }

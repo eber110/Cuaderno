@@ -10,7 +10,33 @@
                 "fontSize": "18px",
                 "widthWindow": "1500px",
                 "scrollbarWidth": "thin",
-                "scrollbarHide": "none"
+                "scrollbarHide": "none",
+                "mediaQueries": [
+                    {
+                        "slug": "phone",
+                        "jit": "sml",
+                        "label": "Móvil (Phone)",
+                        "min": null,
+                        "max": 576,
+                        "query": "(max-width: 576px)"
+                    },
+                    {
+                        "slug": "tablet",
+                        "jit": "mid",
+                        "label": "Tablet",
+                        "min": 577,
+                        "max": 992,
+                        "query": "(min-width: 577px) and (max-width: 992px)"
+                    },
+                    {
+                        "slug": "desk",
+                        "jit": "desk",
+                        "label": "Escritorio (Desktop)",
+                        "min": 993,
+                        "max": null,
+                        "query": "(min-width: 993px)"
+                    }
+                ]
             },
             "light": {
                 "body": "#FFF9E5",
@@ -56,6 +82,41 @@
                 "hoverCaution": "#FEAD4B",
                 "danger": "#FF0000",
                 "hoverDanger": "#FC6161"
+            },
+            "charts": {
+                "color": "texto",
+                "colorLabel": "textw",
+                "axisLabel": "texto",
+                "axisLabelSize": null,
+                "transition": 400,
+                "tooltip": true,
+                "barWidth": null,
+                "yLabelPosition": "default",
+                "width": null,
+                "height": null
+            },
+            "inputs": {
+                "preset": "soft",
+                "triggerBg": "back1",
+                "triggerText": "texto",
+                "triggerBorder": "textc",
+                "surfaceBg": "back1",
+                "surfaceText": "texto",
+                "surfaceMuted": "text-inactive",
+                "surfaceBorder": "textc",
+                "btnPrimaryBg": "back6",
+                "btnPrimaryText": "textw",
+                "btnSecondaryBg": "back2",
+                "btnSecondaryText": "texto",
+                "accentColor": "color2",
+                "accentText": "textb",
+                "trackBg": "back2",
+                "shadow": "soft",
+                "radius": 15,
+                "touchSize": 44,
+                "blur": 10,
+                "transition": 250,
+                "mobileSheet": true
             }
         },
         "predeterminada": {
@@ -67,7 +128,33 @@
                 "fontSize": "18px",
                 "widthWindow": "1500px",
                 "scrollbarWidth": "thin",
-                "scrollbarHide": "none"
+                "scrollbarHide": "none",
+                "mediaQueries": [
+                    {
+                        "slug": "phone",
+                        "jit": "sml",
+                        "label": "Móvil (Phone)",
+                        "min": null,
+                        "max": 576,
+                        "query": "(max-width: 576px)"
+                    },
+                    {
+                        "slug": "tablet",
+                        "jit": "mid",
+                        "label": "Tablet",
+                        "min": 577,
+                        "max": 992,
+                        "query": "(min-width: 577px) and (max-width: 992px)"
+                    },
+                    {
+                        "slug": "desk",
+                        "jit": "desk",
+                        "label": "Escritorio (Desktop)",
+                        "min": 993,
+                        "max": null,
+                        "query": "(min-width: 993px)"
+                    }
+                ]
             },
             "light": {
                 "body": "#E6EAFA",
@@ -129,6 +216,41 @@
                 "hoverCaution": "#FEAD4B",
                 "danger": "#FF0000",
                 "hoverDanger": "#FC6161"
+            },
+            "charts": {
+                "color": "texto",
+                "colorLabel": "textw",
+                "axisLabel": "texto",
+                "axisLabelSize": null,
+                "transition": 400,
+                "tooltip": true,
+                "barWidth": null,
+                "yLabelPosition": "default",
+                "width": null,
+                "height": null
+            },
+            "inputs": {
+                "preset": "soft",
+                "triggerBg": "body",
+                "triggerText": "texto",
+                "triggerBorder": "textc",
+                "surfaceBg": "back5",
+                "surfaceText": "texto",
+                "surfaceMuted": "text-inactive",
+                "surfaceBorder": "textc",
+                "btnPrimaryBg": "back4",
+                "btnPrimaryText": "textw",
+                "btnSecondaryBg": "texto",
+                "btnSecondaryText": "textw",
+                "accentColor": "#CCC7AD",
+                "accentText": "textb",
+                "trackBg": "#FFFFFF",
+                "shadow": "medium",
+                "radius": 27,
+                "touchSize": 44,
+                "blur": 22,
+                "transition": 250,
+                "mobileSheet": true
             }
         }
     }

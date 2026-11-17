@@ -201,9 +201,10 @@ export function modalMenu() {
     }, 150);
   }
 
-  // Mouseenter en el botón activador
+  // Mouseenter en el botón activador (ignorado en dispositivos sin hover para permitir tap limpio)
   document.addEventListener("mouseenter", (e) => {
     if (!e.target || !e.target.closest) return;
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) return;
     const openButton = e.target.closest('.open-modal-menu.on-mouse');
     if (openButton) {
       cancelHoverTimeout();
@@ -263,7 +264,8 @@ export function modalMenu() {
 
     if (openButton) {
       e.preventDefault();
-      if (openButton.classList.contains('on-mouse')) {
+      const supportsHover = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
+      if (openButton.classList.contains('on-mouse') && supportsHover) {
         return;
       }
       e.stopPropagation();

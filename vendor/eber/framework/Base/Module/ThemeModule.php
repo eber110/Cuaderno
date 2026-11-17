@@ -321,6 +321,88 @@ class ThemeModule
   }
 
   /**
+   * Devuelve la configuración global por defecto para los inputs UI (FormUiModule).
+   *
+   * @return array<string, mixed>
+   */
+  public static function getDefaultInputsConfig(): array
+  {
+    return FormUiModule::getDefaultConfig();
+  }
+
+  /**
+   * Normaliza y valida la configuración de inputs y formularios UI guardada para un tema.
+   *
+   * @param array<string, mixed> $raw Datos crudos de la sección inputs
+   * @return array<string, mixed> Configuración normalizada
+   */
+  public static function normalizeInputsConfig(array $raw): array
+  {
+    $defaults = self::getDefaultInputsConfig();
+    $stringKeys = [
+      "preset",
+      "triggerBg",
+      "triggerText",
+      "triggerBorder",
+      "surfaceBg",
+      "surfaceText",
+      "surfaceMuted",
+      "surfaceBorder",
+      "btnPrimaryBg",
+      "btnPrimaryText",
+      "btnSecondaryBg",
+      "btnSecondaryText",
+      "accentColor",
+      "accentText",
+      "trackBg",
+      "shadow",
+    ];
+
+    $normalized = [];
+    foreach ($stringKeys as $key) {
+      if (isset($raw[$key]) && is_string($raw[$key]) && trim($raw[$key]) !== "") {
+        $normalized[$key] = self::sanitizeCssValue(trim($raw[$key]), (string)$defaults[$key]);
+      } else {
+        $normalized[$key] = $defaults[$key];
+      }
+    }
+
+    $normalized["radius"] = isset($raw["radius"]) && is_numeric($raw["radius"])
+      ? max(0, min(40, (int)$raw["radius"]))
+      : (int)$defaults["radius"];
+
+    $normalized["touchSize"] = isset($raw["touchSize"]) && is_numeric($raw["touchSize"])
+      ? max(32, min(64, (int)$raw["touchSize"]))
+      : (int)$defaults["touchSize"];
+
+    $normalized["blur"] = isset($raw["blur"]) && is_numeric($raw["blur"])
+      ? max(0, min(32, (int)$raw["blur"]))
+      : (int)$defaults["blur"];
+
+    $normalized["transition"] = isset($raw["transition"]) && is_numeric($raw["transition"])
+      ? max(0, min(2000, (int)$raw["transition"]))
+      : (int)$defaults["transition"];
+
+    $normalized["mobileSheet"] = isset($raw["mobileSheet"])
+      ? (filter_var($raw["mobileSheet"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool)$raw["mobileSheet"])
+      : (bool)$defaults["mobileSheet"];
+
+    if (isset($raw["localOverrides"]) && is_array($raw["localOverrides"])) {
+      $cleanOverrides = [];
+      foreach ($raw["localOverrides"] as $inputKey => $inputParams) {
+        if (is_string($inputKey) && preg_match('/^[a-zA-Z0-9_-]+$/', $inputKey) && is_array($inputParams) && !empty($inputParams)) {
+          $cleanOverrides[$inputKey] = $inputParams;
+        }
+      }
+      if (!empty($cleanOverrides)) {
+        $normalized["localOverrides"] = $cleanOverrides;
+      }
+    }
+
+    return $normalized;
+  }
+
+  /**
    * Obtiene la estructura y valores predeterminados para un tema individual en theme.json.
    *
    * @param string $slug Identificador del tema
@@ -373,6 +455,7 @@ class ThemeModule
         "hoverDanger" => "#fc6161",
       ],
       "charts" => self::getDefaultChartsConfig(),
+      "inputs" => self::getDefaultInputsConfig(),
     ];
   }
 
@@ -782,6 +865,7 @@ class ThemeModule
     }
 
     $charts = self::normalizeChartsConfig((array)($data["charts"] ?? []));
+    $inputs = self::normalizeInputsConfig((array)($data["inputs"] ?? []));
 
     return [
       "name" => $themeName,
@@ -801,6 +885,7 @@ class ThemeModule
       ],
       "status" => $status,
       "charts" => $charts,
+      "inputs" => $inputs,
     ];
   }
 
@@ -1416,6 +1501,12 @@ class ThemeModule
     $lines[] = "  --hover-danger: " . $status["hoverDanger"] . ";";
     $lines[] = "";
 
+    // Tokens globales de Formularios e Inputs UI (FormUiModule)
+    $inputsCfg = is_array($norm["inputs"] ?? null) ? $norm["inputs"] : self::getDefaultInputsConfig();
+    $lines[] = "  /* Variables de Formularios e Inputs UI (FormUiModule) */";
+    $lines[] = FormUiModule::compileThemeCssVars($inputsCfg, "  ");
+    $lines[] = "";
+
     // Variables personalizadas o animaciones preservadas
     if (!empty($customRootVars)) {
       $hasAnimationHeader = false;
@@ -1538,6 +1629,8 @@ class ThemeModule
           $lines[] = "  --hover-caution: " . $tStatus["hoverCaution"] . ";";
           $lines[] = "  --danger: " . $tStatus["danger"] . ";";
           $lines[] = "  --hover-danger: " . $tStatus["hoverDanger"] . ";";
+          $tInputs = is_array($tNorm["inputs"] ?? null) ? $tNorm["inputs"] : self::getDefaultInputsConfig();
+          $lines[] = FormUiModule::compileThemeCssVars($tInputs, "  ");
           $lines[] = "}";
           $lines[] = "";
           $lines[] = "[data-theme=\"dark\"][data-theme-name=\"{$cleanSlug}\"],";
@@ -1629,7 +1722,7 @@ class ThemeModule
           if (preg_match('/^--back-color\d*(-hover)?$/', $name)) {
             continue;
           }
-          if (str_starts_with($name, "--mq-")) {
+          if (str_starts_with($name, "--mq-") || str_starts_with($name, "--ui-") || $name === "--theme-active") {
             continue;
           }
 
@@ -1677,7 +1770,7 @@ class ThemeModule
           if (preg_match('/^--back-color\d*(-hover)?$/', $name)) {
             continue;
           }
-          if (str_starts_with($name, "--mq-")) {
+          if (str_starts_with($name, "--mq-") || str_starts_with($name, "--ui-") || $name === "--theme-active") {
             continue;
           }
 

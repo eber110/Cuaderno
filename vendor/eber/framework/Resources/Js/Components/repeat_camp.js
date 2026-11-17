@@ -1,82 +1,117 @@
 /**
- * Campos de formulario repetibles.
- * 
+ * Campos de formulario repetibles multi-instancia.
+ * Soporta múltiples grupos en la misma página (`.repeat-group` o `#create-repeat`),
+ * botón de eliminar fila, límite por `data-max` / parámetro, tokens CSS (--ui-*) y áreas táctiles de 40px+.
+ *
  * @function repeat_camp
- * @description Permite agregar dinámicamente campos adicionales
- *              a un formulario (ej: encuestas, opciones múltiples).
- * 
- * @param {number|string} [limit=10] - Número máximo de campos permitidos
- * 
- * @example
- * // HTML
- * <div id="create-repeat">
- *   <input class="repeat-camp" name="option[]" placeholder="Opción 1">
- * </div>
- * 
+ * @param {number|string} [limit=10] - Límite máximo por defecto si no se define `data-max`
  * @returns {void}
  */
 export function repeat_camp(limit = 10) {
-  const createSurveyActive = document.querySelectorAll('#create-repeat');
-  const campRepeat = document.querySelectorAll('.repeat-camp');
+  const ui = window.FmeUi || null;
+  const tr = (k, p, f) => (ui ? ui.t(k, p, f) : (typeof window.t === 'function' ? window.t(k, p, f) : f));
+  const icon = (name, fb) => (ui && ui.ICONS && ui.ICONS[name]) ? ui.ICONS[name] : fb;
+  const defaultLimit = typeof limit === 'string' ? (parseInt(limit, 10) || 10) : (limit || 10);
 
-  if (typeof limit === 'string') limit = parseInt(limit) || 10;
+  function initRepeatGroups() {
+    const legacyRoots = Array.from(document.querySelectorAll('#create-repeat'));
+    const modernRoots = Array.from(document.querySelectorAll('.repeat-group'));
+    const allRoots = Array.from(new Set([...legacyRoots, ...modernRoots]));
 
-  for (let i = 0; i < createSurveyActive.length; i++) {
-    const containCamp = document.createElement('div');
-    containCamp.className = 'p10 back1 m0 gap5 br15 flex column-direction center-end';
-    containCamp.id = "contain-camp";
+    allRoots.forEach((rootEl) => {
+      if (rootEl.dataset.repeatInitialized === 'true') return;
+      const firstInput = rootEl.querySelector('.repeat-camp');
+      if (!firstInput) return;
 
-    if (!campRepeat[i]) return;
+      rootEl.dataset.repeatInitialized = 'true';
+      const maxLimit = parseInt(firstInput.getAttribute('data-max') || '', 10) || defaultLimit;
 
-    campRepeat[i].insertAdjacentElement('afterend', containCamp);
+      const container = document.createElement('div');
+      container.className = 'repeat-container';
+      if (ui) ui.copyUiVars(firstInput, container);
 
-    const newCampRepeat = campRepeat[i].cloneNode(true);
-    newCampRepeat.id = 'repeat-camp-add';
-    newCampRepeat.className = 'br10';
-    campRepeat[i].remove();
+      const uiSurface = firstInput.getAttribute('ui-surface') || '';
+      if (uiSurface && ui) ui.applyClasses(container, uiSurface);
 
-    const btnAdd = document.createElement('div');
-    btnAdd.className = 'color7 pointer text-protected x16 m0 p0 mb5 w-auto';
-    const remInitial = limit - 1;
-    btnAdd.innerHTML = typeof t === 'function'
-      ? t('add_option', { remaining: remInitial }, `+ Agrega otra opción (${remInitial})`)
-      : `+ Agrega otra opción (${remInitial})`;
-    btnAdd.id = 'btn-add';
-    btnAdd.dataset.clicks = '1';
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'repeat-btn-add ui-btn ui-btn-secondary';
+      const uiAdd = firstInput.getAttribute('ui-btn-primary') || firstInput.getAttribute('ui-btn-add') || '';
+      if (uiAdd && ui) ui.applyClasses(addBtn, uiAdd);
 
-    containCamp.appendChild(btnAdd);
-    containCamp.appendChild(newCampRepeat);
+      const rowsWrap = document.createElement('div');
+      rowsWrap.className = 'repeat-rows-wrap flex column-direction gap5';
+
+      const templateInput = firstInput.cloneNode(true);
+      templateInput.removeAttribute('id');
+      templateInput.classList.remove('repeat-camp');
+      templateInput.classList.add('repeat-camp-input', 'br10');
+      if (!templateInput.value) templateInput.value = '';
+
+      firstInput.remove();
+
+      const updateCounterText = () => {
+        const currentCount = rowsWrap.querySelectorAll('.repeat-row').length;
+        const remaining = Math.max(0, maxLimit - currentCount);
+        addBtn.disabled = remaining === 0;
+        addBtn.textContent = tr('add_option', { remaining }, `+ Agrega otra opción (${remaining})`);
+      };
+
+      const createRow = (isFirst = false, initialVal = '') => {
+        const row = document.createElement('div');
+        row.className = 'repeat-row';
+
+        const inp = templateInput.cloneNode(true);
+        const idx = rowsWrap.querySelectorAll('.repeat-row').length + 1;
+        if (!isFirst) {
+          inp.removeAttribute('required');
+          inp.value = '';
+          inp.placeholder = tr('option_n', { n: idx }, `Opción ${idx}`);
+        } else if (initialVal) {
+          inp.value = initialVal;
+        }
+
+        row.appendChild(inp);
+
+        if (!isFirst) {
+          const remBtn = document.createElement('button');
+          remBtn.type = 'button';
+          remBtn.className = 'repeat-btn-remove';
+          remBtn.setAttribute('aria-label', tr('remove_item', {}, 'Eliminar'));
+          remBtn.innerHTML = icon('close', '✕');
+          remBtn.addEventListener('click', () => {
+            row.remove();
+            updateCounterText();
+            rowsWrap.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          row.appendChild(remBtn);
+        }
+
+        return row;
+      };
+
+      rowsWrap.appendChild(createRow(true, templateInput.value));
+      container.appendChild(addBtn);
+      container.appendChild(rowsWrap);
+      rootEl.appendChild(container);
+      updateCounterText();
+
+      addBtn.addEventListener('click', () => {
+        const currentCount = rowsWrap.querySelectorAll('.repeat-row').length;
+        if (currentCount >= maxLimit) return;
+        const newRow = createRow(false);
+        rowsWrap.appendChild(newRow);
+        updateCounterText();
+        const focusInp = newRow.querySelector('input');
+        if (focusInp) focusInp.focus();
+      });
+    });
   }
 
-  document.addEventListener("click", (e) => {
-    const event = e.target;
-    const activeBtn = event.closest("#btn-add");
-    const contCamp = event.closest("#contain-camp");
-
-    if (activeBtn && contCamp) {
-      let clicks = parseInt(activeBtn.dataset.clicks || '1') + 1;
-      activeBtn.dataset.clicks = clicks.toString();
-
-      const campNew = contCamp.querySelector('#repeat-camp-add');
-      const countCamp = contCamp.querySelectorAll('#repeat-camp-add');
-      const campCount = countCamp.length;
-
-      if (limit > campCount) {
-        const rem = limit - clicks;
-        activeBtn.innerHTML = typeof t === 'function'
-          ? t('add_option', { remaining: rem }, `+ Agrega otra opción (${rem})`)
-          : `+ Agrega otra opción (${rem})`;
-        const campNewEnd = campNew.cloneNode(true);
-        campNewEnd.removeAttribute("required");
-        campNewEnd.value = "";
-        const optNum = campCount + 1;
-        campNewEnd.placeholder = typeof t === 'function'
-          ? t('option_n', { n: optNum }, 'Opción ' + optNum)
-          : 'Opción ' + optNum;
-        contCamp.appendChild(campNewEnd);
-      } else {
-        activeBtn.dataset.clicks = '1';
-      }
-    }
-  });
+  if (ui && typeof ui.observeDynamic === 'function') {
+    ui.observeDynamic(initRepeatGroups);
+  } else {
+    initRepeatGroups();
+    document.addEventListener('previewUpdated', initRepeatGroups);
+  }
 }

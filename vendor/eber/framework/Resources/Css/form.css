@@ -63,7 +63,8 @@ input:focus + .input-note {
 
 /* Ocultar input original para evitar FOUC (parpadeo al cargar) */
 .loadImgModern,
-.selectAndCropImage {
+.selectAndCropImage,
+.file-dropzone {
   display: none !important;
 }
 

@@ -35,11 +35,17 @@ class StylesRule extends JitRuleBase
       "ico" => ".ico { width: 16px; height: 16px; object-fit: cover; }\n",
       "icon" => ".icon { width: 36px !important; height: 36px !important; border-radius: 50% !important; }\n",
 
-      // Cursores e interacción
+      // Cursores, Touch e interacción
       "cursor-default" => ".cursor-default { cursor: default !important; }\n",
       "pointer" => ".pointer { cursor: pointer !important; }\n",
       "no-href" => ".no-href { pointer-events: none; cursor: default; }\n",
       "inactive" => ".inactive { color: var(--text-inactive, #bdbdbd); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }\n",
+      "touch-target" => ".touch-target { min-width: var(--ui-touch-size, 44px); min-height: var(--ui-touch-size, 44px); touch-action: manipulation; }\n",
+      "touch-none" => ".touch-none { touch-action: none !important; }\n",
+      "touch-pan-y" => ".touch-pan-y { touch-action: pan-y !important; }\n",
+      "touch-pan-x" => ".touch-pan-x { touch-action: pan-x !important; }\n",
+      "touch-manipulation" => ".touch-manipulation { touch-action: manipulation !important; }\n",
+      "tap-transparent" => ".tap-transparent { -webkit-tap-highlight-color: transparent; }\n",
 
       // Relleno y proporción de imágenes
       "fill" => ".fill { object-fit: fill !important; }\n",

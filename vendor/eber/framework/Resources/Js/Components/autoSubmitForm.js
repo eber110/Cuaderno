@@ -66,6 +66,19 @@ export function autoSubmitForm() {
         voidSpaceContainer.style.display = target.value === 'voidHero' ? 'flex' : 'none';
       }
     }
+
+    // 4. Visibilidad condicional declarativa universal: data-show-when="campo=val1,val2"
+    if (target.name) {
+      document.querySelectorAll('[data-show-when]').forEach((el) => {
+        const expr = el.getAttribute('data-show-when') || '';
+        const eqIdx = expr.indexOf('=');
+        if (eqIdx === -1) return;
+        const fieldName = expr.slice(0, eqIdx).trim();
+        if (fieldName !== target.name) return;
+        const allowed = expr.slice(eqIdx + 1).split(',').map((s) => s.trim());
+        el.style.display = allowed.includes(String(target.value ?? '')) ? '' : 'none';
+      });
+    }
   }
 
   document.addEventListener('change', (e) => {
@@ -114,7 +127,21 @@ export function autoSubmitForm() {
     if (!target) return;
     if (target.closest('.remote-container')) return;
     if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
-    if (target.type === 'file' || target.type === 'checkbox' || target.type === 'radio' || target.type === 'color' || target.type === 'range' || target.classList.contains('color-picker') || target.closest('.custom-color-picker-popover')) return;
+    if (
+      target.type === 'file' ||
+      target.type === 'checkbox' ||
+      target.type === 'radio' ||
+      target.type === 'color' ||
+      target.type === 'range' ||
+      target.classList.contains('color-picker') ||
+      target.classList.contains('range-slider') ||
+      target.classList.contains('date-picker') ||
+      target.classList.contains('time-picker') ||
+      target.classList.contains('tags-input') ||
+      target.classList.contains('otp-input') ||
+      target.closest('.custom-color-picker-popover') ||
+      target.closest('.ui-dp-popover')
+    ) return;
 
     const form = target.closest('form.auto-submit');
     if (!form) return;

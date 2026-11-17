@@ -5,7 +5,8 @@
         "scrollObserver.js",
         "menuMemory.js",
         "LivePreviewManager.js",
-        "lang.js"
+        "lang.js",
+        "uiFormUtils.js"
     ],
     "exclude": [],
     "functions": {
@@ -50,7 +51,16 @@
             "svgChartAnimator": [],
             "bottomNavPhone": [],
             "menuMemory": [],
-            "backgroundMotionText": []
+            "backgroundMotionText": [],
+            "datePicker": [],
+            "timePicker": [],
+            "rangeSlider": [],
+            "passwordInput": [],
+            "otpCodeInput": [],
+            "tagsInput": [],
+            "stepperInput": [],
+            "ratingInput": [],
+            "fileDropzone": []
         },
         "async": {}
     }
