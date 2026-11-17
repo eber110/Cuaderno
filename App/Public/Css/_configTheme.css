@@ -64,14 +64,14 @@
   --hover-danger: #FC6161;
 
   /* Variables de Formularios e Inputs UI (FormUiModule) */
-  --ui-trigger-bg: var(--body, #ffffff);
+  --ui-trigger-bg: #FFFFFF;
   --ui-trigger-text: var(--text-primary, #111827);
   --ui-trigger-border: var(--text-secondary, #f8fafc);
   --ui-surface-bg: var(--back-color5, #d3d3d3);
   --ui-surface-text: var(--text-primary, #111827);
   --ui-surface-muted: var(--text-inactive, #9ca3af);
   --ui-surface-border: var(--text-secondary, #f8fafc);
-  --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20);
+  --ui-surface-shadow: none;
   --ui-btn-primary-bg: var(--back-color4, #d3d3d3);
   --ui-btn-primary-text: #ffffff;
   --ui-btn-secondary-bg: var(--text-primary, #111827);
@@ -79,9 +79,9 @@
   --ui-accent: #CCC7AD;
   --ui-accent-text: #000000;
   --ui-track-bg: #FFFFFF;
-  --ui-radius: 27px;
+  --ui-radius: 21px;
   --ui-touch-size: 44px;
-  --ui-overlay-blur: 22px;
+  --ui-overlay-blur: 0px;
   --ui-transition: 250ms;
 
   --sepia: sepia(40%);

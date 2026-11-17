@@ -64,6 +64,7 @@ class FormUiModule
     'trackBg'          => 'back2',
     'radius'           => 15,
     'touchSize'        => 44,
+    'fontSize'         => 14,
     'shadow'           => 'soft',
     'blur'             => 10,
     'mobileSheet'      => true,
@@ -95,6 +96,7 @@ class FormUiModule
       'trackBg'          => 'back2',
       'radius'           => 15,
       'touchSize'        => 44,
+      'fontSize'         => 14,
       'shadow'           => 'soft',
       'blur'             => 10,
       'mobileSheet'      => true,
@@ -269,6 +271,10 @@ class FormUiModule
       self::$globalConfig['touchSize'] = max(32, min(64, (int)$config['touchSize']));
     }
 
+    if (isset($config['fontSize']) && is_numeric($config['fontSize'])) {
+      self::$globalConfig['fontSize'] = max(10, min(32, (int)$config['fontSize']));
+    }
+
     if (isset($config['blur']) && is_numeric($config['blur'])) {
       self::$globalConfig['blur'] = max(0, min(32, (int)$config['blur']));
     }
@@ -433,6 +439,7 @@ class FormUiModule
 
     $radius = max(0, min(40, (int)($cfg['radius'] ?? 15)));
     $touchSize = max(32, min(64, (int)($cfg['touchSize'] ?? 44)));
+    $fontSize = max(10, min(32, (int)($cfg['fontSize'] ?? 14)));
     $blur = max(0, min(32, (int)($cfg['blur'] ?? 10)));
     $transition = max(0, min(2000, (int)($cfg['transition'] ?? 250)));
     $shadowKey = strtolower((string)($cfg['shadow'] ?? 'soft'));
@@ -456,6 +463,7 @@ class FormUiModule
       '--ui-track-bg'            => $trackBg,
       '--ui-radius'              => "{$radius}px",
       '--ui-touch-size'          => "{$touchSize}px",
+      '--ui-font-size'           => "{$fontSize}px",
       '--ui-overlay-blur'        => "{$blur}px",
       '--ui-transition'          => "{$transition}ms",
     ];
@@ -534,6 +542,7 @@ class FormUiModule
       'trackBg',
       'radius',
       'touchSize',
+      'fontSize',
       'shadow',
       'blur',
       'transition',

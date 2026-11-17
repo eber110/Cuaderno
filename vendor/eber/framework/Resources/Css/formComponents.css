@@ -21,6 +21,7 @@
   --ui-thumb-bg: #ffffff;
   --ui-radius: 15px;
   --ui-touch-size: 44px;
+  --ui-font-size: 14px;
   --ui-overlay-blur: 8px;
   --ui-transition: 250ms;
 }
@@ -43,7 +44,7 @@ html[data-theme="dark"],
 
 .ui-field-label {
   display: block;
-  font-size: 0.9em;
+  font-size: var(--ui-font-size, 14px);
   font-weight: 600;
   color: var(--ui-trigger-text);
   margin-bottom: 8px;
@@ -87,7 +88,7 @@ a.ui-btn {
   min-height: var(--ui-touch-size, 44px);
   padding: 10px 16px;
   border-radius: calc(var(--ui-radius, 15px) * 0.8);
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   line-height: 1.25;
   font-weight: 600;
   cursor: pointer;
@@ -182,7 +183,7 @@ button.ui-btn-secondary:hover,
 }
 
 .crop-modal-title {
-  font-size: 18px;
+  font-size: calc(var(--ui-font-size, 14px) * 1.28);
   font-weight: 700;
   margin-bottom: 14px;
   width: 100%;
@@ -362,7 +363,7 @@ button.js-crop-img-mask {
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
   border: 1px solid var(--ui-trigger-border);
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   line-height: 1.25;
   font-weight: 500;
   cursor: pointer;
@@ -380,6 +381,7 @@ button.js-crop-img-mask {
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
+  font-size: var(--ui-font-size, 14px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -440,7 +442,7 @@ button.js-crop-img-mask {
 }
 
 .ui-dropzone-badge {
-  font-size: 11px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.78);
   font-weight: 700;
   text-transform: uppercase;
   padding: 4px 8px;
@@ -578,7 +580,7 @@ input[type="color"].color-picker::-moz-color-swatch {
 }
 
 .ui-color-label {
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 600;
   color: var(--ui-surface-text);
   display: flex;
@@ -651,7 +653,7 @@ input.ui-hex-input {
   background: color-mix(in srgb, var(--ui-surface-bg) 85%, var(--ui-surface-text) 6%);
   color: var(--ui-surface-text);
   font-family: ui-monospace, monospace;
-  font-size: 13px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.92);
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
@@ -734,7 +736,7 @@ input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track .checkbo
 }
 
 .checkbox-switch-label {
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   font-weight: 500;
   color: var(--ui-trigger-text);
 }
@@ -759,6 +761,7 @@ input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track .checkbo
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
   border: 1px solid var(--ui-trigger-border);
+  font-size: var(--ui-font-size, 14px);
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
@@ -794,7 +797,7 @@ input.dropdown-search {
   border: 1px solid var(--ui-surface-border);
   background: color-mix(in srgb, var(--ui-surface-bg) 88%, var(--ui-surface-text) 6%);
   color: var(--ui-surface-text);
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
 }
 
 .dropdown-option {
@@ -803,6 +806,7 @@ input.dropdown-search {
   display: flex;
   align-items: center;
   border-radius: calc(var(--ui-radius, 15px) * 0.6);
+  font-size: var(--ui-font-size, 14px);
   cursor: pointer;
   touch-action: manipulation;
   transition: background-color 0.14s ease, color 0.14s ease;
@@ -845,6 +849,7 @@ input.ui-dp-input-display {
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
   border: 1px solid var(--ui-trigger-border);
+  font-size: var(--ui-font-size, 14px);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -915,7 +920,7 @@ input.ui-dp-input-display {
   background: transparent;
   color: var(--ui-surface-text);
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -928,7 +933,7 @@ input.ui-dp-input-display {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 11px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.78);
   font-weight: 700;
   color: var(--ui-surface-muted);
 }
@@ -945,7 +950,7 @@ input.ui-dp-input-display {
   border: none;
   background: transparent;
   color: var(--ui-surface-text);
-  font-size: 13px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.92);
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -999,7 +1004,7 @@ input.ui-dp-input-display {
   border: 1px solid var(--ui-surface-border);
   background: var(--ui-track-bg);
   color: var(--ui-surface-text);
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
@@ -1040,7 +1045,7 @@ input.ui-dp-input-display {
   border-radius: 8px;
   background: transparent;
   color: var(--ui-surface-text);
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   font-weight: 600;
   cursor: pointer;
   scroll-snap-align: center;
@@ -1123,7 +1128,7 @@ input.ui-dp-input-display {
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
   border: 1px solid var(--ui-surface-border);
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 700;
   white-space: nowrap;
   pointer-events: none;
@@ -1165,6 +1170,7 @@ input.ui-password-field {
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
   border: 1px solid var(--ui-trigger-border);
+  font-size: var(--ui-font-size, 14px);
 }
 
 .ui-password-toggle {
@@ -1205,7 +1211,7 @@ input.ui-password-field {
 }
 
 .ui-strength-label {
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 600;
   color: var(--ui-surface-muted);
 }
@@ -1223,7 +1229,7 @@ input.ui-otp-cell {
   width: var(--ui-touch-size, 44px);
   height: calc(var(--ui-touch-size, 44px) + 6px);
   text-align: center;
-  font-size: 20px;
+  font-size: calc(var(--ui-font-size, 14px) * 1.42);
   font-weight: 700;
   border-radius: calc(var(--ui-radius, 15px) * 0.75);
   background: var(--ui-trigger-bg);
@@ -1260,7 +1266,7 @@ input.ui-otp-cell {
   border-radius: 999px;
   background: var(--ui-accent);
   color: var(--ui-accent-text);
-  font-size: 13px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.92);
   font-weight: 600;
 }
 
@@ -1287,7 +1293,7 @@ input.ui-otp-cell {
   background: transparent !important;
   color: inherit;
   padding: 6px 4px !important;
-  font-size: 14px;
+  font-size: var(--ui-font-size, 14px);
   outline: none;
 }
 
@@ -1330,7 +1336,7 @@ input.ui-otp-cell {
   background: transparent !important;
   color: inherit;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--ui-font-size, 14px);
   padding: 6px 4px !important;
   -moz-appearance: textfield;
 }
@@ -1416,7 +1422,7 @@ input.ui-otp-cell {
 /* Text Limiter States */
 .tl-counter {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 600;
   color: var(--ui-surface-muted);
   text-align: right;

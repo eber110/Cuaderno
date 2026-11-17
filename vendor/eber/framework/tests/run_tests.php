@@ -1791,6 +1791,7 @@ $runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch
   $customTheme['inputs']['preset'] = 'pill';
   $customTheme['inputs']['radius'] = 24;
   $customTheme['inputs']['touchSize'] = 48;
+  $customTheme['inputs']['fontSize'] = 18;
   $customTheme['inputs']['btnPrimaryBg'] = '#0F766E';
   $customTheme['inputs']['localOverrides'] = ['cropImage' => ['cropShape' => 'circle']];
 
@@ -1800,11 +1801,11 @@ $runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch
   $runner->assert(\Base\Module\ThemeModule::saveConfig($customTheme, $tmpJson) === true, "ThemeModule::saveConfig debe guardar inputs");
 
   $reloaded = \Base\Module\ThemeModule::loadConfig($tmpJson);
-  $runner->assert((int)$reloaded['inputs']['radius'] === 24 && $reloaded['inputs']['btnPrimaryBg'] === '#0F766E', "loadConfig debe persistir theme.inputs");
+  $runner->assert((int)$reloaded['inputs']['radius'] === 24 && (int)$reloaded['inputs']['fontSize'] === 18 && $reloaded['inputs']['btnPrimaryBg'] === '#0F766E', "loadConfig debe persistir theme.inputs");
   $runner->assert(($reloaded['inputs']['localOverrides']['cropImage']['cropShape'] ?? '') === 'circle', "loadConfig debe preservar localOverrides de inputs");
 
   $compiledCss = \Base\Module\ThemeModule::compileToCss($reloaded);
-  $runner->assert(str_contains($compiledCss, '--ui-radius: 24px;') && str_contains($compiledCss, '--ui-btn-primary-bg: #0F766E;'), "compileToCss debe emitir variables --ui-* en _configTheme.css");
+  $runner->assert(str_contains($compiledCss, '--ui-radius: 24px;') && str_contains($compiledCss, '--ui-font-size: 18px;') && str_contains($compiledCss, '--ui-btn-primary-bg: #0F766E;'), "compileToCss debe emitir variables --ui-* en _configTheme.css");
   $runner->assert(!str_contains($compiledCss, 'cropShape') && !str_contains($compiledCss, 'localOverrides'), "compileToCss no debe filtrar claves JSON de localOverrides al CSS");
 
   // Recompilar sobre CSS previo no debe duplicar --ui-* ni --theme-active
@@ -1826,6 +1827,7 @@ $runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch
   $runner->assert(str_contains((string)$inputRule->processWord('focus-ring3'), ':focus-visible'), "InputRule debe compilar focus-ring3");
   $runner->assert((string)$inputRule->processWord('ui-radius-20') === ".ui-radius-20 { --ui-radius: 20px !important; }\n", "InputRule debe compilar ui-radius-20");
   $runner->assert((string)$inputRule->processWord('ui-touch-48') === ".ui-touch-48 { --ui-touch-size: 48px !important; }\n", "InputRule debe compilar ui-touch-48");
+  $runner->assert((string)$inputRule->processWord('ui-text-18') === ".ui-text-18 { --ui-font-size: 18px !important; }\n", "InputRule debe compilar ui-text-18");
 
   $runner->assert(str_contains((string)$stylesRule->processWord('touch-target'), 'min-height: var(--ui-touch-size, 44px)'), "StylesRule debe compilar touch-target con --ui-touch-size");
   $runner->assert(str_contains((string)$stylesRule->processWord('touch-none'), 'touch-action: none'), "StylesRule debe compilar touch-none");
@@ -1844,12 +1846,12 @@ $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, render
   $allPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
     'type' => 'all',
     'activeInput' => 'datePicker',
-    'globalConfig' => ['radius' => 18, 'btnPrimaryBg' => '#2563EB'],
+    'globalConfig' => ['radius' => 18, 'fontSize' => 16, 'btnPrimaryBg' => '#2563EB'],
     'codeOptions' => ['wrapContainer' => true, 'label' => 'Fecha', 'inlineVars' => true],
   ]);
   $runner->assert(!empty($allPayload['success']) && count($allPayload['inputs'] ?? []) === 16, "renderInputPayload('all') debe devolver los 16 componentes");
   $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', 'class="date-picker ui-input-component"'), "renderInputPayload debe devolver htmlSnippet del activeInput");
-  $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', '--ui-radius: 18px'), "renderInputPayload debe aplicar globalConfig al htmlSnippet");
+  $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', '--ui-radius: 18px') && str_contains($allPayload['htmlSnippet'] ?? '', '--ui-font-size: 16px'), "renderInputPayload debe aplicar globalConfig al htmlSnippet");
 
   // Verificación de supresión explícita de label cuando usuario desmarca Incluir <label>
   $noLabelPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
@@ -1868,6 +1870,8 @@ $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, render
     str_contains($studioView, 'id="ts-inputs-core-css"') &&
     str_contains($studioView, 'id="ts-inputs-core-js"') &&
     str_contains($studioView, 'id="iuInlinePreviewHost"') &&
+    str_contains($studioView, 'id="iu_fontSize"') &&
+    str_contains($studioView, 'id="iuLocal_fontSize"') &&
     str_contains($studioView, 'renderFocusedHiddenPreview') &&
     str_contains($studioView, 'toggleInputTouchSim'),
     "themeStudio.php debe incluir UI / Input Studio con tab HTML Completo activa primero, vista inline de popovers/modales ocultos y simulador touch"

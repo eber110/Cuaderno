@@ -3296,6 +3296,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               <input type="range" id="iu_touchSize" min="36" max="56" step="2" value="44" oninput="onInputGlobalChange('touchSize', parseInt(this.value, 10))">
             </div>
 
+            <div class="ts-field">
+              <label for="iu_fontSize">Tamaño de Texto (<code>--ui-font-size</code>: <strong id="iu_fontSizeVal">14px</strong>)</label>
+              <input type="range" id="iu_fontSize" min="10" max="28" step="1" value="14" oninput="onInputGlobalChange('fontSize', parseInt(this.value, 10))">
+            </div>
+
             <div class="iu-color-pair" style="margin-bottom:8px;">
               <div class="ts-field">
                 <label for="iu_shadow">Elevación / Sombra</label>
@@ -3357,6 +3362,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               <div class="ts-field">
                 <label for="iuLocal_radius">Override Radio (px)</label>
                 <input type="number" id="iuLocal_radius" class="ts-input" data-iu-local="radius" min="0" max="40" placeholder="hereda">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_fontSize">Override Texto (px)</label>
+                <input type="number" id="iuLocal_fontSize" class="ts-input" data-iu-local="fontSize" min="10" max="32" placeholder="hereda">
+              </div>
+              <div class="ts-field">
+                <label for="iuLocal_touchSize">Override Touch (px)</label>
+                <input type="number" id="iuLocal_touchSize" class="ts-input" data-iu-local="touchSize" min="32" max="64" placeholder="hereda">
               </div>
             </div>
             <div class="ts-field" style="margin-top:6px;">
@@ -8458,6 +8471,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       trackBg: 'back2',
       radius: 15,
       touchSize: 44,
+      fontSize: 14,
       shadow: 'soft',
       blur: 10,
       mobileSheet: true,
@@ -8465,11 +8479,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     };
 
     const INPUT_PRESETS = {
-      soft: { preset: 'soft', radius: 15, shadow: 'soft', blur: 8, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      minimal: { preset: 'minimal', radius: 8, shadow: 'none', blur: 0, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      glass: { preset: 'glass', radius: 18, shadow: 'glass', blur: 16, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      pill: { preset: 'pill', radius: 28, shadow: 'soft', blur: 10, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      elevated: { preset: 'elevated', radius: 14, shadow: 'medium', blur: 12, touchSize: 44, triggerBorder: 'transparent', surfaceBorder: 'textc' }
+      soft: { preset: 'soft', radius: 15, fontSize: 14, shadow: 'soft', blur: 8, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      minimal: { preset: 'minimal', radius: 8, fontSize: 14, shadow: 'none', blur: 0, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      glass: { preset: 'glass', radius: 18, fontSize: 14, shadow: 'glass', blur: 16, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      pill: { preset: 'pill', radius: 28, fontSize: 15, shadow: 'soft', blur: 10, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
+      elevated: { preset: 'elevated', radius: 14, fontSize: 15, shadow: 'medium', blur: 12, touchSize: 44, triggerBorder: 'transparent', surfaceBorder: 'textc' }
     };
 
     const INPUT_SHADOW_MAP = {
@@ -8627,6 +8641,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         `  --ui-track-bg: ${resolveUiTokenToCss(cfg.trackBg)}${imp};`,
         `  --ui-radius: ${parseInt(cfg.radius ?? 15, 10) || 0}px${imp};`,
         `  --ui-touch-size: ${parseInt(cfg.touchSize ?? 44, 10) || 44}px${imp};`,
+        `  --ui-font-size: ${parseInt(cfg.fontSize ?? 14, 10) || 14}px${imp};`,
         `  --ui-overlay-blur: ${parseInt(cfg.blur ?? 10, 10) || 0}px${imp};`,
         `  --ui-transition: ${parseInt(cfg.transition ?? 250, 10) || 250}ms${imp};`
       ];
@@ -8931,6 +8946,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (touchEl) touchEl.value = cfg.touchSize ?? 44;
       if (touchLbl) touchLbl.textContent = (cfg.touchSize ?? 44) + 'px';
 
+      const fsEl = document.getElementById('iu_fontSize');
+      const fsLbl = document.getElementById('iu_fontSizeVal');
+      if (fsEl) fsEl.value = cfg.fontSize ?? 14;
+      if (fsLbl) fsLbl.textContent = (cfg.fontSize ?? 14) + 'px';
+
       const shadowEl = document.getElementById('iu_shadow');
       if (shadowEl) shadowEl.value = cfg.shadow || 'soft';
 
@@ -8965,6 +8985,19 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     function onInputGlobalChange(key, value) {
       const cfg = ensureInputsConfig();
       cfg[key] = value;
+      if (key === 'radius') {
+        const l = document.getElementById('iu_radiusVal');
+        if (l) l.textContent = (value ?? 15) + 'px';
+      } else if (key === 'touchSize') {
+        const l = document.getElementById('iu_touchSizeVal');
+        if (l) l.textContent = (value ?? 44) + 'px';
+      } else if (key === 'fontSize') {
+        const l = document.getElementById('iu_fontSizeVal');
+        if (l) l.textContent = (value ?? 14) + 'px';
+      } else if (key === 'blur') {
+        const l = document.getElementById('iu_blurVal');
+        if (l) l.textContent = (value ?? 10) + 'px';
+      }
       injectLiveThemeIntoInputSandbox();
       injectLiveThemeIntoIframe();
       updateInputWcagBadges();
@@ -9058,7 +9091,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         label: includeLabel ? (local.label || activeMeta.defaultLabel || '') : ''
       };
       if (inlineVars) {
-        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnSecondaryBg', 'btnSecondaryText', 'accentColor', 'accentText', 'trackBg', 'radius', 'touchSize', 'shadow', 'blur', 'transition'];
+        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnSecondaryBg', 'btnSecondaryText', 'accentColor', 'accentText', 'trackBg', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur', 'transition'];
         styleKeys.forEach((sk) => {
           if (local[sk] === undefined && cfg[sk] !== undefined) {
             opts[sk] = cfg[sk];

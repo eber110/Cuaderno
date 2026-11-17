@@ -69,6 +69,12 @@ class InputRule extends JitRuleBase
       return ".{$word} { --ui-touch-size: {$px}px !important; }\n";
     }
 
+    // Token de tamaño de fuente para componentes UI: .ui-text-14, .ui-text-18
+    if (preg_match('/^ui-text-(\d+)$/', $word, $m)) {
+      $px = max(10, min(40, (int)$m[1]));
+      return ".{$word} { --ui-font-size: {$px}px !important; }\n";
+    }
+
     return null;
   }
 }

@@ -116,17 +116,16 @@
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Imagen de perfil</p>
 
-      <div class="br15 p15 ui-field-card">
-        <label class="ui-field-label">Avatar / Imagen recortada</label>
+      <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
         <input
           type="file"
-          name="avatar"
-          accept="image/*"
-          class="selectAndCropImage ui-input-component no-preview process-auto-submit"
-          placeholder="Elige una imagen"
-          cropping-size="500x500"
-          crop-shape="square"
-          style="--ui-trigger-bg: var(--body, #ffffff); --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: var(--back-color5, #d3d3d3); --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: #FFFFFF; --ui-radius: 27px; --ui-touch-size: 44px; --ui-overlay-blur: 22px; --ui-transition: 250ms;">
+      name="avatar"
+      accept="image/*"
+      class="selectAndCropImage ui-input-component"
+      placeholder="Elige una imagen"
+      cropping-size="500x500"
+      crop-shape="square"
+      style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: var(--back-color5, #d3d3d3); --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: none; --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: #FFFFFF; --ui-radius: 15px; --ui-touch-size: 50px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
       </div>
 
     </div>

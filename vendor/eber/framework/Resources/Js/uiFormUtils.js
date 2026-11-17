@@ -28,6 +28,7 @@
     '--ui-thumb-bg',
     '--ui-radius',
     '--ui-touch-size',
+    '--ui-font-size',
     '--ui-overlay-blur',
     '--ui-transition'
   ];
@@ -145,6 +146,7 @@
     const trackAttr = attrSrc('ui-track');
     const radiusAttr = attrSrc('ui-radius');
     const touchAttr = attrSrc('ui-touch');
+    const fontAttr = attrSrc('ui-font-size');
 
     if (accentAttr) {
       const resolved = resolveColorValue(accentAttr);
@@ -159,6 +161,9 @@
     }
     if (touchAttr && /^\d+$/.test(touchAttr.trim())) {
       targetEl.style.setProperty('--ui-touch-size', `${touchAttr.trim()}px`);
+    }
+    if (fontAttr && /^\d+$/.test(fontAttr.trim())) {
+      targetEl.style.setProperty('--ui-font-size', `${fontAttr.trim()}px`);
     }
   }
 

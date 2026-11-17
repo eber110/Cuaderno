@@ -230,8 +230,8 @@
                 "height": null
             },
             "inputs": {
-                "preset": "soft",
-                "triggerBg": "body",
+                "preset": "minimal",
+                "triggerBg": "#FFFFFF",
                 "triggerText": "texto",
                 "triggerBorder": "textc",
                 "surfaceBg": "back5",
@@ -245,10 +245,10 @@
                 "accentColor": "#CCC7AD",
                 "accentText": "textb",
                 "trackBg": "#FFFFFF",
-                "shadow": "medium",
-                "radius": 27,
+                "shadow": "none",
+                "radius": 21,
                 "touchSize": 44,
-                "blur": 22,
+                "blur": 0,
                 "transition": 250,
                 "mobileSheet": true
             }

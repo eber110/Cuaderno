@@ -89,11 +89,11 @@ export function fileDropzone() {
 
       const titleEl = document.createElement('div');
       titleEl.style.fontWeight = '600';
-      titleEl.style.fontSize = '14px';
+      titleEl.style.fontSize = 'var(--ui-font-size, 14px)';
       titleEl.textContent = hintText;
 
       const metaEl = document.createElement('div');
-      metaEl.style.fontSize = '12px';
+      metaEl.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.85)';
       metaEl.style.color = 'var(--ui-surface-muted, #64748b)';
       const metaParts = [];
       if (isMultiple) metaParts.push(tr('files_many', { count: maxFiles }, `Máx. ${maxFiles} archivos`));
@@ -137,7 +137,7 @@ export function fileDropzone() {
           info.style.flex = '1';
 
           const nameSpan = document.createElement('div');
-          nameSpan.style.fontSize = '13px';
+          nameSpan.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.92)';
           nameSpan.style.fontWeight = '600';
           nameSpan.style.whiteSpace = 'nowrap';
           nameSpan.style.overflow = 'hidden';
@@ -145,7 +145,7 @@ export function fileDropzone() {
           nameSpan.textContent = file.name;
 
           const sizeSpan = document.createElement('div');
-          sizeSpan.style.fontSize = '11px';
+          sizeSpan.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.78)';
           sizeSpan.style.color = 'var(--ui-surface-muted, #64748b)';
           sizeSpan.textContent = formatBytes(file.size);
 

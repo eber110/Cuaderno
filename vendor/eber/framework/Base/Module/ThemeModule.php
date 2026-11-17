@@ -375,6 +375,10 @@ class ThemeModule
       ? max(32, min(64, (int)$raw["touchSize"]))
       : (int)$defaults["touchSize"];
 
+    $normalized["fontSize"] = isset($raw["fontSize"]) && is_numeric($raw["fontSize"])
+      ? max(10, min(32, (int)$raw["fontSize"]))
+      : (int)$defaults["fontSize"];
+
     $normalized["blur"] = isset($raw["blur"]) && is_numeric($raw["blur"])
       ? max(0, min(32, (int)$raw["blur"]))
       : (int)$defaults["blur"];

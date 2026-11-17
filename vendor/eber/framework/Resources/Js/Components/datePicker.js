@@ -215,7 +215,7 @@ export function datePicker() {
       timeRow.style.paddingTop = '6px';
 
       const timeLbl = document.createElement('span');
-      timeLbl.style.fontSize = '12px';
+      timeLbl.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.85)';
       timeLbl.style.fontWeight = '600';
       timeLbl.textContent = tr('select_time', {}, 'Hora');
 

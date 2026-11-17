@@ -1391,6 +1391,7 @@ JS;
     $numKeys = [
       'radius',
       'touchSize',
+      'fontSize',
       'blur',
       'transition',
       'maxFiles',
