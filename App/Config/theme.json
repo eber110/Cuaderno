@@ -114,6 +114,7 @@
                 "shadow": "soft",
                 "radius": 15,
                 "touchSize": 44,
+                "fontSize": 14,
                 "blur": 10,
                 "transition": 250,
                 "mobileSheet": true
@@ -230,11 +231,11 @@
                 "height": null
             },
             "inputs": {
-                "preset": "minimal",
+                "preset": "soft",
                 "triggerBg": "#FFFFFF",
                 "triggerText": "texto",
                 "triggerBorder": "textc",
-                "surfaceBg": "back5",
+                "surfaceBg": "#FFFFFF",
                 "surfaceText": "texto",
                 "surfaceMuted": "text-inactive",
                 "surfaceBorder": "textc",
@@ -244,11 +245,12 @@
                 "btnSecondaryText": "textw",
                 "accentColor": "#CCC7AD",
                 "accentText": "textb",
-                "trackBg": "#FFFFFF",
-                "shadow": "none",
-                "radius": 21,
+                "trackBg": "back5",
+                "shadow": "medium",
+                "radius": 15,
                 "touchSize": 44,
-                "blur": 0,
+                "fontSize": 18,
+                "blur": 8,
                 "transition": 250,
                 "mobileSheet": true
             }
