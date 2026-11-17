@@ -1716,6 +1716,208 @@ PHP);
   );
 });
 
+// =========================================================================
+// 26. FORM UI MODULE, THEME INPUTS, JIT RULES E INPUT STUDIO
+// =========================================================================
+$runner->runTest("FormUiModule - Renderizado de los 16 componentes, tokens, compatibilidad legacy y XSS", function () use ($runner) {
+  \Base\Module\FormUiModule::resetConfig();
+
+  // 1. Verificar constantes y configuración global/reset
+  $runner->assert(count(\Base\Module\FormUiModule::COMPONENT_TYPES) === 16, "FormUiModule debe definir exactamente 16 tipos de componentes");
+
+  \Base\Module\FormUiModule::configStyle([
+    'btnPrimaryBg' => '#1E40AF',
+    'btnPrimaryText' => 'textw',
+    'radius' => 20,
+    'touchSize' => 48,
+  ]);
+  $cfg = \Base\Module\FormUiModule::getGlobalConfig();
+  $runner->assert($cfg['btnPrimaryBg'] === '#1E40AF' && (int)$cfg['radius'] === 20 && (int)$cfg['touchSize'] === 48, "FormUiModule::configStyle debe actualizar propiedades globales");
+
+  // 2. Resolución segura de tokens de color (y bloqueo de inyección)
+  $tokBack = \Base\Module\FormUiModule::resolveColorToken('back6');
+  $runner->assert($tokBack['cssValue'] === 'var(--back-color6, #d3d3d3)', "resolveColorToken debe resolver back6 a CSS var");
+  $tokHex = \Base\Module\FormUiModule::resolveColorToken('#FF5500');
+  $runner->assert($tokHex['cssValue'] === '#FF5500', "resolveColorToken debe aceptar #HEX válidos");
+  $tokBad = \Base\Module\FormUiModule::resolveColorToken('red; } body { background: url(javascript:alert(1)) }');
+  $runner->assert($tokBad['cssValue'] === 'transparent' && !str_contains($tokBad['cssValue'], 'javascript:'), "resolveColorToken debe rechazar payloads maliciosos");
+
+  // 3. Renderizado de los 16 componentes sin errores y con clase base .ui-input-component
+  foreach (\Base\Module\FormUiModule::COMPONENT_TYPES as $compType) {
+    $html = \Base\Module\FormUiModule::render($compType);
+    $runner->assert(
+      $html !== '' && !str_contains($html, 'not supported') && str_contains($html, 'ui-input-component'),
+      "FormUiModule::render('{$compType}') debe generar markup válido"
+    );
+  }
+
+  // 4. Separación Save vs Cancel + Retrocompatibilidad clásica + Escape XSS
+  $cropHtml = \Base\Module\FormUiModule::buildHtmlSnippet('cropImage', [
+    'name' => 'avatar" onclick="alert(1)',
+    'label' => 'Foto <script>x</script>',
+    'wrapContainer' => true,
+    'boxImage' => 'back1 p10',
+    'boxBtnImage' => 'p10 br10',
+    'uiBtnPrimary' => 'back6 textw',
+    'uiBtnSecondary' => 'back2 texto',
+    'inlineVars' => true,
+  ]);
+  $runner->assert(str_contains($cropHtml, '<div class="br15 p15 ui-field-card">') && str_contains($cropHtml, '<label'), "buildHtmlSnippet debe soportar wrapContainer y label");
+  $runner->assert(str_contains($cropHtml, 'box-image="back1 p10"') && str_contains($cropHtml, 'box-btn-image="p10 br10"'), "buildHtmlSnippet debe preservar atributos legacy");
+  $runner->assert(str_contains($cropHtml, 'ui-btn-primary="back6 textw"') && str_contains($cropHtml, 'ui-btn-secondary="back2 texto"'), "buildHtmlSnippet debe separar zonas Guardar y Cancelar");
+  $runner->assert(str_contains($cropHtml, '--ui-btn-primary-bg: #1E40AF') && str_contains($cropHtml, '--ui-touch-size: 48px'), "buildHtmlSnippet debe emitir variables --ui-* inline cuando se solicita");
+  $runner->assert(!str_contains($cropHtml, '<script>') && !str_contains($cropHtml, '" onclick="alert(1)"'), "buildHtmlSnippet debe escapar atributos y etiquetas XSS");
+
+  // 5. Helpers globales _inputToString() e _input()
+  $helperStr = _inputToString('datePicker', ['name' => 'fecha_cita', 'mode' => 'range', 'showPresets' => true]);
+  $runner->assert(str_contains($helperStr, 'class="date-picker ui-input-component"') && str_contains($helperStr, 'data-mode="range"'), "_inputToString debe delegar a FormUiModule");
+  ob_start();
+  _input('stepperInput', ['name' => 'qty', 'min' => 1, 'max' => 10]);
+  $echoOut = ob_get_clean();
+  $runner->assert(str_contains($echoOut, 'class="stepper-input ui-input-component"'), "_input debe imprimir HTML directo");
+
+  \Base\Module\FormUiModule::resetConfig();
+});
+
+$runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch)", function () use ($runner) {
+  // 1. Persistencia y compilación de inputs en ThemeModule
+  $defInputs = \Base\Module\ThemeModule::getDefaultInputsConfig();
+  $runner->assert(isset($defInputs['btnPrimaryBg'], $defInputs['btnSecondaryBg'], $defInputs['touchSize']), "ThemeModule::getDefaultInputsConfig debe exponer tokens de inputs");
+
+  $defTheme = \Base\Module\ThemeModule::getDefaultConfig();
+  $runner->assert(isset($defTheme['inputs']) && (int)$defTheme['inputs']['radius'] === 15, "getDefaultConfig debe incluir sección inputs");
+
+  $customTheme = \Base\Module\ThemeModule::getDefaultConfig('default', 'Predeterminado');
+  $customTheme['inputs']['preset'] = 'pill';
+  $customTheme['inputs']['radius'] = 24;
+  $customTheme['inputs']['touchSize'] = 48;
+  $customTheme['inputs']['btnPrimaryBg'] = '#0F766E';
+  $customTheme['inputs']['localOverrides'] = ['cropImage' => ['cropShape' => 'circle']];
+
+  $tmpDir = ROOT_PATH . '/tests/temp_ui_theme_test';
+  @mkdir($tmpDir, 0777, true);
+  $tmpJson = $tmpDir . '/theme.json';
+  $runner->assert(\Base\Module\ThemeModule::saveConfig($customTheme, $tmpJson) === true, "ThemeModule::saveConfig debe guardar inputs");
+
+  $reloaded = \Base\Module\ThemeModule::loadConfig($tmpJson);
+  $runner->assert((int)$reloaded['inputs']['radius'] === 24 && $reloaded['inputs']['btnPrimaryBg'] === '#0F766E', "loadConfig debe persistir theme.inputs");
+  $runner->assert(($reloaded['inputs']['localOverrides']['cropImage']['cropShape'] ?? '') === 'circle', "loadConfig debe preservar localOverrides de inputs");
+
+  $compiledCss = \Base\Module\ThemeModule::compileToCss($reloaded);
+  $runner->assert(str_contains($compiledCss, '--ui-radius: 24px;') && str_contains($compiledCss, '--ui-btn-primary-bg: #0F766E;'), "compileToCss debe emitir variables --ui-* en _configTheme.css");
+  $runner->assert(!str_contains($compiledCss, 'cropShape') && !str_contains($compiledCss, 'localOverrides'), "compileToCss no debe filtrar claves JSON de localOverrides al CSS");
+
+  // Recompilar sobre CSS previo no debe duplicar --ui-* ni --theme-active
+  $recompiledCss = \Base\Module\ThemeModule::compileToCss($reloaded, $compiledCss);
+  $runner->assert(
+    substr_count($recompiledCss, '--ui-radius:') === 1 &&
+    substr_count($recompiledCss, '--theme-active:') === 1,
+    "compileToCss sobre CSS existente no debe duplicar --ui-* ni --theme-active"
+  );
+
+  @unlink($tmpJson);
+  @rmdir($tmpDir);
+
+  // 2. Nuevas reglas JIT: InputRule y StylesRule touch
+  $inputRule = new \Base\LibraryCssJit\InputRule();
+  $stylesRule = new \Base\LibraryCssJit\StylesRule();
+
+  $runner->assert(str_contains((string)$inputRule->processWord('accent2'), 'accent-color: var(--back-color2'), "InputRule debe compilar accent2");
+  $runner->assert(str_contains((string)$inputRule->processWord('focus-ring3'), ':focus-visible'), "InputRule debe compilar focus-ring3");
+  $runner->assert((string)$inputRule->processWord('ui-radius-20') === ".ui-radius-20 { --ui-radius: 20px !important; }\n", "InputRule debe compilar ui-radius-20");
+  $runner->assert((string)$inputRule->processWord('ui-touch-48') === ".ui-touch-48 { --ui-touch-size: 48px !important; }\n", "InputRule debe compilar ui-touch-48");
+
+  $runner->assert(str_contains((string)$stylesRule->processWord('touch-target'), 'min-height: var(--ui-touch-size, 44px)'), "StylesRule debe compilar touch-target con --ui-touch-size");
+  $runner->assert(str_contains((string)$stylesRule->processWord('touch-none'), 'touch-action: none'), "StylesRule debe compilar touch-none");
+  $runner->assert(str_contains((string)$stylesRule->processWord('touch-manipulation'), 'touch-action: manipulation'), "StylesRule debe compilar touch-manipulation");
+  $runner->assert(str_contains((string)$stylesRule->processWord('tap-transparent'), '-webkit-tap-highlight-color: transparent'), "StylesRule debe compilar tap-transparent");
+});
+
+$runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, renderInputPayload y sin ES imports en Resources/Js", function () use ($runner) {
+  // 1. Assets autocontenidos para Theme Studio
+  $assets = \Base\Control\ThemeStudioControl::getInputsStudioAssets(ROOT_PATH);
+  $runner->assert(!empty($assets['css']) && str_contains($assets['css'], '.ui-dp-popover') && str_contains($assets['css'], '--ui-btn-primary-bg'), "getInputsStudioAssets debe cargar CSS de formComponents con tokens --ui-*");
+  $runner->assert(!empty($assets['js']) && str_contains($assets['js'], 'window.FmeUi') && str_contains($assets['js'], 'window.initFormUiComponents'), "getInputsStudioAssets debe incluir uiFormUtils e inicializador de studio");
+  $runner->assert(!preg_match('/^\s*export\s+function/m', $assets['js']), "getInputsStudioAssets debe limpiar keywords export para IIFE");
+
+  // 2. Endpoint lógico renderInputPayload (todos + individual + HTML-first snippet)
+  $allPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
+    'type' => 'all',
+    'activeInput' => 'datePicker',
+    'globalConfig' => ['radius' => 18, 'btnPrimaryBg' => '#2563EB'],
+    'codeOptions' => ['wrapContainer' => true, 'label' => 'Fecha', 'inlineVars' => true],
+  ]);
+  $runner->assert(!empty($allPayload['success']) && count($allPayload['inputs'] ?? []) === 16, "renderInputPayload('all') debe devolver los 16 componentes");
+  $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', 'class="date-picker ui-input-component"'), "renderInputPayload debe devolver htmlSnippet del activeInput");
+  $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', '--ui-radius: 18px'), "renderInputPayload debe aplicar globalConfig al htmlSnippet");
+
+  // Verificación de supresión explícita de label cuando usuario desmarca Incluir <label>
+  $noLabelPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
+    'type' => 'colorPicker',
+    'localParams' => ['label' => 'Color guardado'],
+    'codeOptions' => ['wrapContainer' => false, 'label' => ''],
+  ]);
+  $runner->assert(!empty($noLabelPayload['success']) && !str_contains($noLabelPayload['htmlSnippet'] ?? '', '<label'), "codeOptions.label vacío explícito debe omitir <label> en htmlSnippet");
+
+  // 3. Presencia en vista ThemeStudio (con pestaña HTML Completo activa primero)
+  $studioView = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  $runner->assert(
+    str_contains($studioView, 'id="inputSandboxView"') &&
+    str_contains($studioView, 'id="tab-inputs"') &&
+    str_contains($studioView, 'class="cs-code-tab active" id="iuCodeTab_html"') &&
+    str_contains($studioView, 'id="ts-inputs-core-css"') &&
+    str_contains($studioView, 'id="ts-inputs-core-js"') &&
+    str_contains($studioView, 'id="iuInlinePreviewHost"') &&
+    str_contains($studioView, 'renderFocusedHiddenPreview') &&
+    str_contains($studioView, 'toggleInputTouchSim'),
+    "themeStudio.php debe incluir UI / Input Studio con tab HTML Completo activa primero, vista inline de popovers/modales ocultos y simulador touch"
+  );
+
+  // 3.5 Todos los componentes con modal/popover/preview oculto deben soportar vista previa inline en Enfoque
+  $runner->assert(str_contains($assets['css'], '.is-inline-preview'), "formComponents.css debe incluir reglas .is-inline-preview para vista en vivo al enfocar");
+  $runner->assert(
+    !str_contains($assets['css'], ':where(.ui-btn') &&
+    !str_contains($assets['css'], ':where(.crop-zoom-btn)') &&
+    !str_contains($assets['css'], ':where(.js-crop-img-mask)') &&
+    str_contains($assets['css'], 'button.ui-btn-primary') &&
+    str_contains($assets['css'], 'button.ui-btn-secondary'),
+    "formComponents.css debe usar especificidad suficiente en botones/inputs para no perder ante _config-normalize.css"
+  );
+  $utilsSrc = (string)file_get_contents(ROOT_PATH . '/Resources/Js/uiFormUtils.js');
+  $runner->assert(
+    str_contains($utilsSrc, "closest('[style*=\"--ui-\"]')") && str_contains($utilsSrc, "closest('.ui-field-card')"),
+    "uiFormUtils::copyUiVars debe propagar variables --ui-* entre wrapper .ui-field-card, input y portales"
+  );
+  foreach (['cropImage.js', 'formComponents.js', 'datePicker.js', 'timePicker.js', 'dropdown.js', 'loadImgModern.js', 'fileDropzone.js'] as $inlineCompFile) {
+    $compSrc = (string)file_get_contents(ROOT_PATH . '/Resources/Js/Components/' . $inlineCompFile);
+    $runner->assert(
+      str_contains($compSrc, 'fme:renderInlinePreview') && str_contains($compSrc, 'is-inline-preview'),
+      "Componente {$inlineCompFile} debe soportar fme:renderInlinePreview e .is-inline-preview sin afectar su apertura normal"
+    );
+  }
+
+  // 4. Ningún archivo en Resources/Js o Resources/Js/Components debe tener `import ... from` (rompe MinifyModule)
+  $jsFiles = array_merge(
+    glob(ROOT_PATH . '/Resources/Js/*.js') ?: [],
+    glob(ROOT_PATH . '/Resources/Js/Components/*.js') ?: []
+  );
+  $runner->assert(count($jsFiles) >= 16, "Resources/Js debe contener utilidades y componentes");
+  foreach ($jsFiles as $jsFile) {
+    $src = (string)file_get_contents($jsFile);
+    $runner->assert(
+      !preg_match('/^\s*import\s+[\s\S]*?from\s+["\']/m', $src),
+      "Archivo JS no debe contener imports ES entre módulos para compatibilidad MinifyModule: " . basename($jsFile)
+    );
+  }
+
+  // 5. jsConfig.json incluye uiFormUtils.js en priority y todos los componentes nuevos en functions.defer
+  $jsCfg = json_decode((string)file_get_contents(ROOT_PATH . '/jsConfig.json'), true);
+  $runner->assert(in_array('uiFormUtils.js', $jsCfg['priority'] ?? [], true), "jsConfig.json priority debe incluir uiFormUtils.js");
+  foreach (['datePicker', 'timePicker', 'rangeSlider', 'passwordInput', 'otpCodeInput', 'tagsInput', 'stepperInput', 'ratingInput', 'fileDropzone'] as $fn) {
+    $runner->assert(array_key_exists($fn, $jsCfg['functions']['defer'] ?? []), "jsConfig.json functions.defer debe registrar {$fn}");
+  }
+});
+
 // Limpiar /App y carpetas de proyecto en el repositorio del framework
 $deleteDir = function (string $dirPath) use (&$deleteDir): void {
   if (!is_dir($dirPath)) return;

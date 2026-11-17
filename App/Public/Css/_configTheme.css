@@ -8,6 +8,11 @@
   --scrollbar-width: thin;
   --scrollbar-hide: none;
 
+  /* Media Queries del proyecto */
+  --mq-phone: (max-width: 576px);
+  --mq-tablet: (min-width: 577px) and (max-width: 992px);
+  --mq-desk: (min-width: 993px);
+
   --body: #E6EAFA;
 
   --text-primary:   #0B101E;
@@ -58,7 +63,27 @@
   --danger: #FF0000;
   --hover-danger: #FC6161;
 
-  --theme-active: "default";
+  /* Variables de Formularios e Inputs UI (FormUiModule) */
+  --ui-trigger-bg: var(--body, #ffffff);
+  --ui-trigger-text: var(--text-primary, #111827);
+  --ui-trigger-border: var(--text-secondary, #f8fafc);
+  --ui-surface-bg: var(--back-color5, #d3d3d3);
+  --ui-surface-text: var(--text-primary, #111827);
+  --ui-surface-muted: var(--text-inactive, #9ca3af);
+  --ui-surface-border: var(--text-secondary, #f8fafc);
+  --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20);
+  --ui-btn-primary-bg: var(--back-color4, #d3d3d3);
+  --ui-btn-primary-text: #ffffff;
+  --ui-btn-secondary-bg: var(--text-primary, #111827);
+  --ui-btn-secondary-text: #ffffff;
+  --ui-accent: #CCC7AD;
+  --ui-accent-text: #000000;
+  --ui-track-bg: #FFFFFF;
+  --ui-radius: 27px;
+  --ui-touch-size: 44px;
+  --ui-overlay-blur: 22px;
+  --ui-transition: 250ms;
+
   --sepia: sepia(40%);
   --transition: all 0.25s ease-in-out;
   --transition-slow: all 0.45s ease-in-out;
@@ -184,6 +209,25 @@ body.theme-default {
   --hover-caution: #FEAD4B;
   --danger: #FF0000;
   --hover-danger: #FC6161;
+  --ui-trigger-bg: var(--back-color, #d3d3d3);
+  --ui-trigger-text: var(--text-primary, #111827);
+  --ui-trigger-border: var(--text-secondary, #f8fafc);
+  --ui-surface-bg: var(--back-color, #d3d3d3);
+  --ui-surface-text: var(--text-primary, #111827);
+  --ui-surface-muted: var(--text-inactive, #9ca3af);
+  --ui-surface-border: var(--text-secondary, #f8fafc);
+  --ui-surface-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  --ui-btn-primary-bg: var(--back-color6, #d3d3d3);
+  --ui-btn-primary-text: #ffffff;
+  --ui-btn-secondary-bg: var(--back-color2, #d3d3d3);
+  --ui-btn-secondary-text: var(--text-primary, #111827);
+  --ui-accent: var(--back-color2, #d3d3d3);
+  --ui-accent-text: #000000;
+  --ui-track-bg: var(--back-color2, #d3d3d3);
+  --ui-radius: 15px;
+  --ui-touch-size: 44px;
+  --ui-overlay-blur: 10px;
+  --ui-transition: 250ms;
 }
 
 [data-theme="dark"][data-theme-name="default"],
@@ -223,4 +267,26 @@ body.theme-predeterminada .only-theme-predeterminada {
 [data-theme-name="predeterminada"] .no-theme-predeterminada,
 body.theme-predeterminada .no-theme-predeterminada {
   display: none !important;
+}
+
+/* ==============================================================
+   MEDIA QUERIES Y VISIBILIDAD RESPONSIVA DEL PROYECTO
+   ============================================================== */
+@media screen and (max-width: 576px) {
+  .no-phone:not([data-responsive-processed]),
+  .no-phone-css {
+    display: none !important;
+  }
+}
+@media screen and (min-width: 577px) and (max-width: 992px) {
+  .no-tablet:not([data-responsive-processed]),
+  .no-tablet-css {
+    display: none !important;
+  }
+}
+@media screen and (min-width: 993px) {
+  .no-desk:not([data-responsive-processed]),
+  .no-desk-css {
+    display: none !important;
+  }
 }

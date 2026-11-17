@@ -2,7 +2,8 @@
   "priority": [
     "aaSvgStore.js",
     "querie.js",
-    "lang.js"
+    "lang.js",
+    "uiFormUtils.js"
   ],
   "exclude": [],
   "functions": {
@@ -43,6 +44,16 @@
       "sortableContent": [],
       "autoSubmitForm": [],
       "formComponents": [],
+      "repeat_camp": [],
+      "datePicker": [],
+      "timePicker": [],
+      "rangeSlider": [],
+      "passwordInput": [],
+      "otpCodeInput": [],
+      "tagsInput": [],
+      "stepperInput": [],
+      "ratingInput": [],
+      "fileDropzone": [],
       "textAnimator": [],
       "verticalMenu": [],
       "remoteContent": [],

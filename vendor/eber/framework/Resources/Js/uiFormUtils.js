@@ -125,17 +125,26 @@
   function copyUiVars(sourceEl, targetEl) {
     if (!sourceEl || !targetEl || !targetEl.style) return;
 
+    const wrapperHost = sourceEl.closest ? sourceEl.closest('[style*="--ui-"]') : null;
+    const fieldCard = sourceEl.closest ? sourceEl.closest('.ui-field-card') : null;
+
     UI_CSS_VARS.forEach((varName) => {
-      const inlineVal = sourceEl.style.getPropertyValue(varName);
-      if (inlineVal && inlineVal.trim() !== '') {
-        targetEl.style.setProperty(varName, inlineVal.trim());
+      const hostVal = (wrapperHost && wrapperHost !== sourceEl) ? wrapperHost.style.getPropertyValue(varName) : '';
+      const selfVal = sourceEl.style ? sourceEl.style.getPropertyValue(varName) : '';
+      const val = (selfVal && selfVal.trim() !== '') ? selfVal.trim() : ((hostVal && hostVal.trim() !== '') ? hostVal.trim() : '');
+      if (val !== '') {
+        targetEl.style.setProperty(varName, val);
+        if (fieldCard && fieldCard !== targetEl && (!fieldCard.style.getPropertyValue(varName) || fieldCard.style.getPropertyValue(varName).trim() === '')) {
+          fieldCard.style.setProperty(varName, val);
+        }
       }
     });
 
-    const accentAttr = sourceEl.getAttribute('ui-accent');
-    const trackAttr = sourceEl.getAttribute('ui-track');
-    const radiusAttr = sourceEl.getAttribute('ui-radius');
-    const touchAttr = sourceEl.getAttribute('ui-touch');
+    const attrSrc = (attr) => sourceEl.getAttribute(attr) || (wrapperHost ? wrapperHost.getAttribute(attr) : '');
+    const accentAttr = attrSrc('ui-accent');
+    const trackAttr = attrSrc('ui-track');
+    const radiusAttr = attrSrc('ui-radius');
+    const touchAttr = attrSrc('ui-touch');
 
     if (accentAttr) {
       const resolved = resolveColorValue(accentAttr);
