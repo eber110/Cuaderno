@@ -64,10 +64,10 @@
   --hover-danger: #FC6161;
 
   /* Variables de Formularios e Inputs UI (FormUiModule) */
-  --ui-trigger-bg: var(--back-color5, #d3d3d3);
+  --ui-trigger-bg: var(--back-color, #d3d3d3);
   --ui-trigger-text: var(--text-primary, #111827);
   --ui-trigger-border: var(--text-secondary, #f8fafc);
-  --ui-surface-bg: var(--text-secondary, #f8fafc);
+  --ui-surface-bg: var(--back-color, #d3d3d3);
   --ui-surface-text: var(--text-primary, #111827);
   --ui-surface-muted: var(--text-inactive, #9ca3af);
   --ui-surface-border: var(--text-secondary, #f8fafc);
@@ -75,12 +75,12 @@
   --ui-btn-primary-bg: var(--back-color6, #d3d3d3);
   --ui-btn-primary-text: #ffffff;
   --ui-btn-primary-border: transparent;
-  --ui-btn-secondary-bg: var(--back-color4, #d3d3d3);
-  --ui-btn-secondary-text: var(--text-secondary, #f8fafc);
+  --ui-btn-secondary-bg: var(--back-color2, #d3d3d3);
+  --ui-btn-secondary-text: var(--text-primary, #111827);
   --ui-btn-secondary-border: transparent;
-  --ui-accent: var(--back-color16, #d3d3d3);
+  --ui-accent: var(--back-color2, #d3d3d3);
   --ui-accent-text: #000000;
-  --ui-track-bg: #ffffff;
+  --ui-track-bg: var(--back-color2, #d3d3d3);
   --ui-thumb-bg: #ffffff;
   --ui-border-width: 1px;
   --ui-focus-ring: var(--back-color2, #d3d3d3);
@@ -88,7 +88,7 @@
   --ui-radius: 15px;
   --ui-touch-size: 44px;
   --ui-font-size: 14px;
-  --ui-overlay-blur: 8px;
+  --ui-overlay-blur: 10px;
   --ui-transition: 250ms;
 
   --sepia: sepia(40%);
