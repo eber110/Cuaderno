@@ -267,7 +267,8 @@
                 "mobileSheet": true,
                 "localOverrides": {
                     "textLimiter": {
-                        "triggerBg": "textw"
+                        "triggerBg": "textw",
+                        "triggerText": "textw"
                     }
                 }
             }

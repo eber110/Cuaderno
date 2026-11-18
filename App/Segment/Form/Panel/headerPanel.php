@@ -138,16 +138,17 @@
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Titulo</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
-        <input type="text" name="title" id="" value="<?= e($card["title"] ?? "")?>" maxlength="150" class="process-auto-submit wpx320 text-limiter texto"
-          data-limit-type="chars" 
-          data-limit="150" 
-          data-counter-el="#my-counter-title">
-          <div id="my-counter-title" class="x14 flex-row center-end gap2 pr20 texto">
-            <span class="tl-current bold500">0</span>
-            <p>/</p>
-            <span class="tl-limit">150</span>
-          </div>
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w70 w-sml-100">
+         <textarea
+      name="title"
+      class="text-limiter ui-input-component"
+      placeholder="Escribe una descripción breve..."
+      rows="1"
+      data-limit-type="chars"
+      data-limit="150"
+      data-counter-el="#tl-counter-d5d3db"
+      style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: #ffffff; --ui-surface-muted: var(--text-primary, #111827); --ui-surface-shadow: none; --ui-btn-secondary-text: #ffffff; --ui-border-width: 0px; --ui-font-size: 18px; --ui-overlay-blur: 0px;"><?= e($card["title"] ?? "")?></textarea>
+    <div id="tl-counter-d5d3db" class="tl-counter x12" style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: #ffffff; --ui-surface-muted: var(--text-primary, #111827); --ui-surface-shadow: none; --ui-btn-secondary-text: #ffffff; --ui-border-width: 0px; --ui-font-size: 18px; --ui-overlay-blur: 0px;"><span class="tl-current">0</span> / <span class="tl-limit">150</span></div>
       </div>
     </div>
 
@@ -155,16 +156,17 @@
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Bio</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5">
-        <textarea name="desc" id="" maxlength="280" class="process-auto-submit wpx320 hpx100 text-limiter texto"
-          data-limit-type="chars" 
-          data-limit="280" 
-          data-counter-el="#my-counter"><?= e($card["desc"] ?? "") ?></textarea>
-        <div id="my-counter" class="x14 flex-row center-end gap2 pr20 texto">
-          <span class="tl-current bold500">0</span>
-          <p>/</p>
-          <span class="tl-limit">280</span>
-        </div>
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w70 w-sml-100">
+        <textarea
+          name="desc"
+          class="text-limiter ui-input-component"
+          placeholder="Escribe una descripción breve..."
+          rows="5"
+          data-limit-type="chars"
+          data-limit="280"
+          data-counter-el="#tl-counter-1dee80"
+          style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: #ffffff; --ui-surface-muted: var(--text-primary, #111827); --ui-surface-shadow: none; --ui-btn-secondary-text: #ffffff; --ui-border-width: 0px; --ui-font-size: 18px; --ui-overlay-blur: 0px;"><?= e($card["desc"] ?? "") ?></textarea>
+        <div id="tl-counter-1dee80" class="tl-counter x12" style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: #ffffff; --ui-surface-muted: var(--text-primary, #111827); --ui-surface-shadow: none; --ui-btn-secondary-text: #ffffff; --ui-border-width: 0px; --ui-font-size: 18px; --ui-overlay-blur: 0px;"><span class="tl-current">0</span> / <span class="tl-limit">280</span></div>
       </div>
     </div>
 
