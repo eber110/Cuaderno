@@ -47,29 +47,41 @@ class FormUiModule
    * @var array<string, mixed>
    */
   private static array $globalConfig = [
-    'preset'           => 'soft',
-    'triggerBg'        => 'back1',
-    'triggerText'      => 'texto',
-    'triggerBorder'    => 'textc',
-    'surfaceBg'        => 'back1',
-    'surfaceText'      => 'texto',
-    'surfaceMuted'     => 'text-inactive',
-    'surfaceBorder'    => 'textc',
-    'btnPrimaryBg'     => 'back6',
-    'btnPrimaryText'   => 'textw',
-    'btnSecondaryBg'   => 'back2',
-    'btnSecondaryText' => 'texto',
-    'accentColor'      => 'color2',
-    'accentText'       => 'textb',
-    'trackBg'          => 'back2',
-    'radius'           => 15,
-    'touchSize'        => 44,
-    'fontSize'         => 14,
-    'shadow'           => 'soft',
-    'blur'             => 10,
-    'mobileSheet'      => true,
-    'transition'       => 250,
+    'preset'             => 'soft',
+    'triggerBg'          => 'back1',
+    'triggerText'        => 'texto',
+    'triggerBorder'      => 'textc',
+    'surfaceBg'          => 'back1',
+    'surfaceText'        => 'texto',
+    'surfaceMuted'       => 'text-inactive',
+    'surfaceBorder'      => 'textc',
+    'btnPrimaryBg'       => 'back6',
+    'btnPrimaryText'     => 'textw',
+    'btnPrimaryBorder'   => 'transparent',
+    'btnSecondaryBg'     => 'back2',
+    'btnSecondaryText'   => 'texto',
+    'btnSecondaryBorder' => 'transparent',
+    'accentColor'        => 'color2',
+    'accentText'         => 'textb',
+    'trackBg'            => 'back2',
+    'thumbBg'            => 'textw',
+    'borderWidth'        => 1,
+    'focusRing'          => 'color2',
+    'focusOutline'       => false,
+    'radius'             => 15,
+    'touchSize'          => 44,
+    'fontSize'           => 14,
+    'shadow'             => 'soft',
+    'blur'               => 10,
+    'mobileSheet'        => true,
+    'transition'         => 250,
   ];
+
+  /** @var bool Indica si ya se cargó la configuración de theme.json en la petición actual */
+  private static bool $themeLoaded = false;
+
+  /** @var array<string, array<string, mixed>> Overrides locales por tipo cargados desde theme.json */
+  private static array $themeLocalOverrides = [];
 
   /**
    * Devuelve los valores por defecto de configuración global.
@@ -79,28 +91,34 @@ class FormUiModule
   public static function getDefaultConfig(): array
   {
     return [
-      'preset'           => 'soft',
-      'triggerBg'        => 'back1',
-      'triggerText'      => 'texto',
-      'triggerBorder'    => 'textc',
-      'surfaceBg'        => 'back1',
-      'surfaceText'      => 'texto',
-      'surfaceMuted'     => 'text-inactive',
-      'surfaceBorder'    => 'textc',
-      'btnPrimaryBg'     => 'back6',
-      'btnPrimaryText'   => 'textw',
-      'btnSecondaryBg'   => 'back2',
-      'btnSecondaryText' => 'texto',
-      'accentColor'      => 'color2',
-      'accentText'       => 'textb',
-      'trackBg'          => 'back2',
-      'radius'           => 15,
-      'touchSize'        => 44,
-      'fontSize'         => 14,
-      'shadow'           => 'soft',
-      'blur'             => 10,
-      'mobileSheet'      => true,
-      'transition'       => 250,
+      'preset'             => 'soft',
+      'triggerBg'          => 'back1',
+      'triggerText'        => 'texto',
+      'triggerBorder'      => 'textc',
+      'surfaceBg'          => 'back1',
+      'surfaceText'        => 'texto',
+      'surfaceMuted'       => 'text-inactive',
+      'surfaceBorder'      => 'textc',
+      'btnPrimaryBg'       => 'back6',
+      'btnPrimaryText'     => 'textw',
+      'btnPrimaryBorder'   => 'transparent',
+      'btnSecondaryBg'     => 'back2',
+      'btnSecondaryText'   => 'texto',
+      'btnSecondaryBorder' => 'transparent',
+      'accentColor'        => 'color2',
+      'accentText'         => 'textb',
+      'trackBg'            => 'back2',
+      'thumbBg'            => 'textw',
+      'borderWidth'        => 1,
+      'focusRing'          => 'color2',
+      'focusOutline'       => false,
+      'radius'             => 15,
+      'touchSize'          => 44,
+      'fontSize'           => 14,
+      'shadow'             => 'soft',
+      'blur'               => 10,
+      'mobileSheet'        => true,
+      'transition'         => 250,
     ];
   }
 
@@ -113,121 +131,192 @@ class FormUiModule
   {
     return [
       'soft' => [
-        'label'            => 'Suave (Tema)',
-        'preset'           => 'soft',
-        'triggerBg'        => 'back1',
-        'triggerText'      => 'texto',
-        'triggerBorder'    => 'textc',
-        'surfaceBg'        => 'back1',
-        'surfaceText'      => 'texto',
-        'surfaceMuted'     => 'text-inactive',
-        'surfaceBorder'    => 'textc',
-        'btnPrimaryBg'     => 'back6',
-        'btnPrimaryText'   => 'textw',
-        'btnSecondaryBg'   => 'back2',
-        'btnSecondaryText' => 'texto',
-        'accentColor'      => 'color2',
-        'accentText'       => 'textb',
-        'trackBg'          => 'back2',
-        'radius'           => 15,
-        'touchSize'        => 44,
-        'shadow'           => 'soft',
-        'blur'             => 10,
-        'mobileSheet'      => true,
+        'label'              => 'Suave (Tema)',
+        'preset'             => 'soft',
+        'triggerBg'          => 'back1',
+        'triggerText'        => 'texto',
+        'triggerBorder'      => 'textc',
+        'surfaceBg'          => 'back1',
+        'surfaceText'        => 'texto',
+        'surfaceMuted'       => 'text-inactive',
+        'surfaceBorder'      => 'textc',
+        'btnPrimaryBg'       => 'back6',
+        'btnPrimaryText'     => 'textw',
+        'btnPrimaryBorder'   => 'transparent',
+        'btnSecondaryBg'     => 'back2',
+        'btnSecondaryText'   => 'texto',
+        'btnSecondaryBorder' => 'transparent',
+        'accentColor'        => 'color2',
+        'accentText'         => 'textb',
+        'trackBg'            => 'back2',
+        'thumbBg'            => 'textw',
+        'borderWidth'        => 1,
+        'focusRing'          => 'color2',
+        'focusOutline'       => false,
+        'radius'             => 15,
+        'touchSize'          => 44,
+        'fontSize'           => 14,
+        'shadow'             => 'soft',
+        'blur'               => 10,
+        'mobileSheet'        => true,
       ],
       'minimal' => [
-        'label'            => 'Minimalista',
-        'preset'           => 'minimal',
-        'triggerBg'        => 'body',
-        'triggerText'      => 'texto',
-        'triggerBorder'    => 'border2',
-        'surfaceBg'        => 'body',
-        'surfaceText'      => 'texto',
-        'surfaceMuted'     => 'text-inactive',
-        'surfaceBorder'    => 'border2',
-        'btnPrimaryBg'     => 'back8',
-        'btnPrimaryText'   => 'textw',
-        'btnSecondaryBg'   => 'transparent',
-        'btnSecondaryText' => 'texto',
-        'accentColor'      => 'color8',
-        'accentText'       => 'textw',
-        'trackBg'          => 'back1',
-        'radius'           => 10,
-        'touchSize'        => 44,
-        'shadow'           => 'none',
-        'blur'             => 0,
-        'mobileSheet'      => true,
+        'label'              => 'Minimalista',
+        'preset'             => 'minimal',
+        'triggerBg'          => 'body',
+        'triggerText'        => 'texto',
+        'triggerBorder'      => 'border2',
+        'surfaceBg'          => 'body',
+        'surfaceText'        => 'texto',
+        'surfaceMuted'       => 'text-inactive',
+        'surfaceBorder'      => 'border2',
+        'btnPrimaryBg'       => 'back8',
+        'btnPrimaryText'     => 'textw',
+        'btnPrimaryBorder'   => 'transparent',
+        'btnSecondaryBg'     => 'transparent',
+        'btnSecondaryText'   => 'texto',
+        'btnSecondaryBorder' => 'border2',
+        'accentColor'        => 'color8',
+        'accentText'         => 'textw',
+        'trackBg'            => 'back1',
+        'thumbBg'            => 'textw',
+        'borderWidth'        => 1,
+        'focusRing'          => 'color8',
+        'focusOutline'       => false,
+        'radius'             => 10,
+        'touchSize'          => 44,
+        'fontSize'           => 14,
+        'shadow'             => 'none',
+        'blur'               => 0,
+        'mobileSheet'        => true,
       ],
       'glass' => [
-        'label'            => 'Glassmorphism',
-        'preset'           => 'glass',
-        'triggerBg'        => 'back1',
-        'triggerText'      => 'texto',
-        'triggerBorder'    => 'border2',
-        'surfaceBg'        => 'back1',
-        'surfaceText'      => 'texto',
-        'surfaceMuted'     => 'text-inactive',
-        'surfaceBorder'    => 'border2',
-        'btnPrimaryBg'     => 'back5',
-        'btnPrimaryText'   => 'textw',
-        'btnSecondaryBg'   => 'back2',
-        'btnSecondaryText' => 'texto',
-        'accentColor'      => 'color5',
-        'accentText'       => 'textw',
-        'trackBg'          => 'back2',
-        'radius'           => 18,
-        'touchSize'        => 44,
-        'shadow'           => 'lg',
-        'blur'             => 16,
-        'mobileSheet'      => true,
+        'label'              => 'Glassmorphism',
+        'preset'             => 'glass',
+        'triggerBg'          => 'back1',
+        'triggerText'        => 'texto',
+        'triggerBorder'      => 'border2',
+        'surfaceBg'          => 'back1',
+        'surfaceText'        => 'texto',
+        'surfaceMuted'       => 'text-inactive',
+        'surfaceBorder'      => 'border2',
+        'btnPrimaryBg'       => 'back5',
+        'btnPrimaryText'     => 'textw',
+        'btnPrimaryBorder'   => 'transparent',
+        'btnSecondaryBg'     => 'back2',
+        'btnSecondaryText'   => 'texto',
+        'btnSecondaryBorder' => 'transparent',
+        'accentColor'        => 'color5',
+        'accentText'         => 'textw',
+        'trackBg'            => 'back2',
+        'thumbBg'            => 'textw',
+        'borderWidth'        => 1,
+        'focusRing'          => 'color5',
+        'focusOutline'       => false,
+        'radius'             => 18,
+        'touchSize'          => 44,
+        'fontSize'           => 14,
+        'shadow'             => 'lg',
+        'blur'               => 16,
+        'mobileSheet'        => true,
       ],
       'pill' => [
-        'label'            => 'Pill Redondeado',
-        'preset'           => 'pill',
-        'triggerBg'        => 'back2',
-        'triggerText'      => 'texto',
-        'triggerBorder'    => 'transparent',
-        'surfaceBg'        => 'back1',
-        'surfaceText'      => 'texto',
-        'surfaceMuted'     => 'text-inactive',
-        'surfaceBorder'    => 'textc',
-        'btnPrimaryBg'     => 'back-success',
-        'btnPrimaryText'   => 'textw',
-        'btnSecondaryBg'   => 'back2',
-        'btnSecondaryText' => 'texto',
-        'accentColor'      => 'color6',
-        'accentText'       => 'textw',
-        'trackBg'          => 'back3',
-        'radius'           => 24,
-        'touchSize'        => 48,
-        'shadow'           => 'md',
-        'blur'             => 8,
-        'mobileSheet'      => true,
+        'label'              => 'Pill Redondeado',
+        'preset'             => 'pill',
+        'triggerBg'          => 'back2',
+        'triggerText'        => 'texto',
+        'triggerBorder'      => 'transparent',
+        'surfaceBg'          => 'back1',
+        'surfaceText'        => 'texto',
+        'surfaceMuted'       => 'text-inactive',
+        'surfaceBorder'      => 'textc',
+        'btnPrimaryBg'       => 'back-success',
+        'btnPrimaryText'     => 'textw',
+        'btnPrimaryBorder'   => 'transparent',
+        'btnSecondaryBg'     => 'back2',
+        'btnSecondaryText'   => 'texto',
+        'btnSecondaryBorder' => 'transparent',
+        'accentColor'        => 'color6',
+        'accentText'         => 'textw',
+        'trackBg'            => 'back3',
+        'thumbBg'            => 'textw',
+        'borderWidth'        => 0,
+        'focusRing'          => 'color6',
+        'focusOutline'       => false,
+        'radius'             => 24,
+        'touchSize'          => 48,
+        'fontSize'           => 15,
+        'shadow'             => 'md',
+        'blur'               => 8,
+        'mobileSheet'        => true,
       ],
       'elevated' => [
-        'label'            => 'Contraste Alto',
-        'preset'           => 'elevated',
-        'triggerBg'        => 'back8',
-        'triggerText'      => 'textw',
-        'triggerBorder'    => 'border8',
-        'surfaceBg'        => '#111827',
-        'surfaceText'      => '#f8fafc',
-        'surfaceMuted'     => '#94a3b8',
-        'surfaceBorder'    => '#334155',
-        'btnPrimaryBg'     => '#2563eb',
-        'btnPrimaryText'   => '#ffffff',
-        'btnSecondaryBg'   => '#1e293b',
-        'btnSecondaryText' => '#e2e8f0',
-        'accentColor'      => '#38bdf8',
-        'accentText'       => '#0f172a',
-        'trackBg'          => '#334155',
-        'radius'           => 14,
-        'touchSize'        => 44,
-        'shadow'           => 'lg',
-        'blur'             => 12,
-        'mobileSheet'      => true,
+        'label'              => 'Contraste Alto',
+        'preset'             => 'elevated',
+        'triggerBg'          => 'back8',
+        'triggerText'        => 'textw',
+        'triggerBorder'      => 'border8',
+        'surfaceBg'          => '#111827',
+        'surfaceText'        => '#f8fafc',
+        'surfaceMuted'       => '#94a3b8',
+        'surfaceBorder'      => '#334155',
+        'btnPrimaryBg'       => '#2563eb',
+        'btnPrimaryText'     => '#ffffff',
+        'btnPrimaryBorder'   => 'transparent',
+        'btnSecondaryBg'     => '#1e293b',
+        'btnSecondaryText'   => '#e2e8f0',
+        'btnSecondaryBorder' => '#475569',
+        'accentColor'        => '#38bdf8',
+        'accentText'         => '#0f172a',
+        'trackBg'            => '#334155',
+        'thumbBg'            => '#ffffff',
+        'borderWidth'        => 1,
+        'focusRing'          => '#38bdf8',
+        'focusOutline'       => true,
+        'radius'             => 14,
+        'touchSize'          => 44,
+        'fontSize'           => 15,
+        'shadow'             => 'lg',
+        'blur'               => 12,
+        'mobileSheet'        => true,
       ],
     ];
+  }
+
+  /**
+   * Carga automáticamente la configuración de inputs (`inputs` y `localOverrides`) del tema activo
+   * en `App/Config/theme.json` si no se ha configurado manualmente en esta petición.
+   *
+   * @return void
+   */
+  public static function ensureThemeConfigLoaded(): void
+  {
+    if (self::$themeLoaded) {
+      return;
+    }
+    self::$themeLoaded = true;
+
+    if (!class_exists(ThemeModule::class)) {
+      return;
+    }
+
+    try {
+      $jsonPath = ThemeModule::getThemeJsonPath();
+      if (!is_file($jsonPath)) {
+        return;
+      }
+      $themeData = ThemeModule::loadConfig($jsonPath);
+      if (isset($themeData['inputs']) && is_array($themeData['inputs'])) {
+        $inputsCfg = $themeData['inputs'];
+        if (isset($inputsCfg['localOverrides']) && is_array($inputsCfg['localOverrides'])) {
+          self::$themeLocalOverrides = $inputsCfg['localOverrides'];
+        }
+        unset($inputsCfg['localOverrides']);
+        self::configStyle($inputsCfg);
+      }
+    } catch (\Throwable $e) {
+      // Silencioso para no interrumpir vistas si theme.json aún no existe o es ilegible
+    }
   }
 
   /**
@@ -238,6 +327,8 @@ class FormUiModule
    */
   public static function configStyle(array $config = []): void
   {
+    self::$themeLoaded = true;
+
     $stringKeys = [
       'preset',
       'triggerBg',
@@ -249,11 +340,15 @@ class FormUiModule
       'surfaceBorder',
       'btnPrimaryBg',
       'btnPrimaryText',
+      'btnPrimaryBorder',
       'btnSecondaryBg',
       'btnSecondaryText',
+      'btnSecondaryBorder',
       'accentColor',
       'accentText',
       'trackBg',
+      'thumbBg',
+      'focusRing',
       'shadow',
     ];
 
@@ -261,6 +356,15 @@ class FormUiModule
       if (isset($config[$key]) && is_string($config[$key]) && trim($config[$key]) !== '') {
         self::$globalConfig[$key] = trim($config[$key]);
       }
+    }
+
+    if (isset($config['borderWidth']) && is_numeric($config['borderWidth'])) {
+      self::$globalConfig['borderWidth'] = max(0, min(6, (int)$config['borderWidth']));
+    }
+
+    if (isset($config['focusOutline'])) {
+      $parsedOutline = filter_var($config['focusOutline'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+      self::$globalConfig['focusOutline'] = $parsedOutline ?? (bool)$config['focusOutline'];
     }
 
     if (isset($config['radius']) && is_numeric($config['radius'])) {
@@ -287,6 +391,10 @@ class FormUiModule
       $parsed = filter_var($config['mobileSheet'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
       self::$globalConfig['mobileSheet'] = $parsed ?? (bool)$config['mobileSheet'];
     }
+
+    if (isset($config['localOverrides']) && is_array($config['localOverrides'])) {
+      self::$themeLocalOverrides = $config['localOverrides'];
+    }
   }
 
   /**
@@ -296,6 +404,7 @@ class FormUiModule
    */
   public static function getGlobalConfig(): array
   {
+    self::ensureThemeConfigLoaded();
     return self::$globalConfig;
   }
 
@@ -307,6 +416,8 @@ class FormUiModule
   public static function resetConfig(): void
   {
     self::$globalConfig = self::getDefaultConfig();
+    self::$themeLocalOverrides = [];
+    self::$themeLoaded = false;
   }
 
   /**
@@ -355,14 +466,20 @@ class FormUiModule
       'textb'          => ['class' => 'textb', 'cssValue' => '#000000'],
       'text-inactive'  => ['class' => 'inactive', 'cssValue' => 'var(--text-inactive, #9ca3af)'],
       'inactive'       => ['class' => 'inactive', 'cssValue' => 'var(--text-inactive, #9ca3af)'],
+      'success'        => ['class' => 'back-success', 'cssValue' => 'var(--success, #00b900)'],
       'back-success'   => ['class' => 'back-success', 'cssValue' => 'var(--success, #00b900)'],
       'color-success'  => ['class' => 'color-success', 'cssValue' => 'var(--success, #00b900)'],
+      'caution'        => ['class' => 'back-caution', 'cssValue' => 'var(--caution, #ff8c00)'],
       'back-caution'   => ['class' => 'back-caution', 'cssValue' => 'var(--caution, #ff8c00)'],
       'color-caution'  => ['class' => 'color-caution', 'cssValue' => 'var(--caution, #ff8c00)'],
+      'danger'         => ['class' => 'back-danger', 'cssValue' => 'var(--danger, #ff0000)'],
       'back-danger'    => ['class' => 'back-danger', 'cssValue' => 'var(--danger, #ff0000)'],
       'color-danger'   => ['class' => 'color-danger', 'cssValue' => 'var(--danger, #ff0000)'],
       'back-none'      => ['class' => 'back-none', 'cssValue' => 'transparent'],
       'border-none'    => ['class' => 'border-none', 'cssValue' => 'transparent'],
+      'outline-none'   => ['class' => 'outline-none', 'cssValue' => 'transparent'],
+      'none'           => ['class' => '', 'cssValue' => 'transparent'],
+      '0'              => ['class' => '', 'cssValue' => 'transparent'],
     ];
 
     $lower = strtolower($raw);
@@ -431,11 +548,23 @@ class FormUiModule
     $surfaceBorder = self::resolveColorToken((string)$cfg['surfaceBorder'])['cssValue'];
     $btnPrimaryBg = self::resolveColorToken((string)$cfg['btnPrimaryBg'])['cssValue'];
     $btnPrimaryText = self::resolveColorToken((string)$cfg['btnPrimaryText'])['cssValue'];
+    $btnPrimaryBorder = self::resolveColorToken((string)($cfg['btnPrimaryBorder'] ?? 'transparent'))['cssValue'];
     $btnSecondaryBg = self::resolveColorToken((string)$cfg['btnSecondaryBg'])['cssValue'];
     $btnSecondaryText = self::resolveColorToken((string)$cfg['btnSecondaryText'])['cssValue'];
+    $btnSecondaryBorder = self::resolveColorToken((string)($cfg['btnSecondaryBorder'] ?? 'transparent'))['cssValue'];
     $accentColor = self::resolveColorToken((string)$cfg['accentColor'])['cssValue'];
     $accentText = self::resolveColorToken((string)$cfg['accentText'])['cssValue'];
     $trackBg = self::resolveColorToken((string)$cfg['trackBg'])['cssValue'];
+    $thumbBg = self::resolveColorToken((string)($cfg['thumbBg'] ?? 'textw'))['cssValue'];
+
+    $borderWidth = max(0, min(6, (int)($cfg['borderWidth'] ?? 1)));
+    $focusRingRaw = (string)($cfg['focusRing'] ?? 'color2');
+    $focusRing = self::resolveColorToken($focusRingRaw)['cssValue'];
+    $focusOutlineEnabled = filter_var($cfg['focusOutline'] ?? false, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    $focusOutlineEnabled = $focusOutlineEnabled ?? (bool)($cfg['focusOutline'] ?? false);
+    $focusOutlineCss = (!$focusOutlineEnabled || $focusRing === 'transparent' || strtolower(trim($focusRingRaw)) === 'none')
+      ? 'none'
+      : "2px solid {$focusRing}";
 
     $radius = max(0, min(40, (int)($cfg['radius'] ?? 15)));
     $touchSize = max(32, min(64, (int)($cfg['touchSize'] ?? 44)));
@@ -446,26 +575,32 @@ class FormUiModule
     $shadowVal = $shadowMap[$shadowKey] ?? $shadowMap['soft'];
 
     return [
-      '--ui-trigger-bg'          => $triggerBg,
-      '--ui-trigger-text'        => $triggerText,
-      '--ui-trigger-border'      => $triggerBorder,
-      '--ui-surface-bg'          => $surfaceBg,
-      '--ui-surface-text'        => $surfaceText,
-      '--ui-surface-muted'       => $surfaceMuted,
-      '--ui-surface-border'      => $surfaceBorder,
-      '--ui-surface-shadow'      => $shadowVal,
-      '--ui-btn-primary-bg'      => $btnPrimaryBg,
-      '--ui-btn-primary-text'    => $btnPrimaryText,
-      '--ui-btn-secondary-bg'    => $btnSecondaryBg,
-      '--ui-btn-secondary-text'  => $btnSecondaryText,
-      '--ui-accent'              => $accentColor,
-      '--ui-accent-text'         => $accentText,
-      '--ui-track-bg'            => $trackBg,
-      '--ui-radius'              => "{$radius}px",
-      '--ui-touch-size'          => "{$touchSize}px",
-      '--ui-font-size'           => "{$fontSize}px",
-      '--ui-overlay-blur'        => "{$blur}px",
-      '--ui-transition'          => "{$transition}ms",
+      '--ui-trigger-bg'           => $triggerBg,
+      '--ui-trigger-text'         => $triggerText,
+      '--ui-trigger-border'       => $triggerBorder,
+      '--ui-surface-bg'           => $surfaceBg,
+      '--ui-surface-text'         => $surfaceText,
+      '--ui-surface-muted'        => $surfaceMuted,
+      '--ui-surface-border'       => $surfaceBorder,
+      '--ui-surface-shadow'       => $shadowVal,
+      '--ui-btn-primary-bg'       => $btnPrimaryBg,
+      '--ui-btn-primary-text'     => $btnPrimaryText,
+      '--ui-btn-primary-border'   => $btnPrimaryBorder,
+      '--ui-btn-secondary-bg'     => $btnSecondaryBg,
+      '--ui-btn-secondary-text'   => $btnSecondaryText,
+      '--ui-btn-secondary-border' => $btnSecondaryBorder,
+      '--ui-accent'               => $accentColor,
+      '--ui-accent-text'          => $accentText,
+      '--ui-track-bg'             => $trackBg,
+      '--ui-thumb-bg'             => $thumbBg,
+      '--ui-border-width'         => "{$borderWidth}px",
+      '--ui-focus-ring'           => $focusRing,
+      '--ui-focus-outline'        => $focusOutlineCss,
+      '--ui-radius'               => "{$radius}px",
+      '--ui-touch-size'           => "{$touchSize}px",
+      '--ui-font-size'            => "{$fontSize}px",
+      '--ui-overlay-blur'         => "{$blur}px",
+      '--ui-transition'           => "{$transition}ms",
     ];
   }
 
@@ -525,45 +660,54 @@ class FormUiModule
    */
   private static function buildInlineStyleVars(array $params, bool $alwaysEmit = false): string
   {
-    $styleKeys = [
-      'triggerBg',
-      'triggerText',
-      'triggerBorder',
-      'surfaceBg',
-      'surfaceText',
-      'surfaceMuted',
-      'surfaceBorder',
-      'btnPrimaryBg',
-      'btnPrimaryText',
-      'btnSecondaryBg',
-      'btnSecondaryText',
-      'accentColor',
-      'accentText',
-      'trackBg',
-      'radius',
-      'touchSize',
-      'fontSize',
-      'shadow',
-      'blur',
-      'transition',
+    $keyToCssVar = [
+      'triggerBg'          => ['--ui-trigger-bg'],
+      'triggerText'        => ['--ui-trigger-text'],
+      'triggerBorder'      => ['--ui-trigger-border'],
+      'surfaceBg'          => ['--ui-surface-bg'],
+      'surfaceText'        => ['--ui-surface-text'],
+      'surfaceMuted'       => ['--ui-surface-muted'],
+      'surfaceBorder'      => ['--ui-surface-border'],
+      'btnPrimaryBg'       => ['--ui-btn-primary-bg'],
+      'btnPrimaryText'     => ['--ui-btn-primary-text'],
+      'btnPrimaryBorder'   => ['--ui-btn-primary-border'],
+      'btnSecondaryBg'     => ['--ui-btn-secondary-bg'],
+      'btnSecondaryText'   => ['--ui-btn-secondary-text'],
+      'btnSecondaryBorder' => ['--ui-btn-secondary-border'],
+      'accentColor'        => ['--ui-accent'],
+      'accentText'         => ['--ui-accent-text'],
+      'trackBg'            => ['--ui-track-bg'],
+      'thumbBg'            => ['--ui-thumb-bg'],
+      'borderWidth'        => ['--ui-border-width'],
+      'focusRing'          => ['--ui-focus-ring', '--ui-focus-outline'],
+      'focusOutline'       => ['--ui-focus-outline'],
+      'radius'             => ['--ui-radius'],
+      'touchSize'          => ['--ui-touch-size'],
+      'fontSize'           => ['--ui-font-size'],
+      'shadow'             => ['--ui-surface-shadow'],
+      'blur'               => ['--ui-overlay-blur'],
+      'transition'         => ['--ui-transition'],
     ];
 
-    $hasLocalOverride = false;
-    foreach ($styleKeys as $k) {
-      if (array_key_exists($k, $params) && $params[$k] !== null && $params[$k] !== '') {
-        $hasLocalOverride = true;
-        break;
+    $presentVars = [];
+    foreach ($keyToCssVar as $paramKey => $cssVars) {
+      if (array_key_exists($paramKey, $params) && $params[$paramKey] !== null && $params[$paramKey] !== '') {
+        foreach ($cssVars as $cv) {
+          $presentVars[$cv] = true;
+        }
       }
     }
 
-    if (!$alwaysEmit && !$hasLocalOverride) {
+    if (!$alwaysEmit && empty($presentVars)) {
       return '';
     }
 
     $vars = self::buildCssVarsMap($params);
     $parts = [];
     foreach ($vars as $k => $v) {
-      $parts[] = "{$k}: {$v}";
+      if ($alwaysEmit || isset($presentVars[$k])) {
+        $parts[] = "{$k}: {$v}";
+      }
     }
     return implode('; ', $parts) . ';';
   }
@@ -678,6 +822,12 @@ class FormUiModule
       return "<!-- FormUiModule: Component '{$type}' not supported -->";
     }
 
+    self::ensureThemeConfigLoaded();
+
+    if (empty($params['ignoreThemeLocal']) && !empty(self::$themeLocalOverrides[$type]) && is_array(self::$themeLocalOverrides[$type])) {
+      $params = array_merge(self::$themeLocalOverrides[$type], $params);
+    }
+
     $inlineVars = !empty($params['inlineVars']);
     $multiline = !empty($params['multiline']);
     $wrapContainer = !empty($params['wrapContainer']);
@@ -688,11 +838,14 @@ class FormUiModule
 
     $zoneAttrs = self::buildZoneAttributes($params, $inlineVars);
     $name = trim((string)($params['name'] ?? self::defaultNameForType($type)));
-    $id = trim((string)($params['id'] ?? ''));
+    $id = trim((string)($params['previewId'] ?? $params['id'] ?? ''));
+    $labelForId = $id;
     $placeholder = (string)($params['placeholder'] ?? self::defaultPlaceholderForType($type));
     $value = (string)($params['value'] ?? self::defaultValueForType($type));
     $extraClass = isset($params['class']) && is_string($params['class']) ? self::sanitizeClasses($params['class']) : '';
     $required = !empty($params['required']);
+    $disabled = !empty($params['disabled']);
+    $readonly = !empty($params['readonly']);
     $autoSubmit = !empty($params['autoSubmit']);
     $indent = $wrapContainer ? '    ' : '  ';
 
@@ -717,7 +870,11 @@ class FormUiModule
           'cropping-size' => (string)($params['croppingSize'] ?? '500x500'),
           'crop-shape' => (string)($params['cropShape'] ?? 'square'),
           'data-rotate' => !empty($params['allowRotate']) ? 'true' : null,
+          'data-title' => !empty($params['modalTitle']) ? (string)$params['modalTitle'] : null,
+          'data-save-label' => !empty($params['saveLabel']) ? (string)$params['saveLabel'] : null,
+          'data-cancel-label' => !empty($params['cancelLabel']) ? (string)$params['cancelLabel'] : null,
           'required' => $required,
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -739,6 +896,7 @@ class FormUiModule
           'data-max-files' => !empty($params['maxFiles']) ? (int)$params['maxFiles'] : null,
           'data-max-size' => !empty($params['maxSizeMb']) ? (float)$params['maxSizeMb'] : null,
           'required' => $required,
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -753,6 +911,7 @@ class FormUiModule
           'class' => $classes,
           'data-alpha' => !empty($params['showAlpha']) ? 'true' : null,
           'data-swatches' => !empty($params['swatches']) && is_string($params['swatches']) ? $params['swatches'] : null,
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -772,6 +931,7 @@ class FormUiModule
           'ui-size' => (string)($params['size'] ?? 'md'),
           'data-label-on' => !empty($params['labelOn']) ? (string)$params['labelOn'] : null,
           'data-label-off' => !empty($params['labelOff']) ? (string)$params['labelOff'] : null,
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -781,13 +941,20 @@ class FormUiModule
         if (!empty($params['animated'])) {
           $classes .= ' animated';
         }
-        $options = is_array($params['options'] ?? null) ? $params['options'] : [
-          ['value' => 'es', 'label' => 'España'],
-          ['value' => 'mx', 'label' => 'México'],
-          ['value' => 'ar', 'label' => 'Argentina'],
-          ['value' => 'cl', 'label' => 'Chile'],
-          ['value' => 'co', 'label' => 'Colombia'],
-        ];
+        $rawOptions = $params['options'] ?? null;
+        if (is_string($rawOptions) && trim($rawOptions) !== '') {
+          $options = self::parseOptionsString($rawOptions);
+        } elseif (is_array($rawOptions) && !empty($rawOptions)) {
+          $options = $rawOptions;
+        } else {
+          $options = [
+            ['value' => 'es', 'label' => 'España'],
+            ['value' => 'mx', 'label' => 'México'],
+            ['value' => 'ar', 'label' => 'Argentina'],
+            ['value' => 'cl', 'label' => 'Chile'],
+            ['value' => 'co', 'label' => 'Colombia'],
+          ];
+        }
         $attrs = array_merge([
           'class' => $classes,
           'id' => $id ?: null,
@@ -800,7 +967,8 @@ class FormUiModule
         $optIndent = $wrapContainer ? '      ' : '    ';
         $optLines = [];
         if (!isset($params['searchable']) || $params['searchable']) {
-          $optLines[] = "{$optIndent}<input type=\"text\" class=\"dropdown-search\" placeholder=\"" . self::esc('Buscar...') . "\">";
+          $searchPh = !empty($params['searchPlaceholder']) ? (string)$params['searchPlaceholder'] : 'Buscar...';
+          $optLines[] = "{$optIndent}<input type=\"text\" class=\"dropdown-search\" placeholder=\"" . self::esc($searchPh) . "\">";
         }
         foreach ($options as $opt) {
           $optVal = self::esc($opt['value'] ?? '');
@@ -835,6 +1003,8 @@ class FormUiModule
           'max' => !empty($params['max']) ? (string)$params['max'] : null,
           'autocomplete' => 'off',
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -852,6 +1022,8 @@ class FormUiModule
           'data-step' => (int)($params['step'] ?? 15),
           'autocomplete' => 'off',
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -875,6 +1047,7 @@ class FormUiModule
             'step' => $stepVal,
             'data-suffix' => (string)($params['suffix'] ?? ''),
             'data-tooltip' => (!isset($params['showTooltip']) || $params['showTooltip']) ? 'true' : 'false',
+            'disabled' => $disabled,
           ], $zoneAttrs);
         } else {
           $attrs = array_merge([
@@ -888,6 +1061,7 @@ class FormUiModule
             'step' => $stepVal,
             'data-suffix' => (string)($params['suffix'] ?? ''),
             'data-tooltip' => (!isset($params['showTooltip']) || $params['showTooltip']) ? 'true' : 'false',
+            'disabled' => $disabled,
           ], $zoneAttrs);
         }
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
@@ -899,11 +1073,14 @@ class FormUiModule
           'type' => 'password',
           'name' => $name,
           'id' => $id ?: null,
+          'value' => $value,
           'class' => $classes,
           'placeholder' => $placeholder,
           'data-strength' => !empty($params['showStrength']) ? 'true' : null,
           'autocomplete' => 'current-password',
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -915,11 +1092,14 @@ class FormUiModule
           'type' => 'text',
           'name' => $name,
           'id' => $id ?: null,
+          'value' => $value,
           'class' => $classes,
           'data-length' => $length,
           'inputmode' => (string)($params['inputMode'] ?? 'numeric'),
           'autocomplete' => 'one-time-code',
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -935,6 +1115,8 @@ class FormUiModule
           'placeholder' => $placeholder,
           'data-max-tags' => !empty($params['maxTags']) ? (int)$params['maxTags'] : 10,
           'data-separator' => (string)($params['separator'] ?? ','),
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -951,6 +1133,8 @@ class FormUiModule
           'max' => $params['max'] ?? 99,
           'step' => $params['step'] ?? 1,
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -965,7 +1149,10 @@ class FormUiModule
           'class' => $classes,
           'data-max' => max(3, min(10, (int)($params['max'] ?? 5))),
           'data-half' => !empty($params['allowHalf']) ? 'true' : null,
+          'data-clearable' => !empty($params['clearable']) ? 'true' : null,
+          'data-readonly' => $readonly ? 'true' : null,
           'data-icon' => (string)($params['icon'] ?? 'star'),
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -983,6 +1170,7 @@ class FormUiModule
           'data-max-files' => !empty($params['maxFiles']) ? (int)$params['maxFiles'] : 5,
           'data-max-size' => !empty($params['maxSizeMb']) ? (float)$params['maxSizeMb'] : 10,
           'required' => $required,
+          'disabled' => $disabled,
         ], $zoneAttrs);
         $html = '<input' . self::renderAttrsString($attrs, $multiline, $indent) . '>';
         break;
@@ -994,13 +1182,22 @@ class FormUiModule
           'type' => 'text',
           'name' => str_ends_with($name, '[]') ? $name : ($name . '[]'),
           'id' => $id ?: null,
+          'value' => $value !== '' ? $value : null,
           'class' => $classes,
           'placeholder' => $placeholder,
           'data-max' => $maxItems,
+          'data-add-label' => !empty($params['addLabel']) ? (string)$params['addLabel'] : null,
+          'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
+        $groupAttrs = ['class' => 'repeat-group'];
+        if (!empty($zoneAttrs['style'])) {
+          $groupAttrs['style'] = $zoneAttrs['style'];
+        }
         $innerIndent = $wrapContainer ? '    ' : '  ';
         $baseIndent = $wrapContainer ? '  ' : '';
-        $html = "<div class=\"repeat-group\">\n"
+        $html = "<div" . self::renderAttrsString($groupAttrs, false) . ">\n"
           . "{$innerIndent}<input" . self::renderAttrsString($attrs, $multiline, $innerIndent . '  ') . ">\n"
           . "{$baseIndent}</div>";
         break;
@@ -1020,22 +1217,33 @@ class FormUiModule
           'data-limit' => $limit,
           'data-counter-el' => '#' . $counterId,
           'required' => $required,
+          'disabled' => $disabled,
+          'readonly' => $readonly,
         ], $zoneAttrs);
+        $counterAttrs = ['id' => $counterId, 'class' => 'tl-counter x12'];
+        if (!empty($zoneAttrs['style'])) {
+          $counterAttrs['style'] = $zoneAttrs['style'];
+        }
         $baseIndent = $wrapContainer ? '  ' : '';
         $html = "<textarea" . self::renderAttrsString($attrs, $multiline, $indent) . ">" . self::esc($value) . "</textarea>\n"
-          . "{$baseIndent}<div id=\"{$counterId}\" class=\"tl-counter x12\"><span class=\"tl-current\">0</span> / <span class=\"tl-limit\">{$limit}</span></div>";
+          . "{$baseIndent}<div" . self::renderAttrsString($counterAttrs, false) . "><span class=\"tl-current\">0</span> / <span class=\"tl-limit\">{$limit}</span></div>";
         break;
     }
 
     if ($labelText !== '' || $wrapContainer) {
       $lines = [];
       if ($wrapContainer) {
-        $lines[] = '<div class="' . self::esc($wrapperClass) . '">';
+        $wrapAttrs = ['class' => $wrapperClass];
+        if (!empty($zoneAttrs['style'])) {
+          $wrapAttrs['style'] = $zoneAttrs['style'];
+        }
+        $lines[] = '<div' . self::renderAttrsString($wrapAttrs, false) . '>';
       }
       if ($labelText !== '') {
-        $forAttr = $id !== '' ? ' for="' . self::esc($id) . '"' : '';
+        $forAttr = $labelForId !== '' ? ' for="' . self::esc($labelForId) . '"' : '';
         $lblIndent = $wrapContainer ? '  ' : '';
-        $lines[] = "{$lblIndent}<label{$forAttr} class=\"ui-field-label\">" . self::esc($labelText) . '</label>';
+        $lblStyleAttr = (!$wrapContainer && !empty($zoneAttrs['style'])) ? ' style="' . self::esc($zoneAttrs['style']) . '"' : '';
+        $lines[] = "{$lblIndent}<label{$forAttr} class=\"ui-field-label\"{$lblStyleAttr}>" . self::esc($labelText) . '</label>';
       }
       if ($wrapContainer) {
         $indentedHtml = implode("\n", array_map(static fn(string $line): string => '  ' . $line, explode("\n", $html)));
@@ -1048,6 +1256,39 @@ class FormUiModule
     }
 
     return $html;
+  }
+
+  /**
+   * Parsea una cadena de opciones con formato `"valor:Etiqueta, valor2:Etiqueta 2"` o líneas.
+   *
+   * @param string $raw Cadena de opciones.
+   * @return array<int, array{value: string, label: string}>
+   */
+  public static function parseOptionsString(string $raw): array
+  {
+    $items = preg_split('/[\r\n,]+/', $raw) ?: [];
+    $options = [];
+    foreach ($items as $item) {
+      $item = trim($item);
+      if ($item === '') {
+        continue;
+      }
+      if (str_contains($item, ':')) {
+        [$val, $lbl] = explode(':', $item, 2);
+        $val = trim($val);
+        $lbl = trim($lbl);
+        $options[] = [
+          'value' => $val !== '' ? $val : $lbl,
+          'label' => $lbl !== '' ? $lbl : $val,
+        ];
+      } else {
+        $options[] = [
+          'value' => $item,
+          'label' => $item,
+        ];
+      }
+    }
+    return $options;
   }
 
   /**

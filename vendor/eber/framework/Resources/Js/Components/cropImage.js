@@ -140,10 +140,10 @@ export function cropImage() {
     }
 
     const maskId = `crop-mask-hole-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const cropTitle = tr('crop_title', {}, 'Recortar Imagen');
+    const cropTitle = input.getAttribute('data-title') || tr('crop_title', {}, 'Recortar Imagen');
     const cropAlt = tr('crop_alt', {}, 'A recortar');
-    const cancelLabel = tr('cancel', {}, 'Cancelar');
-    const saveLabel = tr('crop_save', {}, 'Recortar y Guardar');
+    const cancelLabel = input.getAttribute('data-cancel-label') || tr('cancel', {}, 'Cancelar');
+    const saveLabel = input.getAttribute('data-save-label') || tr('crop_save', {}, 'Recortar y Guardar');
 
     const maskShapeSvg = isCircle
       ? `<circle cx="${containerW / 2}" cy="${containerH / 2}" r="${Math.min(boxW, boxH) / 2}" fill="black" />`

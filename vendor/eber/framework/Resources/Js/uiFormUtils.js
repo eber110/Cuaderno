@@ -20,12 +20,17 @@
     '--ui-surface-shadow',
     '--ui-btn-primary-bg',
     '--ui-btn-primary-text',
+    '--ui-btn-primary-border',
     '--ui-btn-secondary-bg',
     '--ui-btn-secondary-text',
+    '--ui-btn-secondary-border',
     '--ui-accent',
     '--ui-accent-text',
     '--ui-track-bg',
     '--ui-thumb-bg',
+    '--ui-border-width',
+    '--ui-focus-ring',
+    '--ui-focus-outline',
     '--ui-radius',
     '--ui-touch-size',
     '--ui-font-size',
@@ -108,7 +113,11 @@
       'back-caution': 'var(--caution, #ff8c00)',
       'color-caution': 'var(--caution, #ff8c00)',
       'back-danger': 'var(--danger, #ff0000)',
-      'color-danger': 'var(--danger, #ff0000)'
+      'color-danger': 'var(--danger, #ff0000)',
+      'none': 'transparent',
+      'border-none': 'transparent',
+      'back-none': 'transparent',
+      'outline-none': 'transparent'
     };
 
     const lower = token.toLowerCase();

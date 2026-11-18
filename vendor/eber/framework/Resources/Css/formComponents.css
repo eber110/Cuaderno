@@ -13,12 +13,17 @@
   --ui-surface-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
   --ui-btn-primary-bg: var(--back-color6, #2563eb);
   --ui-btn-primary-text: #ffffff;
+  --ui-btn-primary-border: transparent;
   --ui-btn-secondary-bg: var(--back-color2, #e2e8f0);
   --ui-btn-secondary-text: var(--text-primary, #1e293b);
+  --ui-btn-secondary-border: transparent;
   --ui-accent: var(--back-color2, #3b82f6);
   --ui-accent-text: #0f172a;
   --ui-track-bg: color-mix(in srgb, var(--text-primary, #111827) 16%, transparent);
   --ui-thumb-bg: #ffffff;
+  --ui-border-width: 1px;
+  --ui-focus-ring: var(--ui-accent, #3b82f6);
+  --ui-focus-outline: none;
   --ui-radius: 15px;
   --ui-touch-size: 44px;
   --ui-font-size: 14px;
@@ -38,7 +43,7 @@ html[data-theme="dark"],
 .ui-field-card {
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   border-radius: var(--ui-radius);
 }
 
@@ -48,6 +53,105 @@ html[data-theme="dark"],
   font-weight: 600;
   color: var(--ui-trigger-text);
   margin-bottom: 8px;
+}
+
+/* Utilidades de control de borde y outline para todos los componentes UI */
+.ui-input-component:focus,
+.ui-input-component:focus-visible,
+.ui-btn:focus,
+.ui-btn:focus-visible,
+.js-crop-img-mask:focus,
+.js-crop-img-mask:focus-visible,
+.js-load-img-mask:focus,
+.js-load-img-mask:focus-visible,
+.ui-dp-input-display:focus,
+.ui-dp-input-display:focus-visible,
+.ui-dp-trigger-btn:focus,
+.ui-dp-trigger-btn:focus-visible,
+.ui-dp-nav-btn:focus,
+.ui-dp-nav-btn:focus-visible,
+.ui-dp-title-btn:focus,
+.ui-dp-title-btn:focus-visible,
+.ui-dp-day:focus,
+.ui-dp-day:focus-visible,
+.ui-dp-chip:focus,
+.ui-dp-chip:focus-visible,
+.ui-tp-item:focus,
+.ui-tp-item:focus-visible,
+.ui-password-field:focus,
+.ui-password-field:focus-visible,
+.ui-password-toggle:focus,
+.ui-password-toggle:focus-visible,
+.ui-otp-cell:focus,
+.ui-otp-cell:focus-visible,
+.ui-tags-entry:focus,
+.ui-tags-entry:focus-visible,
+.ui-tag-remove:focus,
+.ui-tag-remove:focus-visible,
+.ui-stepper-btn:focus,
+.ui-stepper-btn:focus-visible,
+.ui-stepper-field:focus,
+.ui-stepper-field:focus-visible,
+.ui-rating-item:focus,
+.ui-rating-item:focus-visible,
+.ui-dropzone-area:focus,
+.ui-dropzone-area:focus-visible,
+.ui-dropzone-remove:focus,
+.ui-dropzone-remove:focus-visible,
+.repeat-camp-input:focus,
+.repeat-camp-input:focus-visible,
+.repeat-btn-remove:focus,
+.repeat-btn-remove:focus-visible,
+.text-limiter:focus,
+.text-limiter:focus-visible,
+.crop-zoom-btn:focus,
+.crop-zoom-btn:focus-visible,
+.dropdown-selected:focus,
+.dropdown-selected:focus-visible,
+.dropdown-search:focus,
+.dropdown-search:focus-visible,
+.ui-hex-input:focus,
+.ui-hex-input:focus-visible,
+.ui-range-thumb:focus,
+.ui-range-thumb:focus-visible,
+.checkbox-switch-container:focus,
+.checkbox-switch-container:focus-visible {
+  outline: var(--ui-focus-outline, none);
+  outline-offset: 2px;
+}
+
+.ui-btn.border-none,
+button.ui-btn.border-none,
+.js-crop-img-mask.border-none,
+button.js-crop-img-mask.border-none,
+.js-load-img-mask.border-none,
+button.js-load-img-mask.border-none,
+.ui-input-component.border-none,
+.ui-dp-input-display.border-none,
+.dropdown-selected.border-none,
+.ui-password-field.border-none,
+.ui-otp-cell.border-none,
+.ui-tags-box.border-none,
+.ui-stepper.border-none,
+.ui-dropzone-area.border-none,
+.repeat-camp-input.border-none,
+textarea.text-limiter.border-none,
+.border-none {
+  border: none !important;
+  border-width: 0 !important;
+}
+
+.border-0 {
+  border-width: 0 !important;
+}
+
+.outline-none,
+.outline-none:focus,
+.outline-none:focus-visible,
+.focus-ring-none,
+.focus-ring-none:focus,
+.focus-ring-none:focus-visible {
+  outline: none !important;
 }
 
 /* Backdrop para popovers en modo bottom-sheet o modal táctil */
@@ -92,7 +196,8 @@ a.ui-btn {
   line-height: 1.25;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: var(--ui-border-width, 1px) solid transparent;
+  outline: none;
   box-sizing: border-box;
   transition: transform 0.15s ease, filter 0.18s ease, background-color 0.18s ease;
   touch-action: manipulation;
@@ -111,6 +216,7 @@ button.ui-btn-primary,
   background-color: var(--ui-btn-primary-bg);
   background: var(--ui-btn-primary-bg);
   color: var(--ui-btn-primary-text);
+  border: var(--ui-border-width, 1px) solid var(--ui-btn-primary-border, transparent);
 }
 
 .ui-btn-primary:hover,
@@ -125,7 +231,7 @@ button.ui-btn-secondary,
   background-color: var(--ui-btn-secondary-bg);
   background: var(--ui-btn-secondary-bg);
   color: var(--ui-btn-secondary-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-btn-secondary-border, transparent);
 }
 
 .ui-btn-secondary:hover,
@@ -175,7 +281,7 @@ button.ui-btn-secondary:hover,
 
 .crop-modal-card {
   background: var(--ui-surface-bg);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   border-radius: var(--ui-radius);
   padding: 20px;
   box-shadow: var(--ui-surface-shadow);
@@ -255,7 +361,7 @@ button.crop-zoom-btn {
   min-width: 38px;
   min-height: 38px;
   border-radius: 10px;
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   background-color: var(--ui-track-bg);
   background: var(--ui-track-bg);
   color: var(--ui-surface-text);
@@ -266,6 +372,7 @@ button.crop-zoom-btn {
   touch-action: manipulation;
   padding: 0;
   font-size: 14px;
+  outline: none;
 }
 
 .crop-zoom-btn:hover {
@@ -362,7 +469,8 @@ button.js-crop-img-mask {
   background-color: var(--ui-trigger-bg);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
+  outline: none;
   font-size: var(--ui-font-size, 14px);
   line-height: 1.25;
   font-weight: 500;
@@ -377,7 +485,7 @@ button.js-crop-img-mask {
   width: 100%;
   min-height: 112px;
   padding: 18px;
-  border: 2px dashed var(--ui-trigger-border);
+  border: calc(var(--ui-border-width, 1px) * 2) dashed var(--ui-trigger-border);
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
@@ -389,6 +497,7 @@ button.js-crop-img-mask {
   gap: 8px;
   text-align: center;
   cursor: pointer;
+  outline: none;
   touch-action: manipulation;
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
 }
@@ -438,7 +547,7 @@ button.js-crop-img-mask {
   border-radius: calc(var(--ui-radius, 15px) * 0.7);
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
 }
 
 .ui-dropzone-badge {
@@ -534,7 +643,7 @@ input[type="color"].color-picker::-moz-color-swatch {
   max-width: calc(100vw - 20px);
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   padding: 16px;
   border-radius: var(--ui-radius);
   box-shadow: var(--ui-surface-shadow);
@@ -682,7 +791,7 @@ input.ui-hex-input {
   background-color: var(--ui-track-bg, #d1d5db);
   border-radius: 999px;
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   flex-shrink: 0;
 }
 
@@ -760,9 +869,10 @@ input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track .checkbo
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   font-size: var(--ui-font-size, 14px);
   cursor: pointer;
+  outline: none;
   touch-action: manipulation;
   user-select: none;
 }
@@ -774,7 +884,7 @@ input[type="checkbox"].checkbox-switch:checked + .checkbox-switch-track .checkbo
   overflow-y: auto;
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   border-radius: var(--ui-radius);
   box-shadow: var(--ui-surface-shadow);
   padding: 8px;
@@ -794,10 +904,16 @@ input.dropdown-search {
   padding: 8px 12px;
   margin-bottom: 4px;
   border-radius: calc(var(--ui-radius, 15px) * 0.65);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   background: color-mix(in srgb, var(--ui-surface-bg) 88%, var(--ui-surface-text) 6%);
   color: var(--ui-surface-text);
   font-size: var(--ui-font-size, 14px);
+  outline: none;
+}
+
+.dropdown-search::placeholder,
+input.dropdown-search::placeholder {
+  color: var(--ui-surface-muted);
 }
 
 .dropdown-option {
@@ -848,10 +964,16 @@ input.ui-dp-input-display {
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   font-size: var(--ui-font-size, 14px);
   cursor: pointer;
+  outline: none;
   touch-action: manipulation;
+}
+
+.ui-dp-input-display::placeholder,
+input.ui-dp-input-display::placeholder {
+  color: var(--ui-surface-muted);
 }
 
 .ui-dp-trigger-btn {
@@ -862,6 +984,7 @@ input.ui-dp-input-display {
   width: 38px;
   height: 38px;
   border: none;
+  outline: none;
   border-radius: calc(var(--ui-radius, 15px) * 0.65);
   background: transparent;
   color: var(--ui-trigger-text);
@@ -879,7 +1002,7 @@ input.ui-dp-input-display {
   max-width: calc(100vw - 20px);
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   border-radius: var(--ui-radius);
   box-shadow: var(--ui-surface-shadow);
   padding: 14px;
@@ -901,10 +1024,11 @@ input.ui-dp-input-display {
   min-width: 38px;
   min-height: 38px;
   border-radius: calc(var(--ui-radius, 15px) * 0.6);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   background: var(--ui-track-bg);
   color: var(--ui-surface-text);
   cursor: pointer;
+  outline: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1001,12 +1125,13 @@ input.ui-dp-input-display {
   padding: 6px 10px;
   min-height: 32px;
   border-radius: 999px;
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   background: var(--ui-track-bg);
   color: var(--ui-surface-text);
   font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 600;
   cursor: pointer;
+  outline: none;
   touch-action: manipulation;
 }
 
@@ -1127,7 +1252,7 @@ input.ui-dp-input-display {
   border-radius: 6px;
   background: var(--ui-surface-bg);
   color: var(--ui-surface-text);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   font-size: calc(var(--ui-font-size, 14px) * 0.85);
   font-weight: 700;
   white-space: nowrap;
@@ -1169,8 +1294,14 @@ input.ui-password-field {
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   font-size: var(--ui-font-size, 14px);
+  outline: none;
+}
+
+.ui-password-field::placeholder,
+input.ui-password-field::placeholder {
+  color: var(--ui-surface-muted);
 }
 
 .ui-password-toggle {
@@ -1181,6 +1312,7 @@ input.ui-password-field {
   width: 40px;
   height: 40px;
   border: none;
+  outline: none;
   border-radius: calc(var(--ui-radius, 15px) * 0.65);
   background: transparent;
   color: var(--ui-surface-muted);
@@ -1234,14 +1366,15 @@ input.ui-otp-cell {
   border-radius: calc(var(--ui-radius, 15px) * 0.75);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   padding: 0;
+  outline: none;
   touch-action: manipulation;
 }
 
 .ui-otp-cell:focus {
-  outline: 2px solid var(--ui-accent);
-  border-color: var(--ui-accent);
+  outline: var(--ui-focus-outline, none);
+  border-color: var(--ui-focus-ring, var(--ui-accent));
 }
 
 /* Tags Input */
@@ -1255,7 +1388,7 @@ input.ui-otp-cell {
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
 }
 
 .ui-tag-chip {
@@ -1297,6 +1430,10 @@ input.ui-otp-cell {
   outline: none;
 }
 
+.ui-tags-entry::placeholder {
+  color: var(--ui-surface-muted);
+}
+
 /* Stepper */
 .ui-stepper {
   display: inline-flex;
@@ -1304,7 +1441,7 @@ input.ui-otp-cell {
   border-radius: var(--ui-radius);
   background: var(--ui-trigger-bg);
   color: var(--ui-trigger-text);
-  border: 1px solid var(--ui-trigger-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
   overflow: hidden;
 }
 
@@ -1312,6 +1449,7 @@ input.ui-otp-cell {
   width: var(--ui-touch-size, 44px);
   height: var(--ui-touch-size, 44px);
   border: none;
+  outline: none;
   background: var(--ui-track-bg);
   color: var(--ui-trigger-text);
   font-size: 18px;
@@ -1338,6 +1476,7 @@ input.ui-otp-cell {
   font-weight: 700;
   font-size: var(--ui-font-size, 14px);
   padding: 6px 4px !important;
+  outline: none;
   -moz-appearance: textfield;
 }
 
@@ -1360,6 +1499,7 @@ input.ui-otp-cell {
   width: var(--ui-touch-size, 44px);
   height: var(--ui-touch-size, 44px);
   border: none;
+  outline: none;
   background: transparent;
   color: var(--ui-track-bg);
   cursor: pointer;
@@ -1387,7 +1527,7 @@ input.ui-otp-cell {
   padding: 12px;
   border-radius: var(--ui-radius);
   background: var(--ui-surface-bg);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
 }
 
 .repeat-row {
@@ -1397,19 +1537,35 @@ input.ui-otp-cell {
   width: 100%;
 }
 
-.repeat-row > input {
+.repeat-row > input,
+input.repeat-camp-input {
   flex: 1;
   min-width: 0;
+  min-height: var(--ui-touch-size, 44px);
+  padding: 10px 14px;
+  border-radius: calc(var(--ui-radius, 15px) * 0.75);
+  background: var(--ui-trigger-bg);
+  color: var(--ui-trigger-text);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
+  font-size: var(--ui-font-size, 14px);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.repeat-row > input::placeholder,
+input.repeat-camp-input::placeholder {
+  color: var(--ui-surface-muted);
 }
 
 .repeat-btn-remove {
   width: 38px;
   height: 38px;
   border-radius: calc(var(--ui-radius, 15px) * 0.65);
-  border: 1px solid var(--ui-surface-border);
+  border: var(--ui-border-width, 1px) solid var(--ui-surface-border);
   background: transparent;
   color: var(--ui-surface-muted);
   cursor: pointer;
+  outline: none;
   flex-shrink: 0;
   touch-action: manipulation;
 }
@@ -1417,6 +1573,24 @@ input.ui-otp-cell {
 .repeat-btn-remove:hover {
   color: var(--danger, #ef4444);
   border-color: var(--danger, #ef4444);
+}
+
+/* Text Limiter & Textarea UI */
+textarea.text-limiter {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--ui-radius);
+  background: var(--ui-trigger-bg);
+  color: var(--ui-trigger-text);
+  border: var(--ui-border-width, 1px) solid var(--ui-trigger-border);
+  font-size: var(--ui-font-size, 14px);
+  line-height: 1.45;
+  outline: none;
+  box-sizing: border-box;
+}
+
+textarea.text-limiter::placeholder {
+  color: var(--ui-surface-muted);
 }
 
 /* Text Limiter States */

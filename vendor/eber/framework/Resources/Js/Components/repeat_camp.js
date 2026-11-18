@@ -25,19 +25,25 @@ export function repeat_camp(limit = 10) {
 
       rootEl.dataset.repeatInitialized = 'true';
       const maxLimit = parseInt(firstInput.getAttribute('data-max') || '', 10) || defaultLimit;
+      const customAddLabel = firstInput.getAttribute('data-add-label') || '';
 
       const container = document.createElement('div');
       container.className = 'repeat-container';
-      if (ui) ui.copyUiVars(firstInput, container);
+      if (ui) {
+        ui.copyUiVars(rootEl, container);
+        ui.copyUiVars(firstInput, container);
+      }
 
       const uiSurface = firstInput.getAttribute('ui-surface') || '';
       if (uiSurface && ui) ui.applyClasses(container, uiSurface);
 
       const addBtn = document.createElement('button');
       addBtn.type = 'button';
-      addBtn.className = 'repeat-btn-add ui-btn ui-btn-secondary';
+      const uiSecBtn = firstInput.getAttribute('ui-btn-secondary') || '';
       const uiAdd = firstInput.getAttribute('ui-btn-primary') || firstInput.getAttribute('ui-btn-add') || '';
+      addBtn.className = uiSecBtn && !uiAdd ? 'repeat-btn-add ui-btn ui-btn-secondary' : 'repeat-btn-add ui-btn ui-btn-primary';
       if (uiAdd && ui) ui.applyClasses(addBtn, uiAdd);
+      else if (uiSecBtn && ui) ui.applyClasses(addBtn, uiSecBtn);
 
       const rowsWrap = document.createElement('div');
       rowsWrap.className = 'repeat-rows-wrap flex column-direction gap5';
@@ -46,6 +52,8 @@ export function repeat_camp(limit = 10) {
       templateInput.removeAttribute('id');
       templateInput.classList.remove('repeat-camp');
       templateInput.classList.add('repeat-camp-input', 'br10');
+      const uiTrigger = firstInput.getAttribute('ui-trigger') || '';
+      if (uiTrigger && ui) ui.applyClasses(templateInput, uiTrigger);
       if (!templateInput.value) templateInput.value = '';
 
       firstInput.remove();
@@ -54,7 +62,9 @@ export function repeat_camp(limit = 10) {
         const currentCount = rowsWrap.querySelectorAll('.repeat-row').length;
         const remaining = Math.max(0, maxLimit - currentCount);
         addBtn.disabled = remaining === 0;
-        addBtn.textContent = tr('add_option', { remaining }, `+ Agrega otra opción (${remaining})`);
+        addBtn.textContent = customAddLabel
+          ? `${customAddLabel} (${remaining})`
+          : tr('add_option', { remaining }, `+ Agrega otra opción (${remaining})`);
       };
 
       const createRow = (isFirst = false, initialVal = '') => {

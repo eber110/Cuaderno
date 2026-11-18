@@ -350,11 +350,15 @@ class ThemeModule
       "surfaceBorder",
       "btnPrimaryBg",
       "btnPrimaryText",
+      "btnPrimaryBorder",
       "btnSecondaryBg",
       "btnSecondaryText",
+      "btnSecondaryBorder",
       "accentColor",
       "accentText",
       "trackBg",
+      "thumbBg",
+      "focusRing",
       "shadow",
     ];
 
@@ -366,6 +370,14 @@ class ThemeModule
         $normalized[$key] = $defaults[$key];
       }
     }
+
+    $normalized["borderWidth"] = isset($raw["borderWidth"]) && is_numeric($raw["borderWidth"])
+      ? max(0, min(6, (int)$raw["borderWidth"]))
+      : (int)($defaults["borderWidth"] ?? 1);
+
+    $normalized["focusOutline"] = isset($raw["focusOutline"])
+      ? (filter_var($raw["focusOutline"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool)$raw["focusOutline"])
+      : (bool)($defaults["focusOutline"] ?? false);
 
     $normalized["radius"] = isset($raw["radius"]) && is_numeric($raw["radius"])
       ? max(0, min(40, (int)$raw["radius"]))

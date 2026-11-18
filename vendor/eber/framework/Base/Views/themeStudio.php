@@ -2215,14 +2215,84 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
+    .iu-group-box {
+      background: rgba(15, 23, 42, 0.36);
+      border: 1px solid var(--ts-border);
+      border-radius: 10px;
+      padding: 9px 10px;
+      margin-bottom: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .iu-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ts-text);
+      letter-spacing: 0.01em;
+    }
+    .iu-scope-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 9px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      font-size: 0.73rem;
+      margin-bottom: 8px;
+    }
+    .iu-target-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.71rem;
+      color: var(--ts-muted);
+      margin-bottom: 6px;
+      padding: 4px 8px;
+      border-radius: 7px;
+      background: rgba(15, 23, 42, 0.48);
+      border: 1px solid var(--ts-border);
+    }
     .iu-token-field {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
     .iu-token-field label {
-      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      font-size: 0.7rem;
       color: var(--ts-muted);
+    }
+    .iu-local-reset-btn {
+      display: none;
+      border: none;
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--ts-primary, #38bdf8);
+      border-radius: 4px;
+      padding: 0 5px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .iu-token-field.has-local-override .iu-local-reset-btn,
+    .ts-field.has-local-override .iu-local-reset-btn {
+      display: inline-block;
+    }
+    .iu-token-field.has-local-override .iu-token-control input[type="text"],
+    .ts-field.has-local-override input,
+    .ts-field.has-local-override select {
+      border-color: rgba(56, 189, 248, 0.55);
     }
     .iu-token-control {
       display: flex;
@@ -2233,6 +2303,24 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     .iu-token-control select {
       flex: 1;
       min-width: 0;
+    }
+    .iu-token-control input.iu-token-focused {
+      border-color: var(--ts-primary, #38bdf8) !important;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    }
+    .iu-quick-chip-btn {
+      border: 1px solid var(--ts-border);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--ts-muted);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 0.66rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .iu-quick-chip-btn:hover {
+      border-color: var(--ts-primary);
+      color: var(--ts-text);
     }
     .iu-token-picker {
       width: 28px;
@@ -3178,213 +3266,290 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
         <div class="ts-section">
           <div class="cs-mini-tabs">
-            <button type="button" class="cs-mini-tab active" id="iuSubTab_global" onclick="switchInputSubTab('global')">🎨 Tokens (Global)</button>
-            <button type="button" class="cs-mini-tab" id="iuSubTab_local" onclick="switchInputSubTab('local')">🧩 Zonas (Local)</button>
-            <button type="button" class="cs-mini-tab" id="iuSubTab_attrs" onclick="switchInputSubTab('attrs')">⚙️ HTML</button>
+            <button type="button" class="cs-mini-tab active" id="iuSubTab_global" onclick="switchInputSubTab('global')">🌐 Global</button>
+            <button type="button" class="cs-mini-tab" id="iuSubTab_local" onclick="switchInputSubTab('local')">🎯 Local (<span id="iuSubTabLocalBadge">cropImage</span>)</button>
+            <button type="button" class="cs-mini-tab" id="iuSubTab_attrs" onclick="switchInputSubTab('attrs')">⚙️ Atributos</button>
           </div>
 
-          <!-- Sub-panel 1: Tokens CSS Globales (--ui-*) -->
-          <div id="iuPanel_global" style="display:block;">
-            <div style="font-size:0.73rem; color:var(--ts-muted); margin-bottom:8px;">
-              Controla los Design Tokens compartidos en <code>_configTheme.css</code> (con 0ms de respuesta en vivo). Haz clic en un chip abajo para asignar al campo enfocado:
+          <!-- Sub-panel compartido: Diseño y Colores (Global para todos o Local para el input activo) -->
+          <div id="iuPanel_design" style="display:block;">
+            <div id="iuScopeBanner" class="iu-scope-banner" style="display:none;">
+              <span>🎯 Editando solo: <strong id="iuLocalTypeLabel">cropImage</strong></span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="clearActiveInputLocalOverrides()">↺ Limpiar local</button>
+            </div>
+
+            <div class="iu-target-banner">
+              <span>🎨 Asignando color a: <strong id="iuFocusedTokenLabel" style="color:var(--ts-primary);">Fondo Campo</strong></span>
+              <button type="button" class="iu-quick-chip-btn" onclick="applySystemColorToFocusedToken('transparent')" title="Quitar color o borde al campo activo">🚫 Sin color/borde</button>
             </div>
             <div class="cs-color-chips" id="iuColorChips" style="margin-bottom:10px;"></div>
 
-            <div class="iu-wcag-row">
-              <span>Contraste Guardar: <span id="iuPrimaryWcagBadge" class="iu-wcag-badge pass">7.2:1 AA</span></span>
-              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="autoFixInputButtonContrast('primary')">✨ Auto</button>
-            </div>
-            <div class="iu-wcag-row">
-              <span>Contraste Cancelar: <span id="iuSecondaryWcagBadge" class="iu-wcag-badge pass">8.5:1 AA</span></span>
-              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="autoFixInputButtonContrast('secondary')">✨ Auto</button>
-            </div>
-
-            <div class="iu-color-pair" style="margin-bottom:8px;">
-              <div class="iu-token-field">
-                <label for="iu_triggerBg">Fondo Trigger</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_triggerBg" class="ts-input" data-iu-global="triggerBg" placeholder="back1">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerBg" title="Elegir color exacto">
+            <!-- Bloque 1: Campo / Disparador (Trigger) -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>1. Campo / Disparador</span></div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="triggerBg">
+                  <label for="iu_triggerBg"><span>Fondo Campo</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('triggerBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_triggerBg" class="ts-input" data-iu-prop="triggerBg" placeholder="back1">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="triggerBg" title="Elegir color exacto">
+                  </div>
                 </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_triggerText">Texto Trigger</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_triggerText" class="ts-input" data-iu-global="triggerText" placeholder="texto">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerText" title="Elegir color exacto">
+                <div class="iu-token-field" data-iu-field-wrap="triggerText">
+                  <label for="iu_triggerText"><span>Texto Campo</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('triggerText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_triggerText" class="ts-input" data-iu-prop="triggerText" placeholder="texto">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="triggerText" title="Elegir color exacto">
+                  </div>
                 </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_triggerBorder">Borde Trigger</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_triggerBorder" class="ts-input" data-iu-global="triggerBorder" placeholder="textc">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_triggerBorder" title="Elegir color exacto">
+                <div class="iu-token-field" data-iu-field-wrap="surfaceMuted">
+                  <label for="iu_surfaceMuted"><span>Texto Guía / Muted</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('surfaceMuted')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_surfaceMuted" class="ts-input" data-iu-prop="surfaceMuted" placeholder="text-inactive">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="surfaceMuted" title="Elegir color exacto">
+                  </div>
                 </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_surfaceBg">Fondo Modal/Popover</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_surfaceBg" class="ts-input" data-iu-global="surfaceBg" placeholder="back1">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceBg" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_surfaceText">Texto Modal/Popover</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_surfaceText" class="ts-input" data-iu-global="surfaceText" placeholder="texto">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceText" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_surfaceBorder">Borde Modal/Popover</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_surfaceBorder" class="ts-input" data-iu-global="surfaceBorder" placeholder="textc">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_surfaceBorder" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_btnPrimaryBg">Botón Guardar (Fondo)</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_btnPrimaryBg" class="ts-input" data-iu-global="btnPrimaryBg" placeholder="back6">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnPrimaryBg" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_btnPrimaryText">Botón Guardar (Texto)</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_btnPrimaryText" class="ts-input" data-iu-global="btnPrimaryText" placeholder="textw">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnPrimaryText" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_btnSecondaryBg">Botón Cancelar (Fondo)</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_btnSecondaryBg" class="ts-input" data-iu-global="btnSecondaryBg" placeholder="back2">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnSecondaryBg" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_btnSecondaryText">Botón Cancelar (Texto)</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_btnSecondaryText" class="ts-input" data-iu-global="btnSecondaryText" placeholder="texto">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_btnSecondaryText" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_accentColor">Color Acento / Activo</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_accentColor" class="ts-input" data-iu-global="accentColor" placeholder="color2">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_accentColor" title="Elegir color exacto">
-                </div>
-              </div>
-              <div class="iu-token-field">
-                <label for="iu_trackBg">Fondo Carril / Track</label>
-                <div class="iu-token-control">
-                  <input type="text" id="iu_trackBg" class="ts-input" data-iu-global="trackBg" placeholder="back2">
-                  <input type="color" class="iu-token-picker" data-iu-picker-for="iu_trackBg" title="Elegir color exacto">
+                <div class="iu-token-field" data-iu-field-wrap="triggerBorder">
+                  <label for="iu_triggerBorder"><span>Borde Campo</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('triggerBorder')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_triggerBorder" class="ts-input" data-iu-prop="triggerBorder" placeholder="textc">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="triggerBorder" title="Elegir color exacto">
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="ts-field">
-              <label for="iu_radius">Radio de bordes (<code>--ui-radius</code>: <strong id="iu_radiusVal">15px</strong>)</label>
-              <input type="range" id="iu_radius" min="0" max="32" step="1" value="15" oninput="onInputGlobalChange('radius', parseInt(this.value, 10))">
+            <!-- Bloque 2: Modal / Popover Flotante -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>2. Modal / Popover Flotante</span></div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="surfaceBg">
+                  <label for="iu_surfaceBg"><span>Fondo Modal</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('surfaceBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_surfaceBg" class="ts-input" data-iu-prop="surfaceBg" placeholder="back1">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="surfaceBg" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="surfaceText">
+                  <label for="iu_surfaceText"><span>Texto Modal</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('surfaceText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_surfaceText" class="ts-input" data-iu-prop="surfaceText" placeholder="texto">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="surfaceText" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="surfaceBorder">
+                  <label for="iu_surfaceBorder"><span>Borde Modal</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('surfaceBorder')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_surfaceBorder" class="ts-input" data-iu-prop="surfaceBorder" placeholder="textc">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="surfaceBorder" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="focusRing">
+                  <label for="iu_focusRing"><span>Color Foco / Ring</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('focusRing')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_focusRing" class="ts-input" data-iu-prop="focusRing" placeholder="color2">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="focusRing" title="Elegir color exacto">
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="ts-field">
-              <label for="iu_touchSize">Área Táctil Mínima (<code>--ui-touch-size</code>: <strong id="iu_touchSizeVal">44px</strong>)</label>
-              <input type="range" id="iu_touchSize" min="36" max="56" step="2" value="44" oninput="onInputGlobalChange('touchSize', parseInt(this.value, 10))">
+            <!-- Bloque 3: Botón Guardar / Primario -->
+            <div class="iu-group-box">
+              <div class="iu-group-head">
+                <span>3. Botón Guardar / Primario</span>
+                <span id="iuPrimaryWcagBadge" class="iu-wcag-badge pass">7.2:1 AA</span>
+              </div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="btnPrimaryBg">
+                  <label for="iu_btnPrimaryBg"><span>Fondo Botón</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnPrimaryBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_btnPrimaryBg" class="ts-input" data-iu-prop="btnPrimaryBg" placeholder="back6">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="btnPrimaryBg" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="btnPrimaryText">
+                  <label for="iu_btnPrimaryText"><span>Texto Botón</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnPrimaryText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_btnPrimaryText" class="ts-input" data-iu-prop="btnPrimaryText" placeholder="textw">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="btnPrimaryText" title="Elegir color exacto">
+                  </div>
+                </div>
+              </div>
+              <div class="iu-token-field" data-iu-field-wrap="btnPrimaryBorder">
+                <label for="iu_btnPrimaryBorder"><span>Borde Botón Guardar</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnPrimaryBorder')" title="Volver al valor Global">↺</button></label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnPrimaryBorder" class="ts-input" data-iu-prop="btnPrimaryBorder" placeholder="transparent">
+                  <input type="color" class="iu-token-picker" data-iu-picker-prop="btnPrimaryBorder" title="Elegir color exacto">
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('btnPrimaryBorder', 'transparent')" title="Quitar borde">Sin borde</button>
+                  <button type="button" class="iu-quick-chip-btn" onclick="autoFixInputButtonContrast('primary')" title="Ajustar contraste WCAG">✨ Auto</button>
+                </div>
+              </div>
             </div>
 
-            <div class="ts-field">
-              <label for="iu_fontSize">Tamaño de Texto (<code>--ui-font-size</code>: <strong id="iu_fontSizeVal">14px</strong>)</label>
-              <input type="range" id="iu_fontSize" min="10" max="28" step="1" value="14" oninput="onInputGlobalChange('fontSize', parseInt(this.value, 10))">
+            <!-- Bloque 4: Botón Cancelar / Secundario -->
+            <div class="iu-group-box">
+              <div class="iu-group-head">
+                <span>4. Botón Cancelar / Secundario</span>
+                <span id="iuSecondaryWcagBadge" class="iu-wcag-badge pass">8.5:1 AA</span>
+              </div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="btnSecondaryBg">
+                  <label for="iu_btnSecondaryBg"><span>Fondo Botón</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnSecondaryBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_btnSecondaryBg" class="ts-input" data-iu-prop="btnSecondaryBg" placeholder="back2">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="btnSecondaryBg" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="btnSecondaryText">
+                  <label for="iu_btnSecondaryText"><span>Texto Botón</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnSecondaryText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_btnSecondaryText" class="ts-input" data-iu-prop="btnSecondaryText" placeholder="texto">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="btnSecondaryText" title="Elegir color exacto">
+                  </div>
+                </div>
+              </div>
+              <div class="iu-token-field" data-iu-field-wrap="btnSecondaryBorder">
+                <label for="iu_btnSecondaryBorder"><span>Borde Botón Cancelar</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('btnSecondaryBorder')" title="Volver al valor Global">↺</button></label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_btnSecondaryBorder" class="ts-input" data-iu-prop="btnSecondaryBorder" placeholder="transparent">
+                  <input type="color" class="iu-token-picker" data-iu-picker-prop="btnSecondaryBorder" title="Elegir color exacto">
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('btnSecondaryBorder', 'transparent')" title="Quitar borde">Sin borde</button>
+                  <button type="button" class="iu-quick-chip-btn" onclick="autoFixInputButtonContrast('secondary')" title="Ajustar contraste WCAG">✨ Auto</button>
+                </div>
+              </div>
             </div>
 
-            <div class="iu-color-pair" style="margin-bottom:8px;">
-              <div class="ts-field">
-                <label for="iu_shadow">Elevación / Sombra</label>
-                <select id="iu_shadow" class="ts-input" onchange="onInputGlobalChange('shadow', this.value)">
-                  <option value="soft">Soft (Suave)</option>
-                  <option value="medium">Medium (Elevada)</option>
-                  <option value="glass">Glass (Difuminada)</option>
-                  <option value="none">Sin sombra</option>
-                </select>
-              </div>
-              <div class="ts-field">
-                <label for="iu_blur">Backdrop Blur (<span id="iu_blurVal">10px</span>)</label>
-                <input type="range" id="iu_blur" min="0" max="24" step="1" value="10" oninput="onInputGlobalChange('blur', parseInt(this.value, 10))">
+            <!-- Bloque 5: Acento, Carril y Manejador -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>5. Acento, Carril y Manejador</span></div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="accentColor">
+                  <label for="iu_accentColor"><span>Fondo Acento</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('accentColor')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_accentColor" class="ts-input" data-iu-prop="accentColor" placeholder="color2">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="accentColor" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="accentText">
+                  <label for="iu_accentText"><span>Texto Acento</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('accentText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_accentText" class="ts-input" data-iu-prop="accentText" placeholder="textb">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="accentText" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="trackBg">
+                  <label for="iu_trackBg"><span>Fondo Carril</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('trackBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_trackBg" class="ts-input" data-iu-prop="trackBg" placeholder="back2">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="trackBg" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="thumbBg">
+                  <label for="iu_thumbBg"><span>Círculo / Thumb</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('thumbBg')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_thumbBg" class="ts-input" data-iu-prop="thumbBg" placeholder="textw">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="thumbBg" title="Elegir color exacto">
+                  </div>
+                </div>
               </div>
             </div>
 
-            <label class="cs-check-row">
-              <input type="checkbox" id="iu_mobileSheet" checked onchange="onInputGlobalChange('mobileSheet', this.checked)">
-              <span>📱 Bottom-Sheet táctil automático en móvil (&lt;= 576px)</span>
-            </label>
-          </div>
+            <!-- Bloque 6: Bordes, Outline y Geometría -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>6. Bordes, Outline y Dimensiones</span></div>
+              <div class="ts-field" data-iu-field-wrap="borderWidth">
+                <label for="iu_borderWidth" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>Grosor de Borde (<strong id="iu_borderWidthVal">1px</strong>)</span>
+                  <span style="display:inline-flex; gap:4px; align-items:center;">
+                    <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('borderWidth', 0)">0px Sin bordes</button>
+                    <button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('borderWidth')">↺</button>
+                  </span>
+                </label>
+                <input type="range" id="iu_borderWidth" data-iu-prop="borderWidth" min="0" max="4" step="1" value="1">
+              </div>
 
-          <!-- Sub-panel 2: Overrides Locales y Clases por Zona -->
-          <div id="iuPanel_local" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:0.74rem; color:var(--ts-muted);">Estilos exclusivos para <strong id="iuLocalTypeLabel">cropImage</strong></span>
-              <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="clearActiveInputLocalOverrides()">Limpiar local</button>
+              <label class="cs-check-row" data-iu-field-wrap="focusOutline">
+                <input type="checkbox" id="iu_focusOutline" data-iu-prop="focusOutline">
+                <span>🎯 Mostrar Outline al enfocar (Focus Ring)</span>
+                <button type="button" class="iu-local-reset-btn" onclick="event.preventDefault(); resetSingleInputLocalProp('focusOutline')">↺</button>
+              </label>
+
+              <div class="ts-field" data-iu-field-wrap="radius">
+                <label for="iu_radius"><span>Radio de bordes (<strong id="iu_radiusVal">15px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('radius')">↺</button></label>
+                <input type="range" id="iu_radius" data-iu-prop="radius" min="0" max="32" step="1" value="15">
+              </div>
+
+              <div class="ts-field" data-iu-field-wrap="touchSize">
+                <label for="iu_touchSize"><span>Altura / Área Táctil (<strong id="iu_touchSizeVal">44px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('touchSize')">↺</button></label>
+                <input type="range" id="iu_touchSize" data-iu-prop="touchSize" min="32" max="56" step="2" value="44">
+              </div>
+
+              <div class="ts-field" data-iu-field-wrap="fontSize">
+                <label for="iu_fontSize"><span>Tamaño de Texto (<strong id="iu_fontSizeVal">14px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('fontSize')">↺</button></label>
+                <input type="range" id="iu_fontSize" data-iu-prop="fontSize" min="10" max="28" step="1" value="14">
+              </div>
+
+              <div class="iu-color-pair" style="margin-bottom:4px;">
+                <div class="ts-field" data-iu-field-wrap="shadow">
+                  <label for="iu_shadow"><span>Sombra</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('shadow')">↺</button></label>
+                  <select id="iu_shadow" class="ts-input" data-iu-prop="shadow">
+                    <option value="soft">Soft (Suave)</option>
+                    <option value="medium">Medium (Elevada)</option>
+                    <option value="glass">Glass (Difuminada)</option>
+                    <option value="none">Sin sombra</option>
+                  </select>
+                </div>
+                <div class="ts-field" data-iu-field-wrap="blur">
+                  <label for="iu_blur"><span>Blur (<strong id="iu_blurVal">10px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('blur')">↺</button></label>
+                  <input type="range" id="iu_blur" data-iu-prop="blur" min="0" max="24" step="1" value="10">
+                </div>
+              </div>
+
+              <label class="cs-check-row" style="margin-bottom:0;" data-iu-field-wrap="mobileSheet">
+                <input type="checkbox" id="iu_mobileSheet" data-iu-prop="mobileSheet" checked>
+                <span>📱 Bottom-Sheet táctil en móvil (&lt;= 576px)</span>
+                <button type="button" class="iu-local-reset-btn" onclick="event.preventDefault(); resetSingleInputLocalProp('mobileSheet')">↺</button>
+              </label>
             </div>
 
-            <div class="ts-field">
-              <label for="iuLocal_uiTrigger"><code>ui-trigger</code> (clases disparador/caja)</label>
-              <input type="text" id="iuLocal_uiTrigger" class="ts-input" data-iu-local="uiTrigger" placeholder="ej. br15 p15 shadow-1">
-            </div>
-            <div class="ts-field">
-              <label for="iuLocal_uiSurface"><code>ui-surface</code> (clases modal/popover)</label>
-              <input type="text" id="iuLocal_uiSurface" class="ts-input" data-iu-local="uiSurface" placeholder="ej. br20 shadow-2">
-            </div>
-            <div class="ts-field">
-              <label for="iuLocal_uiBtnPrimary"><code>ui-btn-primary</code> (botón Guardar/Aceptar)</label>
-              <input type="text" id="iuLocal_uiBtnPrimary" class="ts-input" data-iu-local="uiBtnPrimary" placeholder="ej. back6 textw br10 p10">
-            </div>
-            <div class="ts-field">
-              <label for="iuLocal_uiBtnSecondary"><code>ui-btn-secondary</code> (botón Cancelar)</label>
-              <input type="text" id="iuLocal_uiBtnSecondary" class="ts-input" data-iu-local="uiBtnSecondary" placeholder="ej. back2 texto br10 p10">
-            </div>
-            <div class="iu-color-pair">
+            <!-- Bloque 7: Clases CSS por Zona (solo visible en modo Local) -->
+            <div id="iuLocalClassesBox" class="iu-group-box" style="display:none;">
+              <div class="iu-group-head"><span>7. Clases CSS / JIT Exclusivas</span></div>
               <div class="ts-field">
-                <label for="iuLocal_triggerBg">Override Fondo Trigger</label>
-                <input type="text" id="iuLocal_triggerBg" class="ts-input" data-iu-local="triggerBg" placeholder="hereda global">
+                <label for="iuLocal_class">Clases en el elemento (<code>class</code>)</label>
+                <input type="text" id="iuLocal_class" class="ts-input" data-iu-local="class" placeholder="ej. w100 border-none outline-none">
               </div>
               <div class="ts-field">
-                <label for="iuLocal_btnPrimaryBg">Override Botón Guardar</label>
-                <input type="text" id="iuLocal_btnPrimaryBg" class="ts-input" data-iu-local="btnPrimaryBg" placeholder="hereda global">
+                <label for="iuLocal_uiTrigger"><code>ui-trigger</code> (disparador/caja)</label>
+                <input type="text" id="iuLocal_uiTrigger" class="ts-input" data-iu-local="uiTrigger" placeholder="ej. br15 p15 shadow-1 border-none">
               </div>
               <div class="ts-field">
-                <label for="iuLocal_accentColor">Override Acento</label>
-                <input type="text" id="iuLocal_accentColor" class="ts-input" data-iu-local="accentColor" placeholder="hereda global">
+                <label for="iuLocal_uiSurface"><code>ui-surface</code> (modal/popover)</label>
+                <input type="text" id="iuLocal_uiSurface" class="ts-input" data-iu-local="uiSurface" placeholder="ej. br20 shadow-2">
               </div>
-              <div class="ts-field">
-                <label for="iuLocal_radius">Override Radio (px)</label>
-                <input type="number" id="iuLocal_radius" class="ts-input" data-iu-local="radius" min="0" max="40" placeholder="hereda">
+              <div class="iu-color-pair">
+                <div class="ts-field">
+                  <label for="iuLocal_uiBtnPrimary"><code>ui-btn-primary</code></label>
+                  <input type="text" id="iuLocal_uiBtnPrimary" class="ts-input" data-iu-local="uiBtnPrimary" placeholder="ej. border-none">
+                </div>
+                <div class="ts-field">
+                  <label for="iuLocal_uiBtnSecondary"><code>ui-btn-secondary</code></label>
+                  <input type="text" id="iuLocal_uiBtnSecondary" class="ts-input" data-iu-local="uiBtnSecondary" placeholder="ej. border-none">
+                </div>
               </div>
-              <div class="ts-field">
-                <label for="iuLocal_fontSize">Override Texto (px)</label>
-                <input type="number" id="iuLocal_fontSize" class="ts-input" data-iu-local="fontSize" min="10" max="32" placeholder="hereda">
-              </div>
-              <div class="ts-field">
-                <label for="iuLocal_touchSize">Override Touch (px)</label>
-                <input type="number" id="iuLocal_touchSize" class="ts-input" data-iu-local="touchSize" min="32" max="64" placeholder="hereda">
-              </div>
-            </div>
-            <div class="ts-field" style="margin-top:6px;">
-              <label for="iuLocal_class">Clases CSS / JIT extra en el elemento</label>
-              <input type="text" id="iuLocal_class" class="ts-input" data-iu-local="class" placeholder="ej. w100 touch-manipulation">
-            </div>
-            <div id="iuLegacyCompatGroup" style="margin-top:6px; border-top:1px dashed var(--ts-border); padding-top:8px;">
-              <div style="font-size:0.7rem; color:var(--ts-muted); margin-bottom:4px;">Compatibilidad clásica opcional (atributos legacy):</div>
-              <div class="ts-field">
-                <label for="iuLocal_boxImage"><code>box-image</code></label>
-                <input type="text" id="iuLocal_boxImage" class="ts-input" data-iu-local="boxImage" placeholder="Opcional (legacy)">
-              </div>
-              <div class="ts-field">
-                <label for="iuLocal_boxBtnImage"><code>box-btn-image</code></label>
-                <input type="text" id="iuLocal_boxBtnImage" class="ts-input" data-iu-local="boxBtnImage" placeholder="Opcional (legacy)">
+              <div id="iuLegacyCompatGroup" style="margin-top:4px; border-top:1px dashed var(--ts-border); padding-top:8px;">
+                <div style="font-size:0.7rem; color:var(--ts-muted); margin-bottom:4px;">Compatibilidad clásica (legacy):</div>
+                <div class="iu-color-pair">
+                  <div class="ts-field">
+                    <label for="iuLocal_boxImage"><code>box-image</code></label>
+                    <input type="text" id="iuLocal_boxImage" class="ts-input" data-iu-local="boxImage" placeholder="Opcional">
+                  </div>
+                  <div class="ts-field">
+                    <label for="iuLocal_boxBtnImage"><code>box-btn-image</code></label>
+                    <input type="text" id="iuLocal_boxBtnImage" class="ts-input" data-iu-local="boxBtnImage" placeholder="Opcional">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3398,7 +3563,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               </div>
               <div class="ts-field">
                 <label for="iuAttr_id">Atributo <code>id</code></label>
-                <input type="text" id="iuAttr_id" class="ts-input" data-iu-local="id" placeholder="opcional">
+                <input type="text" id="iuAttr_id" class="ts-input" data-iu-local="id" placeholder="ej. avatar_usuario">
               </div>
             </div>
             <div class="ts-field">
@@ -3411,7 +3576,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
                 <input type="text" id="iuAttr_placeholder" class="ts-input" data-iu-local="placeholder" placeholder="Texto guía...">
               </div>
               <div class="ts-field">
-                <label for="iuAttr_value">Valor inicial</label>
+                <label for="iuAttr_value">Valor inicial (<code>value</code>)</label>
                 <input type="text" id="iuAttr_value" class="ts-input" data-iu-local="value" placeholder="Opcional">
               </div>
             </div>
@@ -3421,6 +3586,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
             </div>
             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_required" onchange="onInputLocalChange('required', this.checked)"><span>required</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_disabled" onchange="onInputLocalChange('disabled', this.checked)"><span>disabled</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_readonly" onchange="onInputLocalChange('readonly', this.checked)"><span>readonly</span></label>
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_autoSubmit" onchange="onInputLocalChange('autoSubmit', this.checked)"><span>autoSubmit</span></label>
             </div>
             <div id="iuSpecificAttrsContainer">
@@ -3813,18 +3980,19 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               </div>
             </div>
 
-            <!-- Dock Inferior de Código "Copy & Paste" (HTML Completo primero por defecto) -->
+            <!-- Dock Inferior de Código "Copy & Paste" (Helper _input() por defecto) -->
             <div class="cs-code-dock" id="iuCodeDock">
               <div class="cs-code-header">
                 <div class="cs-code-tabs">
-                  <button type="button" class="cs-code-tab active" id="iuCodeTab_html" onclick="setInputCopyFormat('html')">HTML Completo</button>
-                  <button type="button" class="cs-code-tab" id="iuCodeTab_php" onclick="setInputCopyFormat('php')">Helper _input()</button>
+                  <button type="button" class="cs-code-tab active" id="iuCodeTab_php" onclick="setInputCopyFormat('php')">Helper _input()</button>
+                  <button type="button" class="cs-code-tab" id="iuCodeTab_html" onclick="setInputCopyFormat('html')">HTML Completo</button>
                   <button type="button" class="cs-code-tab" id="iuCodeTab_global" onclick="setInputCopyFormat('global')">Global FormUiModule</button>
                 </div>
 
                 <div class="iu-code-options">
                   <label><input type="checkbox" id="iuOptWrapContainer" checked onchange="onInputCodeOptionChange()"> <span>Envolver &lt;div&gt;</span></label>
                   <label><input type="checkbox" id="iuOptIncludeLabel" checked onchange="onInputCodeOptionChange()"> <span>Incluir &lt;label&gt;</span></label>
+                  <label title="Incluye también los cambios globales dentro del código copiado para que sea 100% autocontenido en la vista"><input type="checkbox" id="iuOptIncludeGlobalInCode" checked onchange="onInputCodeOptionChange()"> <span>Autocontenido (Global + Local)</span></label>
                   <label><input type="checkbox" id="iuOptInlineVars" onchange="onInputCodeOptionChange()"> <span>Vars --ui-* inline</span></label>
                   <label><input type="checkbox" id="iuOptMultiline" checked onchange="onInputCodeOptionChange()"> <span>Multilínea</span></label>
                 </div>
@@ -8464,11 +8632,17 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       surfaceBorder: 'textc',
       btnPrimaryBg: 'back6',
       btnPrimaryText: 'textw',
+      btnPrimaryBorder: 'transparent',
       btnSecondaryBg: 'back2',
       btnSecondaryText: 'texto',
+      btnSecondaryBorder: 'transparent',
       accentColor: 'color2',
       accentText: 'textb',
       trackBg: 'back2',
+      thumbBg: 'textw',
+      borderWidth: 1,
+      focusRing: 'color2',
+      focusOutline: false,
       radius: 15,
       touchSize: 44,
       fontSize: 14,
@@ -8479,11 +8653,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     };
 
     const INPUT_PRESETS = {
-      soft: { preset: 'soft', radius: 15, fontSize: 14, shadow: 'soft', blur: 8, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      minimal: { preset: 'minimal', radius: 8, fontSize: 14, shadow: 'none', blur: 0, touchSize: 44, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      glass: { preset: 'glass', radius: 18, fontSize: 14, shadow: 'glass', blur: 16, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      pill: { preset: 'pill', radius: 28, fontSize: 15, shadow: 'soft', blur: 10, touchSize: 46, triggerBorder: 'textc', surfaceBorder: 'textc' },
-      elevated: { preset: 'elevated', radius: 14, fontSize: 15, shadow: 'medium', blur: 12, touchSize: 44, triggerBorder: 'transparent', surfaceBorder: 'textc' }
+      soft: { preset: 'soft', radius: 15, fontSize: 14, shadow: 'soft', blur: 8, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
+      minimal: { preset: 'minimal', radius: 8, fontSize: 14, shadow: 'none', blur: 0, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2' },
+      glass: { preset: 'glass', radius: 18, fontSize: 14, shadow: 'glass', blur: 16, touchSize: 46, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
+      pill: { preset: 'pill', radius: 28, fontSize: 15, shadow: 'soft', blur: 10, touchSize: 46, borderWidth: 0, focusOutline: false, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
+      elevated: { preset: 'elevated', radius: 14, fontSize: 15, shadow: 'medium', blur: 12, touchSize: 44, borderWidth: 1, focusOutline: true, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2' }
     };
 
     const INPUT_SHADOW_MAP = {
@@ -8491,6 +8665,48 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       soft: '0 8px 24px rgba(0, 0, 0, 0.14)',
       medium: '0 14px 36px rgba(0, 0, 0, 0.24)',
       glass: '0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16)'
+    };
+
+    const INPUT_PROP_TO_CSS_VAR = {
+      triggerBg: '--ui-trigger-bg',
+      triggerText: '--ui-trigger-text',
+      triggerBorder: '--ui-trigger-border',
+      surfaceBg: '--ui-surface-bg',
+      surfaceText: '--ui-surface-text',
+      surfaceMuted: '--ui-surface-muted',
+      surfaceBorder: '--ui-surface-border',
+      btnPrimaryBg: '--ui-btn-primary-bg',
+      btnPrimaryText: '--ui-btn-primary-text',
+      btnPrimaryBorder: '--ui-btn-primary-border',
+      btnSecondaryBg: '--ui-btn-secondary-bg',
+      btnSecondaryText: '--ui-btn-secondary-text',
+      btnSecondaryBorder: '--ui-btn-secondary-border',
+      accentColor: '--ui-accent',
+      accentText: '--ui-accent-text',
+      trackBg: '--ui-track-bg',
+      thumbBg: '--ui-thumb-bg',
+      focusRing: '--ui-focus-ring'
+    };
+
+    const INPUT_TOKEN_LABELS = {
+      triggerBg: 'Fondo Campo',
+      triggerText: 'Texto Campo',
+      surfaceMuted: 'Texto Guía / Muted',
+      triggerBorder: 'Borde Campo',
+      surfaceBg: 'Fondo Modal',
+      surfaceText: 'Texto Modal',
+      surfaceBorder: 'Borde Modal',
+      focusRing: 'Color Foco / Ring',
+      btnPrimaryBg: 'Fondo Botón Guardar',
+      btnPrimaryText: 'Texto Botón Guardar',
+      btnPrimaryBorder: 'Borde Botón Guardar',
+      btnSecondaryBg: 'Fondo Botón Cancelar',
+      btnSecondaryText: 'Texto Botón Cancelar',
+      btnSecondaryBorder: 'Borde Botón Cancelar',
+      accentColor: 'Fondo Acento',
+      accentText: 'Texto Acento',
+      trackBg: 'Fondo Carril',
+      thumbBg: 'Círculo / Thumb'
     };
 
     const INPUT_CATALOG = [
@@ -8513,12 +8729,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     ];
 
     let activeInputType = 'cropImage';
+    let activeInputDesignScope = 'global'; // 'global' | 'local'
+    let activeInputSubTab = 'global'; // 'global' | 'local' | 'attrs'
+    let focusedInputTokenProp = 'triggerBg';
     let inputSandboxViewMode = 'gallery'; // 'gallery' | 'focused'
     let inputSandboxTouchSim = false;
     let inputStageSurface = 'var(--body)';
     let inputFocusedWidth = '100%';
-    let inputCodeFormat = 'html'; // 'html' | 'php' | 'global'
-    let lastFocusedInputTokenEl = null;
+    let inputCodeFormat = 'php'; // 'php' | 'html' | 'global'
 
     let inputsHtmlCache = Object.assign({}, initialInputsHtmlMap || {});
     let inputCodeCache = { htmlSnippet: '', phpSnippet: '', globalSnippet: '' };
@@ -8552,18 +8770,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
     function resolveUiTokenToCss(rawToken) {
       const token = String(rawToken || '').replace(/^\./, '').trim();
-      if (!token) return 'transparent';
-      if (token === 'transparent') return 'transparent';
+      const lower = token.toLowerCase();
+      if (!token || lower === 'transparent' || lower === 'none' || lower === 'border-none' || lower === 'back-none' || lower === 'outline-none' || lower === '0') {
+        return 'transparent';
+      }
 
-      const numMatch = token.match(/^(?:back|color)(\d+)(-hover)?$/i);
+      const numMatch = token.match(/^(?:back|color|border)(\d+)(-hover)?$/i);
       if (numMatch) {
         const idx = parseInt(numMatch[1], 10);
         const vName = idx <= 1 ? '--back-color' : `--back-color${idx}`;
         return numMatch[2] ? `var(${vName}-hover)` : `var(${vName})`;
-      }
-
-      if (/^border\d+$/i.test(token)) {
-        return 'color-mix(in srgb, var(--text-primary, #64748b) 18%, transparent)';
       }
 
       const map = {
@@ -8574,16 +8790,25 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         textw: '#ffffff',
         textb: '#000000',
         'text-inactive': 'var(--text-inactive)',
+        inactive: 'var(--text-inactive)',
         success: 'var(--success)',
+        'back-success': 'var(--success)',
+        'color-success': 'var(--success)',
         caution: 'var(--caution)',
-        danger: 'var(--danger)'
+        'back-caution': 'var(--caution)',
+        'color-caution': 'var(--caution)',
+        danger: 'var(--danger)',
+        'back-danger': 'var(--danger)',
+        'color-danger': 'var(--danger)'
       };
-      if (map[token]) return map[token];
+      if (map[lower]) return map[lower];
+      if (token.startsWith('--')) return `var(${token})`;
       return token;
     }
 
     function resolveUiTokenToHex(rawToken) {
       const token = String(rawToken || '').replace(/^\./, '').trim();
+      const lower = token.toLowerCase();
       const isDark = (currentPreviewMode === 'dark');
       const colors = isDark
         ? ((themeConfig.dark.colors && themeConfig.dark.colors.length)
@@ -8595,7 +8820,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const textSecondary = isDark ? (themeConfig.dark.text?.secondary || '#cbd5e1') : (themeConfig.light.text?.secondary || '#475569');
       const textInactive = isDark ? (themeConfig.dark.text?.inactive || '#94a3b8') : (themeConfig.light.text?.inactive || '#64748b');
 
-      if (!token || token === 'transparent') return bodyHex;
+      if (!token || lower === 'transparent' || lower === 'none' || lower === 'border-none' || lower === 'back-none' || lower === 'outline-none') {
+        return bodyHex;
+      }
       if (/^#[0-9a-f]{3,6}$/i.test(token)) return token;
 
       const numMatch = token.match(/^(?:back|color|border)(\d+)/i);
@@ -8612,17 +8839,29 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         textw: '#FFFFFF',
         textb: '#000000',
         'text-inactive': textInactive,
+        inactive: textInactive,
         success: themeConfig.status?.success || '#22c55e',
+        'back-success': themeConfig.status?.success || '#22c55e',
+        'color-success': themeConfig.status?.success || '#22c55e',
         caution: themeConfig.status?.caution || '#f59e0b',
-        danger: themeConfig.status?.danger || '#ef4444'
+        'back-caution': themeConfig.status?.caution || '#f59e0b',
+        'color-caution': themeConfig.status?.caution || '#f59e0b',
+        danger: themeConfig.status?.danger || '#ef4444',
+        'back-danger': themeConfig.status?.danger || '#ef4444',
+        'color-danger': themeConfig.status?.danger || '#ef4444'
       };
-      return map[token] || '#3b82f6';
+      return map[lower] || '#3b82f6';
     }
 
-    function buildInputCssVarsBlock(important = false) {
-      const cfg = ensureInputsConfig();
+    function buildInputCssVarsBlock(important = false, sourceCfg = null) {
+      const cfg = sourceCfg || ensureInputsConfig();
       const imp = important ? ' !important' : '';
       const shadowVal = INPUT_SHADOW_MAP[String(cfg.shadow || 'soft').toLowerCase()] || INPUT_SHADOW_MAP.soft;
+      const borderW = Math.max(0, Math.min(6, parseInt(cfg.borderWidth ?? 1, 10) || 0));
+      const focusRingRaw = String(cfg.focusRing || 'color2');
+      const focusRingCss = resolveUiTokenToCss(focusRingRaw);
+      const focusOutlineCss = (!cfg.focusOutline || focusRingCss === 'transparent') ? 'none' : `2px solid ${focusRingCss}`;
+
       const lines = [
         `  --ui-trigger-bg: ${resolveUiTokenToCss(cfg.triggerBg)}${imp};`,
         `  --ui-trigger-text: ${resolveUiTokenToCss(cfg.triggerText)}${imp};`,
@@ -8634,11 +8873,17 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         `  --ui-surface-shadow: ${shadowVal}${imp};`,
         `  --ui-btn-primary-bg: ${resolveUiTokenToCss(cfg.btnPrimaryBg)}${imp};`,
         `  --ui-btn-primary-text: ${resolveUiTokenToCss(cfg.btnPrimaryText)}${imp};`,
+        `  --ui-btn-primary-border: ${resolveUiTokenToCss(cfg.btnPrimaryBorder ?? 'transparent')}${imp};`,
         `  --ui-btn-secondary-bg: ${resolveUiTokenToCss(cfg.btnSecondaryBg)}${imp};`,
         `  --ui-btn-secondary-text: ${resolveUiTokenToCss(cfg.btnSecondaryText)}${imp};`,
+        `  --ui-btn-secondary-border: ${resolveUiTokenToCss(cfg.btnSecondaryBorder ?? 'transparent')}${imp};`,
         `  --ui-accent: ${resolveUiTokenToCss(cfg.accentColor)}${imp};`,
         `  --ui-accent-text: ${resolveUiTokenToCss(cfg.accentText || 'textb')}${imp};`,
         `  --ui-track-bg: ${resolveUiTokenToCss(cfg.trackBg)}${imp};`,
+        `  --ui-thumb-bg: ${resolveUiTokenToCss(cfg.thumbBg ?? 'textw')}${imp};`,
+        `  --ui-border-width: ${borderW}px${imp};`,
+        `  --ui-focus-ring: ${focusRingCss}${imp};`,
+        `  --ui-focus-outline: ${focusOutlineCss}${imp};`,
         `  --ui-radius: ${parseInt(cfg.radius ?? 15, 10) || 0}px${imp};`,
         `  --ui-touch-size: ${parseInt(cfg.touchSize ?? 44, 10) || 44}px${imp};`,
         `  --ui-font-size: ${parseInt(cfg.fontSize ?? 14, 10) || 14}px${imp};`,
@@ -8646,6 +8891,106 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         `  --ui-transition: ${parseInt(cfg.transition ?? 250, 10) || 250}ms${imp};`
       ];
       return lines.join('\n') + '\n';
+    }
+
+    function applyLocalCssVarsLiveToDom(type) {
+      const cfg = ensureInputsConfig();
+      const local = (cfg.localOverrides && cfg.localOverrides[type]) ? cfg.localOverrides[type] : {};
+      const merged = Object.assign({}, cfg, local);
+      const hasAnyLocal = Object.keys(local).length > 0;
+
+      const targets = [];
+      const galleryCard = document.querySelector(`#iuGalleryContainer .iu-input-card[data-input-type="${type}"] .iu-card-body`);
+      if (galleryCard) targets.push(galleryCard);
+      if (inputSandboxViewMode === 'focused' && activeInputType === type) {
+        const focusedBody = document.querySelector('#iuFocusedContainer .iu-focused-card .iu-card-body');
+        const inlineHost = document.getElementById('iuInlinePreviewHost');
+        if (focusedBody) targets.push(focusedBody);
+        if (inlineHost) targets.push(inlineHost);
+      }
+
+      targets.forEach((container) => {
+        const comps = container.querySelectorAll('.ui-input-component, .ui-field-card, .ui-field-label, .repeat-group, .repeat-container, .js-crop-img-mask, .js-load-img-mask, .ui-dp-trigger-wrap, .ui-dp-input-display, .dropdown-select, .dropdown-selected, .ui-password-wrap, .ui-otp-group, .ui-tags-box, .ui-stepper, .ui-rating, .ui-range-wrap, .ui-dropzone-wrap, .checkbox-switch-container, .crop-modal-card, .custom-color-picker-popover, .ui-dp-popover, .dropdown-options, .tl-counter');
+        const nodes = [container, ...Array.from(comps)];
+        nodes.forEach((node) => {
+          if (!node || !node.style) return;
+          Object.entries(INPUT_PROP_TO_CSS_VAR).forEach(([prop, cssVar]) => {
+            if (hasAnyLocal && local[prop] !== undefined && local[prop] !== '') {
+              node.style.setProperty(cssVar, resolveUiTokenToCss(local[prop]));
+            } else {
+              node.style.removeProperty(cssVar);
+            }
+          });
+          if (hasAnyLocal && local.borderWidth !== undefined && local.borderWidth !== '') {
+            node.style.setProperty('--ui-border-width', `${parseInt(local.borderWidth, 10) || 0}px`);
+          } else {
+            node.style.removeProperty('--ui-border-width');
+          }
+          if (hasAnyLocal && (local.focusOutline !== undefined || local.focusRing !== undefined)) {
+            const fo = local.focusOutline !== undefined ? !!local.focusOutline : !!cfg.focusOutline;
+            const fr = resolveUiTokenToCss(local.focusRing ?? cfg.focusRing ?? 'color2');
+            node.style.setProperty('--ui-focus-outline', (!fo || fr === 'transparent') ? 'none' : `2px solid ${fr}`);
+          } else {
+            node.style.removeProperty('--ui-focus-outline');
+          }
+          if (hasAnyLocal && local.radius !== undefined && local.radius !== '') {
+            node.style.setProperty('--ui-radius', `${parseInt(local.radius, 10) || 0}px`);
+          } else {
+            node.style.removeProperty('--ui-radius');
+          }
+          if (hasAnyLocal && local.touchSize !== undefined && local.touchSize !== '') {
+            node.style.setProperty('--ui-touch-size', `${parseInt(local.touchSize, 10) || 44}px`);
+          } else {
+            node.style.removeProperty('--ui-touch-size');
+          }
+          if (hasAnyLocal && local.fontSize !== undefined && local.fontSize !== '') {
+            node.style.setProperty('--ui-font-size', `${parseInt(local.fontSize, 10) || 14}px`);
+          } else {
+            node.style.removeProperty('--ui-font-size');
+          }
+          if (hasAnyLocal && local.shadow !== undefined && local.shadow !== '') {
+            node.style.setProperty('--ui-surface-shadow', INPUT_SHADOW_MAP[String(local.shadow).toLowerCase()] || INPUT_SHADOW_MAP.soft);
+          } else {
+            node.style.removeProperty('--ui-surface-shadow');
+          }
+          if (hasAnyLocal && local.blur !== undefined && local.blur !== '') {
+            node.style.setProperty('--ui-overlay-blur', `${parseInt(local.blur, 10) || 0}px`);
+          } else {
+            node.style.removeProperty('--ui-overlay-blur');
+          }
+        });
+      });
+
+      // Sincronizar portales abiertos si corresponden al input activo
+      document.querySelectorAll('.custom-color-picker-popover, .ui-dp-popover, .crop-modal-overlay, .dropdown-options').forEach((portal) => {
+        if (!portal.style) return;
+        const cssVarMap = {
+          '--ui-trigger-bg': resolveUiTokenToCss(merged.triggerBg),
+          '--ui-trigger-text': resolveUiTokenToCss(merged.triggerText),
+          '--ui-trigger-border': resolveUiTokenToCss(merged.triggerBorder),
+          '--ui-surface-bg': resolveUiTokenToCss(merged.surfaceBg),
+          '--ui-surface-text': resolveUiTokenToCss(merged.surfaceText),
+          '--ui-surface-muted': resolveUiTokenToCss(merged.surfaceMuted),
+          '--ui-surface-border': resolveUiTokenToCss(merged.surfaceBorder),
+          '--ui-surface-shadow': INPUT_SHADOW_MAP[String(merged.shadow || 'soft').toLowerCase()] || INPUT_SHADOW_MAP.soft,
+          '--ui-btn-primary-bg': resolveUiTokenToCss(merged.btnPrimaryBg),
+          '--ui-btn-primary-text': resolveUiTokenToCss(merged.btnPrimaryText),
+          '--ui-btn-primary-border': resolveUiTokenToCss(merged.btnPrimaryBorder ?? 'transparent'),
+          '--ui-btn-secondary-bg': resolveUiTokenToCss(merged.btnSecondaryBg),
+          '--ui-btn-secondary-text': resolveUiTokenToCss(merged.btnSecondaryText),
+          '--ui-btn-secondary-border': resolveUiTokenToCss(merged.btnSecondaryBorder ?? 'transparent'),
+          '--ui-accent': resolveUiTokenToCss(merged.accentColor),
+          '--ui-accent-text': resolveUiTokenToCss(merged.accentText),
+          '--ui-track-bg': resolveUiTokenToCss(merged.trackBg),
+          '--ui-thumb-bg': resolveUiTokenToCss(merged.thumbBg ?? 'textw'),
+          '--ui-border-width': `${parseInt(merged.borderWidth ?? 1, 10) || 0}px`,
+          '--ui-radius': `${parseInt(merged.radius ?? 15, 10) || 0}px`,
+          '--ui-touch-size': `${parseInt(merged.touchSize ?? 44, 10) || 44}px`,
+          '--ui-font-size': `${parseInt(merged.fontSize ?? 14, 10) || 14}px`,
+          '--ui-overlay-blur': `${parseInt(merged.blur ?? 10, 10) || 0}px`
+        };
+        Object.entries(cssVarMap).forEach(([vn, vv]) => portal.style.setProperty(vn, vv));
+      });
     }
 
     function injectLiveThemeIntoInputSandbox() {
@@ -8712,8 +9057,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       styleEl.textContent = css;
     }
 
-    function updateInputWcagBadges() {
+    function getEffectiveInputDesignConfig() {
       const cfg = ensureInputsConfig();
+      if (activeInputDesignScope === 'local') {
+        return Object.assign({}, cfg, getActiveInputLocalConfig());
+      }
+      return cfg;
+    }
+
+    function updateInputWcagBadges() {
+      const cfg = getEffectiveInputDesignConfig();
       const applyBadge = (badgeId, bgToken, txtToken) => {
         const el = document.getElementById(badgeId);
         if (!el) return;
@@ -8728,14 +9081,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function autoFixInputButtonContrast(kind) {
-      const cfg = ensureInputsConfig();
+      const cfg = getEffectiveInputDesignConfig();
       const bgKey = kind === 'secondary' ? 'btnSecondaryBg' : 'btnPrimaryBg';
       const textKey = kind === 'secondary' ? 'btnSecondaryText' : 'btnPrimaryText';
       const bgHex = resolveUiTokenToHex(cfg[bgKey]);
       const ratioWhite = getContrastRatio(bgHex, '#FFFFFF');
       const ratioDark = getContrastRatio(bgHex, '#0F172A');
       const bestText = ratioWhite >= ratioDark ? 'textw' : '#0F172A';
-      onInputGlobalChange(textKey, bestText);
+      setInputDesignProp(textKey, bestText);
       syncInputStudioForm();
       showToast('✨ Contraste de botón ajustado automáticamente');
     }
@@ -8758,8 +9111,28 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
       const badge = document.getElementById('iuActiveTypeBadge');
       const localLbl = document.getElementById('iuLocalTypeLabel');
+      const subBadge = document.getElementById('iuSubTabLocalBadge');
       if (badge) badge.textContent = activeInputType;
       if (localLbl) localLbl.textContent = activeInputType;
+      if (subBadge) subBadge.textContent = activeInputType;
+    }
+
+    function setFocusedInputTokenProp(prop) {
+      if (!prop || !INPUT_PROP_TO_CSS_VAR[prop]) return;
+      focusedInputTokenProp = prop;
+      const lbl = document.getElementById('iuFocusedTokenLabel');
+      if (lbl) lbl.textContent = INPUT_TOKEN_LABELS[prop] || prop;
+      document.querySelectorAll('[data-iu-prop]').forEach((el) => {
+        el.classList.toggle('iu-token-focused', el.getAttribute('data-iu-prop') === prop);
+      });
+    }
+
+    function applySystemColorToFocusedToken(token) {
+      const prop = focusedInputTokenProp || 'triggerBg';
+      const targetEl = document.querySelector(`[data-iu-prop="${prop}"]`);
+      setInputDesignProp(prop, token);
+      if (targetEl) targetEl.value = token;
+      syncInputStudioForm();
     }
 
     function renderInputColorChips() {
@@ -8779,7 +9152,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       chips.push({ token: 'textw', hex: '#FFFFFF' });
       chips.push({ token: 'textb', hex: '#000000' });
       chips.push({ token: 'body', hex: resolveUiTokenToHex('body') });
+      chips.push({ token: 'text-inactive', hex: resolveUiTokenToHex('text-inactive') });
       chips.push({ token: 'success', hex: themeConfig.status?.success || '#22c55e' });
+      chips.push({ token: 'caution', hex: themeConfig.status?.caution || '#f59e0b' });
       chips.push({ token: 'danger', hex: themeConfig.status?.danger || '#ef4444' });
 
       container.innerHTML = '';
@@ -8787,25 +9162,35 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const el = document.createElement('button');
         el.type = 'button';
         el.className = 'cs-color-chip';
-        el.title = `Aplicar token ${ch.token} (${ch.hex})`;
+        el.title = `Aplicar token ${ch.token} (${ch.hex}) al campo seleccionado`;
         el.innerHTML = `<span class="cs-color-dot" style="background:${ch.hex}"></span><span>${ch.token}</span>`;
-        el.onclick = () => {
-          const targetEl = lastFocusedInputTokenEl || document.getElementById('iu_btnPrimaryBg');
-          if (!targetEl) return;
-          targetEl.value = ch.token;
-          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
-        };
+        el.onclick = () => applySystemColorToFocusedToken(ch.token);
         container.appendChild(el);
       });
     }
 
     function switchInputSubTab(tab) {
+      activeInputSubTab = (tab === 'local' || tab === 'attrs') ? tab : 'global';
+      if (activeInputSubTab === 'global' || activeInputSubTab === 'local') {
+        activeInputDesignScope = activeInputSubTab;
+      }
+
       ['global', 'local', 'attrs'].forEach((name) => {
         const btn = document.getElementById('iuSubTab_' + name);
-        const panel = document.getElementById('iuPanel_' + name);
-        if (btn) btn.classList.toggle('active', tab === name);
-        if (panel) panel.style.display = (tab === name) ? 'block' : 'none';
+        if (btn) btn.classList.toggle('active', activeInputSubTab === name);
       });
+
+      const designPanel = document.getElementById('iuPanel_design');
+      const attrsPanel = document.getElementById('iuPanel_attrs');
+      const scopeBanner = document.getElementById('iuScopeBanner');
+      const localClassesBox = document.getElementById('iuLocalClassesBox');
+
+      if (designPanel) designPanel.style.display = (activeInputSubTab === 'attrs') ? 'none' : 'block';
+      if (attrsPanel) attrsPanel.style.display = (activeInputSubTab === 'attrs') ? 'block' : 'none';
+      if (scopeBanner) scopeBanner.style.display = (activeInputSubTab === 'local') ? 'flex' : 'none';
+      if (localClassesBox) localClassesBox.style.display = (activeInputSubTab === 'local') ? 'flex' : 'none';
+
+      syncInputStudioForm();
     }
 
     function getActiveInputLocalConfig() {
@@ -8816,6 +9201,19 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       return cfg.localOverrides[activeInputType];
     }
 
+    function setInputDesignProp(prop, value, options = {}) {
+      if (activeInputDesignScope === 'local') {
+        onInputLocalChange(prop, value, Object.assign({ liveOnly: false }, options));
+      } else {
+        onInputGlobalChange(prop, value, options);
+      }
+    }
+
+    function resetSingleInputLocalProp(prop) {
+      onInputLocalChange(prop, null);
+      syncInputStudioForm();
+    }
+
     function renderSpecificInputAttrsPanel() {
       const box = document.getElementById('iuSpecificAttrsContainer');
       if (!box) return;
@@ -8824,6 +9222,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const textField = (key, label, placeholder = '') => {
         const val = local[key] !== undefined ? String(local[key]) : '';
         return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="text" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value)"></div>`;
+      };
+      const textareaField = (key, label, placeholder = '') => {
+        const val = local[key] !== undefined ? String(local[key]) : '';
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><textarea class="ts-input" rows="3" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value)">${escIuHtml(val)}</textarea></div>`;
       };
       const numField = (key, label, placeholder = '') => {
         const val = local[key] !== undefined ? String(local[key]) : '';
@@ -8842,14 +9244,18 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       switch (activeInputType) {
         case 'cropImage':
           html = textField('croppingSize', 'Tamaño recorte (WxH)', '500x500')
+            + textField('accept', 'Tipos aceptados (accept)', 'image/*')
             + selectField('cropShape', 'Forma de recorte', [{ v: 'square', l: 'Cuadrado / Rectangular' }, { v: 'circle', l: 'Circular (Avatar)' }], 'square')
-            + checkField('allowRotate', 'Mostrar botones rotar 90°', true)
+            + textField('modalTitle', 'Título del modal', 'Recortar Imagen')
+            + `<div class="iu-color-pair">${textField('saveLabel', 'Texto botón Guardar', 'Recortar y Guardar')}${textField('cancelLabel', 'Texto botón Cancelar', 'Cancelar')}</div>`
+            + checkField('allowRotate', 'Mostrar botones rotar 90°', false)
             + checkField('noPreview', 'Ocultar miniatura previa (no-preview)', false);
           break;
         case 'loadImgModern':
-          html = numField('maxFiles', 'Máximo de archivos', '8')
-            + numField('maxSizeMb', 'Peso máximo (MB)', '10')
-            + checkField('dropzone', 'Modo Dropzone visual', true);
+          html = textField('accept', 'Tipos aceptados (accept)', 'image/*')
+            + `<div class="iu-color-pair">${numField('maxFiles', 'Máximo de archivos', '8')}${numField('maxSizeMb', 'Peso máximo (MB)', '10')}</div>`
+            + checkField('multiple', 'Permitir múltiples archivos', true)
+            + checkField('dropzone', 'Modo Dropzone visual', false);
           break;
         case 'colorPicker':
           html = textField('swatches', 'Muestras hex separadas por coma', '#EF4444,#F59E0B,#3B82F6')
@@ -8857,18 +9263,22 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           break;
         case 'checkboxSwitch':
           html = selectField('size', 'Tamaño', [{ v: 'sm', l: 'Pequeño (sm)' }, { v: 'md', l: 'Mediano (md)' }, { v: 'lg', l: 'Grande (lg)' }], 'md')
+            + `<div class="iu-color-pair">${textField('onValue', 'Valor Activo (onValue)', 'true')}${textField('offValue', 'Valor Inactivo (offValue)', 'false')}</div>`
             + `<div class="iu-color-pair">${textField('labelOn', 'Texto Activo', 'Sí')}${textField('labelOff', 'Texto Inactivo', 'No')}</div>`
             + checkField('checked', 'Activo inicialmente', true);
           break;
         case 'dropdown':
-          html = checkField('searchable', 'Buscador interno', true)
+          html = textareaField('options', 'Opciones (valor:Etiqueta separadas por coma o línea)', 'es:España, mx:México, ar:Argentina')
+            + textField('searchPlaceholder', 'Placeholder buscador', 'Buscar...')
+            + checkField('searchable', 'Buscador interno', true)
             + checkField('clearable', 'Botón limpiar selección', false)
             + checkField('animated', 'Animación de entrada', false);
           break;
         case 'datePicker':
           html = selectField('mode', 'Modo calendario', [{ v: 'single', l: 'Fecha única' }, { v: 'range', l: 'Rango de fechas' }], 'single')
             + selectField('format', 'Formato salida', [{ v: 'YYYY-MM-DD', l: 'ISO (YYYY-MM-DD)' }, { v: 'DD/MM/YYYY', l: 'DD/MM/YYYY' }], 'YYYY-MM-DD')
-            + checkField('showPresets', 'Botones rápidos (Hoy / Últimos 7d)', true)
+            + `<div class="iu-color-pair">${textField('min', 'Fecha mínima', '2026-01-01')}${textField('max', 'Fecha máxima', '2027-12-31')}</div>`
+            + checkField('showPresets', 'Botones rápidos (Hoy / Últimos 7d)', false)
             + checkField('showTime', 'Incluir selector de hora', false);
           break;
         case 'timePicker':
@@ -8882,7 +9292,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
             + checkField('showTooltip', 'Burbuja flotante de valor', true);
           break;
         case 'passwordInput':
-          html = checkField('showStrength', 'Medidor de fortaleza de contraseña', true);
+          html = checkField('showStrength', 'Medidor de fortaleza de contraseña', false);
           break;
         case 'otpCodeInput':
           html = selectField('length', 'Cantidad dígitos', [{ v: '4', l: '4 dígitos' }, { v: '6', l: '6 dígitos' }, { v: '8', l: '8 dígitos' }], '6')
@@ -8897,14 +9307,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           break;
         case 'ratingInput':
           html = `<div class="iu-color-pair">${numField('max', 'Estrellas máx.', '5')}${selectField('icon', 'Icono', [{ v: 'star', l: 'Estrella ★' }, { v: 'heart', l: 'Corazón ♥' }], 'star')}</div>`
-            + checkField('allowHalf', 'Permitir medias (0.5)', false);
+            + checkField('allowHalf', 'Permitir medias (0.5)', false)
+            + checkField('clearable', 'Permitir limpiar haciendo clic de nuevo', false);
           break;
         case 'fileDropzone':
           html = textField('accept', 'MIME / Extensiones', '.pdf,.doc,.docx,.zip,image/*')
-            + `<div class="iu-color-pair">${numField('maxFiles', 'Máx. archivos', '5')}${numField('maxSizeMb', 'Máx. MB', '10')}</div>`;
+            + `<div class="iu-color-pair">${numField('maxFiles', 'Máx. archivos', '5')}${numField('maxSizeMb', 'Máx. MB', '10')}</div>`
+            + checkField('multiple', 'Permitir múltiples archivos', true);
           break;
         case 'repeatCamp':
-          html = numField('max', 'Máximo de filas clonables', '8');
+          html = `<div class="iu-color-pair">${numField('max', 'Máx. filas clonables', '8')}${textField('addLabel', 'Texto botón agregar', '+ Agrega otra opción')}</div>`;
           break;
         case 'textLimiter':
           html = `<div class="iu-color-pair">${numField('limit', 'Límite máximo', '160')}${selectField('limitType', 'Unidad', [{ v: 'chars', l: 'Caracteres' }, { v: 'words', l: 'Palabras' }], 'chars')}</div>`
@@ -8916,61 +9328,65 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
     function syncInputStudioForm() {
       const cfg = ensureInputsConfig();
+      const local = getActiveInputLocalConfig();
+      const effective = getEffectiveInputDesignConfig();
       const activeMeta = INPUT_CATALOG.find(i => i.type === activeInputType) || INPUT_CATALOG[0];
 
       document.querySelectorAll('.iu-preset-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.preset === (cfg.preset || 'soft'));
       });
 
-      document.querySelectorAll('[data-iu-global]').forEach((el) => {
-        const k = el.getAttribute('data-iu-global');
-        if (cfg[k] !== undefined) el.value = cfg[k];
-      });
+      document.querySelectorAll('[data-iu-prop]').forEach((el) => {
+        const k = el.getAttribute('data-iu-prop');
+        const val = effective[k];
+        if (el.type === 'checkbox') {
+          el.checked = !!val;
+        } else if (val !== undefined && val !== null) {
+          el.value = val;
+        }
+        el.classList.toggle('iu-token-focused', k === focusedInputTokenProp);
 
-      document.querySelectorAll('[data-iu-picker-for]').forEach((picker) => {
-        const targetId = picker.getAttribute('data-iu-picker-for');
-        const txtEl = document.getElementById(targetId);
-        if (txtEl) {
-          const hex = resolveUiTokenToHex(txtEl.value);
-          if (/^#[0-9a-f]{6}$/i.test(hex)) picker.value = hex;
+        const wrap = el.closest('[data-iu-field-wrap]');
+        if (wrap) {
+          const hasOverride = activeInputDesignScope === 'local' && local[k] !== undefined && local[k] !== null && local[k] !== '';
+          wrap.classList.toggle('has-local-override', hasOverride);
         }
       });
 
-      const radEl = document.getElementById('iu_radius');
+      document.querySelectorAll('[data-iu-picker-prop]').forEach((picker) => {
+        const prop = picker.getAttribute('data-iu-picker-prop');
+        const val = effective[prop] ?? '';
+        const hex = resolveUiTokenToHex(val);
+        if (/^#[0-9a-f]{6}$/i.test(hex)) picker.value = hex;
+      });
+
+      const bwLbl = document.getElementById('iu_borderWidthVal');
+      if (bwLbl) bwLbl.textContent = (effective.borderWidth ?? 1) + 'px';
+
       const radLbl = document.getElementById('iu_radiusVal');
-      if (radEl) radEl.value = cfg.radius ?? 15;
-      if (radLbl) radLbl.textContent = (cfg.radius ?? 15) + 'px';
+      if (radLbl) radLbl.textContent = (effective.radius ?? 15) + 'px';
 
-      const touchEl = document.getElementById('iu_touchSize');
       const touchLbl = document.getElementById('iu_touchSizeVal');
-      if (touchEl) touchEl.value = cfg.touchSize ?? 44;
-      if (touchLbl) touchLbl.textContent = (cfg.touchSize ?? 44) + 'px';
+      if (touchLbl) touchLbl.textContent = (effective.touchSize ?? 44) + 'px';
 
-      const fsEl = document.getElementById('iu_fontSize');
       const fsLbl = document.getElementById('iu_fontSizeVal');
-      if (fsEl) fsEl.value = cfg.fontSize ?? 14;
-      if (fsLbl) fsLbl.textContent = (cfg.fontSize ?? 14) + 'px';
+      if (fsLbl) fsLbl.textContent = (effective.fontSize ?? 14) + 'px';
 
-      const shadowEl = document.getElementById('iu_shadow');
-      if (shadowEl) shadowEl.value = cfg.shadow || 'soft';
-
-      const blurEl = document.getElementById('iu_blur');
       const blurLbl = document.getElementById('iu_blurVal');
-      if (blurEl) blurEl.value = cfg.blur ?? 10;
-      if (blurLbl) blurLbl.textContent = (cfg.blur ?? 10) + 'px';
+      if (blurLbl) blurLbl.textContent = (effective.blur ?? 10) + 'px';
 
-      const sheetEl = document.getElementById('iu_mobileSheet');
-      if (sheetEl) sheetEl.checked = cfg.mobileSheet !== false;
-
-      const local = getActiveInputLocalConfig();
       document.querySelectorAll('[data-iu-local]').forEach((el) => {
         const k = el.getAttribute('data-iu-local');
         el.value = local[k] !== undefined && local[k] !== null ? local[k] : '';
       });
 
       const reqEl = document.getElementById('iuAttr_required');
+      const disEl = document.getElementById('iuAttr_disabled');
+      const roEl = document.getElementById('iuAttr_readonly');
       const subEl = document.getElementById('iuAttr_autoSubmit');
       if (reqEl) reqEl.checked = !!local.required;
+      if (disEl) disEl.checked = !!local.disabled;
+      if (roEl) roEl.checked = !!local.readonly;
       if (subEl) subEl.checked = !!local.autoSubmit;
 
       const legacyBox = document.getElementById('iuLegacyCompatGroup');
@@ -8978,14 +9394,20 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         legacyBox.style.display = activeMeta.legacyCompat ? 'block' : 'none';
       }
 
+      const tokenLbl = document.getElementById('iuFocusedTokenLabel');
+      if (tokenLbl) tokenLbl.textContent = INPUT_TOKEN_LABELS[focusedInputTokenProp] || focusedInputTokenProp;
+
       renderSpecificInputAttrsPanel();
       updateInputWcagBadges();
     }
 
-    function onInputGlobalChange(key, value) {
+    function onInputGlobalChange(key, value, options = {}) {
       const cfg = ensureInputsConfig();
       cfg[key] = value;
-      if (key === 'radius') {
+      if (key === 'borderWidth') {
+        const l = document.getElementById('iu_borderWidthVal');
+        if (l) l.textContent = (value ?? 1) + 'px';
+      } else if (key === 'radius') {
         const l = document.getElementById('iu_radiusVal');
         if (l) l.textContent = (value ?? 15) + 'px';
       } else if (key === 'touchSize') {
@@ -9002,10 +9424,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       injectLiveThemeIntoIframe();
       updateInputWcagBadges();
       updateJsonViewer();
-      scheduleInputRender(activeInputType);
+
+      const updateStage = !options.liveOnly;
+      clearTimeout(inputRenderTimer);
+      inputRenderTimer = setTimeout(() => {
+        requestInputRender(activeInputType, updateStage);
+      }, 160);
     }
 
-    function onInputLocalChange(key, value) {
+    function onInputLocalChange(key, value, options = {}) {
       const cfg = ensureInputsConfig();
       if (!cfg.localOverrides[activeInputType] || typeof cfg.localOverrides[activeInputType] !== 'object') {
         cfg.localOverrides[activeInputType] = {};
@@ -9018,9 +9445,43 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (Object.keys(cfg.localOverrides[activeInputType]).length === 0) {
         delete cfg.localOverrides[activeInputType];
       }
+
+      if (key === 'borderWidth') {
+        const l = document.getElementById('iu_borderWidthVal');
+        if (l) l.textContent = (value ?? cfg.borderWidth ?? 1) + 'px';
+      } else if (key === 'radius') {
+        const l = document.getElementById('iu_radiusVal');
+        if (l) l.textContent = (value ?? cfg.radius ?? 15) + 'px';
+      } else if (key === 'touchSize') {
+        const l = document.getElementById('iu_touchSizeVal');
+        if (l) l.textContent = (value ?? cfg.touchSize ?? 44) + 'px';
+      } else if (key === 'fontSize') {
+        const l = document.getElementById('iu_fontSizeVal');
+        if (l) l.textContent = (value ?? cfg.fontSize ?? 14) + 'px';
+      } else if (key === 'blur') {
+        const l = document.getElementById('iu_blurVal');
+        if (l) l.textContent = (value ?? cfg.blur ?? 10) + 'px';
+      }
+
+      applyLocalCssVarsLiveToDom(activeInputType);
+      updateInputWcagBadges();
+
+      const wrap = document.querySelector(`[data-iu-field-wrap="${key}"]`);
+      if (wrap) {
+        const hasOverride = activeInputDesignScope === 'local' && cfg.localOverrides[activeInputType] && cfg.localOverrides[activeInputType][key] !== undefined;
+        wrap.classList.toggle('has-local-override', !!hasOverride);
+      }
+
       renderInputTypeGrid();
       updateJsonViewer();
-      scheduleInputRender(activeInputType);
+
+      const isVisualCssProp = !!(INPUT_PROP_TO_CSS_VAR[key] || ['borderWidth', 'focusOutline', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur'].includes(key));
+      const shouldUpdateStage = options.liveOnly ? false : !isVisualCssProp;
+
+      clearTimeout(inputRenderTimer);
+      inputRenderTimer = setTimeout(() => {
+        requestInputRender(activeInputType, shouldUpdateStage);
+      }, 150);
     }
 
     function applyInputPreset(presetName) {
@@ -9052,6 +9513,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (cfg.localOverrides && cfg.localOverrides[activeInputType]) {
         delete cfg.localOverrides[activeInputType];
       }
+      applyLocalCssVarsLiveToDom(activeInputType);
       syncInputStudioForm();
       renderInputTypeGrid();
       updateJsonViewer();
@@ -9060,9 +9522,12 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
     function selectInputType(type, autoFocusIfNeeded = false) {
       if (!INPUT_CATALOG.some(i => i.type === type)) return;
+      const changed = (activeInputType !== type);
       activeInputType = type;
       renderInputTypeGrid();
-      syncInputStudioForm();
+      if (changed) {
+        syncInputStudioForm();
+      }
 
       document.querySelectorAll('#iuGalleryContainer .iu-input-card').forEach((card) => {
         card.classList.toggle('active', card.dataset.inputType === type);
@@ -9072,7 +9537,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         renderInputSandboxFromCache();
         initInputSandboxDom();
       }
-      requestInputRender(type, false);
+      if (changed || autoFocusIfNeeded) {
+        requestInputRender(type, false);
+      }
     }
 
     function getInputCodeOptionsPayload() {
@@ -9080,6 +9547,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const local = getActiveInputLocalConfig();
       const wrapContainer = !!document.getElementById('iuOptWrapContainer')?.checked;
       const includeLabel = !!document.getElementById('iuOptIncludeLabel')?.checked;
+      const includeGlobalInCode = !!document.getElementById('iuOptIncludeGlobalInCode')?.checked;
       const inlineVars = !!document.getElementById('iuOptInlineVars')?.checked;
       const multiline = !!document.getElementById('iuOptMultiline')?.checked;
       const cfg = ensureInputsConfig();
@@ -9087,11 +9555,12 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const opts = {
         wrapContainer,
         inlineVars,
+        includeGlobalInCode,
         multiline,
         label: includeLabel ? (local.label || activeMeta.defaultLabel || '') : ''
       };
       if (inlineVars) {
-        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnSecondaryBg', 'btnSecondaryText', 'accentColor', 'accentText', 'trackBg', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur', 'transition'];
+        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnPrimaryBorder', 'btnSecondaryBg', 'btnSecondaryText', 'btnSecondaryBorder', 'accentColor', 'accentText', 'trackBg', 'thumbBg', 'borderWidth', 'focusRing', 'focusOutline', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur', 'transition'];
         styleKeys.forEach((sk) => {
           if (local[sk] === undefined && cfg[sk] !== undefined) {
             opts[sk] = cfg[sk];
@@ -9131,6 +9600,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         detail.imgUrl = createStudioDemoImageDataUrl();
       }
       target.dispatchEvent(new CustomEvent('fme:renderInlinePreview', { detail }));
+      applyLocalCssVarsLiveToDom(activeInputType);
     }
 
     function renderInputSandboxFromCache() {
@@ -9146,6 +9616,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           const card = document.createElement('div');
           card.className = 'iu-input-card' + (item.type === activeInputType ? ' active' : '');
           card.dataset.inputType = item.type;
+          card.addEventListener('pointerdown', () => {
+            if (activeInputType !== item.type) {
+              selectInputType(item.type, false);
+            }
+          }, true);
 
           const head = document.createElement('div');
           head.className = 'iu-card-head';
@@ -9392,8 +9867,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function setInputCopyFormat(fmt) {
-      inputCodeFormat = (fmt === 'php' || fmt === 'global') ? fmt : 'html';
-      ['html', 'php', 'global'].forEach((k) => {
+      inputCodeFormat = (fmt === 'html' || fmt === 'global') ? fmt : 'php';
+      ['php', 'html', 'global'].forEach((k) => {
         const tab = document.getElementById('iuCodeTab_' + k);
         if (tab) tab.classList.toggle('active', k === inputCodeFormat);
       });
@@ -9425,25 +9900,65 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     function initInputStudio() {
       ensureInputsConfig();
 
-      document.querySelectorAll('[data-iu-global]').forEach((el) => {
+      document.querySelectorAll('[data-iu-prop]').forEach((el) => {
         if (el.dataset.iuBound) return;
         el.dataset.iuBound = 'true';
-        el.addEventListener('focus', () => {
-          lastFocusedInputTokenEl = el;
-        });
-        el.addEventListener('input', () => {
-          onInputGlobalChange(el.getAttribute('data-iu-global'), el.value);
-        });
+        const prop = el.getAttribute('data-iu-prop');
+
+        if (INPUT_PROP_TO_CSS_VAR[prop]) {
+          el.addEventListener('focus', () => setFocusedInputTokenProp(prop));
+          el.addEventListener('click', () => setFocusedInputTokenProp(prop));
+        }
+
+        const handleVal = () => {
+          let val;
+          if (el.type === 'checkbox') {
+            val = el.checked;
+          } else if (el.type === 'range' || el.type === 'number') {
+            val = el.value === '' ? null : parseInt(el.value, 10);
+          } else {
+            val = el.value;
+          }
+          setInputDesignProp(prop, val, { liveOnly: el.type === 'range' });
+          if (INPUT_PROP_TO_CSS_VAR[prop]) {
+            const picker = document.querySelector(`[data-iu-picker-prop="${prop}"]`);
+            if (picker) {
+              const hex = resolveUiTokenToHex(val);
+              if (/^#[0-9a-f]{6}$/i.test(hex)) picker.value = hex;
+            }
+          }
+        };
+
+        el.addEventListener('input', handleVal);
+        if (el.type === 'range' || el.type === 'checkbox' || el.tagName === 'SELECT') {
+          el.addEventListener('change', () => {
+            let val;
+            if (el.type === 'checkbox') val = el.checked;
+            else if (el.type === 'range' || el.type === 'number') val = el.value === '' ? null : parseInt(el.value, 10);
+            else val = el.value;
+            setInputDesignProp(prop, val, { liveOnly: false });
+          });
+        }
       });
 
-      document.querySelectorAll('[data-iu-picker-for]').forEach((picker) => {
+      document.querySelectorAll('[data-iu-picker-prop]').forEach((picker) => {
         if (picker.dataset.iuBound) return;
         picker.dataset.iuBound = 'true';
+        const prop = picker.getAttribute('data-iu-picker-prop');
+
+        picker.addEventListener('click', () => setFocusedInputTokenProp(prop));
+        picker.addEventListener('focus', () => setFocusedInputTokenProp(prop));
+
         picker.addEventListener('input', () => {
-          const target = document.getElementById(picker.getAttribute('data-iu-picker-for'));
-          if (!target) return;
-          target.value = picker.value.toUpperCase();
-          onInputGlobalChange(target.getAttribute('data-iu-global'), target.value);
+          setFocusedInputTokenProp(prop);
+          const hex = picker.value.toUpperCase();
+          const target = document.querySelector(`[data-iu-prop="${prop}"]`);
+          if (target) target.value = hex;
+          setInputDesignProp(prop, hex, { liveOnly: true });
+        });
+        picker.addEventListener('change', () => {
+          const hex = picker.value.toUpperCase();
+          setInputDesignProp(prop, hex, { liveOnly: false });
         });
       });
 
@@ -9457,7 +9972,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
       renderInputTypeGrid();
       renderInputColorChips();
-      syncInputStudioForm();
+      switchInputSubTab(activeInputSubTab);
+      setInputCopyFormat(inputCodeFormat);
       renderInputSandboxFromCache();
       requestInputRender(activeInputType, false);
     }

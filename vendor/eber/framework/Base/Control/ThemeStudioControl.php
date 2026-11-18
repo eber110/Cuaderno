@@ -1371,7 +1371,11 @@ JS;
       'wrapContainer',
       'multiline',
       'inlineVars',
+      'includeGlobalInCode',
+      'focusOutline',
       'required',
+      'disabled',
+      'readonly',
       'autoSubmit',
       'noPreview',
       'allowRotate',
@@ -1389,6 +1393,7 @@ JS;
       'multiple',
     ];
     $numKeys = [
+      'borderWidth',
       'radius',
       'touchSize',
       'fontSize',
@@ -1455,6 +1460,8 @@ JS;
           $vStr = $v ? 'true' : 'false';
         } elseif (is_int($v) || is_float($v)) {
           $vStr = (string)$v;
+        } elseif (is_array($v)) {
+          $vStr = var_export($v, true);
         } else {
           $vStr = "'" . addslashes((string)$v) . "'";
         }
@@ -1463,12 +1470,6 @@ JS;
       $lines[] = ']';
       return implode("\n", $lines);
     };
-
-    $phpParams = $localParams;
-    unset($phpParams['multiline'], $phpParams['id']);
-    $phpSnippet = empty($phpParams)
-      ? "<?= _input('{$type}') ?>"
-      : "<?= _input('{$type}', " . $exportArr($phpParams, '  ') . ") ?>";
 
     $defaults = FormUiModule::getDefaultConfig();
     $diffGlobal = [];
@@ -1480,6 +1481,25 @@ JS;
         $diffGlobal[$k] = $v;
       }
     }
+
+    $phpParams = $localParams;
+    $includeGlobal = !empty($phpParams['includeGlobalInCode']);
+    unset($phpParams['multiline'], $phpParams['previewId'], $phpParams['ignoreThemeLocal'], $phpParams['inlineVars'], $phpParams['includeGlobalInCode']);
+
+    if ($includeGlobal && !empty($diffGlobal)) {
+      $styleDiff = $diffGlobal;
+      unset($styleDiff['preset']);
+      $phpParams = array_merge($styleDiff, $phpParams);
+    }
+
+    if (array_key_exists('wrapContainer', $phpParams) && $phpParams['wrapContainer'] === false) {
+      unset($phpParams['wrapContainer']);
+    }
+
+    $phpSnippet = empty($phpParams)
+      ? "<?= _input('{$type}') ?>"
+      : "<?= _input('{$type}', " . $exportArr($phpParams, '  ') . ") ?>";
+
     $targetGlobal = !empty($diffGlobal) ? $diffGlobal : $globalConfig;
     unset($targetGlobal['localOverrides']);
 
@@ -1537,8 +1557,9 @@ JS;
           }
 
           $previewParams = array_merge([
-            'id' => 'studio_preview_' . $inputType,
-            'inlineVars' => false,
+            'previewId' => 'studio_preview_' . $inputType,
+            'ignoreThemeLocal' => true,
+            'inlineVars' => !empty($typeLocal),
           ], $typeLocal);
           $inputs[$inputType] = FormUiModule::render($inputType, $previewParams);
 
@@ -1552,12 +1573,13 @@ JS;
           unset($snippetParams['label']);
         }
         $phpSnippets = self::buildInputPhpSnippets($activeInput, $globalConfig, $snippetParams);
+        $htmlSnippetParams = array_merge($snippetParams, ['ignoreThemeLocal' => true]);
 
         return [
           'success' => true,
           'type' => 'all',
           'inputs' => $inputs,
-          'htmlSnippet' => FormUiModule::buildHtmlSnippet($activeInput, $snippetParams),
+          'htmlSnippet' => FormUiModule::buildHtmlSnippet($activeInput, $htmlSnippetParams),
           'phpSnippet' => $phpSnippets['phpSnippet'],
           'globalSnippet' => $phpSnippets['globalSnippet'],
         ];
@@ -1568,20 +1590,22 @@ JS;
         : [];
       $mergedLocal = array_merge($typeLocalFromMap, $localParams);
       $previewParams = array_merge([
-        'id' => 'studio_preview_' . $type,
-        'inlineVars' => false,
+        'previewId' => 'studio_preview_' . $type,
+        'ignoreThemeLocal' => true,
+        'inlineVars' => !empty($mergedLocal),
       ], $mergedLocal);
       $snippetParams = array_merge($mergedLocal, $codeOptions);
       if ($hideLabelExplicit) {
         unset($snippetParams['label']);
       }
       $phpSnippets = self::buildInputPhpSnippets($type, $globalConfig, $snippetParams);
+      $htmlSnippetParams = array_merge($snippetParams, ['ignoreThemeLocal' => true]);
 
       return [
         'success' => true,
         'type' => $type,
         'html' => FormUiModule::render($type, $previewParams),
-        'htmlSnippet' => FormUiModule::buildHtmlSnippet($type, $snippetParams),
+        'htmlSnippet' => FormUiModule::buildHtmlSnippet($type, $htmlSnippetParams),
         'phpSnippet' => $phpSnippets['phpSnippet'],
         'globalSnippet' => $phpSnippets['globalSnippet'],
       ];

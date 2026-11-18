@@ -23,7 +23,8 @@ class InputRule extends JitRuleBase
       "focus-ring-success" => ".focus-ring-success:focus-visible { outline: 2px solid var(--success, #00b900); outline-offset: 2px; }\n",
       "focus-ring-caution" => ".focus-ring-caution:focus-visible { outline: 2px solid var(--caution, #ff8c00); outline-offset: 2px; }\n",
       "focus-ring-danger"  => ".focus-ring-danger:focus-visible { outline: 2px solid var(--danger, #ff0000); outline-offset: 2px; }\n",
-      "focus-ring-none"    => ".focus-ring-none:focus-visible { outline: none; }\n",
+      "focus-ring-none"    => ".focus-ring-none, .focus-ring-none:focus, .focus-ring-none:focus-visible { outline: none !important; }\n",
+      "outline-none"       => ".outline-none, .outline-none:focus, .outline-none:focus-visible { outline: none !important; }\n",
     ];
 
     if (isset($statics[$word])) {
