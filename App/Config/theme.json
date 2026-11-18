@@ -238,18 +238,18 @@
             },
             "inputs": {
                 "preset": "soft",
-                "triggerBg": "back1",
+                "triggerBg": "textc",
                 "triggerText": "texto",
                 "triggerBorder": "textc",
-                "surfaceBg": "back1",
+                "surfaceBg": "back9",
                 "surfaceText": "texto",
                 "surfaceMuted": "text-inactive",
                 "surfaceBorder": "textc",
-                "btnPrimaryBg": "back6",
-                "btnPrimaryText": "textw",
+                "btnPrimaryBg": "back16",
+                "btnPrimaryText": "#0F172A",
                 "btnPrimaryBorder": "transparent",
                 "btnSecondaryBg": "back2",
-                "btnSecondaryText": "texto",
+                "btnSecondaryText": "textw",
                 "btnSecondaryBorder": "transparent",
                 "accentColor": "color2",
                 "accentText": "textb",
@@ -269,6 +269,21 @@
                     "textLimiter": {
                         "triggerBg": "textw",
                         "triggerText": "textw"
+                    },
+                    "dropdown": {
+                        "surfaceText": "texto",
+                        "focusRing": "body",
+                        "triggerText": "texto",
+                        "accentText": "textc",
+                        "thumbBg": "textc",
+                        "borderWidth": 0,
+                        "blur": 0,
+                        "shadow": "soft",
+                        "surfaceBg": "body",
+                        "btnPrimaryBorder": "transparent",
+                        "btnPrimaryText": "#0F172A",
+                        "surfaceMuted": "back1",
+                        "fontSize": 18
                     }
                 }
             }
