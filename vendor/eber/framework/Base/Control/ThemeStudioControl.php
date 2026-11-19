@@ -4,6 +4,7 @@ namespace Base\Control;
 
 use Base\Module\FormUiModule;
 use Base\Module\GraphicsModule;
+use Base\Module\JitCssModule;
 use Base\Module\SecurityModule;
 use Base\Module\ThemeModule;
 
@@ -58,6 +59,7 @@ class ThemeStudioControl extends Control
     \Core\Route::post('/_frame/theme-studio/delete-theme', [self::class, 'deleteThemeEndpoint']);
     \Core\Route::post('/_frame/theme-studio/render-chart', [self::class, 'renderChart']);
     \Core\Route::post('/_frame/theme-studio/render-input', [self::class, 'renderInput']);
+    \Core\Route::post('/_frame/theme-studio/render-form', [self::class, 'renderForm']);
     \Core\Route::get('/_frame/theme-studio/fonts', [self::class, 'fonts']);
     \Core\Route::get('/_frame/theme-studio/icons', [self::class, 'icons']);
   }
@@ -338,9 +340,11 @@ class ThemeStudioControl extends Control
       'chartsJs' => $chartsAssets['js'],
       'inputsCss' => $inputsAssets['css'],
       'inputsJs' => $inputsAssets['js'],
+      'jitCatalog' => self::getJitClassesCatalog(),
       'initialChartsHtmlMap' => $initialChartsRender['charts'] ?? [],
       'initialChartsSampleData' => $initialChartsRender['sampleData'] ?? [],
       'initialInputsHtmlMap' => $initialInputsRender['inputs'] ?? [],
+      'initialJitPreviewCss' => $initialInputsRender['jitPreviewCss'] ?? '',
       'initialIconsCatalog' => $initialIconsCatalog,
       'rawJson' => json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
       'rawFullJson' => json_encode($fullConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
@@ -1298,6 +1302,8 @@ class ThemeStudioControl extends Control
     $css = str_ireplace('</style', '<\/style', implode("\n\n", $cssParts));
 
     $componentFiles = [
+      'autoSubmitForm.js' => 'autoSubmitForm',
+      'multiStepForm.js' => 'multiStepForm',
       'cropImage.js' => 'cropImage',
       'loadImgModern.js' => 'loadImgModern',
       'formComponents.js' => 'formComponents',
@@ -1324,6 +1330,17 @@ class ThemeStudioControl extends Control
     if (is_file($utilsPath)) {
       $utilsCode = str_ireplace('</script', '<\/script', (string)@file_get_contents($utilsPath));
       $bundleParts[] = "// --- uiFormUtils.js ---\n" . trim($utilsCode);
+    }
+
+    // FloatingScroll: exponer únicamente la clase FloatingScroll sin activar instancia global sobre window
+    $floatingPath = $resDir . '/Js/Components/floatingScroll.js';
+    if (is_file($floatingPath)) {
+      $fCode = (string)@file_get_contents($floatingPath);
+      $fCode = (string)preg_replace('/^\s*import\s+[\s\S]*?from\s+["\'][^"\']+["\'];?\s*$/m', '', $fCode);
+      $fCode = (string)preg_replace('/^\s*export\s+\{[\s\S]*?\};?\s*$/m', '', $fCode);
+      $fCode = (string)preg_replace('/^\s*export\s+(?=(?:async\s+)?function\b|const\b|let\b|var\b|class\b)/m', '', $fCode);
+      $fCode = str_ireplace('</script', '<\/script', $fCode);
+      $bundleParts[] = "// --- floatingScroll.js (class-only para contenedores) ---\n(function() {\n" . trim($fCode) . "\nif (typeof FloatingScroll === 'function') { window.FloatingScroll = FloatingScroll; }\n})();";
     }
 
     foreach ($componentFiles as $file => $fnName) {
@@ -1359,6 +1376,87 @@ JS;
   }
 
   /**
+   * Devuelve el catálogo curado de clases JIT válidas en LibraryCssJit para el asistente visual.
+   *
+   * @return array<string, array{label: string, classes: array<int, string>}>
+   */
+  public static function getJitClassesCatalog(): array
+  {
+    return [
+      'grid' => [
+        'label' => 'Grilla & Columnas',
+        'classes' => ['grid', 'col-desk-1', 'col-desk-2', 'col-desk-3', 'col-desk-4', 'col-mid-2', 'col-sml-1', 'span-desk-2', 'span-desk-3', 'span-mid-2', 'gap10', 'gap15', 'gap20'],
+      ],
+      'flex' => [
+        'label' => 'Flex & Alineación',
+        'classes' => ['flex-row', 'flex-column', 'wrap', 'center-center', 'center-between', 'center-end', 'center-start', 'gap5'],
+      ],
+      'dimensions' => [
+        'label' => 'Ancho, Alto & Espaciado',
+        'classes' => ['w100', 'w50', 'w-mid-100', 'w-sml-100', 'wpx-max400', 'wpx-max600', 'wpx-max800', 'hpx140', 'p10', 'p15', 'p20', 'm10', 'mb10'],
+      ],
+      'surface' => [
+        'label' => 'Superficies, Bordes & Sombras',
+        'classes' => ['back1', 'back2', 'back3', 'back6', 'back8', 'color1', 'color2', 'border2', 'border-none', 'br10', 'br15', 'br20', 'shadow1', 'shadow2'],
+      ],
+      'typography' => [
+        'label' => 'Tipografía & Estado',
+        'classes' => ['x12', 'x14', 'x16', 'x18', 'bold600', 'bold700', 'uppercase', 'text-center', 'color-success', 'color-danger'],
+      ],
+      'interaction' => [
+        'label' => 'Interacción & Accesibilidad',
+        'classes' => ['focus-ring2', 'textareaResize', 'touch-target'],
+      ],
+    ];
+  }
+
+  /**
+   * Extrae clases candidatas desde estructuras de configuración de inputs/formularios y compila su CSS JIT en memoria.
+   *
+   * @param array<int, array<string, mixed>> $sources Arreglos con propiedades de clases JIT.
+   * @return string CSS JIT compilado listo para <style id="tsJitLivePreviewCss">.
+   */
+  private static function compileJitFromSources(array $sources): string
+  {
+    $classKeys = [
+      'formClass',
+      'gridClass',
+      'stepClass',
+      'wrapperClass',
+      'class',
+      'labelClass',
+      'helperClass',
+      'uiTrigger',
+      'uiSurface',
+      'uiBtnPrimary',
+      'uiBtnSecondary',
+      'uiAccent',
+      'uiTrack',
+      'boxImage',
+      'boxBtnImage',
+      'styleBox',
+      'styleColor',
+      'dataNote',
+    ];
+    $words = [];
+    foreach ($sources as $src) {
+      if (!is_array($src)) {
+        continue;
+      }
+      foreach ($classKeys as $k) {
+        if (!empty($src[$k]) && is_string($src[$k])) {
+          foreach (preg_split('/\s+/', trim($src[$k])) ?: [] as $tok) {
+            if ($tok !== '') {
+              $words[$tok] = $tok;
+            }
+          }
+        }
+      }
+    }
+    return !empty($words) ? JitCssModule::compileWords(array_values($words)) : '';
+  }
+
+  /**
    * Limpia y normaliza parámetros globales/locales de FormUiModule enviados desde Input Studio.
    *
    * @param array<string, mixed> $rawParams Parámetros crudos desde el cliente.
@@ -1377,6 +1475,9 @@ JS;
       'disabled',
       'readonly',
       'autoSubmit',
+      'noAutoSubmit',
+      'processAutoSubmit',
+      'hideScrollbar',
       'noPreview',
       'allowRotate',
       'dropzone',
@@ -1388,8 +1489,11 @@ JS;
       'showTime',
       'showPresets',
       'showTooltip',
+      'showLimits',
       'showStrength',
       'allowHalf',
+      'showValue',
+      'mask',
       'multiple',
     ];
     $numKeys = [
@@ -1397,6 +1501,21 @@ JS;
       'radius',
       'touchSize',
       'fontSize',
+      'placeholderSize',
+      'secondaryFontSize',
+      'gap',
+      'fieldGap',
+      'boxPadding',
+      'thumbSize',
+      'scrollbarWidth',
+      'chipRadius',
+      'starSize',
+      'dropzoneMinHeight',
+      'dropzoneIconSize',
+      'sliderTrackHeight',
+      'sliderThumbSize',
+      'otpCellSize',
+      'maxHeight',
       'blur',
       'transition',
       'maxFiles',
@@ -1408,6 +1527,8 @@ JS;
       'maxTags',
       'rows',
       'limit',
+      'minlength',
+      'maxlength',
     ];
     $floatKeys = ['maxSizeMb', 'min', 'max', 'step'];
 
@@ -1574,6 +1695,8 @@ JS;
         }
         $phpSnippets = self::buildInputPhpSnippets($activeInput, $globalConfig, $snippetParams);
         $htmlSnippetParams = array_merge($snippetParams, ['ignoreThemeLocal' => true]);
+        $jitSources = array_merge([$localParams, $codeOptions, ['class' => 'ui-input-component']], array_values($localParamsByType));
+        $jitPreviewCss = self::compileJitFromSources($jitSources);
 
         return [
           'success' => true,
@@ -1582,6 +1705,7 @@ JS;
           'htmlSnippet' => FormUiModule::buildHtmlSnippet($activeInput, $htmlSnippetParams),
           'phpSnippet' => $phpSnippets['phpSnippet'],
           'globalSnippet' => $phpSnippets['globalSnippet'],
+          'jitPreviewCss' => $jitPreviewCss,
         ];
       }
 
@@ -1600,6 +1724,7 @@ JS;
       }
       $phpSnippets = self::buildInputPhpSnippets($type, $globalConfig, $snippetParams);
       $htmlSnippetParams = array_merge($snippetParams, ['ignoreThemeLocal' => true]);
+      $jitPreviewCss = self::compileJitFromSources([$mergedLocal, $codeOptions]);
 
       return [
         'success' => true,
@@ -1608,10 +1733,225 @@ JS;
         'htmlSnippet' => FormUiModule::buildHtmlSnippet($type, $htmlSnippetParams),
         'phpSnippet' => $phpSnippets['phpSnippet'],
         'globalSnippet' => $phpSnippets['globalSnippet'],
+        'jitPreviewCss' => $jitPreviewCss,
       ];
     } finally {
       FormUiModule::resetConfig();
     }
+  }
+
+  /**
+   * Construye y renderiza un formulario completo (simple o multi-paso) para el Diseñador Visual de Theme Studio.
+   *
+   * @param array<string, mixed> $data Payload con globalConfig, formConfig y stepsOrFields.
+   * @return array<string, mixed>
+   */
+  public static function renderFormPayload(array $data): array
+  {
+    $rawGlobal = is_array($data['globalConfig'] ?? null) ? $data['globalConfig'] : [];
+    unset($rawGlobal['localOverrides']);
+    $globalConfig = self::cleanInputParams($rawGlobal);
+
+    $rawFormCfg = is_array($data['formConfig'] ?? null) ? $data['formConfig'] : [];
+    $formConfig = self::cleanInputParams($rawFormCfg);
+    foreach (['autoSubmit', 'fetchPreview', 'csrf', 'showSubmitButton', 'multiStep', 'stepProgress', 'inlineVars'] as $boolKey) {
+      if (array_key_exists($boolKey, $rawFormCfg)) {
+        $formConfig[$boolKey] = filter_var($rawFormCfg[$boolKey], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool)$rawFormCfg[$boolKey];
+      }
+    }
+    if (!empty($rawFormCfg['stepsMeta']) && is_array($rawFormCfg['stepsMeta'])) {
+      $cleanMeta = [];
+      foreach ($rawFormCfg['stepsMeta'] as $stMeta) {
+        if (!is_array($stMeta)) {
+          continue;
+        }
+        $cleanMeta[] = [
+          'title'       => trim((string)($stMeta['title'] ?? '')),
+          'description' => trim((string)($stMeta['description'] ?? '')),
+          'stepClass'   => trim((string)($stMeta['stepClass'] ?? '')),
+          'validateUrl' => trim((string)($stMeta['validateUrl'] ?? '')),
+        ];
+      }
+      $formConfig['stepsMeta'] = $cleanMeta;
+    }
+
+    $rawStepsOrFields = is_array($data['stepsOrFields'] ?? null) ? $data['stepsOrFields'] : [];
+    $stepsOrFields = [];
+    $jitSources = [$formConfig];
+
+    foreach ($rawStepsOrFields as $item) {
+      if (!is_array($item)) {
+        continue;
+      }
+      if (isset($item['fields']) && is_array($item['fields'])) {
+        $stepClean = [
+          'title'       => trim((string)($item['title'] ?? '')),
+          'description' => trim((string)($item['description'] ?? '')),
+          'stepClass'   => trim((string)($item['stepClass'] ?? '')),
+          'validateUrl' => trim((string)($item['validateUrl'] ?? '')),
+          'fields'      => [],
+        ];
+        $jitSources[] = $stepClean;
+        foreach ($item['fields'] as $fld) {
+          if (!is_array($fld)) {
+            continue;
+          }
+          $fType = trim((string)($fld['type'] ?? 'textInput'));
+          if (!in_array($fType, self::INPUT_TYPES, true)) {
+            continue;
+          }
+          $fClean = self::cleanInputParams($fld);
+          $fClean['type'] = $fType;
+          $jitSources[] = $fClean;
+          $stepClean['fields'][] = $fClean;
+        }
+        $stepsOrFields[] = $stepClean;
+      } else {
+        $fType = trim((string)($item['type'] ?? 'textInput'));
+        if (!in_array($fType, self::INPUT_TYPES, true)) {
+          continue;
+        }
+        $fClean = self::cleanInputParams($item);
+        $fClean['type'] = $fType;
+        if (isset($item['step']) && is_numeric($item['step'])) {
+          $fClean['step'] = max(0, (int)$item['step']);
+        }
+        $jitSources[] = $fClean;
+        $stepsOrFields[] = $fClean;
+      }
+    }
+
+    if (!empty($formConfig['stepsMeta'])) {
+      foreach ($formConfig['stepsMeta'] as $sm) {
+        $jitSources[] = $sm;
+      }
+    }
+
+    // Export PHP helpers
+    $exportPhp = static function (mixed $val, int $depth = 0) use (&$exportPhp): string {
+      $pad = str_repeat('  ', $depth);
+      $innerPad = str_repeat('  ', $depth + 1);
+      if (is_array($val)) {
+        if (empty($val)) {
+          return '[]';
+        }
+        $isAssoc = array_keys($val) !== range(0, count($val) - 1);
+        $lines = ['['];
+        foreach ($val as $k => $v) {
+          $vExp = $exportPhp($v, $depth + 1);
+          if ($isAssoc) {
+            $kExp = "'" . addslashes((string)$k) . "'";
+            $lines[] = "{$innerPad}{$kExp} => {$vExp},";
+          } else {
+            $lines[] = "{$innerPad}{$vExp},";
+          }
+        }
+        $lines[] = "{$pad}]";
+        return implode("\n", $lines);
+      }
+      if (is_bool($val)) {
+        return $val ? 'true' : 'false';
+      }
+      if (is_int($val) || is_float($val)) {
+        return (string)$val;
+      }
+      return "'" . addslashes((string)$val) . "'";
+    };
+
+    FormUiModule::resetConfig();
+    try {
+      FormUiModule::configStyle($globalConfig);
+
+      $previewConfig = array_merge($formConfig, ['studioPreview' => true]);
+      $previewHtml = FormUiModule::renderForm($previewConfig, $stepsOrFields);
+
+      $exportConfig = $formConfig;
+      unset($exportConfig['studioPreview']);
+      $htmlSnippet = FormUiModule::renderForm($exportConfig, $stepsOrFields);
+
+      $defaults = FormUiModule::getDefaultConfig();
+      $diffGlobal = [];
+      foreach ($globalConfig as $k => $v) {
+        if ($k === 'localOverrides') {
+          continue;
+        }
+        if (!array_key_exists($k, $defaults) || $defaults[$k] !== $v) {
+          $diffGlobal[$k] = $v;
+        }
+      }
+      $targetGlobal = !empty($diffGlobal) ? $diffGlobal : $globalConfig;
+      unset($targetGlobal['localOverrides']);
+
+      $phpFormSnippet = "<?= _form(\n  " . $exportPhp($exportConfig, 1) . ",\n  " . $exportPhp($stepsOrFields, 1) . "\n) ?>";
+      $globalSnippet = "<?php\nuse Base\\Module\\FormUiModule;\n\nFormUiModule::configStyle(" . $exportPhp($targetGlobal, 0) . ");\n";
+
+      // Snippet alternativo campo a campo usando _input()
+      $individualLines = ["<form action=\"" . htmlspecialchars((string)($exportConfig['action'] ?? ''), ENT_QUOTES, 'UTF-8') . "\" method=\"" . strtolower((string)($exportConfig['method'] ?? 'post')) . "\" class=\"ui-form" . (!empty($exportConfig['autoSubmit']) ? ' auto-submit' : '') . (!empty($exportConfig['formClass']) ? ' ' . htmlspecialchars((string)$exportConfig['formClass'], ENT_QUOTES, 'UTF-8') : '') . "\">"];
+      if (strtoupper((string)($exportConfig['method'] ?? 'POST')) === 'POST' && (!array_key_exists('csrf', $exportConfig) || !empty($exportConfig['csrf']))) {
+        $individualLines[] = "  <?= csrf_field() ?>";
+      }
+      $flatExportFields = [];
+      foreach ($stepsOrFields as $stItem) {
+        if (isset($stItem['fields']) && is_array($stItem['fields'])) {
+          foreach ($stItem['fields'] as $sf) {
+            $flatExportFields[] = $sf;
+          }
+        } else {
+          $flatExportFields[] = $stItem;
+        }
+      }
+      foreach ($flatExportFields as $ff) {
+        $ft = (string)($ff['type'] ?? 'textInput');
+        $fp = $ff;
+        unset($fp['type'], $fp['step']);
+        $individualLines[] = empty($fp)
+          ? "  <?= _input('{$ft}') ?>"
+          : "  <?= _input('{$ft}', " . $exportPhp($fp, 1) . ") ?>";
+      }
+      $individualLines[] = "</form>";
+
+      $jitPreviewCss = self::compileJitFromSources($jitSources);
+
+      return [
+        'success' => true,
+        'html' => $previewHtml,
+        'htmlSnippet' => $htmlSnippet,
+        'phpFormSnippet' => $phpFormSnippet,
+        'phpFieldsSnippet' => implode("\n\n", $individualLines),
+        'globalSnippet' => $globalSnippet,
+        'jitPreviewCss' => $jitPreviewCss,
+      ];
+    } finally {
+      FormUiModule::resetConfig();
+    }
+  }
+
+  /**
+   * Endpoint API para renderizar un formulario completo en vivo desde el Diseñador Visual (POST /_frame/theme-studio/render-form).
+   */
+  public function renderForm(): void
+  {
+    if (!$this->guardStudioRequest(true)) {
+      return;
+    }
+
+    $rawInput = (string)file_get_contents('php://input');
+    $data = [];
+    if (trim($rawInput) !== '') {
+      $decoded = json_decode($rawInput, true);
+      if (!is_array($decoded)) {
+        $this->json([
+          'success' => false,
+          'message' => 'Formato JSON no válido.'
+        ], 400);
+        return;
+      }
+      $data = $decoded;
+    }
+
+    $result = self::renderFormPayload($data);
+    $status = !empty($result['success']) ? 200 : 400;
+    $this->json($result, $status);
   }
 
   /**

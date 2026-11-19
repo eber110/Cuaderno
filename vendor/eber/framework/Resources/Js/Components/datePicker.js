@@ -62,6 +62,9 @@ export function datePicker() {
     activeBackdrop = null;
     activeInput = null;
     activeDisplay = null;
+    if (ui && typeof ui.detachFloatingScroll === 'function') {
+      ui.detachFloatingScroll(pop);
+    }
     if (pop.parentNode) pop.parentNode.removeChild(pop);
     if (bd && bd.parentNode) bd.parentNode.removeChild(bd);
   }
@@ -301,6 +304,7 @@ export function datePicker() {
       wdRow.className = 'ui-dp-weekdays';
       weekdaysList().forEach((wd) => {
         const sp = document.createElement('span');
+        sp.className = 'ui-dp-weekday';
         sp.textContent = wd.trim();
         wdRow.appendChild(sp);
       });
@@ -363,6 +367,9 @@ export function datePicker() {
       }
 
       bodyContainer.appendChild(daysGrid);
+      if (popover.__floatingScrollInstance) {
+        popover.__floatingScrollInstance.refresh();
+      }
     }
 
     const goPrev = () => {
@@ -406,6 +413,9 @@ export function datePicker() {
     if (isInline) {
       inlineHost.innerHTML = '';
       inlineHost.appendChild(popover);
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(popover, input);
+      }
       return;
     }
 
@@ -426,6 +436,9 @@ export function datePicker() {
     }
 
     activePopover = popover;
+    if (ui && typeof ui.attachFloatingScroll === 'function') {
+      ui.attachFloatingScroll(popover, input);
+    }
   }
 
   function initDatePickers() {
@@ -446,6 +459,7 @@ export function datePicker() {
       displayInput.readOnly = true;
       displayInput.className = 'ui-dp-input-display';
       displayInput.placeholder = input.getAttribute('placeholder') || tr('select_date', {}, 'Seleccionar fecha');
+      if (ui) ui.copyUiVars(input, displayInput);
 
       const uiTrigger = input.getAttribute('ui-trigger') || '';
       if (uiTrigger && ui) ui.applyClasses(displayInput, uiTrigger);

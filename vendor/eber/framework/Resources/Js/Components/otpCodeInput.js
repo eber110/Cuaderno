@@ -15,6 +15,7 @@ export function otpCodeInput() {
 
       const length = Math.max(4, Math.min(8, parseInt(input.getAttribute('data-length') || '6', 10) || 6));
       const inputMode = input.getAttribute('inputmode') || 'numeric';
+      const cellMask = (input.getAttribute('data-mask') || 'text').toLowerCase() === 'password' ? 'password' : 'text';
       const uiTrigger = input.getAttribute('ui-trigger') || '';
 
       const group = document.createElement('div');
@@ -35,7 +36,7 @@ export function otpCodeInput() {
 
       for (let i = 0; i < length; i++) {
         const cell = document.createElement('input');
-        cell.type = 'text';
+        cell.type = cellMask;
         cell.maxLength = 1;
         cell.className = 'ui-otp-cell';
         if (uiTrigger && ui) ui.applyClasses(cell, uiTrigger);

@@ -162,13 +162,15 @@ export function loadImgModern() {
     previewArea._objectUrls = [];
 
     const files = input._selectedFiles || [];
+    const maskButton = container.querySelector('.js-load-img-mask');
+    if (maskButton) {
+      maskButton.classList.toggle('is-placeholder', files.length === 0);
+    }
 
     if (files.length === 0) {
-      previewArea.classList.remove('mt10');
-      previewArea.classList.add('mt0');
+      previewArea.style.display = 'none';
     } else {
-      previewArea.classList.remove('mt0');
-      previewArea.classList.add('mt10');
+      previewArea.style.display = '';
     }
 
     const oldMsg = container.querySelector('.cantImgLoad');
@@ -182,7 +184,6 @@ export function loadImgModern() {
       const defaultFileMsg = `${cantImg} archivo${cantImg !== 1 ? 's' : ''}`;
       newMsg.textContent = tr(cantImg === 1 ? 'files_one' : 'files_many', { count: cantImg }, defaultFileMsg);
 
-      const maskButton = container.querySelector('.js-load-img-mask');
       if (maskButton) {
         maskButton.insertAdjacentElement('afterend', newMsg);
       }
@@ -193,7 +194,7 @@ export function loadImgModern() {
       previewArea._objectUrls.push(imgUrl);
 
       const item = document.createElement('div');
-      item.className = 'load-img-preview-item relative m5 br10 overflow-hidden wpx80 hpx80';
+      item.className = 'load-img-preview-item relative overflow-hidden';
       item.style.cursor = 'grab';
       item.dataset.index = String(index);
 
@@ -221,6 +222,10 @@ export function loadImgModern() {
       bindPointerSortable(item, previewArea, input, container);
       previewArea.appendChild(item);
     });
+
+    if (ui && typeof ui.attachFloatingScroll === 'function') {
+      ui.attachFloatingScroll(previewArea, input);
+    }
   }
 
   function initLoadImgInputs() {
@@ -233,7 +238,7 @@ export function loadImgModern() {
       inputEl.style.display = 'none';
 
       const containLoadImg = document.createElement('div');
-      containLoadImg.className = 'flex wrap';
+      containLoadImg.className = 'ui-loadimg-wrap flex wrap';
       if (ui) ui.copyUiVars(inputEl, containLoadImg);
 
       const inputClasses = inputEl.className
@@ -246,10 +251,12 @@ export function loadImgModern() {
       if (!isDropzone) maskEl.type = 'button';
       maskEl.className = [
         'js-load-img-mask',
+        'is-placeholder',
         isDropzone ? 'ui-dropzone-area' : 'cursor-pointer',
         ...inputClasses,
         ...uiTrigger
       ].join(' ');
+      if (ui) ui.copyUiVars(inputEl, maskEl);
 
       const defaultAddImg = tr('add_image', {}, 'Agregar una imagen');
       const placeholderText = inputEl.getAttribute('placeholder') || defaultAddImg;
@@ -261,7 +268,8 @@ export function loadImgModern() {
       }
 
       const previewArea = document.createElement('div');
-      previewArea.className = 'js-load-img-preview-area flex wrap w100 mt0';
+      previewArea.className = 'js-load-img-preview-area flex wrap w100';
+      if (ui) ui.copyUiVars(inputEl, previewArea);
 
       inputEl.insertAdjacentElement('beforebegin', containLoadImg);
       containLoadImg.appendChild(maskEl);
@@ -305,20 +313,19 @@ export function loadImgModern() {
         const demoArea = document.createElement('div');
         demoArea.className = 'js-load-img-preview-area flex wrap is-inline-preview';
         demoArea.style.justifyContent = 'center';
-        demoArea.style.gap = '10px';
         if (ui) ui.copyUiVars(inputEl, demoArea);
 
         const colors = ['#1d4ed8', '#0284c7'];
         const labels = ['IMG 01', 'IMG 02'];
         colors.forEach((bg, idx) => {
           const item = document.createElement('div');
-          item.className = 'load-img-preview-item relative m5 br10 overflow-hidden wpx80 hpx80';
+          item.className = 'load-img-preview-item relative overflow-hidden';
           item.style.background = `linear-gradient(135deg, #0f172a, ${bg})`;
           item.style.display = 'flex';
           item.style.alignItems = 'center';
           item.style.justifyContent = 'center';
           item.style.color = '#ffffff';
-          item.style.fontSize = '11px';
+          item.style.fontSize = 'var(--ui-secondary-font-size, 12px)';
           item.style.fontWeight = '700';
           item.textContent = labels[idx];
 
@@ -340,6 +347,9 @@ export function loadImgModern() {
           host.appendChild(noteEl);
         }
         host.appendChild(demoArea);
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(demoArea, inputEl);
+        }
       });
     });
   }

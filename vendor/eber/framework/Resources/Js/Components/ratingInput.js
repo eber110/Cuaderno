@@ -28,6 +28,7 @@ export function ratingInput() {
       const allowHalf = input.getAttribute('data-half') === 'true';
       const clearable = input.getAttribute('data-clearable') === 'true';
       const iconType = (input.getAttribute('data-icon') || 'star').toLowerCase() === 'heart' ? 'heart' : 'star';
+      const showValue = input.getAttribute('data-show-value') === 'true';
       const isReadonly = input.disabled || input.readOnly || input.getAttribute('data-readonly') === 'true';
       const svgMarkup = (ui && ui.ICONS && ui.ICONS[iconType]) ? ui.ICONS[iconType] : fallbackIcons[iconType];
       const uiAccent = input.getAttribute('ui-accent') || '';
@@ -55,15 +56,18 @@ export function ratingInput() {
         if (uiTrack && ui) ui.applyClasses(btn, uiTrack);
 
         const wrapper = document.createElement('span');
+        wrapper.className = 'ui-rating-icon-box';
         wrapper.style.position = 'relative';
         wrapper.style.display = 'inline-flex';
-        wrapper.style.width = '24px';
-        wrapper.style.height = '24px';
+        wrapper.style.width = 'var(--ui-star-size, 24px)';
+        wrapper.style.height = 'var(--ui-star-size, 24px)';
         wrapper.style.pointerEvents = 'none';
 
         const baseIcon = document.createElement('span');
         baseIcon.innerHTML = svgMarkup;
         baseIcon.style.display = 'inline-flex';
+        baseIcon.style.width = '100%';
+        baseIcon.style.height = '100%';
 
         const halfOverlay = document.createElement('span');
         halfOverlay.className = 'ui-rating-half';
@@ -85,6 +89,13 @@ export function ratingInput() {
         items.push({ btn, halfOverlay, index: i });
       }
 
+      let valBadge = null;
+      if (showValue) {
+        valBadge = document.createElement('span');
+        valBadge.className = 'ui-rating-value';
+        container.appendChild(valBadge);
+      }
+
       input.insertAdjacentElement('afterend', container);
 
       let currentValue = Math.max(0, Math.min(max, parseFloat(input.value || '0') || 0));
@@ -102,6 +113,9 @@ export function ratingInput() {
             halfOverlay.style.display = 'inline-flex';
           }
         });
+        if (valBadge) {
+          valBadge.textContent = `${displayVal} / ${max}`;
+        }
       };
 
       const commitValue = (val, emit = true) => {

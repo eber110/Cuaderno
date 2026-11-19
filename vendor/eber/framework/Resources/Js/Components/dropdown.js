@@ -31,8 +31,16 @@ export function dropdown() {
 
       const uiTrigger = el.getAttribute('ui-trigger') || '';
       const uiSurface = el.getAttribute('ui-surface') || '';
-      if (uiTrigger && ui) ui.applyClasses(selectedEl, uiTrigger);
-      if (uiSurface && ui) ui.applyClasses(optionsEl, uiSurface);
+      if (ui) {
+        ui.copyUiVars(el, selectedEl);
+        if (uiTrigger) ui.applyClasses(selectedEl, uiTrigger);
+        if (uiSurface) ui.applyClasses(optionsEl, uiSurface);
+      }
+
+      const maxHeightAttr = parseInt(el.getAttribute('data-max-height') || '', 10);
+      if (Number.isFinite(maxHeightAttr) && maxHeightAttr >= 80) {
+        optionsEl.style.maxHeight = `${maxHeightAttr}px`;
+      }
 
       // Asegurar icono chevron si no existe ya
       if (!selectedEl.querySelector('.dropdown-chevron') && ui && ui.ICONS && ui.ICONS.chevronDown) {
@@ -53,12 +61,17 @@ export function dropdown() {
         hiddenInput.name = dataName;
         el.appendChild(hiddenInput);
       }
+      if (hiddenInput && (el.getAttribute('data-required') === 'true' || el.hasAttribute('required'))) {
+        hiddenInput.dataset.uiRequired = 'true';
+      }
 
-      // Sincronizar opción pre-seleccionada
+      // Sincronizar opción pre-seleccionada o estado placeholder
       const preSelected = el.querySelector('.dropdown-option.selected');
       if (preSelected) {
         setSelectedDisplay(selectedEl, preSelected.textContent.trim(), preSelected.dataset.value || '');
         if (hiddenInput) hiddenInput.value = preSelected.dataset.value || '';
+      } else {
+        selectedEl.classList.add('is-placeholder');
       }
 
       el.addEventListener('fme:renderInlinePreview', (ev) => {
@@ -73,6 +86,9 @@ export function dropdown() {
         clone.style.top = '';
         clone.style.left = '';
         clone.style.width = '';
+        if (Number.isFinite(maxHeightAttr) && maxHeightAttr >= 80) {
+          clone.style.maxHeight = `${maxHeightAttr}px`;
+        }
         if (ui) {
           ui.copyUiVars(el, clone);
           if (!clone.querySelector('.ui-sheet-handle')) {
@@ -99,6 +115,9 @@ export function dropdown() {
         });
         host.innerHTML = '';
         host.appendChild(clone);
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(clone, el);
+        }
       });
     });
   }
@@ -107,6 +126,7 @@ export function dropdown() {
     const chev = selectedEl.querySelector('.dropdown-chevron');
     selectedEl.textContent = label;
     selectedEl.dataset.value = value;
+    selectedEl.classList.toggle('is-placeholder', !value);
     if (chev) selectedEl.appendChild(chev);
   }
 
@@ -123,6 +143,10 @@ export function dropdown() {
     activeBackdrop = null;
     activeOriginalParent = null;
     activePlaceholderNode = null;
+
+    if (ui && typeof ui.detachFloatingScroll === 'function') {
+      ui.detachFloatingScroll(opts);
+    }
 
     const finalize = () => {
       opts.classList.add('hidden');
@@ -202,12 +226,17 @@ export function dropdown() {
       gsap.fromTo(optionsEl, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' });
     }
 
+    if (ui && typeof ui.attachFloatingScroll === 'function') {
+      ui.attachFloatingScroll(optionsEl, dropdownEl);
+    }
+
     const search = optionsEl.querySelector('.dropdown-search');
     if (search) {
       search.value = '';
       optionsEl.querySelectorAll('.dropdown-option').forEach((o) => { o.style.display = ''; });
       const emptyEl = optionsEl.querySelector('.dropdown-empty');
       if (emptyEl) emptyEl.remove();
+      if (optionsEl.__floatingScrollInstance) optionsEl.__floatingScrollInstance.refresh();
       setTimeout(() => search.focus({ preventScroll: true }), 20);
     }
   }
@@ -287,11 +316,16 @@ export function dropdown() {
       if (!emptyEl) {
         emptyEl = document.createElement('div');
         emptyEl.className = 'dropdown-empty';
-        emptyEl.textContent = tr('no_results', {}, 'Sin resultados');
+        const customEmpty = activeDropdown ? activeDropdown.getAttribute('data-empty-text') : '';
+        emptyEl.textContent = customEmpty || tr('no_results', {}, 'Sin resultados');
         optsRoot.appendChild(emptyEl);
       }
     } else if (emptyEl) {
       emptyEl.remove();
+    }
+
+    if (optsRoot.__floatingScrollInstance) {
+      optsRoot.__floatingScrollInstance.refresh();
     }
   });
 

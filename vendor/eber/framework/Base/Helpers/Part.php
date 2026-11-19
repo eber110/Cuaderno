@@ -362,10 +362,14 @@ function _part(string $rute, array $extraData = []): void
  * @param array $extraData Datos adicionales a pasar (opcional)
  * @example <?php _form("Admin.CreatePost"); ?>
  */
-function _form(string $rute, array $extraData = []): void
+function _form(string|array $ruteOrConfig, array $extraDataOrFields = []): void
 {
+  if (is_array($ruteOrConfig)) {
+    echo \Base\Module\FormUiModule::renderForm($ruteOrConfig, $extraDataOrFields);
+    return;
+  }
 
-  includeView(form($rute), $extraData);
+  includeView(form($ruteOrConfig), $extraDataOrFields);
 }
 
 /**
@@ -412,9 +416,13 @@ function _partToString(string $rute, array $data = []): ?string
  * @param array $data Datos adicionales (opcional)
  * @return string|null
  */
-function _formToString(string $rute, array $data = []): ?string
+function _formToString(string|array $ruteOrConfig, array $dataOrFields = []): ?string
 {
-  return renderView(form($rute), $data);
+  if (is_array($ruteOrConfig)) {
+    return \Base\Module\FormUiModule::renderForm($ruteOrConfig, $dataOrFields);
+  }
+
+  return renderView(form($ruteOrConfig), $dataOrFields);
 }
 
 /**

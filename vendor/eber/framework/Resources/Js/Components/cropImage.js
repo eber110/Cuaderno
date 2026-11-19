@@ -26,7 +26,7 @@ export function cropImage() {
   const tr = (k, p, f) => (ui ? ui.t(k, p, f) : (typeof window.t === 'function' ? window.t(k, p, f) : f));
   const icon = (name, fb) => (ui && ui.ICONS && ui.ICONS[name]) ? ui.ICONS[name] : fb;
 
-  function renderPreviews(input, previewArea) {
+  function renderPreviews(input, previewArea, maskEl = null) {
     previewArea.innerHTML = '';
 
     if (previewArea._objectUrl) {
@@ -36,13 +36,15 @@ export function cropImage() {
 
     if (input.classList.contains('no-preview')) {
       previewArea.style.display = 'none';
+      const targetMask = maskEl || input._cropMaskEl || null;
+      if (targetMask) targetMask.classList.toggle('is-placeholder', !(input.files && input.files.length > 0));
       return;
     }
-    previewArea.style.display = '';
 
+    const targetMask = maskEl || input._cropMaskEl || null;
     if (input.files && input.files.length > 0) {
-      previewArea.classList.remove('mt0');
-      previewArea.classList.add('mt10');
+      previewArea.style.display = '';
+      if (targetMask) targetMask.classList.remove('is-placeholder');
 
       const file = input.files[0];
       const imgUrl = URL.createObjectURL(file);
@@ -50,7 +52,7 @@ export function cropImage() {
 
       const isCircle = (input.getAttribute('crop-shape') || '').toLowerCase() === 'circle';
       const item = document.createElement('div');
-      item.className = `crop-img-preview-item relative m5 ${isCircle ? 'br100' : 'br10'} overflow-hidden wpx80 hpx80`;
+      item.className = `crop-img-preview-item relative overflow-hidden${isCircle ? ' is-circle' : ''}`;
 
       const img = document.createElement('img');
       img.src = imgUrl;
@@ -67,15 +69,19 @@ export function cropImage() {
       deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         input.value = '';
-        renderPreviews(input, previewArea);
+        renderPreviews(input, previewArea, targetMask);
         input.dispatchEvent(new Event('change', { bubbles: true }));
       });
 
       item.appendChild(deleteBtn);
       previewArea.appendChild(item);
     } else {
-      previewArea.classList.remove('mt10');
-      previewArea.classList.add('mt0');
+      previewArea.style.display = 'none';
+      if (targetMask) targetMask.classList.add('is-placeholder');
+    }
+
+    if (ui && typeof ui.attachFloatingScroll === 'function') {
+      ui.attachFloatingScroll(previewArea, input);
     }
   }
 
@@ -188,9 +194,15 @@ export function cropImage() {
     if (isInline) {
       inlineHost.innerHTML = '';
       inlineHost.appendChild(cardEl);
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(cardEl, input);
+      }
     } else {
       modalOverlay.appendChild(cardEl);
       document.body.appendChild(modalOverlay);
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(cardEl, input);
+      }
       setTimeout(() => modalOverlay.classList.add('active'), 20);
     }
 
@@ -367,6 +379,9 @@ export function cropImage() {
 
     const closeModal = () => {
       if (isInline) return;
+      if (ui && typeof ui.detachFloatingScroll === 'function') {
+        ui.detachFloatingScroll(cardEl);
+      }
       modalOverlay.classList.remove('active');
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
@@ -491,7 +506,8 @@ export function cropImage() {
       input.style.display = 'none';
 
       const containCropImg = document.createElement('div');
-      containCropImg.className = 'flex wrap';
+      containCropImg.className = 'ui-crop-wrap flex wrap';
+      if (ui) ui.copyUiVars(input, containCropImg);
 
       const inputClasses = input.className
         .split(/\s+/)
@@ -500,15 +516,17 @@ export function cropImage() {
 
       const maskCropImg = document.createElement('button');
       maskCropImg.type = 'button';
-      maskCropImg.className = ['js-crop-img-mask', 'cursor-pointer', ...inputClasses, ...uiTrigger].join(' ');
+      maskCropImg.className = ['js-crop-img-mask', 'is-placeholder', 'cursor-pointer', ...inputClasses, ...uiTrigger].join(' ');
       if (ui) ui.copyUiVars(input, maskCropImg);
+      input._cropMaskEl = maskCropImg;
 
       const defaultSelectImg = tr('select_image', {}, 'Seleccionar imagen');
       const placeholderText = input.getAttribute('placeholder') || defaultSelectImg;
       maskCropImg.textContent = placeholderText;
 
       const previewArea = document.createElement('div');
-      previewArea.className = 'js-crop-img-preview-area flex wrap w100 mt0';
+      previewArea.className = 'js-crop-img-preview-area flex wrap w100';
+      if (ui) ui.copyUiVars(input, previewArea);
 
       input.insertAdjacentElement('beforebegin', containCropImg);
       containCropImg.appendChild(maskCropImg);

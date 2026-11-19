@@ -348,6 +348,8 @@ class ThemeModule
       "surfaceText",
       "surfaceMuted",
       "surfaceBorder",
+      "placeholderColor",
+      "secondaryText",
       "btnPrimaryBg",
       "btnPrimaryText",
       "btnPrimaryBorder",
@@ -358,6 +360,7 @@ class ThemeModule
       "accentText",
       "trackBg",
       "thumbBg",
+      "scrollbarColor",
       "focusRing",
       "shadow",
     ];
@@ -370,6 +373,11 @@ class ThemeModule
         $normalized[$key] = $defaults[$key];
       }
     }
+
+    $normalized["width"] = FormUiModule::sanitizeCssDimension(
+      $raw["width"] ?? ($defaults["width"] ?? "100%"),
+      (string)($defaults["width"] ?? "100%")
+    );
 
     $normalized["borderWidth"] = isset($raw["borderWidth"]) && is_numeric($raw["borderWidth"])
       ? max(0, min(6, (int)$raw["borderWidth"]))
@@ -390,6 +398,38 @@ class ThemeModule
     $normalized["fontSize"] = isset($raw["fontSize"]) && is_numeric($raw["fontSize"])
       ? max(10, min(32, (int)$raw["fontSize"]))
       : (int)$defaults["fontSize"];
+
+    $normalized["placeholderSize"] = isset($raw["placeholderSize"]) && is_numeric($raw["placeholderSize"])
+      ? max(10, min(28, (int)$raw["placeholderSize"]))
+      : (int)($defaults["placeholderSize"] ?? 14);
+
+    $normalized["secondaryFontSize"] = isset($raw["secondaryFontSize"]) && is_numeric($raw["secondaryFontSize"])
+      ? max(9, min(24, (int)$raw["secondaryFontSize"]))
+      : (int)($defaults["secondaryFontSize"] ?? 12);
+
+    $normalized["gap"] = isset($raw["gap"]) && is_numeric($raw["gap"])
+      ? max(0, min(32, (int)$raw["gap"]))
+      : (int)($defaults["gap"] ?? 8);
+
+    $normalized["fieldGap"] = isset($raw["fieldGap"]) && is_numeric($raw["fieldGap"])
+      ? max(4, min(40, (int)$raw["fieldGap"]))
+      : (int)($defaults["fieldGap"] ?? 14);
+
+    $normalized["boxPadding"] = isset($raw["boxPadding"]) && is_numeric($raw["boxPadding"])
+      ? max(4, min(40, (int)$raw["boxPadding"]))
+      : (int)($defaults["boxPadding"] ?? 12);
+
+    $normalized["thumbSize"] = isset($raw["thumbSize"]) && is_numeric($raw["thumbSize"])
+      ? max(48, min(160, (int)$raw["thumbSize"]))
+      : (int)($defaults["thumbSize"] ?? 80);
+
+    $normalized["hideScrollbar"] = isset($raw["hideScrollbar"])
+      ? (filter_var($raw["hideScrollbar"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool)$raw["hideScrollbar"])
+      : (bool)($defaults["hideScrollbar"] ?? false);
+
+    $normalized["scrollbarWidth"] = isset($raw["scrollbarWidth"]) && is_numeric($raw["scrollbarWidth"])
+      ? max(2, min(14, (int)$raw["scrollbarWidth"]))
+      : (int)($defaults["scrollbarWidth"] ?? 6);
 
     $normalized["blur"] = isset($raw["blur"]) && is_numeric($raw["blur"])
       ? max(0, min(32, (int)$raw["blur"]))

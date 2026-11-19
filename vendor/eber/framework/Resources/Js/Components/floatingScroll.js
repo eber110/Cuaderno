@@ -1,7 +1,8 @@
 /**
  * 🧭 floatingScroll.js
  *
- * Barra de scroll flotante (overlay) que no interactúa ni afecta el ancho (`width`) de la página.
+ * Barra de scroll flotante (overlay) que no interactúa ni afecta el ancho (`width`) de la página
+ * ni de contenedores HTML internos (popovers, modales, selects, listas y textareas).
  * Reproduce el funcionamiento nativo completo (tamaño proporcional del thumb, arrastre 1:1 sin lag,
  * salto al hacer clic en el carril, auto-ocultación si no hay contenido desplazable y actualización
  * reactiva ante cambios de DOM/tamaño).
@@ -12,34 +13,18 @@
  * @function floatingScroll
  * @description Inicializa la barra de scroll flotante en la ventana principal o en contenedores específicos.
  *
- * @param {number|string} [width=8] - Ancho de la barra en píxeles (ej. `8` o `"8px"`).
- * @param {string} [color='color2'] - Clase de color compilada (`'color1'`, `'color2'`, `'color3'`, etc.)
- *                                    o valor CSS directo (`'var(--back-color2)'`, `'#ff4400'`).
- * @param {string|string[]} [responsive=''] - Clases responsivas para ocultarla según dispositivo:
- *                                            `'no-desk'`, `'no-tablet'`, `'no-phone'` (combinables, ej. `'no-phone no-tablet'`).
+ * @param {number|string} [width=8] - Ancho de la barra en px (ej. `8` o `"8px"`).
+ * @param {string} [color='color2'] - Clase de color (`'color1'`, `'color2'`, ...) o valor CSS directo.
+ * @param {string|string[]} [responsive=''] - Clases responsivas (`'no-desk'`, `'no-tablet'`, `'no-phone'`).
  * @param {Object} [options={}] - Opciones adicionales:
- * @param {number} [options.hoverExpand=4] - Píxeles extra de ancho al hacer hover o arrastrar (default: `4`).
- * @param {number} [options.minThumbHeight=36] - Altura mínima del thumb en píxeles (default: `36`).
- * @param {number} [options.offsetRight=3] - Separación desde el borde derecho en píxeles (default: `3`).
- * @param {number} [options.offsetY=4] - Margen vertical superior/inferior del carril en píxeles (default: `4`).
- * @param {number} [options.opacity=0.65] - Opacidad base del thumb (sube a `1` en hover/drag).
- * @param {boolean} [options.autoHide=false] - Si es `true`, atenúa la barra tras inactividad de scroll.
- *
- * @example
- * // 1. En jsConfig.json (barra de 8px, color2, oculta en teléfonos y tablets)
- * "floatingScroll": [8, "color2", "no-phone no-tablet"]
- *
- * @example
- * // 2. En jsConfig.json con valores por defecto (8px, color2, visible en todos los dispositivos)
- * "floatingScroll": []
- *
- * @example
- * // 3. Instanciación programática en JavaScript
- * const bar = new FloatingScroll(10, "color5", "no-phone");
- *
- * @css .floating-scroll-track - Contenedor flotante lateral (fijo, sin afectar el width del layout)
- * @css .floating-scroll-thumb - Barra desplazable proporcional (usa `currentColor` de `color1..N`)
- * @css html.has-floating-scroll - Clase aplicada a `<html>` para ocultar la barra nativa sin reservar gutter
+ * @param {HTMLElement|null} [options.container=null] - Elemento HTML contenedor para modo local.
+ * @param {boolean} [options.hidden=false] - Oculta visualmente el track/thumb manteniendo oculta la scrollbar nativa.
+ * @param {number} [options.hoverExpand=4] - Píxeles extra de ancho al hacer hover o arrastrar.
+ * @param {number} [options.minThumbHeight=36] - Altura mínima del thumb en píxeles.
+ * @param {number} [options.offsetRight=3] - Separación desde el borde derecho en píxeles.
+ * @param {number} [options.offsetY=4] - Margen vertical superior/inferior del carril en píxeles.
+ * @param {number} [options.opacity=0.65] - Opacidad base del thumb.
+ * @param {boolean} [options.autoHide=false] - Atenúa la barra tras inactividad de scroll.
  *
  * @returns {FloatingScroll}
  */
@@ -69,7 +54,6 @@ function resolveColorToken(token) {
 
   const trimmed = token.trim();
 
-  // Coincidencia con .color1, .color2, ... .colorN o .back1, .back2, ... .backN
   const matchColor = trimmed.match(/^(?:color|back)(\d+)(?:-hover)?$/i);
   if (matchColor) {
     const idx = parseInt(matchColor[1], 10);
@@ -80,7 +64,6 @@ function resolveColorToken(token) {
     };
   }
 
-  // Clases semánticas de texto del framework
   const semanticMap = {
     texto: { className: "texto", cssColor: "var(--text-primary, #00124D)" },
     textc: { className: "textc", cssColor: "var(--text-secondary, #FFF9E5)" },
@@ -95,12 +78,13 @@ function resolveColorToken(token) {
     return semanticMap[trimmed];
   }
 
-  // Valor CSS directo (#hex, rgb, var(--...))
   if (
     trimmed.startsWith("#") ||
     trimmed.startsWith("rgb") ||
     trimmed.startsWith("hsl") ||
     trimmed.startsWith("oklch") ||
+    trimmed.startsWith("oklab") ||
+    trimmed.startsWith("color-mix(") ||
     trimmed.startsWith("var(")
   ) {
     return { className: "", cssColor: trimmed };
@@ -109,18 +93,17 @@ function resolveColorToken(token) {
   return { className: trimmed, cssColor: "currentColor" };
 }
 
+function isResponsiveOrThemeClass(token) {
+  return RESPONSIVE_CLASSES.includes(token) || /^no-[a-z0-9_-]+(-css)?$/.test(token);
+}
+
 /**
- * Extrae y separa las clases de color y las clases responsivas (`no-desk`, `no-tablet`, `no-phone`)
- * incluso si el usuario las pasa juntas en un mismo string.
+ * Extrae y separa las clases de color y las clases responsivas.
  *
  * @param {string} colorArg Segundo parámetro (`color`).
  * @param {string|string[]} responsiveArg Tercer parámetro (`responsive`).
  * @returns {{ colorInfo: { className: string, cssColor: string }, responsiveList: string[] }}
  */
-function isResponsiveOrThemeClass(token) {
-  return RESPONSIVE_CLASSES.includes(token) || /^no-[a-z0-9_-]+(-css)?$/.test(token);
-}
-
 function parseColorAndResponsive(colorArg, responsiveArg) {
   const tokens = [];
 
@@ -160,46 +143,71 @@ function parseColorAndResponsive(colorArg, responsiveArg) {
  */
 export class FloatingScroll {
   /**
-   * @param {number|string} [width=8] Ancho de la barra en px.
-   * @param {string} [color='color2'] Clase de color (`color1`, `color2`, `color3`, etc.).
-   * @param {string|string[]} [responsive=''] Clases responsivas (`no-desk`, `no-tablet`, `no-phone`).
-   * @param {Object} [options={}] Configuración adicional.
+   * @param {number|string|HTMLElement|Object} [width=8] Ancho en px, o contenedor/opciones en uso abreviado.
+   * @param {string|Object} [color='color2'] Clase de color o valor CSS.
+   * @param {string|string[]} [responsive=''] Clases responsivas.
+   * @param {Object} [options={}] Configuración adicional (`container`, `hidden`, etc.).
    */
   constructor(width = 8, color = "color2", responsive = "", options = {}) {
-    // Si alguien pasa (color, width, responsive) invertido accidentalmente, normalizarlo con gracia
-    if (typeof width === "string" && isNaN(parseFloat(width)) && typeof color === "number") {
+    if (typeof HTMLElement !== "undefined" && width instanceof HTMLElement) {
+      const containerOpts = (typeof color === "object" && color !== null) ? color : {};
+      options = Object.assign({}, containerOpts, { container: width });
+      width = options.width ?? 6;
+      color = options.color ?? "color2";
+      responsive = options.responsive ?? "";
+    } else if (typeof width === "object" && width !== null) {
+      options = width;
+      width = options.width ?? 8;
+      color = options.color ?? "color2";
+      responsive = options.responsive ?? "";
+    } else if (typeof width === "string" && isNaN(parseFloat(width)) && typeof color === "number") {
       const temp = width;
       width = color;
       color = temp;
     }
 
+    const rawOpts = options && typeof options === "object" ? options : {};
+    this.container = (typeof HTMLElement !== "undefined" && rawOpts.container instanceof HTMLElement)
+      ? rawOpts.container
+      : null;
+    this.isContainerMode = !!this.container;
+
     const parsedWidth = parseFloat(width);
-    this.width = Number.isFinite(parsedWidth) && parsedWidth > 0 ? parsedWidth : 8;
+    this.width = Number.isFinite(parsedWidth) && parsedWidth > 0 ? parsedWidth : (this.isContainerMode ? 6 : 8);
 
     const { colorInfo, responsiveList } = parseColorAndResponsive(color, responsive);
     this.colorInfo = colorInfo;
     this.responsiveClasses = responsiveList;
 
-    const rawOpts = options && typeof options === "object" ? options : {};
-    this.win = rawOpts.targetWindow || (typeof window !== "undefined" ? window : null);
-    this.doc = rawOpts.targetDocument || (this.win ? this.win.document : (typeof document !== "undefined" ? document : null));
+    this.doc = this.container
+      ? (this.container.ownerDocument || (typeof document !== "undefined" ? document : null))
+      : (rawOpts.targetDocument || (rawOpts.targetWindow ? rawOpts.targetWindow.document : (typeof document !== "undefined" ? document : null)));
+    this.win = rawOpts.targetWindow || (this.doc && this.doc.defaultView ? this.doc.defaultView : (typeof window !== "undefined" ? window : null));
 
     this.options = {
-      hoverExpand: rawOpts.hoverExpand !== undefined ? Number(rawOpts.hoverExpand) : 4,
-      minThumbHeight: rawOpts.minThumbHeight !== undefined ? Number(rawOpts.minThumbHeight) : 36,
-      offsetRight: rawOpts.offsetRight !== undefined ? Number(rawOpts.offsetRight) : 3,
+      hoverExpand: rawOpts.hoverExpand !== undefined ? Number(rawOpts.hoverExpand) : (this.isContainerMode ? 2 : 4),
+      minThumbHeight: rawOpts.minThumbHeight !== undefined ? Number(rawOpts.minThumbHeight) : (this.isContainerMode ? 24 : 36),
+      offsetRight: rawOpts.offsetRight !== undefined ? Number(rawOpts.offsetRight) : (this.isContainerMode ? 2 : 3),
       offsetY: rawOpts.offsetY !== undefined ? Number(rawOpts.offsetY) : 4,
       opacity: rawOpts.opacity !== undefined ? Number(rawOpts.opacity) : 0.65,
       autoHide: Boolean(rawOpts.autoHide),
-      zIndex: rawOpts.zIndex !== undefined ? rawOpts.zIndex : 2147483647
+      zIndex: rawOpts.zIndex !== undefined ? rawOpts.zIndex : (this.isContainerMode ? 1000600 : 2147483647)
     };
 
-    // Si ya existe una instancia global previa en el contexto objetivo, destruirla antes de crear la nueva
-    if (this.win && this.win.__floatingScrollInstance && this.win.__floatingScrollInstance !== this) {
-      this.win.__floatingScrollInstance.destroy();
-    }
-    if (this.win) {
-      this.win.__floatingScrollInstance = this;
+    this.hidden = Boolean(rawOpts.hidden);
+
+    if (this.isContainerMode) {
+      if (this.container.__floatingScrollInstance && this.container.__floatingScrollInstance !== this) {
+        this.container.__floatingScrollInstance.destroy();
+      }
+      this.container.__floatingScrollInstance = this;
+    } else {
+      if (this.win && this.win.__floatingScrollInstance && this.win.__floatingScrollInstance !== this) {
+        this.win.__floatingScrollInstance.destroy();
+      }
+      if (this.win) {
+        this.win.__floatingScrollInstance = this;
+      }
     }
 
     this.isDragging = false;
@@ -220,55 +228,119 @@ export class FloatingScroll {
   }
 
   /**
-   * Construye la estructura DOM flotante e inyecta la clase en `<html>` para ocultar
-   * la barra de scroll nativa sin alterar el `width` del viewport.
+   * Adjunta o actualiza una instancia de FloatingScroll sobre un contenedor HTML.
+   *
+   * @param {HTMLElement} containerEl Contenedor con scroll vertical.
+   * @param {Object} [options={}] Opciones (`width`, `color`, `responsive`, `hidden`, `hoverExpand`, etc.).
+   * @returns {FloatingScroll|null}
+   */
+  static attach(containerEl, options = {}) {
+    if (!containerEl || !(containerEl instanceof HTMLElement)) {
+      return null;
+    }
+    const existing = containerEl.__floatingScrollInstance;
+    if (existing && !existing.isDestroyed) {
+      if (options.width !== undefined) existing.setWidth(options.width);
+      if (options.color !== undefined) existing.setColor(options.color);
+      if (options.responsive !== undefined) existing.setResponsive(options.responsive);
+      if (options.hidden !== undefined) existing.setHidden(options.hidden);
+      if (options.zIndex !== undefined) {
+        existing.options.zIndex = options.zIndex;
+        if (existing.track) existing.track.style.zIndex = String(options.zIndex);
+      }
+      existing.refresh();
+      return existing;
+    }
+
+    const width = options.width ?? 6;
+    const color = options.color ?? "color2";
+    const responsive = options.responsive ?? "";
+    return new FloatingScroll(width, color, responsive, Object.assign({}, options, { container: containerEl }));
+  }
+
+  /**
+   * Desvincula y destruye la instancia de FloatingScroll asociada a un contenedor HTML.
+   *
+   * @param {HTMLElement} containerEl Contenedor objetivo.
+   * @returns {void}
+   */
+  static detach(containerEl) {
+    if (containerEl && containerEl.__floatingScrollInstance) {
+      containerEl.__floatingScrollInstance.destroy();
+    }
+  }
+
+  /**
+   * Asegura las reglas CSS base para ocultar barras nativas sin reservar espacio.
+   *
+   * @private
+   */
+  _ensureBaseStyles() {
+    if (!this.doc || !this.doc.documentElement) return;
+    if (this.doc.getElementById("floating-scroll-base-styles")) return;
+
+    const style = this.doc.createElement("style");
+    style.id = "floating-scroll-base-styles";
+    style.textContent = `
+      html.has-floating-scroll,
+      html.has-floating-scroll body,
+      .has-floating-scroll-box {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        scrollbar-gutter: auto !important;
+      }
+      html.has-floating-scroll::-webkit-scrollbar,
+      html.has-floating-scroll body::-webkit-scrollbar,
+      .has-floating-scroll-box::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
+      }
+      .floating-scroll-track {
+        position: fixed;
+        right: 0;
+        z-index: 2147483647;
+        background: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+      }
+      .floating-scroll-track.is-container-scroll {
+        right: auto;
+        bottom: auto;
+      }
+      .floating-scroll-thumb {
+        background-color: currentColor;
+        border-radius: 999px;
+        touch-action: none;
+      }
+    `;
+    (this.doc.head || this.doc.documentElement).appendChild(style);
+  }
+
+  /**
+   * Construye la estructura DOM flotante e inyecta la clase correspondiente para ocultar
+   * la barra nativa sin alterar el `width` del viewport o contenedor.
    *
    * @private
    */
   _initDOM() {
     if (!this.doc || !this.doc.documentElement) return;
-    this.doc.documentElement.classList.add("has-floating-scroll");
+    this._ensureBaseStyles();
 
-    // Asegurar que las reglas base para ocultar la barra nativa existan en el documento objetivo
-    if (!this.doc.getElementById("floating-scroll-base-styles")) {
-      const style = this.doc.createElement("style");
-      style.id = "floating-scroll-base-styles";
-      style.textContent = `
-        html.has-floating-scroll,
-        html.has-floating-scroll body {
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-          scrollbar-gutter: auto !important;
-        }
-        html.has-floating-scroll::-webkit-scrollbar,
-        html.has-floating-scroll body::-webkit-scrollbar {
-          display: none !important;
-          width: 0 !important;
-          height: 0 !important;
-          background: transparent !important;
-        }
-        .floating-scroll-track {
-          position: fixed;
-          right: 0;
-          z-index: 2147483647;
-          background: transparent;
-          user-select: none;
-          -webkit-user-select: none;
-          touch-action: none;
-        }
-        .floating-scroll-thumb {
-          background-color: currentColor;
-          border-radius: 999px;
-          touch-action: none;
-        }
-      `;
-      (this.doc.head || this.doc.documentElement).appendChild(style);
+    if (this.isContainerMode) {
+      this.container.classList.add("has-floating-scroll-box");
+    } else {
+      this.doc.documentElement.classList.add("has-floating-scroll");
     }
 
     this.track = this.doc.createElement("div");
-    this.track.id = "floating-scroll-track";
+    if (!this.isContainerMode) {
+      this.track.id = "floating-scroll-track";
+      this.track.setAttribute("aria-controls", "body");
+    }
     this.track.setAttribute("role", "scrollbar");
-    this.track.setAttribute("aria-controls", "body");
     this.track.setAttribute("aria-orientation", "vertical");
 
     this._applyClassesAndStyles();
@@ -282,8 +354,7 @@ export class FloatingScroll {
   }
 
   /**
-   * Garantiza que el elemento hijo `.floating-scroll-thumb` exista dentro del track
-   * (incluso después de que `querie.js` vacíe y restaure `innerHTML` en cambios de breakpoint).
+   * Garantiza que el elemento hijo `.floating-scroll-thumb` exista dentro del track.
    *
    * @private
    */
@@ -302,8 +373,7 @@ export class FloatingScroll {
   }
 
   /**
-   * Aplica las clases de color (`color1`, `color2`, etc.), las clases responsivas
-   * (`no-desk`, `no-tablet`, `no-phone`) y las variables de dimensión al track.
+   * Aplica las clases de color, responsivas y dimensiones base al track.
    *
    * @private
    */
@@ -311,6 +381,9 @@ export class FloatingScroll {
     if (!this.track) return;
 
     const classes = ["floating-scroll-track"];
+    if (this.isContainerMode) {
+      classes.push("is-container-scroll");
+    }
     if (this.colorInfo.className) {
       classes.push(this.colorInfo.className);
     }
@@ -320,18 +393,32 @@ export class FloatingScroll {
 
     this.track.className = classes.join(" ");
 
-    const hitAreaWidth = Math.max(14, this.width + this.options.hoverExpand + this.options.offsetRight * 2);
+    const hitAreaWidth = Math.max(12, this.width + this.options.hoverExpand + this.options.offsetRight * 2);
     const s = this.track.style;
     s.position = "fixed";
-    s.top = `${this.options.offsetY}px`;
-    s.right = "0px";
-    s.bottom = `${this.options.offsetY}px`;
     s.width = `${hitAreaWidth}px`;
     s.zIndex = String(this.options.zIndex);
     s.pointerEvents = "auto";
     s.userSelect = "none";
     s.webkitUserSelect = "none";
     s.background = "transparent";
+
+    if (this.isContainerMode) {
+      s.right = "auto";
+      s.bottom = "auto";
+    } else {
+      s.top = `${this.options.offsetY}px`;
+      s.right = "0px";
+      s.bottom = `${this.options.offsetY}px`;
+      s.left = "auto";
+      s.height = "auto";
+    }
+
+    if (this.hidden) {
+      s.display = "none";
+    } else {
+      s.removeProperty("display");
+    }
 
     if (this.colorInfo.cssColor && this.colorInfo.cssColor !== "currentColor") {
       s.color = this.colorInfo.cssColor;
@@ -369,15 +456,13 @@ export class FloatingScroll {
   }
 
   /**
-   * Vincula los eventos de scroll, resize, arrastre 1:1, clic en el carril y reconexión responsiva.
-   * Todos los eventos de puntero se delegan en `this.track` para ser inmunes al vaciado de `innerHTML` de `querys.js`.
+   * Vincula los eventos de scroll, resize, mutación de contenido y arrastre 1:1.
    *
    * @private
    */
   _bindEvents() {
     if (!this.win || !this.doc) return;
 
-    // 1. Scroll pasivo sincronizado con requestAnimationFrame
     this._onScroll = () => {
       if (this.isDestroyed) return;
       if (this.options.autoHide && this.thumb && !this.isDragging && !this.isHovered) {
@@ -391,24 +476,61 @@ export class FloatingScroll {
       }
       this._scheduleUpdate();
     };
-    this.win.addEventListener("scroll", this._onScroll, { passive: true });
 
-    // 2. Resize de ventana y cambios de altura del DOM (ResizeObserver)
     this._onResize = () => {
       if (this.isDestroyed) return;
       this._scheduleUpdate();
     };
+
+    if (this.isContainerMode) {
+      this.container.addEventListener("scroll", this._onScroll, { passive: true });
+      if (this.container.tagName === "TEXTAREA") {
+        this._onTextareaInput = () => this._scheduleUpdate();
+        this.container.addEventListener("input", this._onTextareaInput, { passive: true });
+      }
+      this._onParentScroll = () => {
+        if (!this.isDestroyed) this._scheduleUpdate();
+      };
+      this.win.addEventListener("scroll", this._onParentScroll, { passive: true, capture: true });
+    } else {
+      this.win.addEventListener("scroll", this._onScroll, { passive: true });
+    }
+
     this.win.addEventListener("resize", this._onResize, { passive: true });
 
     if (typeof ResizeObserver !== "undefined") {
       this._resizeObserver = new ResizeObserver(this._onResize);
-      this._resizeObserver.observe(this.doc.documentElement);
-      if (this.doc.body) {
-        this._resizeObserver.observe(this.doc.body);
+      if (this.isContainerMode) {
+        this._resizeObserver.observe(this.container);
+        Array.from(this.container.children).forEach((child) => {
+          this._resizeObserver.observe(child);
+        });
+      } else {
+        this._resizeObserver.observe(this.doc.documentElement);
+        if (this.doc.body) {
+          this._resizeObserver.observe(this.doc.body);
+        }
       }
     }
 
-    // 3. Hover sobre el carril/thumb para expandir suavemente el ancho de la barra
+    if (this.isContainerMode && typeof MutationObserver !== "undefined" && this.container.tagName !== "TEXTAREA") {
+      this._containerMutationObserver = new MutationObserver(() => {
+        if (this.isDestroyed) return;
+        if (this._resizeObserver) {
+          Array.from(this.container.children).forEach((child) => {
+            try { this._resizeObserver.observe(child); } catch (_) {}
+          });
+        }
+        this._scheduleUpdate();
+      });
+      this._containerMutationObserver.observe(this.container, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["style", "class", "hidden"]
+      });
+    }
+
     this.track.addEventListener("mouseenter", () => {
       this.isHovered = true;
       clearTimeout(this.hideTimer);
@@ -422,7 +544,6 @@ export class FloatingScroll {
       }
     });
 
-    // 4. Inicio de arrastre (en el thumb) o salto directo (clic en el carril fuera del thumb)
     this._onPointerDown = (e) => {
       if (e.button !== undefined && e.button !== 0) return;
       this._ensureThumbElement();
@@ -430,7 +551,6 @@ export class FloatingScroll {
       const clickedThumb = e.target.closest(".floating-scroll-thumb");
 
       if (!clickedThumb) {
-        // Clic directo en el carril (track): saltar proporcionalmente a esa posición y permitir seguir arrastrando
         const trackRect = this.track.getBoundingClientRect();
         const clickY = e.clientY - trackRect.top;
         const targetThumbTop = Math.max(
@@ -438,10 +558,15 @@ export class FloatingScroll {
           Math.min(this.maxThumbTop, clickY - this.thumbHeight * 0.5)
         );
         const ratio = this.maxThumbTop > 0 ? targetThumbTop / this.maxThumbTop : 0;
-        this.win.scrollTo({
-          top: ratio * this.maxScrollTop,
-          behavior: "smooth"
-        });
+        if (this.isContainerMode) {
+          if (typeof this.container.scrollTo === "function") {
+            this.container.scrollTo({ top: ratio * this.maxScrollTop, behavior: "smooth" });
+          } else {
+            this.container.scrollTop = ratio * this.maxScrollTop;
+          }
+        } else {
+          this.win.scrollTo({ top: ratio * this.maxScrollTop, behavior: "smooth" });
+        }
         return;
       }
 
@@ -450,15 +575,21 @@ export class FloatingScroll {
 
       this.isDragging = true;
       this.dragStartY = e.clientY;
-      this.dragStartScrollTop = this.win.scrollY || this.doc.documentElement.scrollTop || 0;
+      this.dragStartScrollTop = this.isContainerMode
+        ? (this.container.scrollTop || 0)
+        : (this.win.scrollY || this.doc.documentElement.scrollTop || 0);
 
-      // Desactivar scroll-behavior: smooth durante el drag para respuesta instantánea 1:1
-      this._prevHtmlScrollBehavior = this.doc.documentElement.style.scrollBehavior;
-      this._prevBodyScrollBehavior = this.doc.body ? this.doc.body.style.scrollBehavior : "";
-      this.doc.documentElement.style.scrollBehavior = "auto";
-      if (this.doc.body) {
-        this.doc.body.style.scrollBehavior = "auto";
-        this.doc.body.classList.add("floating-scroll-dragging");
+      if (this.isContainerMode) {
+        this._prevContainerScrollBehavior = this.container.style.scrollBehavior;
+        this.container.style.scrollBehavior = "auto";
+      } else {
+        this._prevHtmlScrollBehavior = this.doc.documentElement.style.scrollBehavior;
+        this._prevBodyScrollBehavior = this.doc.body ? this.doc.body.style.scrollBehavior : "";
+        this.doc.documentElement.style.scrollBehavior = "auto";
+        if (this.doc.body) {
+          this.doc.body.style.scrollBehavior = "auto";
+          this.doc.body.classList.add("floating-scroll-dragging");
+        }
       }
 
       if (this.track.setPointerCapture && e.pointerId !== undefined) {
@@ -467,7 +598,6 @@ export class FloatingScroll {
         } catch (_) {}
       }
 
-      // Si el objetivo es un iframe, escuchar también eventos en la ventana contenedora superior
       if (typeof window !== "undefined" && window !== this.win) {
         window.addEventListener("pointermove", this._onPointerMove, { passive: false });
         window.addEventListener("pointerup", this._onPointerUp);
@@ -488,7 +618,11 @@ export class FloatingScroll {
         Math.min(this.maxScrollTop, this.dragStartScrollTop + deltaY * scrollRatio)
       );
 
-      this.win.scrollTo(0, nextScrollTop);
+      if (this.isContainerMode) {
+        this.container.scrollTop = nextScrollTop;
+      } else {
+        this.win.scrollTo(0, nextScrollTop);
+      }
       this._updateMetricsAndPosition();
     };
 
@@ -496,10 +630,14 @@ export class FloatingScroll {
       if (!this.isDragging) return;
       this.isDragging = false;
 
-      this.doc.documentElement.style.scrollBehavior = this._prevHtmlScrollBehavior || "";
-      if (this.doc.body) {
-        this.doc.body.style.scrollBehavior = this._prevBodyScrollBehavior || "";
-        this.doc.body.classList.remove("floating-scroll-dragging");
+      if (this.isContainerMode) {
+        this.container.style.scrollBehavior = this._prevContainerScrollBehavior || "";
+      } else {
+        this.doc.documentElement.style.scrollBehavior = this._prevHtmlScrollBehavior || "";
+        if (this.doc.body) {
+          this.doc.body.style.scrollBehavior = this._prevBodyScrollBehavior || "";
+          this.doc.body.classList.remove("floating-scroll-dragging");
+        }
       }
 
       if (this.track && this.track.releasePointerCapture && e && e.pointerId !== undefined) {
@@ -522,11 +660,11 @@ export class FloatingScroll {
     this.win.addEventListener("pointerup", this._onPointerUp);
     this.win.addEventListener("pointercancel", this._onPointerUp);
 
-    // 5. Observar si querie.js (no-desk, no-tablet, no-phone, etc.) restaura el innerHTML del track al cambiar de breakpoint
     if (typeof MutationObserver !== "undefined") {
       this._trackObserver = new MutationObserver(() => {
         if (this.isDestroyed) return;
         const isHiddenByResponsive =
+          this.hidden ||
           this.track.style.display === "none" ||
           this.track.getAttribute("aria-hidden") === "true";
 
@@ -557,15 +695,20 @@ export class FloatingScroll {
   }
 
   /**
-   * Calcula las dimensiones proporcionales del documento y posiciona el thumb con aceleración GPU (`translate3d`).
+   * Calcula las dimensiones proporcionales y posiciona el track/thumb con aceleración GPU.
    *
    * @private
    */
   _updateMetricsAndPosition() {
     if (this.isDestroyed || !this.track || !this.win || !this.doc) return;
 
-    // Si está oculto por una clase responsiva (no-phone, no-tablet, no-desk), no gastar recursos
+    if (this.isContainerMode && !this.container.isConnected) {
+      this.destroy();
+      return;
+    }
+
     if (
+      this.hidden ||
       this.track.style.display === "none" ||
       this.track.getAttribute("aria-hidden") === "true" ||
       (this.win.getComputedStyle && this.win.getComputedStyle(this.track).display === "none")
@@ -576,42 +719,86 @@ export class FloatingScroll {
     this._ensureThumbElement();
     if (!this.thumb) return;
 
-    const docEl = this.doc.documentElement;
-    const body = this.doc.body;
+    let viewportHeight = 0;
+    let scrollHeight = 0;
+    let currentScrollTop = 0;
 
-    const viewportHeight = this.win.innerHeight || docEl.clientHeight;
-    const scrollHeight = Math.max(
-      docEl.scrollHeight,
-      body ? body.scrollHeight : 0,
-      docEl.offsetHeight,
-      body ? body.offsetHeight : 0
-    );
+    if (this.isContainerMode) {
+      const rect = this.container.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) {
+        this.track.style.visibility = "hidden";
+        this.track.style.pointerEvents = "none";
+        return;
+      }
 
-    this.maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+      const cs = this.win.getComputedStyle ? this.win.getComputedStyle(this.container) : null;
+      if (cs && (cs.display === "none" || cs.visibility === "hidden")) {
+        this.track.style.visibility = "hidden";
+        this.track.style.pointerEvents = "none";
+        return;
+      }
 
-    // Si la página no necesita scroll vertical, ocultar el thumb limpiamente
-    if (this.maxScrollTop <= 1) {
-      this.track.style.visibility = "hidden";
-      this.track.style.pointerEvents = "none";
-      return;
+      const hitAreaWidth = Math.max(12, this.width + this.options.hoverExpand + this.options.offsetRight * 2);
+      const safeOffsetY = Math.min(this.options.offsetY, Math.floor(rect.height / 6));
+      const trackBoxHeight = Math.max(1, Math.round(rect.height - safeOffsetY * 2));
+
+      this.track.style.top = `${Math.round(rect.top + safeOffsetY)}px`;
+      this.track.style.left = `${Math.round(rect.right - hitAreaWidth)}px`;
+      this.track.style.height = `${trackBoxHeight}px`;
+
+      viewportHeight = this.container.clientHeight || rect.height;
+      scrollHeight = this.container.scrollHeight;
+      this.maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+
+      if (this.maxScrollTop <= 1) {
+        this.track.style.visibility = "hidden";
+        this.track.style.pointerEvents = "none";
+        return;
+      }
+
+      this.track.style.visibility = "visible";
+      this.track.style.pointerEvents = "auto";
+
+      const proportionalHeight = (viewportHeight / Math.max(1, scrollHeight)) * trackBoxHeight;
+      this.thumbHeight = Math.max(
+        Math.min(this.options.minThumbHeight, trackBoxHeight),
+        Math.min(trackBoxHeight, Math.round(proportionalHeight))
+      );
+      this.maxThumbTop = Math.max(0, trackBoxHeight - this.thumbHeight);
+      currentScrollTop = Math.max(0, Math.min(this.maxScrollTop, this.container.scrollTop || 0));
+    } else {
+      const docEl = this.doc.documentElement;
+      const body = this.doc.body;
+
+      viewportHeight = this.win.innerHeight || docEl.clientHeight;
+      scrollHeight = Math.max(
+        docEl.scrollHeight,
+        body ? body.scrollHeight : 0,
+        docEl.offsetHeight,
+        body ? body.offsetHeight : 0
+      );
+
+      this.maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+
+      if (this.maxScrollTop <= 1) {
+        this.track.style.visibility = "hidden";
+        this.track.style.pointerEvents = "none";
+        return;
+      }
+
+      this.track.style.visibility = "visible";
+      this.track.style.pointerEvents = "auto";
+
+      const trackHeight = Math.max(1, viewportHeight - this.options.offsetY * 2);
+      const proportionalHeight = (viewportHeight / scrollHeight) * trackHeight;
+      this.thumbHeight = Math.max(
+        this.options.minThumbHeight,
+        Math.min(trackHeight, Math.round(proportionalHeight))
+      );
+      this.maxThumbTop = Math.max(0, trackHeight - this.thumbHeight);
+      currentScrollTop = Math.max(0, Math.min(this.maxScrollTop, this.win.scrollY || docEl.scrollTop || 0));
     }
 
-    this.track.style.visibility = "visible";
-    this.track.style.pointerEvents = "auto";
-
-    const trackHeight = Math.max(1, viewportHeight - this.options.offsetY * 2);
-    const proportionalHeight = (viewportHeight / scrollHeight) * trackHeight;
-    this.thumbHeight = Math.max(
-      this.options.minThumbHeight,
-      Math.min(trackHeight, Math.round(proportionalHeight))
-    );
-
-    this.maxThumbTop = Math.max(0, trackHeight - this.thumbHeight);
-
-    const currentScrollTop = Math.max(
-      0,
-      Math.min(this.maxScrollTop, this.win.scrollY || docEl.scrollTop || 0)
-    );
     const scrollProgress = this.maxScrollTop > 0 ? currentScrollTop / this.maxScrollTop : 0;
     this.thumbTop = Math.round(scrollProgress * this.maxThumbTop);
 
@@ -620,6 +807,27 @@ export class FloatingScroll {
 
     const progressPct = Math.round(scrollProgress * 100);
     this.track.setAttribute("aria-valuenow", String(progressPct));
+  }
+
+  /**
+   * Oculta o muestra visualmente el carril flotante manteniendo oculta la barra nativa del navegador.
+   *
+   * @param {boolean} hidden True para ocultar visualmente la barra flotante.
+   * @returns {this}
+   */
+  setHidden(hidden) {
+    this.hidden = Boolean(hidden);
+    if (this.track) {
+      if (this.hidden) {
+        this.track.style.display = "none";
+      } else {
+        this.track.style.removeProperty("display");
+      }
+    }
+    if (!this.hidden) {
+      this.refresh();
+    }
+    return this;
   }
 
   /**
@@ -639,7 +847,7 @@ export class FloatingScroll {
   }
 
   /**
-   * Cambia dinámicamente la clase de color (`color1`, `color2`, `color3`, etc.).
+   * Cambia dinámicamente la clase o color CSS (`color1`, `color2`, `#hex`, `var(--...)`).
    *
    * @param {string} color Nueva clase de color o valor CSS.
    * @returns {this}
@@ -676,9 +884,10 @@ export class FloatingScroll {
   }
 
   /**
-   * Elimina la barra de scroll flotante, restaura la barra nativa y limpia todos los listeners.
+   * Elimina la barra de scroll flotante, restaura la barra nativa (si aplica) y limpia todos los listeners.
    */
   destroy() {
+    if (this.isDestroyed) return;
     this.isDestroyed = true;
     clearTimeout(this.hideTimer);
 
@@ -688,8 +897,23 @@ export class FloatingScroll {
       this.rafId = null;
     }
 
+    if (this.isContainerMode && this.container) {
+      this.container.removeEventListener("scroll", this._onScroll);
+      if (this._onTextareaInput) {
+        this.container.removeEventListener("input", this._onTextareaInput);
+      }
+      this.container.classList.remove("has-floating-scroll-box");
+      if (this.container.__floatingScrollInstance === this) {
+        delete this.container.__floatingScrollInstance;
+      }
+    }
+
     if (this.win) {
-      this.win.removeEventListener("scroll", this._onScroll);
+      if (this.isContainerMode && this._onParentScroll) {
+        this.win.removeEventListener("scroll", this._onParentScroll, { capture: true });
+      } else {
+        this.win.removeEventListener("scroll", this._onScroll);
+      }
       this.win.removeEventListener("resize", this._onResize);
       this.win.removeEventListener("pointermove", this._onPointerMove);
       this.win.removeEventListener("pointerup", this._onPointerUp);
@@ -707,6 +931,11 @@ export class FloatingScroll {
       this._resizeObserver = null;
     }
 
+    if (this._containerMutationObserver) {
+      this._containerMutationObserver.disconnect();
+      this._containerMutationObserver = null;
+    }
+
     if (this._trackObserver) {
       this._trackObserver.disconnect();
       this._trackObserver = null;
@@ -716,15 +945,16 @@ export class FloatingScroll {
       this.track.parentNode.removeChild(this.track);
     }
 
-    if (this.doc && this.doc.documentElement) {
-      this.doc.documentElement.classList.remove("has-floating-scroll");
-    }
-    if (this.doc && this.doc.body) {
-      this.doc.body.classList.remove("floating-scroll-dragging");
-    }
-
-    if (this.win && this.win.__floatingScrollInstance === this) {
-      delete this.win.__floatingScrollInstance;
+    if (!this.isContainerMode) {
+      if (this.doc && this.doc.documentElement) {
+        this.doc.documentElement.classList.remove("has-floating-scroll");
+      }
+      if (this.doc && this.doc.body) {
+        this.doc.body.classList.remove("floating-scroll-dragging");
+      }
+      if (this.win && this.win.__floatingScrollInstance === this) {
+        delete this.win.__floatingScrollInstance;
+      }
     }
   }
 }
@@ -732,17 +962,16 @@ export class FloatingScroll {
 /**
  * Inicializa la barra de scroll flotante con los parámetros indicados.
  *
- * @param {number|string} [width=8] - Ancho de la barra en px (1er parámetro).
- * @param {string} [color='color2'] - Clase de color compilada `color1`, `color2`, `color3`... (2do parámetro).
- * @param {string|string[]} [responsive=''] - Clases `no-desk`, `no-tablet`, `no-phone` (3er parámetro).
- * @param {Object} [options={}] - Opciones adicionales (4to parámetro).
+ * @param {number|string|HTMLElement|Object} [width=8] - Ancho de la barra en px o contenedor HTML.
+ * @param {string|Object} [color='color2'] - Clase de color `color1`, `color2`, ... o configuración.
+ * @param {string|string[]} [responsive=''] - Clases `no-desk`, `no-tablet`, `no-phone`.
+ * @param {Object} [options={}] - Opciones adicionales.
  * @returns {FloatingScroll}
  */
 export function floatingScroll(width = 8, color = "color2", responsive = "", options = {}) {
   return new FloatingScroll(width, color, responsive, options);
 }
 
-// Exposición global en window
 if (typeof window !== "undefined") {
   window.FloatingScroll = FloatingScroll;
   window.floatingScroll = floatingScroll;

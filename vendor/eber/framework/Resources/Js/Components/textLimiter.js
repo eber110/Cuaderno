@@ -30,6 +30,9 @@ class TextLimiter {
 
     this.element.addEventListener('input', inputHandler);
     this.element.addEventListener('compositionend', () => this.handleInput());
+    if (this.element.tagName === 'TEXTAREA' && window.FmeUi && typeof window.FmeUi.attachFloatingScroll === 'function') {
+      window.FmeUi.attachFloatingScroll(this.element, this.element);
+    }
     this.handleInput();
   }
 
@@ -107,6 +110,10 @@ class TextLimiter {
       const ratio = this.limit > 0 ? currentCount / this.limit : 0;
       this.counterEl.classList.toggle('tl-warning', ratio >= 0.8 && currentCount < this.limit);
       this.counterEl.classList.toggle('tl-max-reached', currentCount >= this.limit);
+    }
+
+    if (this.element.__floatingScrollInstance) {
+      this.element.__floatingScrollInstance.refresh();
     }
   }
 }

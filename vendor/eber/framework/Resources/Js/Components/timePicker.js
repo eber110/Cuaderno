@@ -19,6 +19,10 @@ export function timePicker() {
 
   function closePopover() {
     if (!activePopover) return;
+    if (ui && typeof ui.detachFloatingScroll === 'function') {
+      activePopover.querySelectorAll('.ui-tp-col').forEach((col) => ui.detachFloatingScroll(col));
+      ui.detachFloatingScroll(activePopover);
+    }
     if (activePopover.parentNode) activePopover.parentNode.removeChild(activePopover);
     if (activeBackdrop && activeBackdrop.parentNode) activeBackdrop.parentNode.removeChild(activeBackdrop);
     activePopover = null;
@@ -61,12 +65,19 @@ export function timePicker() {
     const colsWrap = document.createElement('div');
     colsWrap.className = `ui-tp-columns ${is12h ? 'has-ampm' : ''}`;
 
+    const maxColHeight = parseInt(input.getAttribute('data-max-height') || '', 10);
     const hrCol = document.createElement('div');
     hrCol.className = 'ui-tp-col';
     const minCol = document.createElement('div');
     minCol.className = 'ui-tp-col';
     const ampmCol = is12h ? document.createElement('div') : null;
     if (ampmCol) ampmCol.className = 'ui-tp-col';
+
+    if (Number.isFinite(maxColHeight) && maxColHeight >= 80) {
+      hrCol.style.maxHeight = `${maxColHeight}px`;
+      minCol.style.maxHeight = `${maxColHeight}px`;
+      if (ampmCol) ampmCol.style.maxHeight = `${maxColHeight}px`;
+    }
 
     const syncButtons = () => {
       const displayHour12 = selHour24 % 12 === 0 ? 12 : selHour24 % 12;
@@ -180,9 +191,18 @@ export function timePicker() {
     popover.appendChild(footer);
 
     syncButtons();
+    const attachColsScroll = () => {
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(hrCol, input);
+        ui.attachFloatingScroll(minCol, input);
+        if (ampmCol) ui.attachFloatingScroll(ampmCol, input);
+      }
+    };
+
     if (isInline) {
       inlineHost.innerHTML = '';
       inlineHost.appendChild(popover);
+      attachColsScroll();
       return;
     }
 
@@ -203,6 +223,7 @@ export function timePicker() {
     }
 
     activePopover = popover;
+    attachColsScroll();
   }
 
   function initTimePickers() {
@@ -221,6 +242,7 @@ export function timePicker() {
       displayInput.className = 'ui-dp-input-display';
       displayInput.placeholder = input.getAttribute('placeholder') || tr('select_time', {}, 'Seleccionar hora');
       displayInput.value = input.value || '';
+      if (ui) ui.copyUiVars(input, displayInput);
 
       const uiTrigger = input.getAttribute('ui-trigger') || '';
       if (uiTrigger && ui) ui.applyClasses(displayInput, uiTrigger);

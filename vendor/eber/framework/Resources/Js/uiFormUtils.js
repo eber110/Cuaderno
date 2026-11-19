@@ -13,11 +13,15 @@
     '--ui-trigger-bg',
     '--ui-trigger-text',
     '--ui-trigger-border',
+    '--ui-placeholder-color',
+    '--ui-placeholder-size',
     '--ui-surface-bg',
     '--ui-surface-text',
     '--ui-surface-muted',
     '--ui-surface-border',
     '--ui-surface-shadow',
+    '--ui-secondary-text',
+    '--ui-secondary-font-size',
     '--ui-btn-primary-bg',
     '--ui-btn-primary-text',
     '--ui-btn-primary-border',
@@ -34,8 +38,26 @@
     '--ui-radius',
     '--ui-touch-size',
     '--ui-font-size',
+    '--ui-width',
+    '--ui-gap',
+    '--ui-field-gap',
+    '--ui-box-padding',
+    '--ui-thumb-size',
     '--ui-overlay-blur',
-    '--ui-transition'
+    '--ui-transition',
+    '--ui-scrollbar-display',
+    '--ui-scrollbar-color',
+    '--ui-scrollbar-width',
+    '--ui-chip-radius',
+    '--ui-star-size',
+    '--ui-remove-bg',
+    '--ui-remove-color',
+    '--ui-remove-border',
+    '--ui-dropzone-min-height',
+    '--ui-dropzone-border-style',
+    '--ui-slider-track-height',
+    '--ui-slider-thumb-size',
+    '--ui-otp-cell-size'
   ];
 
   const ICONS = {
@@ -135,13 +157,20 @@
   function copyUiVars(sourceEl, targetEl) {
     if (!sourceEl || !targetEl || !targetEl.style) return;
 
-    const wrapperHost = sourceEl.closest ? sourceEl.closest('[style*="--ui-"]') : null;
+    const parentHost = sourceEl.parentElement && sourceEl.parentElement.closest
+      ? sourceEl.parentElement.closest('[style*="--ui-"]')
+      : null;
     const fieldCard = sourceEl.closest ? sourceEl.closest('.ui-field-card') : null;
 
     UI_CSS_VARS.forEach((varName) => {
-      const hostVal = (wrapperHost && wrapperHost !== sourceEl) ? wrapperHost.style.getPropertyValue(varName) : '';
       const selfVal = sourceEl.style ? sourceEl.style.getPropertyValue(varName) : '';
-      const val = (selfVal && selfVal.trim() !== '') ? selfVal.trim() : ((hostVal && hostVal.trim() !== '') ? hostVal.trim() : '');
+      const hostVal = parentHost ? parentHost.style.getPropertyValue(varName) : '';
+      const cardVal = (fieldCard && fieldCard !== sourceEl) ? fieldCard.style.getPropertyValue(varName) : '';
+      const val = (selfVal && selfVal.trim() !== '')
+        ? selfVal.trim()
+        : ((hostVal && hostVal.trim() !== '')
+          ? hostVal.trim()
+          : ((cardVal && cardVal.trim() !== '') ? cardVal.trim() : ''));
       if (val !== '') {
         targetEl.style.setProperty(varName, val);
         if (fieldCard && fieldCard !== targetEl && (!fieldCard.style.getPropertyValue(varName) || fieldCard.style.getPropertyValue(varName).trim() === '')) {
@@ -150,7 +179,17 @@
       }
     });
 
-    const attrSrc = (attr) => sourceEl.getAttribute(attr) || (wrapperHost ? wrapperHost.getAttribute(attr) : '');
+    const hideAttr = sourceEl.getAttribute('data-hide-scrollbar')
+      || (parentHost ? parentHost.getAttribute('data-hide-scrollbar') : '')
+      || (fieldCard ? fieldCard.getAttribute('data-hide-scrollbar') : '')
+      || '';
+    if (hideAttr === 'true' || hideAttr === 'false') {
+      targetEl.setAttribute('data-hide-scrollbar', hideAttr);
+    }
+
+    const attrSrc = (attr) => sourceEl.getAttribute(attr)
+      || (parentHost ? parentHost.getAttribute(attr) : '')
+      || (fieldCard ? fieldCard.getAttribute(attr) : '');
     const accentAttr = attrSrc('ui-accent');
     const trackAttr = attrSrc('ui-track');
     const radiusAttr = attrSrc('ui-radius');
@@ -383,6 +422,125 @@
     return handle;
   }
 
+  function readUiTokenFromElements(varName, scrollEl, sourceInput) {
+    const inlineSrc = sourceInput && sourceInput.style ? sourceInput.style.getPropertyValue(varName).trim() : '';
+    if (inlineSrc) return inlineSrc;
+    const inlineEl = scrollEl && scrollEl.style ? scrollEl.style.getPropertyValue(varName).trim() : '';
+    if (inlineEl) return inlineEl;
+    try {
+      const compEl = scrollEl ? getComputedStyle(scrollEl).getPropertyValue(varName).trim() : '';
+      if (compEl) return compEl;
+    } catch (_) {}
+    try {
+      const compSrc = sourceInput ? getComputedStyle(sourceInput).getPropertyValue(varName).trim() : '';
+      if (compSrc) return compSrc;
+    } catch (_) {}
+    return '';
+  }
+
+  function resolveComputedCssColor(rawColor, refEl, depth = 0) {
+    const val = String(rawColor || '').trim();
+    if (!val || depth > 5) return val;
+    if (!val.includes('var(')) return val;
+
+    const varMatch = val.match(/^var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!varMatch) return val;
+
+    const varName = varMatch[1];
+    const fallback = varMatch[2] ? varMatch[2].trim() : '';
+    let resolved = '';
+    try {
+      resolved = refEl ? getComputedStyle(refEl).getPropertyValue(varName).trim() : '';
+    } catch (_) {}
+    if (!resolved) resolved = fallback;
+    if (!resolved) return val;
+    return resolveComputedCssColor(resolved, refEl, depth + 1);
+  }
+
+  /**
+   * Adjunta o sincroniza la barra flotante `FloatingScroll` sobre un contenedor HTML o `<textarea>`.
+   * Mantiene oculta permanentemente la scrollbar nativa del navegador.
+   */
+  function attachFloatingScroll(scrollEl, sourceInput = null, extraOptions = {}) {
+    if (!scrollEl || !(scrollEl instanceof HTMLElement)) return null;
+
+    scrollEl.classList.add('has-floating-scroll-box');
+    const refEl = sourceInput || scrollEl;
+    scrollEl._fmeScrollSource = refEl;
+
+    if (!window.FloatingScroll || typeof window.FloatingScroll.attach !== 'function') {
+      return null;
+    }
+
+    const displayToken = readUiTokenFromElements('--ui-scrollbar-display', scrollEl, sourceInput).toLowerCase();
+    const hideAttrEl = scrollEl.getAttribute('data-hide-scrollbar')
+      || (sourceInput ? sourceInput.getAttribute('data-hide-scrollbar') : '')
+      || (sourceInput && sourceInput.closest ? (sourceInput.closest('[data-hide-scrollbar]')?.getAttribute('data-hide-scrollbar') || '') : '');
+
+    let isHidden = false;
+    if (extraOptions.hidden !== undefined) {
+      isHidden = Boolean(extraOptions.hidden);
+    } else if (hideAttrEl === 'true') {
+      isHidden = true;
+    } else if (hideAttrEl === 'false') {
+      isHidden = false;
+    } else if (displayToken === 'none') {
+      isHidden = true;
+    }
+
+    const rawColor = extraOptions.color
+      || readUiTokenFromElements('--ui-scrollbar-color', scrollEl, sourceInput)
+      || readUiTokenFromElements('--ui-accent', scrollEl, sourceInput)
+      || 'color2';
+    const resolvedColor = resolveComputedCssColor(rawColor, refEl) || rawColor;
+
+    const rawWidth = extraOptions.width !== undefined
+      ? extraOptions.width
+      : readUiTokenFromElements('--ui-scrollbar-width', scrollEl, sourceInput);
+    const parsedWidth = parseFloat(rawWidth);
+    const width = Number.isFinite(parsedWidth) && parsedWidth >= 2 ? Math.min(16, parsedWidth) : 6;
+
+    const instance = window.FloatingScroll.attach(scrollEl, Object.assign({}, extraOptions, {
+      width,
+      color: resolvedColor,
+      hidden: isHidden
+    }));
+
+    if (instance && instance.track) {
+      copyUiVars(refEl, instance.track);
+    }
+    return instance;
+  }
+
+  /**
+   * Desvincula `FloatingScroll` de un contenedor HTML al cerrarse o desmontarse.
+   */
+  function detachFloatingScroll(scrollEl) {
+    if (!scrollEl) return;
+    if (window.FloatingScroll && typeof window.FloatingScroll.detach === 'function') {
+      window.FloatingScroll.detach(scrollEl);
+    }
+  }
+
+  /**
+   * Re-sincroniza colores, grosores y visibilidad de todas las instancias activas de FloatingScroll en contenedores.
+   */
+  function syncAllFloatingScrolls(root = document) {
+    const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+    scope.querySelectorAll('.has-floating-scroll-box').forEach((el) => {
+      if (el.__floatingScrollInstance && !el.__floatingScrollInstance.isDestroyed) {
+        attachFloatingScroll(el, el._fmeScrollSource || el);
+      }
+    });
+    if (scope === document) {
+      document.querySelectorAll('.dropdown-options, .ui-dp-popover, .custom-color-picker-popover, .crop-modal-card, .ui-tp-col').forEach((el) => {
+        if (el.__floatingScrollInstance && !el.__floatingScrollInstance.isDestroyed) {
+          attachFloatingScroll(el, el._fmeScrollSource || el);
+        }
+      });
+    }
+  }
+
   window.FmeUi = {
     UI_CSS_VARS,
     ICONS,
@@ -396,6 +554,9 @@
     bindDragValue,
     bindSwipeHorizontal,
     observeDynamic,
-    createSheetHandle
+    createSheetHandle,
+    attachFloatingScroll,
+    detachFloatingScroll,
+    syncAllFloatingScrolls
   };
 })();

@@ -26,6 +26,8 @@ export function repeat_camp(limit = 10) {
       rootEl.dataset.repeatInitialized = 'true';
       const maxLimit = parseInt(firstInput.getAttribute('data-max') || '', 10) || defaultLimit;
       const customAddLabel = firstInput.getAttribute('data-add-label') || '';
+      const addVariant = (firstInput.getAttribute('data-add-variant') || '').toLowerCase();
+      const uiRemoveCls = firstInput.getAttribute('ui-btn-remove') || '';
 
       const container = document.createElement('div');
       container.className = 'repeat-container';
@@ -41,17 +43,28 @@ export function repeat_camp(limit = 10) {
       addBtn.type = 'button';
       const uiSecBtn = firstInput.getAttribute('ui-btn-secondary') || '';
       const uiAdd = firstInput.getAttribute('ui-btn-primary') || firstInput.getAttribute('ui-btn-add') || '';
-      addBtn.className = uiSecBtn && !uiAdd ? 'repeat-btn-add ui-btn ui-btn-secondary' : 'repeat-btn-add ui-btn ui-btn-primary';
-      if (uiAdd && ui) ui.applyClasses(addBtn, uiAdd);
-      else if (uiSecBtn && ui) ui.applyClasses(addBtn, uiSecBtn);
+      let useSecondaryAdd = uiSecBtn && !uiAdd;
+      if (addVariant === 'secondary') useSecondaryAdd = true;
+      else if (addVariant === 'primary') useSecondaryAdd = false;
+
+      addBtn.className = useSecondaryAdd
+        ? 'repeat-btn-add ui-btn ui-btn-secondary'
+        : 'repeat-btn-add ui-btn ui-btn-primary';
+      if (useSecondaryAdd && uiSecBtn && ui) ui.applyClasses(addBtn, uiSecBtn);
+      else if (!useSecondaryAdd && uiAdd && ui) ui.applyClasses(addBtn, uiAdd);
 
       const rowsWrap = document.createElement('div');
-      rowsWrap.className = 'repeat-rows-wrap flex column-direction gap5';
+      rowsWrap.className = 'repeat-rows-wrap';
+      if (ui) {
+        ui.copyUiVars(rootEl, rowsWrap);
+        ui.copyUiVars(firstInput, rowsWrap);
+      }
 
+      const originalId = firstInput.getAttribute('id') || '';
       const templateInput = firstInput.cloneNode(true);
       templateInput.removeAttribute('id');
       templateInput.classList.remove('repeat-camp');
-      templateInput.classList.add('repeat-camp-input', 'br10');
+      templateInput.classList.add('repeat-camp-input');
       const uiTrigger = firstInput.getAttribute('ui-trigger') || '';
       if (uiTrigger && ui) ui.applyClasses(templateInput, uiTrigger);
       if (!templateInput.value) templateInput.value = '';
@@ -77,8 +90,9 @@ export function repeat_camp(limit = 10) {
           inp.removeAttribute('required');
           inp.value = '';
           inp.placeholder = tr('option_n', { n: idx }, `Opción ${idx}`);
-        } else if (initialVal) {
-          inp.value = initialVal;
+        } else {
+          if (originalId) inp.id = originalId;
+          if (initialVal) inp.value = initialVal;
         }
 
         row.appendChild(inp);
@@ -87,11 +101,13 @@ export function repeat_camp(limit = 10) {
           const remBtn = document.createElement('button');
           remBtn.type = 'button';
           remBtn.className = 'repeat-btn-remove';
+          if (uiRemoveCls && ui) ui.applyClasses(remBtn, uiRemoveCls);
           remBtn.setAttribute('aria-label', tr('remove_item', {}, 'Eliminar'));
           remBtn.innerHTML = icon('close', '✕');
           remBtn.addEventListener('click', () => {
             row.remove();
             updateCounterText();
+            if (rowsWrap.__floatingScrollInstance) rowsWrap.__floatingScrollInstance.refresh();
             rowsWrap.dispatchEvent(new Event('change', { bubbles: true }));
           });
           row.appendChild(remBtn);
@@ -106,12 +122,19 @@ export function repeat_camp(limit = 10) {
       rootEl.appendChild(container);
       updateCounterText();
 
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(rowsWrap, container);
+      }
+
       addBtn.addEventListener('click', () => {
         const currentCount = rowsWrap.querySelectorAll('.repeat-row').length;
         if (currentCount >= maxLimit) return;
         const newRow = createRow(false);
         rowsWrap.appendChild(newRow);
         updateCounterText();
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(rowsWrap, container);
+        }
         const focusInp = newRow.querySelector('input');
         if (focusInp) focusInp.focus();
       });

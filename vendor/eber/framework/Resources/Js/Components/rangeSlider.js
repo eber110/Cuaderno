@@ -70,7 +70,7 @@ export function rangeSlider() {
       track.appendChild(thumbHigh.th);
 
       const valsRow = document.createElement('div');
-      valsRow.className = 'ui-range-values';
+      valsRow.className = 'ui-range-values ui-slider-limits';
       const minSpan = document.createElement('span');
       const maxSpan = document.createElement('span');
       valsRow.appendChild(minSpan);

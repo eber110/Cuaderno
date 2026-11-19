@@ -63,6 +63,10 @@ export function fileDropzone() {
       const maxBytes = maxSizeMb > 0 ? maxSizeMb * 1024 * 1024 : 0;
       const acceptAttr = input.getAttribute('accept') || '';
       const hintText = input.getAttribute('placeholder') || tr('dropzone_hint', {}, 'Arrastra archivos aquí o toca para seleccionar');
+      const customSubtext = input.getAttribute('data-subtext') || '';
+      const customBorderStyle = input.getAttribute('data-border-style') || '';
+      const customMinHeight = input.getAttribute('data-min-height') || '';
+      const customIconSize = parseInt(input.getAttribute('data-icon-size') || '', 10);
       const uiTrigger = input.getAttribute('ui-trigger') || '';
       const uiSurface = input.getAttribute('ui-surface') || '';
       const uiAccent = input.getAttribute('ui-accent') || '';
@@ -78,28 +82,43 @@ export function fileDropzone() {
       area.setAttribute('role', 'button');
       area.setAttribute('tabindex', '0');
       area.setAttribute('aria-label', hintText);
+      if (customBorderStyle && /^(dashed|solid|dotted|none)$/i.test(customBorderStyle)) {
+        area.style.setProperty('--ui-dropzone-border-style', customBorderStyle.toLowerCase());
+      }
+      if (customMinHeight && /^\d+$/.test(customMinHeight.trim())) {
+        area.style.setProperty('--ui-dropzone-min-height', `${customMinHeight.trim()}px`);
+      }
       if (uiTrigger && ui) ui.applyClasses(area, uiTrigger);
 
       const iconHolder = document.createElement('div');
+      iconHolder.className = 'ui-dropzone-icon';
       iconHolder.innerHTML = icon(
         'upload',
         '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
       );
-      iconHolder.style.color = 'var(--ui-accent, #3b82f6)';
+      if (Number.isFinite(customIconSize) && customIconSize >= 12 && customIconSize <= 64) {
+        const svgEl = iconHolder.querySelector('svg');
+        if (svgEl) {
+          svgEl.setAttribute('width', String(customIconSize));
+          svgEl.setAttribute('height', String(customIconSize));
+        }
+      }
 
       const titleEl = document.createElement('div');
-      titleEl.style.fontWeight = '600';
-      titleEl.style.fontSize = 'var(--ui-font-size, 14px)';
+      titleEl.className = 'ui-dropzone-title';
       titleEl.textContent = hintText;
 
       const metaEl = document.createElement('div');
-      metaEl.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.85)';
-      metaEl.style.color = 'var(--ui-surface-muted, #64748b)';
-      const metaParts = [];
-      if (isMultiple) metaParts.push(tr('files_many', { count: maxFiles }, `Máx. ${maxFiles} archivos`));
-      if (maxSizeMb > 0) metaParts.push(`${maxSizeMb} MB`);
-      if (acceptAttr) metaParts.push(acceptAttr);
-      metaEl.textContent = metaParts.join(' · ');
+      metaEl.className = 'ui-dropzone-sub';
+      if (customSubtext) {
+        metaEl.textContent = customSubtext;
+      } else {
+        const metaParts = [];
+        if (isMultiple) metaParts.push(tr('files_many', { count: maxFiles }, `Máx. ${maxFiles} archivos`));
+        if (maxSizeMb > 0) metaParts.push(`${maxSizeMb} MB`);
+        if (acceptAttr) metaParts.push(acceptAttr);
+        metaEl.textContent = metaParts.join(' · ');
+      }
 
       area.appendChild(iconHolder);
       area.appendChild(titleEl);
@@ -107,6 +126,7 @@ export function fileDropzone() {
 
       const listEl = document.createElement('div');
       listEl.className = 'ui-dropzone-list';
+      if (ui) ui.copyUiVars(input, listEl);
 
       wrap.appendChild(area);
       wrap.appendChild(listEl);
@@ -120,11 +140,7 @@ export function fileDropzone() {
           if (uiSurface && ui) ui.applyClasses(item, uiSurface);
 
           const left = document.createElement('div');
-          left.style.display = 'flex';
-          left.style.alignItems = 'center';
-          left.style.gap = '10px';
-          left.style.minWidth = '0';
-          left.style.flex = '1';
+          left.className = 'ui-dropzone-item-main';
 
           const extMatch = (file.name || '').match(/\.([a-zA-Z0-9]{1,6})$/);
           const badge = document.createElement('span');
@@ -133,20 +149,14 @@ export function fileDropzone() {
           badge.textContent = extMatch ? extMatch[1].toUpperCase() : 'FILE';
 
           const info = document.createElement('div');
-          info.style.minWidth = '0';
-          info.style.flex = '1';
+          info.className = 'ui-dropzone-item-info';
 
           const nameSpan = document.createElement('div');
-          nameSpan.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.92)';
-          nameSpan.style.fontWeight = '600';
-          nameSpan.style.whiteSpace = 'nowrap';
-          nameSpan.style.overflow = 'hidden';
-          nameSpan.style.textOverflow = 'ellipsis';
+          nameSpan.className = 'ui-dropzone-item-name';
           nameSpan.textContent = file.name;
 
           const sizeSpan = document.createElement('div');
-          sizeSpan.style.fontSize = 'calc(var(--ui-font-size, 14px) * 0.78)';
-          sizeSpan.style.color = 'var(--ui-surface-muted, #64748b)';
+          sizeSpan.className = 'ui-dropzone-item-size';
           sizeSpan.textContent = formatBytes(file.size);
 
           info.appendChild(nameSpan);
@@ -157,8 +167,6 @@ export function fileDropzone() {
           const removeBtn = document.createElement('button');
           removeBtn.type = 'button';
           removeBtn.className = 'ui-dropzone-remove';
-          removeBtn.style.minWidth = '40px';
-          removeBtn.style.minHeight = '40px';
           removeBtn.innerHTML = icon(
             'close',
             '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
@@ -176,6 +184,10 @@ export function fileDropzone() {
           item.appendChild(removeBtn);
           listEl.appendChild(item);
         });
+
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(listEl, input);
+        }
       };
 
       const ingestFiles = (files) => {
@@ -275,11 +287,7 @@ export function fileDropzone() {
           if (uiSurface && ui) ui.applyClasses(item, uiSurface);
 
           const left = document.createElement('div');
-          left.style.display = 'flex';
-          left.style.alignItems = 'center';
-          left.style.gap = '10px';
-          left.style.minWidth = '0';
-          left.style.flex = '1';
+          left.className = 'ui-dropzone-item-main';
 
           const badge = document.createElement('span');
           badge.className = 'ui-dropzone-badge';
@@ -287,9 +295,18 @@ export function fileDropzone() {
           badge.textContent = smp.ext;
 
           const info = document.createElement('div');
-          info.style.minWidth = '0';
-          info.style.flex = '1';
-          info.innerHTML = `<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${smp.name}</div><div style="font-size:11px;color:var(--ui-surface-muted, #64748b);">${smp.size}</div>`;
+          info.className = 'ui-dropzone-item-info';
+
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'ui-dropzone-item-name';
+          nameDiv.textContent = smp.name;
+
+          const sizeDiv = document.createElement('div');
+          sizeDiv.className = 'ui-dropzone-item-size';
+          sizeDiv.textContent = smp.size;
+
+          info.appendChild(nameDiv);
+          info.appendChild(sizeDiv);
 
           left.appendChild(badge);
           left.appendChild(info);
@@ -297,8 +314,6 @@ export function fileDropzone() {
           const remBtn = document.createElement('button');
           remBtn.type = 'button';
           remBtn.className = 'ui-dropzone-remove';
-          remBtn.style.minWidth = '40px';
-          remBtn.style.minHeight = '40px';
           remBtn.innerHTML = icon('close', '✕');
           remBtn.setAttribute('aria-label', `${tr('remove_item', {}, 'Eliminar')} ${smp.name}`);
 
@@ -309,6 +324,9 @@ export function fileDropzone() {
 
         host.innerHTML = '';
         host.appendChild(demoList);
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(demoList, input);
+        }
       });
     });
   }

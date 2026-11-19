@@ -112,6 +112,9 @@ export function tagsInput() {
 
         const atLimit = maxTags > 0 && tags.length >= maxTags;
         entry.style.display = (isDisabled || atLimit) ? 'none' : '';
+        if (ui && typeof ui.attachFloatingScroll === 'function') {
+          ui.attachFloatingScroll(box, input);
+        }
       };
 
       const addTagFromRaw = (rawText) => {

@@ -124,6 +124,9 @@ export function colorPicker() {
     activeInput = null;
     activeBackdrop = null;
 
+    if (ui && typeof ui.detachFloatingScroll === 'function') {
+      ui.detachFloatingScroll(popoverRef);
+    }
     if (popoverRef && popoverRef.parentNode) popoverRef.parentNode.removeChild(popoverRef);
     if (backdropRef && backdropRef.parentNode) backdropRef.parentNode.removeChild(backdropRef);
 
@@ -395,6 +398,9 @@ export function colorPicker() {
     if (isInline) {
       inlineHost.innerHTML = '';
       inlineHost.appendChild(popover);
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(popover, input);
+      }
       return;
     }
 
@@ -419,6 +425,9 @@ export function colorPicker() {
     }
 
     activePopover = popover;
+    if (ui && typeof ui.attachFloatingScroll === 'function') {
+      ui.attachFloatingScroll(popover, input);
+    }
   }
 
   document.addEventListener('click', (e) => {
@@ -575,7 +584,39 @@ export function switchInput() {
   }
 }
 
+export function standardTextareas() {
+  const ui = window.FmeUi || null;
+
+  function initStandardTextareas() {
+    document.querySelectorAll('textarea.ui-textarea:not([data-ta-scroll-initialized])').forEach((ta) => {
+      ta.dataset.taScrollInitialized = 'true';
+      if (ui && typeof ui.attachFloatingScroll === 'function') {
+        ui.attachFloatingScroll(ta, ta);
+      }
+      ta.addEventListener('input', () => {
+        if (ta.__floatingScrollInstance) {
+          ta.__floatingScrollInstance.refresh();
+        }
+      });
+    });
+  }
+
+  if (window.__fmeStandardTextareaBound) {
+    initStandardTextareas();
+    return;
+  }
+  window.__fmeStandardTextareaBound = true;
+
+  if (ui && typeof ui.observeDynamic === 'function') {
+    ui.observeDynamic(initStandardTextareas);
+  } else {
+    initStandardTextareas();
+    document.addEventListener('previewUpdated', initStandardTextareas);
+  }
+}
+
 export function formComponents() {
   colorPicker();
   switchInput();
+  standardTextareas();
 }

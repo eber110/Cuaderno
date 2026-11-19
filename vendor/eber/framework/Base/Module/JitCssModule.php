@@ -30,11 +30,13 @@ class JitCssModule
             );
             foreach ($scanFiles as $scanFile) {
                 $normalizedFile = str_replace('\\', '/', $scanFile);
-                // Excluir las propias librerías JIT y scripts de compilación para evitar auto-activación de clases
+                // Excluir las propias librerías JIT, scripts de compilación y Theme Studio para evitar auto-activación de clases
                 if (
                     str_contains($normalizedFile, '/Base/LibraryCssJit/') ||
                     str_contains($normalizedFile, '/Base/ScriptComposer/') ||
-                    str_ends_with($normalizedFile, '/Base/Module/JitCssModule.php')
+                    str_ends_with($normalizedFile, '/Base/Module/JitCssModule.php') ||
+                    str_ends_with($normalizedFile, '/Base/Views/themeStudio.php') ||
+                    str_ends_with($normalizedFile, '/Base/Control/ThemeStudioControl.php')
                 ) {
                     continue;
                 }
@@ -395,5 +397,36 @@ CSS;
         }
 
         return $css;
+    }
+
+    /**
+     * Compila una lista arbitraria de clases CSS JIT en memoria sin escribir archivos en disco.
+     * Usado por Theme Studio para previsualizar clases utilitarias JIT sin contaminar jit-compiled.css.
+     *
+     * @param array<int, string> $words Clases candidatas separadas.
+     * @return string Reglas CSS JIT compiladas.
+     */
+    public static function compileWords(array $words): string
+    {
+        $clean = [];
+        foreach ($words as $word) {
+            if (!is_string($word)) {
+                continue;
+            }
+            $tok = trim($word);
+            if ($tok !== '' && preg_match('/^[a-zA-Z0-9_:\[\]\.-]+$/', $tok)) {
+                $clean[$tok] = $tok;
+            }
+        }
+        if (empty($clean)) {
+            return '';
+        }
+
+        $rules = self::loadRules();
+        if (empty($rules)) {
+            return '';
+        }
+
+        return self::processWords(array_values($clean), $rules);
     }
 }

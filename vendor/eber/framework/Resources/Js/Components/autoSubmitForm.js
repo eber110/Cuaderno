@@ -24,6 +24,109 @@ export function autoSubmitForm() {
   }
 
   /**
+   * Comprueba si el valor actual de un control coincide con la lista permitida de data-show-when.
+   *
+   * @param {HTMLElement} control Elemento controlador
+   * @param {string[]} allowed Valores permitidos
+   * @returns {boolean}
+   */
+  function matchesAllowedValue(control, allowed) {
+    if (!control) return false;
+    if (control.type === 'checkbox') {
+      if (control.checked) {
+        const val = String(control.value ?? 'on');
+        return allowed.includes(val) || allowed.includes('1') || allowed.includes('true') || allowed.includes('on');
+      }
+      return allowed.includes('0') || allowed.includes('false') || allowed.includes('');
+    }
+    return allowed.includes(String(control.value ?? ''));
+  }
+
+  /**
+   * Evalúa un único elemento con atributo data-show-when dentro de su formulario o del documento.
+   *
+   * @param {HTMLElement} el Elemento con data-show-when
+   * @param {Document|HTMLElement} [scope] Ámbito de búsqueda
+   */
+  function syncShowWhenElement(el, scope) {
+    if (!el || !el.hasAttribute('data-show-when')) return;
+    const expr = el.getAttribute('data-show-when') || '';
+    const eqIdx = expr.indexOf('=');
+    if (eqIdx === -1) return;
+
+    const fieldName = expr.slice(0, eqIdx).trim();
+    if (!fieldName) return;
+    const allowed = expr.slice(eqIdx + 1).split(',').map((s) => s.trim());
+
+    const formScope = scope || el.closest('form') || document;
+    const controls = Array.from(formScope.querySelectorAll(`[name="${CSS.escape(fieldName)}"]`));
+    if (controls.length === 0) return;
+
+    let visible = false;
+    const radios = controls.filter((c) => c.type === 'radio');
+    if (radios.length > 0) {
+      const checkedRadio = radios.find((r) => r.checked);
+      visible = checkedRadio ? allowed.includes(String(checkedRadio.value ?? '')) : allowed.includes('');
+    } else {
+      visible = controls.some((ctrl) => matchesAllowedValue(ctrl, allowed));
+    }
+
+    el.style.display = visible ? '' : 'none';
+  }
+
+  /**
+   * Inicializa y evalúa todos los elementos [data-show-when] presentes en el árbol DOM.
+   *
+   * @param {Document|HTMLElement} [root=document] Contenedor raíz
+   */
+  function initShowWhen(root = document) {
+    const scopeRoot = root && typeof root.querySelectorAll === 'function' ? root : document;
+    if (scopeRoot instanceof Element && scopeRoot.hasAttribute('data-show-when')) {
+      syncShowWhenElement(scopeRoot);
+    }
+    scopeRoot.querySelectorAll('[data-show-when]').forEach((el) => {
+      syncShowWhenElement(el);
+    });
+  }
+
+  /**
+   * Indica si un control o su contenedor inmediato está marcado para excluir del auto-submit.
+   *
+   * @param {HTMLElement} target Elemento originador del evento
+   * @param {HTMLFormElement|null} form Formulario contenedor
+   * @returns {boolean}
+   */
+  function isAutoSubmitIgnored(target, form) {
+    if (!target) return false;
+    if (
+      target.hasAttribute('no-auto-submit') ||
+      target.getAttribute('data-no-auto-submit') === 'true' ||
+      target.classList.contains('no-auto-submit')
+    ) {
+      return true;
+    }
+    const ancestor = target.closest('[data-no-auto-submit="true"], [no-auto-submit], .no-auto-submit');
+    return Boolean(ancestor && ancestor !== form && (!form || form.contains(ancestor)));
+  }
+
+  /**
+   * Determina si un formulario multi-paso está en un paso intermedio (no el último),
+   * bloqueando el auto-submit prematuro hasta completar el último paso.
+   *
+   * @param {HTMLFormElement|null} form Formulario contenedor
+   * @returns {boolean}
+   */
+  function isBlockedByMultiStep(form) {
+    if (!form || !form.matches('form[data-multi-step="true"]')) return false;
+    const steps = Array.from(form.querySelectorAll('.ui-form-step'));
+    if (steps.length <= 1) return false;
+    const activeStep = form.querySelector('.ui-form-step.is-active') || steps.find((s) => !s.hasAttribute('hidden'));
+    if (!activeStep) return false;
+    const activeIdx = steps.indexOf(activeStep);
+    return activeIdx !== -1 && activeIdx < steps.length - 1;
+  }
+
+  /**
    * Sincroniza dinámicamente la visibilidad de elementos condicionales en el cliente
    * de forma inmediata al cambiar valores de radios/selects.
    *
@@ -69,17 +172,37 @@ export function autoSubmitForm() {
 
     // 4. Visibilidad condicional declarativa universal: data-show-when="campo=val1,val2"
     if (target.name) {
-      document.querySelectorAll('[data-show-when]').forEach((el) => {
+      const parentForm = target.closest('form');
+      const searchScope = parentForm || document;
+      searchScope.querySelectorAll('[data-show-when]').forEach((el) => {
         const expr = el.getAttribute('data-show-when') || '';
         const eqIdx = expr.indexOf('=');
         if (eqIdx === -1) return;
         const fieldName = expr.slice(0, eqIdx).trim();
         if (fieldName !== target.name) return;
-        const allowed = expr.slice(eqIdx + 1).split(',').map((s) => s.trim());
-        el.style.display = allowed.includes(String(target.value ?? '')) ? '' : 'none';
+        syncShowWhenElement(el, parentForm || document);
       });
     }
   }
+
+  initShowWhen(document);
+
+  if (document.documentElement.dataset.fmeAutoSubmitBound === '1') {
+    return;
+  }
+  document.documentElement.dataset.fmeAutoSubmitBound = '1';
+
+  if (typeof window !== 'undefined' && window.FmeUi && typeof window.FmeUi.observeDynamic === 'function') {
+    window.FmeUi.observeDynamic(() => {
+      initShowWhen(document);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initShowWhen(document));
+  }
+  document.addEventListener('previewUpdated', () => initShowWhen(document));
+  document.addEventListener('ui:stepChanged', () => initShowWhen(document));
 
   document.addEventListener('change', (e) => {
     const target = e.target;
@@ -93,8 +216,11 @@ export function autoSubmitForm() {
     const form = target.closest('form.auto-submit');
     if (!form) return;
 
+    // En formularios multi-paso, no auto-enviar si no estamos en el último paso
+    if (isBlockedByMultiStep(form)) return;
+
     // Si el elemento individual tiene la marca para ser ignorado, no enviar
-    if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) {
+    if (isAutoSubmitIgnored(target, form)) {
       return;
     }
 
@@ -143,13 +269,18 @@ export function autoSubmitForm() {
       target.closest('.ui-dp-popover')
     ) return;
 
+    syncConditionalUI(target);
+
     const form = target.closest('form.auto-submit');
     if (!form) return;
 
-    if (target.hasAttribute('no-auto-submit') || target.classList.contains('no-auto-submit')) return;
+    if (isBlockedByMultiStep(form)) return;
+
+    if (isAutoSubmitIgnored(target, form)) return;
 
     clearTimeout(inputDebounceTimer);
     inputDebounceTimer = setTimeout(() => {
+      if (isBlockedByMultiStep(form)) return;
       if (typeof form.requestSubmit === 'function') {
         form.requestSubmit();
       } else {
@@ -167,6 +298,12 @@ export function autoSubmitForm() {
 
     // Evitar la recarga normal de la página
     e.preventDefault();
+
+    // Modo simulación segura dentro del diseñador visual de Theme Studio
+    if (form.dataset.studioPreview === 'true') {
+      document.dispatchEvent(new CustomEvent('studio:autoSubmitSimulated', { detail: { form } }));
+      return;
+    }
 
     // Cerrar cualquier modal abierto al procesar el envío
     document.querySelectorAll('.modal-overlay').forEach(modal => modal.remove());

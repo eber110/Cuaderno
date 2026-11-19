@@ -74,7 +74,7 @@ export function passwordInput() {
         }
 
         const labelEl = document.createElement('div');
-        labelEl.className = 'ui-strength-label';
+        labelEl.className = 'ui-strength-label ui-pwd-strength-label';
 
         strengthWrap.appendChild(barsWrap);
         strengthWrap.appendChild(labelEl);

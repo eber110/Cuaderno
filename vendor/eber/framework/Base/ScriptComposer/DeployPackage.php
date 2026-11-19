@@ -15,9 +15,46 @@ if (php_sapi_name() !== 'cli') {
 
 class DeployPackage
 {
+  /**
+   * Rutas de herramientas de diseño (Theme Studio) y documentación excluidas de producción.
+   *
+   * @var array<int, string>
+   */
+  public const EXCLUDED_STUDIO_PATHS = [
+    'Base/Views/themeStudio.php',
+    'Base/Control/ThemeStudioControl.php',
+    'Base/ScriptComposer/OpenStudio.php',
+    'Docs/',
+    'vendor/eber/framework/Base/Views/themeStudio.php',
+    'vendor/eber/framework/Base/Control/ThemeStudioControl.php',
+    'vendor/eber/framework/Base/ScriptComposer/OpenStudio.php',
+    'vendor/eber/framework/Docs/',
+  ];
+
   private string $basePath;
   private string $projectName;
   private string $frameworkPath;
+
+  /**
+   * Determina si una ruta relativa pertenece a Theme Studio o Docs y debe excluirse de producción.
+   *
+   * @param string $relativePath Ruta relativa dentro del paquete o proyecto.
+   * @return bool
+   */
+  public static function isExcludedStudioPath(string $relativePath): bool
+  {
+    $normalized = ltrim(str_replace('\\', '/', $relativePath), '/');
+    if ($normalized === '') {
+      return false;
+    }
+    foreach (self::EXCLUDED_STUDIO_PATHS as $excluded) {
+      $cleanExcluded = rtrim($excluded, '/');
+      if ($normalized === $cleanExcluded || str_starts_with($normalized, $cleanExcluded . '/')) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   public function __construct()
   {
@@ -106,6 +143,7 @@ class DeployPackage
     }
 
     echo "\n⏳ Empaquetando proyecto completo en 'dist/{$zipFileName}'...\n";
+    echo "🛡️  Excluyendo Theme Studio y Docs/ del paquete de producción...\n";
 
     $zip = new ZipArchive();
     if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -147,6 +185,9 @@ class DeployPackage
 
     $fileCount = 0;
     foreach ($includeItems as $item) {
+      if (self::isExcludedStudioPath($item)) {
+        continue;
+      }
       $fullPath = $this->basePath . '/' . $item;
       if (is_dir($fullPath)) {
         $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item);
@@ -236,6 +277,9 @@ class DeployPackage
 
     $fileCount = 0;
     foreach ($updateItems as $item) {
+      if (self::isExcludedStudioPath($item)) {
+        continue;
+      }
       $fullPath = $this->basePath . '/' . $item;
       if (is_dir($fullPath)) {
         // Excluir uploads que puedan estar dentro de App/Public/Uploads
@@ -250,7 +294,7 @@ class DeployPackage
 
     $zipKb = round(filesize($tempZip) / 1024, 2);
     echo "\n📦 Paquete ligero generado: {$zipKb} KB ({$fileCount} archivos).\n";
-    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/ y .env NO se tocan en el servidor.\n";
+    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/, .env, Theme Studio y Docs/ excluidos.\n";
     echo "\n⏳ Transfiriendo y actualizando servidor...\n";
 
     // 4. Enviar vía cURL por HTTP POST
@@ -553,6 +597,10 @@ class DeployPackage
     foreach ($iterator as $file) {
       $filePath = str_replace('\\', '/', $file->getPathname());
       $relativePath = $zipDir . '/' . ltrim(substr($filePath, strlen($dir)), '/');
+
+      if (self::isExcludedStudioPath($relativePath)) {
+        continue;
+      }
 
       // Comprobar si coincide con exclusiones
       $isExcluded = false;
@@ -860,8 +908,8 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
     exit;
   }
 
-  // NUNCA sobrescribir datos de usuario, secretos, logs ni el propio deploy.php
-  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/Safety/|Logs/|Cache/|\.git/|\.env(\.|$)|deploy\.php$)#i', $name)) {
+  // NUNCA sobrescribir datos de usuario, secretos, logs, Theme Studio, Docs ni el propio deploy.php
+  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/Safety/|Logs/|Cache/|Docs/|vendor/eber/framework/Docs/|\.git/|\.env(\.|$)|deploy\.php$|Base/Views/themeStudio\.php$|Base/Control/ThemeStudioControl\.php$|Base/ScriptComposer/OpenStudio\.php$|vendor/eber/framework/Base/Views/themeStudio\.php$|vendor/eber/framework/Base/Control/ThemeStudioControl\.php$|vendor/eber/framework/Base/ScriptComposer/OpenStudio\.php$)#i', $name)) {
     continue;
   }
 
@@ -873,6 +921,21 @@ if (!empty($allowedFiles)) {
 }
 $zip->close();
 @unlink($zipPath);
+
+// Limpiar archivos residuales de Theme Studio en producción
+foreach ([
+  'Base/Views/themeStudio.php',
+  'Base/Control/ThemeStudioControl.php',
+  'Base/ScriptComposer/OpenStudio.php',
+  'vendor/eber/framework/Base/Views/themeStudio.php',
+  'vendor/eber/framework/Base/Control/ThemeStudioControl.php',
+  'vendor/eber/framework/Base/ScriptComposer/OpenStudio.php',
+] as $studioRelPath) {
+  $studioFullPath = __DIR__ . '/' . $studioRelPath;
+  if (is_file($studioFullPath)) {
+    @unlink($studioFullPath);
+  }
+}
 
 // Limpiar contador de intentos fallidos tras despliegue exitoso
 $rlFp = @fopen($rlFile, 'c+');

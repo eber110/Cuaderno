@@ -846,6 +846,7 @@ ENV;
             'stepperInput',
             'ratingInput',
             'fileDropzone',
+            'multiStepForm',
           ];
           $addedComps = [];
           foreach ($newFormComponents as $compFn) {

@@ -188,13 +188,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      flex-wrap: wrap;
+      row-gap: 6px;
+      gap: 10px;
       flex-shrink: 0;
     }
     .ts-canvas-nav {
       display: flex;
       align-items: center;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
       flex: 1;
       min-width: 0;
     }
@@ -712,6 +715,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     /* Right Live Project Preview Stage */
     .ts-sandbox-stage {
       flex: 1;
+      min-height: 0;
       background: #020617;
       overflow: hidden;
       display: flex;
@@ -727,6 +731,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       max-width: 100%;
       height: 100%;
       flex: 1;
+      min-height: 0;
       background: #ffffff;
       border-radius: 10px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -742,6 +747,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       width: 100%;
       height: 100%;
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       background-color: var(--body, #ffffff);
@@ -1303,7 +1309,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       color: #fff;
       font-weight: 700;
     }
-    .cs-chip-dot {
+    .cs-chip-dot,
+    .cs-color-dot {
       width: 9px;
       height: 9px;
       border-radius: 50%;
@@ -2034,6 +2041,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     #inputSandboxView {
       display: none;
       flex: 1;
+      min-height: 0;
       flex-direction: column;
       height: 100%;
       width: 100%;
@@ -2044,6 +2052,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
     .iu-sandbox-stage {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 20px;
       background-color: var(--iu-surface, var(--body, #f8fafc));
@@ -2247,6 +2256,92 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       font-size: 0.73rem;
       margin-bottom: 8px;
     }
+    .iu-type-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .iu-type-pill {
+      border: 1px solid var(--ts-border);
+      background: var(--ts-bg);
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.71rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+      white-space: nowrap;
+    }
+    .iu-type-pill:hover {
+      border-color: var(--ts-primary);
+      color: #fff;
+    }
+    .iu-type-pill.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--ts-primary);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+    .iu-type-pill-dot {
+      color: var(--ts-primary);
+      font-size: 0.68rem;
+      line-height: 1;
+    }
+    .iu-floating-color-dock {
+      position: sticky;
+      top: -18px;
+      z-index: 25;
+      margin: 0 -6px 12px -6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
+    }
+    .iu-floating-color-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.71rem;
+      color: var(--ts-muted);
+    }
+    .iu-floating-color-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      flex: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .iu-floating-color-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .iu-floating-color-body {
+      margin-top: 8px;
+      max-height: 220px;
+      opacity: 1;
+      overflow-y: auto;
+      transition: max-height 0.2s ease, opacity 0.16s ease, margin-top 0.16s ease;
+    }
+    .iu-floating-color-dock.is-collapsed .iu-floating-color-body {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
     .iu-target-banner {
       display: flex;
       align-items: center;
@@ -2373,9 +2468,259 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       cursor: pointer;
       user-select: none;
     }
+
+    /* Visual JIT Class Assistant */
+    .iu-jit-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .iu-jit-input-wrap input {
+      flex: 1;
+      min-width: 0;
+    }
+    .iu-jit-trigger-btn {
+      border: 1px solid var(--ts-border);
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--ts-primary);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .iu-jit-trigger-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--ts-primary);
+    }
+    .iu-jit-popover {
+      margin-top: 6px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--ts-border);
+      background: rgba(15, 23, 42, 0.96);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .iu-jit-cat-title {
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: var(--ts-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .iu-jit-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .iu-jit-chip {
+      border: 1px solid var(--ts-border);
+      background: rgba(30, 41, 59, 0.7);
+      color: var(--ts-text);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 0.68rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      cursor: pointer;
+    }
+    .iu-jit-chip:hover {
+      border-color: var(--ts-primary);
+    }
+    .iu-jit-chip.active {
+      background: var(--ts-primary);
+      color: #0f172a;
+      border-color: var(--ts-primary);
+      font-weight: 700;
+    }
+
+    /* Visual Form Builder */
+    .fb-stage-wrap {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .fb-templates-bar,
+    .fb-palette-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--ts-border);
+    }
+    .fb-bar-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ts-muted);
+      margin-right: 4px;
+    }
+    .fb-template-btn,
+    .fb-palette-btn {
+      border: 1px solid var(--ts-border);
+      background: rgba(30, 41, 59, 0.78);
+      color: var(--ts-text);
+      border-radius: 7px;
+      padding: 4px 9px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+    .fb-template-btn:hover,
+    .fb-palette-btn:hover {
+      border-color: var(--ts-primary);
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .fb-palette-btn.is-step {
+      border-color: rgba(56, 189, 248, 0.5);
+      color: var(--ts-primary);
+      font-weight: 700;
+    }
+    .fb-stage-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 920px) {
+      .fb-stage-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .fb-structure-card,
+    .fb-stage-card {
+      border-radius: 14px;
+      border: 1px solid var(--ts-border);
+      background: rgba(15, 23, 42, 0.55);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fb-stage-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ts-text);
+      border-bottom: 1px solid var(--ts-border);
+      padding-bottom: 8px;
+    }
+    .fb-step-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .fb-step-tab {
+      border: 1px solid var(--ts-border);
+      background: rgba(30, 41, 59, 0.7);
+      color: var(--ts-muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.71rem;
+      cursor: pointer;
+    }
+    .fb-step-tab.active {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: var(--ts-primary);
+      color: var(--ts-primary);
+      font-weight: 700;
+    }
+    .fb-fields-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 460px;
+      overflow-y: auto;
+    }
+    .fb-field-item {
+      border: 1px solid var(--ts-border);
+      border-radius: 9px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+    .fb-field-item:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+    .fb-field-item.is-selected {
+      border-color: var(--ts-primary);
+      background: rgba(56, 189, 248, 0.14);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+    .fb-field-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--ts-text);
+    }
+    .fb-field-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .fb-mini-act {
+      border: 1px solid var(--ts-border);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--ts-muted);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.66rem;
+      cursor: pointer;
+    }
+    .fb-mini-act:hover {
+      color: var(--ts-text);
+      border-color: var(--ts-primary);
+    }
+    .fb-mini-act.danger:hover {
+      color: #f87171;
+      border-color: #f87171;
+    }
+    .fb-inspector-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fb-empty-state {
+      padding: 24px;
+      border-radius: 10px;
+      border: 1px dashed var(--ts-border);
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--ts-muted);
+    }
+    .fb-preview-host {
+      padding: 8px;
+      border-radius: 10px;
+      background: var(--body);
+    }
   </style>
   <style id="ts-charts-core-css"><?= $chartsCss ?? '' ?></style>
   <style id="ts-inputs-core-css"><?= $inputsCss ?? '' ?></style>
+  <style id="tsJitLivePreviewCss"><?= $initialJitPreviewCss ?? '' ?></style>
 </head>
 <body>
 
@@ -2437,16 +2782,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     <!-- Left Configuration Sidebar -->
     <aside class="ts-sidebar">
       <div class="ts-tabs">
-        <button type="button" class="ts-tab-btn active" onclick="switchTab('themes', this)">🏷️ Temas</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('colors', this)">🎨 Colores</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('dark', this)">🌙 Oscuro</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('layout', this)">🔤 Layout</button>
-        <button type="button" class="ts-tab-btn" id="tabBtnCharts" onclick="switchTab('charts', this)">📊 Gráficos</button>
-        <button type="button" class="ts-tab-btn" id="tabBtnInputs" onclick="switchTab('inputs', this)">🎛️ Inputs</button>
-        <button type="button" class="ts-tab-btn" id="tabBtnIcons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('wcag', this)">♿ WCAG</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
-        <button type="button" class="ts-tab-btn" onclick="switchTab('json', this)">📋 JSON</button>
+        <button type="button" class="ts-tab-btn active" data-tab-id="themes" onclick="switchTab('themes', this)">🏷️ Temas</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="colors" onclick="switchTab('colors', this)">🎨 Colores</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="dark" onclick="switchTab('dark', this)">🌙 Oscuro</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="layout" onclick="switchTab('layout', this)">🔤 Layout</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnCharts" data-tab-id="charts" onclick="switchTab('charts', this)">📊 Gráficos</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnInputs" data-tab-id="inputs" onclick="switchTab('inputs', this)">🎛️ Inputs</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnIcons" data-tab-id="icons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="wcag" onclick="switchTab('wcag', this)">♿ WCAG</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="gradients" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
+        <button type="button" class="ts-tab-btn" data-tab-id="json" onclick="switchTab('json', this)">📋 JSON</button>
       </div>
 
       <!-- TAB 0: TEMAS Y EVENTOS ESPECIALES -->
@@ -3239,6 +3584,25 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
       <!-- TAB 5.5: UI / INPUT STUDIO (FormUiModule) -->
       <div id="tab-inputs" class="ts-tab-content">
+        <div id="iuFormBuilderSidebarPanel" style="display:none;">
+          <div class="ts-section">
+            <div class="ts-section-title">
+              <span>🧱 Diseñador de Formularios</span>
+              <button type="button" class="ts-btn ts-btn-secondary" style="padding:3px 8px; font-size:0.7rem;" onclick="setInputSandboxViewMode('gallery')">
+                ← Inputs (19)
+              </button>
+            </div>
+            <div class="cs-mini-tabs">
+              <button type="button" class="cs-mini-tab active" id="fbSubTab_form" onclick="switchFormBuilderInspectorTab('form')">📋 Configuración del Form</button>
+              <button type="button" class="cs-mini-tab" id="fbSubTab_field" onclick="switchFormBuilderInspectorTab('field')">🎯 Campo Seleccionado</button>
+            </div>
+            <div id="fbSidebarInspectorHost" class="fb-inspector-box">
+              <!-- Rellenado dinámicamente según el sub-tab activo del Form Builder -->
+            </div>
+          </div>
+        </div>
+
+        <div id="iuSingleInputSidebarWrap">
         <div class="ts-section">
           <div class="ts-section-title">
             <span>1. Presets de Diseño UI</span>
@@ -3259,7 +3623,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           <div class="ts-section-title">
             <span>2. Selecciona un Input (<span id="iuActiveTypeBadge">cropImage</span>)</span>
           </div>
-          <div class="cs-type-grid" id="iuTypeGrid">
+          <div class="iu-type-cloud" id="iuTypeGrid">
             <!-- Rellenado dinámicamente por JS -->
           </div>
         </div>
@@ -3278,11 +3642,21 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               <button type="button" class="ts-btn ts-btn-secondary" style="padding:2px 8px; font-size:0.68rem;" onclick="clearActiveInputLocalOverrides()">↺ Limpiar local</button>
             </div>
 
-            <div class="iu-target-banner">
-              <span>🎨 Asignando color a: <strong id="iuFocusedTokenLabel" style="color:var(--ts-primary);">Fondo Campo</strong></span>
-              <button type="button" class="iu-quick-chip-btn" onclick="applySystemColorToFocusedToken('transparent')" title="Quitar color o borde al campo activo">🚫 Sin color/borde</button>
+            <div id="iuFloatingColorDock" class="iu-floating-color-dock">
+              <div class="iu-floating-color-head">
+                <div class="iu-floating-color-title" onclick="toggleIuColorChipsAccordion()" title="Mostrar u ocultar paleta de clases de color">
+                  <span>🎨</span>
+                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Color a: <strong id="iuFocusedTokenLabel" style="color:var(--ts-primary);">Fondo Campo</strong></span>
+                </div>
+                <div class="iu-floating-color-actions">
+                  <button type="button" class="iu-quick-chip-btn" onclick="applySystemColorToFocusedToken('transparent')" title="Quitar color o borde al campo activo">🚫 Sin color</button>
+                  <button type="button" class="iu-quick-chip-btn" id="btnToggleIuColorDock" onclick="toggleIuColorChipsAccordion()" aria-expanded="true" title="Mostrar u ocultar clases de color">▾ Ocultar</button>
+                </div>
+              </div>
+              <div class="iu-floating-color-body" id="iuColorChipsBody">
+                <div class="cs-color-chips" id="iuColorChips" style="margin-bottom:0;"></div>
+              </div>
             </div>
-            <div class="cs-color-chips" id="iuColorChips" style="margin-bottom:10px;"></div>
 
             <!-- Bloque 1: Campo / Disparador (Trigger) -->
             <div class="iu-group-box">
@@ -3315,6 +3689,37 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
                     <input type="text" id="iu_triggerBorder" class="ts-input" data-iu-prop="triggerBorder" placeholder="textc">
                     <input type="color" class="iu-token-picker" data-iu-picker-prop="triggerBorder" title="Elegir color exacto">
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque 1b: Placeholder y Textos Secundarios -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>1b. Placeholder y Textos Secundarios</span></div>
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="placeholderColor">
+                  <label for="iu_placeholderColor"><span>Color Placeholder</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('placeholderColor')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_placeholderColor" class="ts-input" data-iu-prop="placeholderColor" placeholder="text-inactive">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="placeholderColor" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="iu-token-field" data-iu-field-wrap="secondaryText">
+                  <label for="iu_secondaryText"><span>Texto Secundario</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('secondaryText')" title="Volver al valor Global">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_secondaryText" class="ts-input" data-iu-prop="secondaryText" placeholder="text-inactive">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="secondaryText" title="Elegir color exacto">
+                  </div>
+                </div>
+              </div>
+              <div class="iu-color-pair">
+                <div class="ts-field" data-iu-field-wrap="placeholderSize">
+                  <label for="iu_placeholderSize"><span>Tam. Placeholder (<strong id="iu_placeholderSizeVal">14px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('placeholderSize')">↺</button></label>
+                  <input type="range" id="iu_placeholderSize" data-iu-prop="placeholderSize" min="10" max="28" step="1" value="14">
+                </div>
+                <div class="ts-field" data-iu-field-wrap="secondaryFontSize">
+                  <label for="iu_secondaryFontSize"><span>Tam. Secundario (<strong id="iu_secondaryFontSizeVal">12px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('secondaryFontSize')">↺</button></label>
+                  <input type="range" id="iu_secondaryFontSize" data-iu-prop="secondaryFontSize" min="9" max="24" step="1" value="12">
                 </div>
               </div>
             </div>
@@ -3513,29 +3918,101 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               </label>
             </div>
 
+            <!-- Bloque 6b: Ancho, Gaps, Miniaturas y Scrollbar (FloatingScroll) -->
+            <div class="iu-group-box">
+              <div class="iu-group-head"><span>6b. Ancho, Gaps, Miniaturas y Scrollbar</span></div>
+              <div class="ts-field" data-iu-field-wrap="width">
+                <label for="iu_width" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span>Ancho estándar (<code>--ui-width</code>)</span>
+                  <button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('width')">↺</button>
+                </label>
+                <div class="iu-token-control">
+                  <input type="text" id="iu_width" class="ts-input" data-iu-prop="width" placeholder="100%">
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('width', '100%'); syncInputStudioForm()">100%</button>
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('width', '50%'); syncInputStudioForm()">50%</button>
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('width', '320px'); syncInputStudioForm()">320px</button>
+                  <button type="button" class="iu-quick-chip-btn" onclick="setInputDesignProp('width', 'auto'); syncInputStudioForm()">auto</button>
+                </div>
+              </div>
+
+              <div class="iu-color-pair">
+                <div class="ts-field" data-iu-field-wrap="gap">
+                  <label for="iu_gap"><span>Gap Interno (<strong id="iu_gapVal">8px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('gap')">↺</button></label>
+                  <input type="range" id="iu_gap" data-iu-prop="gap" min="0" max="32" step="1" value="8">
+                </div>
+                <div class="ts-field" data-iu-field-wrap="fieldGap">
+                  <label for="iu_fieldGap"><span>Gap Campos (<strong id="iu_fieldGapVal">14px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('fieldGap')">↺</button></label>
+                  <input type="range" id="iu_fieldGap" data-iu-prop="fieldGap" min="4" max="40" step="1" value="14">
+                </div>
+                <div class="ts-field" data-iu-field-wrap="boxPadding">
+                  <label for="iu_boxPadding"><span>Padding Caja (<strong id="iu_boxPaddingVal">12px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('boxPadding')">↺</button></label>
+                  <input type="range" id="iu_boxPadding" data-iu-prop="boxPadding" min="4" max="40" step="1" value="12">
+                </div>
+                <div class="ts-field" data-iu-field-wrap="thumbSize">
+                  <label for="iu_thumbSize"><span>Miniatura (<strong id="iu_thumbSizeVal">80px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('thumbSize')">↺</button></label>
+                  <input type="range" id="iu_thumbSize" data-iu-prop="thumbSize" min="48" max="160" step="4" value="80">
+                </div>
+              </div>
+
+              <label class="cs-check-row" data-iu-field-wrap="hideScrollbar">
+                <input type="checkbox" id="iu_hideScrollbar" data-iu-prop="hideScrollbar">
+                <span>🫥 Ocultar barra de scroll visual (scroll táctil)</span>
+                <button type="button" class="iu-local-reset-btn" onclick="event.preventDefault(); resetSingleInputLocalProp('hideScrollbar')">↺</button>
+              </label>
+
+              <div class="iu-color-pair">
+                <div class="iu-token-field" data-iu-field-wrap="scrollbarColor">
+                  <label for="iu_scrollbarColor"><span>Color Scroll</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('scrollbarColor')">↺</button></label>
+                  <div class="iu-token-control">
+                    <input type="text" id="iu_scrollbarColor" class="ts-input" data-iu-prop="scrollbarColor" placeholder="color2">
+                    <input type="color" class="iu-token-picker" data-iu-picker-prop="scrollbarColor" title="Elegir color exacto">
+                  </div>
+                </div>
+                <div class="ts-field" data-iu-field-wrap="scrollbarWidth">
+                  <label for="iu_scrollbarWidth"><span>Ancho Scroll (<strong id="iu_scrollbarWidthVal">6px</strong>)</span><button type="button" class="iu-local-reset-btn" onclick="resetSingleInputLocalProp('scrollbarWidth')">↺</button></label>
+                  <input type="range" id="iu_scrollbarWidth" data-iu-prop="scrollbarWidth" min="2" max="14" step="1" value="6">
+                </div>
+              </div>
+            </div>
+
             <!-- Bloque 7: Clases CSS por Zona (solo visible en modo Local) -->
             <div id="iuLocalClassesBox" class="iu-group-box" style="display:none;">
               <div class="iu-group-head"><span>7. Clases CSS / JIT Exclusivas</span></div>
               <div class="ts-field">
                 <label for="iuLocal_class">Clases en el elemento (<code>class</code>)</label>
-                <input type="text" id="iuLocal_class" class="ts-input" data-iu-local="class" placeholder="ej. w100 border-none outline-none">
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuLocal_class" class="ts-input" data-iu-local="class" placeholder="ej. w100 border-none outline-none">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuLocal_class', this)">⚡ JIT</button>
+                </div>
               </div>
               <div class="ts-field">
                 <label for="iuLocal_uiTrigger"><code>ui-trigger</code> (disparador/caja)</label>
-                <input type="text" id="iuLocal_uiTrigger" class="ts-input" data-iu-local="uiTrigger" placeholder="ej. br15 p15 shadow-1 border-none">
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuLocal_uiTrigger" class="ts-input" data-iu-local="uiTrigger" placeholder="ej. br15 p15 shadow1 border-none">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuLocal_uiTrigger', this)">⚡ JIT</button>
+                </div>
               </div>
               <div class="ts-field">
                 <label for="iuLocal_uiSurface"><code>ui-surface</code> (modal/popover)</label>
-                <input type="text" id="iuLocal_uiSurface" class="ts-input" data-iu-local="uiSurface" placeholder="ej. br20 shadow-2">
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuLocal_uiSurface" class="ts-input" data-iu-local="uiSurface" placeholder="ej. br20 shadow2">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuLocal_uiSurface', this)">⚡ JIT</button>
+                </div>
               </div>
               <div class="iu-color-pair">
                 <div class="ts-field">
                   <label for="iuLocal_uiBtnPrimary"><code>ui-btn-primary</code></label>
-                  <input type="text" id="iuLocal_uiBtnPrimary" class="ts-input" data-iu-local="uiBtnPrimary" placeholder="ej. border-none">
+                  <div class="iu-jit-input-wrap">
+                    <input type="text" id="iuLocal_uiBtnPrimary" class="ts-input" data-iu-local="uiBtnPrimary" placeholder="ej. border-none">
+                    <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuLocal_uiBtnPrimary', this)">⚡</button>
+                  </div>
                 </div>
                 <div class="ts-field">
                   <label for="iuLocal_uiBtnSecondary"><code>ui-btn-secondary</code></label>
-                  <input type="text" id="iuLocal_uiBtnSecondary" class="ts-input" data-iu-local="uiBtnSecondary" placeholder="ej. border-none">
+                  <div class="iu-jit-input-wrap">
+                    <input type="text" id="iuLocal_uiBtnSecondary" class="ts-input" data-iu-local="uiBtnSecondary" placeholder="ej. border-none">
+                    <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuLocal_uiBtnSecondary', this)">⚡</button>
+                  </div>
                 </div>
               </div>
               <div id="iuLegacyCompatGroup" style="margin-top:4px; border-top:1px dashed var(--ts-border); padding-top:8px;">
@@ -3566,9 +4043,18 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
                 <input type="text" id="iuAttr_id" class="ts-input" data-iu-local="id" placeholder="ej. avatar_usuario">
               </div>
             </div>
-            <div class="ts-field">
-              <label for="iuAttr_label">Texto de etiqueta (<code>&lt;label&gt;</code>)</label>
-              <input type="text" id="iuAttr_label" class="ts-input" data-iu-local="label" placeholder="Ej. Foto de perfil">
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuAttr_label">Texto de <code>&lt;label&gt;</code></label>
+                <input type="text" id="iuAttr_label" class="ts-input" data-iu-local="label" placeholder="Ej. Foto de perfil">
+              </div>
+              <div class="ts-field">
+                <label for="iuAttr_labelClass">Clases <code>labelClass</code></label>
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuAttr_labelClass" class="ts-input" data-iu-local="labelClass" placeholder="ej. bold700 x14">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuAttr_labelClass', this)">⚡</button>
+                </div>
+              </div>
             </div>
             <div class="iu-color-pair">
               <div class="ts-field">
@@ -3580,20 +4066,45 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
                 <input type="text" id="iuAttr_value" class="ts-input" data-iu-local="value" placeholder="Opcional">
               </div>
             </div>
-            <div class="ts-field">
-              <label for="iuAttr_wrapperClass">Clase del <code>&lt;div&gt;</code> contenedor</label>
-              <input type="text" id="iuAttr_wrapperClass" class="ts-input" data-iu-local="wrapperClass" placeholder="br15 p15 ui-field-card">
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuAttr_helperText">Texto de ayuda (<code>helperText</code>)</label>
+                <input type="text" id="iuAttr_helperText" class="ts-input" data-iu-local="helperText" placeholder="Nota al pie del campo">
+              </div>
+              <div class="ts-field">
+                <label for="iuAttr_helperClass">Clases <code>helperClass</code></label>
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuAttr_helperClass" class="ts-input" data-iu-local="helperClass" placeholder="ej. x12 color2">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuAttr_helperClass', this)">⚡</button>
+                </div>
+              </div>
             </div>
-            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label for="iuAttr_wrapperClass">Clases del contenedor (<code>wrapperClass</code>)</label>
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="iuAttr_wrapperClass" class="ts-input" data-iu-local="wrapperClass" placeholder="br15 p15 ui-field-card">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('iuAttr_wrapperClass', this)">⚡</button>
+                </div>
+              </div>
+              <div class="ts-field">
+                <label for="iuAttr_showWhen">Visibilidad condicional (<code>showWhen</code>)</label>
+                <input type="text" id="iuAttr_showWhen" class="ts-input" data-iu-local="showWhen" placeholder="campo=valor1,valor2">
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_required" onchange="onInputLocalChange('required', this.checked)"><span>required</span></label>
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_disabled" onchange="onInputLocalChange('disabled', this.checked)"><span>disabled</span></label>
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_readonly" onchange="onInputLocalChange('readonly', this.checked)"><span>readonly</span></label>
               <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_autoSubmit" onchange="onInputLocalChange('autoSubmit', this.checked)"><span>autoSubmit</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_noAutoSubmit" onchange="onInputLocalChange('noAutoSubmit', this.checked)"><span>noAutoSubmit</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" id="iuAttr_processAutoSubmit" onchange="onInputLocalChange('processAutoSubmit', this.checked)"><span>processAutoSubmit</span></label>
             </div>
             <div id="iuSpecificAttrsContainer">
               <!-- Controles específicos dinámicos según tipo seleccionado -->
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -3739,7 +4250,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           </div>
           <div id="inputBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🎛️ UI / Input Studio</span>
-            <span class="ts-badge">16 componentes</span>
+            <span class="ts-badge">19 componentes</span>
           </div>
         </div>
 
@@ -3935,10 +4446,13 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               <div class="cs-toolbar-group">
                 <div class="cs-mode-switch">
                   <button type="button" class="ts-mode-btn active" id="btnIuViewGallery" onclick="setInputSandboxViewMode('gallery')">
-                    <span>🗂️ Todos (16)</span>
+                    <span>🗂️ Todos (19)</span>
                   </button>
                   <button type="button" class="ts-mode-btn" id="btnIuViewFocused" onclick="setInputSandboxViewMode('focused')">
                     <span>🔍 Enfoque</span>
+                  </button>
+                  <button type="button" class="ts-mode-btn" id="btnIuViewFormBuilder" onclick="setInputSandboxViewMode('formBuilder')">
+                    <span>🧱 Armar Formulario</span>
                   </button>
                 </div>
 
@@ -3973,28 +4487,34 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
             <div class="iu-sandbox-stage" id="inputSandboxStage">
               <div id="iuGalleryContainer" class="iu-gallery-grid">
-                <!-- Tarjetas de los 16 inputs generadas desde initialInputsHtmlMap -->
+                <!-- Tarjetas de los 19 inputs generadas desde initialInputsHtmlMap -->
               </div>
               <div id="iuFocusedContainer" class="iu-focused-wrap">
                 <!-- Vista enfocada del input activo -->
               </div>
+              <div id="iuFormBuilderContainer" class="fb-stage-wrap" style="display:none;">
+                <!-- Diseñador visual completo de formularios -->
+              </div>
             </div>
 
-            <!-- Dock Inferior de Código "Copy & Paste" (Helper _input() por defecto) -->
+            <!-- Dock Inferior de Código "Copy & Paste" -->
             <div class="cs-code-dock" id="iuCodeDock">
               <div class="cs-code-header">
                 <div class="cs-code-tabs">
-                  <button type="button" class="cs-code-tab active" id="iuCodeTab_php" onclick="setInputCopyFormat('php')">Helper _input()</button>
+                  <button type="button" class="cs-code-tab active" id="iuCodeTab_php" onclick="setInputCopyFormat('php')"><span id="iuCodeTab_phpLabel">Helper _input()</span></button>
                   <button type="button" class="cs-code-tab" id="iuCodeTab_html" onclick="setInputCopyFormat('html')">HTML Completo</button>
                   <button type="button" class="cs-code-tab" id="iuCodeTab_global" onclick="setInputCopyFormat('global')">Global FormUiModule</button>
                 </div>
 
-                <div class="iu-code-options">
+                <div class="iu-code-options" id="iuSingleCodeOptions">
                   <label><input type="checkbox" id="iuOptWrapContainer" checked onchange="onInputCodeOptionChange()"> <span>Envolver &lt;div&gt;</span></label>
                   <label><input type="checkbox" id="iuOptIncludeLabel" checked onchange="onInputCodeOptionChange()"> <span>Incluir &lt;label&gt;</span></label>
                   <label title="Incluye también los cambios globales dentro del código copiado para que sea 100% autocontenido en la vista"><input type="checkbox" id="iuOptIncludeGlobalInCode" checked onchange="onInputCodeOptionChange()"> <span>Autocontenido (Global + Local)</span></label>
                   <label><input type="checkbox" id="iuOptInlineVars" onchange="onInputCodeOptionChange()"> <span>Vars --ui-* inline</span></label>
                   <label><input type="checkbox" id="iuOptMultiline" checked onchange="onInputCodeOptionChange()"> <span>Multilínea</span></label>
+                </div>
+                <div class="iu-code-options" id="iuFbCodeOptions" style="display:none;">
+                  <label title="Cambia el tab PHP de _form() a llamadas individuales _input()"><input type="checkbox" id="fbOptIndividualInputs" onchange="updateFormBuilderCodeOutput()"> <span>Usar _input() individuales</span></label>
                 </div>
 
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -4109,6 +4629,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     const initialChartsHtmlMap = <?= json_encode($initialChartsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialChartsSampleData = <?= json_encode($initialChartsSampleData ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialInputsHtmlMap = <?= json_encode($initialInputsHtmlMap ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const JIT_CLASSES_CATALOG = <?= json_encode($jitCatalog ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const initialJitPreviewCss = <?= json_encode($initialJitPreviewCss ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialIconsCatalog = <?= json_encode($initialIconsCatalog ?? ['totalIcons' => 0, 'totalFolders' => 0, 'primaryDir' => 'Resources/Ico', 'folders' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     let fullThemeConfig = JSON.parse(JSON.stringify(initialFullConfig));
@@ -4117,6 +4639,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     let themeConfig = JSON.parse(JSON.stringify(initialConfig));
     let currentPreviewMode = 'light'; // 'light' o 'dark'
     let currentViewportWidth = '100%';
+    let currentTabId = 'themes';
+    let isRestoringWorkspace = true;
     let iframeThemeObserver = null;
 
     const DEFAULT_MEDIA_QUERIES = [
@@ -4275,6 +4799,17 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       applySandboxStyles();
       // 8. Actualizar visor JSON
       updateJsonViewer();
+      // 9. Vincular persistencia de desplazamiento en pestañas de barra lateral y restaurar espacio de trabajo
+      document.querySelectorAll('.ts-tab-content').forEach((tabEl) => {
+        if (tabEl.dataset.wsScrollBound) return;
+        tabEl.dataset.wsScrollBound = '1';
+        let sbScrollTimer = null;
+        tabEl.addEventListener('scroll', () => {
+          clearTimeout(sbScrollTimer);
+          sbScrollTimer = setTimeout(saveWorkspaceState, 180);
+        });
+      });
+      restoreWorkspaceState();
     }
 
     // ==============================================================
@@ -4830,10 +5365,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       }
       const frame = document.getElementById('projectPreviewFrame');
       const routeInput = document.getElementById('projectRouteInput');
+      const routeSel = document.getElementById('projectRouteSelect');
       if (routeInput) routeInput.value = routeUri;
+      if (routeSel && Array.from(routeSel.options).some(o => o.value === routeUri)) {
+        routeSel.value = routeUri;
+      }
       if (frame) {
         frame.src = routeUri;
       }
+      saveWorkspaceState();
     }
 
     function reloadProjectView() {
@@ -5869,28 +6409,40 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       }
 
       applySandboxStyles();
+      saveWorkspaceState();
     }
 
-    function toggleSidebar() {
+    function toggleSidebar(forceState = null) {
       const sidebar = document.querySelector('.ts-sidebar');
       const btn = document.getElementById('btnToggleSidebar');
       if (!sidebar) return;
-      const isCollapsed = sidebar.classList.toggle('collapsed');
+      const isCollapsed = (typeof forceState === 'boolean')
+        ? sidebar.classList.toggle('collapsed', forceState)
+        : sidebar.classList.toggle('collapsed');
       if (btn) {
         btn.innerHTML = isCollapsed ? '▶ Panel' : '◀ Panel';
         btn.title = isCollapsed ? 'Mostrar panel lateral de configuración' : 'Ocultar panel lateral';
       }
+      saveWorkspaceState();
     }
 
     function setViewport(width, btnEl) {
-      currentViewportWidth = width;
+      currentViewportWidth = width || '100%';
       const windowEl = document.getElementById('sandboxWindow');
-      windowEl.style.maxWidth = width;
+      if (windowEl) windowEl.style.maxWidth = currentViewportWidth;
       document.querySelectorAll('.ts-view-btn').forEach(btn => btn.classList.remove('active'));
       if (btnEl) {
         btnEl.classList.add('active');
-      } else if (typeof event !== 'undefined' && event.target) {
-        event.target.classList.add('active');
+      } else {
+        const matchedBtn = Array.from(document.querySelectorAll('.ts-view-btn')).find((b) => {
+          const oncl = b.getAttribute('onclick') || '';
+          return oncl.includes(`'${currentViewportWidth}'`) || oncl.includes(`"${currentViewportWidth}"`);
+        });
+        if (matchedBtn) {
+          matchedBtn.classList.add('active');
+        } else if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
+          event.target.classList.add('active');
+        }
       }
       if (iframeScrollInstance) {
         setTimeout(() => iframeScrollInstance.refresh(), 260);
@@ -5899,36 +6451,41 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         refitAllChartsInSandbox();
         setTimeout(refitAllChartsInSandbox, 270);
       } else if (currentStageMode === 'inputs') {
-        const pxMatch = String(width || '').match(/^(\d+)px$/i);
+        const pxMatch = String(currentViewportWidth || '').match(/^(\d+)px$/i);
         const autoMobile = !!(pxMatch && parseInt(pxMatch[1], 10) <= 576);
         const inputView = document.getElementById('inputSandboxView');
         const activeTouch = inputSandboxTouchSim || autoMobile;
         if (inputView) inputView.classList.toggle('is-touch-simulated', activeTouch);
         document.body.classList.toggle('is-touch-simulated', activeTouch);
+        if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+          setTimeout(() => window.FmeUi.syncAllFloatingScrolls(), 260);
+        }
       }
+      saveWorkspaceState();
     }
 
     function switchTab(tabId, btnEl) {
+      currentTabId = tabId || 'themes';
       document.querySelectorAll('.ts-tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.ts-tab-content').forEach(c => c.classList.remove('active'));
-      
-      if (btnEl) {
-        btnEl.classList.add('active');
-      } else if (typeof event !== 'undefined' && event.target) {
-        event.target.classList.add('active');
+
+      const resolvedBtn = btnEl || document.querySelector(`.ts-tab-btn[data-tab-id="${currentTabId}"]`) || (typeof event !== 'undefined' && event ? event.target : null);
+      if (resolvedBtn && resolvedBtn.classList) {
+        resolvedBtn.classList.add('active');
       }
-      const target = document.getElementById('tab-' + tabId);
+      const target = document.getElementById('tab-' + currentTabId);
       if (target) target.classList.add('active');
 
-      if (tabId === 'json') {
+      if (currentTabId === 'json') {
         updateJsonViewer();
-      } else if (tabId === 'charts') {
+      } else if (currentTabId === 'charts') {
         setStageMode('charts');
-      } else if (tabId === 'inputs') {
+      } else if (currentTabId === 'inputs') {
         setStageMode('inputs');
-      } else if (tabId === 'icons') {
+      } else if (currentTabId === 'icons') {
         setStageMode('icons');
       }
+      saveWorkspaceState();
     }
 
     function updateJsonViewer() {
@@ -6124,7 +6681,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       requestChartRender('all', true);
       requestInputRender('all', true);
 
-      showToast(`🎨 Tema cargado: ${themeConfig.name || slug}`);
+      if (!isRestoringWorkspace) {
+        showToast(`🎨 Tema cargado: ${themeConfig.name || slug}`);
+      }
+      saveWorkspaceState();
     }
 
     function toggleScheduleForm(show) {
@@ -6877,14 +7437,21 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         }, 20);
       } else if (currentStageMode === 'inputs') {
         injectLiveThemeIntoInputSandbox();
-        renderInputSandboxFromCache();
-        setTimeout(() => {
-          initInputSandboxDom();
-        }, 20);
+        if (inputSandboxViewMode === 'formBuilder') {
+          renderFormBuilderView();
+          renderFormBuilderInspector();
+          requestFormBuilderRender();
+        } else {
+          renderInputSandboxFromCache();
+          setTimeout(() => {
+            initInputSandboxDom();
+          }, 20);
+        }
       } else if (currentStageMode === 'icons') {
         injectLiveThemeIntoIconSandbox();
         refreshIconsCatalog(false);
       }
+      saveWorkspaceState();
     }
 
     function setChartSandboxViewMode(viewMode) {
@@ -6906,6 +7473,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const container = chartSandboxViewMode === 'gallery' ? galleryEl : focusedEl;
         initRenderedCharts(container);
       }, 20);
+      saveWorkspaceState();
     }
 
     function setFocusedCardWidth(widthVal) {
@@ -6916,11 +7484,13 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         refitAllChartsInSandbox(card);
         setTimeout(() => refitAllChartsInSandbox(card), 270);
       }
+      saveWorkspaceState();
     }
 
     function setChartCardSurface(surfaceVal) {
       chartCardSurface = surfaceVal || 'var(--body)';
       injectLiveThemeIntoChartSandbox();
+      saveWorkspaceState();
     }
 
     function setChartScope(scope) {
@@ -6968,6 +7538,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           initRenderedCharts(focusedEl);
         }
       }
+      saveWorkspaceState();
     }
 
     function getLocalOverridesMap(createIfMissing = false) {
@@ -7837,6 +8408,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (!dock) return;
       const collapsed = dock.classList.toggle('collapsed');
       if (btn) btn.textContent = collapsed ? '▸' : '▾';
+      saveWorkspaceState();
     }
 
     function toPhpLiteral(val, indentLevel = 0) {
@@ -8630,6 +9202,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       surfaceText: 'texto',
       surfaceMuted: 'text-inactive',
       surfaceBorder: 'textc',
+      placeholderColor: 'text-inactive',
+      placeholderSize: 14,
+      secondaryText: 'text-inactive',
+      secondaryFontSize: 12,
       btnPrimaryBg: 'back6',
       btnPrimaryText: 'textw',
       btnPrimaryBorder: 'transparent',
@@ -8646,6 +9222,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       radius: 15,
       touchSize: 44,
       fontSize: 14,
+      width: '100%',
+      gap: 8,
+      fieldGap: 14,
+      boxPadding: 12,
+      thumbSize: 80,
+      hideScrollbar: false,
+      scrollbarColor: 'color2',
+      scrollbarWidth: 6,
       shadow: 'soft',
       blur: 10,
       mobileSheet: true,
@@ -8653,11 +9237,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     };
 
     const INPUT_PRESETS = {
-      soft: { preset: 'soft', radius: 15, fontSize: 14, shadow: 'soft', blur: 8, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
-      minimal: { preset: 'minimal', radius: 8, fontSize: 14, shadow: 'none', blur: 0, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2' },
-      glass: { preset: 'glass', radius: 18, fontSize: 14, shadow: 'glass', blur: 16, touchSize: 46, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
-      pill: { preset: 'pill', radius: 28, fontSize: 15, shadow: 'soft', blur: 10, touchSize: 46, borderWidth: 0, focusOutline: false, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent' },
-      elevated: { preset: 'elevated', radius: 14, fontSize: 15, shadow: 'medium', blur: 12, touchSize: 44, borderWidth: 1, focusOutline: true, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2' }
+      soft: { preset: 'soft', radius: 15, fontSize: 14, placeholderSize: 14, secondaryFontSize: 12, shadow: 'soft', blur: 8, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent', placeholderColor: 'text-inactive', secondaryText: 'text-inactive', scrollbarColor: 'color2', width: '100%', gap: 8, fieldGap: 14, boxPadding: 12, thumbSize: 80, scrollbarWidth: 6, hideScrollbar: false },
+      minimal: { preset: 'minimal', radius: 8, fontSize: 14, placeholderSize: 14, secondaryFontSize: 12, shadow: 'none', blur: 0, touchSize: 44, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2', placeholderColor: 'text-inactive', secondaryText: 'text-inactive', scrollbarColor: 'color8', width: '100%', gap: 6, fieldGap: 12, boxPadding: 10, thumbSize: 72, scrollbarWidth: 5, hideScrollbar: false },
+      glass: { preset: 'glass', radius: 18, fontSize: 14, placeholderSize: 14, secondaryFontSize: 12, shadow: 'glass', blur: 16, touchSize: 46, borderWidth: 1, focusOutline: false, triggerBorder: 'textc', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent', placeholderColor: 'text-inactive', secondaryText: 'text-inactive', scrollbarColor: 'color5', width: '100%', gap: 8, fieldGap: 14, boxPadding: 14, thumbSize: 84, scrollbarWidth: 6, hideScrollbar: false },
+      pill: { preset: 'pill', radius: 28, fontSize: 15, placeholderSize: 15, secondaryFontSize: 12, shadow: 'soft', blur: 10, touchSize: 46, borderWidth: 0, focusOutline: false, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'transparent', placeholderColor: 'text-inactive', secondaryText: 'text-inactive', scrollbarColor: 'color6', width: '100%', gap: 10, fieldGap: 16, boxPadding: 14, thumbSize: 84, scrollbarWidth: 6, hideScrollbar: false },
+      elevated: { preset: 'elevated', radius: 14, fontSize: 15, placeholderSize: 15, secondaryFontSize: 12, shadow: 'medium', blur: 12, touchSize: 44, borderWidth: 1, focusOutline: true, triggerBorder: 'transparent', surfaceBorder: 'textc', btnPrimaryBorder: 'transparent', btnSecondaryBorder: 'border2', placeholderColor: '#94a3b8', secondaryText: '#94a3b8', scrollbarColor: '#38bdf8', width: '100%', gap: 8, fieldGap: 16, boxPadding: 14, thumbSize: 84, scrollbarWidth: 6, hideScrollbar: false }
     };
 
     const INPUT_SHADOW_MAP = {
@@ -8675,6 +9259,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       surfaceText: '--ui-surface-text',
       surfaceMuted: '--ui-surface-muted',
       surfaceBorder: '--ui-surface-border',
+      placeholderColor: '--ui-placeholder-color',
+      secondaryText: '--ui-secondary-text',
       btnPrimaryBg: '--ui-btn-primary-bg',
       btnPrimaryText: '--ui-btn-primary-text',
       btnPrimaryBorder: '--ui-btn-primary-border',
@@ -8685,6 +9271,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       accentText: '--ui-accent-text',
       trackBg: '--ui-track-bg',
       thumbBg: '--ui-thumb-bg',
+      scrollbarColor: '--ui-scrollbar-color',
       focusRing: '--ui-focus-ring'
     };
 
@@ -8693,6 +9280,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       triggerText: 'Texto Campo',
       surfaceMuted: 'Texto Guía / Muted',
       triggerBorder: 'Borde Campo',
+      placeholderColor: 'Color Placeholder',
+      secondaryText: 'Texto Secundario',
       surfaceBg: 'Fondo Modal',
       surfaceText: 'Texto Modal',
       surfaceBorder: 'Borde Modal',
@@ -8706,7 +9295,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       accentColor: 'Fondo Acento',
       accentText: 'Texto Acento',
       trackBg: 'Fondo Carril',
-      thumbBg: 'Círculo / Thumb'
+      thumbBg: 'Círculo / Thumb',
+      scrollbarColor: 'Color Barra Scroll'
     };
 
     const INPUT_CATALOG = [
@@ -8725,18 +9315,22 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       { type: 'ratingInput', title: 'Rating / Estrellas', icon: '★', legacyCompat: false, defaultLabel: 'Calificación' },
       { type: 'fileDropzone', title: 'File Dropzone', icon: '📎', legacyCompat: false, defaultLabel: 'Adjuntar documentos', hasHiddenPreview: true, hiddenPreviewLabel: 'Lista de archivos adjuntos' },
       { type: 'repeatCamp', title: 'Repetibles +', icon: '➕', legacyCompat: false, defaultLabel: 'Opciones dinámicas' },
-      { type: 'textLimiter', title: 'Límite Texto', icon: '📝', legacyCompat: false, defaultLabel: 'Descripción corta' }
+      { type: 'textLimiter', title: 'Límite Texto', icon: '📝', legacyCompat: false, defaultLabel: 'Descripción corta' },
+      { type: 'textInput', title: 'Input Texto', icon: '🔤', legacyCompat: false, defaultLabel: 'Nombre completo' },
+      { type: 'textareaInput', title: 'Textarea UI', icon: '📄', legacyCompat: false, defaultLabel: 'Mensaje / Comentario' },
+      { type: 'submitButton', title: 'Botón Submit', icon: '🚀', legacyCompat: false, defaultLabel: '' }
     ];
 
     let activeInputType = 'cropImage';
     let activeInputDesignScope = 'global'; // 'global' | 'local'
     let activeInputSubTab = 'global'; // 'global' | 'local' | 'attrs'
     let focusedInputTokenProp = 'triggerBg';
-    let inputSandboxViewMode = 'gallery'; // 'gallery' | 'focused'
+    let inputSandboxViewMode = 'gallery'; // 'gallery' | 'focused' | 'formBuilder'
     let inputSandboxTouchSim = false;
     let inputStageSurface = 'var(--body)';
     let inputFocusedWidth = '100%';
     let inputCodeFormat = 'php'; // 'php' | 'html' | 'global'
+    let iuColorDockCollapsed = false;
 
     let inputsHtmlCache = Object.assign({}, initialInputsHtmlMap || {});
     let inputCodeCache = { htmlSnippet: '', phpSnippet: '', globalSnippet: '' };
@@ -8750,6 +9344,23 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    function applyJitPreviewCss(cssText) {
+      const styleEl = document.getElementById('tsJitLivePreviewCss');
+      if (styleEl && typeof cssText === 'string') {
+        styleEl.textContent = cssText;
+      }
+    }
+
+    function sanitizeWidthCss(rawVal) {
+      const val = String(rawVal || '').trim();
+      if (!val) return '100%';
+      const lower = val.toLowerCase();
+      if (['auto', 'fit-content', 'min-content', 'max-content'].includes(lower)) return lower;
+      if (/^\d{1,4}(?:\.\d{1,2})?$/.test(val)) return `${val}px`;
+      if (/^\d{1,4}(?:\.\d{1,2})?(?:%|px|rem|em|vw|vh|dvw|dvh|ch)$/i.test(val)) return lower;
+      return '100%';
     }
 
     function ensureInputsConfig() {
@@ -8870,6 +9481,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         `  --ui-surface-text: ${resolveUiTokenToCss(cfg.surfaceText)}${imp};`,
         `  --ui-surface-muted: ${resolveUiTokenToCss(cfg.surfaceMuted || 'text-inactive')}${imp};`,
         `  --ui-surface-border: ${resolveUiTokenToCss(cfg.surfaceBorder)}${imp};`,
+        `  --ui-placeholder-color: ${resolveUiTokenToCss(cfg.placeholderColor || cfg.surfaceMuted || 'text-inactive')}${imp};`,
+        `  --ui-placeholder-size: ${parseInt(cfg.placeholderSize ?? cfg.fontSize ?? 14, 10) || 14}px${imp};`,
+        `  --ui-secondary-text: ${resolveUiTokenToCss(cfg.secondaryText || cfg.surfaceMuted || 'text-inactive')}${imp};`,
+        `  --ui-secondary-font-size: ${parseInt(cfg.secondaryFontSize ?? 12, 10) || 12}px${imp};`,
         `  --ui-surface-shadow: ${shadowVal}${imp};`,
         `  --ui-btn-primary-bg: ${resolveUiTokenToCss(cfg.btnPrimaryBg)}${imp};`,
         `  --ui-btn-primary-text: ${resolveUiTokenToCss(cfg.btnPrimaryText)}${imp};`,
@@ -8887,6 +9502,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         `  --ui-radius: ${parseInt(cfg.radius ?? 15, 10) || 0}px${imp};`,
         `  --ui-touch-size: ${parseInt(cfg.touchSize ?? 44, 10) || 44}px${imp};`,
         `  --ui-font-size: ${parseInt(cfg.fontSize ?? 14, 10) || 14}px${imp};`,
+        `  --ui-width: ${sanitizeWidthCss(cfg.width || '100%')}${imp};`,
+        `  --ui-gap: ${parseInt(cfg.gap ?? 8, 10) || 8}px${imp};`,
+        `  --ui-field-gap: ${parseInt(cfg.fieldGap ?? 14, 10) || 14}px${imp};`,
+        `  --ui-box-padding: ${parseInt(cfg.boxPadding ?? 12, 10) || 12}px${imp};`,
+        `  --ui-thumb-size: ${parseInt(cfg.thumbSize ?? 80, 10) || 80}px${imp};`,
+        `  --ui-scrollbar-display: ${cfg.hideScrollbar ? 'none' : 'block'}${imp};`,
+        `  --ui-scrollbar-color: ${resolveUiTokenToCss(cfg.scrollbarColor || cfg.accentColor || 'color2')}${imp};`,
+        `  --ui-scrollbar-width: ${parseInt(cfg.scrollbarWidth ?? 6, 10) || 6}px${imp};`,
         `  --ui-overlay-blur: ${parseInt(cfg.blur ?? 10, 10) || 0}px${imp};`,
         `  --ui-transition: ${parseInt(cfg.transition ?? 250, 10) || 250}ms${imp};`
       ];
@@ -8909,8 +9532,37 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         if (inlineHost) targets.push(inlineHost);
       }
 
+      const pxNumericVars = {
+        borderWidth: '--ui-border-width',
+        radius: '--ui-radius',
+        touchSize: '--ui-touch-size',
+        fontSize: '--ui-font-size',
+        placeholderSize: '--ui-placeholder-size',
+        secondaryFontSize: '--ui-secondary-font-size',
+        gap: '--ui-gap',
+        fieldGap: '--ui-field-gap',
+        boxPadding: '--ui-box-padding',
+        thumbSize: '--ui-thumb-size',
+        scrollbarWidth: '--ui-scrollbar-width',
+        blur: '--ui-overlay-blur',
+        chipRadius: '--ui-chip-radius',
+        starSize: '--ui-star-size',
+        dropzoneMinHeight: '--ui-dropzone-min-height',
+        dropzoneIconSize: '--ui-dropzone-icon-size',
+        sliderTrackHeight: '--ui-slider-track-height',
+        sliderThumbSize: '--ui-slider-thumb-size',
+        otpCellSize: '--ui-otp-cell-size',
+        maxHeight: '--ui-tp-max-height'
+      };
+
+      const colorMicroVars = {
+        removeBg: '--ui-remove-bg',
+        removeColor: '--ui-remove-color',
+        removeBorder: '--ui-remove-border'
+      };
+
       targets.forEach((container) => {
-        const comps = container.querySelectorAll('.ui-input-component, .ui-field-card, .ui-field-label, .repeat-group, .repeat-container, .js-crop-img-mask, .js-load-img-mask, .ui-dp-trigger-wrap, .ui-dp-input-display, .dropdown-select, .dropdown-selected, .ui-password-wrap, .ui-otp-group, .ui-tags-box, .ui-stepper, .ui-rating, .ui-range-wrap, .ui-dropzone-wrap, .checkbox-switch-container, .crop-modal-card, .custom-color-picker-popover, .ui-dp-popover, .dropdown-options, .tl-counter');
+        const comps = container.querySelectorAll('.ui-input-component, .ui-field-card, .ui-field-group, .ui-field-label, .ui-field-helper, .ui-text-input-wrap, .ui-text-input, .ui-textarea, .ui-submit-btn, .repeat-group, .repeat-container, .repeat-rows-wrap, .js-crop-img-mask, .js-load-img-mask, .ui-dp-trigger-wrap, .ui-dp-input-display, .dropdown-select, .dropdown-selected, .ui-password-wrap, .ui-otp-group, .ui-tags-box, .ui-stepper, .ui-rating, .ui-rating-icon-box, .ui-rating-value, .ui-range-wrap, .ui-dropzone-wrap, .checkbox-switch-container, .crop-modal-card, .custom-color-picker-popover, .ui-dp-popover, .ui-tp-col, .dropdown-options, .tl-counter');
         const nodes = [container, ...Array.from(comps)];
         nodes.forEach((node) => {
           if (!node || !node.style) return;
@@ -8921,10 +9573,34 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
               node.style.removeProperty(cssVar);
             }
           });
-          if (hasAnyLocal && local.borderWidth !== undefined && local.borderWidth !== '') {
-            node.style.setProperty('--ui-border-width', `${parseInt(local.borderWidth, 10) || 0}px`);
+          Object.entries(colorMicroVars).forEach(([prop, cssVar]) => {
+            if (hasAnyLocal && local[prop] !== undefined && local[prop] !== '') {
+              node.style.setProperty(cssVar, resolveUiTokenToCss(local[prop]));
+            } else {
+              node.style.removeProperty(cssVar);
+            }
+          });
+          Object.entries(pxNumericVars).forEach(([prop, cssVar]) => {
+            if (hasAnyLocal && local[prop] !== undefined && local[prop] !== '') {
+              const numVal = parseInt(local[prop], 10);
+              if (Number.isFinite(numVal)) node.style.setProperty(cssVar, `${numVal}px`);
+            } else {
+              node.style.removeProperty(cssVar);
+            }
+          });
+          if (hasAnyLocal && local.width !== undefined && local.width !== '') {
+            node.style.setProperty('--ui-width', sanitizeWidthCss(local.width));
           } else {
-            node.style.removeProperty('--ui-border-width');
+            node.style.removeProperty('--ui-width');
+          }
+          if (hasAnyLocal && local.hideScrollbar !== undefined && local.hideScrollbar !== '') {
+            node.style.setProperty('--ui-scrollbar-display', local.hideScrollbar ? 'none' : 'block');
+            if (node.dataset) node.dataset.hideScrollbar = local.hideScrollbar ? 'true' : 'false';
+          } else {
+            node.style.removeProperty('--ui-scrollbar-display');
+            if (node.dataset && node.dataset.hideScrollbar !== undefined) {
+              delete node.dataset.hideScrollbar;
+            }
           }
           if (hasAnyLocal && (local.focusOutline !== undefined || local.focusRing !== undefined)) {
             const fo = local.focusOutline !== undefined ? !!local.focusOutline : !!cfg.focusOutline;
@@ -8933,30 +9609,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           } else {
             node.style.removeProperty('--ui-focus-outline');
           }
-          if (hasAnyLocal && local.radius !== undefined && local.radius !== '') {
-            node.style.setProperty('--ui-radius', `${parseInt(local.radius, 10) || 0}px`);
-          } else {
-            node.style.removeProperty('--ui-radius');
-          }
-          if (hasAnyLocal && local.touchSize !== undefined && local.touchSize !== '') {
-            node.style.setProperty('--ui-touch-size', `${parseInt(local.touchSize, 10) || 44}px`);
-          } else {
-            node.style.removeProperty('--ui-touch-size');
-          }
-          if (hasAnyLocal && local.fontSize !== undefined && local.fontSize !== '') {
-            node.style.setProperty('--ui-font-size', `${parseInt(local.fontSize, 10) || 14}px`);
-          } else {
-            node.style.removeProperty('--ui-font-size');
-          }
           if (hasAnyLocal && local.shadow !== undefined && local.shadow !== '') {
             node.style.setProperty('--ui-surface-shadow', INPUT_SHADOW_MAP[String(local.shadow).toLowerCase()] || INPUT_SHADOW_MAP.soft);
           } else {
             node.style.removeProperty('--ui-surface-shadow');
           }
-          if (hasAnyLocal && local.blur !== undefined && local.blur !== '') {
-            node.style.setProperty('--ui-overlay-blur', `${parseInt(local.blur, 10) || 0}px`);
+          if (hasAnyLocal && local.dropzoneBorderStyle) {
+            node.style.setProperty('--ui-dropzone-border-style', String(local.dropzoneBorderStyle));
           } else {
-            node.style.removeProperty('--ui-overlay-blur');
+            node.style.removeProperty('--ui-dropzone-border-style');
           }
         });
       });
@@ -8972,6 +9633,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           '--ui-surface-text': resolveUiTokenToCss(merged.surfaceText),
           '--ui-surface-muted': resolveUiTokenToCss(merged.surfaceMuted),
           '--ui-surface-border': resolveUiTokenToCss(merged.surfaceBorder),
+          '--ui-placeholder-color': resolveUiTokenToCss(merged.placeholderColor || merged.surfaceMuted || 'text-inactive'),
+          '--ui-placeholder-size': `${parseInt(merged.placeholderSize ?? 14, 10) || 14}px`,
+          '--ui-secondary-text': resolveUiTokenToCss(merged.secondaryText || merged.surfaceMuted || 'text-inactive'),
+          '--ui-secondary-font-size': `${parseInt(merged.secondaryFontSize ?? 12, 10) || 12}px`,
           '--ui-surface-shadow': INPUT_SHADOW_MAP[String(merged.shadow || 'soft').toLowerCase()] || INPUT_SHADOW_MAP.soft,
           '--ui-btn-primary-bg': resolveUiTokenToCss(merged.btnPrimaryBg),
           '--ui-btn-primary-text': resolveUiTokenToCss(merged.btnPrimaryText),
@@ -8987,10 +9652,19 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           '--ui-radius': `${parseInt(merged.radius ?? 15, 10) || 0}px`,
           '--ui-touch-size': `${parseInt(merged.touchSize ?? 44, 10) || 44}px`,
           '--ui-font-size': `${parseInt(merged.fontSize ?? 14, 10) || 14}px`,
+          '--ui-gap': `${parseInt(merged.gap ?? 8, 10) || 8}px`,
+          '--ui-box-padding': `${parseInt(merged.boxPadding ?? 12, 10) || 12}px`,
+          '--ui-scrollbar-display': merged.hideScrollbar ? 'none' : 'block',
+          '--ui-scrollbar-color': resolveUiTokenToCss(merged.scrollbarColor || merged.accentColor || 'color2'),
+          '--ui-scrollbar-width': `${parseInt(merged.scrollbarWidth ?? 6, 10) || 6}px`,
           '--ui-overlay-blur': `${parseInt(merged.blur ?? 10, 10) || 0}px`
         };
         Object.entries(cssVarMap).forEach(([vn, vv]) => portal.style.setProperty(vn, vv));
       });
+
+      if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+        requestAnimationFrame(() => window.FmeUi.syncAllFloatingScrolls());
+      }
     }
 
     function injectLiveThemeIntoInputSandbox() {
@@ -9055,6 +9729,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         document.head.appendChild(styleEl);
       }
       styleEl.textContent = css;
+
+      if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+        requestAnimationFrame(() => window.FmeUi.syncAllFloatingScrolls());
+      }
     }
 
     function getEffectiveInputDesignConfig() {
@@ -9103,8 +9781,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const hasLocal = !!(cfg.localOverrides && cfg.localOverrides[item.type] && Object.keys(cfg.localOverrides[item.type]).length > 0);
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'cs-type-btn' + (item.type === activeInputType ? ' active' : '');
-        btn.innerHTML = `<span>${item.icon}</span><span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escIuHtml(item.title)}</span>${hasLocal ? '<span title="Tiene overrides locales" style="color:var(--ts-primary);">●</span>' : ''}`;
+        btn.className = 'iu-type-pill' + (item.type === activeInputType ? ' active' : '');
+        btn.title = `${item.title} (${item.type})`;
+        btn.innerHTML = `<span>${item.icon}</span><span>${escIuHtml(item.title)}</span>${hasLocal ? '<span class="iu-type-pill-dot" title="Tiene overrides locales">●</span>' : ''}`;
         btn.onclick = () => selectInputType(item.type, true);
         grid.appendChild(btn);
       });
@@ -9117,6 +9796,32 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (subBadge) subBadge.textContent = activeInputType;
     }
 
+    function toggleIuColorChipsAccordion(forceCollapsed = null) {
+      const dock = document.getElementById('iuFloatingColorDock');
+      const btn = document.getElementById('btnToggleIuColorDock');
+      if (!dock) return;
+      iuColorDockCollapsed = (typeof forceCollapsed === 'boolean')
+        ? forceCollapsed
+        : !iuColorDockCollapsed;
+      dock.classList.toggle('is-collapsed', iuColorDockCollapsed);
+      if (btn) {
+        btn.textContent = iuColorDockCollapsed ? '▸ Colores' : '▾ Ocultar';
+        btn.setAttribute('aria-expanded', iuColorDockCollapsed ? 'false' : 'true');
+      }
+      saveWorkspaceState();
+    }
+
+    function syncActiveInputColorChip() {
+      const container = document.getElementById('iuColorChips');
+      if (!container) return;
+      const effective = getEffectiveInputDesignConfig();
+      const curVal = String(effective[focusedInputTokenProp] || '').trim().toLowerCase();
+      container.querySelectorAll('.cs-color-chip').forEach((chip) => {
+        const tok = String(chip.dataset.colorToken || '').toLowerCase();
+        chip.classList.toggle('active', tok !== '' && tok === curVal);
+      });
+    }
+
     function setFocusedInputTokenProp(prop) {
       if (!prop || !INPUT_PROP_TO_CSS_VAR[prop]) return;
       focusedInputTokenProp = prop;
@@ -9125,6 +9830,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       document.querySelectorAll('[data-iu-prop]').forEach((el) => {
         el.classList.toggle('iu-token-focused', el.getAttribute('data-iu-prop') === prop);
       });
+      syncActiveInputColorChip();
     }
 
     function applySystemColorToFocusedToken(token) {
@@ -9133,6 +9839,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       setInputDesignProp(prop, token);
       if (targetEl) targetEl.value = token;
       syncInputStudioForm();
+      syncActiveInputColorChip();
     }
 
     function renderInputColorChips() {
@@ -9162,11 +9869,70 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const el = document.createElement('button');
         el.type = 'button';
         el.className = 'cs-color-chip';
+        el.dataset.colorToken = ch.token;
         el.title = `Aplicar token ${ch.token} (${ch.hex}) al campo seleccionado`;
-        el.innerHTML = `<span class="cs-color-dot" style="background:${ch.hex}"></span><span>${ch.token}</span>`;
+        el.innerHTML = `<span class="cs-chip-dot" style="background:${ch.hex}"></span><span>${ch.token}</span>`;
         el.onclick = () => applySystemColorToFocusedToken(ch.token);
         container.appendChild(el);
       });
+      syncActiveInputColorChip();
+    }
+
+    // Asistente Visual de Clases CSS JIT
+    function toggleJitAssistant(inputId, btnEl) {
+      const inputEl = document.getElementById(inputId);
+      if (!inputEl) return;
+      const hostWrap = inputEl.closest('.iu-jit-input-wrap') || inputEl.parentElement;
+      if (!hostWrap || !hostWrap.parentElement) return;
+
+      const existing = hostWrap.parentElement.querySelector(`.iu-jit-popover[data-jit-for="${inputId}"]`);
+      document.querySelectorAll('.iu-jit-popover').forEach((pop) => pop.remove());
+      if (existing) return;
+
+      const pop = document.createElement('div');
+      pop.className = 'iu-jit-popover';
+      pop.dataset.jitFor = inputId;
+
+      const renderChips = () => {
+        const currentTokens = String(inputEl.value || '').trim().split(/\s+/).filter(Boolean);
+        pop.innerHTML = '';
+        Object.values(JIT_CLASSES_CATALOG || {}).forEach((cat) => {
+          const catBox = document.createElement('div');
+          const title = document.createElement('div');
+          title.className = 'iu-jit-cat-title';
+          title.textContent = cat.label || '';
+          catBox.appendChild(title);
+
+          const list = document.createElement('div');
+          list.className = 'iu-jit-chip-list';
+          (cat.classes || []).forEach((cls) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            const isActive = currentTokens.includes(cls);
+            chip.className = 'iu-jit-chip' + (isActive ? ' active' : '');
+            chip.textContent = cls;
+            chip.onclick = (ev) => {
+              ev.preventDefault();
+              const latest = String(inputEl.value || '').trim().split(/\s+/).filter(Boolean);
+              const idx = latest.indexOf(cls);
+              if (idx >= 0) {
+                latest.splice(idx, 1);
+              } else {
+                latest.push(cls);
+              }
+              inputEl.value = latest.join(' ');
+              inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+              renderChips();
+            };
+            list.appendChild(chip);
+          });
+          catBox.appendChild(list);
+          pop.appendChild(catBox);
+        });
+      };
+
+      renderChips();
+      hostWrap.insertAdjacentElement('afterend', pop);
     }
 
     function switchInputSubTab(tab) {
@@ -9191,6 +9957,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (localClassesBox) localClassesBox.style.display = (activeInputSubTab === 'local') ? 'flex' : 'none';
 
       syncInputStudioForm();
+      saveWorkspaceState();
     }
 
     function getActiveInputLocalConfig() {
@@ -9214,51 +9981,52 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       syncInputStudioForm();
     }
 
-    function renderSpecificInputAttrsPanel() {
-      const box = document.getElementById('iuSpecificAttrsContainer');
+    function renderSpecificInputAttrsPanelFor(box, compType, targetObj, changeCallFn) {
       if (!box) return;
-      const local = getActiveInputLocalConfig();
+      const local = targetObj || {};
+      const callExpr = (k, valExpr) => `${changeCallFn}('${k}', ${valExpr})`;
 
       const textField = (key, label, placeholder = '') => {
         const val = local[key] !== undefined ? String(local[key]) : '';
-        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="text" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value)"></div>`;
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="text" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="${callExpr(key, 'this.value')}"></div>`;
       };
       const textareaField = (key, label, placeholder = '') => {
         const val = local[key] !== undefined ? String(local[key]) : '';
-        return `<div class="ts-field"><label>${escIuHtml(label)}</label><textarea class="ts-input" rows="3" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value)">${escIuHtml(val)}</textarea></div>`;
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><textarea class="ts-input" rows="3" placeholder="${escIuHtml(placeholder)}" oninput="${callExpr(key, 'this.value')}">${escIuHtml(val)}</textarea></div>`;
       };
       const numField = (key, label, placeholder = '') => {
         const val = local[key] !== undefined ? String(local[key]) : '';
-        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="number" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="onInputLocalChange('${key}', this.value === '' ? null : Number(this.value))"></div>`;
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><input type="number" class="ts-input" value="${escIuHtml(val)}" placeholder="${escIuHtml(placeholder)}" oninput="${callExpr(key, "this.value === '' ? null : Number(this.value)")}"></div>`;
       };
       const selectField = (key, label, opts, defVal) => {
         const cur = local[key] !== undefined ? String(local[key]) : defVal;
-        return `<div class="ts-field"><label>${escIuHtml(label)}</label><select class="ts-input" onchange="onInputLocalChange('${key}', this.value)">${opts.map(o => `<option value="${escIuHtml(o.v)}" ${cur === o.v ? 'selected' : ''}>${escIuHtml(o.l)}</option>`).join('')}</select></div>`;
+        return `<div class="ts-field"><label>${escIuHtml(label)}</label><select class="ts-input" onchange="${callExpr(key, 'this.value')}">${opts.map(o => `<option value="${escIuHtml(o.v)}" ${cur === o.v ? 'selected' : ''}>${escIuHtml(o.l)}</option>`).join('')}</select></div>`;
       };
       const checkField = (key, label, defChecked = false) => {
         const checked = local[key] !== undefined ? !!local[key] : defChecked;
-        return `<label class="cs-check-row"><input type="checkbox" ${checked ? 'checked' : ''} onchange="onInputLocalChange('${key}', this.checked)"><span>${escIuHtml(label)}</span></label>`;
+        return `<label class="cs-check-row"><input type="checkbox" ${checked ? 'checked' : ''} onchange="${callExpr(key, 'this.checked')}"><span>${escIuHtml(label)}</span></label>`;
       };
 
       let html = '';
-      switch (activeInputType) {
+      switch (compType) {
         case 'cropImage':
           html = textField('croppingSize', 'Tamaño recorte (WxH)', '500x500')
             + textField('accept', 'Tipos aceptados (accept)', 'image/*')
             + selectField('cropShape', 'Forma de recorte', [{ v: 'square', l: 'Cuadrado / Rectangular' }, { v: 'circle', l: 'Circular (Avatar)' }], 'square')
             + textField('modalTitle', 'Título del modal', 'Recortar Imagen')
-            + `<div class="iu-color-pair">${textField('saveLabel', 'Texto botón Guardar', 'Recortar y Guardar')}${textField('cancelLabel', 'Texto botón Cancelar', 'Cancelar')}</div>`
+            + `<div class="iu-color-pair">${textField('saveLabel', 'Botón Guardar', 'Recortar y Guardar')}${textField('cancelLabel', 'Botón Cancelar', 'Cancelar')}</div>`
             + checkField('allowRotate', 'Mostrar botones rotar 90°', false)
             + checkField('noPreview', 'Ocultar miniatura previa (no-preview)', false);
           break;
         case 'loadImgModern':
           html = textField('accept', 'Tipos aceptados (accept)', 'image/*')
-            + `<div class="iu-color-pair">${numField('maxFiles', 'Máximo de archivos', '8')}${numField('maxSizeMb', 'Peso máximo (MB)', '10')}</div>`
+            + `<div class="iu-color-pair">${numField('maxFiles', 'Máx. archivos', '8')}${numField('maxSizeMb', 'Peso máx. (MB)', '10')}</div>`
             + checkField('multiple', 'Permitir múltiples archivos', true)
             + checkField('dropzone', 'Modo Dropzone visual', false);
           break;
         case 'colorPicker':
           html = textField('swatches', 'Muestras hex separadas por coma', '#EF4444,#F59E0B,#3B82F6')
+            + textField('defaultColor', 'Color predeterminado (defaultColor)', '#3B82F6')
             + checkField('showAlpha', 'Mostrar slider de opacidad (Alpha)', false);
           break;
         case 'checkboxSwitch':
@@ -9269,37 +10037,43 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           break;
         case 'dropdown':
           html = textareaField('options', 'Opciones (valor:Etiqueta separadas por coma o línea)', 'es:España, mx:México, ar:Argentina')
-            + textField('searchPlaceholder', 'Placeholder buscador', 'Buscar...')
+            + `<div class="iu-color-pair">${textField('searchPlaceholder', 'Placeholder buscador', 'Buscar...')}${textField('emptyText', 'Texto sin resultados', 'Sin coincidencias')}</div>`
+            + numField('maxHeight', 'Altura máx. lista (px)', '240')
             + checkField('searchable', 'Buscador interno', true)
             + checkField('clearable', 'Botón limpiar selección', false)
             + checkField('animated', 'Animación de entrada', false);
           break;
         case 'datePicker':
           html = selectField('mode', 'Modo calendario', [{ v: 'single', l: 'Fecha única' }, { v: 'range', l: 'Rango de fechas' }], 'single')
-            + selectField('format', 'Formato salida', [{ v: 'YYYY-MM-DD', l: 'ISO (YYYY-MM-DD)' }, { v: 'DD/MM/YYYY', l: 'DD/MM/YYYY' }], 'YYYY-MM-DD')
+            + `<div class="iu-color-pair">${selectField('format', 'Formato salida', [{ v: 'YYYY-MM-DD', l: 'ISO (YYYY-MM-DD)' }, { v: 'DD/MM/YYYY', l: 'DD/MM/YYYY' }], 'YYYY-MM-DD')}${selectField('weekStart', 'Inicio de semana', [{ v: 'monday', l: 'Lunes' }, { v: 'sunday', l: 'Domingo' }], 'monday')}</div>`
             + `<div class="iu-color-pair">${textField('min', 'Fecha mínima', '2026-01-01')}${textField('max', 'Fecha máxima', '2027-12-31')}</div>`
             + checkField('showPresets', 'Botones rápidos (Hoy / Últimos 7d)', false)
             + checkField('showTime', 'Incluir selector de hora', false);
           break;
         case 'timePicker':
-          html = selectField('timeFormat', 'Formato reloj', [{ v: '24h', l: '24 Horas' }, { v: '12h', l: '12 Horas (AM/PM)' }], '24h')
-            + numField('step', 'Intervalo minutos', '15');
+          html = `<div class="iu-color-pair">${selectField('timeFormat', 'Formato reloj', [{ v: '24h', l: '24 Horas' }, { v: '12h', l: '12 Horas (AM/PM)' }], '24h')}${numField('step', 'Intervalo min.', '15')}</div>`
+            + `<div class="iu-color-pair">${numField('maxHeight', 'Altura columnas (px)', '200')}${textField('min', 'Hora mín. (HH:MM)', '08:00')}</div>`
+            + textField('max', 'Hora máx. (HH:MM)', '20:00');
           break;
         case 'rangeSlider':
           html = selectField('mode', 'Tipo de rango', [{ v: 'single', l: 'Un manejador' }, { v: 'range', l: 'Doble rango (mín-máx)' }], 'single')
             + `<div class="iu-color-pair">${numField('min', 'Mínimo', '0')}${numField('max', 'Máximo', '100')}</div>`
             + `<div class="iu-color-pair">${numField('step', 'Paso', '1')}${textField('suffix', 'Sufijo (ej. %, $)', '')}</div>`
+            + `<div class="iu-color-pair">${numField('sliderTrackHeight', 'Alto pista (px)', '10')}${numField('sliderThumbSize', 'Tam. thumb (px)', '24')}</div>`
             + checkField('showTooltip', 'Burbuja flotante de valor', true);
           break;
         case 'passwordInput':
-          html = checkField('showStrength', 'Medidor de fortaleza de contraseña', false);
+          html = numField('minlength', 'Longitud mínima (minlength)', '8')
+            + checkField('showStrength', 'Medidor de fortaleza de contraseña', false);
           break;
         case 'otpCodeInput':
-          html = selectField('length', 'Cantidad dígitos', [{ v: '4', l: '4 dígitos' }, { v: '6', l: '6 dígitos' }, { v: '8', l: '8 dígitos' }], '6')
-            + selectField('inputMode', 'Teclado móvil', [{ v: 'numeric', l: 'Numérico' }, { v: 'text', l: 'Alfanumérico' }], 'numeric');
+          html = `<div class="iu-color-pair">${selectField('length', 'Cantidad dígitos', [{ v: '4', l: '4 dígitos' }, { v: '6', l: '6 dígitos' }, { v: '8', l: '8 dígitos' }], '6')}${numField('otpCellSize', 'Tamaño celda (px)', '44')}</div>`
+            + selectField('inputMode', 'Teclado móvil', [{ v: 'numeric', l: 'Numérico' }, { v: 'text', l: 'Alfanumérico' }], 'numeric')
+            + checkField('mask', 'Enmascarar dígitos (type=password)', false);
           break;
         case 'tagsInput':
-          html = `<div class="iu-color-pair">${numField('maxTags', 'Máx. etiquetas', '10')}${textField('separator', 'Delimitador', ',')}</div>`;
+          html = `<div class="iu-color-pair">${numField('maxTags', 'Máx. etiquetas', '10')}${textField('separator', 'Delimitador', ',')}</div>`
+            + numField('chipRadius', 'Radio chip (px, 999 pill)', '999');
           break;
         case 'stepperInput':
           html = `<div class="iu-color-pair">${numField('min', 'Mínimo', '0')}${numField('max', 'Máximo', '99')}</div>`
@@ -9307,23 +10081,58 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           break;
         case 'ratingInput':
           html = `<div class="iu-color-pair">${numField('max', 'Estrellas máx.', '5')}${selectField('icon', 'Icono', [{ v: 'star', l: 'Estrella ★' }, { v: 'heart', l: 'Corazón ♥' }], 'star')}</div>`
+            + numField('starSize', 'Tamaño icono (px)', '24')
             + checkField('allowHalf', 'Permitir medias (0.5)', false)
+            + checkField('showValue', 'Mostrar valor numérico', false)
             + checkField('clearable', 'Permitir limpiar haciendo clic de nuevo', false);
           break;
         case 'fileDropzone':
           html = textField('accept', 'MIME / Extensiones', '.pdf,.doc,.docx,.zip,image/*')
+            + textField('subtext', 'Subtítulo informativo (subtext)', 'PDF, JPG o PNG máx 10MB')
             + `<div class="iu-color-pair">${numField('maxFiles', 'Máx. archivos', '5')}${numField('maxSizeMb', 'Máx. MB', '10')}</div>`
+            + `<div class="iu-color-pair">${numField('dropzoneMinHeight', 'Altura mín. (px)', '130')}${selectField('dropzoneBorderStyle', 'Estilo borde', [{ v: 'dashed', l: 'Discontinuo (dashed)' }, { v: 'solid', l: 'Sólido (solid)' }, { v: 'dotted', l: 'Punteado (dotted)' }], 'dashed')}</div>`
+            + numField('dropzoneIconSize', 'Tamaño icono (px)', '32')
             + checkField('multiple', 'Permitir múltiples archivos', true);
           break;
         case 'repeatCamp':
-          html = `<div class="iu-color-pair">${numField('max', 'Máx. filas clonables', '8')}${textField('addLabel', 'Texto botón agregar', '+ Agrega otra opción')}</div>`;
+          html = `<div class="iu-color-pair">${numField('max', 'Máx. filas', '8')}${textField('addLabel', 'Texto botón agregar', '+ Agrega otra opción')}</div>`
+            + selectField('addVariant', 'Variante botón Agregar', [{ v: 'secondary', l: 'Secundario (Tema)' }, { v: 'primary', l: 'Primario (Destacado)' }], 'secondary')
+            + `<div class="iu-color-pair">${textField('removeBg', 'Fondo botón quitar', 'transparent')}${textField('removeColor', 'Texto botón quitar', 'text-inactive')}</div>`
+            + textField('removeBorder', 'Borde botón quitar', 'textc');
           break;
         case 'textLimiter':
           html = `<div class="iu-color-pair">${numField('limit', 'Límite máximo', '160')}${selectField('limitType', 'Unidad', [{ v: 'chars', l: 'Caracteres' }, { v: 'words', l: 'Palabras' }], 'chars')}</div>`
             + numField('rows', 'Filas del textarea', '3');
           break;
+        case 'textInput':
+          html = `<div class="iu-color-pair">${selectField('inputType', 'Tipo HTML (inputType)', [
+            { v: 'text', l: 'Texto (text)' },
+            { v: 'email', l: 'Email (email)' },
+            { v: 'tel', l: 'Teléfono (tel)' },
+            { v: 'number', l: 'Número (number)' },
+            { v: 'search', l: 'Búsqueda (search)' },
+            { v: 'url', l: 'URL (url)' }
+          ], 'text')}${textField('autocomplete', 'Autocomplete', 'name')}</div>`
+            + `<div class="iu-color-pair">${textField('icon', 'Icono SVG (/Ico)', '')}${selectField('iconPosition', 'Posición icono', [{ v: 'left', l: 'Izquierda' }, { v: 'right', l: 'Derecha' }], 'left')}</div>`
+            + `<div class="iu-color-pair">${numField('minlength', 'Mín. chars', '')}${numField('maxlength', 'Máx. chars', '')}</div>`
+            + textField('pattern', 'Patrón RegExp (pattern)', '');
+          break;
+        case 'textareaInput':
+          html = `<div class="iu-color-pair">${numField('rows', 'Filas visibles (rows)', '4')}${selectField('resize', 'Redimensión (resize)', [{ v: 'vertical', l: 'Vertical' }, { v: 'none', l: 'Fija (none)' }, { v: 'both', l: 'Libre (both)' }], 'vertical')}</div>`
+            + `<div class="iu-color-pair">${numField('minlength', 'Mín. chars', '')}${numField('maxlength', 'Máx. chars', '')}</div>`;
+          break;
+        case 'submitButton':
+          html = `<div class="iu-color-pair">${textField('text', 'Texto del botón', 'Enviar')}${selectField('variant', 'Variante', [{ v: 'primary', l: 'Primario (primary)' }, { v: 'secondary', l: 'Secundario (secondary)' }], 'primary')}</div>`
+            + `<div class="iu-color-pair">${selectField('buttonType', 'Tipo HTML', [{ v: 'submit', l: 'submit' }, { v: 'button', l: 'button' }, { v: 'reset', l: 'reset' }], 'submit')}${textField('icon', 'Icono SVG (/Ico)', '')}</div>`
+            + textField('loadingText', 'Texto al enviar (loadingText)', 'Procesando...');
+          break;
       }
       box.innerHTML = html;
+    }
+
+    function renderSpecificInputAttrsPanel() {
+      const box = document.getElementById('iuSpecificAttrsContainer');
+      renderSpecificInputAttrsPanelFor(box, activeInputType, getActiveInputLocalConfig(), 'onInputLocalChange');
     }
 
     function syncInputStudioForm() {
@@ -9360,34 +10169,42 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         if (/^#[0-9a-f]{6}$/i.test(hex)) picker.value = hex;
       });
 
-      const bwLbl = document.getElementById('iu_borderWidthVal');
-      if (bwLbl) bwLbl.textContent = (effective.borderWidth ?? 1) + 'px';
-
-      const radLbl = document.getElementById('iu_radiusVal');
-      if (radLbl) radLbl.textContent = (effective.radius ?? 15) + 'px';
-
-      const touchLbl = document.getElementById('iu_touchSizeVal');
-      if (touchLbl) touchLbl.textContent = (effective.touchSize ?? 44) + 'px';
-
-      const fsLbl = document.getElementById('iu_fontSizeVal');
-      if (fsLbl) fsLbl.textContent = (effective.fontSize ?? 14) + 'px';
-
-      const blurLbl = document.getElementById('iu_blurVal');
-      if (blurLbl) blurLbl.textContent = (effective.blur ?? 10) + 'px';
+      const badgeUnits = [
+        ['iu_borderWidthVal', effective.borderWidth ?? 1, 'px'],
+        ['iu_radiusVal', effective.radius ?? 15, 'px'],
+        ['iu_touchSizeVal', effective.touchSize ?? 44, 'px'],
+        ['iu_fontSizeVal', effective.fontSize ?? 14, 'px'],
+        ['iu_placeholderSizeVal', effective.placeholderSize ?? 14, 'px'],
+        ['iu_secondaryFontSizeVal', effective.secondaryFontSize ?? 12, 'px'],
+        ['iu_gapVal', effective.gap ?? 8, 'px'],
+        ['iu_fieldGapVal', effective.fieldGap ?? 14, 'px'],
+        ['iu_boxPaddingVal', effective.boxPadding ?? 12, 'px'],
+        ['iu_thumbSizeVal', effective.thumbSize ?? 80, 'px'],
+        ['iu_scrollbarWidthVal', effective.scrollbarWidth ?? 6, 'px'],
+        ['iu_blurVal', effective.blur ?? 10, 'px']
+      ];
+      badgeUnits.forEach(([id, v, unit]) => {
+        const lbl = document.getElementById(id);
+        if (lbl) lbl.textContent = v + unit;
+      });
 
       document.querySelectorAll('[data-iu-local]').forEach((el) => {
         const k = el.getAttribute('data-iu-local');
         el.value = local[k] !== undefined && local[k] !== null ? local[k] : '';
       });
 
-      const reqEl = document.getElementById('iuAttr_required');
-      const disEl = document.getElementById('iuAttr_disabled');
-      const roEl = document.getElementById('iuAttr_readonly');
-      const subEl = document.getElementById('iuAttr_autoSubmit');
-      if (reqEl) reqEl.checked = !!local.required;
-      if (disEl) disEl.checked = !!local.disabled;
-      if (roEl) roEl.checked = !!local.readonly;
-      if (subEl) subEl.checked = !!local.autoSubmit;
+      const attrChecks = {
+        iuAttr_required: !!local.required,
+        iuAttr_disabled: !!local.disabled,
+        iuAttr_readonly: !!local.readonly,
+        iuAttr_autoSubmit: !!local.autoSubmit,
+        iuAttr_noAutoSubmit: !!local.noAutoSubmit,
+        iuAttr_processAutoSubmit: !!local.processAutoSubmit
+      };
+      Object.entries(attrChecks).forEach(([id, state]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = state;
+      });
 
       const legacyBox = document.getElementById('iuLegacyCompatGroup');
       if (legacyBox) {
@@ -9399,31 +10216,47 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
       renderSpecificInputAttrsPanel();
       updateInputWcagBadges();
+      syncActiveInputColorChip();
+    }
+
+    function updateInputRangeBadge(key, value) {
+      const defaultsMap = {
+        borderWidth: ['iu_borderWidthVal', 1],
+        radius: ['iu_radiusVal', 15],
+        touchSize: ['iu_touchSizeVal', 44],
+        fontSize: ['iu_fontSizeVal', 14],
+        placeholderSize: ['iu_placeholderSizeVal', 14],
+        secondaryFontSize: ['iu_secondaryFontSizeVal', 12],
+        gap: ['iu_gapVal', 8],
+        fieldGap: ['iu_fieldGapVal', 14],
+        boxPadding: ['iu_boxPaddingVal', 12],
+        thumbSize: ['iu_thumbSizeVal', 80],
+        scrollbarWidth: ['iu_scrollbarWidthVal', 6],
+        blur: ['iu_blurVal', 10]
+      };
+      if (defaultsMap[key]) {
+        const [elId, defV] = defaultsMap[key];
+        const l = document.getElementById(elId);
+        if (l) l.textContent = (value ?? defV) + 'px';
+      }
     }
 
     function onInputGlobalChange(key, value, options = {}) {
       const cfg = ensureInputsConfig();
       cfg[key] = value;
-      if (key === 'borderWidth') {
-        const l = document.getElementById('iu_borderWidthVal');
-        if (l) l.textContent = (value ?? 1) + 'px';
-      } else if (key === 'radius') {
-        const l = document.getElementById('iu_radiusVal');
-        if (l) l.textContent = (value ?? 15) + 'px';
-      } else if (key === 'touchSize') {
-        const l = document.getElementById('iu_touchSizeVal');
-        if (l) l.textContent = (value ?? 44) + 'px';
-      } else if (key === 'fontSize') {
-        const l = document.getElementById('iu_fontSizeVal');
-        if (l) l.textContent = (value ?? 14) + 'px';
-      } else if (key === 'blur') {
-        const l = document.getElementById('iu_blurVal');
-        if (l) l.textContent = (value ?? 10) + 'px';
-      }
+      updateInputRangeBadge(key, value);
       injectLiveThemeIntoInputSandbox();
       injectLiveThemeIntoIframe();
       updateInputWcagBadges();
       updateJsonViewer();
+
+      if (inputSandboxViewMode === 'formBuilder') {
+        clearTimeout(formBuilderRenderTimer);
+        formBuilderRenderTimer = setTimeout(() => {
+          requestFormBuilderRender();
+        }, 160);
+        return;
+      }
 
       const updateStage = !options.liveOnly;
       clearTimeout(inputRenderTimer);
@@ -9446,23 +10279,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         delete cfg.localOverrides[activeInputType];
       }
 
-      if (key === 'borderWidth') {
-        const l = document.getElementById('iu_borderWidthVal');
-        if (l) l.textContent = (value ?? cfg.borderWidth ?? 1) + 'px';
-      } else if (key === 'radius') {
-        const l = document.getElementById('iu_radiusVal');
-        if (l) l.textContent = (value ?? cfg.radius ?? 15) + 'px';
-      } else if (key === 'touchSize') {
-        const l = document.getElementById('iu_touchSizeVal');
-        if (l) l.textContent = (value ?? cfg.touchSize ?? 44) + 'px';
-      } else if (key === 'fontSize') {
-        const l = document.getElementById('iu_fontSizeVal');
-        if (l) l.textContent = (value ?? cfg.fontSize ?? 14) + 'px';
-      } else if (key === 'blur') {
-        const l = document.getElementById('iu_blurVal');
-        if (l) l.textContent = (value ?? cfg.blur ?? 10) + 'px';
-      }
-
+      updateInputRangeBadge(key, value ?? cfg[key]);
       applyLocalCssVarsLiveToDom(activeInputType);
       updateInputWcagBadges();
 
@@ -9475,7 +10292,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       renderInputTypeGrid();
       updateJsonViewer();
 
-      const isVisualCssProp = !!(INPUT_PROP_TO_CSS_VAR[key] || ['borderWidth', 'focusOutline', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur'].includes(key));
+      const visualKeys = [
+        'borderWidth', 'focusOutline', 'radius', 'touchSize', 'fontSize',
+        'placeholderSize', 'secondaryFontSize', 'width', 'gap', 'fieldGap',
+        'boxPadding', 'thumbSize', 'hideScrollbar', 'scrollbarWidth',
+        'shadow', 'blur', 'chipRadius', 'starSize', 'removeBg', 'removeColor',
+        'removeBorder', 'dropzoneMinHeight', 'dropzoneBorderStyle', 'dropzoneIconSize',
+        'sliderTrackHeight', 'sliderThumbSize', 'otpCellSize'
+      ];
+      const isVisualCssProp = !!(INPUT_PROP_TO_CSS_VAR[key] || visualKeys.includes(key));
       const shouldUpdateStage = options.liveOnly ? false : !isVisualCssProp;
 
       clearTimeout(inputRenderTimer);
@@ -9493,7 +10318,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       injectLiveThemeIntoInputSandbox();
       injectLiveThemeIntoIframe();
       updateJsonViewer();
-      scheduleInputRender('all');
+      if (inputSandboxViewMode === 'formBuilder') {
+        requestFormBuilderRender();
+      } else {
+        scheduleInputRender('all');
+      }
     }
 
     function resetAllInputStyles() {
@@ -9504,7 +10333,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       injectLiveThemeIntoInputSandbox();
       injectLiveThemeIntoIframe();
       updateJsonViewer();
-      requestInputRender('all', true);
+      if (inputSandboxViewMode === 'formBuilder') {
+        requestFormBuilderRender();
+      } else {
+        requestInputRender('all', true);
+      }
       showToast('↺ Estilos de Inputs restaurados a valores base');
     }
 
@@ -9539,6 +10372,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       }
       if (changed || autoFocusIfNeeded) {
         requestInputRender(type, false);
+        saveWorkspaceState();
       }
     }
 
@@ -9560,8 +10394,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         label: includeLabel ? (local.label || activeMeta.defaultLabel || '') : ''
       };
       if (inlineVars) {
-        const styleKeys = ['triggerBg', 'triggerText', 'triggerBorder', 'surfaceBg', 'surfaceText', 'surfaceMuted', 'surfaceBorder', 'btnPrimaryBg', 'btnPrimaryText', 'btnPrimaryBorder', 'btnSecondaryBg', 'btnSecondaryText', 'btnSecondaryBorder', 'accentColor', 'accentText', 'trackBg', 'thumbBg', 'borderWidth', 'focusRing', 'focusOutline', 'radius', 'touchSize', 'fontSize', 'shadow', 'blur', 'transition'];
-        styleKeys.forEach((sk) => {
+        Object.keys(DEFAULT_INPUTS_CONFIG).forEach((sk) => {
+          if (sk === 'preset') return;
           if (local[sk] === undefined && cfg[sk] !== undefined) {
             opts[sk] = cfg[sk];
           }
@@ -9586,6 +10420,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (inputSandboxViewMode === 'focused') {
         renderFocusedHiddenPreview();
       }
+      if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+        requestAnimationFrame(() => window.FmeUi.syncAllFloatingScrolls());
+      }
     }
 
     function renderFocusedHiddenPreview() {
@@ -9604,6 +10441,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function renderInputSandboxFromCache() {
+      if (inputSandboxViewMode === 'formBuilder') {
+        renderFormBuilderView();
+        return;
+      }
       const galleryEl = document.getElementById('iuGalleryContainer');
       const focusedEl = document.getElementById('iuFocusedContainer');
       if (!galleryEl || !focusedEl) return;
@@ -9708,20 +10549,44 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function setInputSandboxViewMode(viewMode) {
-      inputSandboxViewMode = (viewMode === 'focused') ? 'focused' : 'gallery';
+      inputSandboxViewMode = ['focused', 'formBuilder'].includes(viewMode) ? viewMode : 'gallery';
       const btnGallery = document.getElementById('btnIuViewGallery');
       const btnFocused = document.getElementById('btnIuViewFocused');
+      const btnBuilder = document.getElementById('btnIuViewFormBuilder');
       const galleryEl = document.getElementById('iuGalleryContainer');
       const focusedEl = document.getElementById('iuFocusedContainer');
+      const builderEl = document.getElementById('iuFormBuilderContainer');
       const widthWrap = document.getElementById('iuFocusedWidthWrap');
+
+      const singleSidebar = document.getElementById('iuSingleInputSidebarWrap');
+      const builderSidebar = document.getElementById('iuFormBuilderSidebarPanel');
+      const phpTabLabel = document.getElementById('iuCodeTab_phpLabel');
+      const singleOpts = document.getElementById('iuSingleCodeOptions');
+      const fbOpts = document.getElementById('iuFbCodeOptions');
 
       if (btnGallery) btnGallery.classList.toggle('active', inputSandboxViewMode === 'gallery');
       if (btnFocused) btnFocused.classList.toggle('active', inputSandboxViewMode === 'focused');
+      if (btnBuilder) btnBuilder.classList.toggle('active', inputSandboxViewMode === 'formBuilder');
       if (galleryEl) galleryEl.style.display = inputSandboxViewMode === 'gallery' ? 'grid' : 'none';
       if (focusedEl) focusedEl.style.display = inputSandboxViewMode === 'focused' ? 'flex' : 'none';
+      if (builderEl) builderEl.style.display = inputSandboxViewMode === 'formBuilder' ? 'flex' : 'none';
       if (widthWrap) widthWrap.style.display = inputSandboxViewMode === 'focused' ? 'flex' : 'none';
 
-      renderInputSandboxFromCache();
+      if (singleSidebar) singleSidebar.style.display = inputSandboxViewMode === 'formBuilder' ? 'none' : 'block';
+      if (builderSidebar) builderSidebar.style.display = inputSandboxViewMode === 'formBuilder' ? 'block' : 'none';
+      if (phpTabLabel) phpTabLabel.textContent = inputSandboxViewMode === 'formBuilder' ? 'Helper _form()' : 'Helper _input()';
+      if (singleOpts) singleOpts.style.display = inputSandboxViewMode === 'formBuilder' ? 'none' : 'flex';
+      if (fbOpts) fbOpts.style.display = inputSandboxViewMode === 'formBuilder' ? 'flex' : 'none';
+
+      if (inputSandboxViewMode === 'formBuilder') {
+        renderFormBuilderView();
+        renderFormBuilderInspector();
+        requestFormBuilderRender();
+      } else {
+        renderInputSandboxFromCache();
+        updateInputCodeOutput();
+      }
+      saveWorkspaceState();
     }
 
     function toggleInputTouchSim() {
@@ -9737,12 +10602,16 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const sel = document.getElementById('iuFocusedWidthSelect');
         if (sel) sel.value = '375px';
       }
-      showToast(inputSandboxTouchSim ? '👆 Simulación Touch / Bottom-Sheet activada' : '🖥️ Simulación Touch desactivada');
+      if (!isRestoringWorkspace) {
+        showToast(inputSandboxTouchSim ? '👆 Simulación Touch / Bottom-Sheet activada' : '🖥️ Simulación Touch desactivada');
+      }
+      saveWorkspaceState();
     }
 
     function setInputStageSurface(surfaceVal) {
       inputStageSurface = surfaceVal || 'var(--body)';
       injectLiveThemeIntoInputSandbox();
+      saveWorkspaceState();
     }
 
     function setInputFocusedWidth(widthVal) {
@@ -9754,6 +10623,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const view = document.getElementById('inputSandboxView');
       if (view) view.classList.toggle('is-touch-simulated', autoMobile);
       document.body.classList.toggle('is-touch-simulated', currentStageMode === 'inputs' && autoMobile);
+      saveWorkspaceState();
     }
 
     function createStudioDemoImageDataUrl() {
@@ -9839,14 +10709,20 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           inputsHtmlCache[data.type] = data.html;
         }
 
+        if (typeof data.jitPreviewCss === 'string') {
+          applyJitPreviewCss(data.jitPreviewCss);
+        }
+
         inputCodeCache = {
           htmlSnippet: data.htmlSnippet || '',
           phpSnippet: data.phpSnippet || '',
           globalSnippet: data.globalSnippet || ''
         };
-        updateInputCodeOutput();
+        if (inputSandboxViewMode !== 'formBuilder') {
+          updateInputCodeOutput();
+        }
 
-        if (updateStage && currentStageMode === 'inputs') {
+        if (updateStage && currentStageMode === 'inputs' && inputSandboxViewMode !== 'formBuilder') {
           renderInputSandboxFromCache();
         }
       } catch (err) {
@@ -9855,6 +10731,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function updateInputCodeOutput() {
+      if (inputSandboxViewMode === 'formBuilder') {
+        updateFormBuilderCodeOutput();
+        return;
+      }
       const codeEl = document.getElementById('inputCodeOutput');
       if (!codeEl) return;
       if (inputCodeFormat === 'php') {
@@ -9873,6 +10753,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         if (tab) tab.classList.toggle('active', k === inputCodeFormat);
       });
       updateInputCodeOutput();
+      saveWorkspaceState();
     }
 
     function onInputCodeOptionChange() {
@@ -9885,6 +10766,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       if (!dock) return;
       dock.classList.toggle('collapsed');
       if (btn) btn.textContent = dock.classList.contains('collapsed') ? '▸' : '▾';
+      saveWorkspaceState();
     }
 
     function copyInputCode() {
@@ -9892,9 +10774,1018 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       const txt = codeEl ? codeEl.textContent : '';
       if (!txt) return;
       navigator.clipboard.writeText(txt).then(() => {
-        const label = inputCodeFormat === 'html' ? 'HTML' : (inputCodeFormat === 'php' ? 'Helper _input()' : 'PHP Global');
+        const phpLbl = inputSandboxViewMode === 'formBuilder' ? 'Helper _form()' : 'Helper _input()';
+        const label = inputCodeFormat === 'html' ? 'HTML' : (inputCodeFormat === 'php' ? phpLbl : 'PHP Global');
         showToast(`📋 Código ${label} copiado al portapapeles`);
       });
+    }
+
+    // ==============================================================
+    // DISEÑADOR VISUAL DE FORMULARIOS (FORM BUILDER - FASE 7)
+    // ==============================================================
+
+    const FORM_TEMPLATES = {
+      contact: {
+        label: '📩 Contacto',
+        formConfig: {
+          action: '/contacto',
+          method: 'POST',
+          id: 'formContacto',
+          autoSubmit: false,
+          fetchPreview: false,
+          csrf: true,
+          showSubmitButton: true,
+          submitLabel: 'Enviar mensaje',
+          multiStep: false,
+          stepProgress: true,
+          prevLabel: 'Anterior',
+          nextLabel: 'Siguiente',
+          formClass: 'br15 p20 back1',
+          gridClass: 'grid col-desk-2 gap15'
+        },
+        stepsMeta: [{ title: 'Datos de contacto', description: 'Cuéntanos tu consulta', stepClass: '', validateUrl: '' }],
+        fields: [
+          { uid: 'fb_c1', type: 'textInput', inputType: 'text', name: 'nombre', label: 'Nombre completo', placeholder: 'Tu nombre completo', required: true, wrapperClass: '', step: 0 },
+          { uid: 'fb_c2', type: 'textInput', inputType: 'email', name: 'correo', label: 'Correo electrónico', placeholder: 'nombre@empresa.com', required: true, wrapperClass: '', step: 0 },
+          { uid: 'fb_c3', type: 'dropdown', name: 'motivo', label: 'Motivo de consulta', options: 'soporte:Soporte Técnico, ventas:Cotización, feedback:Sugerencia', wrapperClass: 'span-desk-2', step: 0 },
+          { uid: 'fb_c4', type: 'textLimiter', name: 'mensaje', label: 'Mensaje', placeholder: 'Escribe los detalles...', limit: 240, rows: 3, helperText: 'Responderemos en menos de 24 horas hábiles.', wrapperClass: 'span-desk-2', step: 0 }
+        ]
+      },
+      register: {
+        label: '👤 Registro + Avatar',
+        formConfig: {
+          action: '/auth/registro',
+          method: 'POST',
+          id: 'formRegistro',
+          autoSubmit: false,
+          fetchPreview: false,
+          csrf: true,
+          showSubmitButton: true,
+          submitLabel: 'Crear cuenta',
+          multiStep: false,
+          stepProgress: true,
+          prevLabel: 'Anterior',
+          nextLabel: 'Siguiente',
+          formClass: 'br15 p20 back1',
+          gridClass: 'grid col-desk-2 gap15'
+        },
+        stepsMeta: [{ title: 'Registro de cuenta', description: '', stepClass: '', validateUrl: '' }],
+        fields: [
+          { uid: 'fb_r1', type: 'cropImage', name: 'avatar', label: 'Foto de perfil', cropShape: 'circle', croppingSize: '400x400', wrapperClass: 'span-desk-2', step: 0 },
+          { uid: 'fb_r2', type: 'textInput', inputType: 'text', name: 'usuario', label: 'Usuario', placeholder: '@tuusuario', required: true, step: 0 },
+          { uid: 'fb_r3', type: 'passwordInput', name: 'password', label: 'Contraseña', showStrength: true, minlength: 8, required: true, step: 0 },
+          { uid: 'fb_r4', type: 'checkboxSwitch', name: 'terminos', label: 'Acepto términos y condiciones', checked: true, wrapperClass: 'span-desk-2', step: 0 }
+        ]
+      },
+      checkout: {
+        label: '🛒 Checkout Multi-Paso',
+        formConfig: {
+          action: '/checkout/confirmar',
+          method: 'POST',
+          id: 'formCheckout',
+          autoSubmit: false,
+          fetchPreview: false,
+          csrf: true,
+          showSubmitButton: true,
+          submitLabel: 'Confirmar Pedido',
+          multiStep: true,
+          stepProgress: true,
+          prevLabel: 'Anterior',
+          nextLabel: 'Siguiente paso',
+          formClass: 'br15 p20 back1',
+          gridClass: 'grid col-desk-2 gap15'
+        },
+        stepsMeta: [
+          { title: 'Envío', description: 'Dirección y modalidad de entrega', stepClass: '', validateUrl: '/api/validar-envio' },
+          { title: 'Pago & Confirmación', description: 'Método de pago y código de verificación', stepClass: '', validateUrl: '' }
+        ],
+        fields: [
+          { uid: 'fb_k1', type: 'textInput', inputType: 'text', name: 'destinatario', label: 'Nombre quien recibe', placeholder: 'Ej. Sofía Navarro', required: true, step: 0 },
+          { uid: 'fb_k2', type: 'dropdown', name: 'tipo_envio', label: 'Método de entrega', value: 'domicilio', options: 'domicilio:Envío a domicilio, tienda:Retiro en sucursal', required: true, step: 0 },
+          { uid: 'fb_k3', type: 'textInput', inputType: 'text', name: 'direccion', label: 'Dirección de entrega', placeholder: 'Calle, número y ciudad', showWhen: 'tipo_envio=domicilio', wrapperClass: 'span-desk-2', step: 0 },
+          { uid: 'fb_k4', type: 'datePicker', name: 'fecha_entrega', label: 'Fecha preferida', showPresets: true, step: 1 },
+          { uid: 'fb_k5', type: 'otpCodeInput', name: 'codigo_seguridad', label: 'Código PIN', length: 4, step: 1 }
+        ]
+      },
+      filters: {
+        label: '⚡ Filtros Auto-Submit',
+        formConfig: {
+          action: '/productos/filtrar',
+          method: 'POST',
+          id: 'formFiltros',
+          autoSubmit: true,
+          fetchPreview: true,
+          csrf: true,
+          showSubmitButton: false,
+          submitLabel: 'Aplicar',
+          multiStep: false,
+          stepProgress: true,
+          prevLabel: 'Anterior',
+          nextLabel: 'Siguiente',
+          formClass: 'br15 p15 back1',
+          gridClass: 'grid col-desk-2 gap10'
+        },
+        stepsMeta: [{ title: 'Filtros', description: '', stepClass: '', validateUrl: '' }],
+        fields: [
+          { uid: 'fb_f1', type: 'textInput', inputType: 'search', name: 'q', label: 'Buscar en catálogo', placeholder: 'Buscar producto...', step: 0 },
+          { uid: 'fb_f2', type: 'dropdown', name: 'categoria', label: 'Categoría', options: 'todas:Todas, tech:Tecnología, hogar:Hogar', value: 'todas', step: 0 },
+          { uid: 'fb_f3', type: 'rangeSlider', name: 'precio', label: 'Rango de precio', mode: 'range', min: 10, max: 500, value: '50,300', suffix: '$', wrapperClass: 'span-desk-2', step: 0 },
+          { uid: 'fb_f4', type: 'textareaInput', name: 'nota_local', label: 'Nota local (noAutoSubmit)', placeholder: 'No dispara envío automático al editar', noAutoSubmit: true, rows: 2, wrapperClass: 'span-desk-2', step: 0 }
+        ]
+      },
+      survey: {
+        label: '⭐ Encuesta',
+        formConfig: {
+          action: '/encuesta/responder',
+          method: 'POST',
+          id: 'formEncuesta',
+          autoSubmit: false,
+          fetchPreview: false,
+          csrf: true,
+          showSubmitButton: true,
+          submitLabel: 'Enviar respuestas',
+          multiStep: false,
+          stepProgress: true,
+          prevLabel: 'Anterior',
+          nextLabel: 'Siguiente',
+          formClass: 'br15 p20 back1',
+          gridClass: 'flex-column gap15'
+        },
+        stepsMeta: [{ title: 'Encuesta de experiencia', description: '', stepClass: '', validateUrl: '' }],
+        fields: [
+          { uid: 'fb_s1', type: 'ratingInput', name: 'calificacion', label: '¿Cómo calificas el servicio?', max: 5, showValue: true, step: 0 },
+          { uid: 'fb_s2', type: 'tagsInput', name: 'aspectos', label: 'Aspectos destacados', value: 'Rapidez, Calidad', step: 0 },
+          { uid: 'fb_s3', type: 'repeatCamp', name: 'sugerencias[]', label: 'Sugerencias adicionales', max: 5, addLabel: '+ Agrega otra sugerencia', step: 0 },
+          { uid: 'fb_s4', type: 'textareaInput', name: 'comentarios', label: 'Comentario abierto', placeholder: 'Tu opinión nos ayuda a mejorar...', rows: 3, step: 0 }
+        ]
+      }
+    };
+
+    function createDefaultFormBuilderState() {
+      const tpl = JSON.parse(JSON.stringify(FORM_TEMPLATES.contact));
+      return {
+        formConfig: tpl.formConfig,
+        stepsMeta: tpl.stepsMeta,
+        fields: tpl.fields,
+        selectedFieldUid: tpl.fields[0]?.uid || null,
+        inspectorTab: 'form',
+        activeStepFilter: 0
+      };
+    }
+
+    let formBuilderState = createDefaultFormBuilderState();
+    let formBuilderCodeCache = { phpFormSnippet: '', phpFieldsSnippet: '', htmlSnippet: '', globalSnippet: '' };
+    let formBuilderLastHtml = '';
+    let formBuilderRenderTimer = null;
+    let formBuilderRenderAbort = null;
+    let formBuilderRenderSeq = 0;
+
+    function fbNextUid() {
+      return 'fb_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    }
+
+    function sanitizeFormBuilderState(raw) {
+      if (!raw || typeof raw !== 'object' || !raw.formConfig || !Array.isArray(raw.fields)) {
+        return createDefaultFormBuilderState();
+      }
+      const clean = {
+        formConfig: Object.assign({}, FORM_TEMPLATES.contact.formConfig, raw.formConfig),
+        stepsMeta: Array.isArray(raw.stepsMeta) && raw.stepsMeta.length > 0
+          ? raw.stepsMeta.map((s, i) => ({
+              title: String(s?.title ?? `Paso ${i + 1}`),
+              description: String(s?.description ?? ''),
+              stepClass: String(s?.stepClass ?? ''),
+              validateUrl: String(s?.validateUrl ?? '')
+            }))
+          : [{ title: 'Paso 1', description: '', stepClass: '', validateUrl: '' }],
+        fields: raw.fields.filter(f => f && typeof f === 'object' && INPUT_CATALOG.some(c => c.type === f.type)).map(f => Object.assign({}, f, { uid: f.uid || fbNextUid(), step: Number.isFinite(Number(f.step)) ? Math.max(0, parseInt(f.step, 10)) : 0 })),
+        selectedFieldUid: raw.selectedFieldUid || null,
+        inspectorTab: (raw.inspectorTab === 'field') ? 'field' : 'form',
+        activeStepFilter: Number.isFinite(Number(raw.activeStepFilter)) ? parseInt(raw.activeStepFilter, 10) : 0
+      };
+      if (!clean.fields.some(f => f.uid === clean.selectedFieldUid)) {
+        clean.selectedFieldUid = clean.fields[0]?.uid || null;
+      }
+      return clean;
+    }
+
+    function loadFormBuilderTemplate(tplKey) {
+      const tpl = FORM_TEMPLATES[tplKey];
+      if (!tpl) return;
+      const cloned = JSON.parse(JSON.stringify(tpl));
+      formBuilderState = {
+        formConfig: cloned.formConfig,
+        stepsMeta: cloned.stepsMeta,
+        fields: cloned.fields,
+        selectedFieldUid: cloned.fields[0]?.uid || null,
+        inspectorTab: 'form',
+        activeStepFilter: 0
+      };
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+      showToast(`🧱 Plantilla cargada: ${tpl.label}`);
+    }
+
+    function clearFormBuilderFields() {
+      formBuilderState.fields = [];
+      formBuilderState.selectedFieldUid = null;
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function switchFormBuilderInspectorTab(tab) {
+      formBuilderState.inspectorTab = (tab === 'field') ? 'field' : 'form';
+      renderFormBuilderInspector();
+      saveWorkspaceState();
+    }
+
+    function fbAddField(type) {
+      const meta = INPUT_CATALOG.find(i => i.type === type);
+      if (!meta) return;
+      const existingSame = formBuilderState.fields.filter(f => f.type === type).length;
+      const suffix = existingSame > 0 ? `_${existingSame + 1}` : '';
+      const uid = fbNextUid();
+      const targetStep = formBuilderState.formConfig.multiStep
+        ? Math.max(0, Math.min(formBuilderState.stepsMeta.length - 1, formBuilderState.activeStepFilter >= 0 ? formBuilderState.activeStepFilter : 0))
+        : 0;
+
+      const baseNameMap = {
+        cropImage: 'avatar', loadImgModern: 'galeria[]', colorPicker: 'color',
+        checkboxSwitch: 'activo', dropdown: 'opcion', datePicker: 'fecha',
+        timePicker: 'hora', rangeSlider: 'rango', passwordInput: 'password',
+        otpCodeInput: 'codigo', tagsInput: 'etiquetas', stepperInput: 'cantidad',
+        ratingInput: 'valoracion', fileDropzone: 'archivos[]', repeatCamp: 'items[]',
+        textLimiter: 'resumen', textInput: 'campo_texto', textareaInput: 'comentario',
+        submitButton: 'enviar_btn'
+      };
+      const newField = {
+        uid,
+        type,
+        name: (baseNameMap[type] || 'campo').replace(/\[\]$/, '') + suffix + (String(baseNameMap[type] || '').endsWith('[]') ? '[]' : ''),
+        label: meta.defaultLabel ? `${meta.defaultLabel}${existingSame > 0 ? ' ' + (existingSame + 1) : ''}` : '',
+        step: targetStep
+      };
+      if (type === 'submitButton') {
+        newField.text = 'Enviar';
+        newField.variant = 'primary';
+      }
+      formBuilderState.fields.push(newField);
+      formBuilderState.selectedFieldUid = uid;
+      formBuilderState.inspectorTab = 'field';
+
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbSelectField(uid) {
+      formBuilderState.selectedFieldUid = uid;
+      formBuilderState.inspectorTab = 'field';
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      saveWorkspaceState();
+    }
+
+    function fbMoveField(uid, dir) {
+      const idx = formBuilderState.fields.findIndex(f => f.uid === uid);
+      if (idx === -1) return;
+      const targetIdx = idx + dir;
+      if (targetIdx < 0 || targetIdx >= formBuilderState.fields.length) return;
+      const [item] = formBuilderState.fields.splice(idx, 1);
+      formBuilderState.fields.splice(targetIdx, 0, item);
+      renderFormBuilderView();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbDuplicateField(uid) {
+      const idx = formBuilderState.fields.findIndex(f => f.uid === uid);
+      if (idx === -1) return;
+      const copy = JSON.parse(JSON.stringify(formBuilderState.fields[idx]));
+      copy.uid = fbNextUid();
+      if (copy.name) {
+        copy.name = String(copy.name).replace(/(\[\])?$/, '_copia$1');
+      }
+      if (copy.label) {
+        copy.label = `${copy.label} (copia)`;
+      }
+      formBuilderState.fields.splice(idx + 1, 0, copy);
+      formBuilderState.selectedFieldUid = copy.uid;
+      formBuilderState.inspectorTab = 'field';
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbDeleteField(uid) {
+      const idx = formBuilderState.fields.findIndex(f => f.uid === uid);
+      if (idx === -1) return;
+      formBuilderState.fields.splice(idx, 1);
+      if (formBuilderState.selectedFieldUid === uid) {
+        formBuilderState.selectedFieldUid = formBuilderState.fields[Math.min(idx, formBuilderState.fields.length - 1)]?.uid || null;
+      }
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbAddStep() {
+      formBuilderState.formConfig.multiStep = true;
+      const num = formBuilderState.stepsMeta.length + 1;
+      formBuilderState.stepsMeta.push({
+        title: `Paso ${num}`,
+        description: '',
+        stepClass: '',
+        validateUrl: ''
+      });
+      formBuilderState.activeStepFilter = num - 1;
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbDeleteStep(stepIdx) {
+      if (formBuilderState.stepsMeta.length <= 1) return;
+      formBuilderState.stepsMeta.splice(stepIdx, 1);
+      formBuilderState.fields.forEach((f) => {
+        if (f.step >= formBuilderState.stepsMeta.length) {
+          f.step = formBuilderState.stepsMeta.length - 1;
+        }
+      });
+      if (formBuilderState.activeStepFilter >= formBuilderState.stepsMeta.length) {
+        formBuilderState.activeStepFilter = formBuilderState.stepsMeta.length - 1;
+      }
+      renderFormBuilderView();
+      renderFormBuilderInspector();
+      requestFormBuilderRender();
+      saveWorkspaceState();
+    }
+
+    function fbSelectStepFilter(stepIdx) {
+      formBuilderState.activeStepFilter = stepIdx;
+      renderFormBuilderView();
+      saveWorkspaceState();
+    }
+
+    function fbUpdateFormProp(key, val) {
+      formBuilderState.formConfig[key] = val;
+      if (key === 'multiStep' && val && formBuilderState.stepsMeta.length < 2) {
+        formBuilderState.stepsMeta.push({ title: 'Paso 2', description: '', stepClass: '', validateUrl: '' });
+      }
+      if (key === 'multiStep' || key === 'autoSubmit') {
+        renderFormBuilderView();
+        renderFormBuilderInspector();
+      }
+      clearTimeout(formBuilderRenderTimer);
+      formBuilderRenderTimer = setTimeout(() => {
+        requestFormBuilderRender();
+      }, 150);
+      saveWorkspaceState();
+    }
+
+    function fbUpdateStepProp(stepIdx, key, val) {
+      if (!formBuilderState.stepsMeta[stepIdx]) return;
+      formBuilderState.stepsMeta[stepIdx][key] = val;
+      if (key === 'title') {
+        renderFormBuilderView();
+      }
+      clearTimeout(formBuilderRenderTimer);
+      formBuilderRenderTimer = setTimeout(() => {
+        requestFormBuilderRender();
+      }, 150);
+      saveWorkspaceState();
+    }
+
+    function fbUpdateFieldProp(key, val) {
+      const fld = formBuilderState.fields.find(f => f.uid === formBuilderState.selectedFieldUid);
+      if (!fld) return;
+      if (val === null || val === undefined || val === '') {
+        delete fld[key];
+      } else {
+        fld[key] = val;
+      }
+      if (key === 'type') {
+        renderFormBuilderInspector();
+      }
+      if (['type', 'name', 'label', 'step'].includes(key)) {
+        renderFormBuilderView();
+      }
+      clearTimeout(formBuilderRenderTimer);
+      formBuilderRenderTimer = setTimeout(() => {
+        requestFormBuilderRender();
+      }, 150);
+      saveWorkspaceState();
+    }
+
+    function renderFormBuilderInspector() {
+      const tabForm = document.getElementById('fbSubTab_form');
+      const tabField = document.getElementById('fbSubTab_field');
+      const host = document.getElementById('fbSidebarInspectorHost');
+      if (!host) return;
+
+      if (tabForm) tabForm.classList.toggle('active', formBuilderState.inspectorTab === 'form');
+      if (tabField) tabField.classList.toggle('active', formBuilderState.inspectorTab === 'field');
+
+      if (formBuilderState.inspectorTab === 'form') {
+        const fc = formBuilderState.formConfig;
+        const stepsHtml = fc.multiStep ? `
+          <div class="iu-group-box">
+            <div class="iu-group-head">
+              <span>Pasos del Asistente (${formBuilderState.stepsMeta.length})</span>
+              <button type="button" class="iu-quick-chip-btn" onclick="fbAddStep()">+ Paso</button>
+            </div>
+            ${formBuilderState.stepsMeta.map((st, idx) => `
+              <div style="border:1px solid var(--ts-border); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px; background:rgba(15,23,42,0.5);">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.72rem; font-weight:700;">
+                  <span>Paso ${idx + 1}</span>
+                  ${formBuilderState.stepsMeta.length > 1 ? `<button type="button" class="fb-mini-act danger" onclick="fbDeleteStep(${idx})">Eliminar</button>` : ''}
+                </div>
+                <input type="text" class="ts-input" value="${escIuHtml(st.title)}" placeholder="Título del paso" oninput="fbUpdateStepProp(${idx}, 'title', this.value)">
+                <input type="text" class="ts-input" value="${escIuHtml(st.description)}" placeholder="Descripción opcional" oninput="fbUpdateStepProp(${idx}, 'description', this.value)">
+                <div class="iu-jit-input-wrap">
+                  <input type="text" id="fb_stepClass_${idx}" class="ts-input" value="${escIuHtml(st.stepClass)}" placeholder="Clases JIT paso (ej. col-desk-2)" oninput="fbUpdateStepProp(${idx}, 'stepClass', this.value)">
+                  <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('fb_stepClass_${idx}', this)">⚡ JIT</button>
+                </div>
+                <input type="text" class="ts-input" value="${escIuHtml(st.validateUrl)}" placeholder="URL AJAX validación (opcional)" oninput="fbUpdateStepProp(${idx}, 'validateUrl', this.value)">
+              </div>
+            `).join('')}
+          </div>
+        ` : '';
+
+        host.innerHTML = `
+          <div class="iu-group-box">
+            <div class="iu-group-head"><span>Atributos &lt;form&gt;</span></div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label>Action URL</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fc.action || '')}" placeholder="/procesar" oninput="fbUpdateFormProp('action', this.value)">
+              </div>
+              <div class="ts-field">
+                <label>Método</label>
+                <select class="ts-input" onchange="fbUpdateFormProp('method', this.value)">
+                  <option value="POST" ${fc.method !== 'GET' ? 'selected' : ''}>POST</option>
+                  <option value="GET" ${fc.method === 'GET' ? 'selected' : ''}>GET</option>
+                </select>
+              </div>
+            </div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label>ID Formulario</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fc.id || '')}" placeholder="miFormulario" oninput="fbUpdateFormProp('id', this.value)">
+              </div>
+              <div class="ts-field">
+                <label>Botón Submit</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fc.submitLabel || 'Enviar formulario')}" oninput="fbUpdateFormProp('submitLabel', this.value)">
+              </div>
+            </div>
+            <div class="ts-field">
+              <label>Clases JIT Formulario (<code>formClass</code>)</label>
+              <div class="iu-jit-input-wrap">
+                <input type="text" id="fb_formClass" class="ts-input" value="${escIuHtml(fc.formClass || '')}" placeholder="ej. br15 p20 back1 shadow1" oninput="fbUpdateFormProp('formClass', this.value)">
+                <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('fb_formClass', this)">⚡ JIT</button>
+              </div>
+            </div>
+            <div class="ts-field">
+              <label>Grilla de Campos (<code>gridClass</code>)</label>
+              <div class="iu-jit-input-wrap">
+                <input type="text" id="fb_gridClass" class="ts-input" value="${escIuHtml(fc.gridClass || '')}" placeholder="ej. grid col-desk-2 gap15" oninput="fbUpdateFormProp('gridClass', this.value)">
+                <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('fb_gridClass', this)">⚡ JIT</button>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.autoSubmit ? 'checked' : ''} onchange="fbUpdateFormProp('autoSubmit', this.checked)"><span>⚡ Auto-Submit</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.fetchPreview ? 'checked' : ''} onchange="fbUpdateFormProp('fetchPreview', this.checked)"><span>🔄 Fetch Preview</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.csrf !== false ? 'checked' : ''} onchange="fbUpdateFormProp('csrf', this.checked)"><span>🔒 CSRF Automático</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.showSubmitButton !== false ? 'checked' : ''} onchange="fbUpdateFormProp('showSubmitButton', this.checked)"><span>🚀 Mostrar Submit</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.multiStep ? 'checked' : ''} onchange="fbUpdateFormProp('multiStep', this.checked)"><span>🪜 Multi-Paso</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fc.stepProgress !== false ? 'checked' : ''} onchange="fbUpdateFormProp('stepProgress', this.checked)"><span>📊 Barra Progreso</span></label>
+            </div>
+            ${fc.multiStep ? `
+              <div class="iu-color-pair" style="margin-top:6px;">
+                <div class="ts-field"><label>Texto Anterior</label><input type="text" class="ts-input" value="${escIuHtml(fc.prevLabel || 'Anterior')}" oninput="fbUpdateFormProp('prevLabel', this.value)"></div>
+                <div class="ts-field"><label>Texto Siguiente</label><input type="text" class="ts-input" value="${escIuHtml(fc.nextLabel || 'Siguiente')}" oninput="fbUpdateFormProp('nextLabel', this.value)"></div>
+              </div>
+            ` : ''}
+          </div>
+          ${stepsHtml}
+        `;
+      } else {
+        const fld = formBuilderState.fields.find(f => f.uid === formBuilderState.selectedFieldUid);
+        if (!fld) {
+          host.innerHTML = `<div class="fb-empty-state">Selecciona un campo en la lista o añade uno desde la barra superior para editar sus propiedades.</div>`;
+          return;
+        }
+        const fc = formBuilderState.formConfig;
+        const stepSelectHtml = fc.multiStep ? `
+          <div class="ts-field">
+            <label>Asignar al Paso</label>
+            <select class="ts-input" onchange="fbUpdateFieldProp('step', parseInt(this.value, 10))">
+              ${formBuilderState.stepsMeta.map((st, idx) => `<option value="${idx}" ${(fld.step || 0) === idx ? 'selected' : ''}>Paso ${idx + 1}: ${escIuHtml(st.title || '')}</option>`).join('')}
+            </select>
+          </div>
+        ` : '';
+
+        host.innerHTML = `
+          <div class="iu-group-box">
+            <div class="iu-group-head"><span>Propiedades del Campo</span></div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label>Tipo de componente</label>
+                <select class="ts-input" onchange="fbUpdateFieldProp('type', this.value)">
+                  ${INPUT_CATALOG.map(c => `<option value="${escIuHtml(c.type)}" ${fld.type === c.type ? 'selected' : ''}>${c.icon} ${escIuHtml(c.title)}</option>`).join('')}
+                </select>
+              </div>
+              ${stepSelectHtml || `<div class="ts-field"><label>Atributo <code>id</code></label><input type="text" class="ts-input" value="${escIuHtml(fld.id || '')}" placeholder="opcional" oninput="fbUpdateFieldProp('id', this.value)"></div>`}
+            </div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label>Atributo <code>name</code></label>
+                <input type="text" class="ts-input" value="${escIuHtml(fld.name || '')}" oninput="fbUpdateFieldProp('name', this.value)">
+              </div>
+              <div class="ts-field">
+                <label>Texto Label</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fld.label || '')}" oninput="fbUpdateFieldProp('label', this.value)">
+              </div>
+            </div>
+            <div class="iu-color-pair">
+              <div class="ts-field">
+                <label>Placeholder</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fld.placeholder || '')}" oninput="fbUpdateFieldProp('placeholder', this.value)">
+              </div>
+              <div class="ts-field">
+                <label>Valor inicial</label>
+                <input type="text" class="ts-input" value="${escIuHtml(fld.value || '')}" oninput="fbUpdateFieldProp('value', this.value)">
+              </div>
+            </div>
+            <div class="ts-field">
+              <label>Texto de ayuda (<code>helperText</code>)</label>
+              <input type="text" class="ts-input" value="${escIuHtml(fld.helperText || '')}" oninput="fbUpdateFieldProp('helperText', this.value)">
+            </div>
+            <div class="ts-field">
+              <label>Visibilidad condicional (<code>showWhen</code>)</label>
+              <input type="text" class="ts-input" value="${escIuHtml(fld.showWhen || '')}" placeholder="ej. tipo_envio=domicilio" oninput="fbUpdateFieldProp('showWhen', this.value)">
+            </div>
+            <div class="ts-field">
+              <label>Clases JIT Contenedor (<code>wrapperClass</code>)</label>
+              <div class="iu-jit-input-wrap">
+                <input type="text" id="fb_fldWrapperClass" class="ts-input" value="${escIuHtml(fld.wrapperClass || '')}" placeholder="ej. span-desk-2 br15 p10" oninput="fbUpdateFieldProp('wrapperClass', this.value)">
+                <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('fb_fldWrapperClass', this)">⚡ JIT</button>
+              </div>
+            </div>
+            <div class="ts-field">
+              <label>Clases JIT Control (<code>class</code>)</label>
+              <div class="iu-jit-input-wrap">
+                <input type="text" id="fb_fldClass" class="ts-input" value="${escIuHtml(fld.class || '')}" placeholder="ej. focus-ring2" oninput="fbUpdateFieldProp('class', this.value)">
+                <button type="button" class="iu-jit-trigger-btn" onclick="toggleJitAssistant('fb_fldClass', this)">⚡ JIT</button>
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fld.required ? 'checked' : ''} onchange="fbUpdateFieldProp('required', this.checked)"><span>required</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fld.disabled ? 'checked' : ''} onchange="fbUpdateFieldProp('disabled', this.checked)"><span>disabled</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fld.readonly ? 'checked' : ''} onchange="fbUpdateFieldProp('readonly', this.checked)"><span>readonly</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fld.noAutoSubmit ? 'checked' : ''} onchange="fbUpdateFieldProp('noAutoSubmit', this.checked)"><span>noAutoSubmit</span></label>
+              <label class="cs-check-row" style="margin:0;"><input type="checkbox" ${fld.processAutoSubmit ? 'checked' : ''} onchange="fbUpdateFieldProp('processAutoSubmit', this.checked)"><span>processAutoSubmit</span></label>
+            </div>
+          </div>
+          <div class="iu-group-box">
+            <div class="iu-group-head"><span>Atributos Específicos (${escIuHtml(fld.type)})</span></div>
+            <div id="fbSpecificFieldAttrsContainer"></div>
+          </div>
+        `;
+        renderSpecificInputAttrsPanelFor(
+          document.getElementById('fbSpecificFieldAttrsContainer'),
+          fld.type,
+          fld,
+          'fbUpdateFieldProp'
+        );
+      }
+    }
+
+    function mountFormBuilderPreviewHtml(html) {
+      const host = document.getElementById('fbLiveFormHost');
+      if (!host) return;
+      host.innerHTML = html || '<div class="fb-empty-state">El formulario está vacío. Añade campos desde la barra superior.</div>';
+      const formEl = host.querySelector('form[data-studio-preview="true"]');
+      if (formEl) {
+        formEl.addEventListener('submit', (ev) => {
+          if (!formEl.classList.contains('auto-submit') && !formEl.hasAttribute('data-fetch-preview')) {
+            ev.preventDefault();
+            const statusEl = document.getElementById('fbSimulationStatus');
+            if (statusEl) statusEl.textContent = '✅ Submit simulado';
+            showToast('🚀 Submit clásico simulado correctamente (sin recarga)');
+          }
+        });
+      }
+      if (typeof window.initFormUiComponents === 'function') {
+        window.initFormUiComponents();
+      }
+      if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+        requestAnimationFrame(() => window.FmeUi.syncAllFloatingScrolls());
+      }
+    }
+
+    function renderFormBuilderView() {
+      const container = document.getElementById('iuFormBuilderContainer');
+      if (!container) return;
+
+      const fc = formBuilderState.formConfig;
+      const isMulti = !!fc.multiStep;
+
+      if (!document.getElementById('fbLiveFormHost')) {
+        const templatesHtml = `
+          <div class="fb-templates-bar">
+            <span class="fb-bar-label">Plantillas rápidas:</span>
+            ${Object.entries(FORM_TEMPLATES).map(([k, tpl]) => `<button type="button" class="fb-template-btn" onclick="loadFormBuilderTemplate('${k}')">${escIuHtml(tpl.label)}</button>`).join('')}
+            <button type="button" class="fb-template-btn" style="margin-left:auto;" onclick="clearFormBuilderFields()">🗑️ Vaciar</button>
+          </div>
+        `;
+
+        const paletteHtml = `
+          <div class="fb-palette-bar">
+            <span class="fb-bar-label">Agregar campo (19):</span>
+            ${INPUT_CATALOG.map(c => `<button type="button" class="fb-palette-btn" onclick="fbAddField('${c.type}')" title="Añadir ${escIuHtml(c.title)}">${c.icon} ${escIuHtml(c.title)}</button>`).join('')}
+            <button type="button" class="fb-palette-btn is-step" onclick="fbAddStep()" title="Agregar paso al asistente Multi-Paso">➕ Nuevo Paso</button>
+          </div>
+        `;
+
+        container.innerHTML = `
+          ${templatesHtml}
+          ${paletteHtml}
+          <div class="fb-stage-grid">
+            <div class="fb-structure-card">
+              <div class="fb-stage-card-head">
+                <span>🧩 Estructura</span>
+                <span id="fbStructureCount" style="font-size:0.68rem; color:var(--ts-muted);">0 campos</span>
+              </div>
+              <div id="fbStepTabsHost"></div>
+              <div class="fb-fields-list" id="fbFieldsListWrap"></div>
+            </div>
+            <div class="fb-stage-card">
+              <div class="fb-stage-card-head">
+                <span id="fbPreviewHeaderTitle">👁️ Vista Previa Interactiva</span>
+                <span id="fbSimulationStatus" class="ts-badge">Listo</span>
+              </div>
+              <div class="fb-preview-host" id="fbLiveFormHost">
+                <div class="fb-empty-state">Renderizando formulario en vivo...</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (formBuilderLastHtml) {
+          mountFormBuilderPreviewHtml(formBuilderLastHtml);
+        }
+
+        const listElInit = document.getElementById('fbFieldsListWrap');
+        if (listElInit && typeof window.FmeUi?.attachFloatingScroll === 'function') {
+          window.FmeUi.attachFloatingScroll(listElInit, container);
+        }
+      }
+
+      const countEl = document.getElementById('fbStructureCount');
+      if (countEl) {
+        countEl.textContent = `${formBuilderState.fields.length} campos`;
+      }
+
+      const stepTabsHost = document.getElementById('fbStepTabsHost');
+      if (stepTabsHost) {
+        stepTabsHost.innerHTML = isMulti ? `
+          <div class="fb-step-tabs">
+            <button type="button" class="fb-step-tab ${formBuilderState.activeStepFilter === -1 ? 'active' : ''}" onclick="fbSelectStepFilter(-1)">Todos (${formBuilderState.fields.length})</button>
+            ${formBuilderState.stepsMeta.map((st, idx) => {
+              const count = formBuilderState.fields.filter(f => (f.step || 0) === idx).length;
+              return `<button type="button" class="fb-step-tab ${formBuilderState.activeStepFilter === idx ? 'active' : ''}" onclick="fbSelectStepFilter(${idx})">Paso ${idx + 1} (${count})</button>`;
+            }).join('')}
+          </div>
+        ` : '';
+      }
+
+      const visibleFields = isMulti && formBuilderState.activeStepFilter >= 0
+        ? formBuilderState.fields.filter(f => (f.step || 0) === formBuilderState.activeStepFilter)
+        : formBuilderState.fields;
+
+      const listEl = document.getElementById('fbFieldsListWrap');
+      if (listEl) {
+        const prevScroll = listEl.scrollTop || 0;
+        listEl.innerHTML = visibleFields.length === 0
+          ? `<div class="fb-empty-state">Sin campos en esta vista.<br>Usa la barra superior para agregar campos.</div>`
+          : visibleFields.map((fld) => {
+              const meta = INPUT_CATALOG.find(c => c.type === fld.type) || { icon: '🔧', title: fld.type };
+              const isSel = fld.uid === formBuilderState.selectedFieldUid;
+              return `
+                <div class="fb-field-item ${isSel ? 'is-selected' : ''}" onclick="fbSelectField('${fld.uid}')">
+                  <div class="fb-field-toolbar">
+                    <span>${meta.icon} ${escIuHtml(fld.label || meta.title)}</span>
+                    <div class="fb-field-actions-row">
+                      <button type="button" class="fb-mini-act" title="Subir" onclick="event.stopPropagation(); fbMoveField('${fld.uid}', -1)">↑</button>
+                      <button type="button" class="fb-mini-act" title="Bajar" onclick="event.stopPropagation(); fbMoveField('${fld.uid}', 1)">↓</button>
+                      <button type="button" class="fb-mini-act" title="Duplicar" onclick="event.stopPropagation(); fbDuplicateField('${fld.uid}')">⧉</button>
+                      <button type="button" class="fb-mini-act danger" title="Eliminar" onclick="event.stopPropagation(); fbDeleteField('${fld.uid}')">✕</button>
+                    </div>
+                  </div>
+                  <div style="font-size:0.68rem; color:var(--ts-muted); display:flex; justify-content:space-between; gap:6px;">
+                    <span><code>${escIuHtml(fld.type)}</code> · name=<code>${escIuHtml(fld.name || '')}</code></span>
+                    ${isMulti ? `<span>Paso ${(fld.step || 0) + 1}</span>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('');
+        listEl.scrollTop = prevScroll;
+        if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+          window.FmeUi.syncAllFloatingScrolls(listEl.parentElement || container);
+        }
+      }
+
+      const headerTitleEl = document.getElementById('fbPreviewHeaderTitle');
+      if (headerTitleEl) {
+        const badges = [
+          fc.multiStep ? `Multi-Paso (${formBuilderState.stepsMeta.length})` : 'Simple',
+          fc.autoSubmit ? '⚡ Auto-Submit' : '🖱️ Submit Manual',
+          `${formBuilderState.fields.length} campos`
+        ].join(' · ');
+        headerTitleEl.textContent = `👁️ Vista Previa Interactiva (${badges})`;
+      }
+    }
+
+    function updateFormBuilderCodeOutput() {
+      const codeEl = document.getElementById('inputCodeOutput');
+      if (!codeEl) return;
+      if (inputCodeFormat === 'php') {
+        const useIndiv = !!document.getElementById('fbOptIndividualInputs')?.checked;
+        codeEl.textContent = useIndiv
+          ? (formBuilderCodeCache.phpFieldsSnippet || '')
+          : (formBuilderCodeCache.phpFormSnippet || '');
+      } else if (inputCodeFormat === 'global') {
+        codeEl.textContent = formBuilderCodeCache.globalSnippet || '';
+      } else {
+        codeEl.textContent = formBuilderCodeCache.htmlSnippet || '';
+      }
+    }
+
+    async function requestFormBuilderRender() {
+      const seq = ++formBuilderRenderSeq;
+      if (formBuilderRenderAbort) {
+        try { formBuilderRenderAbort.abort(); } catch (_) {}
+      }
+      formBuilderRenderAbort = new AbortController();
+
+      const cfg = ensureInputsConfig();
+      const cleanGlobal = {};
+      Object.keys(DEFAULT_INPUTS_CONFIG).forEach((k) => {
+        if (cfg[k] !== undefined && cfg[k] !== null && cfg[k] !== '') {
+          cleanGlobal[k] = cfg[k];
+        }
+      });
+
+      const formConfigPayload = Object.assign({}, formBuilderState.formConfig, {
+        stepsMeta: formBuilderState.stepsMeta
+      });
+      const fieldsPayload = formBuilderState.fields.map((f) => {
+        const clone = Object.assign({}, f);
+        delete clone.uid;
+        return clone;
+      });
+
+      try {
+        const res = await fetch('/_frame/theme-studio/render-form', {
+          method: 'POST',
+          headers: getStudioHeaders(),
+          body: JSON.stringify({
+            globalConfig: cleanGlobal,
+            formConfig: formConfigPayload,
+            stepsOrFields: fieldsPayload
+          }),
+          signal: formBuilderRenderAbort.signal
+        });
+        const data = await res.json();
+        if (seq !== formBuilderRenderSeq) return;
+        if (!data || !data.success) {
+          const hostErr = document.getElementById('fbLiveFormHost');
+          if (hostErr) {
+            hostErr.innerHTML = `<div class="fb-empty-state">⚠️ ${escIuHtml(data?.message || 'No se pudo renderizar el formulario.')}</div>`;
+          }
+          return;
+        }
+
+        if (typeof data.jitPreviewCss === 'string') {
+          applyJitPreviewCss(data.jitPreviewCss);
+        }
+
+        formBuilderLastHtml = data.html || '';
+        formBuilderCodeCache = {
+          phpFormSnippet: data.phpFormSnippet || '',
+          phpFieldsSnippet: data.phpFieldsSnippet || '',
+          htmlSnippet: data.htmlSnippet || '',
+          globalSnippet: data.globalSnippet || ''
+        };
+        if (inputSandboxViewMode === 'formBuilder') {
+          updateFormBuilderCodeOutput();
+        }
+
+        mountFormBuilderPreviewHtml(formBuilderLastHtml);
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        const hostErr = document.getElementById('fbLiveFormHost');
+        if (hostErr) {
+          hostErr.innerHTML = `<div class="fb-empty-state">⚠️ Error de conexión al renderizar la vista previa del formulario.</div>`;
+        }
+      }
+    }
+
+    // ==============================================================
+    // FASE 9: PERSISTENCIA DE ESTADO DEL ESPACIO DE TRABAJO
+    // ==============================================================
+
+    const WORKSPACE_STATE_KEY = 'frame_ts_workspace_state';
+
+    function saveWorkspaceState() {
+      if (isRestoringWorkspace) return;
+      try {
+        const sidebarEl = document.querySelector('.ts-sidebar');
+        const activeTabEl = document.querySelector('.ts-tab-content.active');
+        const csDock = document.getElementById('csCodeDock');
+        const iuDock = document.getElementById('iuCodeDock');
+        const routeInput = document.getElementById('projectRouteInput');
+
+        const payload = {
+          tab: currentTabId || 'themes',
+          stage: currentStageMode || 'site',
+          themeSlug: currentThemeSlug || activeThemeSlug || 'default',
+          previewMode: currentPreviewMode || 'light',
+          viewportWidth: currentViewportWidth || '100%',
+          sidebarCollapsed: sidebarEl ? sidebarEl.classList.contains('collapsed') : false,
+          sidebarScrollTop: activeTabEl ? Math.round(activeTabEl.scrollTop || 0) : 0,
+          projectRoute: routeInput ? routeInput.value : '/',
+          charts: {
+            viewMode: typeof chartSandboxViewMode !== 'undefined' ? chartSandboxViewMode : 'gallery',
+            activeChart: typeof activeChartType !== 'undefined' ? activeChartType : 'horizontalBars',
+            surface: typeof chartCardSurface !== 'undefined' ? chartCardSurface : 'var(--body)',
+            focusedWidth: typeof chartFocusedWidth !== 'undefined' ? chartFocusedWidth : '100%',
+            codeFormat: typeof chartCodeFormat !== 'undefined' ? chartCodeFormat : 'helper',
+            dockCollapsed: csDock ? csDock.classList.contains('collapsed') : false
+          },
+          inputs: {
+            viewMode: inputSandboxViewMode || 'gallery',
+            activeInput: activeInputType || 'cropImage',
+            subTab: activeInputSubTab || 'global',
+            touchSim: !!inputSandboxTouchSim,
+            surface: inputStageSurface || 'var(--body)',
+            focusedWidth: inputFocusedWidth || '100%',
+            codeFormat: inputCodeFormat || 'php',
+            dockCollapsed: iuDock ? iuDock.classList.contains('collapsed') : false,
+            colorDockCollapsed: !!iuColorDockCollapsed,
+            individualInputsCode: !!document.getElementById('fbOptIndividualInputs')?.checked,
+            formBuilderDraft: formBuilderState
+          }
+        };
+        window.localStorage.setItem(WORKSPACE_STATE_KEY, JSON.stringify(payload));
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', payload.tab);
+        url.searchParams.set('stage', payload.stage);
+        window.history.replaceState(null, '', url.toString());
+      } catch (_) {}
+    }
+
+    function restoreWorkspaceState() {
+      isRestoringWorkspace = true;
+      try {
+        let saved = null;
+        try {
+          const raw = window.localStorage.getItem(WORKSPACE_STATE_KEY);
+          if (raw) saved = JSON.parse(raw);
+        } catch (_) {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get('tab');
+        const urlStage = urlParams.get('stage');
+
+        if (saved && typeof saved === 'object') {
+          if (saved.themeSlug && saved.themeSlug !== currentThemeSlug && fullThemeConfig?.themes?.[saved.themeSlug]) {
+            const themeSel = document.getElementById('themeSelector');
+            if (themeSel) themeSel.value = saved.themeSlug;
+            switchThemeTo(saved.themeSlug);
+          }
+
+          if (saved.previewMode === 'dark' || saved.previewMode === 'light') {
+            setPreviewMode(saved.previewMode);
+          }
+
+          if (saved.viewportWidth) {
+            setViewport(saved.viewportWidth);
+          }
+
+          if (typeof saved.sidebarCollapsed === 'boolean') {
+            toggleSidebar(saved.sidebarCollapsed);
+          }
+
+          if (saved.projectRoute && saved.projectRoute !== '/') {
+            navigateProjectRoute(saved.projectRoute);
+          }
+
+          if (saved.charts && typeof saved.charts === 'object') {
+            if (saved.charts.activeChart && typeof selectActiveChart === 'function') {
+              selectActiveChart(saved.charts.activeChart, false);
+            }
+            if (saved.charts.surface && typeof setChartCardSurface === 'function') {
+              const csSurfSel = document.getElementById('csCardSurfaceSelect');
+              if (csSurfSel) csSurfSel.value = saved.charts.surface;
+              setChartCardSurface(saved.charts.surface);
+            }
+            if (saved.charts.focusedWidth && typeof setFocusedCardWidth === 'function') {
+              setFocusedCardWidth(saved.charts.focusedWidth);
+            }
+            if (saved.charts.codeFormat && typeof setChartCopyFormat === 'function') {
+              setChartCopyFormat(saved.charts.codeFormat);
+            }
+            if (saved.charts.viewMode && typeof setChartSandboxViewMode === 'function') {
+              setChartSandboxViewMode(saved.charts.viewMode);
+            }
+            const csDock = document.getElementById('csCodeDock');
+            const csDockBtn = document.getElementById('btnToggleCodeDock');
+            if (csDock && typeof saved.charts.dockCollapsed === 'boolean') {
+              csDock.classList.toggle('collapsed', saved.charts.dockCollapsed);
+              if (csDockBtn) csDockBtn.textContent = saved.charts.dockCollapsed ? '▸' : '▾';
+            }
+          }
+
+          if (saved.inputs && typeof saved.inputs === 'object') {
+            if (saved.inputs.formBuilderDraft) {
+              formBuilderState = sanitizeFormBuilderState(saved.inputs.formBuilderDraft);
+            }
+            if (saved.inputs.activeInput && INPUT_CATALOG.some(i => i.type === saved.inputs.activeInput)) {
+              activeInputType = saved.inputs.activeInput;
+              renderInputTypeGrid();
+            }
+            if (saved.inputs.subTab) {
+              switchInputSubTab(saved.inputs.subTab);
+            }
+            if (typeof saved.inputs.touchSim === 'boolean' && saved.inputs.touchSim !== inputSandboxTouchSim) {
+              toggleInputTouchSim();
+            }
+            if (saved.inputs.surface) {
+              const surfSel = document.getElementById('iuSurfaceSelect');
+              if (surfSel) surfSel.value = saved.inputs.surface;
+              setInputStageSurface(saved.inputs.surface);
+            }
+            if (saved.inputs.focusedWidth) {
+              const fwSel = document.getElementById('iuFocusedWidthSelect');
+              if (fwSel) fwSel.value = saved.inputs.focusedWidth;
+              setInputFocusedWidth(saved.inputs.focusedWidth);
+            }
+            if (saved.inputs.codeFormat) {
+              setInputCopyFormat(saved.inputs.codeFormat);
+            }
+            const indivChk = document.getElementById('fbOptIndividualInputs');
+            if (indivChk && typeof saved.inputs.individualInputsCode === 'boolean') {
+              indivChk.checked = saved.inputs.individualInputsCode;
+            }
+            const iuDock = document.getElementById('iuCodeDock');
+            const iuDockBtn = document.getElementById('btnToggleInputCodeDock');
+            if (iuDock && typeof saved.inputs.dockCollapsed === 'boolean') {
+              iuDock.classList.toggle('collapsed', saved.inputs.dockCollapsed);
+              if (iuDockBtn) iuDockBtn.textContent = saved.inputs.dockCollapsed ? '▸' : '▾';
+            }
+            if (typeof saved.inputs.colorDockCollapsed === 'boolean') {
+              toggleIuColorChipsAccordion(saved.inputs.colorDockCollapsed);
+            }
+            if (saved.inputs.viewMode) {
+              setInputSandboxViewMode(saved.inputs.viewMode);
+            }
+          }
+        }
+
+        const targetTab = (urlTab && document.getElementById('tab-' + urlTab))
+          ? urlTab
+          : ((saved?.tab && document.getElementById('tab-' + saved.tab)) ? saved.tab : 'themes');
+        const targetStage = (urlStage && ['site', 'charts', 'inputs', 'icons'].includes(urlStage))
+          ? urlStage
+          : ((saved?.stage && ['site', 'charts', 'inputs', 'icons'].includes(saved.stage)) ? saved.stage : null);
+
+        switchTab(targetTab);
+        if (targetStage && targetStage !== currentStageMode) {
+          setStageMode(targetStage);
+        }
+
+        const activeTabEl = document.getElementById('tab-' + targetTab);
+        const scrollTopTarget = saved?.sidebarScrollTop || 0;
+        if (activeTabEl && scrollTopTarget > 0) {
+          requestAnimationFrame(() => {
+            activeTabEl.scrollTop = scrollTopTarget;
+          });
+        }
+      } finally {
+        isRestoringWorkspace = false;
+        saveWorkspaceState();
+      }
     }
 
     function initInputStudio() {
@@ -9969,6 +11860,21 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           onInputLocalChange(el.getAttribute('data-iu-local'), el.value);
         });
       });
+
+      if (!document.documentElement.dataset.fbSimListenersBound) {
+        document.documentElement.dataset.fbSimListenersBound = '1';
+        document.addEventListener('studio:autoSubmitSimulated', () => {
+          const statusEl = document.getElementById('fbSimulationStatus');
+          if (statusEl) statusEl.textContent = '⚡ Auto-Submit simulado';
+          showToast('⚡ Auto-Submit simulado en vista previa (sin envío real)');
+        });
+        document.addEventListener('studio:stepValidated', (ev) => {
+          const statusEl = document.getElementById('fbSimulationStatus');
+          const url = ev?.detail?.validateUrl || '';
+          if (statusEl) statusEl.textContent = '✓ Paso validado';
+          showToast(`✅ Validación AJAX simulada (${url})`);
+        });
+      }
 
       renderInputTypeGrid();
       renderInputColorChips();
