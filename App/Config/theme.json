@@ -238,15 +238,20 @@
             },
             "charts": {
                 "color": "texto",
-                "colorLabel": "color14",
+                "colorLabel": "texto",
                 "axisLabel": "color2",
-                "axisLabelSize": null,
+                "axisLabelSize": 18,
                 "transition": 400,
                 "tooltip": true,
-                "barWidth": null,
+                "barWidth": 20,
                 "yLabelPosition": "default",
                 "width": null,
-                "height": null
+                "height": null,
+                "localOverrides": {
+                    "arcMeter": {
+                        "label": "Tasa de conversión"
+                    }
+                }
             },
             "inputs": {
                 "preset": "minimal",

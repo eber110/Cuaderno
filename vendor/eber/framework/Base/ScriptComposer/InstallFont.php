@@ -67,7 +67,7 @@ if ($isVariable) {
 
 // 3. Solicitar nombre de la familia tipográfica (font-family)
 $fileName = pathinfo($sourcePath, PATHINFO_FILENAME);
-// Extraer nombre de la familia sin alterar guiones bajos (ej: GoogleSansFlex_120pt-Bold -> GoogleSansFlex_120pt)
+// Extraer nombre de la familia sin alterar guiones bajos (ej: MiFuente_120pt-Bold -> MiFuente_120pt)
 $familyParts = explode('-', $fileName);
 $detectedFamily = $familyParts[0];
 if (empty($detectedFamily)) {
@@ -79,7 +79,7 @@ $fontFamilyInput = trim(fgets($stdin));
 $fontFamilyName = empty($fontFamilyInput) ? $detectedFamily : trim($fontFamilyInput);
 
 // 4. Solicitar nombre de la clase CSS
-// Sugerir clase CSS limpia (ej: GoogleSansFlex_120pt -> googlesansflex120pt)
+// Sugerir clase CSS limpia (ej: MiFuente_120pt -> mifuente120pt)
 $suggestedClass = lcfirst(preg_replace('/[^a-zA-Z0-9]/', '', $fontFamilyName));
 if (empty($suggestedClass)) {
     $suggestedClass = 'customFont';

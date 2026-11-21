@@ -138,7 +138,7 @@ class JitCssModule
                 if (preg_match('/url\([\'"]?([^\'")]+)[\'"]?\)/i', $block, $urlMatches)) {
                     $fontUrl = $urlMatches[1];
                     
-                    // Extraer los nombres de las clases CSS definidas en este bloque (ej: .googleFlex400 -> googleFlex400)
+                    // Extraer los nombres de las clases CSS definidas en este bloque (ej: .miFuente400 -> miFuente400)
                     preg_match_all('/\.([a-zA-Z0-9_-]+)\s*\{/i', $block, $classMatches);
                     $classes = $classMatches[1] ?? [];
                     
@@ -165,10 +165,10 @@ class JitCssModule
                     $isVariable = (strpos($fontWeight, ' ') !== false || $fontWeight === '100 900');
                     $isBaseRegularWeight = ($fontWeight === '400' || strtolower($fontWeight) === 'normal');
 
-                    // 1. Verificar si la clase específica (ej. googleFlex200, googleFlex700) está en uso explícito
+                    // 1. Verificar si la clase específica (ej. miFuente200, miFuente700) está en uso explícito
                     $isUsedClass = false;
                     foreach ($classes as $class) {
-                        // Omitir la clase base genérica (ej. googleFlex) para no marcar todos los pesos como clase específica
+                        // Omitir la clase base genérica (ej. miFuente) para no marcar todos los pesos como clase específica
                         if (isset($familyClean) && (strtolower($class) === strtolower($familyClean) || strtolower($class) === strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $familyClean)))) {
                             continue;
                         }

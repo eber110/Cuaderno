@@ -3,6 +3,7 @@
 namespace Base\Studio\Controllers;
 
 use Base\Control\Control;
+use Base\Studio\Services\FontCatalogService;
 use Base\Studio\StudioKernel;
 
 use Base\Module\FormUiModule;
@@ -70,81 +71,14 @@ class ThemeStudioController extends Control
   }
 
   /**
-   * Obtiene la lista de fuentes instaladas y pilas de fuentes del sistema disponibles.
+   * Obtiene la lista de fuentes instaladas en el proyecto y la fuente por defecto del navegador.
+   * No incluye fuentes precargadas en el framework.
    *
-   * @return array Lista de fuentes con nombre y valor CSS
+   * @return array<int, array{name: string, value: string}> Lista de fuentes con nombre y valor CSS
    */
   public static function getInstalledFonts(): array
   {
-    $basePath = defined('ROOT_PATH') ? ROOT_PATH : getcwd();
-    $fonts = [
-      [
-        'name' => 'Sistema (System UI Stack)',
-        'value' => "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif"
-      ],
-      [
-        'name' => 'Inter / Sans Moderno',
-        'value' => "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-      ],
-      [
-        'name' => 'Roboto / Android Stack',
-        'value' => "'Roboto', 'Helvetica Neue', Arial, sans-serif"
-      ],
-      [
-        'name' => 'Segoe UI / Windows Stack',
-        'value' => "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-      ],
-      [
-        'name' => 'Serif Editorial (Georgia)',
-        'value' => "Georgia, 'Times New Roman', Times, serif"
-      ],
-      [
-        'name' => 'Monoespaciada (Code / Terminal)',
-        'value' => "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace"
-      ],
-    ];
-
-    // Detectar fuentes en font-project.css
-    $fontCssPath = $basePath . '/App/Public/Css/font-project.css';
-    if (is_file($fontCssPath)) {
-      $cssContent = (string)file_get_contents($fontCssPath);
-      if (preg_match_all('/font-family\s*:\s*[\'"]?([^\'";}\r\n]+)[\'"]?/i', $cssContent, $matches)) {
-        $found = array_unique(array_map('trim', $matches[1]));
-        foreach ($found as $fontName) {
-          if (!empty($fontName)) {
-            array_unshift($fonts, [
-              'name' => "⭐ {$fontName} (Instalada en proyecto)",
-              'value' => "'{$fontName}', system-ui, sans-serif"
-            ]);
-          }
-        }
-      }
-    }
-
-    // Detectar fuentes en App/Rsc/Fonts/
-    $fontsDir = $basePath . '/App/Rsc/Fonts';
-    if (is_dir($fontsDir)) {
-      $fontFiles = glob($fontsDir . '/*.{woff2,ttf,otf}', GLOB_BRACE) ?: [];
-      foreach ($fontFiles as $file) {
-        $fontName = pathinfo($file, PATHINFO_FILENAME);
-        $fontNameClean = str_replace(['-', '_'], ' ', $fontName);
-        $already = false;
-        foreach ($fonts as $f) {
-          if (str_contains($f['name'], $fontNameClean)) {
-            $already = true;
-            break;
-          }
-        }
-        if (!$already) {
-          $fonts[] = [
-            'name' => "📦 {$fontNameClean} (Archivo en App/Rsc/Fonts)",
-            'value' => "'{$fontNameClean}', system-ui, sans-serif"
-          ];
-        }
-      }
-    }
-
-    return $fonts;
+    return FontCatalogService::getSelectOptions();
   }
 
   /**
@@ -238,7 +172,8 @@ class ThemeStudioController extends Control
     $config['themeSlug'] = $activeThemeSlug;
     $config['activeTheme'] = $fullConfig['activeTheme'] ?? 'default';
 
-    $fonts = self::getInstalledFonts();
+    $fontsCatalog = FontCatalogService::getCatalog($basePath);
+    $fonts = FontCatalogService::getSelectOptions($basePath);
     $projectRoutes = self::getProjectRoutes();
     $chartsAssets = self::getChartsLibraryAssets($basePath);
     $inputsAssets = self::getInputsStudioAssets($basePath);
@@ -281,6 +216,8 @@ class ThemeStudioController extends Control
       'activeThemeSlug' => $activeThemeSlug,
       'defaultConfig' => $defaultCssConfig,
       'fonts' => $fonts,
+      'initialFontsCatalog' => $fontsCatalog,
+      'fontsLiveFacesCss' => $fontsCatalog['previewFontFacesCss'] ?? '',
       'projectRoutes' => $projectRoutes,
       'chartsCss' => $chartsAssets['css'],
       'chartsJs' => $chartsAssets['js'],
@@ -2119,7 +2056,7 @@ JS;
   }
 
   /**
-   * Devuelve la lista de fuentes en formato JSON.
+   * Devuelve la lista de fuentes y el catálogo completo de Font Studio en formato JSON.
    */
   public function fonts(): void
   {
@@ -2127,9 +2064,11 @@ JS;
       return;
     }
 
+    $catalog = FontCatalogService::getCatalog();
     $this->json([
       'success' => true,
-      'fonts' => self::getInstalledFonts()
+      'fonts' => FontCatalogService::getSelectOptions(),
+      'catalog' => $catalog,
     ]);
   }
 }

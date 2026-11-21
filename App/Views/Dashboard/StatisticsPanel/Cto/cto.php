@@ -43,17 +43,17 @@
   $barPctEnlaces    = $hasCurrentClicks ? $pctEnlacesMonth : $pctEnlacesAllTime;
   $barPctRrss       = $hasCurrentClicks ? $pctRrssMonth : $pctRrssAllTime;
 
-  $arcMeterConfig   = is_array($cto["arc_meter"] ?? null) ? $cto["arc_meter"] : [
-    "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
-    "displayValue" => $monthlyCtoRate . "%",
-    "label"        => "Tasa de conversión",
-    "color"        => "color1",
-    "colorLabel"   => "texto",
-    "unit"         => "Tasa de conversión",
-    "transition"   => 500,
-    "showNumber"   => true,
-    "showLabel"    => true
-  ];
+  // $arcMeterConfig   = is_array($cto["arc_meter"] ?? null) ? $cto["arc_meter"] : [
+  //   "value"        => min(100.0, max(0.0, (float)$monthlyCtoRate)),
+  //   "displayValue" => $monthlyCtoRate . "%",
+  //   "label"        => "Tasa de conversión",
+  //   "color"        => "color1",
+  //   "colorLabel"   => "texto",
+  //   "unit"         => "Tasa de conversión",
+  //   "transition"   => 500,
+  //   "showNumber"   => true,
+  //   "showLabel"    => true
+  // ];
 ?>
 
 <div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap20 w100">
@@ -92,7 +92,16 @@
       <div class="flex-row-desk flex-column-mid bottom-center center-center-mid gap20 w100">
         <!-- Columna con el Gráfico vectorial Arc Meter -->
         <div class="w50 w-mid-70 w-sml-100">
-          <?= GraphicsModule::arcMeter($arcMeterConfig); ?>
+          <?php _chart('arcMeter', [
+            'colorLabel' => 'texto',
+            'axisLabel' => 'color2',
+            'axisLabelSize' => 18,
+            'transition' => 500,
+            'barWidth' => 22,
+            'width' => 100,
+            'label' => 'Tasa de conversión',
+            'value' => $monthlyCtoRate . "%",
+          ]); ?>
         </div>
 
         <!-- Columna de métricas numéricas -->

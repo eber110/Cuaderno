@@ -418,6 +418,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     #jsModulesSandboxView,
     #configSandboxView,
     #chartSandboxStage,
+    #fontSandboxStage,
     #iconSandboxStage,
     #inputSandboxStage,
     #isFoldersContainer,
@@ -430,6 +431,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     #jsModulesSandboxView::-webkit-scrollbar,
     #configSandboxView::-webkit-scrollbar,
     #chartSandboxStage::-webkit-scrollbar,
+    #fontSandboxStage::-webkit-scrollbar,
     #iconSandboxStage::-webkit-scrollbar,
     #inputSandboxStage::-webkit-scrollbar,
     #isFoldersContainer::-webkit-scrollbar,
@@ -2736,6 +2738,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
   <style id="ts-charts-core-css"><?= $chartsCss ?? '' ?></style>
   <style id="ts-inputs-core-css"><?= $inputsCss ?? '' ?></style>
   <style id="tsJitLivePreviewCss"><?= $initialJitPreviewCss ?? '' ?></style>
+  <style id="ts-fonts-live-faces"><?= $fontsLiveFacesCss ?? '' ?></style>
 </head>
 <body>
 
@@ -2804,6 +2807,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
         <button type="button" class="ts-tab-btn" id="tabBtnCharts" data-tab-id="charts" onclick="switchTab('charts', this)">📊 Gráficos</button>
         <button type="button" class="ts-tab-btn" id="tabBtnInputs" data-tab-id="inputs" onclick="switchTab('inputs', this)">🎛️ Inputs</button>
         <button type="button" class="ts-tab-btn" id="tabBtnIcons" data-tab-id="icons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnFonts" data-tab-id="fonts" onclick="switchTab('fonts', this)">🔠 Fuentes</button>
         <button type="button" class="ts-tab-btn" data-tab-id="wcag" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" data-tab-id="gradients" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
         <button type="button" class="ts-tab-btn" id="tabBtnJsModules" data-tab-id="jsmodules" onclick="switchTab('jsmodules', this)">📦 Módulos JS</button>
@@ -4212,6 +4216,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
         </div>
       </div>
 
+      <?php require __DIR__ . '/partials/tab_fonts.php'; ?>
       <?php require __DIR__ . '/partials/tab_js_modules.php'; ?>
       <?php require __DIR__ . '/partials/tab_config.php'; ?>
 
@@ -4240,6 +4245,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageIcons" onclick="setStageMode('icons')">
               🖼️ <span>Iconos</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageFonts" onclick="setStageMode('fonts')">
+              🔠 <span>Fuentes</span>
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageJsModules" onclick="setStageMode('jsmodules')">
               📦 <span>Módulos JS</span>
@@ -4273,6 +4281,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
           <div id="iconBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🖼️ Galería SVG (/Ico)</span>
             <span id="isTotalBadge" class="ts-badge">0 iconos</span>
+          </div>
+          <div id="fontBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>🔠 Font Studio</span>
+            <span id="fsActiveFontBadge" class="ts-badge">.font</span>
           </div>
           <div id="inputBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🎛️ UI / Input Studio</span>
@@ -4562,6 +4574,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
               </div>
             </div>
           </div>
+          <?php require __DIR__ . '/partials/stage_fonts.php'; ?>
         </div>
       </div>
 
@@ -4668,6 +4681,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     const JIT_CLASSES_CATALOG = <?= json_encode($jitCatalog ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialJitPreviewCss = <?= json_encode($initialJitPreviewCss ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const initialIconsCatalog = <?= json_encode($initialIconsCatalog ?? ['totalIcons' => 0, 'totalFolders' => 0, 'primaryDir' => 'Resources/Ico', 'folders' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    const initialFontsCatalog = <?= json_encode($initialFontsCatalog ?? ['totalFonts' => 0, 'projectFontsCount' => 0, 'unregisteredCount' => 0, 'orphanCssCount' => 0, 'families' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     let fullThemeConfig = JSON.parse(JSON.stringify(initialFullConfig));
     let activeThemeSlug = '<?= $activeThemeSlug ?? "default" ?>';
@@ -4829,6 +4843,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       initInputStudio();
       // 5.8. Inicializar Icon Studio (galería visual de SVG en /Ico)
       initIconStudio();
+      // 5.9. Inicializar Font Studio (catálogo tipográfico del proyecto)
+      if (typeof initFontStudio === 'function') initFontStudio();
       // 6. Configurar iframe de vista real del proyecto
       setupProjectIframe();
       // 7. Inyectar variables en vivo
@@ -4855,7 +4871,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     function getStudioScrollContainers() {
       const list = [];
       document.querySelectorAll('.ts-tab-content').forEach((el) => list.push(el));
-      ['jsModulesSandboxView', 'configSandboxView', 'chartSandboxStage', 'iconSandboxStage', 'inputSandboxStage', 'jsonViewer'].forEach((id) => {
+      ['jsModulesSandboxView', 'configSandboxView', 'chartSandboxStage', 'fontSandboxStage', 'iconSandboxStage', 'inputSandboxStage', 'jsonViewer'].forEach((id) => {
         const el = document.getElementById(id);
         if (el) list.push(el);
       });
@@ -6334,6 +6350,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
         renderIconColorChips();
       }
 
+      // Actualizar variables CSS en tiempo real dentro de Font Studio (0 ms)
+      if (typeof injectLiveThemeIntoFontSandbox === 'function') {
+        injectLiveThemeIntoFontSandbox();
+      }
+
       // Sincronizar el color de la barra de scroll flotante del iframe
       updateIframeFloatingScrollColor();
 
@@ -6570,6 +6591,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
         setStageMode('inputs');
       } else if (currentTabId === 'icons') {
         setStageMode('icons');
+      } else if (currentTabId === 'fonts') {
+        setStageMode('fonts');
       } else if (currentTabId === 'jsmodules') {
         setStageMode('jsmodules');
       } else if (currentTabId === 'config') {
@@ -7493,12 +7516,13 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     }
 
     function setStageMode(mode) {
-      currentStageMode = (mode === 'charts' || mode === 'inputs' || mode === 'icons' || mode === 'jsmodules' || mode === 'config') ? mode : 'site';
+      currentStageMode = (mode === 'charts' || mode === 'inputs' || mode === 'icons' || mode === 'fonts' || mode === 'jsmodules' || mode === 'config') ? mode : 'site';
       const isToolStage = (currentStageMode === 'jsmodules' || currentStageMode === 'config');
       const btnSite = document.getElementById('btnStageSite');
       const btnCharts = document.getElementById('btnStageCharts');
       const btnInputs = document.getElementById('btnStageInputs');
       const btnIcons = document.getElementById('btnStageIcons');
+      const btnFonts = document.getElementById('btnStageFonts');
       const btnJsMod = document.getElementById('btnStageJsModules');
       const btnConfig = document.getElementById('btnStageConfig');
       const sandboxWindow = document.getElementById('sandboxWindow');
@@ -7507,12 +7531,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       const chartView = document.getElementById('chartSandboxView');
       const inputView = document.getElementById('inputSandboxView');
       const iconView = document.getElementById('iconSandboxView');
+      const fontView = document.getElementById('fontSandboxView');
       const jsModView = document.getElementById('jsModulesSandboxView');
       const cfgView = document.getElementById('configSandboxView');
       const routeBar = document.getElementById('projectRouteBar');
       const chartStatus = document.getElementById('chartBarStatus');
       const inputStatus = document.getElementById('inputBarStatus');
       const iconStatus = document.getElementById('iconBarStatus');
+      const fontStatus = document.getElementById('fontBarStatus');
       const jsModStatus = document.getElementById('jsModulesBarStatus');
       const cfgStatus = document.getElementById('configBarStatus');
 
@@ -7520,6 +7546,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       if (btnCharts) btnCharts.classList.toggle('active', currentStageMode === 'charts');
       if (btnInputs) btnInputs.classList.toggle('active', currentStageMode === 'inputs');
       if (btnIcons) btnIcons.classList.toggle('active', currentStageMode === 'icons');
+      if (btnFonts) btnFonts.classList.toggle('active', currentStageMode === 'fonts');
       if (btnJsMod) btnJsMod.classList.toggle('active', currentStageMode === 'jsmodules');
       if (btnConfig) btnConfig.classList.toggle('active', currentStageMode === 'config');
 
@@ -7529,12 +7556,14 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       if (chartView) chartView.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
       if (inputView) inputView.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconView) iconView.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
+      if (fontView) fontView.style.display = currentStageMode === 'fonts' ? 'flex' : 'none';
       if (jsModView) jsModView.style.display = currentStageMode === 'jsmodules' ? 'flex' : 'none';
       if (cfgView) cfgView.style.display = currentStageMode === 'config' ? 'flex' : 'none';
       if (routeBar) routeBar.style.display = currentStageMode === 'site' ? 'flex' : 'none';
       if (chartStatus) chartStatus.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
       if (inputStatus) inputStatus.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconStatus) iconStatus.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
+      if (fontStatus) fontStatus.style.display = currentStageMode === 'fonts' ? 'flex' : 'none';
       if (jsModStatus) jsModStatus.style.display = currentStageMode === 'jsmodules' ? 'flex' : 'none';
       if (cfgStatus) cfgStatus.style.display = currentStageMode === 'config' ? 'flex' : 'none';
 
@@ -7572,6 +7601,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       } else if (currentStageMode === 'icons') {
         injectLiveThemeIntoIconSandbox();
         refreshIconsCatalog(false);
+      } else if (currentStageMode === 'fonts') {
+        if (typeof injectLiveThemeIntoFontSandbox === 'function') injectLiveThemeIntoFontSandbox();
+        if (typeof renderFontStage === 'function') renderFontStage();
       } else if (currentStageMode === 'jsmodules' && typeof loadJsModulesCatalog === 'function') {
         loadJsModulesCatalog(false);
       } else if (currentStageMode === 'config' && typeof loadConfigState === 'function') {
@@ -11780,6 +11812,15 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
             colorDockCollapsed: !!iuColorDockCollapsed,
             individualInputsCode: !!document.getElementById('fbOptIndividualInputs')?.checked,
             formBuilderDraft: formBuilderState
+          },
+          fonts: {
+            viewMode: typeof fontSandboxViewMode !== 'undefined' ? fontSandboxViewMode : 'gallery',
+            activeFontId: typeof activeFontId !== 'undefined' ? activeFontId : '',
+            surface: typeof fontStageSurface !== 'undefined' ? fontStageSurface : 'var(--body)',
+            focusedWidth: typeof fontFocusedWidth !== 'undefined' ? fontFocusedWidth : '100%',
+            codeFormat: typeof fontCodeFormat !== 'undefined' ? fontCodeFormat : 'class',
+            weight: typeof fontSelectedWeight !== 'undefined' ? fontSelectedWeight : 400,
+            dockCollapsed: document.getElementById('fsCodeDock') ? document.getElementById('fsCodeDock').classList.contains('collapsed') : false
           }
         };
         window.localStorage.setItem(WORKSPACE_STATE_KEY, JSON.stringify(payload));
@@ -11897,12 +11938,43 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
               setInputSandboxViewMode(saved.inputs.viewMode);
             }
           }
+
+          if (saved.fonts && typeof saved.fonts === 'object') {
+            if (saved.fonts.activeFontId && typeof selectActiveFont === 'function') {
+              selectActiveFont(saved.fonts.activeFontId, false);
+            }
+            if (saved.fonts.weight && typeof selectFontWeight === 'function') {
+              selectFontWeight(saved.fonts.weight);
+            }
+            if (saved.fonts.surface && typeof setFontStageSurface === 'function') {
+              const fsSurfSel = document.getElementById('fsSurfaceSelect');
+              if (fsSurfSel) fsSurfSel.value = saved.fonts.surface;
+              setFontStageSurface(saved.fonts.surface);
+            }
+            if (saved.fonts.focusedWidth && typeof setFontFocusedWidth === 'function') {
+              const fsWidthSel = document.getElementById('fsFocusedWidthSelect');
+              if (fsWidthSel) fsWidthSel.value = saved.fonts.focusedWidth;
+              setFontFocusedWidth(saved.fonts.focusedWidth);
+            }
+            if (saved.fonts.codeFormat && typeof setFontCodeFormat === 'function') {
+              setFontCodeFormat(saved.fonts.codeFormat);
+            }
+            if (saved.fonts.viewMode && typeof setFontSandboxViewMode === 'function') {
+              setFontSandboxViewMode(saved.fonts.viewMode);
+            }
+            const fsDock = document.getElementById('fsCodeDock');
+            const fsDockBtn = document.getElementById('btnToggleFontCodeDock');
+            if (fsDock && typeof saved.fonts.dockCollapsed === 'boolean') {
+              fsDock.classList.toggle('collapsed', saved.fonts.dockCollapsed);
+              if (fsDockBtn) fsDockBtn.textContent = saved.fonts.dockCollapsed ? '▸' : '▾';
+            }
+          }
         }
 
         const targetTab = (urlTab && document.getElementById('tab-' + urlTab))
           ? urlTab
           : ((saved?.tab && document.getElementById('tab-' + saved.tab)) ? saved.tab : 'themes');
-        const validStages = ['site', 'charts', 'inputs', 'icons', 'jsmodules', 'config'];
+        const validStages = ['site', 'charts', 'inputs', 'icons', 'fonts', 'jsmodules', 'config'];
         const targetStage = (urlStage && validStages.includes(urlStage))
           ? urlStage
           : ((saved?.stage && validStages.includes(saved.stage)) ? saved.stage : null);
