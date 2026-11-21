@@ -21,6 +21,13 @@ import { easeInOutCubic } from "./arcMeter.js";
 export function animateTileFade(el, { duration = 400 } = {}) {
   if (!el) return { cancel: () => {} };
 
+  if (typeof el._tileFadeCancel === "function") {
+    el._tileFadeCancel();
+  }
+
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+
   el.style.opacity = "0";
 
   let isCancelled = false;
@@ -30,7 +37,7 @@ export function animateTileFade(el, { duration = 400 } = {}) {
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
     el.style.opacity = Math.max(0, Math.min(1, ease)).toFixed(4);
@@ -39,16 +46,24 @@ export function animateTileFade(el, { duration = 400 } = {}) {
       rafId = requestAnimationFrame(step);
     } else {
       el.style.opacity = "1";
+      el._tileFadeCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
-  return {
-    cancel: () => {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-    }
+  const cancel = () => {
+    isCancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    el._tileFadeCancel = null;
   };
+  el._tileFadeCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
+  return { cancel };
 }
 
 /**
@@ -65,7 +80,10 @@ export function initTileTreemap(target, options = {}) {
     const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
     if (!svg) return;
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const tileGroups = svg.querySelectorAll(".mono-treemap-tile-group");
 
     tileGroups.forEach((tile) => {

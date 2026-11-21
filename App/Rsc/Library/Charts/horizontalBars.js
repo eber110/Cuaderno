@@ -41,6 +41,11 @@ export function animateHorizontalBar(bar, { targetW, duration = 400 }) {
     bar._hbarAnimCancel();
   }
 
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+  const safeTarget = Number.isFinite(Number(targetW)) ? Math.max(0, Number(targetW)) : 0;
+
+  bar.style.opacity = "";
   const isSvgRect = bar.tagName && bar.tagName.toLowerCase() === "rect";
   if (isSvgRect) {
     bar.setAttribute("width", "0");
@@ -55,10 +60,10 @@ export function animateHorizontalBar(bar, { targetW, duration = 400 }) {
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
-    const currentW = Math.max(0, targetW * ease);
+    const currentW = Math.max(0, safeTarget * ease);
     if (isSvgRect) {
       bar.setAttribute("width", currentW.toFixed(2));
     } else {
@@ -69,15 +74,14 @@ export function animateHorizontalBar(bar, { targetW, duration = 400 }) {
       rafId = requestAnimationFrame(step);
     } else {
       if (isSvgRect) {
-        bar.setAttribute("width", targetW.toFixed(2));
+        bar.setAttribute("width", safeTarget.toFixed(2));
       } else {
-        bar.style.width = `${targetW.toFixed(2)}%`;
+        bar.style.width = `${safeTarget.toFixed(2)}%`;
       }
       bar._hbarAnimCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancelFn = () => {
     isCancelled = true;
     if (rafId) cancelAnimationFrame(rafId);
@@ -85,6 +89,12 @@ export function animateHorizontalBar(bar, { targetW, duration = 400 }) {
   };
   bar._hbarAnimCancel = cancelFn;
 
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel: cancelFn };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel: cancelFn };
 }
 
@@ -104,7 +114,10 @@ export function initHorizontalBars(target, options = {}) {
       : (el.querySelector ? el.querySelector('[data-chart="horizontal-bars"], svg') : null);
     if (!chartEl) return;
 
-    const duration = options.duration || parseInt(chartEl.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(chartEl.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const bars = chartEl.querySelectorAll(".mono-hbar-rect");
 
     bars.forEach((bar) => {

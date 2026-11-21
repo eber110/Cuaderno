@@ -68,7 +68,90 @@ const CHART_HANDLERS = {
 };
 
 const initializedCharts = typeof WeakSet !== "undefined" ? new WeakSet() : null;
+const pendingHiddenCharts = new Set();
 let observersAttached = false;
+let visibilityObserver = null;
+let visibilityFlushRaf = null;
+
+/**
+ * Determina si un elemento de gráfico es visible (no está dentro de un contenedor oculto con display: none).
+ * En entornos sin layout real (SSR / JSDOM sin rects) retorna true para no bloquear inicializaciones.
+ *
+ * @param {Element} el Elemento del gráfico.
+ * @returns {boolean}
+ */
+function isChartVisible(el) {
+  if (!el || !el.isConnected) return false;
+  if (
+    typeof document !== "undefined" &&
+    document.body &&
+    typeof document.body.getClientRects === "function" &&
+    document.body.getClientRects().length > 0 &&
+    typeof el.getClientRects === "function"
+  ) {
+    return el.getClientRects().length > 0;
+  }
+  return true;
+}
+
+/**
+ * Procesa los gráficos pendientes que pasaron a ser visibles y desconecta el observador cuando no quedan pendientes.
+ */
+function flushPendingHiddenCharts() {
+  visibilityFlushRaf = null;
+  if (pendingHiddenCharts.size === 0) {
+    if (visibilityObserver) {
+      visibilityObserver.disconnect();
+      visibilityObserver = null;
+    }
+    return;
+  }
+
+  Array.from(pendingHiddenCharts).forEach((el) => {
+    if (!el || !el.isConnected) {
+      pendingHiddenCharts.delete(el);
+      return;
+    }
+    if (isChartVisible(el)) {
+      pendingHiddenCharts.delete(el);
+      initChartElement(el, false);
+    }
+  });
+
+  if (pendingHiddenCharts.size === 0 && visibilityObserver) {
+    visibilityObserver.disconnect();
+    visibilityObserver = null;
+  }
+}
+
+/**
+ * Activa un MutationObserver temporal sobre atributos de visibilidad (class, style, hidden)
+ * para inicializar los gráficos pendientes exactamente cuando su contenedor se vuelva visible.
+ */
+function ensureVisibilityObserver() {
+  if (typeof document === "undefined" || typeof MutationObserver === "undefined" || !document.body) return;
+  if (visibilityObserver || pendingHiddenCharts.size === 0) return;
+
+  visibilityObserver = new MutationObserver(() => {
+    if (pendingHiddenCharts.size === 0) {
+      visibilityObserver.disconnect();
+      visibilityObserver = null;
+      return;
+    }
+    if (visibilityFlushRaf !== null) return;
+    if (typeof requestAnimationFrame === "function") {
+      visibilityFlushRaf = requestAnimationFrame(flushPendingHiddenCharts);
+    } else {
+      flushPendingHiddenCharts();
+    }
+  });
+
+  visibilityObserver.observe(document.body, {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ["class", "style", "hidden"]
+  });
+}
 
 /**
  * Inicializa un nodo de gráfico individual si corresponde y no ha sido procesado.
@@ -83,8 +166,18 @@ function initChartElement(el, force = false) {
   if (!handler) return;
   if (!force && initializedCharts && initializedCharts.has(el)) return;
 
+  if (!force && !isChartVisible(el)) {
+    pendingHiddenCharts.add(el);
+    ensureVisibilityObserver();
+    return;
+  }
+
+  pendingHiddenCharts.delete(el);
   if (initializedCharts) {
     initializedCharts.add(el);
+  }
+  if (el.dataset) {
+    el.dataset.chartInitialized = "true";
   }
   handler(el);
 }
@@ -188,7 +281,15 @@ if (typeof window !== "undefined") {
     initCharts
   };
   window.initCharts = initCharts;
+  window.initArcMeter = initArcMeter;
   window.animateArcMeterValue = animateArcMeterValue;
+  window.initStackedTones = initStackedTones;
+  window.initTileTreemap = initTileTreemap;
+  window.initHybridSpline = initHybridSpline;
+  window.initPillPillars = initPillPillars;
+  window.initSimpleBars = initSimpleBars;
+  window.initHorizontalBars = initHorizontalBars;
+  window.initBulletTarget = initBulletTarget;
   window.initRoundedDonut = initRoundedDonut;
   window.initPyramidStack = initPyramidStack;
   window.initSplineDynamics = initSplineDynamics;

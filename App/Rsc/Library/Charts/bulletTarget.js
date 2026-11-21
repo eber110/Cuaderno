@@ -142,7 +142,12 @@ export function animateBulletBar(rect, { targetW, duration = 400 }) {
     rect._bulletAnimCancel();
   }
 
-  rect._bulletTargetW = targetW;
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+  const safeTarget = Number.isFinite(Number(targetW)) ? Math.max(0, Number(targetW)) : 0;
+
+  rect.style.opacity = "";
+  rect._bulletTargetW = safeTarget;
   rect._isAnimating = true;
   rect.setAttribute("width", "0");
 
@@ -153,9 +158,9 @@ export function animateBulletBar(rect, { targetW, duration = 400 }) {
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
-    const liveTargetW = typeof rect._bulletTargetW === "number" ? rect._bulletTargetW : targetW;
+    const liveTargetW = typeof rect._bulletTargetW === "number" ? rect._bulletTargetW : safeTarget;
 
     const currentW = Math.max(0, liveTargetW * ease);
     rect.setAttribute("width", currentW.toFixed(2));
@@ -169,7 +174,6 @@ export function animateBulletBar(rect, { targetW, duration = 400 }) {
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancel = () => {
     isCancelled = true;
     rect._isAnimating = false;
@@ -177,6 +181,13 @@ export function animateBulletBar(rect, { targetW, duration = 400 }) {
     rect._bulletAnimCancel = null;
   };
   rect._bulletAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel };
 }
 
@@ -196,11 +207,17 @@ export function initBulletTarget(target, options = {}) {
 
     observeChartResize(svg, fitBulletTargetToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const bars = svg.querySelectorAll(".mono-bullet-bar");
 
     bars.forEach((bar) => {
       const targetW = parseFloat(bar.getAttribute("data-target-w") || bar.getAttribute("width") || "50");
+      if (!bar.hasAttribute("data-target-w")) {
+        bar.setAttribute("data-target-w", targetW.toFixed(1));
+      }
       animateBulletBar(bar, { targetW, duration });
     });
   });

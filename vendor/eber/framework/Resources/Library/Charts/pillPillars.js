@@ -98,22 +98,38 @@ export function initPillPillars(target, options = {}) {
 
     observeChartResize(svg, fitPillPillarsToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const baseline = 155;
     const pillars = svg.querySelectorAll(".mono-pillar-primary, .mono-pillar-secondary");
 
     pillars.forEach((pillar) => {
+      if (typeof pillar._pillarAnimCancel === "function") {
+        pillar._pillarAnimCancel();
+      }
       if (pillar._pillarRaf) {
         cancelAnimationFrame(pillar._pillarRaf);
+        pillar._pillarRaf = null;
       }
+
       const targetH = parseFloat(pillar.getAttribute("data-target-h") || pillar.getAttribute("height") || "80");
+      if (!pillar.hasAttribute("data-target-h")) {
+        pillar.setAttribute("data-target-h", targetH.toFixed(2));
+      }
+      pillar.style.opacity = "";
       pillar.setAttribute("height", "0");
       pillar.setAttribute("y", baseline.toString());
 
+      let isCancelled = false;
+      let rafId = null;
       const startTime = performance.now();
+
       function step(now) {
+        if (isCancelled) return;
         const elapsed = Math.max(0, now - startTime);
-        const progress = Math.max(0, Math.min(elapsed / duration, 1));
+        const progress = duration > 0 ? Math.max(0, Math.min(elapsed / duration, 1)) : 1;
         const ease = easeInOutCubic(progress);
         const currentH = Math.max(0, targetH * ease);
 
@@ -121,15 +137,30 @@ export function initPillPillars(target, options = {}) {
         pillar.setAttribute("y", (baseline - currentH).toFixed(2));
 
         if (progress < 1) {
-          pillar._pillarRaf = requestAnimationFrame(step);
+          rafId = requestAnimationFrame(step);
+          pillar._pillarRaf = rafId;
         } else {
           const finalH = Math.max(0, targetH);
           pillar.setAttribute("height", finalH.toFixed(2));
           pillar.setAttribute("y", (baseline - finalH).toFixed(2));
           pillar._pillarRaf = null;
+          pillar._pillarAnimCancel = null;
         }
       }
-      pillar._pillarRaf = requestAnimationFrame(step);
+
+      pillar._pillarAnimCancel = () => {
+        isCancelled = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        pillar._pillarRaf = null;
+        pillar._pillarAnimCancel = null;
+      };
+
+      if (duration === 0) {
+        step(startTime);
+      } else {
+        rafId = requestAnimationFrame(step);
+        pillar._pillarRaf = rafId;
+      }
     });
   });
 }

@@ -95,6 +95,10 @@ export function animateClipRect(rect, { baseline = 155, targetVal, duration = 40
     rect._clipAnimCancel();
   }
 
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+  const safeTarget = Number.isFinite(Number(targetVal)) ? Math.max(0, Number(targetVal)) : 0;
+
   rect.setAttribute("height", "0");
   rect.setAttribute("y", baseline.toString());
 
@@ -105,10 +109,10 @@ export function animateClipRect(rect, { baseline = 155, targetVal, duration = 40
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
-    const currentVal = Math.max(0, targetVal * ease);
+    const currentVal = Math.max(0, safeTarget * ease);
     const currentY = baseline - currentVal;
 
     rect.setAttribute("height", currentVal.toFixed(2));
@@ -117,20 +121,25 @@ export function animateClipRect(rect, { baseline = 155, targetVal, duration = 40
     if (progress < 1) {
       rafId = requestAnimationFrame(step);
     } else {
-      const finalVal = Math.max(0, targetVal);
-      rect.setAttribute("height", finalVal.toFixed(2));
-      rect.setAttribute("y", (baseline - finalVal).toFixed(2));
+      rect.setAttribute("height", safeTarget.toFixed(2));
+      rect.setAttribute("y", (baseline - safeTarget).toFixed(2));
       rect._clipAnimCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancel = () => {
     isCancelled = true;
     if (rafId) cancelAnimationFrame(rafId);
     rect._clipAnimCancel = null;
   };
   rect._clipAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel };
 }
 
@@ -150,11 +159,22 @@ export function initStackedTones(target, options = {}) {
 
     observeChartResize(svg, fitStackedTonesToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
+
+    svg.querySelectorAll(".mono-stacked-bar-item").forEach((item) => {
+      item.style.opacity = "";
+    });
+
     const clipRects = svg.querySelectorAll(".mono-stacked-clip-rect");
 
     clipRects.forEach((rect) => {
       const targetH = parseFloat(rect.getAttribute("data-target-h") || rect.getAttribute("height") || "100");
+      if (!rect.hasAttribute("data-target-h")) {
+        rect.setAttribute("data-target-h", targetH.toFixed(2));
+      }
       animateClipRect(rect, { baseline: 155, targetVal: targetH, duration });
     });
   });

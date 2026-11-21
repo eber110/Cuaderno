@@ -97,6 +97,11 @@ export function animateSimpleBar(rect, { baseline = 155, targetH, duration = 400
     rect._simpleBarCancel();
   }
 
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+  const safeTarget = Number.isFinite(Number(targetH)) ? Math.max(0, Number(targetH)) : 0;
+
+  rect.style.opacity = "";
   rect.setAttribute("height", "0");
   rect.setAttribute("y", baseline.toString());
 
@@ -107,10 +112,10 @@ export function animateSimpleBar(rect, { baseline = 155, targetH, duration = 400
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
-    const currentH = Math.max(0, targetH * ease);
+    const currentH = Math.max(0, safeTarget * ease);
     const currentY = baseline - currentH;
 
     rect.setAttribute("height", currentH.toFixed(2));
@@ -119,19 +124,25 @@ export function animateSimpleBar(rect, { baseline = 155, targetH, duration = 400
     if (progress < 1) {
       rafId = requestAnimationFrame(step);
     } else {
-      rect.setAttribute("height", targetH.toFixed(2));
-      rect.setAttribute("y", (baseline - targetH).toFixed(2));
+      rect.setAttribute("height", safeTarget.toFixed(2));
+      rect.setAttribute("y", (baseline - safeTarget).toFixed(2));
       rect._simpleBarCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancel = () => {
     isCancelled = true;
     if (rafId) cancelAnimationFrame(rafId);
     rect._simpleBarCancel = null;
   };
   rect._simpleBarCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel };
 }
 
@@ -151,11 +162,17 @@ export function initSimpleBars(target, options = {}) {
 
     observeChartResize(svg, fitSimpleBarsToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const bars = svg.querySelectorAll(".mono-simple-bar-rect");
 
     bars.forEach((bar) => {
       const targetH = parseFloat(bar.getAttribute("data-target-h") || bar.getAttribute("height") || "50");
+      if (!bar.hasAttribute("data-target-h")) {
+        bar.setAttribute("data-target-h", targetH.toFixed(2));
+      }
       animateSimpleBar(bar, { baseline: 155, targetH, duration });
     });
   });

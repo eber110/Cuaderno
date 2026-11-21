@@ -8,7 +8,7 @@
  * @module RoundedDonut
  */
 
-import { easeInOutCubic } from "./arcMeter.js";
+import { easeInOutCubic, safeGetTotalLength } from "./arcMeter.js";
 
 /**
  * Anima un segmento de arco de donut desde dashoffset L hasta 0 (entrada) o 0 hasta L (salida).
@@ -22,10 +22,21 @@ import { easeInOutCubic } from "./arcMeter.js";
 export function animateDonutSegment(path, { duration = 400, isExit = false } = {}) {
   if (!path) return { cancel: () => {} };
 
-  const arcLen = parseFloat(path.getAttribute("data-length") || "100");
+  if (typeof path._donutAnimCancel === "function") {
+    path._donutAnimCancel();
+  }
+
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+
+  const parsedLen = parseFloat(path.getAttribute("data-length") || "0");
+  const arcLen = parsedLen > 0 ? parsedLen : safeGetTotalLength(path, 100);
   const startOffset = isExit ? 0 : arcLen;
   const targetOffset = isExit ? arcLen : 0;
 
+  if (!isExit) {
+    path.style.opacity = "";
+  }
   path.style.strokeDasharray = `${arcLen} ${arcLen}`;
   path.style.strokeDashoffset = `${startOffset}`;
 
@@ -36,7 +47,7 @@ export function animateDonutSegment(path, { duration = 400, isExit = false } = {
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
     const currentOffset = startOffset + ((targetOffset - startOffset) * ease);
@@ -46,16 +57,24 @@ export function animateDonutSegment(path, { duration = 400, isExit = false } = {
       rafId = requestAnimationFrame(step);
     } else {
       path.style.strokeDashoffset = `${targetOffset}`;
+      path._donutAnimCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
-  return {
-    cancel: () => {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-    }
+  const cancel = () => {
+    isCancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    path._donutAnimCancel = null;
   };
+  path._donutAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
+  return { cancel };
 }
 
 /**
@@ -72,7 +91,10 @@ export function initRoundedDonut(target, options = {}) {
     const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
     if (!svg) return;
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const isExit = svg.classList.contains("is-exiting");
     const segments = svg.querySelectorAll(".mono-donut-segment");
 

@@ -100,7 +100,8 @@
             'barWidth' => 22,
             'width' => 100,
             'label' => 'Tasa de conversión',
-            'value' => $monthlyCtoRate . "%",
+            'value' => min(100.0, max(0.0, (float)$monthlyCtoRate)),
+            'displayValue' => $monthlyCtoRate . '%',
           ]); ?>
         </div>
 

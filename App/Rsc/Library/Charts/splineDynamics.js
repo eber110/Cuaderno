@@ -8,7 +8,7 @@
  * @module SplineDynamics
  */
 
-import { easeInOutCubic, getChartContainerWidth, observeChartResize, computeSplinePath } from "./arcMeter.js";
+import { easeInOutCubic, getChartContainerWidth, observeChartResize, computeSplinePath, safeGetTotalLength } from "./arcMeter.js";
 
 /**
  * Ajusta el viewBox, rejilla, curvas primaria/secundaria, nodos y etiquetas de Spline Dynamics
@@ -80,16 +80,15 @@ export function fitSplineDynamicsToContainer(target, explicitWidth = 0) {
   const primPath = svg.querySelector(".mono-spline-primary-path");
   if (primPath && primPoints.length > 0) {
     primPath.setAttribute("d", computeSplinePath(primPoints, tension));
-    if (primPath.getTotalLength) {
-      const len = primPath.getTotalLength();
-      primPath.setAttribute("data-length", len.toFixed(1));
-      primPath._currentPathLen = len;
-      if (!primPath._isAnimating) {
-        primPath.style.strokeDasharray = "none";
-        primPath.style.strokeDashoffset = "0";
-      } else {
-        primPath.style.strokeDasharray = `${len} ${len}`;
-      }
+    const fallbackLen = parseFloat(primPath.getAttribute("data-length") || "320");
+    const len = safeGetTotalLength(primPath, fallbackLen > 0 ? fallbackLen : 320);
+    primPath.setAttribute("data-length", len.toFixed(1));
+    primPath._currentPathLen = len;
+    if (!primPath._isAnimating) {
+      primPath.style.strokeDasharray = "none";
+      primPath.style.strokeDashoffset = "0";
+    } else {
+      primPath.style.strokeDasharray = `${len} ${len}`;
     }
   }
 
@@ -115,13 +114,20 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
     svg._splineDynCancel();
   }
 
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+
   const primPath = svg.querySelector(".mono-spline-primary-path");
   const dots = svg.querySelectorAll(".mono-spline-dyn-dot");
 
-  const initialLen = primPath ? (primPath.getTotalLength ? primPath.getTotalLength() : parseFloat(primPath.getAttribute("data-length") || "320")) : 320;
+  const attrLen = primPath ? parseFloat(primPath.getAttribute("data-length") || "320") : 320;
+  const initialLen = primPath ? safeGetTotalLength(primPath, attrLen > 0 ? attrLen : 320) : 320;
   if (primPath) {
     primPath._currentPathLen = initialLen;
     primPath._isAnimating = true;
+    if (!isExit) {
+      primPath.style.opacity = "";
+    }
     primPath.style.strokeDasharray = `${initialLen} ${initialLen}`;
     primPath.style.strokeDashoffset = `${isExit ? 0 : initialLen}`;
   }
@@ -139,7 +145,7 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
     if (primPath) {
@@ -171,14 +177,13 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
         }
       }
       dots.forEach((dot) => {
-        dot.style.transform = isExit ? "scale(0)" : "scale(1)";
+        dot.style.transform = isExit ? "scale(0)" : "";
         dot.style.opacity = isExit ? "0" : "1";
       });
       svg._splineDynCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancel = () => {
     isCancelled = true;
     if (primPath) primPath._isAnimating = false;
@@ -186,6 +191,13 @@ export function animateSplineDynamics(svg, { duration = 400, isExit = false } = 
     svg._splineDynCancel = null;
   };
   svg._splineDynCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel };
 }
 
@@ -225,7 +237,10 @@ export function initSplineDynamics(target, options = {}) {
 
     observeChartResize(svg, fitSplineDynamicsToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const isExit = svg.classList.contains("is-exiting");
 
     animateSplineDynamics(svg, { duration, isExit });

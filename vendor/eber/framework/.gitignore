@@ -2,6 +2,11 @@
 .env
 .env.*
 !.env.example
+*.vault.php
+*.key.php
+*.local.json
+deploy.php
+deploy.json
 /dist/
 /App/
 /Cache/*

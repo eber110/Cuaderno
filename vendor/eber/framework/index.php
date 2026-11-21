@@ -6,9 +6,15 @@ define('ROOT_PATH', str_replace('\\', '/', __DIR__));
 // Incluir el autoLoader de Composer como primer paso
 require_once __DIR__ . '/vendor/autoload.php';
 
-// Cargar variables de entorno del repositorio si existe .env
-if (file_exists(__DIR__ . '/.env') && class_exists(\Dotenv\Dotenv::class)) {
-    \Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
+// Cargar configuración compilada + Vault cifrado en producción, o .env en desarrollo/legacy
+if (
+  !file_exists(__DIR__ . '/.env')
+  && class_exists(\Base\Module\Security\ConfigVault::class)
+  && \Base\Module\Security\ConfigVault::hasCompiledProduction(__DIR__)
+) {
+  \Base\Module\Security\ConfigVault::boot(__DIR__);
+} elseif (file_exists(__DIR__ . '/.env') && class_exists(\Dotenv\Dotenv::class)) {
+  \Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
 }
 
 // Cargar configuraciones en orden

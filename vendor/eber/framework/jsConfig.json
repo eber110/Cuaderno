@@ -43,7 +43,9 @@
       "scrollMemory": [],
       "sortableContent": [],
       "autoSubmitForm": [],
+      "floatingScroll": [],
       "formComponents": [],
+      "multiStepForm": [],
       "repeat_camp": [],
       "datePicker": [],
       "timePicker": [],
@@ -58,8 +60,7 @@
       "verticalMenu": [],
       "remoteContent": [],
       "inlineCarousel": [],
-      "backgroundMotionText": [],
-      "floatingScroll": []
+      "backgroundMotionText": []
     },
     "async": {}
   }

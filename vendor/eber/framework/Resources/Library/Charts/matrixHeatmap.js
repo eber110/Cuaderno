@@ -22,6 +22,13 @@ import { easeInOutCubic } from "./arcMeter.js";
 export function animateMatrixHeatmap(svg, { duration = 600, isExit = false } = {}) {
   if (!svg) return { cancel: () => {} };
 
+  if (typeof svg._matrixAnimCancel === "function") {
+    svg._matrixAnimCancel();
+  }
+
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 600;
+
   const cells = Array.from(svg.querySelectorAll(".mono-matrix-cell"));
   const labels = Array.from(svg.querySelectorAll(".mono-matrix-row-label, .mono-matrix-col-label"));
   if (cells.length === 0) return { cancel: () => {} };
@@ -36,8 +43,8 @@ export function animateMatrixHeatmap(svg, { duration = 600, isExit = false } = {
   });
 
   const totalCells = cells.length;
-  const cellDuration = Math.min(350, duration * 0.6);
-  const staggerWindow = Math.max(0, duration - cellDuration);
+  const cellDuration = Math.min(350, safeDuration * 0.6);
+  const staggerWindow = Math.max(0, safeDuration - cellDuration);
   const staggerStep = totalCells > 1 ? staggerWindow / (totalCells - 1) : 0;
 
   let isCancelled = false;
@@ -48,62 +55,90 @@ export function animateMatrixHeatmap(svg, { duration = 600, isExit = false } = {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
 
-    cells.forEach((cell, idx) => {
-      const cellDelay = idx * staggerStep;
-      const cellElapsed = Math.max(0, elapsed - cellDelay);
-      const cellProgress = Math.max(0, Math.min(cellElapsed / cellDuration, 1));
-      const ease = easeInOutCubic(cellProgress);
+    if (safeDuration > 0 && elapsed < safeDuration) {
+      cells.forEach((cell, idx) => {
+        const cellDelay = idx * staggerStep;
+        const cellElapsed = Math.max(0, elapsed - cellDelay);
+        const cellProgress = cellDuration > 0 ? Math.max(0, Math.min(cellElapsed / cellDuration, 1)) : 1;
+        const ease = easeInOutCubic(cellProgress);
 
-      const scale = isExit ? (1 - (ease * 0.4)) : (0.5 + (0.5 * ease));
-      const opacity = isExit ? (1 - ease) : ease;
+        const scale = isExit ? (1 - (ease * 0.4)) : (0.5 + (0.5 * ease));
+        const opacity = isExit ? (1 - ease) : ease;
 
-      cell.style.transform = `scale(${scale.toFixed(3)})`;
-      cell.style.opacity = opacity.toFixed(3);
-    });
-
-    if (labels.length > 0) {
-      const labelProgress = Math.max(0, Math.min(elapsed / (duration * 0.5), 1));
-      const labelEase = easeInOutCubic(labelProgress);
-      const labelOpacity = isExit ? (1 - labelEase) : labelEase;
-      labels.forEach(lbl => {
-        lbl.style.opacity = labelOpacity.toFixed(2);
+        cell.style.transform = `scale(${scale.toFixed(3)})`;
+        cell.style.opacity = opacity.toFixed(3);
       });
-    }
 
-    if (elapsed < duration) {
+      if (labels.length > 0) {
+        const labelWindow = safeDuration * 0.5;
+        const labelProgress = labelWindow > 0 ? Math.max(0, Math.min(elapsed / labelWindow, 1)) : 1;
+        const labelEase = easeInOutCubic(labelProgress);
+        const labelOpacity = isExit ? (1 - labelEase) : labelEase;
+        labels.forEach((lbl) => {
+          lbl.style.opacity = labelOpacity.toFixed(2);
+        });
+      }
+
       rafId = requestAnimationFrame(step);
     } else {
       cells.forEach((cell) => {
-        cell.style.transform = isExit ? "scale(0.5)" : "scale(1)";
-        cell.style.opacity = isExit ? "0" : "1";
+        if (isExit) {
+          cell.style.transform = "scale(0.5)";
+          cell.style.opacity = "0";
+        } else {
+          // Limpiar estilos inline al finalizar para no bloquear el :hover { transform: scale(1.10); } de CSS
+          cell.style.transform = "";
+          cell.style.opacity = "";
+        }
       });
-      labels.forEach(lbl => {
-        lbl.style.opacity = isExit ? "0" : "1";
+      labels.forEach((lbl) => {
+        lbl.style.opacity = isExit ? "0" : "";
       });
+      svg._matrixAnimCancel = null;
     }
   }
 
-  rafId = requestAnimationFrame(step);
-
-  return {
-    cancel() {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-    }
+  const cancel = () => {
+    isCancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    svg._matrixAnimCancel = null;
   };
+  svg._matrixAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
+  return { cancel };
 }
 
 /**
  * Inicializa un gráfico Matrix Heatmap observado por MutationObserver o carga directa.
  * 
- * @param {SVGSVGElement} svg Elemento SVG del gráfico.
+ * @param {string|SVGElement|HTMLElement} target Selector o elemento DOM.
+ * @param {Object} [options={}] Opciones de inicialización.
  */
-export function initMatrixHeatmap(svg) {
-  if (!svg || svg.dataset.matrixHeatmapInitialized === "true") return;
-  svg.dataset.matrixHeatmapInitialized = "true";
+export function initMatrixHeatmap(target, options = {}) {
+  const elements = typeof target === "string" ? document.querySelectorAll(target) : [target];
 
-  const duration = parseInt(svg.dataset.duration || "700", 10);
+  elements.forEach((el) => {
+    if (!el) return;
+    const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
+    if (!svg) return;
 
-  // Ejecutar animación de entrada
-  animateMatrixHeatmap(svg, { duration, isExit: false });
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.dataset.duration ?? "700", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 700;
+    const isExit = options.isExit !== undefined ? Boolean(options.isExit) : svg.classList.contains("is-exiting");
+
+    animateMatrixHeatmap(svg, { duration, isExit });
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.initMatrixHeatmap = initMatrixHeatmap;
+  window.animateMatrixHeatmap = animateMatrixHeatmap;
 }

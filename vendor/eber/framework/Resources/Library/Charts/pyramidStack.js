@@ -80,10 +80,22 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
     rect._pyramidAnimCancel();
   }
 
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+
   const targetW = parseFloat(rect.getAttribute("data-target-w") || rect.getAttribute("width") || "100");
   const targetX = parseFloat(rect.getAttribute("data-target-x") || rect.getAttribute("x") || "50");
+  if (!rect.hasAttribute("data-target-w")) {
+    rect.setAttribute("data-target-w", targetW.toFixed(1));
+  }
+  if (!rect.hasAttribute("data-target-x")) {
+    rect.setAttribute("data-target-x", targetX.toFixed(1));
+  }
   const initialCx = targetX + (targetW / 2);
 
+  if (!isExit) {
+    rect.style.opacity = "";
+  }
   rect._pyramidTargetW = targetW;
   rect._pyramidCx = initialCx;
   rect._isAnimating = true;
@@ -102,7 +114,7 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
     const liveTargetW = typeof rect._pyramidTargetW === "number" ? rect._pyramidTargetW : targetW;
@@ -132,7 +144,6 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
     }
   }
 
-  rafId = requestAnimationFrame(step);
   const cancel = () => {
     isCancelled = true;
     rect._isAnimating = false;
@@ -140,6 +151,13 @@ export function animatePyramidTier(group, { duration = 400, isExit = false } = {
     rect._pyramidAnimCancel = null;
   };
   rect._pyramidAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
+  }
+
+  rafId = requestAnimationFrame(step);
   return { cancel };
 }
 
@@ -159,7 +177,10 @@ export function initPyramidStack(target, options = {}) {
 
     observeChartResize(svg, fitPyramidStackToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const isExit = svg.classList.contains("is-exiting");
     const tiers = svg.querySelectorAll(".mono-pyramid-tier");
 

@@ -623,8 +623,8 @@ class GraphicsModule
   /**
    * 1. ARC METER (Velocímetro / Indicador de Arco Semicircular de 180°)
    * 
-   * Geometría matemática: Arco con radio 80 centrado en (120, 125).
-   * Perímetro semicircular = π * 80 ≈ 251.33 px.
+   * Geometría matemática: Arco con radio 90 centrado en (120, 125).
+   * Perímetro semicircular = π * 90 ≈ 282.74 px.
    *
    * @param array $params Opciones de configuración:
    *                      - 'value': Porcentaje objetivo (0 a 100, ej. 90).
@@ -663,7 +663,7 @@ class GraphicsModule
     $barWidthVal = $style['barWidth'] ?? ($params['strokeWidth'] ?? null);
     $strokeWidth = $barWidthVal !== null && (float) $barWidthVal > 0 ? (float) $barWidthVal : 16.0;
 
-    $perimeter = 251.33;
+    $perimeter = 282.74;
     $targetOffset = $perimeter * (1 - ($value / 100));
 
     $axisSizeStyle = !empty($style['axisLabelSizeCss']) ? " font-size: {$style['axisLabelSizeCss']};" : "";
@@ -673,10 +673,10 @@ class GraphicsModule
     ?>
     <svg viewBox="0 0 240 145" class="<?= $classNames ?>" style="<?= $style['styleAttr'] ?>" data-chart="arc-meter" <?= $style['tooltipAttr'] ?> data-target-pct="<?= $value ?>" data-duration="<?= $style['transition'] ?>" preserveAspectRatio="xMidYMid meet">
       <!-- Pista de fondo (variación OKLCH suave) -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" />
+      <path d="M 30,125 A 90,90 0 0,1 210,125" class="mono-arc-track" fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" />
       
       <!-- Arco dinámico activo con datos para tooltip -->
-      <path d="M 30,125 A 80,80 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $displayValue ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
+      <path d="M 30,125 A 90,90 0 0,1 210,125" class="mono-arc-meter-val" data-label="<?= $label ?>" data-val="<?= $displayValue ?>"<?= !empty($unit) ? ' data-unit="' . $unit . '"' : '' ?> fill="none" stroke-width="<?= number_format($strokeWidth, 1, '.', '') ?>" stroke-linecap="round" stroke-dasharray="<?= $perimeter ?> <?= $perimeter ?>" stroke-dashoffset="<?= $perimeter ?>" data-target-offset="<?= number_format($targetOffset, 2, '.', '') ?>" />
       
       <!-- Lecturas centrales con clase de color para etiquetas (colorLabel) -->
       <?php if ($showNumber): ?>

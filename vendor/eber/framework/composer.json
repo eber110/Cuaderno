@@ -33,6 +33,7 @@
         "new-project": "php Base/ScriptComposer/NewProject.php",
         "package": "php Base/ScriptComposer/DeployPackage.php package",
         "deploy": "php Base/ScriptComposer/DeployPackage.php deploy",
+        "config:build": "php Base/ScriptComposer/BuildConfig.php",
         "init-app": "php Base/ScriptComposer/InitAppStructure.php",
         "link": "php Base/ScriptComposer/LinkProject.php",
         "theme:build": "php Base/ScriptComposer/BuildTheme.php",

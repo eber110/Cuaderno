@@ -20,6 +20,39 @@ export function easeInOutCubic(t) {
 }
 
 /**
+ * Obtiene de forma segura la longitud total de un path SVG, devolviendo un fallback
+ * cuando el nodo está oculto, desconectado o el navegador retorna 0 / lanza error.
+ *
+ * @param {SVGGeometryElement|Element} pathEl Elemento SVG con getTotalLength().
+ * @param {number} [fallback=0] Longitud de respaldo si no puede medirse.
+ * @returns {number}
+ */
+export function safeGetTotalLength(pathEl, fallback = 0) {
+  if (!pathEl || typeof pathEl.getTotalLength !== "function") return fallback;
+  try {
+    const len = pathEl.getTotalLength();
+    return Number.isFinite(len) && len > 0 ? len : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+/**
+ * Formatea el texto final del contador central de Arc Meter conservando decimales o displayValue cuando existen.
+ *
+ * @param {number} targetPct Porcentaje objetivo (0 a 100).
+ * @param {string|null} [displayText=null] Valor textual explícito (ej. "40.5%").
+ * @returns {string}
+ */
+function formatArcMeterFinalText(targetPct, displayText = null) {
+  if (typeof displayText === "string" && displayText.trim() !== "") {
+    return displayText.trim();
+  }
+  const rounded = Number.isInteger(targetPct) ? targetPct : Number(targetPct.toFixed(2));
+  return `${rounded}%`;
+}
+
+/**
  * Obtiene el ancho real renderizado en píxeles de un elemento SVG o su contenedor padre.
  *
  * @param {SVGElement} svg Elemento SVG del gráfico.
@@ -114,9 +147,11 @@ export function computeSplinePath(points, tension = 0.25) {
  * @param {Object} [options={}] Opciones de animación.
  * @param {number} [options.duration=400] Duración del recorrido en ms.
  * @param {boolean} [options.fromCurrent=false] Si parte del porcentaje actual en vez de cero.
+ * @param {string|null} [options.displayText=null] Texto final exacto a mostrar al terminar (ej. data-val).
  * @returns {{ cancel: Function }}
  */
-export function animateArcMeterValue(svgElement, targetPct, { duration = 400, fromCurrent = false } = {}) {
+export function animateArcMeterValue(svgElement, targetPct, { duration = 400, fromCurrent = false, displayText = null } = {}) {
+  if (!svgElement) return { cancel: () => {} };
   const svg = svgElement.matches && svgElement.matches("svg") ? svgElement : svgElement.querySelector("svg");
   if (!svg) return { cancel: () => {} };
 
@@ -124,22 +159,35 @@ export function animateArcMeterValue(svgElement, targetPct, { duration = 400, fr
   const numberText = svg.querySelector(".mono-arc-center-number");
   if (!meterVal) return { cancel: () => {} };
 
+  if (typeof meterVal._arcAnimCancel === "function") {
+    meterVal._arcAnimCancel();
+  }
   if (meterVal._arcAnimRaf) {
     cancelAnimationFrame(meterVal._arcAnimRaf);
     meterVal._arcAnimRaf = null;
   }
 
-  const perimeter = meterVal.getTotalLength ? meterVal.getTotalLength() : 251.33;
+  const parsedTarget = Number(targetPct);
+  const safeTargetPct = Number.isFinite(parsedTarget) ? Math.max(0, Math.min(100, parsedTarget)) : 0;
+  const parsedDur = Number(duration);
+  const safeDuration = Number.isFinite(parsedDur) && parsedDur >= 0 ? parsedDur : 400;
+
+  const perimeter = safeGetTotalLength(meterVal, 282.74);
   meterVal.style.strokeDasharray = `${perimeter} ${perimeter}`;
   meterVal.setAttribute("stroke-dasharray", `${perimeter} ${perimeter}`);
   meterVal.style.transition = "none";
 
   const startPct = fromCurrent && typeof meterVal._currentPct === "number" ? meterVal._currentPct : 0;
   const startOffset = perimeter * (1 - startPct / 100);
-  const endOffset = perimeter * (1 - targetPct / 100);
+  const endOffset = perimeter * (1 - safeTargetPct / 100);
+  const finalText = formatArcMeterFinalText(safeTargetPct, displayText);
 
-  meterVal.style.strokeDashoffset = `${startOffset}`;
-  meterVal.setAttribute("stroke-dashoffset", `${startOffset}`);
+  meterVal.style.strokeDashoffset = `${startOffset.toFixed(2)}`;
+  meterVal.setAttribute("stroke-dashoffset", `${startOffset.toFixed(2)}`);
+  meterVal.style.opacity = startPct <= 0.15 ? "0" : "1";
+  if (numberText) {
+    numberText.textContent = `${Math.round(startPct)}%`;
+  }
 
   let isCancelled = false;
   let rafId = null;
@@ -148,14 +196,17 @@ export function animateArcMeterValue(svgElement, targetPct, { duration = 400, fr
   function step(now) {
     if (isCancelled) return;
     const elapsed = Math.max(0, now - startTime);
-    const progress = Math.max(0, Math.min(elapsed / duration, 1));
+    const progress = safeDuration > 0 ? Math.max(0, Math.min(elapsed / safeDuration, 1)) : 1;
     const ease = easeInOutCubic(progress);
 
     const currentOffset = Math.max(0, startOffset + (endOffset - startOffset) * ease);
-    const currentPct = Math.round(startPct + (targetPct - startPct) * ease);
+    const rawPct = Math.max(0, Math.min(100, startPct + (safeTargetPct - startPct) * ease));
+    const currentPct = Math.round(rawPct);
 
     meterVal.style.strokeDashoffset = `${currentOffset.toFixed(2)}`;
     meterVal.setAttribute("stroke-dashoffset", `${currentOffset.toFixed(2)}`);
+    meterVal.style.opacity = rawPct <= 0.15 ? "0" : "1";
+    meterVal._currentPct = rawPct;
 
     if (numberText) {
       numberText.textContent = `${currentPct}%`;
@@ -163,27 +214,37 @@ export function animateArcMeterValue(svgElement, targetPct, { duration = 400, fr
 
     if (progress < 1) {
       rafId = requestAnimationFrame(step);
+      meterVal._arcAnimRaf = rafId;
     } else {
       meterVal.style.strokeDashoffset = `${endOffset.toFixed(2)}`;
       meterVal.setAttribute("stroke-dashoffset", `${endOffset.toFixed(2)}`);
+      meterVal.style.opacity = safeTargetPct > 0 ? "1" : "0";
       if (numberText) {
-        numberText.textContent = `${targetPct}%`;
+        numberText.textContent = finalText;
       }
-      meterVal._currentPct = targetPct;
+      meterVal._currentPct = safeTargetPct;
       meterVal._arcAnimRaf = null;
+      meterVal._arcAnimCancel = null;
     }
+  }
+
+  const cancel = () => {
+    isCancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    meterVal._arcAnimRaf = null;
+    meterVal._arcAnimCancel = null;
+  };
+  meterVal._arcAnimCancel = cancel;
+
+  if (safeDuration === 0) {
+    step(startTime);
+    return { cancel };
   }
 
   rafId = requestAnimationFrame(step);
   meterVal._arcAnimRaf = rafId;
 
-  return {
-    cancel: () => {
-      isCancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-      meterVal._arcAnimRaf = null;
-    }
-  };
+  return { cancel };
 }
 
 /**
@@ -200,11 +261,22 @@ export function initArcMeter(target, options = {}) {
     const svg = el.matches && el.matches("svg") ? el : el.querySelector("svg");
     if (!svg) return;
 
-    const rawTarget = svg.getAttribute("data-target-pct") || svg.getAttribute("data-value") || "90";
-    const targetPct = Math.max(0, Math.min(100, parseFloat(rawTarget)));
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawTarget = svg.getAttribute("data-target-pct") ?? svg.getAttribute("data-value") ?? "90";
+    const parsedTarget = parseFloat(rawTarget);
+    const targetPct = Number.isFinite(parsedTarget) ? Math.max(0, Math.min(100, parsedTarget)) : 0;
 
-    animateArcMeterValue(svg, targetPct, { duration, fromCurrent: false });
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
+
+    const meterVal = svg.querySelector(".mono-arc-meter-val");
+    const attrDisplay = meterVal ? meterVal.getAttribute("data-val") : null;
+    const displayText = options.displayText !== undefined
+      ? options.displayText
+      : (attrDisplay && attrDisplay.trim() !== "" ? attrDisplay.trim() : null);
+
+    animateArcMeterValue(svg, targetPct, { duration, fromCurrent: false, displayText });
   });
 }
 

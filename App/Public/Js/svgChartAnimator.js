@@ -963,11 +963,12 @@ function ensureChartsTooltips() {
 
 /**
  * Mapa de inicializadores por atributo [data-chart] para gráficos nativos de GraphicsModule.
- * Excluye intencionalmente matrix-heatmap para preservar su interacción hover pura por CSS.
+ * Todos los gráficos nativos delegan en sus inicializadores canónicos de la librería Charts.
  */
 const NATIVE_CHART_INITIALIZERS = {
-  "arc-meter": (el, playEntry) => {
-    initArcMeter(el, playEntry);
+  "arc-meter": (el) => {
+    if (typeof window.initArcMeter !== "function") return false;
+    window.initArcMeter(el);
     return true;
   },
   "hybrid-spline": (el) => {
@@ -1019,17 +1020,28 @@ const NATIVE_CHART_INITIALIZERS = {
     if (typeof window.initSplineDynamics !== "function") return false;
     window.initSplineDynamics(el);
     return true;
+  },
+  "matrix-heatmap": (el) => {
+    if (typeof window.initMatrixHeatmap !== "function") return false;
+    window.initMatrixHeatmap(el);
+    return true;
   }
 };
 
 /**
  * Inicializa los gráficos nativos de GraphicsModule ([data-chart]) visibles dentro de un ámbito.
+ * Delega en `window.initCharts` (librería Charts) como fuente única de verdad cuando está disponible.
  *
  * @param {Document|HTMLElement} context Ámbito de búsqueda.
  * @param {boolean} playEntry Si debe reproducir animaciones de entrada.
  */
 function initNativeGraphicsCharts(context, playEntry) {
   if (!context || !context.querySelectorAll) return;
+
+  if (typeof window.initCharts === "function") {
+    window.initCharts(context);
+    return;
+  }
 
   const charts = context.querySelectorAll("[data-chart]");
   if (charts.length === 0) return;

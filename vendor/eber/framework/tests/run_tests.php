@@ -769,10 +769,10 @@ CSS;
 // =========================================================================
 $runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de rutas", function () use ($runner) {
   // 1. Verificación de entorno de desarrollo
-  $runner->assert(\Base\Control\ThemeStudioControl::isDevEnvironment(), "isDevEnvironment debe ser true en entorno de pruebas/desarrollo");
+  $runner->assert(\Base\Studio\Controllers\ThemeStudioController::isDevEnvironment(), "isDevEnvironment debe ser true en entorno de pruebas/desarrollo");
 
   // 2. Registro de rutas de desarrollo
-  \Base\Control\ThemeStudioControl::registerRoutes();
+  \Base\Studio\Controllers\ThemeStudioController::registerRoutes();
   $routes = \Core\Route::getRoutes();
 
   $foundGet = false;
@@ -804,13 +804,13 @@ $runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de
   $runner->assert($foundDelete, "Debe registrarse la ruta POST /_frame/theme-studio/delete-theme");
 
   // 3. Fuentes instaladas
-  $fonts = \Base\Control\ThemeStudioControl::getInstalledFonts();
+  $fonts = \Base\Studio\Controllers\ThemeStudioController::getInstalledFonts();
   $runner->assert(is_array($fonts) && count($fonts) >= 3, "getInstalledFonts debe devolver una lista de fuentes con al menos los stacks del sistema");
   $runner->assert(!empty($fonts[0]['name']) && !empty($fonts[0]['value']), "Cada entrada de fuente debe incluir 'name' y 'value'");
 
   // 4. Existencia y estructura de la vista
-  $viewPath = ROOT_PATH . '/Base/Views/themeStudio.php';
-  $runner->assert(file_exists($viewPath), "Base/Views/themeStudio.php debe existir");
+  $viewPath = ROOT_PATH . '/Base/Studio/Views/themeStudio.php';
+  $runner->assert(file_exists($viewPath), "Base/Studio/Views/themeStudio.php debe existir");
   $viewContent = (string)file_get_contents($viewPath);
   $runner->assert(str_contains($viewContent, 'Frame Theme Studio'), "La vista debe incluir la cabecera de Frame Theme Studio");
   $runner->assert(str_contains($viewContent, 'batchInput'), "La vista debe incluir el área de Pegado Rápido");
@@ -821,7 +821,7 @@ $runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de
   $runner->assert(!str_contains($viewContent, 'harmonyType'), "La vista no debe incluir el generador armónico");
   $runner->assert(str_contains($viewContent, 'id="sandbox"'), "La vista debe incluir el contenedor sandbox de previsualización interactiva");
   // 5. Verificación de Vista Real del Proyecto en Vivo y Diagnóstico (Fase 3)
-  $projectRoutes = \Base\Control\ThemeStudioControl::getProjectRoutes();
+  $projectRoutes = \Base\Studio\Controllers\ThemeStudioController::getProjectRoutes();
   $runner->assert(is_array($projectRoutes) && !empty($projectRoutes) && $projectRoutes[0]['uri'] === '/', "getProjectRoutes debe devolver las rutas del proyecto con '/' como vista principal");
   $runner->assert(str_contains($viewContent, 'id="projectPreviewFrame"'), "La vista debe incluir el iframe #projectPreviewFrame para renderizar las vistas reales del proyecto");
   $runner->assert(str_contains($viewContent, 'projectRouteSelect') && str_contains($viewContent, 'projectRouteInput'), "La vista debe incluir el selector y campo de rutas de App/Route");
@@ -854,7 +854,7 @@ $runner->runTest("Theme Studio - Controlador, seguridad de entorno y registro de
 // =========================================================================
 $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persistencia y UI", function () use ($runner) {
   // 1. Verificar ruta POST /_frame/theme-studio/render-chart
-  \Base\Control\ThemeStudioControl::registerRoutes();
+  \Base\Studio\Controllers\ThemeStudioController::registerRoutes();
   $routes = \Core\Route::getRoutes();
   $foundRenderChart = false;
   foreach ($routes as $route) {
@@ -866,12 +866,12 @@ $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persisten
   $runner->assert($foundRenderChart, "Debe registrarse la ruta POST /_frame/theme-studio/render-chart");
 
   // 2. Verificar bundle autocontenido CSS/JS de Charts
-  $assets = \Base\Control\ThemeStudioControl::getChartsLibraryAssets(ROOT_PATH);
+  $assets = \Base\Studio\Controllers\ThemeStudioController::getChartsLibraryAssets(ROOT_PATH);
   $runner->assert(!empty($assets['css']) && str_contains($assets['css'], '.mono-chart-svg'), "getChartsLibraryAssets debe cargar charts.css");
   $runner->assert(!empty($assets['js']) && str_contains($assets['js'], 'window.initCharts'), "getChartsLibraryAssets debe generar el bundle JS con window.initCharts");
 
   // 3. Renderizar vista 'all' con los 12 gráficos
-  $allRes = \Base\Control\ThemeStudioControl::renderChartPayload([
+  $allRes = \Base\Studio\Controllers\ThemeStudioController::renderChartPayload([
     'type' => 'all',
     'globalConfig' => [
       'color' => 'color1',
@@ -887,12 +887,12 @@ $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persisten
   ]);
   $runner->assert(!empty($allRes['success']), "renderChartPayload('all') debe retornar success=true");
   $runner->assert(isset($allRes['charts']) && count($allRes['charts']) === 12, "renderChartPayload('all') debe renderizar exactamente los 12 tipos de gráficos");
-  foreach (\Base\Control\ThemeStudioControl::CHART_TYPES as $chartType) {
+  foreach (\Base\Studio\Controllers\ThemeStudioController::CHART_TYPES as $chartType) {
     $runner->assert(!empty($allRes['charts'][$chartType]), "Debe renderizarse el gráfico '{$chartType}'");
   }
 
   // 4. Verificar render individual y aplicación exacta de barWidth, axisLabelSize, yLabelPosition y tooltip
-  $hbarRes = \Base\Control\ThemeStudioControl::renderChartPayload([
+  $hbarRes = \Base\Studio\Controllers\ThemeStudioController::renderChartPayload([
     'type' => 'horizontalBars',
     'globalConfig' => [
       'color' => 'color2',
@@ -914,13 +914,13 @@ $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persisten
   $runner->assert(str_contains($hbarHtml, 'Autenticación y Control de Acceso'), "Preset long-labels debe inyectar etiquetas largas");
 
   // Verificar presets compact y dense
-  $compactData = \Base\Control\ThemeStudioControl::getPresetDataset('horizontalBars', 'compact');
-  $denseData = \Base\Control\ThemeStudioControl::getPresetDataset('horizontalBars', 'dense');
+  $compactData = \Base\Studio\Controllers\ThemeStudioController::getPresetDataset('horizontalBars', 'compact');
+  $denseData = \Base\Studio\Controllers\ThemeStudioController::getPresetDataset('horizontalBars', 'dense');
   $runner->assert(count($compactData['bars']) === 3, "Preset compact de horizontalBars debe tener 3 ítems");
   $runner->assert(count($denseData['bars']) >= 8, "Preset dense de horizontalBars debe tener al menos 8 ítems");
 
   // Verificar tipo inválido
-  $badRes = \Base\Control\ThemeStudioControl::renderChartPayload(['type' => 'graficoInexistente']);
+  $badRes = \Base\Studio\Controllers\ThemeStudioController::renderChartPayload(['type' => 'graficoInexistente']);
   $runner->assert(empty($badRes['success']), "renderChartPayload debe rechazar tipos desconocidos");
 
   // 5. Persistencia de configuración charts en ThemeModule y theme.json
@@ -966,8 +966,8 @@ $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persisten
   @rmdir($tempChartsDir . '/App');
   @rmdir($tempChartsDir);
 
-  // 6. Verificar elementos clave de Chart Studio en Base/Views/themeStudio.php
-  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  // 6. Verificar elementos clave de Chart Studio en Base/Studio/Views/themeStudio.php
+  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/themeStudio.php');
   $runner->assert(str_contains($viewContent, 'id="tab-charts"'), "themeStudio.php debe incluir la pestaña #tab-charts");
   $runner->assert(str_contains($viewContent, 'id="chartSandboxView"'), "themeStudio.php debe incluir el escenario #chartSandboxView");
   $runner->assert(str_contains($viewContent, 'setStageMode('), "themeStudio.php debe incluir setStageMode para alternar Sitio / Gráficos");
@@ -980,7 +980,7 @@ $runner->runTest("Chart Studio - Renderizado de 12 gráficos, presets, persisten
 // =========================================================================
 $runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y helper svg()", function () use ($runner) {
   // 1. Verificar ruta GET /_frame/theme-studio/icons
-  \Base\Control\ThemeStudioControl::registerRoutes();
+  \Base\Studio\Controllers\ThemeStudioController::registerRoutes();
   $routes = \Core\Route::getRoutes();
   $foundIconsRoute = false;
   foreach ($routes as $route) {
@@ -992,7 +992,7 @@ $runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y h
   $runner->assert($foundIconsRoute, "Debe registrarse la ruta GET /_frame/theme-studio/icons");
 
   // 2. Verificar catálogo base en Resources/Ico/ separado por carpetas (Raíz, Custom, Separator)
-  $baseCatalog = \Base\Control\ThemeStudioControl::getIconsCatalog(ROOT_PATH);
+  $baseCatalog = \Base\Studio\Controllers\ThemeStudioController::getIconsCatalog(ROOT_PATH);
   $runner->assert($baseCatalog['totalIcons'] >= 142, "El catálogo base debe detectar al menos 142 iconos SVG");
   $folderMap = [];
   foreach ($baseCatalog['folders'] as $f) {
@@ -1044,7 +1044,7 @@ $runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y h
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>'
   );
 
-  $dynCatalog1 = \Base\Control\ThemeStudioControl::getIconsCatalog($tempIcoBase);
+  $dynCatalog1 = \Base\Studio\Controllers\ThemeStudioController::getIconsCatalog($tempIcoBase);
   $runner->assert($dynCatalog1['totalIcons'] === 4, "El catálogo dinámico inicial debe contar 4 iconos en el proyecto temporal");
   $runner->assert($dynCatalog1['totalFolders'] === 4, "El catálogo dinámico debe detectar 4 secciones (Raíz, Brand, Custom, Separator)");
 
@@ -1061,7 +1061,7 @@ $runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y h
     $tempIcoBase . '/App/Rsc/Ico/Custom/second-icon.svg',
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L2 22h20z"/></svg>'
   );
-  $dynCatalog2 = \Base\Control\ThemeStudioControl::getIconsCatalog($tempIcoBase);
+  $dynCatalog2 = \Base\Studio\Controllers\ThemeStudioController::getIconsCatalog($tempIcoBase);
   $runner->assert($dynCatalog2['totalIcons'] === 5, "Al agregar un nuevo SVG en Custom debe reflejarse inmediatamente (5 iconos)");
 
   // Limpiar directorio temporal
@@ -1076,8 +1076,8 @@ $runner->runTest("Icon Studio - Galería SVG por carpetas, escaneo dinámico y h
   };
   $cleanTemp($tempIcoBase);
 
-  // 5. Verificar elementos de Icon Studio en Base/Views/themeStudio.php
-  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  // 5. Verificar elementos de Icon Studio en Base/Studio/Views/themeStudio.php
+  $viewContent = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/themeStudio.php');
   $runner->assert(str_contains($viewContent, 'id="tab-icons"') && str_contains($viewContent, 'id="tabBtnIcons"'), "themeStudio.php debe incluir la pestaña #tab-icons");
   $runner->assert(str_contains($viewContent, 'id="btnStageIcons"') && str_contains($viewContent, 'id="iconSandboxView"'), "themeStudio.php debe incluir el conmutador y escenario #iconSandboxView");
   $runner->assert(str_contains($viewContent, 'id="isFoldersContainer"'), "themeStudio.php debe incluir el contenedor de grillas por carpeta #isFoldersContainer");
@@ -1121,7 +1121,7 @@ echo json_encode([
   'env' => ENVIRONMENT,
   'isProd' => \\Base\\Module\\SecurityModule::isProduction(),
   'isDev' => \\Base\\Module\\SecurityModule::isDevelopment(),
-  'studioDev' => \\Base\\Control\\ThemeStudioControl::isDevEnvironment(),
+  'studioDev' => \\Base\\Studio\\StudioKernel::isDevEnvironment(),
   'errDev' => \\Core\\ErrorHandler::isDev(),
   'displayErrors' => (string)ini_get('display_errors'),
 ]);
@@ -1182,9 +1182,9 @@ $runner->runTest("Seguridad SEC-02/03 - Theme Studio 404 en prod, vista directa 
 register_shutdown_function(function () {
   echo '|HTTP_CODE:' . http_response_code();
 });
-require {$rootLit} . '/Base/Views/themeStudio.php';
+require {$rootLit} . '/Base/Studio/Views/themeStudio.php';
 PHP);
-  $runner->assert(str_contains($resView['output'], '|HTTP_CODE:404') && !str_contains($resView['output'], '<html'), "Base/Views/themeStudio.php sin ROOT_PATH debe terminar con HTTP 404 sin contenido");
+  $runner->assert(str_contains($resView['output'], '|HTTP_CODE:404') && !str_contains($resView['output'], '<html'), "Base/Studio/Views/themeStudio.php sin ROOT_PATH debe terminar con HTTP 404 sin contenido");
 
   // 2. En producción, Route no registra /_frame/* y ThemeStudioControl::save() responde 404 JSON
   $resProdRoute = $runSecSubprocess(<<<PHP
@@ -1194,7 +1194,7 @@ define('ROOT_PATH', {$rootLit});
 require_once ROOT_PATH . '/vendor/autoload.php';
 require_once ROOT_PATH . '/config.php';
 \\Core\\Route::reset();
-\\Base\\Control\\ThemeStudioControl::registerRoutes();
+\\Base\\Studio\\StudioKernel::registerRoutes();
 \$routes = \\Core\\Route::getRoutes();
 \$hasFrame = false;
 foreach (\$routes as \$r) {
@@ -1576,14 +1576,35 @@ PHP);
   $runner->assert(($proxyData['match29False'] ?? true) === false && ($proxyData['match29True'] ?? false) === true, "isIpInCidr debe validar máscara CIDR binaria sin coincidencia de prefijo string");
   $runner->assert(($proxyData['ipC'] ?? '') === '198.51.100.10' && ($proxyData['httpsC'] ?? false) === true, "Proxy dentro de TRUSTED_PROXIES debe resolver la IP real y HTTPS");
 
-  // 3. Concurrencia/integridad JSON atómica en AccessBlocker y AntiScraper
-  for ($i = 0; $i < 25; $i++) {
-    \Base\Module\Security\AccessBlocker::recordIntrusionAttempt("198.51.100." . ($i % 5), 'Test intento', 100, 3600);
-    \Base\Module\Security\AntiScraper::checkScrapingRateLimit("198.51.100." . ($i % 5), 200);
-  }
-  $blockerJson = json_decode((string)@file_get_contents(\Base\Module\Security\AccessBlocker::getStorageFilePath()), true);
-  $scraperJson = json_decode((string)@file_get_contents(\Base\Module\Security\AntiScraper::getRateStoragePath()), true);
-  $runner->assert(is_array($blockerJson) && is_array($scraperJson), "AccessBlocker y AntiScraper deben preservar JSON íntegro tras escrituras repetidas");
+  // 3. Concurrencia/integridad JSON atómica en AccessBlocker y AntiScraper (aislado en sandbox para no crear /App en el framework)
+  $tmpSafetyProj = ROOT_PATH . '/tests/tmp_safety_test';
+  @mkdir($tmpSafetyProj . '/App/Safety', 0755, true);
+  $tmpSafetyLit = var_export(str_replace('\\', '/', $tmpSafetyProj), true);
+  $rootLitSafety = var_export(ROOT_PATH, true);
+  $resSafety = $runSecSubprocess(<<<PHP
+define('ROOT_PATH', {$tmpSafetyLit});
+require_once {$rootLitSafety} . '/vendor/autoload.php';
+require_once {$rootLitSafety} . '/config.php';
+for (\$i = 0; \$i < 25; \$i++) {
+  \Base\Module\Security\AccessBlocker::recordIntrusionAttempt("198.51.100." . (\$i % 5), 'Test intento', 100, 3600);
+  \Base\Module\Security\AntiScraper::checkScrapingRateLimit("198.51.100." . (\$i % 5), 200);
+}
+\$blockerJson = json_decode((string)@file_get_contents(\Base\Module\Security\AccessBlocker::getStorageFilePath()), true);
+\$scraperJson = json_decode((string)@file_get_contents(\Base\Module\Security\AntiScraper::getRateStoragePath()), true);
+echo json_encode(['ok' => is_array(\$blockerJson) && is_array(\$scraperJson)]);
+PHP);
+  $cleanSafetyDir = function (string $d) use (&$cleanSafetyDir): void {
+    if (!is_dir($d)) return;
+    foreach (scandir($d) ?: [] as $e) {
+      if ($e === '.' || $e === '..') continue;
+      $p = $d . '/' . $e;
+      is_dir($p) ? $cleanSafetyDir($p) : @unlink($p);
+    }
+    @rmdir($d);
+  };
+  $cleanSafetyDir($tmpSafetyProj);
+  $safetyData = json_decode(trim($resSafety['output']), true);
+  $runner->assert(($safetyData['ok'] ?? false) === true, "AccessBlocker y AntiScraper deben preservar JSON íntegro tras escrituras repetidas");
 
   // 4. Plantilla deploy.php oculta huella en GET y contiene guardias ZipSlip/Symlinks
   if (!class_exists('DeployPackage', false)) {
@@ -1779,6 +1800,82 @@ $runner->runTest("FormUiModule - Renderizado de los 16 componentes, tokens, comp
   \Base\Module\FormUiModule::resetConfig();
 });
 
+$runner->runTest("Helpers seguros uiInput/uiForm/uiChart, Theme Studio PHP snippets y textLimiter", function () use ($runner) {
+  \Base\Module\FormUiModule::resetConfig();
+
+  // 1. Helpers seguros para short-echo (uiInput, uiForm, uiChart) y textLimiter inicialización
+  $uiInputStr = uiInput('textLimiter', ['value' => 'hola value', 'limit' => 160, 'rows' => 5]);
+  $runner->assert(
+    str_contains($uiInputStr, 'class="text-limiter ui-input-component"') &&
+    str_contains($uiInputStr, '<span class="tl-current">10</span> / <span class="tl-limit">160</span>'),
+    "uiInput('textLimiter') debe retornar string y calcular conteo inicial real en chars"
+  );
+  $uiInputWords = uiInput('textLimiter', ['value' => 'uno dos tres', 'limitType' => 'words', 'limit' => 10]);
+  $runner->assert(
+    str_contains($uiInputWords, '<span class="tl-current">3</span> / <span class="tl-limit">10</span>') &&
+    !str_contains($uiInputWords, 'maxlength='),
+    "textLimiter con limitType=words debe contar palabras iniciales sin imponer maxlength"
+  );
+  $tlA = uiInput('textLimiter', ['name' => 'bio']);
+  $tlB = uiInput('textLimiter', ['name' => 'bio']);
+  preg_match('/id="(tl-counter-[^"]+)"/', $tlA, $mTlA);
+  preg_match('/id="(tl-counter-[^"]+)"/', $tlB, $mTlB);
+  $runner->assert(!empty($mTlA[1]) && !empty($mTlB[1]) && $mTlA[1] !== $mTlB[1], "textLimiter sin id explícito debe generar IDs de contador únicos por instancia");
+
+  $tlOneRow = uiInput('textLimiter', ['value' => 'Esc', 'rows' => 1]);
+  $runner->assert(str_contains($tlOneRow, 'rows="1"'), "textLimiter debe respetar rows=1");
+  $taOneRow = uiInput('textareaInput', ['value' => 'Esc', 'rows' => 1]);
+  $runner->assert(str_contains($taOneRow, 'rows="1"'), "textareaInput debe permitir rows=1");
+  $formCompCss = (string)file_get_contents(ROOT_PATH . '/Resources/Css/formComponents.css');
+  $runner->assert(
+    !preg_match('/textarea\.text-limiter\s*\{[^}]*min-height:\s*110px/s', $formCompCss) &&
+    !preg_match('/textarea\.ui-textarea\s*\{[^}]*min-height:\s*110px/s', $formCompCss),
+    "formComponents.css no debe fijar min-height: 110px en textarea.text-limiter ni textarea.ui-textarea para permitir rows=1"
+  );
+
+  $uiFormStr = uiForm(['action' => '/test', 'method' => 'POST', 'csrf' => false], [
+    ['type' => 'textInput', 'name' => 'nombre'],
+  ]);
+  $runner->assert(str_contains($uiFormStr, '<form') && str_contains($uiFormStr, 'name="nombre"'), "uiForm debe retornar string HTML válido para <?=");
+
+  $uiChartStr = uiChart('arcMeter', ['value' => 80]);
+  $runner->assert(str_contains($uiChartStr, '<svg'), "uiChart debe retornar SVG string válido para <?=");
+
+  $inputSnippetRes = \Base\Studio\Controllers\ThemeStudioController::renderInputPayload([
+    'type' => 'textLimiter',
+    'localParams' => ['value' => 'hola value', 'rows' => 5],
+  ]);
+  $runner->assert(
+    str_contains($inputSnippetRes['phpSnippet'] ?? '', '<?= uiInput(') &&
+    !str_contains($inputSnippetRes['phpSnippet'] ?? '', '<?= _input('),
+    "ThemeStudioController::renderInputPayload debe emitir <?= uiInput(...) ?> y nunca <?= _input(...) ?>"
+  );
+
+  $formSnippetRes = \Base\Studio\Controllers\ThemeStudioController::renderFormPayload([
+    'formConfig' => ['action' => '/save', 'method' => 'POST'],
+    'stepsOrFields' => [['type' => 'textInput', 'name' => 'titulo']],
+  ]);
+  $runner->assert(
+    str_contains($formSnippetRes['phpFormSnippet'] ?? '', '<?= uiForm(') &&
+    str_contains($formSnippetRes['phpFieldsSnippet'] ?? '', '<?= uiInput(') &&
+    !str_contains($formSnippetRes['phpFormSnippet'] ?? '', '<?= _form(') &&
+    !str_contains($formSnippetRes['phpFieldsSnippet'] ?? '', '<?= _input('),
+    "ThemeStudioController::renderFormPayload debe emitir <?= uiForm(...) ?> y <?= uiInput(...) ?>"
+  );
+
+  $studioHtml = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/themeStudio.php');
+  $runner->assert(
+    str_contains($studioHtml, 'id="iuOptWrapContainer" onchange=') &&
+    str_contains($studioHtml, 'id="iuOptIncludeLabel" onchange=') &&
+    str_contains($studioHtml, 'id="iuOptIncludeGlobalInCode" onchange=') &&
+    str_contains($studioHtml, 'id="iuOptInlineVars" onchange=') &&
+    str_contains($studioHtml, 'id="iuOptMultiline" checked onchange='),
+    "En el dock de código de Inputs solo iuOptMultiline debe iniciar marcado por defecto"
+  );
+
+  \Base\Module\FormUiModule::resetConfig();
+});
+
 $runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch)", function () use ($runner) {
   // 1. Persistencia y compilación de inputs en ThemeModule
   $defInputs = \Base\Module\ThemeModule::getDefaultInputsConfig();
@@ -1837,13 +1934,13 @@ $runner->runTest("ThemeModule (inputs) + JIT Rules (InputRule y StylesRule touch
 
 $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, renderInputPayload y sin ES imports en Resources/Js", function () use ($runner) {
   // 1. Assets autocontenidos para Theme Studio
-  $assets = \Base\Control\ThemeStudioControl::getInputsStudioAssets(ROOT_PATH);
+  $assets = \Base\Studio\Controllers\ThemeStudioController::getInputsStudioAssets(ROOT_PATH);
   $runner->assert(!empty($assets['css']) && str_contains($assets['css'], '.ui-dp-popover') && str_contains($assets['css'], '--ui-btn-primary-bg'), "getInputsStudioAssets debe cargar CSS de formComponents con tokens --ui-*");
   $runner->assert(!empty($assets['js']) && str_contains($assets['js'], 'window.FmeUi') && str_contains($assets['js'], 'window.initFormUiComponents'), "getInputsStudioAssets debe incluir uiFormUtils e inicializador de studio");
   $runner->assert(!preg_match('/^\s*export\s+function/m', $assets['js']), "getInputsStudioAssets debe limpiar keywords export para IIFE");
 
   // 2. Endpoint lógico renderInputPayload (todos + individual + HTML-first snippet)
-  $allPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
+  $allPayload = \Base\Studio\Controllers\ThemeStudioController::renderInputPayload([
     'type' => 'all',
     'activeInput' => 'datePicker',
     'globalConfig' => ['radius' => 18, 'fontSize' => 16, 'btnPrimaryBg' => '#2563EB'],
@@ -1854,7 +1951,7 @@ $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, render
   $runner->assert(str_contains($allPayload['htmlSnippet'] ?? '', '--ui-radius: 18px') && str_contains($allPayload['htmlSnippet'] ?? '', '--ui-font-size: 16px'), "renderInputPayload debe aplicar globalConfig al htmlSnippet");
 
   // Verificación de supresión explícita de label cuando usuario desmarca Incluir <label>
-  $noLabelPayload = \Base\Control\ThemeStudioControl::renderInputPayload([
+  $noLabelPayload = \Base\Studio\Controllers\ThemeStudioController::renderInputPayload([
     'type' => 'colorPicker',
     'localParams' => ['label' => 'Color guardado'],
     'codeOptions' => ['wrapContainer' => false, 'label' => ''],
@@ -1862,7 +1959,7 @@ $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, render
   $runner->assert(!empty($noLabelPayload['success']) && !str_contains($noLabelPayload['htmlSnippet'] ?? '', '<label'), "codeOptions.label vacío explícito debe omitir <label> en htmlSnippet");
 
   // 3. Presencia en vista ThemeStudio (con pestaña HTML Completo activa primero)
-  $studioView = (string)file_get_contents(ROOT_PATH . '/Base/Views/themeStudio.php');
+  $studioView = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/themeStudio.php');
   $runner->assert(
     str_contains($studioView, 'id="inputSandboxView"') &&
     str_contains($studioView, 'id="tab-inputs"') &&
@@ -1920,6 +2017,341 @@ $runner->runTest("Input Studio + Recursos JS/CSS - Assets autocontenidos, render
   foreach (['datePicker', 'timePicker', 'rangeSlider', 'passwordInput', 'otpCodeInput', 'tagsInput', 'stepperInput', 'ratingInput', 'fileDropzone'] as $fn) {
     $runner->assert(array_key_exists($fn, $jsCfg['functions']['defer'] ?? []), "jsConfig.json functions.defer debe registrar {$fn}");
   }
+});
+
+// =========================================================================
+// PRUEBA 30: Frame Studio Modular, Módulos JS, ConfigSchema y Vault AEAD
+// =========================================================================
+$runner->runTest("Frame Studio Modular + Módulos JS + ConfigSchema + Vault AEAD + .gitignore sensible", function () use ($runner) {
+  // 1. Fase 1: Encapsulación Base/Studio/ y exclusión en DeployPackage
+  $runner->assert(class_exists(\Base\Studio\StudioKernel::class), "StudioKernel debe existir en Base\\Studio");
+  $runner->assert(!file_exists(ROOT_PATH . '/Base/Control/ThemeStudioControl.php'), "ThemeStudioControl legacy debe haber sido removido");
+  $runner->assert(!file_exists(ROOT_PATH . '/Base/Views/themeStudio.php'), "Base/Views/themeStudio.php legacy debe haber sido removido");
+  $runner->assert(file_exists(ROOT_PATH . '/Base/Studio/Views/themeStudio.php'), "Vista encapsulada en Base/Studio/Views/themeStudio.php debe existir");
+
+  if (!class_exists('DeployPackage', false)) {
+    require_once ROOT_PATH . '/Base/ScriptComposer/DeployPackage.php';
+  }
+  $runner->assert(\DeployPackage::isExcludedStudioPath('Base/Studio/StudioKernel.php'), "DeployPackage debe excluir Base/Studio/*");
+  $runner->assert(\DeployPackage::isExcludedStudioPath('vendor/eber/framework/Base/Studio/Views/themeStudio.php'), "DeployPackage debe excluir vendor/.../Base/Studio/*");
+  $runner->assert(\DeployPackage::isExcludedStudioPath('Base/ScriptComposer/OpenStudio.php'), "DeployPackage debe excluir Base/ScriptComposer/*");
+
+  // 2. Fase 2: JsRegistryService en directorio temporal
+  $tmpProj = sys_get_temp_dir() . '/frame_studio_test_' . uniqid();
+  @mkdir($tmpProj . '/App/Views/Home', 0755, true);
+  @mkdir($tmpProj . '/App/Config', 0755, true);
+  @mkdir($tmpProj . '/App/Public/Js', 0755, true);
+  @mkdir($tmpProj . '/App/Rsc/Library/Gsap', 0755, true);
+  @mkdir($tmpProj . '/App/Rsc/Library/Charts', 0755, true);
+  @file_put_contents($tmpProj . '/App/Rsc/Library/Gsap/gsap.min.js', '/* gsap */');
+  @file_put_contents($tmpProj . '/App/Rsc/Library/Charts/charts.js', '/* charts */');
+  @file_put_contents($tmpProj . '/App/Views/Home/home.php', '<button class="modal-btn">Abrir</button><div class="gsap"></div>');
+  @file_put_contents($tmpProj . '/App/Public/Js/customWidget.js', "/**\n * @description Widget personalizado de prueba\n */\nexport function customWidget() { document.querySelector('.custom-widget'); }\n");
+
+  $catalog = \Base\Studio\Services\JsRegistryService::getCatalog($tmpProj);
+  $runner->assert(!empty($catalog['modules']), "JsRegistryService::getCatalog debe listar módulos");
+  $usage = \Base\Studio\Services\JsRegistryService::detectUsage($tmpProj);
+  $runner->assert(!empty($usage['components']['modal']['used']), "Auto-detección debe detectar uso de modal en App/Views");
+  $runner->assert(!empty($usage['libraries']['Gsap']['used']), "Auto-detección debe detectar uso de Gsap");
+
+  $saveJs = \Base\Studio\Services\JsRegistryService::saveConfig([
+    'priority' => ['aaSvgStore.js', 'querie.js'],
+    'exclude' => [],
+    'defer' => ['modal' => [], 'customWidget' => []],
+    'async' => [],
+    'libraries' => ['Gsap'],
+  ], $tmpProj);
+  $runner->assert(!empty($saveJs['success']), "JsRegistryService::saveConfig debe guardar jsConfig.json y loadLibraryJsConfiguration.php");
+  $savedLibs = require $tmpProj . '/App/Config/loadLibraryJsConfiguration.php';
+  $runner->assert($savedLibs === ['Gsap'], "loadLibraryJsConfiguration.php debe conservar únicamente las librerías seleccionadas");
+
+  // 2b. Parser JSDoc estructurado y modal de documentación en stage_js_modules.php
+  $realCatalog = \Base\Studio\Services\JsRegistryService::getCatalog(ROOT_PATH);
+  $modulesByFile = [];
+  foreach ($realCatalog['modules'] as $modItem) {
+    $modulesByFile[$modItem['file']] = $modItem;
+    $shortDesc = (string)($modItem['shortDescription'] ?? '');
+    $runner->assert($shortDesc !== '', "El módulo {$modItem['file']} debe tener shortDescription no vacía");
+    $runner->assert(
+      !preg_match('/@(?:example|css|param|attribute|returns)\b/i', $shortDesc),
+      "shortDescription de {$modItem['file']} no debe contener etiquetas JSDoc crudas"
+    );
+    $runner->assert(
+      !empty($modItem['docs']['examples']) && is_array($modItem['docs']['examples']),
+      "El módulo {$modItem['file']} debe incluir al menos un ejemplo estructurado en docs.examples"
+    );
+  }
+  $runner->assert(($modulesByFile['scrollObserver.js']['module'] ?? '') === 'scrollObserver', "scrollObserver.js debe resolver module === 'scrollObserver'");
+  $runner->assert(($modulesByFile['textAnimator.js']['module'] ?? '') === 'textAnimator', "textAnimator.js debe resolver module === 'textAnimator'");
+  $runner->assert(($modulesByFile['animations.js']['module'] ?? '') === 'animations', "animations.js debe resolver module === 'animations'");
+  $runner->assert(($modulesByFile['formComponents.js']['module'] ?? '') === 'formComponents', "formComponents.js debe resolver module === 'formComponents'");
+
+  foreach (['cutPhrase.js', 'cropImage.js', 'modal.js', 'floatingScroll.js'] as $richFile) {
+    $richMod = $modulesByFile[$richFile] ?? null;
+    $runner->assert($richMod !== null, "Debe existir {$richFile} en el catálogo JS");
+    $richExamples = $richMod['docs']['examples'] ?? [];
+    $runner->assert(!empty($richExamples), "{$richFile} debe exponer ejemplos estructurados");
+    $runner->assert(str_contains((string)($richExamples[0]['code'] ?? ''), "\n"), "{$richFile} debe preservar saltos de línea en docs.examples[0].code");
+    $runner->assert(json_decode((string)($richMod['docs']['jsConfigSnippet'] ?? ''), true) !== null, "{$richFile} debe incluir jsConfigSnippet JSON válido");
+  }
+  $runner->assert(!empty($modulesByFile['modal.js']['docs']['cssClasses']), "modal.js debe exponer cssClasses estructuradas");
+  $runner->assert(!empty($modulesByFile['cutPhrase.js']['docs']['attributes']), "cutPhrase.js debe exponer attributes estructurados");
+  $runner->assert(!empty($modulesByFile['floatingScroll.js']['docs']['params']), "floatingScroll.js debe exponer params estructurados");
+
+  $stageJsView = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/partials/stage_js_modules.php');
+  $runner->assert(
+    str_contains($stageJsView, 'id="modalJsModuleDocs"')
+      && str_contains($stageJsView, 'highlightCodeStudio')
+      && str_contains($stageJsView, 'copyJsModuleCode')
+      && str_contains($stageJsView, 'FloatingScroll.attach'),
+    "stage_js_modules.php debe incluir #modalJsModuleDocs, resaltado de sintaxis, copia de código y FloatingScroll.attach"
+  );
+
+  // 3. Fase 3: ConfigSchema y EnvConfigService
+  $valRes = \Base\Studio\Services\ConfigSchema::validate([
+    'ROOT_PATH' => '/hacked',
+    'ROUTE_VIEW' => '/hacked',
+    'DOMAIN' => 'https://evil.test/',
+    'APP_ENV' => 'development',
+    'APP_NAME' => "Sitio Seguro\r\nEVIL=1",
+    'DB_PASSWORD' => 'super-secret-pass',
+    'CSRF_PROTECTION' => 'true',
+  ], 'production');
+  $runner->assert(!isset($valRes['values']['ROOT_PATH']) && !isset($valRes['values']['ROUTE_VIEW']) && !isset($valRes['values']['DOMAIN']), "ConfigSchema debe bloquear constantes estructurales y dinámicas");
+  $runner->assert(($valRes['values']['APP_ENV'] ?? '') === 'production', "ConfigSchema debe forzar APP_ENV=production en perfil producción");
+  $runner->assert(!str_contains((string)$valRes['values']['APP_NAME'], "\n"), "ConfigSchema debe sanear saltos de línea");
+
+  @file_put_contents($tmpProj . '/.env', "# Comentario original\nAPP_NAME=\"Viejo\"\nCUSTOM_VAR=\"mantener\"\n");
+  $saveLocal = \Base\Studio\Services\EnvConfigService::saveProfile('local', ['APP_NAME' => 'Nuevo Local'], $tmpProj);
+  $runner->assert(!empty($saveLocal['success']), "EnvConfigService debe guardar perfil local");
+  $envAfter = (string)file_get_contents($tmpProj . '/.env');
+  $runner->assert(str_contains($envAfter, '# Comentario original') && str_contains($envAfter, 'CUSTOM_VAR="mantener"') && str_contains($envAfter, 'APP_NAME="Nuevo Local"'), "writeEnvFile debe preservar comentarios y variables personalizadas");
+
+  $saveProd = \Base\Studio\Services\EnvConfigService::saveProfile('production', [
+    'APP_NAME' => 'Sitio Prod',
+    'FORCE_DOMAIN' => 'ejemplo.com',
+    'DB_HOST' => '127.0.0.1',
+    'DB_DATABASE' => 'prod_db',
+    'DB_USERNAME' => 'prod_user',
+    'DB_PASSWORD' => 'MiClaveUltraSecreta123!',
+    'SMTP_PASS' => 'SmtpPassSegura!',
+    'DEPLOY_ENABLED' => true,
+  ], $tmpProj);
+  $runner->assert(!empty($saveProd['success']) && is_file($tmpProj . '/App/Config/.studio.production.local.json'), "Perfil de producción debe guardarse en borrador local gitignored");
+
+  // 4. Fase 4: ConfigVault AEAD (cifrado, detección de manipulación fail-closed, arranque sin .env ni jsConfig.json)
+  $mKey = \Base\Module\Security\ConfigVault::generateMasterKey();
+  $envEnc = \Base\Module\Security\ConfigVault::encrypt(['DB_PASSWORD' => 'secret99'], $mKey);
+  $dec = \Base\Module\Security\ConfigVault::decrypt($envEnc, $mKey);
+  $runner->assert(($dec['DB_PASSWORD'] ?? '') === 'secret99', "ConfigVault::decrypt debe recuperar el secreto original");
+
+  $tampered = $envEnc;
+  $ct = base64_decode((string)$tampered['ciphertext'], true);
+  $ct[0] = chr(ord($ct[0]) ^ 0xFF);
+  $tampered['ciphertext'] = base64_encode($ct);
+  $tamperFailed = false;
+  try {
+    \Base\Module\Security\ConfigVault::decrypt($tampered, $mKey);
+  } catch (\RuntimeException $e) {
+    $tamperFailed = true;
+  }
+  $runner->assert($tamperFailed, "ConfigVault::decrypt debe fallar cerrado (fail-closed) ante manipulación de 1 byte");
+
+  // Compilar proyecto temporal (sin .env usado en runtime)
+  $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($tmpProj);
+  $runner->assert(!empty($compileRes['success']), "ConfigCompilerService::compile debe generar compilado + vault");
+  $runner->assert(is_file($tmpProj . '/App/Config/compiled.config.php') && is_file($tmpProj . '/App/Config/secrets.vault.php') && is_file($tmpProj . '/App/Safety/vault.key.php'), "Artefactos compilados y clave autocontenida deben generarse en App/Config y App/Safety");
+  $runner->assert(is_file($tmpProj . '/App/Config/.gitignore') && is_file($tmpProj . '/App/Safety/.gitignore'), "Deben generarse archivos .gitignore dedicados en App/Config y App/Safety");
+
+  // Verificar que los archivos .gitignore ignoren artefactos sensibles
+  $cfgGi = (string)file_get_contents($tmpProj . '/App/Config/.gitignore');
+  $safGi = (string)file_get_contents($tmpProj . '/App/Safety/.gitignore');
+  $runner->assert(str_contains($cfgGi, 'secrets.vault.php') && str_contains($cfgGi, '.studio.*.json'), "App/Config/.gitignore debe ignorar secrets.vault.php y borradores locales");
+  $runner->assert(str_contains($safGi, 'vault.key.php'), "App/Safety/.gitignore debe ignorar vault.key.php");
+
+  // Probar arranque en subproceso PHP limpio SIN .env y SIN jsConfig.json
+  @unlink($tmpProj . '/.env');
+  @unlink($tmpProj . '/jsConfig.json');
+  $rootLit = var_export(ROOT_PATH, true);
+  $tmpLit = var_export($tmpProj, true);
+  $bootCode = <<<PHP
+<?php
+\$_SERVER['HTTP_HOST'] = 'mi-prod.example';
+\$_SERVER['HTTPS'] = 'on';
+require_once {$rootLit} . '/vendor/autoload.php';
+\Base\Module\Security\ConfigVault::boot({$tmpLit});
+require_once {$rootLit} . '/config.php';
+\$lvs = new \Core\ConfigLoader\LoadViewStyle();
+ob_start();
+\$lvs->inlineJsConfig('jsConfig.json');
+\$htmlJs = ob_get_clean();
+echo json_encode([
+  'booted' => \Base\Module\Security\ConfigVault::isBooted(),
+  'env' => ENVIRONMENT,
+  'dbPass' => DB_PASSWORD,
+  'siteName' => NAME_SITE,
+  'domain' => DOMAIN,
+  'htmlJs' => \$htmlJs,
+]);
+PHP;
+  $bootScript = $tmpProj . '/test_boot.php';
+  @file_put_contents($bootScript, $bootCode);
+  $bootOut = shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($bootScript));
+  $bootJson = json_decode((string)$bootOut, true);
+  $runner->assert(!empty($bootJson['booted']) && ($bootJson['env'] ?? '') === 'production', "Runtime sin .env debe arrancar vía ConfigVault en modo production");
+  $runner->assert(($bootJson['dbPass'] ?? '') === 'MiClaveUltraSecreta123!', "DB_PASSWORD descifrado del Vault debe hidratar config.php");
+  $runner->assert(($bootJson['siteName'] ?? '') === 'Sitio Prod' && str_contains((string)($bootJson['domain'] ?? ''), 'ejemplo.com'), "Constantes compiladas y URL dinámica deben funcionar en producción");
+  $runner->assert(str_contains((string)($bootJson['htmlJs'] ?? ''), 'window.jsConfig') && !str_contains((string)($bootJson['htmlJs'] ?? ''), 'MiClaveUltraSecreta123!'), "LoadViewStyle::inlineJsConfig debe usar el compilado en memoria sin filtrar secretos");
+
+  // 5. Plantilla deploy.php debe incluir lectura del Vault y exclusión de Base/Studio/
+  $tpl = \DeployPackage::getDeployReceiverTemplate('abcdef0123456789abcdef0123456789');
+  $runner->assert(str_contains($tpl, 'secrets.vault.php') && str_contains($tpl, 'Base/Studio/'), "deploy.php debe soportar lectura de secrets.vault.php y excluir Base/Studio/");
+
+  // 7. Media paths unificados (DIR_UPLOAD_MEDIA -> DIR_SHOW_MEDIA) + DIR_SHOW_MEDIA_CUSTOM + ancho/floatingScroll Studio
+  $mediaScript = <<<PHP
+<?php
+\$_ENV = ['APP_ENV' => 'testing', 'DIR_UPLOAD_MEDIA' => '/Media/Galeria'];
+\$_SERVER['APP_ENV'] = 'testing';
+\$_SERVER['HTTP_HOST'] = 'localhost';
+define('ROOT_PATH', {$rootLit});
+require_once ROOT_PATH . '/vendor/autoload.php';
+require_once ROOT_PATH . '/config.php';
+echo json_encode([
+  'upload' => DIR_UPLOAD_MEDIA,
+  'show' => DIR_SHOW_MEDIA,
+  'custom' => DIR_SHOW_MEDIA_CUSTOM,
+]);
+PHP;
+  $mediaFile = $tmpProj . '/test_media.php';
+  @file_put_contents($mediaFile, $mediaScript);
+  $mediaJson = json_decode((string)shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($mediaFile)), true);
+  $runner->assert(
+    str_ends_with((string)($mediaJson['upload'] ?? ''), '/Media/Galeria/') && str_ends_with((string)($mediaJson['show'] ?? ''), '/Media/Galeria/'),
+    "DIR_UPLOAD_MEDIA y DIR_SHOW_MEDIA deben apuntar a la misma carpeta desde una sola configuración"
+  );
+  $runner->assert(
+    str_ends_with((string)($mediaJson['custom'] ?? ''), '/App/Public/Img/'),
+    "DIR_SHOW_MEDIA_CUSTOM debe apuntar por defecto a /App/Public/Img/"
+  );
+
+  $fieldsMap = \Base\Studio\Services\ConfigSchema::getFieldsMap();
+  $runner->assert(
+    isset($fieldsMap['DIR_SHOW_MEDIA_CUSTOM']) && !isset($fieldsMap['DIR_SHOW_MEDIA']) && in_array('DIR_SHOW_MEDIA', \Base\Studio\Services\ConfigSchema::PROTECTED_KEYS, true),
+    "ConfigSchema debe incluir DIR_SHOW_MEDIA_CUSTOM y derivar/proteger DIR_SHOW_MEDIA"
+  );
+
+  $studioMainSrc = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/themeStudio.php');
+  $stageCfgSrc = (string)file_get_contents(ROOT_PATH . '/Base/Studio/Views/partials/stage_config.php');
+  $runner->assert(
+    str_contains($studioMainSrc, 'initStudioFloatingScrolls') && str_contains($studioMainSrc, 'FloatingScroll.attach') && str_contains($stageCfgSrc, 'width:100%; align-self:stretch;'),
+    "Studio debe usar FloatingScroll.attach y stage_config ocupar 100% de ancho"
+  );
+
+  // 6. InitAppStructure debe generar .gitignore raíz con reglas sensibles y copiar .gitignore de Config y Safety
+  if (!class_exists('InitAppStructure', false)) {
+    require_once ROOT_PATH . '/Base/ScriptComposer/InitAppStructure.php';
+  }
+  $tmpInit = sys_get_temp_dir() . '/frame_init_gi_' . uniqid();
+  @mkdir($tmpInit, 0755, true);
+  @file_put_contents($tmpInit . '/composer.json', json_encode(['name' => 'eber/demo-test']));
+  $initApp = new \InitAppStructure($tmpInit);
+  ob_start();
+  $initApp->create();
+  ob_end_clean();
+  $rootGi = (string)@file_get_contents($tmpInit . '/.gitignore');
+  $runner->assert(
+    str_contains($rootGi, '*.vault.php') && str_contains($rootGi, '*.key.php') && str_contains($rootGi, 'App/Config/secrets.vault.php') && str_contains($rootGi, 'App/Safety/vault.key.php'),
+    "InitAppStructure debe incluir reglas sensibles en .gitignore raíz"
+  );
+  $runner->assert(
+    is_file($tmpInit . '/App/Config/.gitignore') && is_file($tmpInit . '/App/Safety/.gitignore'),
+    "InitAppStructure debe copiar App/Config/.gitignore y App/Safety/.gitignore"
+  );
+
+  // Limpiar directorios temporales
+  $rmRec = static function (string $d) use (&$rmRec): void {
+    if (!is_dir($d)) return;
+    foreach (scandir($d) ?: [] as $i) {
+      if ($i === '.' || $i === '..') continue;
+      $p = $d . '/' . $i;
+      is_dir($p) ? $rmRec($p) : @unlink($p);
+    }
+    @rmdir($d);
+  };
+  $rmRec($tmpProj);
+  $rmRec($tmpInit);
+});
+
+// =========================================================================
+// SUITE: DeployPackage — Confirmación obligatoria de deploy
+// =========================================================================
+$runner->runTest('DeployPackage — Confirmación obligatoria de deploy', function () use ($runner) {
+  if (!class_exists('DeployPackage', false)) {
+    require_once ROOT_PATH . '/Base/ScriptComposer/DeployPackage.php';
+  }
+
+  foreach (['yes', 'y', 'Yes', 'YES', " yes \r\n", "y\n", " Yes ", "YES\r\n"] as $accepted) {
+    $runner->assert(
+      \DeployPackage::isDeployConfirmed($accepted) === true,
+      "isDeployConfirmed debe aceptar '" . trim($accepted) . "'"
+    );
+  }
+
+  foreach (['', '   ', 'no', 'n', 'Y', 'yEs', 'YeS', 'si', 's', 'yes!', 'true', '1'] as $rejected) {
+    $runner->assert(
+      \DeployPackage::isDeployConfirmed($rejected) === false,
+      "isDeployConfirmed debe rechazar '" . $rejected . "'"
+    );
+  }
+
+  $tmpDeployDir = sys_get_temp_dir() . '/frame_deploy_confirm_' . uniqid();
+  @mkdir($tmpDeployDir, 0755, true);
+  @file_put_contents(
+    $tmpDeployDir . '/.env',
+    "DEPLOY_URL=\"https://ejemplo.invalid/deploy.php\"\nDEPLOY_TOKEN=\"1234567890abcdef1234567890abcdef\"\n"
+  );
+
+  $deployScript = ROOT_PATH . '/Base/ScriptComposer/DeployPackage.php';
+  foreach (['' => 'EOF vacío', "no\n" => 'no', "Y\n" => 'Y mayúscula'] as $stdinInput => $label) {
+    $descriptors = [
+      0 => ['pipe', 'r'],
+      1 => ['pipe', 'w'],
+      2 => ['pipe', 'w'],
+    ];
+    $process = proc_open([PHP_BINARY, $deployScript, 'deploy'], $descriptors, $pipes, $tmpDeployDir);
+    $runner->assert(is_resource($process), "Debe poder iniciarse DeployPackage.php ({$label})");
+
+    if (is_resource($process)) {
+      fwrite($pipes[0], $stdinInput);
+      fclose($pipes[0]);
+      $stdout = stream_get_contents($pipes[1]);
+      $stderr = stream_get_contents($pipes[2]);
+      fclose($pipes[1]);
+      fclose($pipes[2]);
+      $exitCode = proc_close($process);
+
+      $runner->assert($exitCode === 0, "Deploy cancelado ({$label}) debe retornar código 0 (obtenido: {$exitCode}; stderr: {$stderr})");
+      $runner->assert(
+        str_contains((string)$stdout, 'Despliegue cancelado'),
+        "Salida debe indicar 'Despliegue cancelado' para {$label}"
+      );
+      $runner->assert(
+        !str_contains((string)$stdout, 'Compilando assets JIT') && !str_contains((string)$stdout, 'Transfiriendo y actualizando servidor'),
+        "No debe compilar ni transferir archivos cuando se rechaza con {$label}"
+      );
+    }
+  }
+
+  $rmDeployTmp = static function (string $d) use (&$rmDeployTmp): void {
+    if (!is_dir($d)) return;
+    foreach (scandir($d) ?: [] as $i) {
+      if ($i === '.' || $i === '..') continue;
+      $p = $d . '/' . $i;
+      is_dir($p) ? $rmDeployTmp($p) : @unlink($p);
+    }
+    @rmdir($d);
+  };
+  $rmDeployTmp($tmpDeployDir);
 });
 
 // Limpiar /App y carpetas de proyecto en el repositorio del framework

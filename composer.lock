@@ -84,7 +84,7 @@
             "dist": {
                 "type": "path",
                 "url": "C:/Users/eber/Proyectos/frame",
-                "reference": "abfd27d6e0364efb1bdd222744f50bad5f076c35"
+                "reference": "f73e55c0376be3d57fbc08f82272b31ae9164cb5"
             },
             "require": {
                 "geoip2/geoip2": "*",
@@ -120,6 +120,9 @@
                 ],
                 "deploy": [
                     "php Base/ScriptComposer/DeployPackage.php deploy"
+                ],
+                "config:build": [
+                    "php Base/ScriptComposer/BuildConfig.php"
                 ],
                 "init-app": [
                     "php Base/ScriptComposer/InitAppStructure.php"

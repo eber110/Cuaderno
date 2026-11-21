@@ -8,7 +8,7 @@
  * @module HybridSpline
  */
 
-import { easeInOutCubic, getChartContainerWidth, observeChartResize, computeSplinePath } from "./arcMeter.js";
+import { easeInOutCubic, getChartContainerWidth, observeChartResize, computeSplinePath, safeGetTotalLength } from "./arcMeter.js";
 
 /**
  * Ajusta el viewBox, barras translúcidas, curva Bézier y etiquetas de Hybrid Spline
@@ -85,15 +85,13 @@ export function fitHybridSplineToContainer(target, explicitWidth = 0) {
   const splinePath = svg.querySelector(".mono-spline-path");
   if (splinePath && pathD) {
     splinePath.setAttribute("d", pathD);
-    if (splinePath.getTotalLength) {
-      const len = splinePath.getTotalLength();
-      splinePath._currentPathLen = len;
-      if (!splinePath._isAnimating) {
-        splinePath.style.strokeDasharray = "none";
-        splinePath.style.strokeDashoffset = "0";
-      } else {
-        splinePath.style.strokeDasharray = `${len} ${len}`;
-      }
+    const len = safeGetTotalLength(splinePath, 350);
+    splinePath._currentPathLen = len;
+    if (!splinePath._isAnimating) {
+      splinePath.style.strokeDasharray = "none";
+      splinePath.style.strokeDashoffset = "0";
+    } else {
+      splinePath.style.strokeDasharray = `${len} ${len}`;
     }
   }
 
@@ -120,7 +118,10 @@ export function initHybridSpline(target, options = {}) {
 
     observeChartResize(svg, fitHybridSplineToContainer);
 
-    const duration = options.duration || parseInt(svg.getAttribute("data-duration") || "400", 10);
+    const rawDur = options.duration !== undefined
+      ? options.duration
+      : parseInt(svg.getAttribute("data-duration") ?? "400", 10);
+    const duration = Number.isFinite(rawDur) && rawDur >= 0 ? rawDur : 400;
     const baseline = parseFloat(svg.getAttribute("data-baseline-y") || "155");
 
     // 1. Barras de fondo
@@ -128,15 +129,20 @@ export function initHybridSpline(target, options = {}) {
     bars.forEach((bar) => {
       if (bar._splineBarRaf) {
         cancelAnimationFrame(bar._splineBarRaf);
+        bar._splineBarRaf = null;
       }
       const targetH = parseFloat(bar.getAttribute("data-target-h") || bar.getAttribute("height") || "60");
+      if (!bar.hasAttribute("data-target-h")) {
+        bar.setAttribute("data-target-h", targetH.toFixed(2));
+      }
+      bar.style.opacity = "";
       bar.setAttribute("height", "0");
       bar.setAttribute("y", baseline.toString());
 
       const startTime = performance.now();
       function stepBar(now) {
         const elapsed = Math.max(0, now - startTime);
-        const progress = Math.max(0, Math.min(elapsed / duration, 1));
+        const progress = duration > 0 ? Math.max(0, Math.min(elapsed / duration, 1)) : 1;
         const ease = easeInOutCubic(progress);
         const currentH = Math.max(0, targetH * ease);
         bar.setAttribute("height", currentH.toFixed(2));
@@ -151,7 +157,11 @@ export function initHybridSpline(target, options = {}) {
           bar._splineBarRaf = null;
         }
       }
-      bar._splineBarRaf = requestAnimationFrame(stepBar);
+      if (duration === 0) {
+        stepBar(startTime);
+      } else {
+        bar._splineBarRaf = requestAnimationFrame(stepBar);
+      }
     });
 
     // 2. Curva Spline continua (stroke-dashoffset)
@@ -159,17 +169,19 @@ export function initHybridSpline(target, options = {}) {
     if (splinePath) {
       if (splinePath._splinePathRaf) {
         cancelAnimationFrame(splinePath._splinePathRaf);
+        splinePath._splinePathRaf = null;
       }
-      const initialLen = splinePath.getTotalLength ? splinePath.getTotalLength() : 350;
+      const initialLen = safeGetTotalLength(splinePath, 350);
       splinePath._currentPathLen = initialLen;
       splinePath._isAnimating = true;
+      splinePath.style.opacity = "";
       splinePath.style.strokeDasharray = `${initialLen} ${initialLen}`;
       splinePath.style.strokeDashoffset = `${initialLen}`;
 
       const startTime = performance.now();
       function stepSpline(now) {
         const elapsed = Math.max(0, now - startTime);
-        const progress = Math.max(0, Math.min(elapsed / duration, 1));
+        const progress = duration > 0 ? Math.max(0, Math.min(elapsed / duration, 1)) : 1;
         const ease = easeInOutCubic(progress);
         const len = splinePath._currentPathLen || initialLen;
         const currentOffset = Math.max(0, len * (1 - ease));
@@ -185,7 +197,11 @@ export function initHybridSpline(target, options = {}) {
           splinePath._splinePathRaf = null;
         }
       }
-      splinePath._splinePathRaf = requestAnimationFrame(stepSpline);
+      if (duration === 0) {
+        stepSpline(startTime);
+      } else {
+        splinePath._splinePathRaf = requestAnimationFrame(stepSpline);
+      }
     }
 
     // 3. Área degradada y puntos
@@ -193,12 +209,13 @@ export function initHybridSpline(target, options = {}) {
     if (area) {
       if (area._areaRaf) {
         cancelAnimationFrame(area._areaRaf);
+        area._areaRaf = null;
       }
       area.style.opacity = "0";
       const startTime = performance.now();
       function stepArea(now) {
         const elapsed = Math.max(0, now - startTime);
-        const progress = Math.max(0, Math.min(elapsed / duration, 1));
+        const progress = duration > 0 ? Math.max(0, Math.min(elapsed / duration, 1)) : 1;
         area.style.opacity = easeInOutCubic(progress).toFixed(4);
         if (progress < 1) {
           area._areaRaf = requestAnimationFrame(stepArea);
@@ -207,17 +224,24 @@ export function initHybridSpline(target, options = {}) {
           area._areaRaf = null;
         }
       }
-      area._areaRaf = requestAnimationFrame(stepArea);
+      if (duration === 0) {
+        stepArea(startTime);
+      } else {
+        area._areaRaf = requestAnimationFrame(stepArea);
+      }
     }
 
     // 4. Puntos (Vértices): Aparecen al final de la animación con un fade suave en su posición exacta
     const dots = svg.querySelectorAll(".mono-spline-dot");
     const fadeDelay = options.dotFadeDelay !== undefined ? options.dotFadeDelay : duration;
-    const fadeDuration = options.dotFadeDuration || Math.min(200, Math.max(120, Math.round(duration * 0.4)));
+    const fadeDuration = options.dotFadeDuration !== undefined
+      ? options.dotFadeDuration
+      : (duration === 0 ? 0 : Math.min(200, Math.max(120, Math.round(duration * 0.4))));
 
     dots.forEach((dot) => {
       if (dot._fadeRaf) {
         cancelAnimationFrame(dot._fadeRaf);
+        dot._fadeRaf = null;
       }
       dot.style.opacity = "0";
       dot.style.transform = ""; // Sin transform para garantizar que permanezcan en su coordenada exacta (cx, cy)
@@ -232,7 +256,7 @@ export function initHybridSpline(target, options = {}) {
         }
 
         const fadeElapsed = Math.max(0, elapsed - fadeDelay);
-        const progress = Math.max(0, Math.min(fadeElapsed / fadeDuration, 1));
+        const progress = fadeDuration > 0 ? Math.max(0, Math.min(fadeElapsed / fadeDuration, 1)) : 1;
         const ease = easeInOutCubic(progress);
         dot.style.opacity = ease.toFixed(4);
 
@@ -243,7 +267,11 @@ export function initHybridSpline(target, options = {}) {
           dot._fadeRaf = null;
         }
       }
-      dot._fadeRaf = requestAnimationFrame(stepDot);
+      if (fadeDelay === 0 && fadeDuration === 0) {
+        stepDot(startTime);
+      } else {
+        dot._fadeRaf = requestAnimationFrame(stepDot);
+      }
     });
   });
 }
