@@ -238,8 +238,8 @@
             },
             "charts": {
                 "color": "texto",
-                "colorLabel": "textw",
-                "axisLabel": "texto",
+                "colorLabel": "color14",
+                "axisLabel": "color2",
                 "axisLabelSize": null,
                 "transition": 400,
                 "tooltip": true,
