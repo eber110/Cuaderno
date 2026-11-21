@@ -1,5 +1,5 @@
 <?php
-if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::class) || !\Base\Control\ThemeStudioControl::isDevEnvironment()) {
+if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || !\Base\Studio\StudioKernel::isDevEnvironment()) {
   http_response_code(404);
   exit;
 }
@@ -9,7 +9,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frame Theme Studio</title>
+  <title>Frame Studio</title>
   <?php if (class_exists('\\Base\\Module\\SecurityModule')): ?>
     <?= \Base\Module\SecurityModule::csrfMeta() ?>
   <?php endif; ?>
@@ -412,13 +412,28 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       display: block;
     }
 
-    /* Barra de desplazamiento invisible pero funcional en Sidebar y Tabs */
-    .ts-sidebar, .ts-tab-content {
+    /* Barra de desplazamiento nativa oculta en todo Studio (se usa Resources/Js/Components/floatingScroll.js) */
+    .ts-sidebar,
+    .ts-tab-content,
+    #jsModulesSandboxView,
+    #configSandboxView,
+    #chartSandboxStage,
+    #iconSandboxStage,
+    #inputSandboxStage,
+    #isFoldersContainer,
+    #jsonViewer {
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
     }
     .ts-sidebar::-webkit-scrollbar,
-    .ts-tab-content::-webkit-scrollbar {
+    .ts-tab-content::-webkit-scrollbar,
+    #jsModulesSandboxView::-webkit-scrollbar,
+    #configSandboxView::-webkit-scrollbar,
+    #chartSandboxStage::-webkit-scrollbar,
+    #iconSandboxStage::-webkit-scrollbar,
+    #inputSandboxStage::-webkit-scrollbar,
+    #isFoldersContainer::-webkit-scrollbar,
+    #jsonViewer::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
@@ -2791,6 +2806,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         <button type="button" class="ts-tab-btn" id="tabBtnIcons" data-tab-id="icons" onclick="switchTab('icons', this)">🖼️ Iconos</button>
         <button type="button" class="ts-tab-btn" data-tab-id="wcag" onclick="switchTab('wcag', this)">♿ WCAG</button>
         <button type="button" class="ts-tab-btn" data-tab-id="gradients" onclick="switchTab('gradients', this)">🌈 Gradientes</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnJsModules" data-tab-id="jsmodules" onclick="switchTab('jsmodules', this)">📦 Módulos JS</button>
+        <button type="button" class="ts-tab-btn" id="tabBtnConfig" data-tab-id="config" onclick="switchTab('config', this)">⚙️ Config</button>
         <button type="button" class="ts-tab-btn" data-tab-id="json" onclick="switchTab('json', this)">📋 JSON</button>
       </div>
 
@@ -4195,6 +4212,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         </div>
       </div>
 
+      <?php require __DIR__ . '/partials/tab_js_modules.php'; ?>
+      <?php require __DIR__ . '/partials/tab_config.php'; ?>
+
     </aside>
 
     <!-- Right Live Real Project View Stage -->
@@ -4220,6 +4240,12 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
             </button>
             <button type="button" class="ts-stage-btn" id="btnStageIcons" onclick="setStageMode('icons')">
               🖼️ <span>Iconos</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageJsModules" onclick="setStageMode('jsmodules')">
+              📦 <span>Módulos JS</span>
+            </button>
+            <button type="button" class="ts-stage-btn" id="btnStageConfig" onclick="setStageMode('config')">
+              ⚙️ <span>Config</span>
             </button>
           </div>
 
@@ -4251,6 +4277,12 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           <div id="inputBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
             <span>🎛️ UI / Input Studio</span>
             <span class="ts-badge">19 componentes</span>
+          </div>
+          <div id="jsModulesBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>📦 Módulos JS &amp; Librerías</span>
+          </div>
+          <div id="configBarStatus" style="display:none; align-items:center; gap:6px; font-size:0.78rem; color:var(--ts-muted); white-space:nowrap;">
+            <span>⚙️ Configuración &amp; Vault</span>
           </div>
         </div>
 
@@ -4531,6 +4563,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           </div>
         </div>
       </div>
+
+      <?php require __DIR__ . '/partials/stage_js_modules.php'; ?>
+      <?php require __DIR__ . '/partials/stage_config.php'; ?>
     </main>
 
   </div>
@@ -4810,6 +4845,50 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         });
       });
       restoreWorkspaceState();
+      initStudioFloatingScrolls();
+    }
+
+    // ==============================================================
+    // FLOATING SCROLLBARS GLOBALES DEL STUDIO (Resources/Js/Components/floatingScroll.js)
+    // ==============================================================
+    function getStudioScrollContainers() {
+      const list = [];
+      document.querySelectorAll('.ts-tab-content').forEach((el) => list.push(el));
+      ['jsModulesSandboxView', 'configSandboxView', 'chartSandboxStage', 'iconSandboxStage', 'inputSandboxStage', 'jsonViewer'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) list.push(el);
+      });
+      return list;
+    }
+
+    function initStudioFloatingScrolls() {
+      if (typeof window.FloatingScroll === 'undefined' || typeof window.FloatingScroll.attach !== 'function') {
+        return;
+      }
+      getStudioScrollContainers().forEach((el) => {
+        window.FloatingScroll.attach(el, {
+          width: 7,
+          color: 'var(--ts-primary, #38bdf8)',
+          hoverExpand: 3,
+          minThumbHeight: 36,
+          offsetRight: 3,
+          offsetY: 6,
+          opacity: 0.55,
+          zIndex: 90
+        });
+      });
+    }
+
+    function syncStudioFloatingScrolls() {
+      initStudioFloatingScrolls();
+      getStudioScrollContainers().forEach((el) => {
+        if (el.__floatingScrollInstance && typeof el.__floatingScrollInstance.refresh === 'function') {
+          el.__floatingScrollInstance.refresh();
+        }
+      });
+      if (typeof window.FmeUi?.syncAllFloatingScrolls === 'function') {
+        window.FmeUi.syncAllFloatingScrolls();
+      }
     }
 
     // ==============================================================
@@ -6461,6 +6540,9 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
           setTimeout(() => window.FmeUi.syncAllFloatingScrolls(), 260);
         }
       }
+      if (typeof syncStudioFloatingScrolls === 'function') {
+        setTimeout(syncStudioFloatingScrolls, 220);
+      }
       saveWorkspaceState();
     }
 
@@ -6478,12 +6560,24 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
 
       if (currentTabId === 'json') {
         updateJsonViewer();
+        if (currentStageMode === 'jsmodules' || currentStageMode === 'config') {
+          setStageMode('site');
+        }
       } else if (currentTabId === 'charts') {
         setStageMode('charts');
       } else if (currentTabId === 'inputs') {
         setStageMode('inputs');
       } else if (currentTabId === 'icons') {
         setStageMode('icons');
+      } else if (currentTabId === 'jsmodules') {
+        setStageMode('jsmodules');
+      } else if (currentTabId === 'config') {
+        setStageMode('config');
+      } else if (currentStageMode === 'jsmodules' || currentStageMode === 'config') {
+        setStageMode('site');
+      }
+      if (typeof syncStudioFloatingScrolls === 'function') {
+        requestAnimationFrame(syncStudioFloatingScrolls);
       }
       saveWorkspaceState();
     }
@@ -7398,33 +7492,60 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
     }
 
     function setStageMode(mode) {
-      currentStageMode = (mode === 'charts' || mode === 'inputs' || mode === 'icons') ? mode : 'site';
+      currentStageMode = (mode === 'charts' || mode === 'inputs' || mode === 'icons' || mode === 'jsmodules' || mode === 'config') ? mode : 'site';
+      const isToolStage = (currentStageMode === 'jsmodules' || currentStageMode === 'config');
       const btnSite = document.getElementById('btnStageSite');
       const btnCharts = document.getElementById('btnStageCharts');
       const btnInputs = document.getElementById('btnStageInputs');
       const btnIcons = document.getElementById('btnStageIcons');
+      const btnJsMod = document.getElementById('btnStageJsModules');
+      const btnConfig = document.getElementById('btnStageConfig');
+      const sandboxWindow = document.getElementById('sandboxWindow');
+      const viewportBar = document.getElementById('viewportBar');
       const iframe = document.getElementById('projectPreviewFrame');
       const chartView = document.getElementById('chartSandboxView');
       const inputView = document.getElementById('inputSandboxView');
       const iconView = document.getElementById('iconSandboxView');
+      const jsModView = document.getElementById('jsModulesSandboxView');
+      const cfgView = document.getElementById('configSandboxView');
       const routeBar = document.getElementById('projectRouteBar');
       const chartStatus = document.getElementById('chartBarStatus');
       const inputStatus = document.getElementById('inputBarStatus');
       const iconStatus = document.getElementById('iconBarStatus');
+      const jsModStatus = document.getElementById('jsModulesBarStatus');
+      const cfgStatus = document.getElementById('configBarStatus');
 
       if (btnSite) btnSite.classList.toggle('active', currentStageMode === 'site');
       if (btnCharts) btnCharts.classList.toggle('active', currentStageMode === 'charts');
       if (btnInputs) btnInputs.classList.toggle('active', currentStageMode === 'inputs');
       if (btnIcons) btnIcons.classList.toggle('active', currentStageMode === 'icons');
+      if (btnJsMod) btnJsMod.classList.toggle('active', currentStageMode === 'jsmodules');
+      if (btnConfig) btnConfig.classList.toggle('active', currentStageMode === 'config');
 
+      if (sandboxWindow) sandboxWindow.style.display = isToolStage ? 'none' : '';
+      if (viewportBar) viewportBar.style.display = isToolStage ? 'none' : 'flex';
       if (iframe) iframe.style.display = currentStageMode === 'site' ? 'block' : 'none';
       if (chartView) chartView.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
       if (inputView) inputView.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconView) iconView.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
+      if (jsModView) jsModView.style.display = currentStageMode === 'jsmodules' ? 'flex' : 'none';
+      if (cfgView) cfgView.style.display = currentStageMode === 'config' ? 'flex' : 'none';
       if (routeBar) routeBar.style.display = currentStageMode === 'site' ? 'flex' : 'none';
       if (chartStatus) chartStatus.style.display = currentStageMode === 'charts' ? 'flex' : 'none';
       if (inputStatus) inputStatus.style.display = currentStageMode === 'inputs' ? 'flex' : 'none';
       if (iconStatus) iconStatus.style.display = currentStageMode === 'icons' ? 'flex' : 'none';
+      if (jsModStatus) jsModStatus.style.display = currentStageMode === 'jsmodules' ? 'flex' : 'none';
+      if (cfgStatus) cfgStatus.style.display = currentStageMode === 'config' ? 'flex' : 'none';
+
+      if (isToolStage && currentTabId !== currentStageMode) {
+        currentTabId = currentStageMode;
+        document.querySelectorAll('.ts-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.ts-tab-content').forEach(c => c.classList.remove('active'));
+        const sideBtn = document.querySelector(`.ts-tab-btn[data-tab-id="${currentStageMode}"]`);
+        if (sideBtn) sideBtn.classList.add('active');
+        const sideTab = document.getElementById('tab-' + currentStageMode);
+        if (sideTab) sideTab.classList.add('active');
+      }
 
       document.body.classList.toggle('is-touch-simulated', currentStageMode === 'inputs' && !!inputSandboxTouchSim);
 
@@ -7450,6 +7571,13 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
       } else if (currentStageMode === 'icons') {
         injectLiveThemeIntoIconSandbox();
         refreshIconsCatalog(false);
+      } else if (currentStageMode === 'jsmodules' && typeof loadJsModulesCatalog === 'function') {
+        loadJsModulesCatalog(false);
+      } else if (currentStageMode === 'config' && typeof loadConfigState === 'function') {
+        loadConfigState(false);
+      }
+      if (typeof syncStudioFloatingScrolls === 'function') {
+        requestAnimationFrame(syncStudioFloatingScrolls);
       }
       saveWorkspaceState();
     }
@@ -11766,9 +11894,10 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Control\ThemeStudioControl::cla
         const targetTab = (urlTab && document.getElementById('tab-' + urlTab))
           ? urlTab
           : ((saved?.tab && document.getElementById('tab-' + saved.tab)) ? saved.tab : 'themes');
-        const targetStage = (urlStage && ['site', 'charts', 'inputs', 'icons'].includes(urlStage))
+        const validStages = ['site', 'charts', 'inputs', 'icons', 'jsmodules', 'config'];
+        const targetStage = (urlStage && validStages.includes(urlStage))
           ? urlStage
-          : ((saved?.stage && ['site', 'charts', 'inputs', 'icons'].includes(saved.stage)) ? saved.stage : null);
+          : ((saved?.stage && validStages.includes(saved.stage)) ? saved.stage : null);
 
         switchTab(targetTab);
         if (targetStage && targetStage !== currentStageMode) {

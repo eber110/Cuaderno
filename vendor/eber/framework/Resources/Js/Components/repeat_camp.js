@@ -1,10 +1,29 @@
 /**
  * Campos de formulario repetibles multi-instancia.
- * Soporta múltiples grupos en la misma página (`.repeat-group` o `#create-repeat`),
- * botón de eliminar fila, límite por `data-max` / parámetro, tokens CSS (--ui-*) y áreas táctiles de 40px+.
+ * Soporta múltiples grupos en la misma página (`.repeat-group` o `#create-repeat`), límite configurable y áreas táctiles de 40px+.
  *
  * @function repeat_camp
- * @param {number|string} [limit=10] - Límite máximo por defecto si no se define `data-max`
+ * @description Permite duplicar y eliminar dinámicamente campos `.repeat-camp` dentro de un grupo `.repeat-group`.
+ *
+ * @param {number|string} [limit=10] - Límite máximo de filas por defecto si no se define `data-max`
+ *
+ * @example
+ * // HTML - Grupo de campos repetibles con límite y etiqueta personalizada
+ * <div class="repeat-group">
+ *   <input type="text"
+ *          name="telefonos[]"
+ *          class="repeat-camp"
+ *          placeholder="Teléfono"
+ *          data-max="5"
+ *          data-add-label="+ Agregar teléfono">
+ * </div>
+ *
+ * @css .repeat-group - Contenedor de cada grupo independiente de campos repetibles
+ * @css .repeat-camp - Campo plantilla que se clonará en cada fila nueva
+ * @attribute data-max - Límite máximo de elementos para este grupo (opcional)
+ * @attribute data-add-label - Texto personalizado del botón para agregar filas (opcional)
+ * @attribute data-add-variant - Estilo del botón agregar: `'primary'` o `'secondary'` (opcional)
+ *
  * @returns {void}
  */
 export function repeat_camp(limit = 10) {

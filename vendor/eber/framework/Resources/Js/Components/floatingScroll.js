@@ -26,6 +26,29 @@
  * @param {number} [options.opacity=0.65] - Opacidad base del thumb.
  * @param {boolean} [options.autoHide=false] - Atenúa la barra tras inactividad de scroll.
  *
+ * @example
+ * // HTML - Contenedor interno con scroll flotante automático
+ * <div class="floating-scroll h300 overflow-y-auto">
+ *   <p>Contenido largo desplazable sin afectar el ancho del contenedor...</p>
+ * </div>
+ *
+ * @example
+ * // JavaScript - Adjuntar scroll flotante a un contenedor específico
+ * window.FloatingScroll.attach(document.getElementById('miPanel'), {
+ *   width: 7,
+ *   color: 'color2',
+ *   hoverExpand: 3,
+ *   minThumbHeight: 36
+ * });
+ *
+ * @example
+ * // Configuración en jsConfig.json (barra global en la página)
+ * {
+ *   "floatingScroll": [8, "color2", "no-phone"]
+ * }
+ *
+ * @css .floating-scroll - Clase para inicializar automáticamente el scroll flotante en contenedores
+ *
  * @returns {FloatingScroll}
  */
 

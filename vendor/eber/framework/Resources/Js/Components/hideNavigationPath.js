@@ -2,9 +2,16 @@
  * Oculta las rutas de navegación en la barra de estado inferior del navegador.
  *
  * @function hideNavigationPath
- * @description Remueve el atributo `href` en reposo almacenándolo en `data-href`
- *              para mantener limpia la barra de estado del navegador, restaurándolo
- *              transparentemente durante interacciones reales (clic, foco, menú contextual, arrastre).
+ * @description Remueve el atributo `href` en reposo almacenándolo en `data-href` para mantener limpia la barra de estado, restaurándolo en interacciones reales.
+ *
+ * @example
+ * // HTML - Los enlaces estándar <a href> se protegen automáticamente al activar el módulo
+ * <nav>
+ *   <a href="/productos">Productos</a>
+ *   <a href="/contacto" target="_blank">Contacto</a>
+ * </nav>
+ *
+ * @attribute data-href - Almacena temporalmente la URL original del enlace mientras está en reposo
  *
  * @returns {void}
  */

@@ -1,13 +1,28 @@
 /**
- * querie.js
  * Módulo central para controlar la visibilidad reactiva y seguridad del contenido
- * según las media queries configuradas en el proyecto (ThemeModule / Theme Studio)
- * y el modo de tema (oscuro/claro).
+ * según las media queries configuradas en el proyecto y el modo de tema (oscuro/claro).
  *
- * Breakpoints predeterminados (cuando el proyecto no define personalizados):
- * - phone:  (max-width: 576px)
- * - tablet: (min-width: 577px) and (max-width: 992px)
- * - desk:   (min-width: 993px)
+ * @function initResponsiveVisibility
+ * @description Oculta y restaura dinámicamente nodos del DOM según breakpoints (`no-phone`, `no-tablet`, `no-desk`) y tema (`no-dark-mode`, `no-light-mode`).
+ *
+ * @param {Object} [options={}] - Opciones de configuración de visibilidad
+ * @param {Object|Array|null} [options.breakpoints=null] - Mapa o lista de breakpoints personalizados
+ * @param {Array<string>} [options.preserveFunctionality=[]] - Selectores de elementos cuya funcionalidad se mantiene oculta sin remover del DOM
+ * @param {boolean} [options.observeDynamicElements=true] - Observa nuevos elementos agregados dinámicamente al DOM
+ *
+ * @example
+ * // HTML - Ocultar bloques según dispositivo o tema activo
+ * <div class="no-phone">Visible solo en tablet y escritorio</div>
+ * <div class="no-desk">Visible solo en móvil y tablet</div>
+ * <span class="no-dark-mode">Solo visible en modo claro</span>
+ *
+ * @css .no-phone - Oculta el elemento en pantallas de teléfono
+ * @css .no-tablet - Oculta el elemento en pantallas de tablet
+ * @css .no-desk - Oculta el elemento en pantallas de escritorio
+ * @css .no-dark-mode - Oculta el elemento cuando el tema oscuro está activo
+ * @css .no-light-mode - Oculta el elemento cuando el tema claro está activo
+ *
+ * @returns {Object} Controlador activo con métodos `init()` y `destroy()`
  */
 
 const DEFAULT_BREAKPOINTS = {

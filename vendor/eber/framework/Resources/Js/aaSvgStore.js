@@ -1,4 +1,23 @@
-// aaSvgStore.js
+/**
+ * Gestor asíncrono de iconos SVG con caché en memoria desde /App/Rsc/Ico/.
+ *
+ * @module aaSvgStore
+ * @description Carga y cachea iconos SVG en memoria para renderizarlos dinámicamente con clases y transformaciones seguras.
+ *
+ * @param {string} name_icon - Nombre del archivo SVG sin extensión (ej. 'heart-fill')
+ * @param {string} [classNames=''] - Clases CSS aplicadas al elemento `<svg>` generado
+ * @param {string} [transform=''] - Transformación CSS/SVG aplicada al primer `<path>`
+ *
+ * @example
+ * // HTML - Contenedor donde se inyectará el icono dinámicamente
+ * <span id="iconSlot" class="color2 x25"></span>
+ *
+ * @example
+ * // JavaScript - Renderizar icono desde /App/Rsc/Ico/
+ * document.getElementById('iconSlot').innerHTML = await svg('heart-fill', 'color2 x25');
+ *
+ * @returns {Promise<string>} HTML del elemento `<svg>` o icono de error de respaldo
+ */
 
 const svgCache = new Map();
 

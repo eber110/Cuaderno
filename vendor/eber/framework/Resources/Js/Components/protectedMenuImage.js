@@ -1,9 +1,20 @@
 /**
  * Protege las imágenes contra el menú contextual del navegador (clic derecho)
  * y opcionalmente evita que sean arrastradas (drag).
- * 
+ *
  * @function protectedMenuImage
- * @param {boolean} [allowDrag=true] - Si es true (por defecto), permite arrastrar imágenes. Si es false, lo bloquea.
+ * @description Bloquea el menú contextual sobre etiquetas `<img>` y permite deshabilitar el arrastre de imágenes mediante parámetro.
+ *
+ * @param {boolean} [allowDrag=true] - Si es `true` (por defecto), permite arrastrar imágenes; si es `false`, bloquea el evento `dragstart`.
+ *
+ * @example
+ * // HTML - Todas las imágenes del documento quedan protegidas automáticamente
+ * <img src="/assets/galeria/obra.webp" alt="Obra protegida">
+ *
+ * @example
+ * // Configuración en jsConfig.json (bloquear también arrastre)
+ * "protectedMenuImage": [false]
+ *
  * @returns {void}
  */
 export function protectedMenuImage(allowDrag = true) {

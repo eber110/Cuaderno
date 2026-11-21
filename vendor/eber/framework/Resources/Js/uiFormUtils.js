@@ -1,9 +1,26 @@
 /**
- * Utilidades compartidas para componentes UI de formulario (Tokens --ui-*, Touch, Posicionamiento e Iconos SVG).
+ * Utilidades compartidas para componentes UI de formulario (Tokens `--ui-*`, Touch, Posicionamiento e Iconos SVG).
  *
- * Se carga en prioridad dentro de jsConfig.json y expone window.FmeUi.
+ * Se carga en prioridad dentro de `jsConfig.json` y expone `window.FmeUi`.
  *
  * @module uiFormUtils
+ * @description Provee helpers compartidos (`window.FmeUi`) para propagación de tokens `--ui-*`, portales responsivos, modo táctil e iconos SVG.
+ *
+ * @example
+ * // HTML - Personalización mediante atributos ui-* en inputs y formularios
+ * <input type="text"
+ *        class="fme-date"
+ *        ui-surface="back1 texto br12 p15"
+ *        ui-btn-primary="back6 textw br8">
+ *
+ * @example
+ * // JavaScript - Uso de utilidades compartidas desde window.FmeUi
+ * if (window.FmeUi) {
+ *   const isTouch = window.FmeUi.isTouchMode();
+ *   window.FmeUi.syncAllFloatingScrolls();
+ * }
+ *
+ * @returns {void}
  */
 
 (function () {

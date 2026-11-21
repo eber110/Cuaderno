@@ -16,7 +16,7 @@ server {
     add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
 
     # Bloquear archivos ocultos, variables de entorno, backups, logs y configuraciones raíz
-    location ~* ^/(\.env(\..*)?|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|\.htaccess|.*\.(sql|sqlite|sqlite-wal|sqlite-shm|log|cache))$ {
+    location ~* ^/(\.env(\..*)?|\.git.*|composer\.(json|lock)|jsConfig\.json|providers\.json|preloadFonts\.json|deploy\.json|\.htaccess|.*\.(vault\.php|key\.php|local\.json|sql|sqlite|sqlite-wal|sqlite-shm|log|cache))$ {
         deny all;
         return 403;
     }

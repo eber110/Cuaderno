@@ -84,3 +84,13 @@
 
 # Reglas esenciales del framework (sincronizadas por InitAppStructure)
 .vscode/
+
+# Reglas esenciales del framework (sincronizadas por InitAppStructure)
+*.vault.php
+*.key.php
+App/Config/compiled.config.php
+App/Config/secrets.vault.php
+App/Config/*.local.json
+App/Safety/vault.key.php
+deploy.php
+deploy.json

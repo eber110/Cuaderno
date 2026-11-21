@@ -1,8 +1,23 @@
 /**
- * Input de Código OTP / Verificación 2FA (.otp-input).
+ * Input de Código OTP / Verificación 2FA (`.otp-input`).
  * Genera casillas conectadas con auto-avance, retroceso inteligente, pegado completo y teclado numérico móvil.
  *
  * @function otpCodeInput
+ * @description Transforma un input `.otp-input` en un grupo de casillas individuales para códigos de verificación 2FA/OTP.
+ *
+ * @example
+ * // HTML - Campo OTP numérico de 6 dígitos
+ * <input type="text"
+ *        name="codigo_otp"
+ *        class="otp-input"
+ *        data-length="6"
+ *        inputmode="numeric">
+ *
+ * @css .otp-input - Clase requerida en el `<input>` para generar las casillas OTP
+ * @attribute data-length - Cantidad de casillas entre `4` y `8` (defecto `'6'`, opcional)
+ * @attribute data-mask - Usa `'password'` para ocultar los dígitos introducidos (opcional)
+ * @attribute ui-trigger - Clases utilitarias aplicadas a cada casilla (opcional)
+ *
  * @returns {void}
  */
 export function otpCodeInput() {

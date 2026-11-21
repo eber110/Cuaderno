@@ -409,6 +409,7 @@ class InitAppStructure
     }
 
     // Copiar resto de archivos de configuración desde Resources/Config/ si no existen
+    $this->copyFileIfNotExists('Config/.gitignore', 'App/Config/.gitignore');
     $this->copyFileIfNotExists('Config/CookieConfiguration.php', 'App/Config/CookieConfiguration.php');
     $this->copyFileIfNotExists('Config/CorsConfiguration.php', 'App/Config/CorsConfiguration.php');
     $this->copyFileIfNotExists('Config/TokenConfiguration.php', 'App/Config/TokenConfiguration.php');
@@ -586,6 +587,7 @@ class InitAppStructure
    */
   private function createSafetyFiles(): void
   {
+    $this->copyFileIfNotExists('Safety/.gitignore', 'App/Safety/.gitignore');
     $this->copyFileIfNotExists('Safety/blocked_ips.json', 'App/Safety/blocked_ips.json');
     $this->copyFileIfNotExists('Safety/intrusions.json', 'App/Safety/intrusions.json');
 
@@ -1264,6 +1266,14 @@ PHP;
       '.env',
       '.env.*',
       '!.env.example',
+      '*.vault.php',
+      '*.key.php',
+      'App/Config/compiled.config.php',
+      'App/Config/secrets.vault.php',
+      'App/Config/*.local.json',
+      'App/Safety/vault.key.php',
+      'deploy.php',
+      'deploy.json',
       '/dist/',
       '*.zip',
       '/App/Public/Min/',
@@ -1320,6 +1330,14 @@ PHP;
 .env
 .env.*
 !.env.example
+*.vault.php
+*.key.php
+App/Config/compiled.config.php
+App/Config/secrets.vault.php
+App/Config/*.local.json
+App/Safety/vault.key.php
+deploy.php
+deploy.json
 /dist/
 /App/Public/Min/
 /Cache/*

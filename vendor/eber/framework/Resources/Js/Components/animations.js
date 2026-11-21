@@ -1,11 +1,25 @@
 /**
- * 🎬 Sistema de Animación Híbrido (CSS / GSAP)
- * Provee compatibilidad total y fluida entre clases de animación CSS y GSAP.
- * 
+ * Sistema de Animación Híbrido (CSS / GSAP).
+ * Provee compatibilidad fluida entre clases de animación CSS del framework y GSAP.
+ *
  * @module animations
- * @description Registra efectos GSAP equivalentes a las clases de CSS y expone
- *              un helper global 'window.animate()' con fallback transparente.
- *              Además inicializa el bindeo automático al hacer scroll.
+ * @description Registra efectos GSAP equivalentes a las clases de CSS, expone `window.animate()` con fallback transparente e inicializa animaciones al hacer scroll.
+ *
+ * @example
+ * // HTML - Animación declarativa al entrar en viewport o al hacer hover
+ * <div class="fade-in ob-20">Aparece suavemente al hacer scroll</div>
+ * <button class="hover-scale">Botón con escala al pasar el cursor</button>
+ *
+ * @example
+ * // JavaScript - Ejecutar animación programática sobre un elemento
+ * window.animate(document.querySelector('.card'), 'slideInBottom', { duration: 0.6 });
+ *
+ * @css .fade-in / .slide-in-bottom / .zoom-in - Clases de animación de entrada
+ * @css .hover-scale / .hover-lift - Animaciones interactivas al hacer hover
+ * @attribute data-anim - Nombre personalizado del efecto de animación (opcional)
+ * @requires gsap - GreenSock Animation Platform (opcional, usa fallback CSS si no está presente)
+ *
+ * @returns {void}
  */
 
 /**

@@ -671,5 +671,41 @@
             "url": "/",
             "method": "GET"
         }
+    },
+    {
+        "timestamp": "2026-11-21 16:05:19",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-input",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-input",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-21 16:05:19",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-21 16:05:36",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-input",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-input",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-21 16:05:36",
+        "reason": "Fallo de verificación CSRF en POST /_frame/theme-studio/render-chart",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/theme-studio/render-chart",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "context": []
     }
 ]

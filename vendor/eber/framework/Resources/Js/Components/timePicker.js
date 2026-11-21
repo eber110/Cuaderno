@@ -1,7 +1,22 @@
 /**
- * Selector de Hora Táctil (12h/24h, pasos configurables, Bottom-Sheet en móvil y tokens --ui-*).
+ * Selector de Hora Táctil (12h/24h, pasos configurables, Bottom-Sheet en móvil y tokens `--ui-*`).
  *
  * @function timePicker
+ * @description Convierte inputs `.time-picker` en selectores interactivos de hora y minuto con formato 12h o 24h.
+ *
+ * @example
+ * // HTML - Selector de hora en formato 24h con saltos de 15 minutos
+ * <input type="text"
+ *        name="hora_cita"
+ *        class="time-picker"
+ *        value="09:00"
+ *        data-format="24h"
+ *        data-step="15">
+ *
+ * @css .time-picker - Clase requerida en el `<input>` para activar el selector de hora
+ * @attribute data-format - Formato horario: `'24h'` (defecto) o `'12h'` (opcional)
+ * @attribute data-step - Intervalo de minutos entre `1` y `30` (defecto `'15'`, opcional)
+ *
  * @returns {void}
  */
 export function timePicker() {

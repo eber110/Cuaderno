@@ -1,0 +1,7 @@
+# Archivos compilados y secretos sensibles generados localmente
+compiled.config.php
+secrets.vault.php
+*.vault.php
+*.key.php
+*.local.json
+.studio.*.json

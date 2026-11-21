@@ -1,9 +1,27 @@
 /**
- * Slider Táctil Simple y de Doble Rango (.range-slider).
- * Reemplaza controles nativos inconsistentes con soporte Pointer Events, burbuja de valor
- * y tokens CSS (--ui-accent, --ui-track-bg, --ui-thumb-bg).
+ * Slider Táctil Simple y de Doble Rango (`.range-slider`).
+ * Soporta Pointer Events, burbuja de valor y tokens CSS (`--ui-accent`, `--ui-track-bg`, `--ui-thumb-bg`).
  *
  * @function rangeSlider
+ * @description Reemplaza inputs `.range-slider` por deslizadores táctiles de valor único o rango doble (`data-mode="range"`).
+ *
+ * @example
+ * // HTML - Slider de doble rango para filtro de precios
+ * <input type="text"
+ *        name="precio"
+ *        class="range-slider"
+ *        min="0"
+ *        max="1000"
+ *        step="10"
+ *        value="150,700"
+ *        data-mode="range"
+ *        data-suffix=" USD">
+ *
+ * @css .range-slider - Clase requerida en el `<input>` para inicializar el slider
+ * @attribute data-mode - Usa `'range'` para habilitar dos controles deslizantes (opcional)
+ * @attribute data-suffix - Sufijo mostrado en la burbuja del valor (opcional)
+ * @attribute data-tooltip - Oculta la burbuja de valor cuando vale `'false'` (opcional)
+ *
  * @returns {void}
  */
 export function rangeSlider() {

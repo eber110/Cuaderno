@@ -1,6 +1,28 @@
 /**
- * Módulo de modo oscuro para el Framework FME
- * Aplica data-theme en <html>, persiste en localStorage y detecta preferencia del sistema.
+ * Módulo de modo oscuro para el Framework.
+ * Aplica `data-theme="dark"` en `<html>`, persiste la preferencia en `localStorage` y detecta la preferencia del sistema.
+ *
+ * @function initDarkMode
+ * @description Gestiona el cambio entre tema claro y oscuro con persistencia en `localStorage` y soporte automático para botones `.dark-mode-toggle`.
+ *
+ * @param {Object} [config={}] - Opciones de configuración
+ * @param {string} [config.storageKey='fme-theme'] - Clave utilizada en `localStorage`
+ * @param {string} [config.toggleSelector='.dark-mode-toggle'] - Selector CSS de los botones para alternar tema
+ * @param {boolean} [config.autoDetect=true] - Detecta automáticamente `prefers-color-scheme: dark` si no hay preferencia guardada
+ *
+ * @example
+ * // HTML - Botón selector de modo oscuro/claro
+ * <button type="button" class="dark-mode-toggle" aria-label="Cambiar tema">
+ *   <span class="dm-icon-light">☀️</span>
+ *   <span class="dm-icon-dark">🌙</span>
+ * </button>
+ *
+ * @css .dark-mode-toggle - Selector por defecto para botones que alternan el tema
+ * @css .dm-icon-light - Icono visible en modo claro
+ * @css .dm-icon-dark - Icono visible en modo oscuro
+ * @attribute data-theme - Atributo aplicado en `<html>` (`"dark"` cuando está activo)
+ *
+ * @returns {void}
  */
 
 export function initDarkMode(config = {}) {

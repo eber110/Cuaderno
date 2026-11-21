@@ -2,6 +2,20 @@
  * Input de Contraseña con botón táctil mostrar/ocultar SVG y medidor de fortaleza opcional.
  *
  * @function passwordInput
+ * @description Mejora inputs `.password-input` añadiendo botón de visibilidad y barra opcional de fortaleza de contraseña.
+ *
+ * @example
+ * // HTML - Campo de contraseña con medidor de fortaleza
+ * <input type="password"
+ *        name="password"
+ *        class="password-input"
+ *        placeholder="Ingresa tu contraseña"
+ *        data-strength="true">
+ *
+ * @css .password-input - Clase requerida en el `<input type="password">`
+ * @attribute data-strength - Muestra el indicador de seguridad cuando vale `'true'` (opcional)
+ * @attribute ui-trigger - Clases utilitarias aplicadas al campo de entrada (opcional)
+ *
  * @returns {void}
  */
 export function passwordInput() {

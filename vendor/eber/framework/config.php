@@ -319,8 +319,29 @@ $resolveUploadPath = static function (string $envValue): string {
 	return ROOT_PATH . '/' . trim($clean, '/') . '/';
 };
 
+$resolveShowUrl = static function (string $envValue, string $defaultRelative): string {
+	$clean = trim(str_replace('\\', '/', $envValue));
+	if ($clean === '') {
+		return ROOT . '/' . trim($defaultRelative, '/') . '/';
+	}
+	if (preg_match('#^https?://#i', $clean)) {
+		return rtrim($clean, '/') . '/';
+	}
+	$rootPrefix = rtrim(str_replace('\\', '/', ROOT_PATH), '/') . '/';
+	if (str_starts_with($clean, $rootPrefix)) {
+		$clean = substr($clean, strlen($rootPrefix));
+	}
+	$trimmed = trim($clean, '/');
+	if ($trimmed === '') {
+		return ROOT . '/' . trim($defaultRelative, '/') . '/';
+	}
+	return ROOT . '/' . $trimmed . '/';
+};
+
+$rawUploadMedia = $envStr('DIR_UPLOAD_MEDIA', '');
+
 if (!defined('DIR_UPLOAD_MEDIA')) {
-	define('DIR_UPLOAD_MEDIA', $resolveUploadPath($envStr('DIR_UPLOAD_MEDIA', '')));
+	define('DIR_UPLOAD_MEDIA', $resolveUploadPath($rawUploadMedia));
 }
 
 if (!defined('DIR_UPLOAD_GIF')) {
@@ -329,15 +350,18 @@ if (!defined('DIR_UPLOAD_GIF')) {
 }
 
 if (!defined('DIR_SHOW_MEDIA')) {
-	$envShow = trim(str_replace('\\', '/', $envStr('DIR_SHOW_MEDIA', '')));
-	$showTrim = trim($envShow, '/');
-	if ($envShow === '' || strcasecmp($showTrim, 'Uploads') === 0) {
-		define('DIR_SHOW_MEDIA', ROOT . '/Uploads/');
-	} elseif (preg_match('#^https?://#i', $envShow)) {
-		define('DIR_SHOW_MEDIA', rtrim($envShow, '/') . '/');
+	// Retrocompatibilidad si se configuró una URL externa explícita en DIR_SHOW_MEDIA;
+	// por defecto se deriva exactamente de la misma carpeta que DIR_UPLOAD_MEDIA.
+	$legacyExternalShow = trim(str_replace('\\', '/', $envStr('DIR_SHOW_MEDIA', '')));
+	if ($legacyExternalShow !== '' && preg_match('#^https?://#i', $legacyExternalShow)) {
+		define('DIR_SHOW_MEDIA', rtrim($legacyExternalShow, '/') . '/');
 	} else {
-		define('DIR_SHOW_MEDIA', ROOT . '/' . $showTrim . '/');
+		define('DIR_SHOW_MEDIA', $resolveShowUrl($rawUploadMedia, 'Uploads'));
 	}
+}
+
+if (!defined('DIR_SHOW_MEDIA_CUSTOM')) {
+	define('DIR_SHOW_MEDIA_CUSTOM', $resolveShowUrl($envStr('DIR_SHOW_MEDIA_CUSTOM', ''), 'App/Public/Img'));
 }
 
 if (!defined('DIR_IMG_SHOW_STATIC')) define('DIR_IMG_SHOW_STATIC', ROOT . '/App/Public/Img/');

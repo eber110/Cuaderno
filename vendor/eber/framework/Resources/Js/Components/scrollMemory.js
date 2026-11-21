@@ -1,16 +1,18 @@
 /**
- * Componente scrollMemory.
- * 
- * Gestiona la persistencia y restauración automática de la posición de scroll
- * para contenedores internos (`.overflow-y-scroll` o elementos con `[data-scroll-memory]`, `.scroll-memory`).
- * 
- * Soluciona la pérdida de posición de scroll en:
- * 1. Páginas con contenedores scrolleables internos: restaura el scroll al recargar (F5) o navegar y volver (BFCache / pageshow).
- * 2. Vistas previas en paneles de control y dashboards: recuerda el scroll entre recargas y actualizaciones asíncronas.
- * 3. Redirección de scroll (rueda del ratón, trackpad, táctil y teclado) desde fondos o contenedores padre hacia el scroll interno activo.
- * 
- * @module scrollMemory
+ * Persistencia y restauración automática de la posición de scroll en contenedores internos.
+ *
  * @function scrollMemory
+ * @description Guarda en `sessionStorage` y restaura al recargar la posición de scroll en contenedores `.scroll-memory` o `[data-scroll-memory]`.
+ *
+ * @example
+ * // HTML - Contenedor lateral que conserva su posición de scroll al navegar
+ * <aside class="scroll-memory overflow-y-scroll h400" data-scroll-memory="sidebar-nav">
+ *   <ul>...</ul>
+ * </aside>
+ *
+ * @css .scroll-memory - Marca un contenedor desplazable para recordar su posición de scroll
+ * @attribute data-scroll-memory - Identificador único de memoria en `sessionStorage` (opcional)
+ *
  * @returns {void}
  */
 export function scrollMemory() {

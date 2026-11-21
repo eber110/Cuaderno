@@ -474,6 +474,18 @@ class LoadViewStyle
    */
   public function loadLibraries(?string $configFile = null): void
   {
+    if (
+      $configFile === null
+      && class_exists('\\Base\\Module\\Security\\ConfigVault')
+      && \Base\Module\Security\ConfigVault::isBooted()
+    ) {
+      $compiledLibs = \Base\Module\Security\ConfigVault::getCompiledSection('libraries');
+      if (is_array($compiledLibs)) {
+        $libraries = $compiledLibs;
+        goto resolve_libraries;
+      }
+    }
+
     if ($configFile === null) {
       $configFile = ROOT_PATH . '/App/Config/loadLibraryJsConfiguration.php';
     }
@@ -484,6 +496,7 @@ class LoadViewStyle
 
     $libraries = require $configFile;
 
+    resolve_libraries:
     if (!is_array($libraries)) {
       return;
     }
@@ -557,6 +570,28 @@ class LoadViewStyle
    */
   public function inlineJsConfig(?string $configFile = null)
   {
+    if (
+      $configFile === null || $configFile === 'jsConfig.json'
+    ) {
+      if (
+        class_exists('\\Base\\Module\\Security\\ConfigVault')
+        && \Base\Module\Security\ConfigVault::isBooted()
+      ) {
+        $compiledJs = \Base\Module\Security\ConfigVault::getCompiledSection('jsConfig');
+        if (is_array($compiledJs) && !empty($compiledJs)) {
+          $publicConfig = [
+            'priority' => $compiledJs['priority'] ?? [],
+            'exclude' => $compiledJs['exclude'] ?? [],
+            'functions' => $compiledJs['functions'] ?? ['defer' => [], 'async' => []],
+          ];
+          print "<script>\n";
+          print "window.jsConfig = " . json_encode($publicConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ";\n";
+          print "</script>\n";
+          return;
+        }
+      }
+    }
+
     if ($configFile === null) {
       $configFile = ROOT_PATH . '/jsConfig.json';
     } elseif (!file_exists($configFile) && file_exists(ROOT_PATH . '/' . ltrim($configFile, '/\\'))) {

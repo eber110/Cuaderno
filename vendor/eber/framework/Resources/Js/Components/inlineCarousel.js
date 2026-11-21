@@ -1,7 +1,28 @@
 /**
- * InlineCarousel
- * Módulo para generar carruseles en línea (múltiples elementos visibles, estilo lista de iconos).
- * Permite modo con límite (scroll nativo) y modo sin fin (infinito).
+ * Carrusel en línea con múltiples elementos visibles, desplazamiento táctil y modo infinito opcional.
+ *
+ * @function inlineCarousel
+ * @description Inicializa contenedores `.inline-carousel` con pista `.ic-track` y controles `.ic-prev` / `.ic-next`.
+ *
+ * @example
+ * // HTML - Carrusel en línea en bucle con separación de 16px
+ * <div class="inline-carousel" data-loop="true" data-gap="16px">
+ *   <button type="button" class="ic-prev">‹</button>
+ *   <div class="ic-track">
+ *     <div class="ic-item">Elemento 1</div>
+ *     <div class="ic-item">Elemento 2</div>
+ *     <div class="ic-item">Elemento 3</div>
+ *   </div>
+ *   <button type="button" class="ic-next">›</button>
+ * </div>
+ *
+ * @css .inline-carousel - Contenedor principal del carrusel en línea
+ * @css .ic-track - Pista horizontal que agrupa los elementos desplazables
+ * @css .ic-prev / .ic-next - Botones de navegación anterior y siguiente
+ * @attribute data-loop - Activa desplazamiento circular infinito cuando vale `'true'` (opcional)
+ * @attribute data-gap - Separación CSS entre elementos (defecto `'16px'`, opcional)
+ *
+ * @returns {void}
  */
 class InlineCarousel {
     constructor(element) {

@@ -144,8 +144,9 @@ frame init                           # Inicializa o repara la estructura /App (c
 frame link                           # Vincula o actualiza la ruta del framework en composer.json (composer link)
 
 # Despliegue y Empaquetado
-frame package                        # Genera ZIP de despliegue inicial completo (composer package)
-frame deploy [--all]                 # Despliega código al servidor vía HTTP (composer deploy)
+frame package                                     # Genera ZIP inicial ligero con Vault AEAD (composer package)
+frame deploy [--all] [--config] [--rotate-key]    # Despliega código (y opcionalmente Vault) vía HTTP (composer deploy)
+frame config:build [--rotate-key]                 # Compila configuración de producción y Vault AEAD (composer config:build)
 
 # Optimización y Assets
 frame theme:build [--force]          # Compila theme.json a _configTheme.css (composer theme:build)
@@ -164,7 +165,7 @@ frame db:pgsql                       # Inicializa tablas BD PostgreSQL (composer
 # Seguridad y Servicios
 frame routes:scan                    # Escanea y cachea mapa de seguridad de rutas (composer scan-routes)
 frame geoip:update                   # Descarga GeoLite2 actualizado (composer update-geoip)
-frame key:rotate [--seed] [--token]  # Rota la semilla SEED y DEPLOY_TOKEN ante intrusiones (composer key:rotate)
+frame key:rotate [--seed] [--token] [--master-key]  # Rota SEED, DEPLOY_TOKEN y/o clave maestra del Vault (composer key:rotate)
 
 # Generadores de código (make):
 frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (composer make:controller)

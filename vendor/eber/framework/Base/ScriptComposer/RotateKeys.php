@@ -36,12 +36,13 @@ class RotateKeys
       exit(1);
     }
 
-    $rotateSeed  = in_array('--seed', $args, true);
-    $rotateToken = in_array('--token', $args, true) || in_array('--deploy', $args, true);
-    $force       = in_array('--force', $args, true) || in_array('-y', $args, true);
+    $rotateSeed   = in_array('--seed', $args, true);
+    $rotateToken  = in_array('--token', $args, true) || in_array('--deploy', $args, true);
+    $rotateMaster = in_array('--master-key', $args, true);
+    $force        = in_array('--force', $args, true) || in_array('-y', $args, true);
 
-    // Si no se pasaron flags específicos, rotar ambas claves
-    if (!$rotateSeed && !$rotateToken) {
+    // Si no se pasaron flags específicos, rotar SEED y DEPLOY_TOKEN
+    if (!$rotateSeed && !$rotateToken && !$rotateMaster) {
       $rotateSeed  = true;
       $rotateToken = true;
     }
@@ -53,6 +54,9 @@ class RotateKeys
       }
       if ($rotateToken) {
         echo "   • Rotar DEPLOY_TOKEN: Exigirá actualizar la clave en el servidor remoto para seguir usando 'frame deploy'.\n";
+      }
+      if ($rotateMaster) {
+        echo "   • Rotar MASTER KEY: Generará una nueva App/Safety/vault.key.php y re-cifrará secrets.vault.php.\n";
       }
       echo "\n¿Deseas continuar y generar nuevas claves criptográficas? (s/N): ";
       $confirm = strtolower(trim((string)fgets(STDIN)));
@@ -100,6 +104,26 @@ class RotateKeys
 
     file_put_contents($envFile, $envContent);
 
+    // 3. Rotar Master Key del Vault y re-cifrar si existe o fue compilado
+    $newMasterKey = null;
+    if ($rotateMaster) {
+      $autoload = file_exists($this->basePath . '/vendor/autoload.php')
+        ? $this->basePath . '/vendor/autoload.php'
+        : dirname(__DIR__, 2) . '/vendor/autoload.php';
+      if (file_exists($autoload)) {
+        require_once $autoload;
+      }
+      if (class_exists(\Base\Studio\Services\ConfigCompilerService::class)) {
+        $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($this->basePath, null, true);
+        if (!empty($compileRes['success'])) {
+          $newMasterKey = true;
+          echo "✅ Nueva clave maestra en App/Safety/vault.key.php y Vault re-cifrado ({$compileRes['cipher']}).\n";
+        } else {
+          echo "⚠️  No se pudo re-cifrar el Vault: " . ($compileRes['message'] ?? 'error desconocido') . "\n";
+        }
+      }
+    }
+
     echo "\n======================================================\n";
     echo "🎉 ROTACIÓN DE CREDENCIALES COMPLETADA\n";
     echo "======================================================\n";
@@ -108,6 +132,9 @@ class RotateKeys
     }
     if ($newToken) {
       echo "🚀 Nuevo DEPLOY_TOKEN: {$newToken}\n";
+    }
+    if ($newMasterKey) {
+      echo "🔐 Vault Master Key:   Actualizada en App/Safety/vault.key.php (usa 'frame deploy --rotate-key' para subirla)\n";
     }
     echo "======================================================\n\n";
 

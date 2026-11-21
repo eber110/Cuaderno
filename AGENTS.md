@@ -365,8 +365,9 @@ frame link                           # Vincula o actualiza la ruta del framework
 frame image:convert                  # Conversor de imágenes (composer convert-image)
 
 # Despliegue y Empaquetado
-frame package                        # Genera ZIP completo para hosting (composer package)
-frame deploy [--all]                 # Despliega cambios vía HTTP al servidor (composer deploy)
+frame package                                     # Genera ZIP ligero inicial con Vault AEAD (composer package)
+frame deploy [--all] [--config] [--rotate-key]    # Despliega cambios (y opcionalmente Vault) vía HTTP (composer deploy)
+frame config:build [--rotate-key]                 # Compila configuración de producción y Vault AEAD (composer config:build)
 
 # Fuentes Tipográficas
 frame font:install                   # Instalar fuentes woff2/ttf/otf (composer install-font)
@@ -379,7 +380,7 @@ frame db:pgsql                       # Inicializar tablas BD PostgreSQL (compose
 # Seguridad y Servicios
 frame routes:scan                    # Escanear y cachear mapa de rutas (composer scan-routes)
 frame geoip:update                   # Descargar GeoLite2 actualizado (composer update-geoip)
-frame key:rotate [--seed] [--token]  # Rotar claves SEED y DEPLOY_TOKEN ante intrusiones (composer key:rotate)
+frame key:rotate [--seed] [--token] [--master-key]  # Rotar claves SEED, DEPLOY_TOKEN y/o clave maestra del Vault (composer key:rotate)
 
 # Generadores CLI rápidos (make):
 frame make:controller <Nombre>       # Crea controlador en App/Controllers/ (composer make:controller)

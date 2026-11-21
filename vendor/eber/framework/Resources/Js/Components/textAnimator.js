@@ -1,23 +1,29 @@
 /**
- * ✍️ textAnimator.js
- * 
- * Librería universal de animaciones para texto y números en Vanilla JS (ES Modules).
- * Cero dependencias externas. Componente nativo del framework Eber.
- * 
- * Convención de clases (sin IDs):
- *   class="text-animation text-scramble"
- *   class="text-animation text-typewriter"
- *   class="text-animation text-fade-blur"
- *   class="text-animation text-slide-up"
- *   class="text-animation text-split-chars"
- *   class="text-animation text-counter"
- *   class="text-animation text-loop-pulse" (o text-pulse)
- *   class="text-animation text-loop-shimmer" (o text-shimmer)
- *   class="text-animation text-loop-breathing" (o text-breathing)
- * 
- * Todo elemento se descubre e inicializa automáticamente mediante querySelectorAll('.text-animation').
- * 
+ * Librería universal de animaciones para texto y contadores numéricos en Vanilla JS.
+ * Descubre e inicializa automáticamente todos los elementos con la clase `.text-animation`.
+ *
  * @module textAnimator
+ * @description Anima textos y contadores numéricos mediante clases `.text-animation` (scramble, typewriter, fade-blur, slide-up, split-chars y counter).
+ *
+ * @example
+ * // HTML - Efectos de texto y contador numérico
+ * <h1 class="text-animation text-fade-blur">Título animado</h1>
+ * <p class="text-animation text-typewriter">Texto escrito carácter a carácter</p>
+ * <span class="text-animation text-counter" data-end="1250" data-prefix="$">0</span>
+ *
+ * @example
+ * // HTML - Efectos continuos en bucle
+ * <span class="text-animation text-loop-shimmer">Brillo continuo</span>
+ *
+ * @css .text-animation - Clase base requerida para inicializar cualquier animación de texto
+ * @css .text-scramble / .text-typewriter / .text-fade-blur - Variantes de efecto de entrada
+ * @css .text-slide-up / .text-split-chars / .text-counter - Variantes de desplazamiento y contador
+ * @css .text-loop-pulse / .text-loop-shimmer / .text-loop-breathing - Animaciones continuas en bucle
+ * @attribute data-end - Valor numérico final para `.text-counter` (opcional)
+ * @attribute data-prefix - Prefijo de texto para `.text-counter` (opcional)
+ * @attribute data-suffix - Sufijo de texto para `.text-counter` (opcional)
+ *
+ * @returns {void}
  */
 
 /**

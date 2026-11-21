@@ -1,6 +1,9 @@
 <?php
 
-namespace Base\Control;
+namespace Base\Studio\Controllers;
+
+use Base\Control\Control;
+use Base\Studio\StudioKernel;
 
 use Base\Module\FormUiModule;
 use Base\Module\GraphicsModule;
@@ -15,10 +18,8 @@ use Base\Module\ThemeModule;
  * tipografías y estilos de layout sin escribir CSS manualmente.
  * Disponible únicamente bajo entornos de desarrollo (local/dev/testing).
  */
-class ThemeStudioControl extends Control
+class ThemeStudioController extends Control
 {
-  private static bool $routesRegistered = false;
-
   /**
    * Lista canónica de los 12 gráficos soportados por GraphicsModule.
    */
@@ -47,21 +48,7 @@ class ThemeStudioControl extends Control
    */
   public static function registerRoutes(): void
   {
-    if (self::$routesRegistered || !self::isDevEnvironment()) {
-      return;
-    }
-    self::$routesRegistered = true;
-
-    \Core\Route::get('/_frame/theme-studio', [self::class, 'index']);
-    \Core\Route::post('/_frame/theme-studio/save', [self::class, 'save']);
-    \Core\Route::post('/_frame/theme-studio/load-to-site', [self::class, 'loadToSite']);
-    \Core\Route::post('/_frame/theme-studio/set-active', [self::class, 'setActive']);
-    \Core\Route::post('/_frame/theme-studio/delete-theme', [self::class, 'deleteThemeEndpoint']);
-    \Core\Route::post('/_frame/theme-studio/render-chart', [self::class, 'renderChart']);
-    \Core\Route::post('/_frame/theme-studio/render-input', [self::class, 'renderInput']);
-    \Core\Route::post('/_frame/theme-studio/render-form', [self::class, 'renderForm']);
-    \Core\Route::get('/_frame/theme-studio/fonts', [self::class, 'fonts']);
-    \Core\Route::get('/_frame/theme-studio/icons', [self::class, 'icons']);
+    StudioKernel::registerRoutes();
   }
 
   /**
@@ -71,14 +58,7 @@ class ThemeStudioControl extends Control
    */
   public static function isDevEnvironment(): bool
   {
-    if (class_exists(SecurityModule::class)) {
-      return SecurityModule::isDevelopment();
-    }
-    if (!defined('ENVIRONMENT')) {
-      return false;
-    }
-    $env = strtolower(trim((string)ENVIRONMENT));
-    return in_array($env, ['local', 'development', 'dev', 'testing', 'test'], true);
+    return StudioKernel::isDevEnvironment();
   }
 
   /**
@@ -86,41 +66,7 @@ class ThemeStudioControl extends Control
    */
   private function guardStudioRequest(bool $isMutation = false): bool
   {
-    if (!self::isDevEnvironment()) {
-      if ($isMutation) {
-        $this->json(['success' => false, 'message' => 'Recurso no disponible.'], 404);
-      } else {
-        \Core\ErrorHandler::handleCode(404, 404, 'Página no encontrada');
-      }
-      return false;
-    }
-
-    if (php_sapi_name() !== 'cli') {
-      $allowRemote = filter_var($_ENV['FRAME_STUDIO_ALLOW_REMOTE'] ?? $_SERVER['FRAME_STUDIO_ALLOW_REMOTE'] ?? false, FILTER_VALIDATE_BOOLEAN);
-      $remoteAddr = (string)($_SERVER['REMOTE_ADDR'] ?? '');
-      if (!$allowRemote && !in_array($remoteAddr, ['127.0.0.1', '::1'], true)) {
-        if ($isMutation) {
-          $this->json(['success' => false, 'message' => 'Acceso restringido al host local.'], 403);
-        } else {
-          \Core\ErrorHandler::handleCode(403, 403, 'Theme Studio solo admite conexiones locales (127.0.0.1 / ::1).');
-        }
-        return false;
-      }
-
-      if ($isMutation) {
-        $contentType = (string)($_SERVER['CONTENT_TYPE'] ?? '');
-        if (stripos($contentType, 'application/json') === false) {
-          $this->json(['success' => false, 'message' => 'Content-Type debe ser application/json.'], 415);
-          return false;
-        }
-        if (class_exists(SecurityModule::class) && !SecurityModule::verifyCsrf()) {
-          $this->json(['success' => false, 'message' => 'Token CSRF inválido o ausente.'], 403);
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return StudioKernel::guardRequest($this, $isMutation);
   }
 
   /**

@@ -1,8 +1,29 @@
 /**
- * Select mejorado con búsqueda, navegación por teclado, tokens CSS (--ui-*)
+ * Select mejorado con búsqueda, navegación por teclado, tokens CSS (`--ui-*`)
  * y adaptación Bottom-Sheet en móviles/pantallas táctiles.
  *
  * @function dropdown
+ * @description Mejora contenedores `.dropdown-select` con búsqueda en tiempo real, teclado y sincronización automática con `<input type="hidden">`.
+ *
+ * @example
+ * // HTML - Dropdown con campo hidden sincronizado y altura máxima configurable
+ * <div class="dropdown-select" data-name="pais" data-max-height="240" data-required="true">
+ *   <div class="dropdown-selected">Selecciona un país</div>
+ *   <div class="dropdown-options">
+ *     <div class="dropdown-option" data-value="ar">Argentina</div>
+ *     <div class="dropdown-option" data-value="es">España</div>
+ *     <div class="dropdown-option" data-value="mx">México</div>
+ *   </div>
+ * </div>
+ *
+ * @css .dropdown-select - Contenedor principal del selector desplegable
+ * @css .dropdown-selected - Disparador que muestra la opción seleccionada
+ * @css .dropdown-options - Lista de opciones disponibles
+ * @css .dropdown-option - Cada ítem seleccionable (usa `data-value`)
+ * @attribute data-name - Nombre del `<input type="hidden">` generado automáticamente (opcional)
+ * @attribute data-max-height - Altura máxima del panel en píxeles (opcional)
+ * @attribute data-empty-text - Texto mostrado cuando la búsqueda no arroja coincidencias (opcional)
+ *
  * @returns {void}
  */
 export function dropdown() {

@@ -1,9 +1,29 @@
 /**
- * Componentes de Formulario HTML (Color Picker + Checkbox Switch).
- * Refactorizado con soporte táctil completo (Pointer Events + Bottom-Sheet móvil),
- * corrección de bugs de posicionamiento/HSL, tokens CSS (--ui-*) y modo oscuro [data-theme="dark"].
+ * Componentes de Formulario HTML (Color Picker, Checkbox Switch y Textarea Estándar).
+ * Soporta eventos táctiles, Bottom-Sheet móvil, tokens CSS (`--ui-*`) y modo oscuro `[data-theme="dark"]`.
  *
  * @function formComponents
+ * @description Inicializa selectores de color `.color-picker`, interruptores `.checkbox-switch` y áreas `.ui-textarea` con scroll flotante.
+ *
+ * @example
+ * // HTML - Color Picker y Checkbox Switch
+ * <input type="color" name="accent" class="color-picker" value="#38bdf8" data-alpha="true">
+ * <input type="checkbox"
+ *        name="notificaciones"
+ *        class="checkbox-switch"
+ *        data-option="si,no"
+ *        data-label-on="Sí"
+ *        data-label-off="No"
+ *        ui-size="md">
+ *
+ * @css .color-picker - Activa el selector avanzado de color HSL/Hex/Swatches
+ * @css .checkbox-switch - Convierte un checkbox en interruptor visual animado
+ * @css .ui-textarea - Aplica scroll flotante integrado en `<textarea>`
+ * @attribute data-alpha - Habilita canal alfa en `.color-picker` cuando vale `'true'` (opcional)
+ * @attribute data-swatches - Lista separada por comas de colores predefinidos (opcional)
+ * @attribute data-option - Valores on/off separados por coma en `.checkbox-switch` (opcional)
+ * @attribute ui-size - Tamaño del switch: `'sm'`, `'md'` o `'lg'` (opcional)
+ *
  * @returns {void}
  */
 

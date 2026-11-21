@@ -1,0 +1,6 @@
+# Claves criptográficas y registros de seguridad sensibles
+vault.key.php
+*.key.php
+*.vault.php
+blocked_ips.json
+intrusions.json

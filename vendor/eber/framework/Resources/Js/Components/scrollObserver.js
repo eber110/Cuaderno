@@ -1,16 +1,29 @@
 /**
- * 🔭 Módulo Universal de Intersection Observer (scrollObserver.js)
- * 
- * Gestiona de forma desacoplada y reactiva la detección de scroll en el viewport
- * para todos los selectores del DOM.
- * 
- * Funcionalidades:
- * 1. Monitoreo de contenedores '.observer' y sus elementos hijos (.slide-in-*, .fade-in, ob-*, dl-*, .text-animation).
- * 2. Monitoreo de elementos autónomos con clases 'ob-0' .. 'ob-100'.
- * 3. Integración transparente con textos animados (.text-animation) y animaciones clásicas del framework.
- * 4. API universal 'window.observe(selector, onEnter, options)' para callbacks personalizados en cualquier vista.
- * 
+ * Módulo Universal de Intersection Observer.
+ * Gestiona de forma desacoplada y reactiva la detección de scroll en el viewport para animaciones, textos y callbacks.
+ *
  * @module scrollObserver
+ * @description Observa contenedores `.observer` y elementos autónomos `ob-*` para activar animaciones y callbacks al entrar en el viewport.
+ *
+ * @example
+ * // HTML - Contenedor observado con retardo y animación al entrar en pantalla
+ * <section class="observer">
+ *   <div class="slide-in-bottom ob-20 dl-150">Elemento animado al hacer scroll</div>
+ * </section>
+ *
+ * @example
+ * // JavaScript - Callback personalizado al entrar un selector en el viewport
+ * window.observe('.mi-tarjeta', (el) => {
+ *   el.classList.add('is-visible');
+ * }, { threshold: 0.25, once: true });
+ *
+ * @css .observer - Contenedor cuyos hijos animables se activan al entrar en pantalla
+ * @css .ob-0 .. .ob-100 - Porcentaje de visibilidad requerido (ej. `.ob-25`)
+ * @css .dl-100 .. .dl-1000 - Retardo de activación en milisegundos (ej. `.dl-200`)
+ * @attribute data-ob-threshold - Umbral numérico personalizado entre `0` y `1` (opcional)
+ * @attribute data-ob-delay - Retardo personalizado en milisegundos (opcional)
+ *
+ * @returns {void}
  */
 
 /**

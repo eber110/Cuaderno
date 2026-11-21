@@ -1,9 +1,36 @@
 /**
- * Selector de Fechas Interactivo (Fecha única, Rango de fechas, Hora opcional y Presets rápidos).
- * Soporta swipe horizontal táctil entre meses, selector rápido de mes, Bottom-Sheet en móvil,
- * tokens CSS (--ui-*) y modo oscuro nativo.
+ * Selector de Fechas Interactivo (fecha única, rango de fechas, hora opcional y presets rápidos).
+ * Soporta swipe táctil entre meses, Bottom-Sheet en móvil, tokens CSS (`--ui-*`) y modo oscuro.
  *
  * @function datePicker
+ * @description Transforma inputs `.date-picker` en selectores interactivos de fecha única o rango con soporte táctil y presets.
+ *
+ * @example
+ * // HTML - Selector de fecha única con hora y presets
+ * <input type="text"
+ *        name="fecha_inicio"
+ *        class="date-picker"
+ *        placeholder="Seleccionar fecha"
+ *        data-mode="single"
+ *        data-format="DD/MM/YYYY"
+ *        data-time="true"
+ *        data-presets="true">
+ *
+ * @example
+ * // HTML - Selector de rango de fechas con límites min/max
+ * <input type="text"
+ *        name="periodo"
+ *        class="date-picker"
+ *        data-mode="range"
+ *        min="2025-01-01"
+ *        max="2026-12-31">
+ *
+ * @css .date-picker - Clase requerida en el `<input>` para activar el selector de fechas
+ * @attribute data-mode - Modo de selección: `'single'` (defecto) o `'range'` (opcional)
+ * @attribute data-format - Formato visual: `'YYYY-MM-DD'`, `'DD/MM/YYYY'` o `'MM-DD'` (opcional)
+ * @attribute data-time - Muestra selector de hora cuando vale `'true'` (opcional)
+ * @attribute data-presets - Muestra botones rápidos (Hoy, Ayer, Últimos 7 días) si vale `'true'` (opcional)
+ *
  * @returns {void}
  */
 export function datePicker() {

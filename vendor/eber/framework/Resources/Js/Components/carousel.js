@@ -1,47 +1,47 @@
 /**
- * Carrusel/slider de imágenes con efectos de transiciÃ³n.
- * 
+ * Carrusel/slider de imágenes con efectos de transición.
+ *
  * @function carousel
- * @description Slider con navegaciÃ³n, autoplay y efectos de transiciÃ³n opcionales.
- * 
+ * @description Slider con navegación, autoplay y efectos de transición opcionales.
+ *
  * @example
- * // HTML - Básico (sin animaciÃ³n)
+ * // HTML - Básico (sin animación)
  * <div class="carousel" data-autoplay="5000">
  *   <div class="carousel-inner">
  *     <div class="carousel-item active">Slide 1</div>
  *     <div class="carousel-item">Slide 2</div>
  *   </div>
- *   <button class="carousel-prev">â®</button>
- *   <button class="carousel-next">â¯</button>
+ *   <button class="carousel-prev">‹</button>
+ *   <button class="carousel-next">›</button>
  *   <div class="carousel-dots"></div>
  * </div>
- * 
+ *
  * @example
  * // HTML - Con efecto slide (deslizamiento)
  * <div class="carousel carousel-slide" data-autoplay="4000">...</div>
- * 
+ *
  * @example
  * // HTML - Con efecto fade (desvanecimiento)
  * <div class="carousel carousel-fade" data-autoplay="4000">...</div>
- * 
+ *
  * @example
  * // HTML - Con slide continuo infinito
  * <div class="carousel carousel-slide-continuous" data-autoplay="4000">...</div>
- * 
+ *
  * @example
- * // HTML - Con separaciÃ³n entre slides (20px)
+ * // HTML - Con separación entre slides (20px)
  * <div class="carousel carousel-slide-continuous" data-spacing="20">...</div>
- * 
+ *
  * @css .carousel - Contenedor principal
  * @css .carousel-slide - Activa efecto de deslizamiento
  * @css .carousel-fade - Activa efecto de desvanecimiento
  * @css .carousel-slide-continuous - Activa deslizamiento continuo infinito
  * @css .carousel-inner - Contenedor de slides
  * @css .carousel-item - Cada slide
- * @css .carousel-prev/.carousel-next - Botones de navegaciÃ³n
+ * @css .carousel-prev/.carousel-next - Botones de navegación
  * @attribute data-autoplay - Intervalo de autoplay en ms
- * @attribute data-spacing - SeparaciÃ³n entre slides en pÃ­xeles
- * 
+ * @attribute data-spacing - Separación entre slides en píxeles
+ *
  * @returns {void}
  */
 export function carousel() {

@@ -1,23 +1,35 @@
 /**
- * Sistema de notificaciones toast programáticas.
+ * Sistema de notificaciones toast programáticas y declarativas (.toast-trigger).
  * Incluye animaciones GSAP opcionales.
- * 
+ *
  * @function toast
- * @description Muestra notificaciones temporales en la esquina de la pantalla.
- *              Se puede llamar programáticamente desde cualquier parte.
- * 
+ * @description Muestra notificaciones temporales en la esquina de la pantalla mediante `toast()` o botones `.toast-trigger` en HTML.
+ *
  * @param {string} message - Mensaje a mostrar
- * @param {string} [type='info'] - Tipo: 'success', 'error', 'warning', 'info'
+ * @param {string} [type='info'] - Tipo: `'success'`, `'error'`, `'warning'`, `'info'`
  * @param {number} [duration=3000] - Duración en milisegundos
  * @param {boolean} [animated=false] - Usar animaciones GSAP
- * 
+ *
  * @example
- * // JavaScript sin animación
- * toast('Guardado correctamente', 'success');
- * 
- * // JavaScript con animación GSAP
+ * // HTML - Disparador declarativo sin JavaScript inline
+ * <button type="button"
+ *         class="toast-trigger animated"
+ *         data-message="Guardado correctamente"
+ *         data-type="success"
+ *         data-duration="3000">
+ *   Guardar
+ * </button>
+ *
+ * @example
+ * // JavaScript - Llamada programática
  * toast('Guardado correctamente', 'success', 3000, true);
- * 
+ *
+ * @css .toast-trigger - Botón o elemento HTML que dispara el toast al hacer clic
+ * @css .toast-trigger.animated - Activa animaciones GSAP en la notificación
+ * @attribute data-message - Mensaje a mostrar en la notificación
+ * @attribute data-type - Tipo visual: `'success'`, `'error'`, `'warning'` o `'info'` (opcional)
+ * @attribute data-duration - Duración en milisegundos (opcional)
+ *
  * @returns {void}
  */
 export function toast(message, type = 'info', duration = 3000, animated = false) {

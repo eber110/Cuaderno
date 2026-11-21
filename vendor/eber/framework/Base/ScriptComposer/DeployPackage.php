@@ -21,19 +21,41 @@ class DeployPackage
    * @var array<int, string>
    */
   public const EXCLUDED_STUDIO_PATHS = [
+    'Base/Studio/',
+    'Base/ScriptComposer/',
     'Base/Views/themeStudio.php',
     'Base/Control/ThemeStudioControl.php',
-    'Base/ScriptComposer/OpenStudio.php',
     'Docs/',
+    'tests/',
+    'vendor/eber/framework/Base/Studio/',
+    'vendor/eber/framework/Base/ScriptComposer/',
     'vendor/eber/framework/Base/Views/themeStudio.php',
     'vendor/eber/framework/Base/Control/ThemeStudioControl.php',
-    'vendor/eber/framework/Base/ScriptComposer/OpenStudio.php',
     'vendor/eber/framework/Docs/',
+    'vendor/eber/framework/tests/',
   ];
+
+  /**
+   * Respuestas explícitas aceptadas para confirmar un despliegue a producción.
+   *
+   * @var array<int, string>
+   */
+  public const DEPLOY_CONFIRMATION_ANSWERS = ['yes', 'y', 'Yes', 'YES'];
 
   private string $basePath;
   private string $projectName;
   private string $frameworkPath;
+
+  /**
+   * Valida si la respuesta ingresada por el usuario confirma explícitamente el despliegue.
+   *
+   * @param string $input Texto ingresado por consola.
+   * @return bool
+   */
+  public static function isDeployConfirmed(string $input): bool
+  {
+    return in_array(trim($input), self::DEPLOY_CONFIRMATION_ANSWERS, true);
+  }
 
   /**
    * Determina si una ruta relativa pertenece a Theme Studio o Docs y debe excluirse de producción.
@@ -88,18 +110,94 @@ class DeployPackage
     if ($action === 'deploy') {
       $includeVendor = in_array('--all', $args, true);
       $allowInsecureSsl = in_array('--allow-insecure-ssl', $args, true);
-      $this->runDeploy($includeVendor, $allowInsecureSsl);
+      $includeConfig = in_array('--config', $args, true);
+      $rotateKey = in_array('--rotate-key', $args, true);
+      $this->runDeploy($includeVendor, $allowInsecureSsl, $includeConfig, $rotateKey);
     } elseif ($action === 'package' || $action === 'init') {
       $this->runPackage();
     } else {
-      echo "Comando no reconocido. Uso: frame package | frame deploy [--all] [--allow-insecure-ssl]\n";
+      echo "Comando no reconocido. Uso: frame package | frame deploy [--all] [--config] [--rotate-key] [--allow-insecure-ssl]\n";
       exit(1);
     }
   }
 
   /**
+   * Obtiene la lista de librerías activas desde App/Config/loadLibraryJsConfiguration.php.
+   *
+   * @return array<int, string>
+   */
+  private function getActiveLibraries(): array
+  {
+    $libConfig = $this->basePath . '/App/Config/loadLibraryJsConfiguration.php';
+    if (!is_file($libConfig)) {
+      return [];
+    }
+    $loaded = require $libConfig;
+    if (!is_array($loaded)) {
+      return [];
+    }
+    $active = [];
+    foreach ($loaded as $key => $val) {
+      if (is_string($val) && $val !== '') {
+        $active[] = $val;
+      } elseif (is_string($key) && ($val === true || is_array($val))) {
+        $active[] = $key;
+      }
+    }
+    return array_values(array_unique($active));
+  }
+
+  /**
+   * Construye la lista de rutas excluidas para mantener el paquete de producción ultra ligero.
+   *
+   * @return array<int, string>
+   */
+  private function getProductionExcludePaths(bool $includeConfig, bool $includeVaultKey): array
+  {
+    $excludes = [
+      'App/Public/Uploads',
+      'App/Public/Css',
+      'App/Public/Js',
+      'App/Config/theme.json',
+      'App/Config/.studio.production.local.json',
+      'App/Config/.gitignore',
+      'App/Safety/.gitignore',
+      'vendor/eber/framework/Resources/Css',
+      'vendor/eber/framework/Resources/Js',
+      'vendor/eber/framework/Resources/Ico',
+      'vendor/eber/framework/Resources/Library',
+      'vendor/eber/framework/Resources/Img',
+    ];
+
+    if (!$includeConfig) {
+      $excludes[] = 'App/Config/compiled.config.php';
+      $excludes[] = 'App/Config/secrets.vault.php';
+    }
+    if (!$includeVaultKey) {
+      $excludes[] = 'App/Safety/vault.key.php';
+    }
+
+    // Podar librerías inactivas dentro de App/Rsc/Library/
+    $libDir = $this->basePath . '/App/Rsc/Library';
+    if (is_dir($libDir)) {
+      $activeLibs = $this->getActiveLibraries();
+      foreach (scandir($libDir) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+          continue;
+        }
+        $full = $libDir . '/' . $entry;
+        if (is_dir($full) && !in_array($entry, $activeLibs, true)) {
+          $excludes[] = 'App/Rsc/Library/' . $entry;
+        }
+      }
+    }
+
+    return $excludes;
+  }
+
+  /**
    * Genera el ZIP completo inicial para subir una única vez al hosting (cPanel).
-   * Incluye App, Bootstrap, vendor, Database (SQLite), Uploads, deploy.php y .env.production.
+   * Incluye App (podado), Bootstrap, vendor, Database (SQLite), Uploads, configuración compilada + Vault cifrado y deploy.php.
    */
   public function runPackage(): void
   {
@@ -125,10 +223,23 @@ class DeployPackage
     // 3. Asegurar estructura de carpetas persistentes (Database con SQLite, Uploads)
     $this->ensurePersistentDirectories();
 
-    // 4. Asegurar que .env tenga SEED y DEPLOY_TOKEN generados
+    // 4. Asegurar que .env tenga SEED y DEPLOY_TOKEN generados en local
     $this->ensureProjectEnv($deployToken);
 
-    // 5. Crear carpeta de salida 'dist/'
+    // 5. Compilar configuración no sensible y Vault cifrado AEAD para producción
+    $hasCompiledVault = false;
+    if (class_exists(\Base\Studio\Services\ConfigCompilerService::class)) {
+      echo "🔐 Compilando configuración de producción y Vault AEAD...\n";
+      $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($this->basePath);
+      if (!empty($compileRes['success'])) {
+        $hasCompiledVault = true;
+        echo "   ✓ Algoritmo: {$compileRes['cipher']} ({$compileRes['envCount']} vars + {$compileRes['secretsCount']} secretos cifrados)\n";
+      } else {
+        echo "   ⚠️  No se pudo compilar el Vault (" . ($compileRes['message'] ?? 'error') . "). Se incluirá .env como respaldo.\n";
+      }
+    }
+
+    // 6. Crear carpeta de salida 'dist/'
     $distDir = $this->basePath . '/dist';
     if (!is_dir($distDir)) {
       @mkdir($distDir, 0755, true);
@@ -142,8 +253,8 @@ class DeployPackage
       @unlink($zipFilePath);
     }
 
-    echo "\n⏳ Empaquetando proyecto completo en 'dist/{$zipFileName}'...\n";
-    echo "🛡️  Excluyendo Theme Studio y Docs/ del paquete de producción...\n";
+    echo "\n⏳ Empaquetando proyecto ligero en 'dist/{$zipFileName}'...\n";
+    echo "🛡️  Excluyendo Base/Studio/, Docs/, tests/, ScriptComposer/, fuentes sin minificar y librerías inactivas...\n";
 
     $zip = new ZipArchive();
     if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -167,13 +278,16 @@ class DeployPackage
       'Database',
       'Uploads',
       'vendor',
-      '.env',
       'index.php',
       '.htaccess',
       'providers.json',
-      'jsConfig.json',
       'deploy.php'
     ];
+
+    if (!$hasCompiledVault) {
+      $includeItems[] = '.env';
+      $includeItems[] = 'jsConfig.json';
+    }
 
     // Opcionales si existen en la raíz
     if (file_exists($this->basePath . '/config.php')) {
@@ -183,6 +297,8 @@ class DeployPackage
       $includeItems[] = 'composer.json';
     }
 
+    $excludes = $this->getProductionExcludePaths(true, true);
+
     $fileCount = 0;
     foreach ($includeItems as $item) {
       if (self::isExcludedStudioPath($item)) {
@@ -190,7 +306,7 @@ class DeployPackage
       }
       $fullPath = $this->basePath . '/' . $item;
       if (is_dir($fullPath)) {
-        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item);
+        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes);
       } elseif (is_file($fullPath)) {
         $zip->addFile($fullPath, $item);
         $fileCount++;
@@ -208,26 +324,37 @@ class DeployPackage
     echo "📊 Tamaño:      {$sizeMb} MB ({$fileCount} archivos)\n";
     echo "🔑 Token Deploy: {$deployToken}\n";
     echo "🗄️  Base de Datos: Incluida en Database/\n";
-    echo "📄 Configuración: Archivo .env incluido en la raíz\n";
+    if ($hasCompiledVault) {
+      echo "🔐 Configuración: Compilada + Vault cifrado en App/Config/ (sin .env en texto plano)\n";
+    } else {
+      echo "📄 Configuración: Archivo .env incluido en la raíz\n";
+    }
     echo "======================================================\n\n";
 
     echo "👉 PASOS PARA EL SERVIDOR (Una única vez):\n";
-    echo "   1. Sube 'dist/{$zipFileName}' a la carpeta de tu proyecto en cPanel.\n";
-    echo "   2. Descomprímelo en el servidor (incluye tu .env y Database/ con SQLite).\n";
-    echo "   3. En el servidor, abre '.env' y cambia APP_ENV=\"development\" a \"production\".\n";
-    echo "   4. Agrega en tu archivo local '.env' la URL de tu sitio para futuros deploys:\n";
+    echo "   1. Sube 'dist/{$zipFileName}' a la carpeta de tu proyecto en public_html.\n";
+    echo "   2. Descomprímelo en el servidor (incluye tu configuración compilada, Vault cifrado y Database/).\n";
+    echo "   3. Agrega en tu archivo local '.env' la URL de tu sitio para futuros deploys:\n";
     echo "      DEPLOY_URL=https://tudominio.com/deploy.php\n\n";
-    echo "✨ A partir de ahora, solo ejecutarás 'frame deploy' para actualizar código.\n";
+    echo "✨ A partir de ahora, solo ejecutarás 'frame deploy' (o 'frame deploy --config' si editas variables).\n";
   }
 
   /**
    * Despliega actualizaciones continuas de código hacia el servidor sin tocar Database/ ni Uploads/.
    */
-  public function runDeploy(bool $includeVendor = false, bool $allowInsecureSsl = false): void
-  {
+  public function runDeploy(
+    bool $includeVendor = false,
+    bool $allowInsecureSsl = false,
+    bool $includeConfig = false,
+    bool $rotateKey = false
+  ): void {
     echo "\n======================================================\n";
     echo "🚀 FRAME — DESPLIEGUE RÁPIDO DE CÓDIGO\n";
     echo "======================================================\n\n";
+
+    if ($rotateKey) {
+      $includeConfig = true;
+    }
 
     // 1. Leer configuración desde .env local o deploy.json
     $config = $this->loadDeployConfig();
@@ -247,13 +374,30 @@ class DeployPackage
     $deployToken = $config['token'];
 
     echo "🎯 Servidor destino: {$deployUrl}\n";
-    echo "📦 Modo:            " . ($includeVendor ? "Completo (Código + vendor/)" : "Rápido (Solo código App/)") . "\n\n";
+    echo "📦 Modo:            " . ($includeVendor ? "Completo (Código + vendor/)" : "Ligero (Solo código compilado App/)") . ($includeConfig ? " + Config/Vault" : "") . ($rotateKey ? " + Rotación Master Key" : "") . "\n\n";
+
+    if (!$this->confirmDeploy()) {
+      echo "\n🛑 Despliegue cancelado. No se compiló ni envió ningún cambio al servidor.\n\n";
+      return;
+    }
+    echo "\n";
 
     // 2. Compilar assets locales
     echo "🎨 Compilando assets JIT (min-script)...\n";
     @passthru('composer min-script');
 
-    // 3. Crear ZIP temporal de actualización
+    // 3. Recompilar configuración y Vault si se solicitó --config o --rotate-key
+    if ($includeConfig && class_exists(\Base\Studio\Services\ConfigCompilerService::class)) {
+      echo "🔐 Recompilando configuración de producción y Vault AEAD...\n";
+      $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($this->basePath, null, $rotateKey);
+      if (empty($compileRes['success'])) {
+        echo "❌ Error compilando configuración: " . ($compileRes['message'] ?? 'desconocido') . "\n";
+        exit(1);
+      }
+      echo "   ✓ Vault actualizado ({$compileRes['cipher']})\n";
+    }
+
+    // 4. Crear ZIP temporal de actualización
     $tempZip = sys_get_temp_dir() . '/frame_update_' . uniqid() . '.zip';
     $zip = new ZipArchive();
     if ($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -268,12 +412,13 @@ class DeployPackage
       'index.php',
       '.htaccess',
       'providers.json',
-      'jsConfig.json'
     ];
 
     if ($includeVendor) {
       $updateItems[] = 'vendor';
     }
+
+    $excludes = $this->getProductionExcludePaths($includeConfig, $rotateKey);
 
     $fileCount = 0;
     foreach ($updateItems as $item) {
@@ -282,8 +427,7 @@ class DeployPackage
       }
       $fullPath = $this->basePath . '/' . $item;
       if (is_dir($fullPath)) {
-        // Excluir uploads que puedan estar dentro de App/Public/Uploads
-        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, ['App/Public/Uploads']);
+        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes);
       } elseif (is_file($fullPath)) {
         $zip->addFile($fullPath, $item);
         $fileCount++;
@@ -294,11 +438,11 @@ class DeployPackage
 
     $zipKb = round(filesize($tempZip) / 1024, 2);
     echo "\n📦 Paquete ligero generado: {$zipKb} KB ({$fileCount} archivos).\n";
-    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/, .env, Theme Studio y Docs/ excluidos.\n";
+    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/, .env, Base/Studio/, Docs/ y librerías inactivas excluidos.\n";
     echo "\n⏳ Transfiriendo y actualizando servidor...\n";
 
-    // 4. Enviar vía cURL por HTTP POST
-    $response = $this->sendPackage($deployUrl, $deployToken, $tempZip, $allowInsecureSsl);
+    // 5. Enviar vía cURL por HTTP POST
+    $response = $this->sendPackage($deployUrl, $deployToken, $tempZip, $allowInsecureSsl, $rotateKey);
     @unlink($tempZip);
 
     if ($response['success']) {
@@ -312,6 +456,42 @@ class DeployPackage
       echo "   " . ($response['error'] ?? 'Error desconocido') . "\n\n";
       exit(1);
     }
+  }
+
+  /**
+   * Solicita confirmación interactiva explícita antes de compilar y desplegar a producción.
+   *
+   * @param resource|null $inputStream Flujo de entrada opcional (por defecto STDIN).
+   * @return bool
+   */
+  private function confirmDeploy($inputStream = null): bool
+  {
+    echo "⚠️  ATENCIÓN: Estás a punto de desplegar cambios al servidor de producción.\n";
+    echo "   Asegúrate de haber terminado tus cambios, variables y pruebas locales.\n";
+    echo "¿Confirmas el despliegue? Escribe [yes / y / Yes / YES] para continuar (cualquier otra entrada cancela): ";
+
+    $openedStream = false;
+    $stream = $inputStream;
+    if (!is_resource($stream)) {
+      if (defined('STDIN')) {
+        $stream = STDIN;
+      } else {
+        $stream = @fopen('php://stdin', 'r');
+        $openedStream = is_resource($stream);
+      }
+    }
+
+    if (!is_resource($stream)) {
+      return false;
+    }
+
+    $rawAnswer = fgets($stream);
+    if ($openedStream) {
+      fclose($stream);
+    }
+
+    $answer = $rawAnswer === false ? '' : $rawAnswer;
+    return self::isDeployConfirmed($answer);
   }
 
   /**
@@ -469,7 +649,7 @@ class DeployPackage
   /**
    * Envía el paquete ZIP al servidor mediante cURL con validación TLS estricta por defecto.
    */
-  private function sendPackage(string $url, string $token, string $zipPath, bool $allowInsecureSsl = false): array
+  private function sendPackage(string $url, string $token, string $zipPath, bool $allowInsecureSsl = false, bool $rotateKey = false): array
   {
     if (!str_ends_with(strtolower($url), '.php')) {
       $url = rtrim($url, '/') . '/deploy.php';
@@ -506,7 +686,7 @@ class DeployPackage
       echo "⚠️  ADVERTENCIA DE SEGURIDAD: --allow-insecure-ssl activo. Validación de certificado TLS deshabilitada bajo responsabilidad del operador.\n";
     }
 
-    $response = $this->executeCurl($url, $token, $postData, $verifySsl, $caBundle, $timestamp, $zipSha256, $hmacSignature);
+    $response = $this->executeCurl($url, $token, $postData, $verifySsl, $caBundle, $timestamp, $zipSha256, $hmacSignature, $rotateKey);
 
     if (!$response['success'] && $verifySsl && isset($response['error']) && str_contains(strtolower($response['error']), 'certificate')) {
       $response['error'] .= "\n   💡 Sugerencia: Configura 'curl.cainfo' en php.ini o instala composer/ca-bundle. "
@@ -525,7 +705,8 @@ class DeployPackage
     ?string $caBundle = null,
     string $timestamp = '',
     string $zipSha256 = '',
-    string $hmacSignature = ''
+    string $hmacSignature = '',
+    bool $rotateKey = false
   ): array {
     $ch = curl_init();
 
@@ -533,6 +714,9 @@ class DeployPackage
       'X-Deploy-Token: ' . $token,
       'Accept: application/json',
     ];
+    if ($rotateKey) {
+      $headers[] = 'X-Deploy-Rotate-Key: 1';
+    }
     if ($timestamp !== '' && $zipSha256 !== '' && $hmacSignature !== '') {
       $headers[] = 'X-Deploy-Timestamp: ' . $timestamp;
       $headers[] = 'X-Deploy-Sha256: ' . $zipSha256;
@@ -650,10 +834,57 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
   exit;
 }
 
-// 2. Obtener configuración desde .env o token embebido (compatible con frame key:rotate)
+// 2. Obtener configuración desde Vault AEAD, .env o token embebido (compatible con frame key:rotate)
 $expectedToken = '###DEPLOY_TOKEN###';
 $deployEnabled = true;
 $allowedIps = [];
+
+$vaultFile = __DIR__ . '/App/Config/secrets.vault.php';
+$keyFile = __DIR__ . '/App/Safety/vault.key.php';
+if (is_file($vaultFile)) {
+  if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', str_replace('\\', '/', __DIR__));
+  }
+  $vaultEnvelope = @require $vaultFile;
+  $masterKeyHex = getenv('FRAME_MASTER_KEY') ?: '';
+  if ($masterKeyHex === '' && is_file($keyFile)) {
+    $keyData = @require $keyFile;
+    $masterKeyHex = is_array($keyData) ? (string)($keyData['key'] ?? '') : (is_string($keyData) ? $keyData : '');
+  }
+  $masterKeyHex = strtolower(trim($masterKeyHex));
+  if (is_array($vaultEnvelope) && preg_match('/^[a-f0-9]{64}$/', $masterKeyHex)) {
+    $keyBin = @hex2bin($masterKeyHex);
+    $cipher = (string)($vaultEnvelope['cipher'] ?? '');
+    $nonce = base64_decode((string)($vaultEnvelope['nonce'] ?? ''), true);
+    $ciphertext = base64_decode((string)($vaultEnvelope['ciphertext'] ?? ''), true);
+    $aad = 'eber-frame-vault-v1';
+    $plain = false;
+    if ($keyBin !== false && $nonce !== false && $ciphertext !== false) {
+      if ($cipher === 'xchacha20-poly1305' && function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_decrypt')) {
+        $plain = @sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($ciphertext, $aad, $nonce, $keyBin);
+      } elseif ($cipher === 'aes-256-gcm') {
+        $tag = base64_decode((string)($vaultEnvelope['tag'] ?? ''), true);
+        if ($tag !== false) {
+          $plain = @openssl_decrypt($ciphertext, 'aes-256-gcm', $keyBin, OPENSSL_RAW_DATA, $nonce, $tag, $aad);
+        }
+      }
+    }
+    if (is_string($plain) && $plain !== '') {
+      $vaultSecrets = json_decode($plain, true);
+      if (is_array($vaultSecrets)) {
+        if (!empty($vaultSecrets['DEPLOY_TOKEN'])) {
+          $expectedToken = (string)$vaultSecrets['DEPLOY_TOKEN'];
+        }
+        if (array_key_exists('DEPLOY_ENABLED', $vaultSecrets)) {
+          $deployEnabled = filter_var($vaultSecrets['DEPLOY_ENABLED'], FILTER_VALIDATE_BOOLEAN);
+        }
+        if (!empty($vaultSecrets['DEPLOY_ALLOWED_IPS'])) {
+          $allowedIps = array_values(array_filter(array_map('trim', explode(',', (string)$vaultSecrets['DEPLOY_ALLOWED_IPS']))));
+        }
+      }
+    }
+  }
+}
 
 $envFile = __DIR__ . '/.env';
 if (file_exists($envFile)) {
@@ -857,6 +1088,9 @@ if ($zip->numFiles > $maxEntries) {
 $allowedFiles = [];
 $totalUncompressed = 0;
 
+$allowRotateKey = (($_SERVER['HTTP_X_DEPLOY_ROTATE_KEY'] ?? '') === '1')
+  && $hdrTs !== '' && $hdrSha !== '' && $hdrSig !== '';
+
 for ($i = 0; $i < $zip->numFiles; $i++) {
   $stat = $zip->statIndex($i);
   $name = (string)($stat['name'] ?? '');
@@ -908,8 +1142,13 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
     exit;
   }
 
-  // NUNCA sobrescribir datos de usuario, secretos, logs, Theme Studio, Docs ni el propio deploy.php
-  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/Safety/|Logs/|Cache/|Docs/|vendor/eber/framework/Docs/|\.git/|\.env(\.|$)|deploy\.php$|Base/Views/themeStudio\.php$|Base/Control/ThemeStudioControl\.php$|Base/ScriptComposer/OpenStudio\.php$|vendor/eber/framework/Base/Views/themeStudio\.php$|vendor/eber/framework/Base/Control/ThemeStudioControl\.php$|vendor/eber/framework/Base/ScriptComposer/OpenStudio\.php$)#i', $name)) {
+  // NUNCA sobrescribir datos de usuario, secretos, logs, Studio, ScriptComposer, Docs ni el propio deploy.php
+  $isVaultKeyEntry = ($name === 'App/Safety/vault.key.php');
+  if ($isVaultKeyEntry && $allowRotateKey) {
+    $allowedFiles[] = $name;
+    continue;
+  }
+  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/Safety/|App/Config/\.studio\..*\.local\.json$|Logs/|Cache/|Docs/|tests/|Base/Studio/|Base/ScriptComposer/|vendor/eber/framework/(Docs|tests|Base/Studio|Base/ScriptComposer)/|\.git/|\.env(\.|$)|deploy\.php$|Base/Views/themeStudio\.php$|Base/Control/ThemeStudioControl\.php$|vendor/eber/framework/Base/Views/themeStudio\.php$|vendor/eber/framework/Base/Control/ThemeStudioControl\.php$)#i', $name)) {
     continue;
   }
 
@@ -922,19 +1161,35 @@ if (!empty($allowedFiles)) {
 $zip->close();
 @unlink($zipPath);
 
-// Limpiar archivos residuales de Theme Studio en producción
+// Limpiar directorios y archivos residuales de Frame Studio / Docs / ScriptComposer en producción
+$removeRecursive = static function (string $targetPath) use (&$removeRecursive): void {
+  if (is_file($targetPath) || is_link($targetPath)) {
+    @unlink($targetPath);
+    return;
+  }
+  if (!is_dir($targetPath)) {
+    return;
+  }
+  foreach (scandir($targetPath) ?: [] as $item) {
+    if ($item === '.' || $item === '..') {
+      continue;
+    }
+    $removeRecursive($targetPath . '/' . $item);
+  }
+  @rmdir($targetPath);
+};
+
 foreach ([
+  'Base/Studio',
+  'Base/ScriptComposer',
   'Base/Views/themeStudio.php',
   'Base/Control/ThemeStudioControl.php',
-  'Base/ScriptComposer/OpenStudio.php',
+  'vendor/eber/framework/Base/Studio',
+  'vendor/eber/framework/Base/ScriptComposer',
   'vendor/eber/framework/Base/Views/themeStudio.php',
   'vendor/eber/framework/Base/Control/ThemeStudioControl.php',
-  'vendor/eber/framework/Base/ScriptComposer/OpenStudio.php',
 ] as $studioRelPath) {
-  $studioFullPath = __DIR__ . '/' . $studioRelPath;
-  if (is_file($studioFullPath)) {
-    @unlink($studioFullPath);
-  }
+  $removeRecursive(__DIR__ . '/' . $studioRelPath);
 }
 
 // Limpiar contador de intentos fallidos tras despliegue exitoso

@@ -297,9 +297,9 @@ class Route
     if (
       class_exists('\\Base\\Module\\SecurityModule')
       && \Base\Module\SecurityModule::isDevelopment()
-      && class_exists('\\Base\\Control\\ThemeStudioControl')
+      && class_exists('\\Base\\Studio\\StudioKernel')
     ) {
-      \Base\Control\ThemeStudioControl::registerRoutes();
+      \Base\Studio\StudioKernel::registerRoutes();
     }
 
     // Ejecutar CORS al inicio de la solicitud

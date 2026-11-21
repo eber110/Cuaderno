@@ -10,8 +10,14 @@ use Dotenv\Dotenv;
 // Ruta base del proyecto
 $basePath = dirname(__DIR__, 2);
 
-// Intentar cargar .env desde la raíz del proyecto
-if (file_exists($basePath . '/.env')) {
+// Cargar configuración compilada + Vault cifrado si no existe .env, o .env en desarrollo/legacy
+if (
+    !file_exists($basePath . '/.env')
+    && class_exists(\Base\Module\Security\ConfigVault::class)
+    && \Base\Module\Security\ConfigVault::hasCompiledProduction($basePath)
+) {
+    \Base\Module\Security\ConfigVault::boot($basePath);
+} elseif (file_exists($basePath . '/.env')) {
     $dotenv = Dotenv::createImmutable($basePath);
     $dotenv->load();
 }

@@ -1,21 +1,28 @@
 /**
- * Componente sortableContent.
- * 
- * Permite reordenar elementos (.sortable-item) mediante arrastrar y soltar (Drag and Drop)
- * tanto con ratón como con eventos táctiles en dispositivos móviles y tablets.
- * 
- * Contenedores soportados:
- * - `.sortable-container`
- * - `[data-sortable]`
- * - `[data-sortable-list]`
- * - `#sortable-content-list`
- * - `#sortable-rrss-list`
- * 
- * Gestiona además el colapso, expansión y foco automático de bloques interactivos (.content-block, [data-collapsible]),
- * sincronización de títulos de cabecera en vivo, re-indexación de inputs y feedback visual mediante badge de sincronización.
- * 
- * @module sortableContent
+ * Reordenamiento Drag & Drop (mouse y táctil) con soporte de bloques colapsables y sincronización de índices.
+ *
  * @function sortableContent
+ * @description Permite reordenar ítems `.sortable-item` dentro de `.sortable-container` o `[data-sortable]` con soporte táctil y acordeón opcional.
+ *
+ * @example
+ * // HTML - Lista reordenable con bloques colapsables
+ * <div class="sortable-container" data-sortable="bloques">
+ *   <div class="sortable-item content-block is-open" id="bloque-1">
+ *     <div class="content-item-header">Bloque 1</div>
+ *     <div class="content-item-body">Contenido editable...</div>
+ *   </div>
+ *   <div class="sortable-item content-block is-collapsed" id="bloque-2">
+ *     <div class="content-item-header">Bloque 2</div>
+ *     <div class="content-item-body">Contenido editable...</div>
+ *   </div>
+ * </div>
+ *
+ * @css .sortable-container - Contenedor padre de los elementos reordenables
+ * @css .sortable-item - Cada elemento arrastrable dentro de la lista
+ * @css .content-block - Habilita comportamiento de bloque expandible/colapsable
+ * @attribute data-sortable - Marca un contenedor reordenable y su identificador (opcional)
+ * @requires gsap - GreenSock Animation Platform (opcional, para suavizar apertura/cierre)
+ *
  * @returns {void}
  */
 export function sortableContent() {

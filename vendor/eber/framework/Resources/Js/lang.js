@@ -1,10 +1,28 @@
 /**
  * Utilidad de internacionalización (i18n) para JavaScript del cliente.
  *
- * Lee los textos inyectados en <script type="application/json" id="i18n">
- * por LangModule::renderJsTranslations() y expone la función global y modular t().
+ * Lee los textos inyectados en `<script type="application/json" id="i18n">`
+ * por `LangModule::renderJsTranslations()` y expone la función global y modular `t()`.
  *
  * @module lang
+ * @description Traduce claves i18n en el navegador leyendo el diccionario JSON `#i18n` con interpolación de parámetros.
+ *
+ * @param {string} key - Clave de traducción (ej. 'copy' o 'js.copy')
+ * @param {Object} [params={}] - Mapa de parámetros a interpolar (ej. `{ count: 3 }`)
+ * @param {string|null} [defaultText=null] - Texto de respaldo si la clave no existe
+ *
+ * @example
+ * // HTML - Bloque JSON inyectado por LangModule::renderJsTranslations()
+ * <script type="application/json" id="i18n">
+ *   { "locale": "es", "fallback": "es", "messages": { "copy": "Copiar", "files_many": ":count archivos" } }
+ * </script>
+ *
+ * @example
+ * // JavaScript - Traducir claves e interpolar variables
+ * const label = t('copy');
+ * const summary = t('files_many', { count: 5 }, '5 archivos');
+ *
+ * @returns {string}
  */
 
 let cachedDictionary = null;

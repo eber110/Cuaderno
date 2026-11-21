@@ -1,10 +1,27 @@
 /**
  * Input múltiple de imágenes con vistas previas, zona Dropzone opcional y reordenamiento táctil/mouse.
- * Reemplaza el Drag & Drop HTML5 nativo (no funcional en móviles) por Pointer Events unificados.
+ * Reemplaza el Drag & Drop HTML5 nativo por Pointer Events unificados.
  *
  * @function loadImgModern
- * @description Transforma inputs de archivo `.loadImgModern` en botones o zonas Dropzone
- *              con reordenamiento fluido en desktop y pantallas touch.
+ * @description Transforma inputs de archivo `.loadImgModern` en botones o zonas Dropzone con vista previa y reordenamiento táctil.
+ *
+ * @example
+ * // HTML - Dropzone múltiple con límite de archivos y tamaño
+ * <input type="file"
+ *        name="galeria[]"
+ *        accept="image/*"
+ *        multiple
+ *        class="loadImgModern"
+ *        placeholder="Arrastra tus imágenes aquí"
+ *        data-dropzone="true"
+ *        data-max-files="6"
+ *        data-max-size="5">
+ *
+ * @css .loadImgModern - Clase requerida en el `<input type="file">`
+ * @attribute data-dropzone - Renderiza una zona Dropzone ampliada cuando vale `'true'` (opcional)
+ * @attribute data-max-files - Número máximo de imágenes permitidas (opcional)
+ * @attribute data-max-size - Peso máximo por archivo en MB (opcional)
+ * @attribute data-note - Clases CSS adicionales para la nota informativa de carga (opcional)
  *
  * @returns {void}
  */

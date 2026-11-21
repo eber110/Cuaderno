@@ -61,8 +61,15 @@ class FrameCli
       'prepend'  => ['deploy'],
       'desc'     => 'Despliega cambios al servidor web vía HTTP POST a deploy.php',
       'category' => 'Despliegue y Producción',
-      'usage'    => 'frame deploy [--all]',
+      'usage'    => 'frame deploy [--all] [--config] [--rotate-key]',
       'aliases'  => [],
+    ],
+    'config:build' => [
+      'script'   => 'BuildConfig.php',
+      'desc'     => 'Compila configuración de producción y cifra secretos al Vault AEAD',
+      'category' => 'Despliegue y Producción',
+      'usage'    => 'frame config:build [--rotate-key]',
+      'aliases'  => ['config:compile', 'vault:build'],
     ],
 
     // --- Optimización y Assets ---
@@ -144,9 +151,9 @@ class FrameCli
     ],
     'key:rotate' => [
       'script'   => 'RotateKeys.php',
-      'desc'     => 'Rota la semilla de seguridad (SEED) y el token de despliegue (DEPLOY_TOKEN)',
+      'desc'     => 'Rota la semilla SEED, DEPLOY_TOKEN y/o la clave maestra del Vault',
       'category' => 'Seguridad y Servicios',
-      'usage'    => 'frame key:rotate [--seed] [--token] [--force]',
+      'usage'    => 'frame key:rotate [--seed] [--token] [--master-key] [--force]',
       'aliases'  => ['key:generate', 'rotate:keys', 'rotate-seed'],
     ],
 

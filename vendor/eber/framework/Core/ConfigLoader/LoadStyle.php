@@ -24,21 +24,36 @@ if (LoadViewStyle::isInlineCss()) {
 }
 
 // Cargar el loader unificado con defer desde App/Rsc/JsLoad/ (ruta pública fuera de vendor/)
-$appJsLoadDir = ROOT_PATH . '/App/Rsc/JsLoad/';
-$appLoaderFile = $appJsLoadDir . 'loader.js';
-if (!is_file($appLoaderFile)) {
-  $srcCandidates = [
-    ROOT_PATH . '/vendor/eber/framework/Resources/JsLoad/loader.js',
-    (defined('FRAMEWORK_PATH') ? rtrim(str_replace('\\', '/', FRAMEWORK_PATH), '/') : dirname(__DIR__, 2)) . '/Resources/JsLoad/loader.js',
-  ];
-  foreach ($srcCandidates as $srcLoader) {
-    if (is_file($srcLoader)) {
-      if (!is_dir($appJsLoadDir)) {
-        @mkdir($appJsLoadDir, 0755, true);
-      }
-      @copy($srcLoader, $appLoaderFile);
-      break;
-    }
+// En el repositorio del framework ('eber/framework') se sirve directo desde Resources/JsLoad/ para no generar /App
+$isFrameworkRepo = false;
+$composerPath = ROOT_PATH . '/composer.json';
+if (is_file($composerPath)) {
+  $composerJson = json_decode((string)@file_get_contents($composerPath), true);
+  if (($composerJson['name'] ?? '') === 'eber/framework') {
+    $isFrameworkRepo = true;
   }
 }
-$load_style->ruteStyle($appJsLoadDir, 'type="module" defer');
+
+$frameworkJsLoadDir = ROOT_PATH . '/Resources/JsLoad/';
+if ($isFrameworkRepo && is_file($frameworkJsLoadDir . 'loader.js')) {
+  $load_style->ruteStyle($frameworkJsLoadDir, 'type="module" defer');
+} else {
+  $appJsLoadDir = ROOT_PATH . '/App/Rsc/JsLoad/';
+  $appLoaderFile = $appJsLoadDir . 'loader.js';
+  if (!is_file($appLoaderFile)) {
+    $srcCandidates = [
+      ROOT_PATH . '/vendor/eber/framework/Resources/JsLoad/loader.js',
+      (defined('FRAMEWORK_PATH') ? rtrim(str_replace('\\', '/', FRAMEWORK_PATH), '/') : dirname(__DIR__, 2)) . '/Resources/JsLoad/loader.js',
+    ];
+    foreach ($srcCandidates as $srcLoader) {
+      if (is_file($srcLoader)) {
+        if (!is_dir($appJsLoadDir)) {
+          @mkdir($appJsLoadDir, 0755, true);
+        }
+        @copy($srcLoader, $appLoaderFile);
+        break;
+      }
+    }
+  }
+  $load_style->ruteStyle($appJsLoadDir, 'type="module" defer');
+}

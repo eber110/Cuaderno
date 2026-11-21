@@ -34,6 +34,7 @@ class JitCssModule
                 if (
                     str_contains($normalizedFile, '/Base/LibraryCssJit/') ||
                     str_contains($normalizedFile, '/Base/ScriptComposer/') ||
+                    str_contains($normalizedFile, '/Base/Studio/') ||
                     str_ends_with($normalizedFile, '/Base/Module/JitCssModule.php') ||
                     str_ends_with($normalizedFile, '/Base/Views/themeStudio.php') ||
                     str_ends_with($normalizedFile, '/Base/Control/ThemeStudioControl.php')

@@ -1,9 +1,26 @@
 /**
- * TextLimiter
- * Módulo para limitar y contar caracteres o palabras en input, textarea o contenteditable.
- * Incluye estados visuales progresivos (.tl-warning >= 80%, .tl-max-reached >= 100%).
+ * Limitador y contador dinámico de caracteres o palabras en inputs, textareas y contenteditable.
+ * Incluye estados visuales progresivos (`.tl-warning` >= 80%, `.tl-max-reached` >= 100%).
  *
  * @function textLimiter
+ * @description Limita y muestra el conteo en tiempo real de caracteres o palabras en elementos `.text-limiter`.
+ *
+ * @example
+ * // HTML - Textarea con límite de 200 caracteres y contador enlazado
+ * <textarea name="bio"
+ *           class="text-limiter"
+ *           data-limit-type="chars"
+ *           data-limit="200"
+ *           data-counter-el="#bioCounter"></textarea>
+ * <small id="bioCounter"></small>
+ *
+ * @css .text-limiter - Clase aplicada al `<input>`, `<textarea>` o elemento `contenteditable`
+ * @css .tl-warning - Clase aplicada cuando el texto alcanza el 80% del límite
+ * @css .tl-max-reached - Clase aplicada cuando el texto alcanza el 100% del límite
+ * @attribute data-limit-type - Tipo de conteo: `'chars'` (defecto) o `'words'` (opcional)
+ * @attribute data-limit - Límite numérico máximo (defecto `'100'`, opcional)
+ * @attribute data-counter-el - Selector CSS del elemento donde se muestra el contador (opcional)
+ *
  * @returns {void}
  */
 class TextLimiter {

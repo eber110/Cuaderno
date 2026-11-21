@@ -292,7 +292,10 @@
                 "localOverrides": {
                     "textLimiter": {
                         "triggerBg": "textw",
-                        "triggerText": "textw"
+                        "triggerText": "texto",
+                        "fontSize": 18,
+                        "placeholderSize": 18,
+                        "secondaryFontSize": 14
                     },
                     "dropdown": {
                         "surfaceText": "texto",
