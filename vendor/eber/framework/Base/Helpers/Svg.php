@@ -199,7 +199,7 @@ if (!function_exists('svg')) {
    * @param string $transform Transformación SVG opcional para los trazos
    * @return string Markup <svg> inline o '?!' si no se encuentra
    */
-  function svg($name_icon, $class = '', $transform = '')
+  function svg($name_icon, $class = '', $transform = ''): string
   {
     $cleanName = str_replace('\\', '/', trim((string)$name_icon));
     $cleanName = ltrim($cleanName, '/');

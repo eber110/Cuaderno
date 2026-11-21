@@ -1564,8 +1564,8 @@ JS;
     }
 
     $phpSnippet = empty($phpParams)
-      ? "<?= _input('{$type}') ?>"
-      : "<?= _input('{$type}', " . $exportArr($phpParams, '  ') . ") ?>";
+      ? "<?= uiInput('{$type}') ?>"
+      : "<?= uiInput('{$type}', " . $exportArr($phpParams, '  ') . ") ?>";
 
     $targetGlobal = !empty($diffGlobal) ? $diffGlobal : $globalConfig;
     unset($targetGlobal['localOverrides']);
@@ -1828,10 +1828,10 @@ JS;
       $targetGlobal = !empty($diffGlobal) ? $diffGlobal : $globalConfig;
       unset($targetGlobal['localOverrides']);
 
-      $phpFormSnippet = "<?= _form(\n  " . $exportPhp($exportConfig, 1) . ",\n  " . $exportPhp($stepsOrFields, 1) . "\n) ?>";
+      $phpFormSnippet = "<?= uiForm(\n  " . $exportPhp($exportConfig, 1) . ",\n  " . $exportPhp($stepsOrFields, 1) . "\n) ?>";
       $globalSnippet = "<?php\nuse Base\\Module\\FormUiModule;\n\nFormUiModule::configStyle(" . $exportPhp($targetGlobal, 0) . ");\n";
 
-      // Snippet alternativo campo a campo usando _input()
+      // Snippet alternativo campo a campo usando uiInput()
       $individualLines = ["<form action=\"" . htmlspecialchars((string)($exportConfig['action'] ?? ''), ENT_QUOTES, 'UTF-8') . "\" method=\"" . strtolower((string)($exportConfig['method'] ?? 'post')) . "\" class=\"ui-form" . (!empty($exportConfig['autoSubmit']) ? ' auto-submit' : '') . (!empty($exportConfig['formClass']) ? ' ' . htmlspecialchars((string)$exportConfig['formClass'], ENT_QUOTES, 'UTF-8') : '') . "\">"];
       if (strtoupper((string)($exportConfig['method'] ?? 'POST')) === 'POST' && (!array_key_exists('csrf', $exportConfig) || !empty($exportConfig['csrf']))) {
         $individualLines[] = "  <?= csrf_field() ?>";
@@ -1851,8 +1851,8 @@ JS;
         $fp = $ff;
         unset($fp['type'], $fp['step']);
         $individualLines[] = empty($fp)
-          ? "  <?= _input('{$ft}') ?>"
-          : "  <?= _input('{$ft}', " . $exportPhp($fp, 1) . ") ?>";
+          ? "  <?= uiInput('{$ft}') ?>"
+          : "  <?= uiInput('{$ft}', " . $exportPhp($fp, 1) . ") ?>";
       }
       $individualLines[] = "</form>";
 

@@ -4370,6 +4370,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
               <div class="cs-code-header">
                 <div class="cs-code-tabs">
                   <button type="button" class="cs-code-tab active" id="csCodeTab_helper" onclick="setChartCodeFormat('helper')">_chart()</button>
+                  <button type="button" class="cs-code-tab" id="csCodeTab_uiChart" onclick="setChartCodeFormat('uiChart')">uiChart()</button>
                   <button type="button" class="cs-code-tab" id="csCodeTab_module" onclick="setChartCodeFormat('module')">GraphicsModule</button>
                   <button type="button" class="cs-code-tab" id="csCodeTab_global" onclick="setChartCodeFormat('global')">configStyle()</button>
                 </div>
@@ -4533,20 +4534,20 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
             <div class="cs-code-dock" id="iuCodeDock">
               <div class="cs-code-header">
                 <div class="cs-code-tabs">
-                  <button type="button" class="cs-code-tab active" id="iuCodeTab_php" onclick="setInputCopyFormat('php')"><span id="iuCodeTab_phpLabel">Helper _input()</span></button>
+                  <button type="button" class="cs-code-tab active" id="iuCodeTab_php" onclick="setInputCopyFormat('php')"><span id="iuCodeTab_phpLabel">Helper uiInput()</span></button>
                   <button type="button" class="cs-code-tab" id="iuCodeTab_html" onclick="setInputCopyFormat('html')">HTML Completo</button>
                   <button type="button" class="cs-code-tab" id="iuCodeTab_global" onclick="setInputCopyFormat('global')">Global FormUiModule</button>
                 </div>
 
                 <div class="iu-code-options" id="iuSingleCodeOptions">
-                  <label><input type="checkbox" id="iuOptWrapContainer" checked onchange="onInputCodeOptionChange()"> <span>Envolver &lt;div&gt;</span></label>
-                  <label><input type="checkbox" id="iuOptIncludeLabel" checked onchange="onInputCodeOptionChange()"> <span>Incluir &lt;label&gt;</span></label>
-                  <label title="Incluye también los cambios globales dentro del código copiado para que sea 100% autocontenido en la vista"><input type="checkbox" id="iuOptIncludeGlobalInCode" checked onchange="onInputCodeOptionChange()"> <span>Autocontenido (Global + Local)</span></label>
+                  <label><input type="checkbox" id="iuOptWrapContainer" onchange="onInputCodeOptionChange()"> <span>Envolver &lt;div&gt;</span></label>
+                  <label><input type="checkbox" id="iuOptIncludeLabel" onchange="onInputCodeOptionChange()"> <span>Incluir &lt;label&gt;</span></label>
+                  <label title="Incluye también los cambios globales dentro del código copiado para que sea 100% autocontenido en la vista"><input type="checkbox" id="iuOptIncludeGlobalInCode" onchange="onInputCodeOptionChange()"> <span>Autocontenido (Global + Local)</span></label>
                   <label><input type="checkbox" id="iuOptInlineVars" onchange="onInputCodeOptionChange()"> <span>Vars --ui-* inline</span></label>
                   <label><input type="checkbox" id="iuOptMultiline" checked onchange="onInputCodeOptionChange()"> <span>Multilínea</span></label>
                 </div>
                 <div class="iu-code-options" id="iuFbCodeOptions" style="display:none;">
-                  <label title="Cambia el tab PHP de _form() a llamadas individuales _input()"><input type="checkbox" id="fbOptIndividualInputs" onchange="updateFormBuilderCodeOutput()"> <span>Usar _input() individuales</span></label>
+                  <label title="Cambia el tab PHP de uiForm() a llamadas individuales uiInput()"><input type="checkbox" id="fbOptIndividualInputs" onchange="updateFormBuilderCodeOutput()"> <span>Usar uiInput() individuales</span></label>
                 </div>
 
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -8516,8 +8517,8 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
     // ==============================================================
 
     function setChartCodeFormat(fmt) {
-      chartCodeFormat = ['helper', 'module', 'global'].includes(fmt) ? fmt : 'helper';
-      ['helper', 'module', 'global'].forEach(key => {
+      chartCodeFormat = ['helper', 'uiChart', 'module', 'global'].includes(fmt) ? fmt : 'helper';
+      ['helper', 'uiChart', 'module', 'global'].forEach(key => {
         const tab = document.getElementById(`csCodeTab_${key}`);
         if (tab) tab.classList.toggle('active', chartCodeFormat === key);
       });
@@ -8642,6 +8643,11 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       if (chartCodeFormat === 'global') {
         const globalArgs = hasParams ? arrayPhp : '[]';
         code = `${phpOpen} \\Base\\Module\\GraphicsModule::configStyle(${globalArgs}); ${phpClose}`;
+      } else if (chartCodeFormat === 'uiChart') {
+        const call = hasParams
+          ? `uiChart('${activeChartType}', ${arrayPhp})`
+          : `uiChart('${activeChartType}')`;
+        code = `${phpEcho} ${call} ${phpClose}`;
       } else if (chartCodeFormat === 'module') {
         const call = hasParams
           ? `\\Base\\Module\\GraphicsModule::${activeChartType}(${arrayPhp})`
@@ -10580,6 +10586,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       cleanStaleInputPortals();
 
       if (inputSandboxViewMode === 'gallery') {
+        focusedEl.innerHTML = '';
         galleryEl.innerHTML = '';
         INPUT_CATALOG.forEach((item) => {
           const card = document.createElement('div');
@@ -10638,6 +10645,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
           galleryEl.appendChild(card);
         });
       } else {
+        galleryEl.innerHTML = '';
         const item = INPUT_CATALOG.find(i => i.type === activeInputType) || INPUT_CATALOG[0];
         focusedEl.innerHTML = '';
         const card = document.createElement('div');
@@ -10702,7 +10710,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
 
       if (singleSidebar) singleSidebar.style.display = inputSandboxViewMode === 'formBuilder' ? 'none' : 'block';
       if (builderSidebar) builderSidebar.style.display = inputSandboxViewMode === 'formBuilder' ? 'block' : 'none';
-      if (phpTabLabel) phpTabLabel.textContent = inputSandboxViewMode === 'formBuilder' ? 'Helper _form()' : 'Helper _input()';
+      if (phpTabLabel) phpTabLabel.textContent = inputSandboxViewMode === 'formBuilder' ? 'Helper uiForm()' : 'Helper uiInput()';
       if (singleOpts) singleOpts.style.display = inputSandboxViewMode === 'formBuilder' ? 'none' : 'flex';
       if (fbOpts) fbOpts.style.display = inputSandboxViewMode === 'formBuilder' ? 'flex' : 'none';
 
@@ -10866,7 +10874,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       const codeEl = document.getElementById('inputCodeOutput');
       if (!codeEl) return;
       if (inputCodeFormat === 'php') {
-        codeEl.textContent = inputCodeCache.phpSnippet || `<?= _input('${activeInputType}') ?>`;
+        codeEl.textContent = inputCodeCache.phpSnippet || `<?= uiInput('${activeInputType}') ?>`;
       } else if (inputCodeFormat === 'global') {
         codeEl.textContent = inputCodeCache.globalSnippet || '';
       } else {
@@ -10902,7 +10910,7 @@ if (!defined('ROOT_PATH') || !class_exists(\Base\Studio\StudioKernel::class) || 
       const txt = codeEl ? codeEl.textContent : '';
       if (!txt) return;
       navigator.clipboard.writeText(txt).then(() => {
-        const phpLbl = inputSandboxViewMode === 'formBuilder' ? 'Helper _form()' : 'Helper _input()';
+        const phpLbl = inputSandboxViewMode === 'formBuilder' ? 'Helper uiForm()' : 'Helper uiInput()';
         const label = inputCodeFormat === 'html' ? 'HTML' : (inputCodeFormat === 'php' ? phpLbl : 'PHP Global');
         showToast(`📋 Código ${label} copiado al portapapeles`);
       });

@@ -28,8 +28,9 @@ class TextLimiter {
     this.element = element;
     this.limitType = this.element.dataset.limitType || 'chars';
     this.limit = parseInt(this.element.dataset.limit || '100', 10) || 100;
-    this.counterEl = this.element.dataset.counterEl
-      ? document.querySelector(this.element.dataset.counterEl)
+    const counterSelector = this.element.dataset.counterEl;
+    this.counterEl = counterSelector
+      ? ((this.element.parentElement && this.element.parentElement.querySelector(counterSelector)) || document.querySelector(counterSelector))
       : null;
 
     this.init();

@@ -426,6 +426,20 @@ function _formToString(string|array $ruteOrConfig, array $dataOrFields = []): ?s
 }
 
 /**
+ * Alias corto de `_formToString()` seguro para etiquetas echo abreviadas `<?= ... ?>`.
+ * Retorna siempre `string` para evitar errores de tipo `void` en analizadores PHP/IDE.
+ *
+ * @param string|array $ruteOrConfig Ruta del formulario o configuración de FormUiModule
+ * @param array $dataOrFields Datos adicionales o definición de campos/pasos
+ * @return string HTML renderizado del formulario
+ * @example <?= uiForm(['action' => '/contacto', 'method' => 'POST'], $fields) ?>
+ */
+function uiForm(string|array $ruteOrConfig, array $dataOrFields = []): string
+{
+  return _formToString($ruteOrConfig, $dataOrFields) ?? '';
+}
+
+/**
  * Renderiza un menú como string.
  * @param string $rute Ruta del menú
  * @param array $data Datos adicionales (opcional)
@@ -575,6 +589,19 @@ function _componentToString(string $component, mixed $params = []): string
   }
 }
 
+/**
+ * Alias corto de `_componentToString()` seguro para etiquetas echo abreviadas `<?= ... ?>`.
+ *
+ * @param string $component Nombre del componente (ej: "Admin.Form.CreatePost")
+ * @param mixed $params Parámetros opcionales para el componente
+ * @return string HTML renderizado del componente
+ * @example <?= uiComponent('Admin.Form.CreatePost', ['showTitle' => true]) ?>
+ */
+function uiComponent(string $component, mixed $params = []): string
+{
+  return _componentToString($component, $params);
+}
+
   // ╔════════════════════════════════════════════╗
   // ║  4.1 GRÁFICOS SVG (GraphicsModule)         ║
   // ╚════════════════════════════════════════════╝
@@ -613,6 +640,19 @@ function _chartToString(string $type, array $params = []): string
   return \Base\Module\GraphicsModule::$type($params);
 }
 
+/**
+ * Alias corto de `_chartToString()` seguro para etiquetas echo abreviadas `<?= ... ?>`.
+ *
+ * @param string $type Tipo de gráfico ('arcMeter', 'horizontalBars', etc.)
+ * @param array $params Parámetros de configuración del gráfico
+ * @return string Código SVG puro del gráfico
+ * @example <?= uiChart('arcMeter', ['value' => 90, 'label' => 'Optimal Load']) ?>
+ */
+function uiChart(string $type, array $params = []): string
+{
+  return _chartToString($type, $params);
+}
+
   // ╔════════════════════════════════════════════╗
   // ║  4.2 INPUTS Y FORMULARIOS UI (FormUiModule)║
   // ╚════════════════════════════════════════════╝
@@ -644,6 +684,20 @@ function _inputToString(string $type, array $params = []): string
   }
 
   return \Base\Module\FormUiModule::render($type, $params);
+}
+
+/**
+ * Alias corto de `_inputToString()` seguro para etiquetas echo abreviadas `<?= ... ?>`.
+ * Retorna siempre `string` para evitar errores de tipo `void` en analizadores PHP/IDE.
+ *
+ * @param string $type Tipo de input ('cropImage', 'colorPicker', 'textLimiter', etc.)
+ * @param array $params Parámetros de diseño y comportamiento
+ * @return string HTML renderizado del componente
+ * @example <?= uiInput('textLimiter', ['name' => 'bio', 'rows' => 5]) ?>
+ */
+function uiInput(string $type, array $params = []): string
+{
+  return _inputToString($type, $params);
 }
 
   // ╔════════════════════════════════════════════╗

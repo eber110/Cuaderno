@@ -1487,16 +1487,36 @@ class FormUiModule
         break;
 
       case 'textLimiter':
+        static $tlCounterSeq = 0;
         $classes = trim("text-limiter ui-input-component {$extraClass}");
         $limit = max(10, (int)($params['limit'] ?? 160));
-        $limitType = (string)($params['limitType'] ?? 'chars');
-        $counterId = $id ? ($id . '-counter') : ('tl-counter-' . substr(md5($name), 0, 6));
+        $limitType = ((string)($params['limitType'] ?? 'chars')) === 'words' ? 'words' : 'chars';
+        if ($id !== '') {
+          $counterId = $id . '-counter';
+        } else {
+          $tlCounterSeq++;
+          $counterId = 'tl-counter-' . substr(md5($name), 0, 6) . '-' . $tlCounterSeq;
+        }
+        if ($limitType === 'words') {
+          $trimmedValue = trim($value);
+          $words = $trimmedValue === '' ? [] : (preg_split('/\s+/u', $trimmedValue) ?: []);
+          $initialCount = count($words);
+        } else {
+          $initialCount = function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+        }
+        $counterClass = 'tl-counter x12';
+        if ($initialCount >= $limit) {
+          $counterClass .= ' tl-max-reached';
+        } elseif ($limit > 0 && ($initialCount / $limit) >= 0.8) {
+          $counterClass .= ' tl-warning';
+        }
         $attrs = array_merge([
           'name' => $name,
           'id' => $id ?: null,
           'class' => $classes,
           'placeholder' => $placeholder,
-          'rows' => (int)($params['rows'] ?? 3),
+          'rows' => max(1, min(30, (int)($params['rows'] ?? 3))),
+          'maxlength' => $limitType === 'chars' ? $limit : null,
           'data-limit-type' => $limitType,
           'data-limit' => $limit,
           'data-counter-el' => '#' . $counterId,
@@ -1504,13 +1524,13 @@ class FormUiModule
           'disabled' => $disabled,
           'readonly' => $readonly,
         ], $transversalAttrs, $zoneAttrs);
-        $counterAttrs = ['id' => $counterId, 'class' => 'tl-counter x12'];
+        $counterAttrs = ['id' => $counterId, 'class' => $counterClass];
         if (!empty($zoneAttrs['style'])) {
           $counterAttrs['style'] = $zoneAttrs['style'];
         }
         $baseIndent = $hasWrapper ? '  ' : '';
         $html = "<textarea" . self::renderAttrsString($attrs, $multiline, $indent) . ">" . self::esc($value) . "</textarea>\n"
-          . "{$baseIndent}<div" . self::renderAttrsString($counterAttrs, false) . "><span class=\"tl-current\">0</span> / <span class=\"tl-limit\">{$limit}</span></div>";
+          . "{$baseIndent}<div" . self::renderAttrsString($counterAttrs, false) . "><span class=\"tl-current\">{$initialCount}</span> / <span class=\"tl-limit\">{$limit}</span></div>";
         break;
 
       case 'textInput':
@@ -1566,7 +1586,7 @@ class FormUiModule
           'id' => $id ?: null,
           'class' => $classes,
           'placeholder' => $placeholder,
-          'rows' => max(2, min(20, (int)($params['rows'] ?? 4))),
+          'rows' => max(1, min(30, (int)($params['rows'] ?? 4))),
           'minlength' => !empty($params['minlength']) ? (int)$params['minlength'] : null,
           'maxlength' => !empty($params['maxlength']) ? (int)$params['maxlength'] : null,
           'required' => $required,
