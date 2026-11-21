@@ -327,6 +327,26 @@
                     "ratingInput": {
                         "accentColor": "caution",
                         "trackBg": "text-inactive"
+                    },
+                    "cropImage": {
+                        "triggerBg": "textw",
+                        "placeholderSize": 18,
+                        "placeholderColor": "texto",
+                        "borderWidth": 0,
+                        "radius": 15,
+                        "fontSize": 18,
+                        "boxPadding": 15,
+                        "trackBg": "textw",
+                        "surfaceBg": "body",
+                        "btnPrimaryText": "textc",
+                        "btnPrimaryBg": "back4",
+                        "btnSecondaryBg": "back9",
+                        "btnSecondaryText": "textw",
+                        "thumbBg": "back4",
+                        "accentText": "back4",
+                        "accentColor": "back5",
+                        "name": "avatar",
+                        "autoSubmit": true
                     }
                 }
             }
