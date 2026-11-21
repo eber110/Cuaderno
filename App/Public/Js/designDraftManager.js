@@ -1202,7 +1202,7 @@ export function designDraftManager() {
         return true;
 
       case "title": {
-        const input = block.querySelector(`input[name="content[${idx}][title]"]`);
+        const input = block.querySelector(`input[name="content[${idx}][title]"], textarea[name="content[${idx}][title]"]`);
         return !!(input && input.value.trim() !== "");
       }
 
@@ -1212,7 +1212,7 @@ export function designDraftManager() {
       }
 
       case "campaign": {
-        const titleInput = block.querySelector(`input[name="content[${idx}][title]"]`);
+        const titleInput = block.querySelector(`input[name="content[${idx}][title]"], textarea[name="content[${idx}][title]"]`);
         return !!(titleInput && titleInput.value.trim() !== "");
       }
 
@@ -1236,7 +1236,7 @@ export function designDraftManager() {
         const subProds = block.querySelectorAll(".sub-product-item");
         let validCount = 0;
         subProds.forEach((sub) => {
-          const title = sub.querySelector('input[name*="[title]"]')?.value || "";
+          const title = sub.querySelector('input[name*="[title]"], textarea[name*="[title]"]')?.value || "";
           const url = sub.querySelector('input[name*="[url]"]')?.value || "";
           if (title.trim() !== "" && url.trim() !== "") {
             validCount++;
@@ -1253,7 +1253,7 @@ export function designDraftManager() {
       case "product":
       case "link":
       default: {
-        const titleInput = block.querySelector(`input[name="content[${idx}][title]"]`);
+        const titleInput = block.querySelector(`input[name="content[${idx}][title]"], textarea[name="content[${idx}][title]"]`);
         const urlInput = block.querySelector(`input[name="content[${idx}][url]"]`);
         const hasTitle = !!(titleInput && titleInput.value.trim() !== "");
         const hasUrl = !!(urlInput && urlInput.value.trim() !== "");
@@ -2734,7 +2734,7 @@ export function designDraftManager() {
 
               if (blkChanged) {
                 if (editorItem) {
-                  const titleInp = editorItem.querySelector(`input[name^="content["][name$="[title]"]`);
+                  const titleInp = editorItem.querySelector(`input[name^="content["][name$="[title]"], textarea[name^="content["][name$="[title]"]`);
                   if (titleInp && !titleInp.value && localBlk.title) titleInp.value = localBlk.title;
                   const metaT = editorItem.querySelector(`input[name^="content["][name$="[metaTitle]"]`);
                   if (metaT) metaT.value = localBlk.metaTitle || "";

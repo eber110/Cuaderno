@@ -93,7 +93,22 @@
           <input type="hidden" name="rrss[<?= $i?>][0]" value="<?= e($socialName) ?>">
 
           <!-- Input para la URL -->
-          <input type="text" name="rrss[<?= $i?>][1]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($socialUrl) ?>" placeholder="URL (ej: https://...)">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+            <?= uiInput('textInput', [
+              'triggerText' => 'texto',
+              'fontSize' => 18,
+              'placeholderSize' => 18,
+              'secondaryFontSize' => 14,
+              'value' => $socialUrl,
+              'autoSubmit' => true,
+              'name' => "rrss[{$i}][1]",
+              'placeholder' => 'URL (ej: https://...)',
+              'triggerBg' => 'textw',
+              'secondaryText' => 'text-inactive',
+              'placeholderColor' => 'text-inactive',
+              'borderWidth' => 0,
+            ]) ?>
+          </div>
         </div>
       <?php endfor; ?>
     </div>
@@ -141,7 +156,22 @@
     </div>
 
     <input type="hidden" name="rrss[{{INDEX}}][0]" value="{{RRSS_NAME}}">
-    <input type="text" name="rrss[{{INDEX}}][1]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="" placeholder="URL (ej: https://...)">
+    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+      <?= uiInput('textInput', [
+        'triggerText' => 'texto',
+        'fontSize' => 18,
+        'placeholderSize' => 18,
+        'secondaryFontSize' => 14,
+        'value' => '',
+        'autoSubmit' => true,
+        'name' => 'rrss[{{INDEX}}][1]',
+        'placeholder' => 'URL (ej: https://...)',
+        'triggerBg' => 'textw',
+        'secondaryText' => 'text-inactive',
+        'placeholderColor' => 'text-inactive',
+        'borderWidth' => 0,
+      ]) ?>
+    </div>
   </div>
 </template>
 

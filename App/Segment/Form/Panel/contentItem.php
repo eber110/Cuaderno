@@ -246,7 +246,24 @@
               </span>
 
               <!-- Título del grupo (opcional) -->
-              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título del grupo (opcional, ej: Mi Colección)">
+              <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                <?= uiInput('textLimiter', [
+                  'triggerText' => 'texto',
+                  'fontSize' => 18,
+                  'placeholderSize' => 18,
+                  'secondaryFontSize' => 14,
+                  'value' => $itemTitle,
+                  'rows' => 1,
+                  'autoSubmit' => true,
+                  'name' => "content[{$i}][title]",
+                  'placeholder' => 'Título del grupo (opcional, ej: Mi Colección)',
+                  'class' => 'content-title-input',
+                  'triggerBg' => 'textw',
+                  'secondaryText' => 'text-inactive',
+                  'placeholderColor' => 'text-inactive',
+                  'borderWidth' => 0,
+                ]) ?>
+              </div>
 
               <!-- Lista de Sub-productos (Mínimo 2, Máximo 8) -->
               <div class="sub-products-container flex-column gap15 w100 mt5">
@@ -318,24 +335,90 @@
                         </div>
                       </div>
                       <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
-                        <input
-                          type="file"
-                          name="content_img_<?= $i ?>_<?= $pIdx ?>"
-                          accept="image/*"
-                          class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
-                          placeholder="Subir imagen"
-                          cropping-size="500x500"
-                          crop-shape="square"
-                          style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
+                        <?= uiInput('cropImage', [
+                          'triggerBg' => 'textw',
+                          'placeholderSize' => 18,
+                          'placeholderColor' => 'texto',
+                          'borderWidth' => 0,
+                          'radius' => 15,
+                          'fontSize' => 18,
+                          'boxPadding' => 15,
+                          'trackBg' => 'textw',
+                          'surfaceBg' => 'body',
+                          'btnPrimaryText' => 'textc',
+                          'btnPrimaryBg' => 'back4',
+                          'btnSecondaryBg' => 'back9',
+                          'btnSecondaryText' => 'textw',
+                          'thumbBg' => 'back4',
+                          'accentText' => 'back4',
+                          'accentColor' => 'back5',
+                          'name' => "content_img_{$i}_{$pIdx}",
+                          'placeholder' => 'Subir imagen',
+                          'croppingSize' => '500x500',
+                          'cropShape' => 'square',
+                          'noPreview' => true,
+                          'class' => 'm0',
+                          'autoSubmit' => true,
+                        ]) ?>
                       </div>
                     </div>
 
                     <!-- Campos de título y URL -->
-                    <input type="text" name="content[<?= $i?>][products][<?= $pIdx?>][title]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($pTitle) ?>" placeholder="Nombre del producto">
-                    <input type="text" name="content[<?= $i?>][products][<?= $pIdx?>][url]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($pUrl) ?>" placeholder="URL del producto (ej: https://...)">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textLimiter', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'value' => $pTitle,
+                        'rows' => 1,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][products][{$pIdx}][title]",
+                        'placeholder' => 'Nombre del producto',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'value' => $pUrl,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][products][{$pIdx}][url]",
+                        'placeholder' => 'URL del producto (ej: https://...)',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
 
                     <!-- Campo Precio -->
-                    <input type="number" step="any" min="0" name="content[<?= $i?>][products][<?= $pIdx?>][price]" class="product-price-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($pPrice) ?>" placeholder="Precio">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'inputType' => 'number',
+                        'step' => 'any',
+                        'min' => '0',
+                        'value' => $pPrice,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][products][{$pIdx}][price]",
+                        'placeholder' => 'Precio',
+                        'class' => 'product-price-input',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
 
                     <!-- Switch Rebaja -->
                     <div class="flex-row center-between w100 p8 br10 back-card-graphic shadow-card-graphic">
@@ -350,11 +433,50 @@
                     <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $pOffer ? '' : 'hidden' ?>" style="display: <?= $pOffer ? 'flex' : 'none !important' ?>;">
                       <div class="flex-column gap5 w50 w-sml-100">
                         <p class="x11 bold500 texto">Precio rebajado</p>
-                        <input type="number" step="any" min="0" name="content[<?= $i?>][products][<?= $pIdx?>][discount]" class="product-discount-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($pDiscount) ?>" placeholder="Precio rebajado">
+                        <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                          <?= uiInput('textInput', [
+                            'triggerText' => 'texto',
+                            'fontSize' => 18,
+                            'placeholderSize' => 18,
+                            'secondaryFontSize' => 14,
+                            'inputType' => 'number',
+                            'step' => 'any',
+                            'min' => '0',
+                            'value' => $pDiscount,
+                            'autoSubmit' => true,
+                            'name' => "content[{$i}][products][{$pIdx}][discount]",
+                            'placeholder' => 'Precio rebajado',
+                            'class' => 'product-discount-input',
+                            'triggerBg' => 'textw',
+                            'secondaryText' => 'text-inactive',
+                            'placeholderColor' => 'text-inactive',
+                            'borderWidth' => 0,
+                          ]) ?>
+                        </div>
                       </div>
                       <div class="flex-column gap5 w50 w-sml-100">
                         <p class="x11 bold500 texto">% Descuento</p>
-                        <input type="number" step="1" min="0" max="100" name="content[<?= $i?>][products][<?= $pIdx?>][porcentage]" class="product-porcentage-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= (int)$pPorcentage ?>" placeholder="% Descuento">
+                        <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                          <?= uiInput('textInput', [
+                            'triggerText' => 'texto',
+                            'fontSize' => 18,
+                            'placeholderSize' => 18,
+                            'secondaryFontSize' => 14,
+                            'inputType' => 'number',
+                            'step' => '1',
+                            'min' => '0',
+                            'max' => '100',
+                            'value' => (string)(int)$pPorcentage,
+                            'autoSubmit' => true,
+                            'name' => "content[{$i}][products][{$pIdx}][porcentage]",
+                            'placeholder' => '% Descuento',
+                            'class' => 'product-porcentage-input',
+                            'triggerBg' => 'textw',
+                            'secondaryText' => 'text-inactive',
+                            'placeholderColor' => 'text-inactive',
+                            'borderWidth' => 0,
+                          ]) ?>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -445,15 +567,31 @@
                   </div>
                 </div>
                 <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input
-                    type="file"
-                    name="content_img_<?= $i ?>"
-                    accept="image/*"
-                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
-                    placeholder="Subir imagen"
-                    cropping-size="500x500"
-                    crop-shape="square"
-                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
+                  <?= uiInput('cropImage', [
+                    'triggerBg' => 'textw',
+                    'placeholderSize' => 18,
+                    'placeholderColor' => 'texto',
+                    'borderWidth' => 0,
+                    'radius' => 15,
+                    'fontSize' => 18,
+                    'boxPadding' => 15,
+                    'trackBg' => 'textw',
+                    'surfaceBg' => 'body',
+                    'btnPrimaryText' => 'textc',
+                    'btnPrimaryBg' => 'back4',
+                    'btnSecondaryBg' => 'back9',
+                    'btnSecondaryText' => 'textw',
+                    'thumbBg' => 'back4',
+                    'accentText' => 'back4',
+                    'accentColor' => 'back5',
+                    'name' => "content_img_{$i}",
+                    'placeholder' => 'Subir imagen',
+                    'croppingSize' => '500x500',
+                    'cropShape' => 'square',
+                    'noPreview' => true,
+                    'class' => 'm0',
+                    'autoSubmit' => true,
+                  ]) ?>
                 </div>
               </div>
 
@@ -461,19 +599,67 @@
               <!-- Título de la campaña -->
               <div class="flex-column gap5 w100">
                 <p class="x12 bold500 texto">Título de la campaña</p>
-                <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título para la campaña (ej: Suscríbete a mi newsletter)">
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <?= uiInput('textLimiter', [
+                    'triggerText' => 'texto',
+                    'fontSize' => 18,
+                    'placeholderSize' => 18,
+                    'secondaryFontSize' => 14,
+                    'value' => $itemTitle,
+                    'rows' => 1,
+                    'autoSubmit' => true,
+                    'name' => "content[{$i}][title]",
+                    'placeholder' => 'Título para la campaña (ej: Suscríbete a mi newsletter)',
+                    'class' => 'content-title-input',
+                    'triggerBg' => 'textw',
+                    'secondaryText' => 'text-inactive',
+                    'placeholderColor' => 'text-inactive',
+                    'borderWidth' => 0,
+                  ]) ?>
+                </div>
               </div>
 
               <!-- Textarea para la descripción -->
               <div class="flex-column gap5 w100">
                 <p class="x12 bold500 texto">Descripción</p>
-                <textarea name="content[<?= $i?>][desc]" rows="3" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Descripción de la campaña..." style="resize: vertical;"><?= e($itemDesc) ?></textarea>
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <?= uiInput('textLimiter', [
+                    'triggerText' => 'texto',
+                    'fontSize' => 18,
+                    'placeholderSize' => 18,
+                    'secondaryFontSize' => 14,
+                    'value' => $itemDesc,
+                    'rows' => 3,
+                    'autoSubmit' => true,
+                    'triggerBg' => 'textw',
+                    'secondaryText' => 'text-inactive',
+                    'placeholderColor' => 'text-inactive',
+                    'name' => "content[{$i}][desc]",
+                    'placeholder' => 'Descripción de la campaña...',
+                    'borderWidth' => 0,
+                  ]) ?>
+                </div>
               </div>
 
               <!-- Texto del botón de suscripción -->
               <div class="flex-column gap5 w100">
                 <p class="x12 bold500 texto">Texto del botón</p>
-                <input type="text" name="content[<?= $i?>][button_text]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemButtonText) ?>" placeholder="Texto del botón (ej: Suscribirme)">
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <?= uiInput('textInput', [
+                    'triggerText' => 'texto',
+                    'fontSize' => 18,
+                    'placeholderSize' => 18,
+                    'secondaryFontSize' => 14,
+                    'value' => $itemButtonText,
+                    'autoSubmit' => true,
+                    'name' => "content[{$i}][button_text]",
+                    'placeholder' => 'Texto del botón (ej: Suscribirme)',
+                    'triggerBg' => 'textw',
+                    'secondaryText' => 'text-inactive',
+                    'placeholderColor' => 'text-inactive',
+                    'borderWidth' => 0,
+                  ]) ?>
+                </div>
               </div>
 
               <!-- 4. Card con toda la disposición del texto -->
@@ -690,7 +876,23 @@
                 <!-- Correo electrónico (siempre obligatorio) -->
                 <div class="flex-column gap5 w100">
                   <span class="x12 bold500 texto flex-row center-start gap5"><?= svg("email", "x14") ?> Correo electrónico (Obligatorio)</span>
-                  <input type="email" name="content[<?= $i?>][email]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemEmail) ?>" placeholder="Correo electrónico de destino / campaña">
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                    <?= uiInput('textInput', [
+                      'triggerText' => 'texto',
+                      'fontSize' => 18,
+                      'placeholderSize' => 18,
+                      'secondaryFontSize' => 14,
+                      'inputType' => 'email',
+                      'value' => $itemEmail,
+                      'autoSubmit' => true,
+                      'name' => "content[{$i}][email]",
+                      'placeholder' => 'Correo electrónico de destino / campaña',
+                      'triggerBg' => 'textw',
+                      'secondaryText' => 'text-inactive',
+                      'placeholderColor' => 'text-inactive',
+                      'borderWidth' => 0,
+                    ]) ?>
+                  </div>
                 </div>
 
                 <!-- Control para solicitar Nombre (opcional) -->
@@ -703,7 +905,22 @@
                     <input type="checkbox" id="ask-name-switch-<?= $i?>" name="content[<?= $i?>][ask_name]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-name-field-<?= $i?>" active="<?= $askName ? '1' : '2' ?>" <?= $askName ? 'checked' : '' ?>>
                   </div>
                   <div id="campaign-name-field-<?= $i?>" class="flex-column gap5 w100 <?= $askName ? '' : 'hidden' ?>" style="<?= $askName ? 'display: flex;' : 'display: none !important;' ?>">
-                    <input type="text" name="content[<?= $i?>][name]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemName) ?>" placeholder="Nombre o remitente de la campaña (opcional)">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'value' => $itemName,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][name]",
+                        'placeholder' => 'Nombre o remitente de la campaña (opcional)',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
                   </div>
                 </div>
 
@@ -717,7 +934,23 @@
                     <input type="checkbox" id="ask-whatsapp-switch-<?= $i?>" name="content[<?= $i?>][ask_whatsapp]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-whatsapp-field-<?= $i?>" active="<?= $askWhatsapp ? '1' : '2' ?>" <?= $askWhatsapp ? 'checked' : '' ?>>
                   </div>
                   <div id="campaign-whatsapp-field-<?= $i?>" class="flex-column gap5 w100 <?= $askWhatsapp ? '' : 'hidden' ?>" style="<?= $askWhatsapp ? 'display: flex;' : 'display: none !important;' ?>">
-                    <input type="tel" name="content[<?= $i?>][whatsapp]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p8 texto w100 x13" value="<?= e($itemWhatsapp) ?>" placeholder="Número de WhatsApp de contacto (opcional, ej: +54911...)">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'inputType' => 'tel',
+                        'value' => $itemWhatsapp,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][whatsapp]",
+                        'placeholder' => 'Número de WhatsApp de contacto (opcional, ej: +54911...)',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -738,7 +971,9 @@
                     <span class="x11 bold500 back-danger textc p2 px6 br10" title="El tiempo límite ha expirado. El bloque se encuentra oculto públicamente.">Tiempo límite alcanzado (Oculto)</span>
                   <?php endif; ?>
                 </div>
-                <input type="datetime-local" name="content[<?= $i?>][countdown_date]" class="back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100 x13" value="<?= e($itemCountdownDate) ?>">
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <input type="datetime-local" name="content[<?= $i?>][countdown_date]" class="texto w100 x18" style="border: none; background: transparent; outline: none;" value="<?= e($itemCountdownDate) ?>">
+                </div>
 
                 <!-- Selector de Tamaño del Texto del Contador (Pequeño / Mediano / Grande) -->
                 <div class="flex-column gap8 w100 mt5">
@@ -895,17 +1130,33 @@
                     </div>
                   </div>
                   <div id="banner-crop-btn-wrap-<?= $i ?>" class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft banner-crop-btn-wrapper <?= !$hasSize ? 'opacity-40 pointer-events-none' : '' ?>">
-                    <input
-                      type="file"
-                      id="content_img_banner_<?= $i ?>"
-                      name="content_img_<?= $i ?>"
-                      accept="image/*"
-                      class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit banner-crop-input"
-                      placeholder="Subir imagen"
-                      cropping-size="<?= e($hasSize ? $itemSize : '720x1024') ?>"
-                      crop-shape="square"
-                      style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;"
-                      <?= !$hasSize ? 'disabled' : '' ?>>
+                    <?= uiInput('cropImage', [
+                      'triggerBg' => 'textw',
+                      'placeholderSize' => 18,
+                      'placeholderColor' => 'texto',
+                      'borderWidth' => 0,
+                      'radius' => 15,
+                      'fontSize' => 18,
+                      'boxPadding' => 15,
+                      'trackBg' => 'textw',
+                      'surfaceBg' => 'body',
+                      'btnPrimaryText' => 'textc',
+                      'btnPrimaryBg' => 'back4',
+                      'btnSecondaryBg' => 'back9',
+                      'btnSecondaryText' => 'textw',
+                      'thumbBg' => 'back4',
+                      'accentText' => 'back4',
+                      'accentColor' => 'back5',
+                      'id' => "content_img_banner_{$i}",
+                      'name' => "content_img_{$i}",
+                      'placeholder' => 'Subir imagen',
+                      'croppingSize' => $hasSize ? $itemSize : '720x1024',
+                      'cropShape' => 'square',
+                      'noPreview' => true,
+                      'class' => 'm0 banner-crop-input',
+                      'autoSubmit' => true,
+                      'disabled' => !$hasSize,
+                    ]) ?>
                   </div>
                 </div>
               </div>
@@ -947,7 +1198,23 @@
               <!-- Entrada de enlace -->
               <div class="flex-column gap5 w100">
                 <p class="x13 bold600 texto">Enlace del banner</p>
-                <input type="text" name="content[<?= $i?>][url]" class="content-url-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="URL de destino (ej: https://...)">
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <?= uiInput('textInput', [
+                    'triggerText' => 'texto',
+                    'fontSize' => 18,
+                    'placeholderSize' => 18,
+                    'secondaryFontSize' => 14,
+                    'value' => $itemUrl,
+                    'autoSubmit' => true,
+                    'name' => "content[{$i}][url]",
+                    'placeholder' => 'URL de destino (ej: https://...)',
+                    'class' => 'content-url-input',
+                    'triggerBg' => 'textw',
+                    'secondaryText' => 'text-inactive',
+                    'placeholderColor' => 'text-inactive',
+                    'borderWidth' => 0,
+                  ]) ?>
+                </div>
               </div>
 
             <?php elseif ($itemType === 'title') : ?>
@@ -956,7 +1223,24 @@
                 <!-- Campo de texto del título -->
                 <div class="flex-column gap5 w100">
                   <p class="x12 bold500 texto">Texto del título</p>
-                  <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Escribe el texto del título...">
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                    <?= uiInput('textLimiter', [
+                      'triggerText' => 'texto',
+                      'fontSize' => 18,
+                      'placeholderSize' => 18,
+                      'secondaryFontSize' => 14,
+                      'value' => $itemTitle,
+                      'rows' => 1,
+                      'autoSubmit' => true,
+                      'name' => "content[{$i}][title]",
+                      'placeholder' => 'Escribe el texto del título...',
+                      'class' => 'content-title-input',
+                      'triggerBg' => 'textw',
+                      'secondaryText' => 'text-inactive',
+                      'placeholderColor' => 'text-inactive',
+                      'borderWidth' => 0,
+                    ]) ?>
+                  </div>
                 </div>
 
                 <!-- Selector de Tamaño del Título (Pequeño 18px, Mediano 20px, Grande 24px) -->
@@ -1019,7 +1303,24 @@
                 <!-- Textarea para el texto -->
                 <div class="flex-column gap5 w100">
                   <p class="x12 bold500 texto">Contenido del texto</p>
-                  <textarea name="content[<?= $i?>][text]" rows="4" class="content-text-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" placeholder="Escribe tu texto aquí..." style="resize: vertical; font-family: inherit;"><?= e($itemText) ?></textarea>
+                  <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                    <?= uiInput('textLimiter', [
+                      'triggerText' => 'texto',
+                      'fontSize' => 18,
+                      'placeholderSize' => 18,
+                      'secondaryFontSize' => 14,
+                      'value' => $itemText,
+                      'rows' => 4,
+                      'autoSubmit' => true,
+                      'triggerBg' => 'textw',
+                      'secondaryText' => 'text-inactive',
+                      'placeholderColor' => 'text-inactive',
+                      'name' => "content[{$i}][text]",
+                      'placeholder' => 'Escribe tu texto aquí...',
+                      'class' => 'content-text-input',
+                      'borderWidth' => 0,
+                    ]) ?>
+                  </div>
                 </div>
 
                 <!-- Selector de Grosor / Bold (400 por defecto, 500) -->
@@ -1200,23 +1501,72 @@
                   </div>
                 </div>
                 <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input
-                    type="file"
-                    name="content_img_<?= $i ?>"
-                    accept="image/*"
-                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
-                    placeholder="Subir imagen"
-                    cropping-size="1280x720"
-                    crop-shape="square"
-                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
+                  <?= uiInput('cropImage', [
+                    'triggerBg' => 'textw',
+                    'placeholderSize' => 18,
+                    'placeholderColor' => 'texto',
+                    'borderWidth' => 0,
+                    'radius' => 15,
+                    'fontSize' => 18,
+                    'boxPadding' => 15,
+                    'trackBg' => 'textw',
+                    'surfaceBg' => 'body',
+                    'btnPrimaryText' => 'textc',
+                    'btnPrimaryBg' => 'back4',
+                    'btnSecondaryBg' => 'back9',
+                    'btnSecondaryText' => 'textw',
+                    'thumbBg' => 'back4',
+                    'accentText' => 'back4',
+                    'accentColor' => 'back5',
+                    'name' => "content_img_{$i}",
+                    'placeholder' => 'Subir imagen',
+                    'croppingSize' => '1280x720',
+                    'cropShape' => 'square',
+                    'noPreview' => true,
+                    'class' => 'm0',
+                    'autoSubmit' => true,
+                  ]) ?>
                 </div>
               </div>
 
               <!-- Título o descripción del video -->
-              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="Título o descripción del video">
+              <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                <?= uiInput('textLimiter', [
+                  'triggerText' => 'texto',
+                  'fontSize' => 18,
+                  'placeholderSize' => 18,
+                  'secondaryFontSize' => 14,
+                  'value' => $itemTitle,
+                  'rows' => 1,
+                  'autoSubmit' => true,
+                  'name' => "content[{$i}][title]",
+                  'placeholder' => 'Título o descripción del video',
+                  'class' => 'content-title-input',
+                  'triggerBg' => 'textw',
+                  'secondaryText' => 'text-inactive',
+                  'placeholderColor' => 'text-inactive',
+                  'borderWidth' => 0,
+                ]) ?>
+              </div>
 
               <!-- URL del video -->
-              <input type="text" name="content[<?= $i?>][url]" class="content-url-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="URL del video (ej: https://www.youtube.com/watch?v=...)">
+              <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                <?= uiInput('textInput', [
+                  'triggerText' => 'texto',
+                  'fontSize' => 18,
+                  'placeholderSize' => 18,
+                  'secondaryFontSize' => 14,
+                  'value' => $itemUrl,
+                  'autoSubmit' => true,
+                  'name' => "content[{$i}][url]",
+                  'placeholder' => 'URL del video (ej: https://www.youtube.com/watch?v=...)',
+                  'class' => 'content-url-input',
+                  'triggerBg' => 'textw',
+                  'secondaryText' => 'text-inactive',
+                  'placeholderColor' => 'text-inactive',
+                  'borderWidth' => 0,
+                ]) ?>
+              </div>
 
             <?php else : ?>
               <!-- Imagen enlace / producto individual -->
@@ -1250,24 +1600,92 @@
                   </div>
                 </div>
                 <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
-                  <input
-                    type="file"
-                    name="content_img_<?= $i ?>"
-                    accept="image/*"
-                    class="selectAndCropImage ui-input-component m0 no-preview process-auto-submit"
-                    placeholder="Subir imagen"
-                    cropping-size="500x500"
-                    crop-shape="square"
-                    style="--ui-trigger-bg: #FFFFFF; --ui-trigger-text: var(--text-primary, #111827); --ui-trigger-border: var(--text-secondary, #f8fafc); --ui-surface-bg: #FFFFFF; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--text-inactive, #9ca3af); --ui-surface-border: var(--text-secondary, #f8fafc); --ui-surface-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); --ui-btn-primary-bg: var(--back-color4, #d3d3d3); --ui-btn-primary-text: #ffffff; --ui-btn-secondary-bg: var(--text-primary, #111827); --ui-btn-secondary-text: #ffffff; --ui-accent: #CCC7AD; --ui-accent-text: #000000; --ui-track-bg: var(--back-color5, #d3d3d3); --ui-radius: 15px; --ui-touch-size: 44px; --ui-font-size: 18px; --ui-overlay-blur: 0px; --ui-transition: 250ms;">
+                  <?= uiInput('cropImage', [
+                    'triggerBg' => 'textw',
+                    'placeholderSize' => 18,
+                    'placeholderColor' => 'texto',
+                    'borderWidth' => 0,
+                    'radius' => 15,
+                    'fontSize' => 18,
+                    'boxPadding' => 15,
+                    'trackBg' => 'textw',
+                    'surfaceBg' => 'body',
+                    'btnPrimaryText' => 'textc',
+                    'btnPrimaryBg' => 'back4',
+                    'btnSecondaryBg' => 'back9',
+                    'btnSecondaryText' => 'textw',
+                    'thumbBg' => 'back4',
+                    'accentText' => 'back4',
+                    'accentColor' => 'back5',
+                    'name' => "content_img_{$i}",
+                    'placeholder' => 'Subir imagen',
+                    'croppingSize' => '500x500',
+                    'cropShape' => 'square',
+                    'noPreview' => true,
+                    'class' => 'm0',
+                    'autoSubmit' => true,
+                  ]) ?>
                 </div>
               </div>
 
-              <input type="text" name="content[<?= $i?>][title]" class="content-title-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemTitle) ?>" placeholder="<?= ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace' ?>">
-              <input type="text" name="content[<?= $i?>][url]" class="content-url-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto" value="<?= e($itemUrl) ?>" placeholder="<?= ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)' ?>">
+              <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                <?= uiInput('textLimiter', [
+                  'triggerText' => 'texto',
+                  'fontSize' => 18,
+                  'placeholderSize' => 18,
+                  'secondaryFontSize' => 14,
+                  'value' => $itemTitle,
+                  'rows' => 1,
+                  'autoSubmit' => true,
+                  'name' => "content[{$i}][title]",
+                  'placeholder' => ($itemType === 'product') ? 'Nombre del producto' : 'Título del enlace',
+                  'class' => 'content-title-input',
+                  'triggerBg' => 'textw',
+                  'secondaryText' => 'text-inactive',
+                  'placeholderColor' => 'text-inactive',
+                  'borderWidth' => 0,
+                ]) ?>
+              </div>
+              <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                <?= uiInput('textInput', [
+                  'triggerText' => 'texto',
+                  'fontSize' => 18,
+                  'placeholderSize' => 18,
+                  'secondaryFontSize' => 14,
+                  'value' => $itemUrl,
+                  'autoSubmit' => true,
+                  'name' => "content[{$i}][url]",
+                  'placeholder' => ($itemType === 'product') ? 'Detalle o URL del producto' : 'URL (ej: https://...)',
+                  'class' => 'content-url-input',
+                  'triggerBg' => 'textw',
+                  'secondaryText' => 'text-inactive',
+                  'placeholderColor' => 'text-inactive',
+                  'borderWidth' => 0,
+                ]) ?>
+              </div>
 
               <?php if ($itemType === 'product') : ?>
                 <!-- Campo Precio -->
-                <input type="number" step="any" min="0" name="content[<?= $i?>][price]" class="product-price-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemPrice) ?>" placeholder="Precio">
+                <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                  <?= uiInput('textInput', [
+                    'triggerText' => 'texto',
+                    'fontSize' => 18,
+                    'placeholderSize' => 18,
+                    'secondaryFontSize' => 14,
+                    'inputType' => 'number',
+                    'step' => 'any',
+                    'min' => '0',
+                    'value' => $itemPrice,
+                    'autoSubmit' => true,
+                    'name' => "content[{$i}][price]",
+                    'placeholder' => 'Precio',
+                    'class' => 'product-price-input',
+                    'triggerBg' => 'textw',
+                    'secondaryText' => 'text-inactive',
+                    'placeholderColor' => 'text-inactive',
+                    'borderWidth' => 0,
+                  ]) ?>
+                </div>
 
                 <!-- Switch de Rebaja -->
                 <div class="flex-row center-between w100 p10 br10 back-card-graphic shadow-card-graphic">
@@ -1282,11 +1700,50 @@
                 <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $itemOffer ? '' : 'hidden' ?>" style="display: <?= $itemOffer ? 'flex' : 'none !important' ?>;">
                   <div class="flex-column gap5 w50 w-sml-100">
                     <p class="x12 bold500 texto">Precio rebajado</p>
-                    <input type="number" step="any" min="0" name="content[<?= $i?>][discount]" class="product-discount-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= e($itemDiscount) ?>" placeholder="Precio rebajado">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'inputType' => 'number',
+                        'step' => 'any',
+                        'min' => '0',
+                        'value' => $itemDiscount,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][discount]",
+                        'placeholder' => 'Precio rebajado',
+                        'class' => 'product-discount-input',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
                   </div>
                   <div class="flex-column gap5 w50 w-sml-100">
                     <p class="x12 bold500 texto">% Descuento</p>
-                    <input type="number" step="1" min="0" max="100" name="content[<?= $i?>][porcentage]" class="product-porcentage-input back-card-graphic shadow-card-graphic hover-scale-soft br10 p10 texto w100" value="<?= (int)$itemPorcentage ?>" placeholder="% Descuento">
+                    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+                      <?= uiInput('textInput', [
+                        'triggerText' => 'texto',
+                        'fontSize' => 18,
+                        'placeholderSize' => 18,
+                        'secondaryFontSize' => 14,
+                        'inputType' => 'number',
+                        'step' => '1',
+                        'min' => '0',
+                        'max' => '100',
+                        'value' => (string)(int)$itemPorcentage,
+                        'autoSubmit' => true,
+                        'name' => "content[{$i}][porcentage]",
+                        'placeholder' => '% Descuento',
+                        'class' => 'product-porcentage-input',
+                        'triggerBg' => 'textw',
+                        'secondaryText' => 'text-inactive',
+                        'placeholderColor' => 'text-inactive',
+                        'borderWidth' => 0,
+                      ]) ?>
+                    </div>
                   </div>
                 </div>
               <?php endif; ?>
