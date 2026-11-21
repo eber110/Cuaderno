@@ -52,19 +52,19 @@
         }
       ?>
         <div id="rrss-item-<?= $i?>" data-rrss-name="<?= e($socialName) ?>" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15" draggable="false">
-          <div class="flex-row center-between">
-            <div class="flex-row center-start gap10 pointer drag-handle">
-              <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-              <div class="flex-row center-start gap8 bold500 item-title-label capitalize texto">
+          <div class="flex-row center-between gap10 w100">
+            <div class="flex-row center-start gap10 pointer drag-handle flex-1" style="min-width: 0; overflow: hidden;">
+              <span class="drag-icon text-muted pointer flex-shrink-0" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
+              <div class="flex-row center-start gap8 bold500 item-title-label capitalize texto" style="min-width: 0;">
                 <?= svg($socialName, "x20") ?>
-                <span><?= e(ucfirst($socialName)) ?></span>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?= e(ucfirst($socialName)) ?></span>
               </div>
             </div>
-            <div class="flex-row center-center gap10">
+            <div class="flex-row center-center gap10 no-drag-actions flex-shrink-0">
               <!-- Opción para eliminar red social -->
-              <div class="modal-btn tooltip left animated" data-tooltip="Eliminar enlace">
-                <p class="pointer flex-row center-center texto">
-                  Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
+              <div class="modal-btn tooltip left animated flex-shrink-0" data-tooltip="Eliminar enlace">
+                <p class="pointer flex-row center-center gap5 nowrap texto">
+                  <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 flex-shrink-0"><?= svg("xmark")?></span>
                 </p>
               </div>
 
@@ -121,18 +121,18 @@
 <!-- Plantillas Local-First para Redes Sociales -->
 <template id="tpl_rrss_item">
   <div id="rrss-item-{{INDEX}}" data-rrss-name="{{RRSS_NAME}}" data-index="{{INDEX}}" class="sortable-item link back-card-graphic shadow-card-graphic |hover-scale-soft flex-column gap10 w100 p20 br15" draggable="false">
-    <div class="flex-row center-between">
-      <div class="flex-row center-start gap10 pointer drag-handle">
-        <span class="drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
-        <div class="flex-row center-start gap8 bold500 item-title-label capitalize texto">
+    <div class="flex-row center-between gap10 w100">
+      <div class="flex-row center-start gap10 pointer drag-handle flex-1" style="min-width: 0; overflow: hidden;">
+        <span class="drag-icon text-muted pointer flex-shrink-0" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none;">&#x22EE;&#x22EE;</span>
+        <div class="flex-row center-start gap8 bold500 item-title-label capitalize texto" style="min-width: 0;">
           <span class="rrss-icon-slot flex-row center-center x20"></span>
-          <span>{{RRSS_LABEL}}</span>
+          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{RRSS_LABEL}}</span>
         </div>
       </div>
-      <div class="flex-row center-center gap10">
-        <div class="modal-btn tooltip left animated" data-tooltip="Eliminar enlace">
-          <p class="pointer flex-row center-center texto">
-            Eliminar <span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
+      <div class="flex-row center-center gap10 no-drag-actions flex-shrink-0">
+        <div class="modal-btn tooltip left animated flex-shrink-0" data-tooltip="Eliminar enlace">
+          <p class="pointer flex-row center-center gap5 nowrap texto">
+            <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 flex-shrink-0"><?= svg("xmark")?></span>
           </p>
         </div>
 

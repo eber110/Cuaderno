@@ -179,14 +179,14 @@
               </p>
             </div>
             
-            <div class="flex-row center-end gap15 gap-sml-10 no-drag-actions" style="flex-shrink: 0;">
+            <div class="flex-row center-end gap15 gap-sml-10 no-drag-actions flex-shrink-0">
               <!-- Switch para activar / desactivar enlace o grupo -->
               <input type="checkbox" name="content[<?= $i?>][active]" value="true" data-option="true,false" class="checkbox-switch" active="<?= $itemActive ? '1' : '2' ?>" <?= $itemActive ? 'checked' : '' ?> <?= $isEmpty ? 'disabled' : '' ?>>
               
               <!-- Opción para eliminar enlace o grupo -->
-              <div class="modal-btn tooltip left" data-tooltip="Borrar elemento">
-                <p class="pointer flex-row center-center texto">
-                  <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 ml5"><?= svg("xmark")?></span>
+              <div class="modal-btn tooltip left flex-shrink-0" data-tooltip="Borrar elemento">
+                <p class="pointer flex-row center-center gap5 nowrap texto">
+                  <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 flex-shrink-0"><?= svg("xmark")?></span>
                 </p>
               </div>
 
