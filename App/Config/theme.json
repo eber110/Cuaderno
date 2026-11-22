@@ -318,11 +318,14 @@
                         "borderWidth": 0,
                         "blur": 0,
                         "shadow": "soft",
-                        "surfaceBg": "body",
+                        "surfaceBg": "textw",
                         "btnPrimaryBorder": "transparent",
                         "btnPrimaryText": "#0F172A",
                         "surfaceMuted": "back1",
-                        "fontSize": 18
+                        "fontSize": 18,
+                        "triggerBg": "textw",
+                        "placeholderColor": "texto",
+                        "searchable": false
                     },
                     "repeatCamp": {
                         "placeholderColor": "back4",
