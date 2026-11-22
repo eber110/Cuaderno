@@ -190,6 +190,90 @@ class ConfigCompilerService
   }
 
   /**
+   * Sincroniza únicamente la sección pública de jsConfig y librerías activas
+   * dentro de App/Config/compiled.config.php si ya existe, sin tocar env,
+   * constants, secrets.vault.php ni vault.key.php.
+   *
+   * @param string|null $basePath Ruta raíz del proyecto.
+   * @return array<string, mixed>
+   */
+  public static function syncJsConfig(?string $basePath = null): array
+  {
+    $root = self::resolveBasePath($basePath);
+    $compiledPath = $root . '/' . ConfigVault::COMPILED_CONFIG_REL;
+
+    if (!is_file($compiledPath)) {
+      return [
+        'success' => true,
+        'exists' => false,
+        'updated' => false,
+      ];
+    }
+
+    if (!defined('ROOT_PATH')) {
+      define('ROOT_PATH', $root);
+    }
+
+    $existing = require $compiledPath;
+    if (!is_array($existing)) {
+      return [
+        'success' => false,
+        'exists' => true,
+        'updated' => false,
+        'message' => 'App/Config/compiled.config.php no tiene un formato válido.',
+      ];
+    }
+
+    $jsConfig = JsRegistryService::readJsConfig($root);
+    $newJsConfig = [
+      'priority' => $jsConfig['priority'],
+      'exclude' => $jsConfig['exclude'],
+      'functions' => $jsConfig['functions'],
+    ];
+    $newLibraries = JsRegistryService::readConfiguredLibraries($root);
+
+    $changed = ($existing['jsConfig'] ?? null) !== $newJsConfig
+      || ($existing['libraries'] ?? null) !== $newLibraries;
+
+    if (!$changed) {
+      return [
+        'success' => true,
+        'exists' => true,
+        'updated' => false,
+      ];
+    }
+
+    $existing['jsConfig'] = $newJsConfig;
+    $existing['libraries'] = $newLibraries;
+    $existing['generated_at'] = date('c');
+
+    $compiledPhp = "<?php\n\n"
+      . "if (!defined('ROOT_PATH')) {\n  exit;\n}\n\n"
+      . "/**\n * Configuración de producción compilada (cacheada por OPcache).\n * Generado automáticamente por Frame Studio / ConfigCompilerService.\n */\n"
+      . "return " . var_export($existing, true) . ";\n";
+
+    if (@file_put_contents($compiledPath, $compiledPhp, LOCK_EX) === false) {
+      return [
+        'success' => false,
+        'exists' => true,
+        'updated' => false,
+        'message' => 'No se pudo escribir App/Config/compiled.config.php.',
+      ];
+    }
+
+    if (function_exists('opcache_invalidate')) {
+      @opcache_invalidate($compiledPath, true);
+    }
+
+    return [
+      'success' => true,
+      'exists' => true,
+      'updated' => true,
+      'compiledPath' => ConfigVault::COMPILED_CONFIG_REL,
+    ];
+  }
+
+  /**
    * Devuelve el estado actual de los artefactos compilados en App/Config y App/Safety.
    *
    * @return array<string, mixed>

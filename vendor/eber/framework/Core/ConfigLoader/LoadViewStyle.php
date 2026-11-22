@@ -474,20 +474,28 @@ class LoadViewStyle
    */
   public function loadLibraries(?string $configFile = null): void
   {
+    $defaultLibConfig = ROOT_PATH . '/App/Config/loadLibraryJsConfiguration.php';
+
     if (
       $configFile === null
       && class_exists('\\Base\\Module\\Security\\ConfigVault')
       && \Base\Module\Security\ConfigVault::isBooted()
     ) {
-      $compiledLibs = \Base\Module\Security\ConfigVault::getCompiledSection('libraries');
-      if (is_array($compiledLibs)) {
-        $libraries = $compiledLibs;
-        goto resolve_libraries;
+      $compiledPath = ROOT_PATH . '/' . \Base\Module\Security\ConfigVault::COMPILED_CONFIG_REL;
+      $compiledMtime = is_file($compiledPath) ? (int)@filemtime($compiledPath) : 0;
+      $diskMtime = is_file($defaultLibConfig) ? (int)@filemtime($defaultLibConfig) : 0;
+
+      if (!is_file($defaultLibConfig) || $compiledMtime > $diskMtime) {
+        $compiledLibs = \Base\Module\Security\ConfigVault::getCompiledSection('libraries');
+        if (is_array($compiledLibs)) {
+          $libraries = $compiledLibs;
+          goto resolve_libraries;
+        }
       }
     }
 
     if ($configFile === null) {
-      $configFile = ROOT_PATH . '/App/Config/loadLibraryJsConfiguration.php';
+      $configFile = $defaultLibConfig;
     }
 
     if (!file_exists($configFile)) {
@@ -566,29 +574,62 @@ class LoadViewStyle
   }
 
   /**
+   * Normaliza e imprime la configuración pública de window.jsConfig en el HTML.
+   *
+   * @param array<string, mixed> $rawConfig
+   */
+  private function printPublicJsConfig(array $rawConfig): void
+  {
+    $functions = is_array($rawConfig['functions'] ?? null) ? $rawConfig['functions'] : [];
+    $deferRaw = is_array($functions['defer'] ?? null) ? $functions['defer'] : [];
+    $asyncRaw = is_array($functions['async'] ?? null) ? $functions['async'] : [];
+
+    $publicConfig = [
+      'priority' => array_values((array)($rawConfig['priority'] ?? [])),
+      'exclude' => array_values((array)($rawConfig['exclude'] ?? [])),
+      'functions' => [
+        'defer' => empty($deferRaw) ? (object)[] : $deferRaw,
+        'async' => empty($asyncRaw) ? (object)[] : $asyncRaw,
+      ],
+    ];
+
+    print "<script>\n";
+    print "window.jsConfig = " . json_encode($publicConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ";\n";
+    print "</script>\n";
+  }
+
+  /**
    * Carga e incrusta la configuración JSON unificada directamente en el HTML
    */
   public function inlineJsConfig(?string $configFile = null)
   {
+    $defaultJsConfigPath = str_replace('\\', '/', ROOT_PATH) . '/jsConfig.json';
+    $normalizedTarget = $configFile !== null ? str_replace('\\', '/', (string)$configFile) : '';
+    $isDefaultTarget = ($configFile === null || $configFile === 'jsConfig.json' || $normalizedTarget === $defaultJsConfigPath);
+
     if (
-      $configFile === null || $configFile === 'jsConfig.json'
+      $isDefaultTarget
+      && class_exists('\\Base\\Module\\Security\\ConfigVault')
+      && \Base\Module\Security\ConfigVault::isBooted()
     ) {
-      if (
-        class_exists('\\Base\\Module\\Security\\ConfigVault')
-        && \Base\Module\Security\ConfigVault::isBooted()
-      ) {
-        $compiledJs = \Base\Module\Security\ConfigVault::getCompiledSection('jsConfig');
-        if (is_array($compiledJs) && !empty($compiledJs)) {
-          $publicConfig = [
-            'priority' => $compiledJs['priority'] ?? [],
-            'exclude' => $compiledJs['exclude'] ?? [],
-            'functions' => $compiledJs['functions'] ?? ['defer' => [], 'async' => []],
-          ];
-          print "<script>\n";
-          print "window.jsConfig = " . json_encode($publicConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ";\n";
-          print "</script>\n";
-          return;
+      $compiledPath = ROOT_PATH . '/' . \Base\Module\Security\ConfigVault::COMPILED_CONFIG_REL;
+      $compiledMtime = is_file($compiledPath) ? (int)@filemtime($compiledPath) : 0;
+
+      if (is_file($defaultJsConfigPath)) {
+        $diskMtime = (int)@filemtime($defaultJsConfigPath);
+        if ($diskMtime >= $compiledMtime) {
+          $decodedDisk = json_decode((string)@file_get_contents($defaultJsConfigPath), true);
+          if (is_array($decodedDisk)) {
+            $this->printPublicJsConfig($decodedDisk);
+            return;
+          }
         }
+      }
+
+      $compiledJs = \Base\Module\Security\ConfigVault::getCompiledSection('jsConfig');
+      if (is_array($compiledJs) && !empty($compiledJs)) {
+        $this->printPublicJsConfig($compiledJs);
+        return;
       }
     }
 

@@ -78,9 +78,9 @@ class DeployPackage
     return false;
   }
 
-  public function __construct()
+  public function __construct(?string $basePath = null)
   {
-    $this->basePath = str_replace('\\', '/', getcwd());
+    $this->basePath = rtrim(str_replace('\\', '/', $basePath ?? (string)getcwd()), '/');
     $this->projectName = basename($this->basePath);
     $this->frameworkPath = str_replace('\\', '/', dirname(__DIR__, 2));
 
@@ -152,8 +152,11 @@ class DeployPackage
    *
    * @return array<int, string>
    */
-  private function getProductionExcludePaths(bool $includeConfig, bool $includeVaultKey): array
-  {
+  private function getProductionExcludePaths(
+    bool $includeConfig,
+    bool $includeVaultKey,
+    bool $includeCompiledConfig = false
+  ): array {
     $excludes = [
       'App/Public/Uploads',
       'App/Public/Css',
@@ -169,8 +172,10 @@ class DeployPackage
       'vendor/eber/framework/Resources/Img',
     ];
 
-    if (!$includeConfig) {
+    if (!$includeConfig && !$includeCompiledConfig) {
       $excludes[] = 'App/Config/compiled.config.php';
+    }
+    if (!$includeConfig) {
       $excludes[] = 'App/Config/secrets.vault.php';
     }
     if (!$includeVaultKey) {
@@ -210,12 +215,7 @@ class DeployPackage
 
     // 1. Compilar assets locales antes de empaquetar
     echo "🎨 Compilando assets JIT (min-script)...\n";
-    $minScript = file_exists($this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php')
-      ? $this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php'
-      : $this->frameworkPath . '/Base/ScriptComposer/MinJsCss.php';
-    if (file_exists($minScript)) {
-      @passthru(PHP_BINARY . ' ' . escapeshellarg($minScript));
-    }
+    $this->runMinScript();
 
     // 2. Asegurar existencia de deploy.php con token secreto
     $deployToken = $this->ensureDeployReceiverFile();
@@ -384,9 +384,11 @@ class DeployPackage
 
     // 2. Compilar assets locales
     echo "🎨 Compilando assets JIT (min-script)...\n";
-    @passthru('composer min-script');
+    $this->runMinScript();
 
-    // 3. Recompilar configuración y Vault si se solicitó --config o --rotate-key
+    // 3. Recompilar configuración y Vault si se solicitó --config o --rotate-key,
+    //    o sincronizar jsConfig y librerías en compiled.config.php si ya existe.
+    $includeCompiledConfig = false;
     if ($includeConfig && class_exists(\Base\Studio\Services\ConfigCompilerService::class)) {
       echo "🔐 Recompilando configuración de producción y Vault AEAD...\n";
       $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($this->basePath, null, $rotateKey);
@@ -394,47 +396,20 @@ class DeployPackage
         echo "❌ Error compilando configuración: " . ($compileRes['message'] ?? 'desconocido') . "\n";
         exit(1);
       }
+      $includeCompiledConfig = true;
       echo "   ✓ Vault actualizado ({$compileRes['cipher']})\n";
+    } else {
+      $includeCompiledConfig = $this->syncCompiledJsForDeploy(false);
     }
 
     // 4. Crear ZIP temporal de actualización
     $tempZip = sys_get_temp_dir() . '/frame_update_' . uniqid() . '.zip';
-    $zip = new ZipArchive();
-    if ($zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+    try {
+      $fileCount = $this->createUpdateZip($tempZip, $includeVendor, $includeConfig, $rotateKey, $includeCompiledConfig);
+    } catch (\RuntimeException $e) {
       echo "❌ Error al crear paquete temporal de despliegue.\n";
       exit(1);
     }
-
-    // Elementos a incluir en la actualización
-    $updateItems = [
-      'App',
-      'Bootstrap',
-      'index.php',
-      '.htaccess',
-      'providers.json',
-    ];
-
-    if ($includeVendor) {
-      $updateItems[] = 'vendor';
-    }
-
-    $excludes = $this->getProductionExcludePaths($includeConfig, $rotateKey);
-
-    $fileCount = 0;
-    foreach ($updateItems as $item) {
-      if (self::isExcludedStudioPath($item)) {
-        continue;
-      }
-      $fullPath = $this->basePath . '/' . $item;
-      if (is_dir($fullPath)) {
-        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes);
-      } elseif (is_file($fullPath)) {
-        $zip->addFile($fullPath, $item);
-        $fileCount++;
-      }
-    }
-
-    $zip->close();
 
     $zipKb = round(filesize($tempZip) / 1024, 2);
     echo "\n📦 Paquete ligero generado: {$zipKb} KB ({$fileCount} archivos).\n";
@@ -456,6 +431,107 @@ class DeployPackage
       echo "   " . ($response['error'] ?? 'Error desconocido') . "\n\n";
       exit(1);
     }
+  }
+
+  /**
+   * Ejecuta MinJsCss.php del proyecto (o framework) para compilar JIT y minificar CSS/JS.
+   */
+  private function runMinScript(): void
+  {
+    $minScript = file_exists($this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php')
+      ? $this->basePath . '/vendor/eber/framework/Base/ScriptComposer/MinJsCss.php'
+      : $this->frameworkPath . '/Base/ScriptComposer/MinJsCss.php';
+
+    if (file_exists($minScript)) {
+      @passthru(PHP_BINARY . ' ' . escapeshellarg($minScript));
+      return;
+    }
+
+    @passthru('composer min-script');
+  }
+
+  /**
+   * Sincroniza jsConfig.json y loadLibraryJsConfiguration.php dentro de compiled.config.php
+   * si el proyecto utiliza configuración compilada, para que los cambios de módulos JS suban
+   * en 'frame deploy' sin requerir --config.
+   *
+   * @param bool $includeConfig Si ya se recompiló la configuración completa con --config.
+   * @return bool True si compiled.config.php debe incluirse en el paquete de actualización.
+   */
+  public function syncCompiledJsForDeploy(bool $includeConfig = false): bool
+  {
+    if ($includeConfig) {
+      return true;
+    }
+
+    if (class_exists(\Base\Studio\Services\ConfigCompilerService::class)) {
+      $syncRes = \Base\Studio\Services\ConfigCompilerService::syncJsConfig($this->basePath);
+      if (!empty($syncRes['exists']) && !empty($syncRes['success'])) {
+        if (!empty($syncRes['updated'])) {
+          echo "🔄 Módulos JS y librerías sincronizados en App/Config/compiled.config.php\n";
+        }
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Genera el archivo ZIP temporal de actualización para 'frame deploy'.
+   *
+   * @param string $zipPath Ruta de salida del ZIP.
+   * @param bool $includeVendor Si se debe incluir vendor/.
+   * @param bool $includeConfig Si se incluyen secretos compilados (--config).
+   * @param bool $rotateKey Si se incluye App/Safety/vault.key.php (--rotate-key).
+   * @param bool $includeCompiledConfig Si se incluye App/Config/compiled.config.php (sincronización JS).
+   * @return int Cantidad de archivos agregados al ZIP.
+   * @throws \RuntimeException Si no se puede abrir o crear el archivo ZIP.
+   */
+  public function createUpdateZip(
+    string $zipPath,
+    bool $includeVendor = false,
+    bool $includeConfig = false,
+    bool $rotateKey = false,
+    bool $includeCompiledConfig = false
+  ): int {
+    $zip = new ZipArchive();
+    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+      throw new \RuntimeException("No se pudo crear el paquete ZIP en {$zipPath}");
+    }
+
+    $updateItems = [
+      'App',
+      'Bootstrap',
+      'index.php',
+      '.htaccess',
+      'providers.json',
+      'jsConfig.json',
+    ];
+
+    if ($includeVendor) {
+      $updateItems[] = 'vendor';
+    }
+
+    $excludes = $this->getProductionExcludePaths($includeConfig, $rotateKey, $includeCompiledConfig);
+
+    $fileCount = 0;
+    foreach ($updateItems as $item) {
+      if (self::isExcludedStudioPath($item)) {
+        continue;
+      }
+      $fullPath = $this->basePath . '/' . $item;
+      if (is_dir($fullPath)) {
+        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes);
+      } elseif (is_file($fullPath)) {
+        $zip->addFile($fullPath, $item);
+        $fileCount++;
+      }
+    }
+
+    $zip->close();
+
+    return $fileCount;
   }
 
   /**
@@ -1160,6 +1236,15 @@ if (!empty($allowedFiles)) {
 }
 $zip->close();
 @unlink($zipPath);
+
+// Invalidar OPcache de archivos PHP actualizados (compiled.config.php, configuraciones, controladores)
+if (function_exists('opcache_invalidate')) {
+  foreach ($allowedFiles as $extractedRel) {
+    if (str_ends_with(strtolower($extractedRel), '.php')) {
+      @opcache_invalidate(__DIR__ . '/' . $extractedRel, true);
+    }
+  }
+}
 
 // Limpiar directorios y archivos residuales de Frame Studio / Docs / ScriptComposer en producción
 $removeRecursive = static function (string $targetPath) use (&$removeRecursive): void {
