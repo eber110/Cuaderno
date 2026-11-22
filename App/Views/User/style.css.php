@@ -26,6 +26,8 @@
   if ($voidSpace == 130) $voidSpace = 20;
   elseif ($voidSpace == 250) $voidSpace = 45;
   elseif ($voidSpace == 450) $voidSpace = 70;
+  $fontTitle        = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
+  $fontText         = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
 ?>
 
 <style>
@@ -251,6 +253,23 @@
 
   .title-color{
     color: <?= $titleColor?>;
+    font-family: <?= $fontTitle["cssFamily"] ?>;
+  }
+
+  .back-card,
+  .back-card .color-text-card,
+  .back-card .theme-button {
+    font-family: <?= $fontText["cssFamily"] ?>;
+  }
+
+  .back-card p[data-profile-bind="desc"] {
+    font-family: <?= $fontText["cssFamily"] ?>;
+    font-weight: <?= (int)$fontText["weight"] ?>;
+  }
+
+  .back-card h1[data-profile-bind="title"] {
+    font-family: <?= $fontTitle["cssFamily"] ?>;
+    font-weight: <?= (int)$fontTitle["weight"] ?>;
   }
 
   :root{

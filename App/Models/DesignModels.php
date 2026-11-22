@@ -20,6 +20,207 @@ class DesignModels extends Builder {
 
   public static ?string $videoUploadError = null;
   public static ?string $videoUploadSuccess = null;
+  private static ?array $availableFontsCache = null;
+  private static bool $fontColumnsVerified = false;
+
+  /**
+   * Descubre dinámicamente las fuentes tipográficas instaladas en App/Public/Css/font-project.css,
+   * seleccionando para cada familia la variante con peso 400 / Regular (o el peso más cercano a 400).
+   *
+   * @return array Mapa asociativo [fontKey => ['key', 'label', 'family', 'cssFamily', 'weight']].
+   */
+  public static function getAvailableFonts(): array {
+    if (self::$availableFontsCache !== null) {
+      return self::$availableFontsCache;
+    }
+
+    $fallback = [
+      "GoogleSansFlex_120pt" => [
+        "key"       => "GoogleSansFlex_120pt",
+        "label"     => "Google Sans Flex",
+        "family"    => "GoogleSansFlex_120pt",
+        "cssFamily" => "'GoogleSansFlex_120pt', sans-serif",
+        "weight"    => 400
+      ]
+    ];
+
+    $cssPath = (defined("ROOT_PATH") ? ROOT_PATH : dirname(__DIR__, 2)) . "/App/Public/Css/font-project.css";
+    if (!is_file($cssPath)) {
+      self::$availableFontsCache = $fallback;
+      return self::$availableFontsCache;
+    }
+
+    $css = @file_get_contents($cssPath);
+    if (!is_string($css) || $css === "") {
+      self::$availableFontsCache = $fallback;
+      return self::$availableFontsCache;
+    }
+
+    if (!preg_match_all('/@font-face\s*\{([^}]*)\}/is', $css, $blocks) || empty($blocks[1])) {
+      self::$availableFontsCache = $fallback;
+      return self::$availableFontsCache;
+    }
+
+    $variantsByFamily = [];
+    foreach ($blocks[1] as $block) {
+      if (!preg_match('/font-family\s*:\s*[\'"]?([^\'";\r\n]+)[\'"]?\s*;/i', $block, $mFam)) {
+        continue;
+      }
+      $family = trim((string)preg_replace('/[^a-zA-Z0-9 _\-]/', '', $mFam[1]));
+      if ($family === "") {
+        continue;
+      }
+
+      $weight = 400;
+      if (preg_match('/font-weight\s*:\s*([^;\r\n]+)\s*;/i', $block, $mWeight)) {
+        $rawW = strtolower(trim($mWeight[1]));
+        if ($rawW === "normal") {
+          $weight = 400;
+        } elseif ($rawW === "bold") {
+          $weight = 700;
+        } elseif (preg_match('/(\d+)\s+(\d+)/', $rawW, $mRange)) {
+          $minW = (int)$mRange[1];
+          $maxW = (int)$mRange[2];
+          $weight = ($minW <= 400 && $maxW >= 400) ? 400 : (abs($minW - 400) <= abs($maxW - 400) ? $minW : $maxW);
+        } elseif (is_numeric($rawW)) {
+          $weight = (int)$rawW;
+        }
+      }
+
+      $isRegularSrc = false;
+      if (preg_match('/src\s*:\s*([^;\r\n]+)\s*;/i', $block, $mSrc)) {
+        $isRegularSrc = stripos($mSrc[1], "regular") !== false;
+      }
+
+      $variantsByFamily[$family][] = [
+        "weight"    => $weight,
+        "isRegular" => $isRegularSrc
+      ];
+    }
+
+    if (empty($variantsByFamily)) {
+      self::$availableFontsCache = $fallback;
+      return self::$availableFontsCache;
+    }
+
+    $fonts = [];
+    foreach ($variantsByFamily as $family => $variants) {
+      $bestVariant = $variants[0];
+      foreach ($variants as $candidate) {
+        if (self::isBetterFontVariant($candidate, $bestVariant)) {
+          $bestVariant = $candidate;
+        }
+      }
+
+      $label = preg_replace('/[_\-]?\d+pt$/i', '', $family);
+      $label = str_replace(['_', '-'], ' ', (string)$label);
+      $label = preg_replace('/([a-z])([A-Z])/', '$1 $2', (string)$label);
+      $label = trim((string)preg_replace('/\s+/', ' ', (string)$label));
+      $label = $label !== "" ? ucwords(strtolower($label)) : $family;
+
+      $fonts[$family] = [
+        "key"       => $family,
+        "label"     => $label,
+        "family"    => $family,
+        "cssFamily" => "'{$family}', sans-serif",
+        "weight"    => (int)$bestVariant["weight"]
+      ];
+    }
+
+    self::$availableFontsCache = $fonts;
+    return self::$availableFontsCache;
+  }
+
+  /**
+   * Compara dos variantes de fuente priorizando peso 400, luego archivo Regular y finalmente cercanía a 400.
+   *
+   * @param array $candidate Variante candidata.
+   * @param array $current Variante actual seleccionada.
+   * @return bool True si la candidata es mejor opción.
+   */
+  private static function isBetterFontVariant(array $candidate, array $current): bool {
+    $cIs400 = ((int)$candidate["weight"] === 400);
+    $bIs400 = ((int)$current["weight"] === 400);
+    if ($cIs400 !== $bIs400) {
+      return $cIs400;
+    }
+    if ($cIs400 && $bIs400 && $candidate["isRegular"] !== $current["isRegular"]) {
+      return (bool)$candidate["isRegular"];
+    }
+
+    if (!$cIs400 && !$bIs400 && $candidate["isRegular"] !== $current["isRegular"]) {
+      return (bool)$candidate["isRegular"];
+    }
+
+    $cDist = abs((int)$candidate["weight"] - 400);
+    $bDist = abs((int)$current["weight"] - 400);
+    if ($cDist !== $bDist) {
+      return $cDist < $bDist;
+    }
+
+    return (int)$candidate["weight"] > (int)$current["weight"];
+  }
+
+  /**
+   * Retorna la clave de fuente por defecto disponible en el sistema.
+   *
+   * @return string Clave de la fuente por defecto.
+   */
+  public static function getDefaultFontKey(): string {
+    $fonts = self::getAvailableFonts();
+    if (isset($fonts["GoogleSansFlex_120pt"])) {
+      return "GoogleSansFlex_120pt";
+    }
+    $firstKey = array_key_first($fonts);
+    return is_string($firstKey) ? $firstKey : "GoogleSansFlex_120pt";
+  }
+
+  /**
+   * Resuelve y valida una clave de fuente contra el catálogo disponible (whitelist).
+   *
+   * @param string|null $fontKey Clave de fuente solicitada.
+   * @return array Metadatos seguros de la fuente resuelta.
+   */
+  public static function resolveFont(?string $fontKey): array {
+    $fonts = self::getAvailableFonts();
+    $cleanKey = is_string($fontKey) ? trim($fontKey) : "";
+    if ($cleanKey !== "" && isset($fonts[$cleanKey])) {
+      return $fonts[$cleanKey];
+    }
+    $defaultKey = self::getDefaultFontKey();
+    return $fonts[$defaultKey];
+  }
+
+  /**
+   * Garantiza que la tabla user_designs cuente con las columnas font_title y font_text.
+   *
+   * @return void
+   */
+  private static function ensureFontColumns(): void {
+    if (self::$fontColumnsVerified) {
+      return;
+    }
+    try {
+      $cols = (new Builder())->query_foreign("PRAGMA table_info(user_designs);")->get();
+      $existingCols = [];
+      if (is_array($cols)) {
+        foreach ($cols as $col) {
+          if (!empty($col["name"])) {
+            $existingCols[] = $col["name"];
+          }
+        }
+      }
+      if (!in_array("font_title", $existingCols, true)) {
+        (new Builder())->query_foreign("ALTER TABLE user_designs ADD COLUMN font_title VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
+      }
+      if (!in_array("font_text", $existingCols, true)) {
+        (new Builder())->query_foreign("ALTER TABLE user_designs ADD COLUMN font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
+      }
+      self::$fontColumnsVerified = true;
+    } catch (\Throwable $e) {
+      // Silenciar si la tabla aún no existe; SQLiteSetup la creará.
+    }
+  }
 
   /**
    * Determina si la funcionalidad de videos está habilitada en la aplicación.
@@ -135,7 +336,9 @@ class DesignModels extends Builder {
         "avatar"       => $row["avatar"] ?? "no-user.webp",
         "title"        => $row["title"] ?? "Titulo",
         "titleColor"   => $row["title_color"] ?? "#383838",
+        "font_title"   => self::resolveFont($row["font_title"] ?? null)["key"],
         "desc"         => $row["desc"] ?? "",
+        "font_text"    => self::resolveFont($row["font_text"] ?? null)["key"],
         "header"       => $row["header"] ?? "regularHero",
         "voidHero"     => [
           "space" => isset($row["void_space"]) ? intval($row["void_space"]) : 450
@@ -178,6 +381,7 @@ class DesignModels extends Builder {
    * @return bool True tras guardar con éxito.
    */
   private static function saveDesignToDb(string $username, int $isDraft, array $card): bool {
+    self::ensureFontColumns();
     $userClean = mb_strtolower($username, "UTF-8");
     $builder   = new Builder("user_designs");
 
@@ -194,7 +398,9 @@ class DesignModels extends Builder {
       "avatar"                      => $card["avatar"] ?? "no-user.webp",
       "title"                       => $card["title"] ?? "Titulo",
       "title_color"                 => $card["titleColor"] ?? "#383838",
+      "font_title"                  => self::resolveFont($card["font_title"] ?? null)["key"],
       "desc"                        => $card["desc"] ?? "",
+      "font_text"                   => self::resolveFont($card["font_text"] ?? null)["key"],
       "header"                      => $card["header"] ?? "regularHero",
       "void_space"                  => isset($card["voidHero"]["space"]) ? intval($card["voidHero"]["space"]) : (isset($card["void_space"]) ? intval($card["void_space"]) : 450),
       "back_perfil"                 => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
@@ -420,7 +626,9 @@ class DesignModels extends Builder {
       "avatar"       => "no-user.webp",
       "title"        => "Titulo",
       "titleColor"   => "#383838",
+      "font_title"   => self::getDefaultFontKey(),
       "desc"         => "Descripción del usuario",
+      "font_text"    => self::getDefaultFontKey(),
       "header"       => "regularHero",
       "voidHero"     => [
         "space" => 70
@@ -1753,7 +1961,9 @@ class DesignModels extends Builder {
       "avatar"       => $avatar ?? (isset($param["avatar"]) && is_string($param["avatar"]) && !empty($param["avatar"]) && !str_starts_with($param["avatar"], "blob:") && !str_starts_with($param["avatar"], "data:") ? basename($param["avatar"]) : ((!empty($dataRequest["avatar"]) && !str_starts_with($dataRequest["avatar"], "blob:") && !str_starts_with($dataRequest["avatar"], "data:")) ? $dataRequest["avatar"] : "no-user.webp")),
       "title"        => $param["title"] ?? $dataRequest["title"] ?? "Titulo",
       "titleColor"   => $param["titleColor"] ?? ($param["colorText"] ?? ($dataRequest["titleColor"] ?? "#383838")),
+      "font_title"   => self::resolveFont((string)($param["font_title"] ?? $dataRequest["font_title"] ?? ""))["key"],
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
+      "font_text"    => self::resolveFont((string)($param["font_text"] ?? $dataRequest["font_text"] ?? ""))["key"],
       "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
       "voidHero"     => [
         "space" => isset($param["void_space"]) ? intval($param["void_space"]) : ($dataRequest["voidHero"]["space"] ?? $dataRequest["void_space"] ?? 450)

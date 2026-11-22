@@ -591,6 +591,16 @@ export function LivePreviewManager() {
       previewEl.classList.toggle("has-btn-hover", toBool(fields.hover, false));
     }
 
+    const fontsMap = window.AVAILABLE_PROFILE_FONTS || {};
+    if (fields.font_title && fontsMap[fields.font_title]) {
+      previewEl.style.setProperty("--preview-font-title", fontsMap[fields.font_title].cssFamily);
+      previewEl.style.setProperty("--preview-font-title-weight", String(fontsMap[fields.font_title].weight));
+    }
+    if (fields.font_text && fontsMap[fields.font_text]) {
+      previewEl.style.setProperty("--preview-font-text", fontsMap[fields.font_text].cssFamily);
+      previewEl.style.setProperty("--preview-font-text-weight", String(fontsMap[fields.font_text].weight));
+    }
+
     const rawVoidSpace = fields.void_space !== undefined
       ? fields.void_space
       : (fields["voidHero[space]"] !== undefined ? fields["voidHero[space]"] : fields.voidHero?.space);

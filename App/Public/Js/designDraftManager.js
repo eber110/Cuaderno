@@ -1868,6 +1868,8 @@ export function designDraftManager() {
       color: btnColorVal,
       colorText: fields.colorText,
       titleColor: fields.titleColor,
+      font_title: fields.font_title,
+      font_text: fields.font_text,
       colorShadow3: colorShadow3,
       void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
       header: fields.header,
@@ -2089,6 +2091,47 @@ export function designDraftManager() {
   // =========================================================================
 
   /**
+   * Sincroniza la interfaz visual de un componente .dropdown-select al restaurar o descartar valores.
+   *
+   * @param {HTMLElement} inputEl Input hidden asociado al dropdown.
+   * @param {*} val Valor objetivo.
+   */
+  function syncDropdownSelectControl(inputEl, val) {
+    const dd = inputEl?.closest(".dropdown-select");
+    if (!dd) return;
+
+    const strVal = String(val ?? "");
+    const selectedEl = dd.querySelector(".dropdown-selected");
+    const options = dd.querySelectorAll(".dropdown-option");
+    let matchedOpt = null;
+
+    options.forEach((opt) => {
+      const isMatch = (opt.dataset.value ?? "") === strVal;
+      opt.classList.toggle("selected", isMatch);
+      if (isMatch) matchedOpt = opt;
+    });
+
+    if (selectedEl) {
+      const chev = selectedEl.querySelector(".dropdown-chevron");
+      const fontsMap = window.AVAILABLE_PROFILE_FONTS || {};
+      const fontMeta = fontsMap[strVal];
+      const label = matchedOpt ? matchedOpt.textContent.trim() : (fontMeta ? fontMeta.label : strVal);
+
+      selectedEl.textContent = label || dd.getAttribute("data-placeholder") || "";
+      selectedEl.dataset.value = strVal;
+      selectedEl.classList.toggle("is-placeholder", !strVal);
+      if (chev) selectedEl.appendChild(chev);
+
+      if (dd.classList.contains("font-selector-dropdown")) {
+        const cssFam = fontMeta?.cssFamily || matchedOpt?.dataset?.fontFamily || "";
+        const weight = fontMeta?.weight || matchedOpt?.dataset?.fontWeight || "";
+        if (cssFam) selectedEl.style.fontFamily = cssFam;
+        if (weight) selectedEl.style.fontWeight = String(weight);
+      }
+    }
+  }
+
+  /**
    * Sincroniza los controles del formulario (inputs, radios, selects, color pickers)
    * para reflejar el estado actual del borrador acumulado.
    * @param {Object} fields Diccionario con los campos del borrador
@@ -2255,6 +2298,10 @@ export function designDraftManager() {
       inputs.forEach((input) => {
         if (input.type === "file" || input.type === "radio" || input.type === "checkbox") return;
         input.value = val;
+
+        if (input.type === "hidden" && input.closest(".dropdown-select")) {
+          syncDropdownSelectControl(input, val);
+        }
 
         // Actualizar etiqueta de texto asociada a selectores de color (#hex)
         if (input.type === "color" || input.classList.contains("color-picker")) {
@@ -4200,6 +4247,20 @@ export function designDraftManager() {
   });
 
   window.addEventListener("pageshow", initRestoration);
+
+  // Actualizar la tipografía mostrada en el trigger del selector de fuentes al cambiar la opción
+  document.addEventListener("dropdownChange", (e) => {
+    const dd = e.target?.closest ? e.target.closest(".font-selector-dropdown") : null;
+    if (!dd) return;
+    const selectedEl = dd.querySelector(".dropdown-selected");
+    const val = e.detail?.value ?? "";
+    const fontsMap = window.AVAILABLE_PROFILE_FONTS || {};
+    const fontMeta = fontsMap[val];
+    if (selectedEl && fontMeta) {
+      selectedEl.style.fontFamily = fontMeta.cssFamily;
+      selectedEl.style.fontWeight = String(fontMeta.weight);
+    }
+  });
 }
 
 

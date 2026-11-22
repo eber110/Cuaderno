@@ -75,7 +75,9 @@ class SQLiteSetup
       avatar TEXT DEFAULT 'no-user.webp',
       title TEXT DEFAULT 'Titulo',
       title_color VARCHAR(50) DEFAULT '#383838',
+      font_title VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt',
       desc TEXT DEFAULT 'Descripción del usuario',
+      font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt',
       header VARCHAR(100) DEFAULT 'regularHero',
       void_space INTEGER DEFAULT 70,
       back_perfil VARCHAR(50) DEFAULT '#a0a0a0',
@@ -277,6 +279,12 @@ class SQLiteSetup
       }
       if (!in_array("back_image_filter_intensity", $existingCols, true)) {
         $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN back_image_filter_intensity INTEGER DEFAULT 80;");
+      }
+      if (!in_array("font_title", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN font_title VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
+      }
+      if (!in_array("font_text", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
       }
     } catch (\Throwable $e) {}
 

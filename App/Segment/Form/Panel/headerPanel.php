@@ -8,6 +8,10 @@
   $avatarVal = $card["avatar"] ?? 'no-user.webp';
   $avatarSrc = $card["avatarSrc"] ?? '';
   $voidSpaceVal = $card["voidHero"]["space"] ?? ($card["void_space"] ?? 450);
+  $availableFonts = \App\Models\DesignModels::getAvailableFonts();
+  $selectedTitleFont = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
+  $selectedTextFont  = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
+  $fontSearchable    = count($availableFonts) > 6 ? "true" : "false";
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post" enctype="multipart/form-data">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
@@ -168,6 +172,37 @@
       </div>
     </div>
 
+    <!-- Fuente de título -->
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+      <p class="texto">Fuente de título</p>
+
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w70 w-sml-100">
+        <div class="dropdown-select ui-input-component animated font-selector-dropdown"
+             id="select-font-title"
+             data-name="font_title"
+             data-searchable="<?= $fontSearchable ?>"
+             data-placeholder="Elige una fuente"
+             data-max-height="260">
+          <input type="hidden" name="font_title" value="<?= e($selectedTitleFont['key']) ?>">
+          <div class="dropdown-selected" style="font-family: <?= e($selectedTitleFont['cssFamily']) ?>; font-weight: <?= (int)$selectedTitleFont['weight'] ?>;"><?= e($selectedTitleFont['label']) ?></div>
+          <div class="dropdown-options hidden">
+            <?php if ($fontSearchable === "true") : ?>
+              <input type="text" class="dropdown-search" placeholder="Buscar fuente...">
+            <?php endif; ?>
+            <?php foreach ($availableFonts as $fKey => $fMeta) : ?>
+              <div class="dropdown-option<?= ($selectedTitleFont['key'] === $fKey) ? ' selected' : '' ?>"
+                   data-value="<?= e($fKey) ?>"
+                   data-font-family="<?= e($fMeta['cssFamily']) ?>"
+                   data-font-weight="<?= (int)$fMeta['weight'] ?>"
+                   style="font-family: <?= e($fMeta['cssFamily']) ?>; font-weight: <?= (int)$fMeta['weight'] ?>;">
+                <?= e($fMeta['label']) ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Descripción del perfil -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
       <p class="texto">Bio</p>
@@ -188,6 +223,37 @@
           'placeholder' => 'Descripción',
           'borderWidth' => 0,
         ]) ?>
+      </div>
+    </div>
+
+    <!-- Fuente de texto -->
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+      <p class="texto">Fuente de texto</p>
+
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w70 w-sml-100">
+        <div class="dropdown-select ui-input-component animated font-selector-dropdown"
+             id="select-font-text"
+             data-name="font_text"
+             data-searchable="<?= $fontSearchable ?>"
+             data-placeholder="Elige una fuente"
+             data-max-height="260">
+          <input type="hidden" name="font_text" value="<?= e($selectedTextFont['key']) ?>">
+          <div class="dropdown-selected" style="font-family: <?= e($selectedTextFont['cssFamily']) ?>; font-weight: <?= (int)$selectedTextFont['weight'] ?>;"><?= e($selectedTextFont['label']) ?></div>
+          <div class="dropdown-options hidden">
+            <?php if ($fontSearchable === "true") : ?>
+              <input type="text" class="dropdown-search" placeholder="Buscar fuente...">
+            <?php endif; ?>
+            <?php foreach ($availableFonts as $fKey => $fMeta) : ?>
+              <div class="dropdown-option<?= ($selectedTextFont['key'] === $fKey) ? ' selected' : '' ?>"
+                   data-value="<?= e($fKey) ?>"
+                   data-font-family="<?= e($fMeta['cssFamily']) ?>"
+                   data-font-weight="<?= (int)$fMeta['weight'] ?>"
+                   style="font-family: <?= e($fMeta['cssFamily']) ?>; font-weight: <?= (int)$fMeta['weight'] ?>;">
+                <?= e($fMeta['label']) ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
       </div>
     </div>
 

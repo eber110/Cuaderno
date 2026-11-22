@@ -12,9 +12,11 @@
   if ($voidSpace === 130) $voidSpace = 20;
   elseif ($voidSpace === 250) $voidSpace = 45;
   elseif ($voidSpace === 450) $voidSpace = 70;
+  $previewFontTitle    = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
+  $previewFontText     = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
 ?>
 <div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?>"
-     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%;">
+     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>;">
   <?php _part("User.style.css", ["card" => $card]); ?>
   <style>
     /* Variables reactivas del preview sin colisiones de especificidad */
@@ -56,6 +58,22 @@
     }
     .user-profile-preview .void-space {
       padding-top: var(--preview-void-space) !important;
+    }
+    .user-profile-preview .back-card,
+    .user-profile-preview .back-card .color-text-card,
+    .user-profile-preview .back-card .theme-button {
+      font-family: var(--preview-font-text);
+    }
+    .user-profile-preview .back-card p[data-profile-bind="desc"] {
+      font-family: var(--preview-font-text);
+      font-weight: var(--preview-font-text-weight);
+    }
+    .user-profile-preview .back-card .title-color {
+      font-family: var(--preview-font-title);
+    }
+    .user-profile-preview .back-card h1[data-profile-bind="title"] {
+      font-family: var(--preview-font-title);
+      font-weight: var(--preview-font-title-weight);
     }
   </style>
   <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative">
@@ -132,6 +150,15 @@
                 else if (vs === 250) vs = 45;
                 else if (vs === 450) vs = 70;
                 if (!isNaN(vs)) preview.style.setProperty('--preview-void-space', vs + '%');
+              }
+              var fontsMap = window.AVAILABLE_PROFILE_FONTS || {};
+              if (draft.font_title && fontsMap[draft.font_title]) {
+                preview.style.setProperty('--preview-font-title', fontsMap[draft.font_title].cssFamily);
+                preview.style.setProperty('--preview-font-title-weight', String(fontsMap[draft.font_title].weight));
+              }
+              if (draft.font_text && fontsMap[draft.font_text]) {
+                preview.style.setProperty('--preview-font-text', fontsMap[draft.font_text].cssFamily);
+                preview.style.setProperty('--preview-font-text-weight', String(fontsMap[draft.font_text].weight));
               }
             });
           } catch (e) {}

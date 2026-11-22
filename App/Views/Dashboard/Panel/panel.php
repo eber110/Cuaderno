@@ -10,6 +10,7 @@
   <meta name="last-updated-at" content="<?= (int)($card['last_updated_at'] ?? 0) ?>">
   <script>
     window.INITIAL_PROFILE_JSON = <?= json_encode($card, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+    window.AVAILABLE_PROFILE_FONTS = <?= json_encode(\App\Models\DesignModels::getAvailableFonts(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
   </script>
 
   <div class="flex-row top-start">
