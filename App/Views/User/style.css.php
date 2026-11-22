@@ -28,6 +28,7 @@
   elseif ($voidSpace == 450) $voidSpace = 70;
   $fontTitle        = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
   $fontText         = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
+  $fontButton       = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
 ?>
 
 <style>
@@ -257,9 +258,17 @@
   }
 
   .back-card,
-  .back-card .color-text-card,
-  .back-card .theme-button {
+  .back-card .color-text-card {
     font-family: <?= $fontText["cssFamily"] ?>;
+  }
+
+  .back-card .theme-button,
+  .back-card .theme-button a,
+  .back-card .theme-button p,
+  .back-card .theme-button span,
+  .back-card .campaign-button {
+    font-family: <?= $fontButton["cssFamily"] ?>;
+    font-weight: <?= (int)$fontButton["weight"] ?>;
   }
 
   .back-card p[data-profile-bind="desc"] {

@@ -78,6 +78,7 @@ class SQLiteSetup
       font_title VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt',
       desc TEXT DEFAULT 'Descripción del usuario',
       font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt',
+      font_button VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt',
       header VARCHAR(100) DEFAULT 'regularHero',
       void_space INTEGER DEFAULT 70,
       back_perfil VARCHAR(50) DEFAULT '#a0a0a0',
@@ -285,6 +286,9 @@ class SQLiteSetup
       }
       if (!in_array("font_text", $existingCols, true)) {
         $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
+      }
+      if (!in_array("font_button", $existingCols, true)) {
+        $builder->query_foreign("ALTER TABLE user_designs ADD COLUMN font_button VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
       }
     } catch (\Throwable $e) {}
 

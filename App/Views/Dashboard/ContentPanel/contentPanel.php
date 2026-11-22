@@ -41,6 +41,14 @@
     </div>
   </div>
 
+  <div id="font-remote" class="remote-content flex-row top-center hidden">
+    <div class="wpx630 w-mid-100 w-sml-100">
+      <?php
+        _form("Panel.fontPanel", ["card" => $card, "uri" => $uri]);
+      ?>
+    </div>
+  </div>
+
   <div id="hide-profile-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php $isProfileHidden = !empty($card["hide"]) && ($card["hide"] === true || $card["hide"] === 'true' || $card["hide"] === 1 || $card["hide"] === '1'); ?>

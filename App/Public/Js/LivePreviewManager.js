@@ -600,6 +600,10 @@ export function LivePreviewManager() {
       previewEl.style.setProperty("--preview-font-text", fontsMap[fields.font_text].cssFamily);
       previewEl.style.setProperty("--preview-font-text-weight", String(fontsMap[fields.font_text].weight));
     }
+    if (fields.font_button && fontsMap[fields.font_button]) {
+      previewEl.style.setProperty("--preview-font-button", fontsMap[fields.font_button].cssFamily);
+      previewEl.style.setProperty("--preview-font-button-weight", String(fontsMap[fields.font_button].weight));
+    }
 
     const rawVoidSpace = fields.void_space !== undefined
       ? fields.void_space

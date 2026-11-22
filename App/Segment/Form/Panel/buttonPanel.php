@@ -9,6 +9,9 @@
     : (is_string($card["borders"] ?? null) ? (str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]]) : ["br0", "br0"]);
   $borderVal   = $borders[0] ?? 'br0';
   $shadowVal   = $card["shadow"] ?? 'shadow-0';
+  $availableFonts     = \App\Models\DesignModels::getAvailableFonts();
+  $selectedButtonFont = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
+  $fontSearchable     = count($availableFonts) > 6 ? "true" : "false";
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
@@ -160,6 +163,38 @@
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
           <p class="x16 bold500 texto"><?= $card["colorShadow3"] ?? "#000000"?></p>
         </label>
+      </div>
+    </div>
+
+    <!-- Fuente de botones y contenidos -->
+    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+      <p class="texto">Fuente de botones</p>
+
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w60 w-sml-100">
+        <div class="dropdown-select ui-input-component animated font-selector-dropdown"
+             id="select-font-button"
+             data-name="font_button"
+             data-searchable="<?= $fontSearchable ?>"
+             data-placeholder="Elige una fuente"
+             data-max-height="260"
+             style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-surface-bg: #ffffff; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--back-color, #d3d3d3); --ui-surface-shadow: 0 10px 30px rgba(0, 0, 0, 0.14); --ui-placeholder-color: var(--text-primary, #111827); --ui-btn-primary-text: #0F172A; --ui-btn-primary-border: transparent; --ui-accent-text: var(--text-secondary, #f8fafc); --ui-thumb-bg: var(--text-secondary, #f8fafc); --ui-border-width: 0px; --ui-focus-ring: var(--body, #ffffff); --ui-focus-outline: none; --ui-font-size: 18px; --ui-overlay-blur: 0px;">
+          <input type="hidden" name="font_button" value="<?= e($selectedButtonFont['key']) ?>">
+          <div class="dropdown-selected" style="font-family: <?= e($selectedButtonFont['cssFamily']) ?>; font-weight: <?= (int)$selectedButtonFont['weight'] ?>;"><?= e($selectedButtonFont['label']) ?></div>
+          <div class="dropdown-options hidden">
+            <?php if ($fontSearchable === "true") : ?>
+              <input type="text" class="dropdown-search" placeholder="Buscar fuente...">
+            <?php endif; ?>
+            <?php foreach ($availableFonts as $fKey => $fMeta) : ?>
+              <div class="dropdown-option<?= ($selectedButtonFont['key'] === $fKey) ? ' selected' : '' ?>"
+                   data-value="<?= e($fKey) ?>"
+                   data-font-family="<?= e($fMeta['cssFamily']) ?>"
+                   data-font-weight="<?= (int)$fMeta['weight'] ?>"
+                   style="font-family: <?= e($fMeta['cssFamily']) ?>; font-weight: <?= (int)$fMeta['weight'] ?>;">
+                <?= e($fMeta['label']) ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -62,6 +62,7 @@ export function bottomNavPhone() {
       "background-remote",
       "button-remote",
       "color-remote",
+      "font-remote",
       "hide-profile-remote"
     ];
     const contentRemotes = [

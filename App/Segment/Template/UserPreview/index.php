@@ -14,9 +14,10 @@
   elseif ($voidSpace === 450) $voidSpace = 70;
   $previewFontTitle    = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
   $previewFontText     = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
+  $previewFontButton   = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
 ?>
 <div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?>"
-     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>;">
+     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>; --preview-font-button: <?= e($previewFontButton['cssFamily']) ?>; --preview-font-button-weight: <?= (int)$previewFontButton['weight'] ?>;">
   <?php _part("User.style.css", ["card" => $card]); ?>
   <style>
     /* Variables reactivas del preview sin colisiones de especificidad */
@@ -60,13 +61,20 @@
       padding-top: var(--preview-void-space) !important;
     }
     .user-profile-preview .back-card,
-    .user-profile-preview .back-card .color-text-card,
-    .user-profile-preview .back-card .theme-button {
+    .user-profile-preview .back-card .color-text-card {
       font-family: var(--preview-font-text);
     }
     .user-profile-preview .back-card p[data-profile-bind="desc"] {
       font-family: var(--preview-font-text);
       font-weight: var(--preview-font-text-weight);
+    }
+    .user-profile-preview .back-card .theme-button,
+    .user-profile-preview .back-card .theme-button a,
+    .user-profile-preview .back-card .theme-button p,
+    .user-profile-preview .back-card .theme-button span,
+    .user-profile-preview .back-card .campaign-button {
+      font-family: var(--preview-font-button);
+      font-weight: var(--preview-font-button-weight);
     }
     .user-profile-preview .back-card .title-color {
       font-family: var(--preview-font-title);
@@ -159,6 +167,10 @@
               if (draft.font_text && fontsMap[draft.font_text]) {
                 preview.style.setProperty('--preview-font-text', fontsMap[draft.font_text].cssFamily);
                 preview.style.setProperty('--preview-font-text-weight', String(fontsMap[draft.font_text].weight));
+              }
+              if (draft.font_button && fontsMap[draft.font_button]) {
+                preview.style.setProperty('--preview-font-button', fontsMap[draft.font_button].cssFamily);
+                preview.style.setProperty('--preview-font-button-weight', String(fontsMap[draft.font_button].weight));
               }
             });
           } catch (e) {}

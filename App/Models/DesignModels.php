@@ -216,6 +216,9 @@ class DesignModels extends Builder {
       if (!in_array("font_text", $existingCols, true)) {
         (new Builder())->query_foreign("ALTER TABLE user_designs ADD COLUMN font_text VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
       }
+      if (!in_array("font_button", $existingCols, true)) {
+        (new Builder())->query_foreign("ALTER TABLE user_designs ADD COLUMN font_button VARCHAR(100) DEFAULT 'GoogleSansFlex_120pt';");
+      }
       self::$fontColumnsVerified = true;
     } catch (\Throwable $e) {
       // Silenciar si la tabla aún no existe; SQLiteSetup la creará.
@@ -339,6 +342,7 @@ class DesignModels extends Builder {
         "font_title"   => self::resolveFont($row["font_title"] ?? null)["key"],
         "desc"         => $row["desc"] ?? "",
         "font_text"    => self::resolveFont($row["font_text"] ?? null)["key"],
+        "font_button"  => self::resolveFont($row["font_button"] ?? null)["key"],
         "header"       => $row["header"] ?? "regularHero",
         "voidHero"     => [
           "space" => isset($row["void_space"]) ? intval($row["void_space"]) : 450
@@ -401,6 +405,7 @@ class DesignModels extends Builder {
       "font_title"                  => self::resolveFont($card["font_title"] ?? null)["key"],
       "desc"                        => $card["desc"] ?? "",
       "font_text"                   => self::resolveFont($card["font_text"] ?? null)["key"],
+      "font_button"                 => self::resolveFont($card["font_button"] ?? null)["key"],
       "header"                      => $card["header"] ?? "regularHero",
       "void_space"                  => isset($card["voidHero"]["space"]) ? intval($card["voidHero"]["space"]) : (isset($card["void_space"]) ? intval($card["void_space"]) : 450),
       "back_perfil"                 => $card["backCard"]["back_perfil"] ?? "#a0a0a0",
@@ -629,6 +634,7 @@ class DesignModels extends Builder {
       "font_title"   => self::getDefaultFontKey(),
       "desc"         => "Descripción del usuario",
       "font_text"    => self::getDefaultFontKey(),
+      "font_button"  => self::getDefaultFontKey(),
       "header"       => "regularHero",
       "voidHero"     => [
         "space" => 70
@@ -1964,6 +1970,7 @@ class DesignModels extends Builder {
       "font_title"   => self::resolveFont((string)($param["font_title"] ?? $dataRequest["font_title"] ?? ""))["key"],
       "desc"         => $param["desc"] ?? $dataRequest["desc"] ?? "",
       "font_text"    => self::resolveFont((string)($param["font_text"] ?? $dataRequest["font_text"] ?? ""))["key"],
+      "font_button"  => self::resolveFont((string)($param["font_button"] ?? $dataRequest["font_button"] ?? ""))["key"],
       "header"       => $param["header"] ?? $dataRequest["header"] ?? "regularHero",
       "voidHero"     => [
         "space" => isset($param["void_space"]) ? intval($param["void_space"]) : ($dataRequest["voidHero"]["space"] ?? $dataRequest["void_space"] ?? 450)

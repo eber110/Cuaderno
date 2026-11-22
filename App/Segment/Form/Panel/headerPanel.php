@@ -182,7 +182,8 @@
              data-name="font_title"
              data-searchable="<?= $fontSearchable ?>"
              data-placeholder="Elige una fuente"
-             data-max-height="260">
+             data-max-height="260"
+             style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-surface-bg: #ffffff; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--back-color, #d3d3d3); --ui-surface-shadow: 0 10px 30px rgba(0, 0, 0, 0.14); --ui-placeholder-color: var(--text-primary, #111827); --ui-btn-primary-text: #0F172A; --ui-btn-primary-border: transparent; --ui-accent-text: var(--text-secondary, #f8fafc); --ui-thumb-bg: var(--text-secondary, #f8fafc); --ui-border-width: 0px; --ui-focus-ring: var(--body, #ffffff); --ui-focus-outline: none; --ui-font-size: 18px; --ui-overlay-blur: 0px;">
           <input type="hidden" name="font_title" value="<?= e($selectedTitleFont['key']) ?>">
           <div class="dropdown-selected" style="font-family: <?= e($selectedTitleFont['cssFamily']) ?>; font-weight: <?= (int)$selectedTitleFont['weight'] ?>;"><?= e($selectedTitleFont['label']) ?></div>
           <div class="dropdown-options hidden">
@@ -236,7 +237,8 @@
              data-name="font_text"
              data-searchable="<?= $fontSearchable ?>"
              data-placeholder="Elige una fuente"
-             data-max-height="260">
+             data-max-height="260"
+             style="--ui-trigger-bg: #ffffff; --ui-trigger-text: var(--text-primary, #111827); --ui-surface-bg: #ffffff; --ui-surface-text: var(--text-primary, #111827); --ui-surface-muted: var(--back-color, #d3d3d3); --ui-surface-shadow: 0 10px 30px rgba(0, 0, 0, 0.14); --ui-placeholder-color: var(--text-primary, #111827); --ui-btn-primary-text: #0F172A; --ui-btn-primary-border: transparent; --ui-accent-text: var(--text-secondary, #f8fafc); --ui-thumb-bg: var(--text-secondary, #f8fafc); --ui-border-width: 0px; --ui-focus-ring: var(--body, #ffffff); --ui-focus-outline: none; --ui-font-size: 18px; --ui-overlay-blur: 0px;">
           <input type="hidden" name="font_text" value="<?= e($selectedTextFont['key']) ?>">
           <div class="dropdown-selected" style="font-family: <?= e($selectedTextFont['cssFamily']) ?>; font-weight: <?= (int)$selectedTextFont['weight'] ?>;"><?= e($selectedTextFont['label']) ?></div>
           <div class="dropdown-options hidden">

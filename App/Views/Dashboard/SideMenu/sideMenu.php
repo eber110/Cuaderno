@@ -29,6 +29,7 @@
             <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="background-remote" data-savable="true"><?= svg("angle-r")?>Fondo</p>
             <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="button-remote" data-savable="true"><?= svg("angle-r")?>Botones</p>
             <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="color-remote" data-savable="true"><?= svg("angle-r")?>Colores</p>
+            <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="font-remote" data-savable="true"><?= svg("angle-r")?>Fuentes</p>
             <p class="remote-btn vertical-menu-link <?= $item?> pl20" data-remote="hide-profile-remote" data-savable="true"><?= svg("angle-r")?>Visibilidad</p>
           </div>
         </div>

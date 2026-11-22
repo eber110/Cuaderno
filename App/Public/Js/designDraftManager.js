@@ -747,6 +747,9 @@ export function designDraftManager() {
       if (inp.value !== String(value)) {
         inp.value = value;
       }
+      if (inp.type === "hidden" && inp.closest(".dropdown-select")) {
+        syncDropdownSelectControl(inp, value);
+      }
       if (inp.type === "color" || inp.classList.contains("color-picker")) {
         const labelText = inp.closest("label")?.querySelector("p, span");
         if (labelText && labelText.textContent !== String(value)) {
@@ -1870,6 +1873,7 @@ export function designDraftManager() {
       titleColor: fields.titleColor,
       font_title: fields.font_title,
       font_text: fields.font_text,
+      font_button: fields.font_button,
       colorShadow3: colorShadow3,
       void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
       header: fields.header,
@@ -2132,6 +2136,40 @@ export function designDraftManager() {
   }
 
   /**
+   * Sincroniza el selector "Fuente global" con los 3 selectores individuales (título, texto, botones).
+   */
+  function syncGlobalFontDropdown() {
+    const draftState = getDraftState() || {};
+    const titleVal = String(draftState.font_title || document.querySelector('input[name="font_title"]')?.value || "");
+    const textVal = String(draftState.font_text || document.querySelector('input[name="font_text"]')?.value || "");
+    const buttonVal = String(draftState.font_button || document.querySelector('input[name="font_button"]')?.value || "");
+    const isUnified = Boolean(titleVal && titleVal === textVal && textVal === buttonVal);
+
+    document.querySelectorAll('.font-global-dropdown, [data-font-global="true"]').forEach((dd) => {
+      const hiddenInput = dd.querySelector('input[type="hidden"]');
+      const selectedEl = dd.querySelector(".dropdown-selected");
+      if (isUnified) {
+        if (hiddenInput) {
+          hiddenInput.value = titleVal;
+          syncDropdownSelectControl(hiddenInput, titleVal);
+        }
+      } else {
+        if (hiddenInput) hiddenInput.value = "";
+        dd.querySelectorAll(".dropdown-option").forEach((opt) => opt.classList.remove("selected"));
+        if (selectedEl) {
+          const chev = selectedEl.querySelector(".dropdown-chevron");
+          selectedEl.textContent = dd.getAttribute("data-placeholder") || "Personalizada";
+          selectedEl.dataset.value = "";
+          selectedEl.classList.add("is-placeholder");
+          selectedEl.style.fontFamily = "";
+          selectedEl.style.fontWeight = "";
+          if (chev) selectedEl.appendChild(chev);
+        }
+      }
+    });
+  }
+
+  /**
    * Sincroniza los controles del formulario (inputs, radios, selects, color pickers)
    * para reflejar el estado actual del borrador acumulado.
    * @param {Object} fields Diccionario con los campos del borrador
@@ -2322,6 +2360,8 @@ export function designDraftManager() {
         }
       });
     });
+
+    syncGlobalFontDropdown();
   }
 
   // =========================================================================
@@ -3178,7 +3218,28 @@ export function designDraftManager() {
 
     // Selectores y otros inputs
     if (target.type !== "file") {
+      if (target.name === "font_global") {
+        const fontsMap = window.AVAILABLE_PROFILE_FONTS || {};
+        const newFont = String(target.value || "").trim();
+        if (newFont && (fontsMap[newFont] || Object.keys(fontsMap).length === 0)) {
+          setDraftField("font_title", newFont);
+          setDraftField("font_text", newFont);
+          setDraftField("font_button", newFont);
+          syncSiblingInputsByName("font_title", newFont);
+          syncSiblingInputsByName("font_text", newFont);
+          syncSiblingInputsByName("font_button", newFont);
+          applyDraftToPreview(getDraft());
+        }
+        return;
+      }
+
       setDraftField(target.name, target.value, ownerBlockId);
+      if (!ownerBlock) {
+        syncSiblingInputsByName(target.name, target.value, target);
+        if (target.name === "font_title" || target.name === "font_text" || target.name === "font_button") {
+          syncGlobalFontDropdown();
+        }
+      }
       applyDraftToPreview(getDraft());
       const block = target.closest(".sortable-item.content-block");
       if (block) {
