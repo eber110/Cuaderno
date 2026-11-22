@@ -83,7 +83,7 @@
 
     <button type="button" class="remote-btn bottom-nav-btn flex-column center-center pointer" data-remote="font-remote" data-savable="true" aria-label="Fuentes">
       <span class="bottom-nav-box flex-column center-center gap4">
-        <span class="bottom-nav-icon flex-row center-center"><?= svg("menu-phone-design") ?></span>
+        <span class="bottom-nav-icon flex-row center-center"><?= svg("font-solid-full") ?></span>
         <span class="bottom-nav-label x12 bold500">Fuentes</span>
       </span>
     </button>
