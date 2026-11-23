@@ -7,8 +7,8 @@
   $selectedTitleFont  = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
   $selectedTextFont   = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
   $selectedButtonFont = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
-  $isClay             = (($card["style"] ?? "buttonRegular") === "buttonClay");
-  $isUnifiedFont      = $isClay
+  $hideButtonFont     = in_array($card["style"] ?? "buttonRegular", ["buttonClay", "buttonGlass"], true);
+  $isUnifiedFont      = $hideButtonFont
     ? ($selectedTitleFont["key"] === $selectedTextFont["key"])
     : ($selectedTitleFont["key"] === $selectedTextFont["key"] && $selectedTextFont["key"] === $selectedButtonFont["key"]);
   $selectedGlobalFont = $isUnifiedFont ? $selectedTitleFont : null;
@@ -122,7 +122,7 @@
       </div>
     </div>
 
-    <div id="panel-font-button-wrapper" class="flex-column gap20 w100 <?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'flex' ?>;">
+    <div id="panel-font-button-wrapper" class="flex-column gap20 w100 <?= $hideButtonFont ? 'hidden' : '' ?>" style="display: <?= $hideButtonFont ? 'none !important' : 'flex' ?>;">
       <p class="bold500 mt20 texto">Fuente de botones</p>
       <!-- Fuente de botones y contenidos -->
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">

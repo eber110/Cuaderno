@@ -3,6 +3,7 @@
   $styleBack = $card["backCard"]["style_back"] ?? "solid";
   $backVideo = $card["backCard"]["back_video"] ?? "";
   $previewBtnBack      = safeCssColor($card["back"] ?? "#d6d6d6", "#d6d6d6");
+  $previewBackPerfil   = safeCssColor($card["backCard"]["back_perfil"] ?? "#272727", "#272727");
   $previewBtnColor     = safeCssColor($card["color"] ?? "#494949", "#494949");
   $previewTxtColor     = safeCssColor($card["colorText"] ?? "#383838", "#383838");
   $previewTtlColor     = safeCssColor($card["titleColor"] ?? "#383838", "#383838");
@@ -15,16 +16,22 @@
   $previewFontTitle    = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
   $previewFontText     = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
   $previewFontButton   = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
-  $previewIsClay       = (($card["style"] ?? "buttonRegular") === "buttonClay");
+  $previewStyle        = $card["style"] ?? "buttonRegular";
+  $previewStyleClass   = match ($previewStyle) {
+    "buttonClay"  => "btn-style-clay",
+    "buttonGlass" => "btn-style-glass",
+    default       => ""
+  };
 ?>
-<div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?> <?= $previewIsClay ? 'btn-style-clay' : '' ?>"
-     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>; --preview-font-button: <?= e($previewFontButton['cssFamily']) ?>; --preview-font-button-weight: <?= (int)$previewFontButton['weight'] ?>;">
+<div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?> <?= $previewStyleClass ?>"
+     style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-back-perfil: <?= $previewBackPerfil ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>; --preview-font-button: <?= e($previewFontButton['cssFamily']) ?>; --preview-font-button-weight: <?= (int)$previewFontButton['weight'] ?>;">
   <?php _part("User.style.css", ["card" => $card]); ?>
   <style>
     /* Variables reactivas del preview sin colisiones de especificidad */
     .user-profile-preview .theme-button {
       background-color: var(--preview-btn-back);
       color: var(--preview-btn-color);
+      transition: background-color 200ms ease, box-shadow 200ms ease;
     }
     .user-profile-preview.has-btn-hover .theme-button:hover {
       background-color: oklch(from var(--preview-btn-back) calc(l * 0.92) c h);
@@ -88,11 +95,12 @@
     .user-profile-preview .back-card.btn-style-clay .theme-button,
     .user-profile-preview .back-card.btn-style-clay .campaign-button {
       --clay-bg: var(--preview-btn-back);
-      background: linear-gradient(
+      background-color: var(--clay-bg) !important;
+      background-image: linear-gradient(
         180deg,
-        oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.92) h) 0%,
-        var(--clay-bg) 52%,
-        oklch(from var(--clay-bg) calc(l - 0.04) calc(c * 1.05) h) 100%
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0) 52%,
+        rgba(0, 0, 0, 0.10) 100%
       );
       border: 1px solid oklch(from var(--clay-bg) calc(l + 0.10) calc(c * 0.60) h / 0.45);
       box-sizing: border-box;
@@ -101,11 +109,11 @@
         0 4px 10px -2px rgba(0, 0, 0, 0.14),
         inset 0 4px 7px oklch(from var(--clay-bg) calc(l + 0.18) calc(c * 0.50) h / 0.72),
         inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
-      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+      transition: background-color 200ms ease, box-shadow 200ms ease;
     }
     .user-profile-preview .back-card.btn-style-clay .theme-button.br0,
     .user-profile-preview .back-card.btn-style-clay .campaign-button.br0 {
-      border-radius: 10px;
+      border-radius: 10px !important;
     }
     .user-profile-preview .back-card.btn-style-clay .theme-button.shadow-3 img {
       border: none;
@@ -120,25 +128,116 @@
     }
     .user-profile-preview.has-btn-hover .back-card.btn-style-clay .theme-button:hover,
     .user-profile-preview.has-btn-hover .back-card.btn-style-clay .campaign-button:hover {
-      background: linear-gradient(
-        180deg,
-        oklch(from var(--clay-bg) calc(l + 0.07) calc(c * 0.90) h) 0%,
-        oklch(from var(--clay-bg) calc(l + 0.02) c h) 52%,
-        oklch(from var(--clay-bg) calc(l - 0.03) calc(c * 1.04) h) 100%
-      );
-      transform: translateY(-2px) scale(1.01);
+      background-color: oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.95) h) !important;
       box-shadow:
         0 14px 26px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.42),
         0 6px 12px -2px rgba(0, 0, 0, 0.16),
         inset 0 5px 8px oklch(from var(--clay-bg) calc(l + 0.20) calc(c * 0.50) h / 0.78),
         inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
     }
-    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .theme-button:active,
-    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .campaign-button:active {
-      transform: translateY(1px) scale(0.99);
+    .user-profile-preview:not(.has-btn-hover) .back-card.btn-style-clay .theme-button:hover,
+    .user-profile-preview:not(.has-btn-hover) .back-card.btn-style-clay .campaign-button:hover {
+      background-color: var(--clay-bg) !important;
+      box-shadow:
+        0 10px 22px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.34),
+        0 4px 10px -2px rgba(0, 0, 0, 0.14),
+        inset 0 4px 7px oklch(from var(--clay-bg) calc(l + 0.18) calc(c * 0.50) h / 0.72),
+        inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
+    }
+    /* Estilo Liquid Glass / Cristal en vista previa */
+    .user-profile-preview .back-card.btn-style-glass .theme-button,
+    .user-profile-preview .back-card.btn-style-glass .campaign-button {
+      --glass-bg: var(--preview-back-perfil);
+      position: relative;
+      background-color: rgba(255, 255, 255, 0) !important;
+      background-image: linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0.03) 40%,
+        rgba(255, 255, 255, 0.01) 68%,
+        rgba(255, 255, 255, 0.09) 100%
+      );
+      backdrop-filter: blur(6px) saturate(160%);
+      -webkit-backdrop-filter: blur(6px) saturate(160%);
+      border: none;
+      box-sizing: border-box;
+      box-shadow:
+        0 16px 32px -8px rgba(0, 0, 0, 0.30),
+        0 6px 12px -4px rgba(0, 0, 0, 0.18),
+        0 10px 24px -4px oklch(from var(--glass-bg) calc(l + 0.22) calc(c * 1.35) h / 0.42),
+        0 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 1px 1px rgba(255, 255, 255, 0.52),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.24),
+        inset 0 -8px 18px -10px oklch(from var(--glass-bg) calc(l + 0.28) calc(c * 1.25) h / 0.32),
+        inset 0 8px 16px -12px rgba(255, 255, 255, 0.20);
+      transition: background-color 200ms ease, box-shadow 200ms ease;
+    }
+    .user-profile-preview .back-card.btn-style-glass .theme-button::before,
+    .user-profile-preview .back-card.btn-style-glass .campaign-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.5px;
+      background:
+        radial-gradient(circle 48px at 10% 0%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.45) 38%, transparent 72%),
+        radial-gradient(circle 54px at 92% 100%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.50) 36%, transparent 72%),
+        linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.52) 0%,
+          rgba(255, 255, 255, 0.12) 45%,
+          rgba(255, 255, 255, 0.08) 60%,
+          rgba(255, 255, 255, 0.48) 100%
+        );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .user-profile-preview .back-card.btn-style-glass .theme-button.br0,
+    .user-profile-preview .back-card.btn-style-glass .campaign-button.br0 {
+      border-radius: 10px !important;
+    }
+    .user-profile-preview .back-card.btn-style-glass .theme-button.shadow-3 img {
+      border: none;
+    }
+    .user-profile-preview .back-card.btn-style-glass .theme-button,
+    .user-profile-preview .back-card.btn-style-glass .theme-button a,
+    .user-profile-preview .back-card.btn-style-glass .theme-button p,
+    .user-profile-preview .back-card.btn-style-glass .theme-button span,
+    .user-profile-preview .back-card.btn-style-glass .campaign-button {
+      font-family: 'GoogleSansFlex_120pt', sans-serif;
+      font-weight: 500;
+    }
+    .user-profile-preview.has-btn-hover .back-card.btn-style-glass .theme-button:hover,
+    .user-profile-preview.has-btn-hover .back-card.btn-style-glass .campaign-button:hover {
+      background-color: rgba(255, 255, 255, 0.11) !important;
+      box-shadow:
+        0 18px 36px -8px rgba(0, 0, 0, 0.34),
+        0 7px 14px -4px rgba(0, 0, 0, 0.20),
+        0 12px 28px -4px oklch(from var(--glass-bg) calc(l + 0.26) calc(c * 1.40) h / 0.52),
+        0 0 1px 0 rgba(255, 255, 255, 0.32),
+        inset 0 1px 1px rgba(255, 255, 255, 0.65),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.34),
+        inset 0 -8px 18px -10px oklch(from var(--glass-bg) calc(l + 0.30) calc(c * 1.30) h / 0.40),
+        inset 0 8px 16px -12px rgba(255, 255, 255, 0.28);
+    }
+    .user-profile-preview:not(.has-btn-hover) .back-card.btn-style-glass .theme-button:hover,
+    .user-profile-preview:not(.has-btn-hover) .back-card.btn-style-glass .campaign-button:hover {
+      background-color: rgba(255, 255, 255, 0) !important;
+      box-shadow:
+        0 16px 32px -8px rgba(0, 0, 0, 0.30),
+        0 6px 12px -4px rgba(0, 0, 0, 0.18),
+        0 10px 24px -4px oklch(from var(--glass-bg) calc(l + 0.22) calc(c * 1.35) h / 0.42),
+        0 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 1px 1px rgba(255, 255, 255, 0.52),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.24),
+        inset 0 -8px 18px -10px oklch(from var(--glass-bg) calc(l + 0.28) calc(c * 1.25) h / 0.32),
+        inset 0 8px 16px -12px rgba(255, 255, 255, 0.20);
     }
   </style>
-  <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative <?= $previewIsClay ? 'btn-style-clay' : '' ?>">
+  <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative <?= $previewStyleClass ?>">
     <?php if (\App\Models\DesignModels::isVideoEnabled()) : ?>
       <video class="back-video-bg" preload="metadata" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" style="<?= ($styleBack === 'video' && !empty($backVideo)) ? '' : 'display: none;' ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">
         <source src="<?= eUrl($backVideo) ?>" type="video/mp4" onerror="var v = this.parentElement; if(v){ v.style.display='none'; if(v.nextElementSibling) v.nextElementSibling.style.display='none'; }">
@@ -202,6 +301,8 @@
             if (!draft || typeof draft !== 'object') return;
             document.querySelectorAll('.user-profile-preview').forEach(function(preview) {
               if (draft.back) preview.style.setProperty('--preview-btn-back', draft.back);
+              var draftBackPerfil = (draft.backCard && draft.backCard.back_perfil) ? draft.backCard.back_perfil : draft.back_perfil;
+              if (draftBackPerfil) preview.style.setProperty('--preview-back-perfil', draftBackPerfil);
               if (draft.color) preview.style.setProperty('--preview-btn-color', draft.color);
               if (draft.colorText) preview.style.setProperty('--preview-txt-color', draft.colorText);
               if (draft.titleColor) preview.style.setProperty('--preview-title-color', draft.titleColor);
@@ -228,9 +329,18 @@
               }
               if (draft.style) {
                 var isClay = draft.style === 'buttonClay';
+                var isGlass = draft.style === 'buttonGlass';
                 preview.classList.toggle('btn-style-clay', isClay);
+                preview.classList.toggle('btn-style-glass', isGlass);
                 var bc = preview.querySelector('.back-card');
-                if (bc) bc.classList.toggle('btn-style-clay', isClay);
+                if (bc) {
+                  bc.classList.toggle('btn-style-clay', isClay);
+                  bc.classList.toggle('btn-style-glass', isGlass);
+                }
+              }
+              if (draft.hover !== undefined) {
+                var isHover = (draft.hover === true || draft.hover === 'true' || draft.hover === 1 || draft.hover === '1');
+                preview.classList.toggle('has-btn-hover', isHover);
               }
             });
           } catch (e) {}

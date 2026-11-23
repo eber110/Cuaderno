@@ -35,6 +35,7 @@
   .theme-button{
     background-color: <?= $back?>;
     color: <?= $color?>;
+    transition: background-color 200ms ease, box-shadow 200ms ease;
   }
   <?php if ($hover) echo ".theme-button:hover{background-color: oklch(from ".$back." calc(l * 0.92) c h);}"?>
 
@@ -275,11 +276,12 @@
   .back-card.btn-style-clay .theme-button,
   .back-card.btn-style-clay .campaign-button {
     --clay-bg: <?= $back ?>;
-    background: linear-gradient(
+    background-color: var(--clay-bg) !important;
+    background-image: linear-gradient(
       180deg,
-      oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.92) h) 0%,
-      var(--clay-bg) 52%,
-      oklch(from var(--clay-bg) calc(l - 0.04) calc(c * 1.05) h) 100%
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0) 52%,
+      rgba(0, 0, 0, 0.10) 100%
     );
     border: 1px solid oklch(from var(--clay-bg) calc(l + 0.10) calc(c * 0.60) h / 0.45);
     box-sizing: border-box;
@@ -288,12 +290,12 @@
       0 4px 10px -2px rgba(0, 0, 0, 0.14),
       inset 0 4px 7px oklch(from var(--clay-bg) calc(l + 0.18) calc(c * 0.50) h / 0.72),
       inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
-    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+    transition: background-color 200ms ease, box-shadow 200ms ease;
   }
 
   .back-card.btn-style-clay .theme-button.br0,
   .back-card.btn-style-clay .campaign-button.br0 {
-    border-radius: 10px;
+    border-radius: 10px !important;
   }
 
   .back-card.btn-style-clay .theme-button.shadow-3 img {
@@ -312,23 +314,99 @@
   <?php if ($hover) : ?>
   .back-card.btn-style-clay .theme-button:hover,
   .back-card.btn-style-clay .campaign-button:hover {
-    background: linear-gradient(
-      180deg,
-      oklch(from var(--clay-bg) calc(l + 0.07) calc(c * 0.90) h) 0%,
-      oklch(from var(--clay-bg) calc(l + 0.02) c h) 52%,
-      oklch(from var(--clay-bg) calc(l - 0.03) calc(c * 1.04) h) 100%
-    );
-    transform: translateY(-2px) scale(1.01);
+    background-color: oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.95) h) !important;
     box-shadow:
       0 14px 26px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.42),
       0 6px 12px -2px rgba(0, 0, 0, 0.16),
       inset 0 5px 8px oklch(from var(--clay-bg) calc(l + 0.20) calc(c * 0.50) h / 0.78),
       inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
   }
+  <?php endif; ?>
 
-  .back-card.btn-style-clay .theme-button:active,
-  .back-card.btn-style-clay .campaign-button:active {
-    transform: translateY(1px) scale(0.99);
+  /* Estilo Liquid Glass / Cristal (buttonGlass) */
+  .back-card.btn-style-glass .theme-button,
+  .back-card.btn-style-glass .campaign-button {
+    --glass-bg: <?= $backPerfil ?>;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0) !important;
+    background-image: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.03) 40%,
+      rgba(255, 255, 255, 0.01) 68%,
+      rgba(255, 255, 255, 0.09) 100%
+    );
+    backdrop-filter: blur(6px) saturate(160%);
+    -webkit-backdrop-filter: blur(6px) saturate(160%);
+    border: none;
+    box-sizing: border-box;
+    box-shadow:
+      0 16px 32px -8px rgba(0, 0, 0, 0.30),
+      0 6px 12px -4px rgba(0, 0, 0, 0.18),
+      0 10px 24px -4px oklch(from var(--glass-bg) calc(l + 0.22) calc(c * 1.35) h / 0.42),
+      0 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 1px 1px rgba(255, 255, 255, 0.52),
+      inset 0 -1px 1px rgba(255, 255, 255, 0.24),
+      inset 0 -8px 18px -10px oklch(from var(--glass-bg) calc(l + 0.28) calc(c * 1.25) h / 0.32),
+      inset 0 8px 16px -12px rgba(255, 255, 255, 0.20);
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+  }
+
+  .back-card.btn-style-glass .theme-button::before,
+  .back-card.btn-style-glass .campaign-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background:
+      radial-gradient(circle 48px at 10% 0%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.45) 38%, transparent 72%),
+      radial-gradient(circle 54px at 92% 100%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.50) 36%, transparent 72%),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.52) 0%,
+        rgba(255, 255, 255, 0.12) 45%,
+        rgba(255, 255, 255, 0.08) 60%,
+        rgba(255, 255, 255, 0.48) 100%
+      );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .back-card.btn-style-glass .theme-button.br0,
+  .back-card.btn-style-glass .campaign-button.br0 {
+    border-radius: 10px !important;
+  }
+
+  .back-card.btn-style-glass .theme-button.shadow-3 img {
+    border: none;
+  }
+
+  .back-card.btn-style-glass .theme-button,
+  .back-card.btn-style-glass .theme-button a,
+  .back-card.btn-style-glass .theme-button p,
+  .back-card.btn-style-glass .theme-button span,
+  .back-card.btn-style-glass .campaign-button {
+    font-family: 'GoogleSansFlex_120pt', sans-serif;
+    font-weight: 500;
+  }
+
+  <?php if ($hover) : ?>
+  .back-card.btn-style-glass .theme-button:hover,
+  .back-card.btn-style-glass .campaign-button:hover {
+    background-color: rgba(255, 255, 255, 0.11) !important;
+    box-shadow:
+      0 18px 36px -8px rgba(0, 0, 0, 0.34),
+      0 7px 14px -4px rgba(0, 0, 0, 0.20),
+      0 12px 28px -4px oklch(from var(--glass-bg) calc(l + 0.26) calc(c * 1.40) h / 0.52),
+      0 0 1px 0 rgba(255, 255, 255, 0.32),
+      inset 0 1px 1px rgba(255, 255, 255, 0.65),
+      inset 0 -1px 1px rgba(255, 255, 255, 0.34),
+      inset 0 -8px 18px -10px oklch(from var(--glass-bg) calc(l + 0.30) calc(c * 1.30) h / 0.40),
+      inset 0 8px 16px -12px rgba(255, 255, 255, 0.28);
   }
   <?php endif; ?>
 
@@ -406,7 +484,7 @@
   }
 
   .video-block-wrapper {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 200ms ease, box-shadow 200ms ease;
   }
   .video-block-wrapper:hover .video-play-button {
     transform: scale(1.1);

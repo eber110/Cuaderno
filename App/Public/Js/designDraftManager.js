@@ -1391,6 +1391,95 @@ export function designDraftManager() {
   }
 
   /**
+   * Normaliza cualquier color hexadecimal a blanco (#ffffff) o negro (#000000) según su luminancia.
+   *
+   * @param {string} hex Color hexadecimal de entrada.
+   * @returns {"#ffffff"|"#000000"}
+   */
+  function normalizeGlassTextColor(hex) {
+    const clean = String(hex || "").trim().toLowerCase();
+    if (clean === "#000000" || clean === "#ffffff") return clean;
+    let raw = clean.replace("#", "");
+    if (raw.length === 3) {
+      raw = raw[0] + raw[0] + raw[1] + raw[1] + raw[2] + raw[2];
+    }
+    if (raw.length === 6 && /^[0-9a-f]{6}$/i.test(raw)) {
+      const r = parseInt(raw.substring(0, 2), 16);
+      const g = parseInt(raw.substring(2, 4), 16);
+      const b = parseInt(raw.substring(4, 6), 16);
+      const luma = (0.299 * r) + (0.587 * g) + (0.114 * b);
+      return luma < 128 ? "#000000" : "#ffffff";
+    }
+    return "#ffffff";
+  }
+
+  /**
+   * Sincroniza la visibilidad y coherencia de controles dependientes del estilo de botón.
+   *
+   * @param {string|null} rawStyle Valor de estilo actual ('buttonRegular', 'Regular', 'buttonClay', 'buttonGlass').
+   * @param {{autoFixBorders?: boolean}} [options={}] Si debe corregir bordes o colores incompatibles en el borrador.
+   */
+  function syncButtonStyleUI(rawStyle, { autoFixBorders = false } = {}) {
+    const styleVal = (rawStyle === "Regular" || !rawStyle) ? "buttonRegular" : String(rawStyle);
+    const isClay = styleVal === "buttonClay";
+    const isGlass = styleVal === "buttonGlass";
+    const isCustomSurface = isClay || isGlass;
+
+    const borderSquareOpt = document.getElementById("border-square-option");
+    const buttonShadowRow = document.getElementById("button-shadow-row");
+    const buttonFontRow = document.getElementById("button-font-row");
+    const panelFontButtonWrap = document.getElementById("panel-font-button-wrapper");
+    const shadow3Row = document.getElementById("shadow3-color-row");
+    const colorShadow3Row = document.getElementById("color-shadow3-color-row");
+    const buttonBackColorRow = document.getElementById("button-back-color-row");
+    const colorButtonBackRow = document.getElementById("color-button-back-row");
+    const buttonTextColorRow = document.getElementById("button-text-color-row");
+    const colorButtonTextRow = document.getElementById("color-button-text-row");
+    const buttonGlassTextRow = document.getElementById("button-glass-text-color-row");
+    const colorGlassTextRow = document.getElementById("color-glass-text-color-row");
+
+    setElementVisibility(borderSquareOpt, !isCustomSurface, "block");
+    setElementVisibility(buttonShadowRow, !isCustomSurface, "flex");
+    setElementVisibility(buttonFontRow, !isCustomSurface, "flex");
+    setElementVisibility(panelFontButtonWrap, !isCustomSurface, "flex");
+    setElementVisibility(buttonBackColorRow, !isGlass, "flex");
+    setElementVisibility(colorButtonBackRow, !isGlass, "flex");
+    setElementVisibility(buttonTextColorRow, !isGlass, "flex");
+    setElementVisibility(colorButtonTextRow, !isGlass, "flex");
+    setElementVisibility(buttonGlassTextRow, isGlass, "flex");
+    setElementVisibility(colorGlassTextRow, isGlass, "flex");
+
+    const checkedShadow = document.querySelector('input[name="shadow"]:checked')?.value || getDraftState()?.shadow || "shadow-1";
+    const showShadow3 = !isCustomSurface && checkedShadow === "shadow-3";
+    setElementVisibility(shadow3Row, showShadow3);
+    setElementVisibility(colorShadow3Row, showShadow3);
+
+    if (isCustomSurface && autoFixBorders) {
+      const squareRadio = document.getElementById("square");
+      const round1Radio = document.getElementById("round1");
+      if (squareRadio && squareRadio.checked && round1Radio) {
+        squareRadio.checked = false;
+        round1Radio.checked = true;
+        setDraftField("borders", round1Radio.value);
+      }
+    }
+
+    if (isGlass) {
+      const currentColor = String(getDraftState()?.color || document.getElementById("button-select-color-text")?.value || "#ffffff");
+      const bwColor = normalizeGlassTextColor(currentColor);
+      document.querySelectorAll(".glass-text-color-radio").forEach((r) => {
+        r.checked = (r.value.toLowerCase() === bwColor);
+      });
+      if (autoFixBorders && currentColor.toLowerCase() !== bwColor) {
+        syncSiblingInputsByName("color", bwColor);
+        setDraftField("color", bwColor);
+      }
+    }
+
+    syncGlobalFontDropdown(styleVal);
+  }
+
+  /**
    * Sincroniza la visibilidad de elementos dependientes en el formulario de edición.
    * @param {HTMLElement} target Elemento modificado
    */
@@ -1416,43 +1505,15 @@ export function designDraftManager() {
       const shadow3Row = document.getElementById("shadow3-color-row");
       const colorShadow3Row = document.getElementById("color-shadow3-color-row");
       const activeStyle = document.querySelector('input[name="style"]:checked')?.value || getDraftState()?.style || "buttonRegular";
-      const isClay = activeStyle === "buttonClay";
-      const isShadow3 = !isClay && target.value === "shadow-3";
+      const hideShadow = activeStyle === "buttonClay" || activeStyle === "buttonGlass";
+      const isShadow3 = !hideShadow && target.value === "shadow-3";
       setElementVisibility(shadow3Row, isShadow3);
       setElementVisibility(colorShadow3Row, isShadow3);
     }
 
-    // 2b. Estilo de botones (Solido vs Clay)
+    // 2b. Estilo de botones (Solido vs Clay vs Cristal)
     if (target.name === "style") {
-      const isClay = target.value === "buttonClay";
-      const borderSquareOpt = document.getElementById("border-square-option");
-      const buttonShadowRow = document.getElementById("button-shadow-row");
-      const buttonFontRow = document.getElementById("button-font-row");
-      const panelFontButtonWrap = document.getElementById("panel-font-button-wrapper");
-      const shadow3Row = document.getElementById("shadow3-color-row");
-      const colorShadow3Row = document.getElementById("color-shadow3-color-row");
-
-      setElementVisibility(borderSquareOpt, !isClay, "block");
-      setElementVisibility(buttonShadowRow, !isClay, "flex");
-      setElementVisibility(buttonFontRow, !isClay, "flex");
-      setElementVisibility(panelFontButtonWrap, !isClay, "flex");
-
-      const checkedShadow = document.querySelector('input[name="shadow"]:checked')?.value || getDraftState()?.shadow || "shadow-1";
-      const showShadow3 = !isClay && checkedShadow === "shadow-3";
-      setElementVisibility(shadow3Row, showShadow3);
-      setElementVisibility(colorShadow3Row, showShadow3);
-
-      if (isClay) {
-        const squareRadio = document.getElementById("square");
-        const round1Radio = document.getElementById("round1");
-        if (squareRadio && squareRadio.checked && round1Radio) {
-          squareRadio.checked = false;
-          round1Radio.checked = true;
-          setDraftField("borders", round1Radio.value);
-        }
-      }
-
-      syncGlobalFontDropdown();
+      syncButtonStyleUI(target.value, { autoFixBorders: true });
     }
 
     // 3. Separación superior en voidHero
@@ -1880,13 +1941,13 @@ export function designDraftManager() {
       const isHoverActive = (fields.hover === "true" || fields.hover === true || fields.hover === 1 || fields.hover === "1");
       if (isHoverActive) {
         cssRules.push(`
-          .user-profile-preview:not(.btn-style-clay) .theme-button:hover {
+          .user-profile-preview:not(.btn-style-clay):not(.btn-style-glass) .theme-button:hover {
             background-color: oklch(from ${buttonBack} calc(l * 0.92) c h) !important;
           }
         `);
       } else {
         cssRules.push(`
-          .user-profile-preview:not(.btn-style-clay) .theme-button:hover {
+          .user-profile-preview:not(.btn-style-clay):not(.btn-style-glass) .theme-button:hover {
             background-color: ${buttonBack} !important;
           }
         `);
@@ -1901,15 +1962,20 @@ export function designDraftManager() {
     const btnColorVal = fields.color || document.getElementById("button-select-color-text")?.value || document.getElementById("select-color-text")?.value;
     const colorShadow3 = fields.colorShadow3 || document.getElementById("button-select-color-shadow3")?.value || document.getElementById("select-color-shadow3")?.value || document.querySelector('input[name="colorShadow3"]')?.value || "#000000";
 
+    const rawStyleVal = fields.style || document.querySelector('input[name="style"]:checked')?.value || "buttonRegular";
+    const normalizedStyle = rawStyleVal === "Regular" ? "buttonRegular" : rawStyleVal;
+
     const themePayload = {
       back: btnBackVal,
+      back_perfil: backPerfil,
       color: btnColorVal,
       colorText: fields.colorText,
       titleColor: fields.titleColor,
       font_title: fields.font_title,
       font_text: fields.font_text,
       font_button: fields.font_button,
-      style: fields.style || document.querySelector('input[name="style"]:checked')?.value || "buttonRegular",
+      style: normalizedStyle,
+      hover: fields.hover,
       colorShadow3: colorShadow3,
       void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
       header: fields.header,
@@ -1935,15 +2001,15 @@ export function designDraftManager() {
 
       const clampedBorder = (btnBorder === "br50") ? "br20" : btnBorder;
       const clampedImgBorder = (imgBorder === "br50") ? "br12" : imgBorder;
-      const clayPreviewBorder = (btnBorder === "br0") ? "br10" : btnBorder;
+      const roundedPreviewBorder = (btnBorder === "br0") ? "br10" : btnBorder;
 
       document.querySelectorAll(".button-fill-style").forEach((el) => {
         validBorders.forEach((b) => el.classList.remove(b));
         el.classList.add(btnBorder);
       });
-      document.querySelectorAll(".button-clay-style").forEach((el) => {
+      document.querySelectorAll(".button-clay-style, .button-glass-style").forEach((el) => {
         validBorders.forEach((b) => el.classList.remove(b));
-        el.classList.add(clayPreviewBorder);
+        el.classList.add(roundedPreviewBorder);
       });
 
       previews.forEach((p) => {
@@ -2178,14 +2244,16 @@ export function designDraftManager() {
 
   /**
    * Sincroniza el selector "Fuente global" con los 3 selectores individuales (título, texto, botones).
+   * @param {string|null} [overrideStyle=null] Estilo de botón recién seleccionado para evitar leer estado desactualizado.
    */
-  function syncGlobalFontDropdown() {
+  function syncGlobalFontDropdown(overrideStyle = null) {
     const draftState = getDraftState() || {};
     const titleVal = String(draftState.font_title || document.querySelector('input[name="font_title"]')?.value || "");
     const textVal = String(draftState.font_text || document.querySelector('input[name="font_text"]')?.value || "");
     const buttonVal = String(draftState.font_button || document.querySelector('input[name="font_button"]')?.value || "");
-    const activeStyle = String(draftState.style || document.querySelector('input[name="style"]:checked')?.value || "buttonRegular");
-    const isUnified = activeStyle === "buttonClay"
+    const rawActiveStyle = String(overrideStyle || document.querySelector('input[name="style"]:checked')?.value || draftState.style || "buttonRegular");
+    const activeStyle = rawActiveStyle === "Regular" ? "buttonRegular" : rawActiveStyle;
+    const isUnified = (activeStyle === "buttonClay" || activeStyle === "buttonGlass")
       ? Boolean(titleVal && titleVal === textVal)
       : Boolean(titleVal && titleVal === textVal && textVal === buttonVal);
 
@@ -2344,8 +2412,9 @@ export function designDraftManager() {
       // 1. Inputs tipo radio
       const radios = document.querySelectorAll(`input[type="radio"][name="${name}"]`);
       if (radios.length) {
+        const normalizedRadioVal = (name === "style" && String(val) === "Regular") ? "buttonRegular" : String(val);
         radios.forEach((r) => {
-          if (r.value === String(val)) {
+          if (r.value === normalizedRadioVal) {
             r.checked = true;
             syncConditionalUI(r);
           }
@@ -2405,7 +2474,11 @@ export function designDraftManager() {
       });
     });
 
-    syncGlobalFontDropdown();
+    const resolvedStyle = (fields.style === "Regular" ? "buttonRegular" : fields.style)
+      || document.querySelector('input[name="style"]:checked')?.value
+      || getDraftState()?.style
+      || "buttonRegular";
+    syncButtonStyleUI(resolvedStyle, { autoFixBorders: false });
   }
 
   // =========================================================================
@@ -3212,6 +3285,17 @@ export function designDraftManager() {
         return;
       }
 
+      if (target.classList && target.classList.contains("glass-text-color-radio")) {
+        const bwVal = target.value.toLowerCase() === "#000000" ? "#000000" : "#ffffff";
+        document.querySelectorAll(".glass-text-color-radio").forEach((r) => {
+          r.checked = (r.value.toLowerCase() === bwVal);
+        });
+        syncSiblingInputsByName("color", bwVal);
+        setDraftField("color", bwVal);
+        applyDraftToPreview(getDraft());
+        return;
+      }
+
       if (target.classList && target.classList.contains("separator-icon-radio")) {
         const isSpace = (target.value === "none" || target.value === "ban");
         const modeFieldName = target.name.replace(/\[separator_icon\]$/, "[separator_mode]");
@@ -3645,7 +3729,9 @@ export function designDraftManager() {
             });
           }
 
-          applyDraftToPreview(getDraft());
+          const flatDraft = getDraft();
+          applyDraftToPreview(flatDraft);
+          syncFormControls(flatDraft);
         }
 
         // Actualizar la vista previa con el HTML oficial retornado por el servidor

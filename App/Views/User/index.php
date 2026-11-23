@@ -1,13 +1,18 @@
 <?php
   /** @var mixed $card */
   _part("User.style.css", ["card" => $card]);
-  $styleBack = $card["backCard"]["style_back"] ?? "solid";
-  $backVideo = $card["backCard"]["back_video"] ?? "";
-  $isClayStyle = (($card["style"] ?? "buttonRegular") === "buttonClay");
+  $styleBack        = $card["backCard"]["style_back"] ?? "solid";
+  $backVideo        = $card["backCard"]["back_video"] ?? "";
+  $buttonStyle      = $card["style"] ?? "buttonRegular";
+  $buttonStyleClass = match ($buttonStyle) {
+    "buttonClay"  => "btn-style-clay",
+    "buttonGlass" => "btn-style-glass",
+    default       => ""
+  };
 ?>
 <div data-profile-user="<?= e($card["profile"] ?? "") ?>" class="container-xl container-xl-sml flex-column center-center text-protected back-card-container overflow-hidden position-relative">
   <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0 z-index-1">
-    <div class="flex-column between-center back-card color-text-card shadow-card dvh-cuaderno h100 p0 brtl-desk-30 brtr-desk-30 brtl-mid-30 brtr-mid-30 brtl-sml-0 brtr-sml-0 overflow-hidden position-relative <?= $isClayStyle ? 'btn-style-clay' : '' ?>">
+    <div class="flex-column between-center back-card color-text-card shadow-card dvh-cuaderno h100 p0 brtl-desk-30 brtr-desk-30 brtl-mid-30 brtr-mid-30 brtl-sml-0 brtr-sml-0 overflow-hidden position-relative <?= $buttonStyleClass ?>">
       
       <?php if (\App\Models\DesignModels::isVideoEnabled() && $styleBack === "video" && !empty($backVideo)) : ?>
         <video class="back-video-bg" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">

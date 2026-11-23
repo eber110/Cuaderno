@@ -524,6 +524,7 @@ export function formComponents() {
 
     previews.forEach((preview) => {
       if (name === 'back_perfil') {
+        preview.style.setProperty('--preview-back-perfil', hex);
         preview.querySelectorAll('.back-card').forEach(el => {
           el.style.setProperty('background', hex, 'important');
           el.style.setProperty('background-color', hex, 'important');

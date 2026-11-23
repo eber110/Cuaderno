@@ -5,8 +5,24 @@
    */
   $styleBack  = $card["backCard"]["style_back"] ?? $card["backCard"][1] ?? 'solid';
   $backPerfil = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
-  $shadowVal   = $card["shadow"] ?? 'shadow-0';
-  $isClay      = (($card["style"] ?? 'buttonRegular') === 'buttonClay');
+  $shadowVal        = $card["shadow"] ?? 'shadow-0';
+  $isGlass          = (($card["style"] ?? 'buttonRegular') === 'buttonGlass');
+  $hideButtonShadow = in_array($card["style"] ?? 'buttonRegular', ['buttonClay', 'buttonGlass'], true);
+  $rawBtnTextColor  = strtolower(trim((string)($card["color"] ?? "#ffffff")));
+  if ($rawBtnTextColor === "#000000" || $rawBtnTextColor === "#ffffff") {
+    $glassTextColor = $rawBtnTextColor;
+  } else {
+    $hex = ltrim($rawBtnTextColor, "#");
+    if (strlen($hex) === 3) {
+      $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if (strlen($hex) === 6 && ctype_xdigit($hex)) {
+      $luma = (0.299 * hexdec(substr($hex, 0, 2))) + (0.587 * hexdec(substr($hex, 2, 2))) + (0.114 * hexdec(substr($hex, 4, 2)));
+      $glassTextColor = ($luma < 128) ? "#000000" : "#ffffff";
+    } else {
+      $glassTextColor = "#ffffff";
+    }
+  }
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
@@ -56,7 +72,7 @@
   
     <p class="bold500 mt20 texto">Color de botones</p>
     <!-- Estilo de color de los botones -->
-    <div class="flex-row center-between">
+    <div id="color-button-back-row" class="flex-row center-between <?= $isGlass ? 'hidden' : '' ?>" style="display: <?= $isGlass ? 'none !important' : 'flex' ?>;">
       <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -69,7 +85,7 @@
     </div>
 
     <!-- Estilo de color del texto de los botones -->
-    <div class="flex-row center-between">
+    <div id="color-button-text-row" class="flex-row center-between <?= $isGlass ? 'hidden' : '' ?>" style="display: <?= $isGlass ? 'none !important' : 'flex' ?>;">
       <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -81,8 +97,31 @@
       </div>
     </div>
 
+    <!-- Selector de color de texto exclusivo para Cristal (Blanco o Negro) -->
+    <div id="color-glass-text-color-row" class="flex-row center-between <?= $isGlass ? '' : 'hidden' ?>" style="display: <?= $isGlass ? 'flex' : 'none !important' ?>;">
+      <p class="texto">Color de texto</p>
+
+      <div class="flex-row center-end gap10">
+        <div>
+          <input type="radio" id="color-glass-text-white" name="glass_text_color_panel" value="#ffffff" class="hidden-radio glass-text-color-radio" <?= ($glassTextColor === '#ffffff') ? 'checked' : '' ?>>
+          <label for="color-glass-text-white" class="flex-row center-center p10 pl15 pr15 gap8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
+            <span class="wpx22 hpx22 br50" style="background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.2); display: inline-block; flex-shrink: 0;"></span>
+            <p class="x15 bold500 texto">Blanco</p>
+          </label>
+        </div>
+
+        <div>
+          <input type="radio" id="color-glass-text-black" name="glass_text_color_panel" value="#000000" class="hidden-radio glass-text-color-radio" <?= ($glassTextColor === '#000000') ? 'checked' : '' ?>>
+          <label for="color-glass-text-black" class="flex-row center-center p10 pl15 pr15 gap8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
+            <span class="wpx22 hpx22 br50" style="background-color: #000000; border: 1px solid rgba(255, 255, 255, 0.25); display: inline-block; flex-shrink: 0;"></span>
+            <p class="x15 bold500 texto">Negro</p>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Estilo de color de la sombra shadow-3 -->
-    <div id="color-shadow3-color-row" class="flex-row center-between <?= (!$isClay && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$isClay && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
+    <div id="color-shadow3-color-row" class="flex-row center-between <?= (!$hideButtonShadow && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$hideButtonShadow && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">

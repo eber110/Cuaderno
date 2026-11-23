@@ -1996,10 +1996,10 @@ class DesignModels extends Builder {
         "back_image_filter_intensity" => isset($param["back_image_filter_intensity"]) ? max(0, min(100, intval($param["back_image_filter_intensity"]))) : ($dataRequest["backCard"]["back_image_filter_intensity"] ?? 80)
       ],
       "colorText"    => $param["colorText"] ?? $dataRequest["colorText"] ?? "#383838",
-      "style"        => ($resolvedStyle = in_array((string)($param["style"] ?? $dataRequest["style"] ?? "buttonRegular"), ["buttonRegular", "buttonClay"], true) ? (string)($param["style"] ?? $dataRequest["style"] ?? "buttonRegular") : "buttonRegular"),
+      "style"        => ($resolvedStyle = in_array((string)($param["style"] ?? $dataRequest["style"] ?? "buttonRegular"), ["buttonRegular", "buttonClay", "buttonGlass"], true) ? (string)($param["style"] ?? $dataRequest["style"] ?? "buttonRegular") : "buttonRegular"),
       "borders"      => (function() use ($dataRequest, $resolvedStyle) {
         $b = $dataRequest["borders"] ?? ["br0", "br0"];
-        if ($resolvedStyle === "buttonClay" && ($b[0] ?? "br0") === "br0") {
+        if (in_array($resolvedStyle, ["buttonClay", "buttonGlass"], true) && ($b[0] ?? "br0") === "br0") {
           return ["br10", "br5"];
         }
         return $b;
@@ -2007,7 +2007,28 @@ class DesignModels extends Builder {
       "shadow"       => $param["shadow"] ?? $dataRequest["shadow"] ?? "shadow-1",
       "back"         => $param["back"] ?? $dataRequest["back"] ?? "#d6d6d6",
       "hover"        => isset($param["hover"]) ? ($param["hover"] === "true" || $param["hover"] === true || $param["hover"] === 1 || $param["hover"] === "1") : ($dataRequest["hover"] ?? false),
-      "color"        => $param["color"] ?? $dataRequest["color"] ?? "#494949",
+      "color"        => (function() use ($param, $dataRequest, $resolvedStyle) {
+        $rawBtnColor = (string)($param["color"] ?? $dataRequest["color"] ?? "#494949");
+        if ($resolvedStyle !== "buttonGlass") {
+          return $rawBtnColor;
+        }
+        $lower = strtolower(trim($rawBtnColor));
+        if ($lower === "#ffffff" || $lower === "#000000") {
+          return $lower;
+        }
+        $hex = ltrim($lower, "#");
+        if (strlen($hex) === 3) {
+          $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (strlen($hex) === 6 && ctype_xdigit($hex)) {
+          $r = hexdec(substr($hex, 0, 2));
+          $g = hexdec(substr($hex, 2, 2));
+          $b = hexdec(substr($hex, 4, 2));
+          $luma = (0.299 * $r) + (0.587 * $g) + (0.114 * $b);
+          return ($luma < 128) ? "#000000" : "#ffffff";
+        }
+        return "#ffffff";
+      })(),
       "colorShadow3" => $param["colorShadow3"] ?? $dataRequest["colorShadow3"] ?? "#000000",
       "rrss"            => $rrss ?? $dataRequest["rrss"] ?? [],
       "content"         => $content ?? $dataRequest["content"] ?? [],

@@ -575,6 +575,10 @@ export function LivePreviewManager() {
     if (fields.back) {
       previewEl.style.setProperty("--preview-btn-back", fields.back);
     }
+    const backPerfilVal = fields.back_perfil || fields.backCard?.back_perfil;
+    if (backPerfilVal) {
+      previewEl.style.setProperty("--preview-back-perfil", backPerfilVal);
+    }
     if (fields.color) {
       previewEl.style.setProperty("--preview-btn-color", fields.color);
     }
@@ -606,7 +610,8 @@ export function LivePreviewManager() {
     }
     if (fields.style) {
       const BUTTON_STYLE_CLASSES = {
-        buttonClay: "btn-style-clay"
+        buttonClay: "btn-style-clay",
+        buttonGlass: "btn-style-glass"
       };
       const normalizedStyle = fields.style === "Regular" ? "buttonRegular" : String(fields.style);
       const cardEls = previewEl.querySelectorAll ? Array.from(previewEl.querySelectorAll(".back-card")) : [];

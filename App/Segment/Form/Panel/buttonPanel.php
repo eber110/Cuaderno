@@ -3,17 +3,34 @@
    * @var mixed $card 
    * @var mixed $uri
    */
-  $buttonStyle = $card["style"] ?? 'buttonRegular';
-  $isClay      = ($buttonStyle === 'buttonClay');
-  $borders     = is_array($card["borders"] ?? null) 
+  $buttonStyle     = $card["style"] ?? 'buttonRegular';
+  $isClay          = ($buttonStyle === 'buttonClay');
+  $isGlass         = ($buttonStyle === 'buttonGlass');
+  $isCustomSurface = ($isClay || $isGlass);
+  $borders         = is_array($card["borders"] ?? null) 
     ? $card["borders"] 
     : (is_string($card["borders"] ?? null) ? (str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]]) : ["br0", "br0"]);
   $borderVal          = $borders[0] ?? 'br0';
-  $effectiveBorderVal = ($isClay && $borderVal === 'br0') ? 'br10' : $borderVal;
+  $effectiveBorderVal = ($isCustomSurface && $borderVal === 'br0') ? 'br10' : $borderVal;
   $shadowVal          = $card["shadow"] ?? 'shadow-0';
   $availableFonts     = \App\Models\DesignModels::getAvailableFonts();
   $selectedButtonFont = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
   $fontSearchable     = count($availableFonts) > 6 ? "true" : "false";
+  $rawBtnTextColor    = strtolower(trim((string)($card["color"] ?? "#ffffff")));
+  if ($rawBtnTextColor === "#000000" || $rawBtnTextColor === "#ffffff") {
+    $glassTextColor = $rawBtnTextColor;
+  } else {
+    $hex = ltrim($rawBtnTextColor, "#");
+    if (strlen($hex) === 3) {
+      $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if (strlen($hex) === 6 && ctype_xdigit($hex)) {
+      $luma = (0.299 * hexdec(substr($hex, 0, 2))) + (0.587 * hexdec(substr($hex, 2, 2))) + (0.114 * hexdec(substr($hex, 4, 2)));
+      $glassTextColor = ($luma < 128) ? "#000000" : "#ffffff";
+    } else {
+      $glassTextColor = "#ffffff";
+    }
+  }
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
@@ -44,6 +61,16 @@
             <p class="x16 texto">Clay</p>
           </div>
         </label>
+
+        <input type="radio" id="button-glass" name="style" class="hidden-radio" value="buttonGlass" <?php if ($isGlass) echo "checked";?>>
+        <label for="button-glass">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
+            <div class="button-style-background button-glass-preview-bg flex-row center-center">
+              <div class="<?= ($effectiveBorderVal === 'br0') ? 'br10' : $effectiveBorderVal ?> button-glass-style"></div>
+            </div>
+            <p class="x16 texto">Cristal</p>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -53,7 +80,7 @@
 
       <div class="flex-row center-end gap20">
       
-        <div id="border-square-option" class="<?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'block' ?>;">
+        <div id="border-square-option" class="<?= $isCustomSurface ? 'hidden' : '' ?>" style="display: <?= $isCustomSurface ? 'none !important' : 'block' ?>;">
           <input type="radio" id="square" name="borders" value="br0,br0" class="hidden-radio" <?php if ($effectiveBorderVal == "br0") echo "checked";?>>
           <label for="square" class="flex-row center-start p10 gap10 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
             <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
@@ -94,7 +121,7 @@
     </div>
 
     <!-- Estilos de sombreado de los botones -->
-    <div id="button-shadow-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'flex' ?>;">
+    <div id="button-shadow-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isCustomSurface ? 'hidden' : '' ?>" style="display: <?= $isCustomSurface ? 'none !important' : 'flex' ?>;">
       <p class="texto">Estilo de sombra</p>
 
       <div class="flex-row center-end gap20">
@@ -140,7 +167,7 @@
     </div>
 
     <!-- Estilo de color de los botones -->
-    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+    <div id="button-back-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isGlass ? 'hidden' : '' ?>" style="display: <?= $isGlass ? 'none !important' : 'flex' ?>;">
       <p class="texto">Color de fondo</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -153,7 +180,7 @@
     </div>
 
     <!-- Estilo de color del texto de los botones -->
-    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+    <div id="button-text-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isGlass ? 'hidden' : '' ?>" style="display: <?= $isGlass ? 'none !important' : 'flex' ?>;">
       <p class="texto">Color de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -165,8 +192,31 @@
       </div>
     </div>
 
+    <!-- Selector de color de texto exclusivo para Cristal (Blanco o Negro) -->
+    <div id="button-glass-text-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isGlass ? '' : 'hidden' ?>" style="display: <?= $isGlass ? 'flex' : 'none !important' ?>;">
+      <p class="texto">Color de texto</p>
+
+      <div class="flex-row center-end gap10">
+        <div>
+          <input type="radio" id="glass-text-white" name="glass_text_color" value="#ffffff" class="hidden-radio glass-text-color-radio" <?= ($glassTextColor === '#ffffff') ? 'checked' : '' ?>>
+          <label for="glass-text-white" class="flex-row center-center p10 pl15 pr15 gap8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
+            <span class="wpx22 hpx22 br50" style="background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.2); display: inline-block; flex-shrink: 0;"></span>
+            <p class="x15 bold500 texto">Blanco</p>
+          </label>
+        </div>
+
+        <div>
+          <input type="radio" id="glass-text-black" name="glass_text_color" value="#000000" class="hidden-radio glass-text-color-radio" <?= ($glassTextColor === '#000000') ? 'checked' : '' ?>>
+          <label for="glass-text-black" class="flex-row center-center p10 pl15 pr15 gap8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
+            <span class="wpx22 hpx22 br50" style="background-color: #000000; border: 1px solid rgba(255, 255, 255, 0.25); display: inline-block; flex-shrink: 0;"></span>
+            <p class="x15 bold500 texto">Negro</p>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Estilo de color de la sombra shadow-3 -->
-    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= (!$isClay && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$isClay && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
+    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= (!$isCustomSurface && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$isCustomSurface && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -179,7 +229,7 @@
     </div>
 
     <!-- Fuente de botones y contenidos -->
-    <div id="button-font-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'flex' ?>;">
+    <div id="button-font-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isCustomSurface ? 'hidden' : '' ?>" style="display: <?= $isCustomSurface ? 'none !important' : 'flex' ?>;">
       <p class="texto">Fuente de botones</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w60 w-sml-100">
