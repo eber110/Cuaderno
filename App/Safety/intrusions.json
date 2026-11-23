@@ -743,5 +743,14 @@
         "uri": "/_frame/theme-studio/render-input",
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
         "context": []
+    },
+    {
+        "timestamp": "2026-11-23 17:58:40",
+        "reason": "Fallo de verificación CSRF en POST /panel/eber/guardar?compact=1",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/panel/eber/guardar?compact=1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+        "context": []
     }
 ]
