@@ -512,19 +512,19 @@
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="campaign-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="horizontal" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'horizontal') ? 'checked' : '' ?>>
                   <label for="campaign-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato horizontal compacto">
-                    <?= svg("bars", "x16") ?>
+                    <?= svg("horizontal-rectangle", "x16") ?>
                     <span class="bold500 x13">Horizontal</span>
                   </label>
 
                   <input type="radio" id="campaign-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="square" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'square') ? 'checked' : '' ?>>
                   <label for="campaign-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato cuadrado (1:1)">
-                    <?= svg("grid", "x16") ?>
+                    <?= svg("square-full", "x16") ?>
                     <span class="bold500 x13">Cuadrado</span>
                   </label>
 
                   <input type="radio" id="campaign-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="vertical" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'vertical') ? 'checked' : '' ?>>
                   <label for="campaign-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato vertical amplio">
-                    <?= svg("film", "x16") ?>
+                    <?= svg("vertical-rectangle", "x16") ?>
                     <span class="bold500 x13">Vertical</span>
                   </label>
                 </div>
@@ -537,13 +537,13 @@
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="img-pos-bg-<?= $i?>" name="content[<?= $i?>][img_position]" value="background" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'background') ? 'checked' : '' ?>>
                   <label for="img-pos-bg-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen como fondo del bloque">
-                    <?= svg("images", "x16") ?>
+                    <?= svg("background-image", "x16") ?>
                     <span class="bold500 x13">Fondo</span>
                   </label>
 
                   <input type="radio" id="img-pos-hdr-<?= $i?>" name="content[<?= $i?>][img_position]" value="header" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'header') ? 'checked' : '' ?>>
                   <label for="img-pos-hdr-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen en la cabecera">
-                    <?= svg("slide", "x16") ?>
+                    <?= svg("header-image", "x16") ?>
                     <span class="bold500 x13">Cabecera</span>
                   </label>
                 </div>

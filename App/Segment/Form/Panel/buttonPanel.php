@@ -58,7 +58,7 @@
             <div class="button-style-background button-clay-preview-bg flex-row center-center">
               <div class="<?= ($effectiveBorderVal === 'br0') ? 'br10' : $effectiveBorderVal ?> button-clay-style"></div>
             </div>
-            <p class="x16 texto">Clay</p>
+            <p class="x16 texto">Arcilla</p>
           </div>
         </label>
 
