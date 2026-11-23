@@ -160,7 +160,10 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .gap0 { gap: 0px; }
 .gap10 { gap: 10px; }
 .gap12 { gap: 12px; }
+.gap14 { gap: 14px; }
 .gap15 { gap: 15px; }
+.gap16 { gap: 16px; }
+.gap18 { gap: 18px; }
 .gap2 { gap: 2px; }
 .gap20 { gap: 20px; }
 .gap25 { gap: 25px; }
@@ -378,6 +381,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .pl10 { padding-left: 10px !important; }
 .pl12 { padding-left: 12px !important; }
 .pl15 { padding-left: 15px !important; }
+.pl16 { padding-left: 16px !important; }
 .pl20 { padding-left: 20px !important; }
 .pl25 { padding-left: 25px !important; }
 .pl30 { padding-left: 30px !important; }
@@ -387,6 +391,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .pr10 { padding-right: 10px !important; }
 .pr12 { padding-right: 12px !important; }
 .pr15 { padding-right: 15px !important; }
+.pr16 { padding-right: 16px !important; }
 .pr20 { padding-right: 20px !important; }
 .pr25 { padding-right: 25px !important; }
 .pr30 { padding-right: 30px !important; }
@@ -420,7 +425,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .wpx-max-600 { max-width: 600px; }
 .wpx-max-650 { max-width: 650px; }
 .wpx100 { width: 100px; }
-.wpx140 { width: 140px; }
 .wpx200 { width: 200px; }
 .wpx22 { width: 22px; }
 .wpx25 { width: 25px; }
@@ -454,9 +458,7 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .x12 { font-size: 12px; }
 .x13 { font-size: 13px; }
 .x14 { font-size: 14px; }
-.x15 { font-size: 15px; }
 .x16 { font-size: 16px; }
-.x17 { font-size: 17px; }
 .x18 { font-size: 18px; }
 .x2 { font-size: 2px; }
 .x20 { font-size: 20px; }

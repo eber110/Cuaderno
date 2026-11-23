@@ -53,10 +53,13 @@
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php $isProfileHidden = !empty($card["hide"]) && ($card["hide"] === true || $card["hide"] === 'true' || $card["hide"] === 1 || $card["hide"] === '1'); ?>
       <div class="mb20 p20 br15 back-card-graphic shadow-card-graphic">
-        <p class="texto">Tu perfil esta <span class="bold600" id="profile-visibility-status-text"><?= $isProfileHidden ? "oculto" : "visible";?></span> para todo publico.</p>
+        <p class="texto">Tu perfil está <span class="bold500" id="profile-visibility-status-text"><?= $isProfileHidden ? "oculto" : "visible";?></span> para todo público.</p>
       </div>
-      <div class="flex-row center-between">
-        <div class="texto">Ocultar perfil</div>
+      <div class="back-card-graphic panel-toggle-card flex-row center-between w100">
+        <div class="ui-field-header">
+          <p class="bold500 texto">Ocultar perfil</p>
+          <span class="text-muted">Pausa temporalmente el acceso público a tu perfil</span>
+        </div>
         <?php _form("Panel.hideProfile", ["card" => $card, "uri" => $uri]);?>
       </div>
     </div>

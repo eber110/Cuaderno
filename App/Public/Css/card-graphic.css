@@ -1,10 +1,35 @@
 :root {
   --hover-scale-soft: 1.02;
-  --hover-shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --hover-shadow-soft: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --panel-card-bg: #ffffff;
+  --panel-subcard-bg: #f4f6fb;
+  --panel-track-bg: #eef2f7;
+  --panel-border: rgba(15, 23, 42, 0.09);
+  --panel-border-strong: rgba(15, 23, 42, 0.15);
+  --panel-divider: rgba(15, 23, 42, 0.07);
+  --panel-accent: var(--back-color, #0B101E);
+  --panel-accent-soft: rgba(62, 90, 195, 0.08);
+  --panel-accent-ring: rgba(11, 16, 30, 0.10);
+  --panel-text-muted: #64748b;
+  --panel-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+  --panel-card-open-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.09), 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
-[data-theme="dark"] {
-  --hover-shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.4);
+[data-theme="dark"],
+.dark-mode {
+  --hover-shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.42);
+  --panel-card-bg: #1e2128;
+  --panel-subcard-bg: #161920;
+  --panel-track-bg: #12151b;
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --panel-border-strong: rgba(255, 255, 255, 0.16);
+  --panel-divider: rgba(255, 255, 255, 0.08);
+  --panel-accent: var(--text-item-sidebar, #e2e8f0);
+  --panel-accent-soft: rgba(109, 141, 255, 0.14);
+  --panel-accent-ring: rgba(226, 232, 240, 0.16);
+  --panel-text-muted: #94a3b8;
+  --panel-card-shadow: 0 2px 6px rgba(0, 0, 0, 0.26);
+  --panel-card-open-shadow: 0 14px 32px -8px rgba(0, 0, 0, 0.5);
 }
 
 .back-container-graphic{
@@ -34,31 +59,40 @@ input[type="checkbox"].checkbox-switch {
 }
 
 .back-card-graphic{
-  background-color: #ffffff;
-  filter: drop-shadow(0px 0px 1px #bdbdbd);
+  background-color: var(--panel-card-bg, #ffffff);
+  border: 1px solid var(--panel-border, rgba(15, 23, 42, 0.09));
+  filter: none;
+  box-sizing: border-box;
 }
 
 .back-card-graphic-red{
   background-color: var(--back-danger-panel, #b43b3b);
-  filter: drop-shadow(0px 0px 1px #8a2525);
+  border: 1px solid rgba(180, 59, 59, 0.25);
+  filter: none;
 }
 
 .shadow-card-graphic{
-  filter: drop-shadow(0px 1px 2px #b6b6b6);
+  box-shadow: var(--panel-card-shadow, 0 1px 3px rgba(15, 23, 42, 0.04));
+  filter: none;
 }
 
-[data-theme="dark"] .back-card-graphic{
-  background-color: #2e2e2e;
-  filter: drop-shadow(0px 0px 1px #1a1a1a);
+[data-theme="dark"] .back-card-graphic,
+.dark-mode .back-card-graphic{
+  background-color: var(--panel-card-bg, #1e2128);
+  border-color: var(--panel-border, rgba(255, 255, 255, 0.09));
+  filter: none;
 }
 
-[data-theme="dark"] .back-card-graphic-red{
+[data-theme="dark"] .back-card-graphic-red,
+.dark-mode .back-card-graphic-red{
   background-color: var(--back-danger-panel, #b43b3b);
-  filter: drop-shadow(0px 0px 1px #1a1a1a);
+  filter: none;
 }
 
-[data-theme="dark"] .shadow-card-graphic{
-  filter: drop-shadow(0px 1px 2px #141414);
+[data-theme="dark"] .shadow-card-graphic,
+.dark-mode .shadow-card-graphic{
+  box-shadow: var(--panel-card-shadow, 0 2px 6px rgba(0, 0, 0, 0.26));
+  filter: none;
 }
 
 .btn-card-graphic{
@@ -246,6 +280,261 @@ input[type="checkbox"].checkbox-switch {
   --chart-base-color: var(--back-color, #0b101e) !important;
   color: var(--back-color, #0b101e) !important;
 }
+
+/* ========================================================
+   Sistema Moderno de Formularios y Bloques del Dashboard (18px)
+   ======================================================== */
+.text-muted {
+  color: var(--panel-text-muted, #64748b) !important;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.remote-content > .wpx630 {
+  max-width: 100%;
+}
+
+.panel-top-nav {
+  background-color: var(--back-body-theme, #f6f8fc);
+  border-bottom: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07)) !important;
+}
+
+.ui-field-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ui-field-header > p,
+.remote-container p.bold500,
+.sub-product-label {
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.ui-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.ui-section-title svg {
+  color: var(--panel-accent, var(--back-color, #0B101E));
+  flex-shrink: 0;
+}
+
+/* Segmented Control para grupos horizontales de radio */
+.ui-segmented-group {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 5px;
+  width: 100%;
+  padding: 5px;
+  border-radius: 14px;
+  background-color: var(--panel-track-bg, #eef2f7);
+  border: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07));
+  box-sizing: border-box;
+}
+
+.ui-segmented-group > .hidden-radio + label.back-card-graphic {
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+  padding: 9px 12px !important;
+  min-height: 44px;
+  gap: 7px !important;
+  line-height: 1.2;
+  color: var(--panel-text-muted, #64748b) !important;
+  transform: none !important;
+}
+
+.ui-segmented-group > .hidden-radio + label.back-card-graphic:hover {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--text-primary, #0B101E) !important;
+}
+
+[data-theme="dark"] .ui-segmented-group > .hidden-radio + label.back-card-graphic:hover,
+.dark-mode .ui-segmented-group > .hidden-radio + label.back-card-graphic:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.ui-segmented-group > .hidden-radio:checked + label.back-card-graphic {
+  background-color: var(--panel-card-bg, #ffffff) !important;
+  border: 1px solid var(--panel-accent, var(--back-color, #0B101E)) !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  color: var(--text-primary, #0B101E) !important;
+}
+
+.ui-segmented-group > .hidden-radio:checked + label.back-card-graphic svg {
+  color: var(--panel-accent, var(--back-color, #0B101E));
+}
+
+@media (max-width: 576px) {
+  .ui-segmented-group {
+    flex-wrap: wrap;
+  }
+
+  .ui-segmented-group > .hidden-radio + label.back-card-graphic {
+    flex: 1 1 auto;
+  }
+}
+
+/* Tarjetas de Bloque (Contenido / RRSS) */
+.sortable-item.content-block,
+#sortable-rrss-list .sortable-item {
+  border-radius: 18px;
+  padding: 18px 22px;
+  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.sortable-item.content-block.is-open {
+  border-color: var(--panel-border-strong, rgba(15, 23, 42, 0.15));
+  box-shadow: var(--panel-card-open-shadow);
+}
+
+.sortable-item.content-block > .content-item-body {
+  padding-top: 18px;
+  margin-top: 6px;
+  border-top: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07));
+  gap: 20px !important;
+  box-sizing: border-box;
+}
+
+.block-delete-trigger {
+  padding: 5px 10px;
+  border-radius: 999px;
+  transition: background-color 0.16s ease;
+}
+
+.block-delete-trigger:hover {
+  background-color: rgba(239, 68, 68, 0.09);
+}
+
+/* Sub-tarjetas agrupadas y filas de configuración */
+.panel-subcard {
+  background-color: var(--panel-subcard-bg, #f4f6fb) !important;
+  border: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07)) !important;
+  box-shadow: none !important;
+  border-radius: 14px !important;
+  padding: 18px !important;
+}
+
+.panel-toggle-card {
+  background-color: var(--panel-subcard-bg, #f4f6fb) !important;
+  border: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07)) !important;
+  box-shadow: none !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+}
+
+.panel-subcard .panel-toggle-card {
+  background-color: var(--panel-card-bg, #ffffff) !important;
+  border-color: var(--panel-border, rgba(15, 23, 42, 0.09)) !important;
+}
+
+.panel-setting-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--panel-divider, rgba(15, 23, 42, 0.07));
+}
+
+.panel-setting-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Cajas de Inputs de texto */
+.panel-input-box {
+  background-color: var(--panel-card-bg, #ffffff) !important;
+  border: 1px solid var(--panel-border-strong, rgba(15, 23, 42, 0.15)) !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+  transform: none !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.panel-input-box:focus-within {
+  border-color: var(--panel-accent, var(--back-color, #0B101E)) !important;
+  box-shadow: 0 0 0 3px var(--panel-accent-ring, rgba(11, 16, 30, 0.10)) !important;
+}
+
+/* Píldora de Selector de Color */
+.color-trigger-pill {
+  min-width: 154px;
+  width: auto;
+  border-radius: 999px !important;
+  background-color: var(--panel-card-bg, #ffffff) !important;
+  border: 1px solid var(--panel-border-strong, rgba(15, 23, 42, 0.15)) !important;
+  flex-shrink: 0;
+}
+
+.color-trigger-pill > label[data-trigger-color] {
+  padding: 6px 14px 6px 8px !important;
+  gap: 10px !important;
+  align-items: center;
+}
+
+.color-trigger-pill p {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Botones iniciadores de bloques y RRSS */
+[data-action="add-block-template"],
+.open-modal-menu {
+  border-radius: 12px !important;
+  padding: 10px 16px !important;
+  gap: 8px !important;
+  border: 1px solid var(--panel-border-strong, rgba(15, 23, 42, 0.15)) !important;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+[data-action="add-block-template"] svg,
+.open-modal-menu svg {
+  color: var(--panel-accent, var(--back-color, #0B101E));
+}
+
+[data-action="add-block-template"]:hover,
+.open-modal-menu:hover {
+  border-color: var(--panel-accent, var(--back-color, #0B101E)) !important;
+  background-color: var(--panel-accent-soft, rgba(62, 90, 195, 0.08)) !important;
+}
+
+/* Grilla uniforme 8x3 para iconos de Separador */
+.separator-icons-grid {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 576px) {
+  .separator-icons-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Aviso contextual de tamaño en Banner */
+.banner-size-hint {
+  background-color: var(--panel-accent-soft, rgba(62, 90, 195, 0.08));
+  border: 1px solid var(--panel-border-strong, rgba(15, 23, 42, 0.15));
+  border-radius: 10px;
+  padding: 8px 12px;
+  line-height: 1.35;
+}
+
+.banner-size-hint svg {
+  color: var(--panel-accent, var(--back-color, #0B101E));
+  flex-shrink: 0;
+}
+
 
 
 

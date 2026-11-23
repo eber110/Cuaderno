@@ -14,7 +14,7 @@
   <div class="flex-column top-center gap20">
 
     <!-- Botones Iniciadores para Añadir Contenido -->
-    <div class="flex-column top-start gap10 w100">
+    <div class="flex-column top-start gap12 w100">
       <p class="bold500 texto">Añadir nuevo elemento</p>
       <div class="flex-row center-start gap10 w100 wrap">
         <?php foreach (\App\Models\DesignModels::getBlockTypes() as $type => $config): ?>

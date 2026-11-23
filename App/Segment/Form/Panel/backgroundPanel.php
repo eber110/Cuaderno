@@ -26,16 +26,16 @@
 
     <!-- Estilo del fondo, opciones de como mostrar el fondo -->
     <div class="flex-column top-start gap10 w100">
-      <p class="texto">Estilo del fondo</p>
+      <p class="bold500 texto">Estilo del fondo</p>
 
       <?php [$gradStart, $gradEnd] = \App\Models\DesignModels::getGradientColors($backPerfil);?>
-      <div class="flex-row center-end flex-wrap gap10 w100">
+      <div class="flex-row center-start flex-wrap gap12 w100">
 
         <input type="radio" id="style_solid" name="background_mode" class="hidden-radio" value="solid" <?= ($styleBack === 'solid') ? 'checked' : '' ?>>
         <label for="style_solid">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div id="preview-style-solid" class="hpx80 wpx80 br15" style="background-color: <?= $backPerfil?>;"></div>
-            <p class="x16 texto">Sólido</p>
+            <p class="bold500 texto">Sólido</p>
           </div>
         </label>
         
@@ -43,7 +43,7 @@
         <label for="style_gradient">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
             <div id="preview-style-gradient" class="hpx80 wpx80 br15" style="background: linear-gradient(180deg, <?= $gradStart ?>, <?= $gradEnd ?>);"></div>
-            <p class="x16 texto">Degradado</p>
+            <p class="bold500 texto">Degradado</p>
           </div>
         </label>
 
@@ -59,7 +59,7 @@
                 <span class="x22 textw">▶</span>
               <?php endif; ?>
             </div>
-            <p class="x16 texto">Video</p>
+            <p class="bold500 texto">Video</p>
           </div>
         </label>
         <?php endif; ?>
@@ -80,7 +80,7 @@
               ?>
               <img id="thumb-style-image" src="<?= eUrl($displayBackImgSrc) ?>" class="cover w100 h100" style="object-fit: cover; pointer-events: none;" onerror="this.src='<?= eUrl(URL_IMG . 'no-image.webp') ?>';">
             </div>
-            <p class="x16 texto">Imagen</p>
+            <p class="bold500 texto">Imagen</p>
           </div>
         </label>
   
@@ -90,7 +90,7 @@
     <!-- Contenedor de configuración de imagen -->
     <div id="image-controls-wrapper" class="flex-column gap15 w100 <?= ($styleBack === 'image') ? '' : 'hidden' ?>" style="display: <?= ($styleBack === 'image') ? 'flex' : 'none !important' ?>;">
       <!-- Panel de subida / visor de imagen -->
-      <p class="texto">Imagen de fondo</p>
+      <p class="bold500 texto">Imagen de fondo</p>
       <div class="flex-column top-start gap5 w100 p10 br20 back-card-graphic shadow-card-graphic" id="image-background-config">
         <!-- <div class="flex-row center-between w100">
           <span class="x12 texto opacity-70">Formato 9:16 (Smartphone)</span>
@@ -145,7 +145,7 @@
         $backImageFilter  = $card["backCard"]["back_image_filter"] ?? 'none';
       ?>
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-overlay-opacity-row">
-        <p class="texto">Opacidad del overlay</p>
+        <p class="bold500 texto">Opacidad del overlay</p>
         <?php $imgOpacityPercent = $backImageOpacity > 0 ? min(100, max(0, round(($backImageOpacity / 95) * 100))) : 0; ?>
         <div class="flex-row center-end gap10 w-sml-100">
           <input type="range" id="select-opacity-image-overlay" min="0" max="100" step="1" value="<?= $imgOpacityPercent ?>" class="pointer custom-range-slider" style="--range-progress: <?= $imgOpacityPercent ?>%;">
@@ -155,12 +155,12 @@
 
       <!-- Selector de color para superposición de Imagen -->
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="image-overlay-color-row">
-        <p class="texto">Color de superposición (Overlay)</p>
-        <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+        <p class="bold500 texto">Color de superposición (Overlay)</p>
+        <div class="back-card-graphic shadow-card-graphic hover-scale-soft color-trigger-pill">
           <label data-trigger-color="select-color-image-overlay" class="flex-row center-start p10 gap10 pointer">
             <input type="color" id="select-color-image-overlay" name="back_image_overlay" value="<?= $backImageOverlay?>" class="color-picker box-color-picker"
             style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-            <p class="x16 bold500 texto"><?= $backImageOverlay?></p>
+            <p class="bold500 texto"><?= $backImageOverlay?></p>
           </label>
         </div>
       </div>
@@ -191,9 +191,9 @@
         $filterIntensity = max(0, min(100, intval($card["backCard"]["back_image_filter_intensity"] ?? 80)));
       ?>
       <div class="flex-row top-between flex-column-sml top-start-sml gap10 w100" id="image-filter-row">
-        <div class="flex-column gap2 w50 w-sml-100">
-          <p class="texto">Filtros de imagen</p>
-          <p id="active-filter-name" class="bold500 texto opacity-70"><?= $activeFilterName ?></p>
+        <div class="ui-field-header w50 w-sml-100">
+          <p class="bold500 texto">Filtros de imagen</p>
+          <p id="active-filter-name" class="text-muted"><?= $activeFilterName ?></p>
         </div>
 
         <div class="flex-row center-end wrap top-start-sml gap8 flex-wrap w50 w-sml-100">
@@ -201,7 +201,7 @@
             <div>
               <input type="radio" id="filter_<?= $fData['num'] ?>" name="back_image_filter" value="<?= $fKey ?>" class="hidden-radio filter-number-radio" data-filter-name="<?= $fData['name'] ?>" <?= ($currentFilter === $fKey) ? 'checked' : '' ?>>
               <label for="filter_<?= $fData['num'] ?>" class="flex-row center-start p8 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15" title="<?= $fData['name'] ?>">
-                <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
+                <p class="bold500 texto wpx25 hpx25 flex-row center-center">
                   <?= $fData['num'] ?>
                 </p>
               </label>
@@ -212,7 +212,7 @@
 
       <!-- Control de Intensidad del Filtro -->
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($currentFilter === 'none') ? 'hidden' : '' ?>" id="image-filter-intensity-row" style="display: <?= ($currentFilter === 'none') ? 'none !important' : 'flex' ?>;">
-        <p class="texto">Intensidad del filtro</p>
+        <p class="bold500 texto">Intensidad del filtro</p>
         <div class="flex-row center-end gap10 w-sml-100">
           <input type="range" id="select-filter-intensity" min="0" max="100" step="1" value="<?= $filterIntensity ?>" class="pointer custom-range-slider" style="--range-progress: <?= $filterIntensity ?>%;">
           <input type="hidden" id="input-filter-intensity-val" name="back_image_filter_intensity" value="<?= $filterIntensity ?>">
@@ -228,7 +228,7 @@
         <div class="flex-column top-start gap10 w100 p15 br20 back-card-graphic shadow-card-graphic" id="video-background-config">
           <div class="flex-row center-between w100">
             <p class="texto bold500">Video de fondo (máx. 20s)</p>
-            <span class="x12 texto opacity-70">Cloudinary</span>
+            <span class="text-muted">Cloudinary</span>
           </div>
 
           <?php if (!empty($backVideo)) : ?>
@@ -237,10 +237,10 @@
                 <video src="<?= $backVideo ?>" class="w100 h100" style="object-fit: cover; pointer-events: none;" muted preload="none" loop playsinline disablePictureInPicture tabindex="-1" onerror="this.style.display='none';"></video>
               </div>
               <div class="flex-row center-between w100 gap10">
-                <label for="upload-video-input" class="pointer p10 br15 back-button-panel text-button-panel hover-scale-soft x14 bold500 flex-row center-center gap5 flex-1">
+                <label for="upload-video-input" class="pointer p10 br15 back-button-panel text-button-panel hover-scale-soft bold500 flex-row center-center gap5 flex-1">
                   <?= svg("edit"); ?> Cambiar video
                 </label>
-                <button type="button" id="btn-delete-back-video" class="pointer p10 br15 back-danger textw hover-scale-soft x14 bold500 flex-row center-center gap5">
+                <button type="button" id="btn-delete-back-video" class="pointer p10 br15 back-danger textw hover-scale-soft bold500 flex-row center-center gap5">
                   <?= svg("trash"); ?> Eliminar
                 </button>
               </div>
@@ -248,8 +248,8 @@
           <?php else : ?>
             <label for="upload-video-input" class="w100 p20 br15 pointer flex-column center-center gap10 hover-scale-soft back-item-menu" style="border: 2px dashed rgba(150,150,150,0.4);">
               <?= svg("film", "x28"); ?>
-              <p class="texto x14 bold500 text-center">Haz clic para subir un video corto (MP4, WebM)</p>
-              <p class="texto x12 opacity-70 text-center">Duración máxima: 20 segundos</p>
+              <p class="texto bold500 text-center">Haz clic para subir un video corto (MP4, WebM)</p>
+              <p class="text-muted text-center">Duración máxima: 20 segundos</p>
             </label>
           <?php endif; ?>
 
@@ -257,12 +257,12 @@
           <input type="hidden" id="input-back-video-url" name="back_video_url_direct" value="">
           <input type="hidden" id="input-back-video-public-id" name="back_video_public_id_direct" value="">
           <input type="hidden" id="delete-video-flag" name="delete_video" value="false">
-          <div id="video-upload-status" class="x13 texto mt5 hidden"></div>
+          <div id="video-upload-status" class="texto mt5 hidden"></div>
         </div>
 
         <!-- Control de Opacidad del Overlay (UI: 0% a 100%, Backend: 0% a 95%) -->
         <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="video-overlay-opacity-row">
-          <p class="texto">Opacidad del overlay</p>
+          <p class="bold500 texto">Opacidad del overlay</p>
 
           <?php $userOpacityPercent = $backVideoOpacity > 0 ? min(100, max(0, round(($backVideoOpacity / 95) * 100))) : 0; ?>
           <div class="flex-row center-end gap10 w-sml-100">
@@ -273,13 +273,13 @@
 
         <!-- Selector de color para superposición (Overlay) del video -->
         <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100" id="video-overlay-color-row">
-          <p class="texto">Color de superposición (Overlay)</p>
+          <p class="bold500 texto">Color de superposición (Overlay)</p>
 
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft color-trigger-pill">
             <label data-trigger-color="select-color-overlay" class="flex-row center-start p10 gap10 pointer">
               <input type="color" id="select-color-overlay" name="back_video_overlay" value="<?= $backVideoOverlay?>" class="color-picker box-color-picker"
               style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-              <p class="x16 bold500 texto"><?= $backVideoOverlay?></p>
+              <p class="bold500 texto"><?= $backVideoOverlay?></p>
             </label>
           </div>
         </div>
@@ -289,26 +289,26 @@
 
     <!-- Color de fondo de la aplicación -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Color base / fondo</p>
+      <p class="bold500 texto">Color base / fondo</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft color-trigger-pill">
         <label data-trigger-color="select-color" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color" name="back_perfil" value="<?= $backPerfil?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-          <p class="x16 bold500 texto"><?= $backPerfil?></p>
+          <p class="bold500 texto"><?= $backPerfil?></p>
         </label>
       </div>
     </div>
 
     <!-- Color de texto global -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Color de texto</p>
+      <p class="bold500 texto">Color de texto</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft color-trigger-pill">
         <label data-trigger-color="select-color-text-app" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-text-app" name="colorText" value="<?= $card["colorText"] ?? "#383838"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker box-color-picker">
-          <p class="x16 bold500 texto"><?= $card["colorText"] ?? "#383838"?></p>
+          <p class="bold500 texto"><?= $card["colorText"] ?? "#383838"?></p>
         </label>
       </div>
     </div>
@@ -316,7 +316,7 @@
     <!-- Dirección del degradado -->
     <div id="gradient-direction-wrapper" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isGradient ? '' : 'hidden' ?>" style="display: <?= $isGradient ? 'flex' : 'none !important' ?>;">
 
-      <p class="texto">Dirección del degradado</p>
+      <p class="bold500 texto">Dirección del degradado</p>
 
       <div class="flex-row center-end gap10">
         <input type="radio" id="direction_up" name="gradient_direction" class="hidden-radio" value="gradientUp" <?= ($gradientDir === 'gradientUp') ? 'checked' : '' ?>>

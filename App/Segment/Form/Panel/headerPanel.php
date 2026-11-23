@@ -20,9 +20,9 @@
     
     <!-- Estilo de las cabeceras disponibles -->
     <div class="flex-column top-start gap10 w100">
-      <p class="texto">Estilo de cabecera</p>
+      <p class="bold500 texto">Estilo de cabecera</p>
 
-      <div class="flex-row center-end gap10 w100">
+      <div class="flex-row center-start flex-wrap gap12 w100">
 
         <!-- Opción Vacío (voidHero) -->
         <div class="flex-row center-end gap10">
@@ -34,7 +34,7 @@
                   <span class="opacity-60"><?= svg("ban", "x50")?></span>
                 </div>
               </div>
-              <p class="x16 texto">Vacío</p>
+              <p class="bold500 texto">Vacío</p>
             </div>
           </label>
         </div>
@@ -49,7 +49,7 @@
                   <img src="<?= $avatarSrc ?>" alt="" class="cover ar-square">
                 </figure>  
               </div>
-              <p class="x16 texto">Regular</p>
+              <p class="bold500 texto">Regular</p>
             </div>
           </label>
         </div>
@@ -64,7 +64,7 @@
                   <img src="<?= $avatarSrc ?>" alt="" class="cover">
                 </figure>  
               </div>
-              <p class="x16 texto">Hero</p>
+              <p class="bold500 texto">Hero</p>
             </div>
           </label>
         </div>
@@ -75,7 +75,7 @@
     <!-- Separaciones superiores de voidHero (solo visible cuando header == voidHero) -->
     <div id="void-space-container" class="flex-column top-start gap10 w100 <?= ($headerVal === 'voidHero') ? '' : 'hidden' ?>" style="display: <?= ($headerVal === 'voidHero') ? 'flex' : 'none !important' ?>;">
       <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-        <p class="texto">Separación superior</p>
+        <p class="bold500 texto">Separación superior</p>
 
         <div class="flex-row center-end gap10">
           
@@ -84,8 +84,8 @@
             <input type="radio" id="voidSpace20" name="void_space" class="hidden-radio" value="20" <?php if ($voidSpaceVal == 20 || $voidSpaceVal == 130) echo "checked";?>>
             <label for="voidSpace20">
               <div class="back-card-graphic shadow-card-graphic hover-scale-soft p10 br15 pointer flex-column center-center gap2 wpx70">
-                <span class="x14 bold600 texto">20%</span>
-                <span class="x11 texto opacity-70">Alto</span>
+                <span class="bold500 texto">20%</span>
+                <span class="text-muted">Alto</span>
               </div>
             </label>
           </div>
@@ -95,8 +95,8 @@
             <input type="radio" id="voidSpace45" name="void_space" class="hidden-radio" value="45" <?php if ($voidSpaceVal == 45 || $voidSpaceVal == 250) echo "checked";?>>
             <label for="voidSpace45">
               <div class="back-card-graphic shadow-card-graphic hover-scale-soft p10 br15 pointer flex-column center-center gap2 wpx70">
-                <span class="x14 bold600 texto">45%</span>
-                <span class="x11 texto opacity-70">Medio</span>
+                <span class="bold500 texto">45%</span>
+                <span class="text-muted">Medio</span>
               </div>
             </label>
           </div>
@@ -106,8 +106,8 @@
             <input type="radio" id="voidSpace70" name="void_space" class="hidden-radio" value="70" <?php if ($voidSpaceVal == 70 || $voidSpaceVal == 450 || empty($voidSpaceVal) || !in_array($voidSpaceVal, [20, 45, 70, 130, 250, 450])) echo "checked";?>>
             <label for="voidSpace70">
               <div class="back-card-graphic shadow-card-graphic hover-scale-soft p10 br15 pointer flex-column center-center gap2 wpx70">
-                <span class="x14 bold600 texto">70%</span>
-                <span class="x11 texto opacity-70">Bajo</span>
+                <span class="bold500 texto">70%</span>
+                <span class="text-muted">Bajo</span>
               </div>
             </label>
           </div>
@@ -118,7 +118,7 @@
 
     <!-- Imagen de perfil -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Imagen de perfil</p>
+      <p class="bold500 texto">Imagen de perfil</p>
 
       <div class="br15 p5 x18 back-card-graphic shadow-card-graphic hover-scale-soft">
         <?= uiInput('cropImage', [
@@ -151,9 +151,9 @@
 
     <!-- Titulo del perfil -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Titulo</p>
+      <p class="bold500 texto">Titulo</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w70 w-sml-100">
+      <div class="back-card-graphic panel-input-box w70 w-sml-100">
          <?= uiInput('textLimiter', [
           'triggerText' => 'texto',
           'fontSize' => 18,
@@ -174,7 +174,7 @@
 
     <!-- Fuente de título -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Fuente de título</p>
+      <p class="bold500 texto">Fuente de título</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w70 w-sml-100">
         <div class="dropdown-select ui-input-component animated font-selector-dropdown"
@@ -206,9 +206,9 @@
 
     <!-- Descripción del perfil -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Bio</p>
+      <p class="bold500 texto">Bio</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w70 w-sml-100">
+      <div class="back-card-graphic panel-input-box w70 w-sml-100">
         <?= uiInput('textLimiter', [
           'triggerText' => 'texto',
           'fontSize' => 18,
@@ -229,7 +229,7 @@
 
     <!-- Fuente de texto -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Fuente de texto</p>
+      <p class="bold500 texto">Fuente de texto</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w70 w-sml-100">
         <div class="dropdown-select ui-input-component animated font-selector-dropdown"
@@ -261,13 +261,13 @@
 
     <!-- Estilo de color del texto de los botones -->
     <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
-      <p class="texto">Color de titulo</p>
+      <p class="bold500 texto">Color de titulo</p>
 
-      <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
+      <div class="back-card-graphic shadow-card-graphic hover-scale-soft color-trigger-pill">
         <label data-trigger-color="select-color-title" class="flex-row center-start p10 gap10 pointer">
           <input type="color" id="select-color-title" name="titleColor" value="<?= $card["titleColor"] ?? "#383838"?>" class="color-picker box-color-picker"
           style-color="wpx40 hpx40 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-          <p class="x16 bold500 texto"><?= $card["titleColor"] ?? "#383838"?></p>
+          <p class="bold500 texto"><?= $card["titleColor"] ?? "#383838"?></p>
         </label>
       </div>
     </div>

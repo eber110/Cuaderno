@@ -21,8 +21,8 @@
   <div class="flex-column top-center gap20">
 
     <!-- Botón Iniciador con Menú Modal para Añadir Red Social -->
-    <div class="flex-column top-start gap10 w100">
-      <p class="bold500 x16 texto">Añadir nueva red social</p>
+    <div class="flex-column top-start gap12 w100">
+      <p class="bold500 texto">Añadir nueva red social</p>
       
       <div class="relative">
         <button type="button" class="open-modal-menu p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">
@@ -63,7 +63,7 @@
             <div class="flex-row center-center gap10 no-drag-actions flex-shrink-0">
               <!-- Opción para eliminar red social -->
               <div class="modal-btn tooltip left animated flex-shrink-0" data-tooltip="Eliminar enlace">
-                <p class="pointer flex-row center-center gap5 nowrap texto">
+                <p class="pointer flex-row center-center gap5 nowrap texto block-delete-trigger">
                   <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 flex-shrink-0"><?= svg("xmark")?></span>
                 </p>
               </div>
@@ -72,7 +72,7 @@
               <div class="hidden">
                 <div class="w100 flex-column center-center h-dvh">
                   <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-                    <p class="x24 bold500 texto">¿Desea borrar este enlace?</p>
+                    <p class="bold500 texto">¿Desea borrar este enlace?</p>
 
                     <div class="flex-row center-between gap10">
                       <label for="delete-rrss-<?= $i?>" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
@@ -93,7 +93,7 @@
           <input type="hidden" name="rrss[<?= $i?>][0]" value="<?= e($socialName) ?>">
 
           <!-- Input para la URL -->
-          <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+          <div class="back-card-graphic panel-input-box w100">
             <?= uiInput('textInput', [
               'triggerText' => 'texto',
               'fontSize' => 18,
@@ -131,7 +131,7 @@
       </div>
       <div class="flex-row center-center gap10 no-drag-actions flex-shrink-0">
         <div class="modal-btn tooltip left animated flex-shrink-0" data-tooltip="Eliminar enlace">
-          <p class="pointer flex-row center-center gap5 nowrap texto">
+          <p class="pointer flex-row center-center gap5 nowrap texto block-delete-trigger">
             <span class="no-phone">Eliminar</span><span class="flex-row center-center br50 back-danger back-danger-hover textc p2 x16 flex-shrink-0"><?= svg("xmark")?></span>
           </p>
         </div>
@@ -139,7 +139,7 @@
         <div class="hidden">
           <div class="w100 flex-column center-center h-dvh">
             <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-              <p class="x24 bold500 texto">¿Desea borrar este enlace?</p>
+              <p class="bold500 texto">¿Desea borrar este enlace?</p>
 
               <div class="flex-row center-between gap10">
                 <label for="delete-rrss-{{INDEX}}" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
@@ -156,7 +156,7 @@
     </div>
 
     <input type="hidden" name="rrss[{{INDEX}}][0]" value="{{RRSS_NAME}}">
-    <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
+    <div class="back-card-graphic panel-input-box w100">
       <?= uiInput('textInput', [
         'triggerText' => 'texto',
         'fontSize' => 18,

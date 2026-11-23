@@ -10,11 +10,11 @@
   $saveUrl = $uri["saveDesign"] ?? ("/panel/" . $profile . "/guardar");
   $discardUrl = $uri["discardDesign"] ?? ("/panel/" . $profile . "/descartar");
   $saveClass = $hasCustom 
-    ? "p5 pl15 pr15 pl-sml-12 pr-sml-12 br15 pointer back-card-graphic-red shadow-card-graphic hover-scale-soft bold500 textw border-none pulse-once" 
-    : "p5 pl15 pr15 pl-sml-12 pr-sml-12 br15 back-card-graphic shadow-card-graphic border-none disabled-save-btn texto";
+    ? "p8 pl16 pr16 pl-sml-12 pr-sml-12 br12 pointer back-card-graphic-red shadow-card-graphic hover-scale-soft bold500 textw border-none pulse-once" 
+    : "p8 pl16 pr16 pl-sml-12 pr-sml-12 br12 back-card-graphic shadow-card-graphic border-none disabled-save-btn texto";
   $discardClass = $hasCustom
-    ? "p5 pl15 pr15 pl-sml-10 pr-sml-10 br15 pointer back-card-graphic shadow-card-graphic hover-scale-soft bold500 texto border-none"
-    : "p5 pl15 pr15 pl-sml-10 pr-sml-10 br15 back-card-graphic shadow-card-graphic border-none texto hidden";
+    ? "p8 pl16 pr16 pl-sml-10 pr-sml-10 br12 pointer back-card-graphic shadow-card-graphic hover-scale-soft bold500 texto border-none"
+    : "p8 pl16 pr16 pl-sml-10 pr-sml-10 br12 back-card-graphic shadow-card-graphic border-none texto hidden";
 ?>
 <div class="sticky top z-index-20">
   <div data-profile-user="<?= e($profile) ?>" class="no-desk no-tablet active-viewers-badge flex-row center-center gap8 p5 pr12 pl12 back-live-view hidden">
@@ -22,7 +22,7 @@
     <span class="active-viewers-text x18 bold500 color-live-view">1 en línea</span>
   </div>
 
-  <nav class="flex-row center-between gap10 p20 p-sml-20 back-body" style="border-bottom: solid 0.5px #f0f0f0;">
+  <nav class="flex-row center-between gap10 p20 p-sml-20 panel-top-nav">
     <!-- Sección izquierda: Badge en desktop/tablet, Ver perfil en smartphone -->
     <div class="flex-row center-start flex-shrink-0">
       <!-- Badge de Usuarios en Línea (desktop y tablet) -->
@@ -51,8 +51,8 @@
 
       <div class="no-desk flex-shrink-0">
         <div class="modal-btn animated pointer" data-preview-modal-trigger="true">
-          <p class="p5 pl15 pr15 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-phone nowrap">Vista previa</p>
-          <p class="p5 pl10 pr10 br15 back-card-graphic shadow-card-graphic hover-scale-soft texto no-tablet flex-row center-center"><?= svg("eye")?></p>
+          <p class="p8 pl16 pr16 br12 back-card-graphic shadow-card-graphic hover-scale-soft texto no-phone nowrap">Vista previa</p>
+          <p class="p8 pl12 pr12 br12 back-card-graphic shadow-card-graphic hover-scale-soft texto no-tablet flex-row center-center"><?= svg("eye")?></p>
         </div>
         <div class="hidden">
           <div class="flex-column center-center w100 h-dvh">
