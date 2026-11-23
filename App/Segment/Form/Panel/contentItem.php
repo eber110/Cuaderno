@@ -80,6 +80,10 @@
         }
         $isCountdownExpired     = ($hasCountdown && !empty($itemCountdownDate) && strtotime($itemCountdownDate) !== false && strtotime($itemCountdownDate) <= time());
 
+        $groupProducts = [];
+        $prodCount     = 0;
+        $groupLayout   = 'grid';
+
         if ($itemType === 'product_group') {
           $groupProducts = is_array($item["products"] ?? null) ? $item["products"] : [];
           $prodCount     = count($groupProducts);
@@ -136,7 +140,11 @@
               <span class="flex-row top-center drag-icon text-muted pointer" title="Arrastrar para reordenar" style="cursor: grab; font-size: 18px; user-select: none; flex-shrink: 0;">&#x22EE;&#x22EE;</span>
               <p class="bold500 item-title-label texto" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;">
                 <?php
-                  if ($itemType === 'product_group') {
+                  $groupProducts = [];
+        $prodCount     = 0;
+        $groupLayout   = 'grid';
+
+        if ($itemType === 'product_group') {
                     echo 'Grupo de productos - ' . $prodCount . ' productos';
                   } elseif ($itemType === 'product') {
                     $displayTitle = trim($itemTitle);
