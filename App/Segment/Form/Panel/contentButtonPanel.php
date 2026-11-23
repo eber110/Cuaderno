@@ -15,7 +15,7 @@
 
     <!-- Botones Iniciadores para Añadir Contenido -->
     <div class="flex-column top-start gap10 w100">
-      <p class="bold500 x16 texto">Añadir nuevo elemento</p>
+      <p class="bold500 texto">Añadir nuevo elemento</p>
       <div class="flex-row center-start gap10 w100 wrap">
         <?php foreach (\App\Models\DesignModels::getBlockTypes() as $type => $config): ?>
           <button type="button" data-action="add-block-template" data-type="<?= $type ?>" class="p10 pl15 pr15 br20 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto" style="border: none;">

@@ -198,7 +198,7 @@
               <div class="hidden">
                 <div class="w100 flex-column center-center h-dvh">
                   <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-                    <p class="x24 bold500 texto">¿Desea borrar este elemento?</p>
+                    <p class="bold500 texto">¿Desea borrar este elemento?</p>
 
                     <div class="flex-row center-between gap10">
                       <label for="delete-link-<?= $i?>" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500 pointer">
@@ -236,16 +236,16 @@
                 <input type="radio" id="layout-grid-<?= $i?>" name="content[<?= $i?>][layout]" value="grid" class="hidden-radio" <?= ($groupLayout === 'grid') ? 'checked' : '' ?> <?= ($prodCount % 2 !== 0) ? 'disabled' : '' ?>>
                 <label for="layout-grid-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto <?= ($prodCount % 2 !== 0) ? 'opacity-50 pointer-events-none' : '' ?>" title="<?= ($prodCount % 2 !== 0) ? 'Modo cuadrícula requiere número par de productos (2, 4, 6 u 8)' : 'Cuadrícula' ?>">
                   <?= svg("grid", "x16") ?>
-                  <span class="bold500 x13">Cuadrícula</span>
+                  <span class="bold500">Cuadrícula</span>
                 </label>
 
                 <input type="radio" id="layout-slide-<?= $i?>" name="content[<?= $i?>][layout]" value="slide" class="hidden-radio" <?= ($groupLayout === 'slide') ? 'checked' : '' ?>>
                 <label for="layout-slide-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Carrusel">
                   <?= svg("slide", "x16") ?>
-                  <span class="bold500 x13">Carrusel</span>
+                  <span class="bold500">Carrusel</span>
                 </label>
               </div>
-              <span class="odd-products-warning flex-row center-start gap5 x12 text-muted mt2" style="<?= ($prodCount % 2 !== 0) ? '' : 'display: none;' ?>">
+              <span class="odd-products-warning flex-row center-start gap5 text-muted mt2" style="<?= ($prodCount % 2 !== 0) ? '' : 'display: none;' ?>">
                 <?= svg("info", "x14") ?> Modo cuadrícula requiere número par de productos (2, 4, 6 u 8). Actualmente hay <span class="odd-products-count"><?= $prodCount ?></span>.
               </span>
 
@@ -272,8 +272,8 @@
               <!-- Lista de Sub-productos (Mínimo 2, Máximo 8) -->
               <div class="sub-products-container flex-column gap15 w100 mt5">
                 <div class="flex-row center-between w100">
-                  <p class="x14 bold600 texto">Productos en este grupo</p>
-                  <span class="sub-products-counter x12 text-muted bold500"><?= $prodCount ?> / 8</span>
+                  <p class="bold500 texto">Productos en este grupo</p>
+                  <span class="sub-products-counter text-muted bold500"><?= $prodCount ?> / 8</span>
                 </div>
 
                 <?php foreach ($groupProducts as $pIdx => $prod) :
@@ -308,11 +308,11 @@
                 ?>
                   <div class="sub-product-item flex-column gap10 p15 br10 back-card-graphic shadow-card-graphic" style="border: 1px solid rgba(150, 150, 150, 0.2);">
                     <div class="flex-row center-between w100">
-                      <span class="sub-product-label x13 bold600 texto">Producto <?= $pIdx + 1 ?></span>
-                      <button type="submit" name="content[<?= $i?>][delete_sub_product]" value="<?= $pIdx ?>" class="delete-sub-product-btn pointer flex-row center-center text-muted hover-danger" style="background:transparent; border:none; padding:2px 6px; font-size:12px; <?= ($prodCount > 2) ? '' : 'display: none;' ?>" title="Eliminar este producto">
+                      <span class="sub-product-label bold500 texto">Producto <?= $pIdx + 1 ?></span>
+                      <button type="submit" name="content[<?= $i?>][delete_sub_product]" value="<?= $pIdx ?>" class="delete-sub-product-btn pointer flex-row center-center text-muted hover-danger" style="background:transparent; border:none; padding:2px 6px; <?= ($prodCount > 2) ? '' : 'display: none;' ?>" title="Eliminar este producto">
                         <?= svg("trash", "x16") ?> Eliminar
                       </button>
-                      <span class="min-sub-product-badge x11 text-muted" style="<?= ($prodCount > 2) ? 'display: none;' : '' ?>" title="Mínimo 2 productos requeridos">Mínimo 2</span>
+                      <span class="min-sub-product-badge text-muted" style="<?= ($prodCount > 2) ? 'display: none;' : '' ?>" title="Mínimo 2 productos requeridos">Mínimo 2</span>
                     </div>
 
                     <input type="hidden" name="content[<?= $i?>][products][<?= $pIdx?>][img]" value="<?= e($pImg) ?>">
@@ -427,8 +427,8 @@
                     <!-- Switch Rebaja -->
                     <div class="flex-row center-between w100 p8 br10 back-card-graphic shadow-card-graphic">
                       <div class="flex-column">
-                        <p class="x12 bold500 texto">Rebaja</p>
-                        <span class="x11 text-muted">Aplica un precio rebajado o porcentaje</span>
+                        <p class="bold500 texto">Rebaja</p>
+                        <span class="text-muted">Aplica un precio rebajado o porcentaje</span>
                       </div>
                       <input type="checkbox" id="offer-switch-<?= $i?>-<?= $pIdx?>" name="content[<?= $i?>][products][<?= $pIdx?>][offer]" value="true" data-option="true,false" class="checkbox-switch product-offer-switch" active="<?= $pOffer ? '1' : '2' ?>" <?= $pOffer ? 'checked' : '' ?>>
                     </div>
@@ -436,7 +436,7 @@
                     <!-- Campos de oferta / descuento -->
                     <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $pOffer ? '' : 'hidden' ?>" style="display: <?= $pOffer ? 'flex' : 'none !important' ?>;">
                       <div class="flex-column gap5 w50 w-sml-100">
-                        <p class="x11 bold500 texto">Precio rebajado</p>
+                        <p class="bold500 texto">Precio rebajado</p>
                         <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                           <?= uiInput('textInput', [
                             'triggerText' => 'texto',
@@ -459,7 +459,7 @@
                         </div>
                       </div>
                       <div class="flex-column gap5 w50 w-sml-100">
-                        <p class="x11 bold500 texto">% Descuento</p>
+                        <p class="bold500 texto">% Descuento</p>
                         <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                           <?= uiInput('textInput', [
                             'triggerText' => 'texto',
@@ -489,7 +489,7 @@
                 <button type="submit" name="content[<?= $i?>][add_sub_product]" value="true" class="add-sub-product-btn p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer flex-row center-center gap5 bold500 texto w100 mt5" style="border: 1px dashed rgba(150, 150, 150, 0.4); <?= ($prodCount < 8) ? '' : 'display: none;' ?>">
                   <?= svg("add") ?> <span class="add-sub-product-btn-label">Añadir producto al grupo (<?= $prodCount ?>/8)</span>
                 </button>
-                <p class="max-sub-products-msg x12 text-muted text-center p10" style="<?= ($prodCount >= 8) ? '' : 'display: none;' ?>">Límite máximo de 8 productos alcanzado.</p>
+                <p class="max-sub-products-msg text-muted text-center p10" style="<?= ($prodCount >= 8) ? '' : 'display: none;' ?>">Límite máximo de 8 productos alcanzado.</p>
               </div>
 
             <?php elseif ($itemType === 'campaign') : ?>
@@ -510,26 +510,26 @@
               <!-- 1. Selector de Tamaño mínimo del Bloque (Horizontal / Cuadrado / Vertical) -->
               <div id="campaign-size-wrap-<?= $i ?>" class="flex-column gap8 w100 <?= ($itemImgPosition === 'header') ? 'hidden' : '' ?>" style="<?= ($itemImgPosition === 'header') ? 'display: none !important;' : 'display: flex;' ?>">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Tamaño del bloque</p>
-                  <span class="x11 text-muted">Define la proporción y altura mínima del bloque</span>
+                  <p class="bold500 texto">Tamaño del bloque</p>
+                  <span class="text-muted">Define la proporción y altura mínima del bloque</span>
                 </div>
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="campaign-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="horizontal" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'horizontal') ? 'checked' : '' ?>>
                   <label for="campaign-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato horizontal compacto">
                     <?= svg("horizontal-rectangle", "x16") ?>
-                    <span class="bold500 x13">Horizontal</span>
+                    <span class="bold500">Horizontal</span>
                   </label>
 
                   <input type="radio" id="campaign-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="square" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'square') ? 'checked' : '' ?>>
                   <label for="campaign-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato cuadrado (1:1)">
                     <?= svg("square-full", "x16") ?>
-                    <span class="bold500 x13">Cuadrado</span>
+                    <span class="bold500">Cuadrado</span>
                   </label>
 
                   <input type="radio" id="campaign-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="vertical" class="hidden-radio campaign-size-radio" data-index="<?= $i ?>" <?= ($itemSize === 'vertical') ? 'checked' : '' ?>>
                   <label for="campaign-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Formato vertical amplio">
                     <?= svg("vertical-rectangle", "x16") ?>
-                    <span class="bold500 x13">Vertical</span>
+                    <span class="bold500">Vertical</span>
                   </label>
                 </div>
               </div>
@@ -537,18 +537,18 @@
               <!-- 2. Imagen y posición de la imagen -->
               <!-- Selector de Posición de Imagen (Fondo vs Cabecera) -->
               <div class="flex-column gap8 w100">
-                <p class="x13 bold600 texto">Posición de la imagen</p>
+                <p class="bold500 texto">Posición de la imagen</p>
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="img-pos-bg-<?= $i?>" name="content[<?= $i?>][img_position]" value="background" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'background') ? 'checked' : '' ?>>
                   <label for="img-pos-bg-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen como fondo del bloque">
                     <?= svg("background-image", "x16") ?>
-                    <span class="bold500 x13">Fondo</span>
+                    <span class="bold500">Fondo</span>
                   </label>
 
                   <input type="radio" id="img-pos-hdr-<?= $i?>" name="content[<?= $i?>][img_position]" value="header" class="hidden-radio campaign-pos-radio" data-index="<?= $i ?>" <?= ($itemImgPosition === 'header') ? 'checked' : '' ?>>
                   <label for="img-pos-hdr-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Imagen en la cabecera">
                     <?= svg("header-image", "x16") ?>
-                    <span class="bold500 x13">Cabecera</span>
+                    <span class="bold500">Cabecera</span>
                   </label>
                 </div>
               </div>
@@ -602,7 +602,7 @@
               <!-- 3. Título, Descripción y Botón -->
               <!-- Título de la campaña -->
               <div class="flex-column gap5 w100">
-                <p class="x12 bold500 texto">Título de la campaña</p>
+                <p class="bold500 texto">Título de la campaña</p>
                 <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                   <?= uiInput('textLimiter', [
                     'triggerText' => 'texto',
@@ -625,7 +625,7 @@
 
               <!-- Textarea para la descripción -->
               <div class="flex-column gap5 w100">
-                <p class="x12 bold500 texto">Descripción</p>
+                <p class="bold500 texto">Descripción</p>
                 <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                   <?= uiInput('textLimiter', [
                     'triggerText' => 'texto',
@@ -647,7 +647,7 @@
 
               <!-- Texto del botón de suscripción -->
               <div class="flex-column gap5 w100">
-                <p class="x12 bold500 texto">Texto del botón</p>
+                <p class="bold500 texto">Texto del botón</p>
                 <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                   <?= uiInput('textInput', [
                     'triggerText' => 'texto',
@@ -669,33 +669,33 @@
               <!-- 4. Card con toda la disposición del texto -->
               <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("edit", "x16") ?> Diseño del texto</p>
-                  <span class="x11 text-muted">Configura la alineación y los tamaños del título y la descripción</span>
+                  <p class="bold500 texto flex-row center-start gap6"><?= svg("edit", "x16") ?> Diseño del texto</p>
+                  <span class="text-muted">Configura la alineación y los tamaños del título y la descripción</span>
                 </div>
 
                 <!-- Alineación horizontal del texto (Izquierda / Centro / Derecha) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Alineación horizontal</p>
-                    <span class="x11 text-muted">Alineación del texto y título en el bloque</span>
+                    <p class="bold500 texto">Alineación horizontal</p>
+                    <span class="text-muted">Alineación del texto y título en el bloque</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-text-align-left-<?= $i?>" name="content[<?= $i?>][text_align]" value="left" class="hidden-radio" <?= ($itemTextAlign === 'left') ? 'checked' : '' ?>>
                     <label for="campaign-text-align-left-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la izquierda">
                       <?= svg("arrow-l-l", "x14") ?>
-                      <span class="bold500 x13">Izquierda</span>
+                      <span class="bold500">Izquierda</span>
                     </label>
 
                     <input type="radio" id="campaign-text-align-center-<?= $i?>" name="content[<?= $i?>][text_align]" value="center" class="hidden-radio" <?= ($itemTextAlign === 'center') ? 'checked' : '' ?>>
                     <label for="campaign-text-align-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear al centro">
                       <?= svg("bars", "x14") ?>
-                      <span class="bold500 x13">Centro</span>
+                      <span class="bold500">Centro</span>
                     </label>
 
                     <input type="radio" id="campaign-text-align-right-<?= $i?>" name="content[<?= $i?>][text_align]" value="right" class="hidden-radio" <?= ($itemTextAlign === 'right') ? 'checked' : '' ?>>
                     <label for="campaign-text-align-right-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la derecha">
                       <?= svg("arrow-r-l", "x14") ?>
-                      <span class="bold500 x13">Derecha</span>
+                      <span class="bold500">Derecha</span>
                     </label>
                   </div>
                 </div>
@@ -703,26 +703,26 @@
                 <!-- Alineación vertical del texto (Arriba / Centro / Abajo - solo cuadrado y vertical) -->
                 <div id="campaign-text-pos-wrap-<?= $i?>" class="flex-column gap8 w100 <?= ($itemSize === 'horizontal') ? 'hidden' : '' ?>" style="<?= ($itemSize === 'horizontal') ? 'display: none !important;' : 'display: flex;' ?>">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Alineación vertical</p>
-                    <span class="x11 text-muted">Posición vertical del texto en el bloque</span>
+                    <p class="bold500 texto">Alineación vertical</p>
+                    <span class="text-muted">Posición vertical del texto en el bloque</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-text-pos-top-<?= $i?>" name="content[<?= $i?>][text_position]" value="top" class="hidden-radio" <?= ($itemTextPosition === 'top') ? 'checked' : '' ?>>
                     <label for="campaign-text-pos-top-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte superior">
                       <?= svg("arrow-up", "x14") ?>
-                      <span class="bold500 x13">Arriba</span>
+                      <span class="bold500">Arriba</span>
                     </label>
 
                     <input type="radio" id="campaign-text-pos-center-<?= $i?>" name="content[<?= $i?>][text_position]" value="center" class="hidden-radio" <?= ($itemTextPosition === 'center') ? 'checked' : '' ?>>
                     <label for="campaign-text-pos-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto centrado">
                       <?= svg("bars", "x14") ?>
-                      <span class="bold500 x13">Centro</span>
+                      <span class="bold500">Centro</span>
                     </label>
 
                     <input type="radio" id="campaign-text-pos-bottom-<?= $i?>" name="content[<?= $i?>][text_position]" value="bottom" class="hidden-radio" <?= ($itemTextPosition === 'bottom') ? 'checked' : '' ?>>
                     <label for="campaign-text-pos-bottom-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto en la parte inferior">
                       <?= svg("arrow-down", "x14") ?>
-                      <span class="bold500 x13">Abajo</span>
+                      <span class="bold500">Abajo</span>
                     </label>
                   </div>
                 </div>
@@ -730,23 +730,23 @@
                 <!-- Selector de Tamaño del Título (Pequeño / Mediano / Grande) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño del título</p>
-                    <span class="x11 text-muted">Escala de la fuente para el encabezado principal</span>
+                    <p class="bold500 texto">Tamaño del título</p>
+                    <span class="text-muted">Escala de la fuente para el encabezado principal</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-title-size-sm-<?= $i?>" name="content[<?= $i?>][title_size]" value="small" class="hidden-radio" <?= ($itemTitleSize === 'small') ? 'checked' : '' ?>>
                     <label for="campaign-title-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título pequeño">
-                      <span class="bold500 x12">Pequeño</span>
+                      <span class="bold500">Pequeño</span>
                     </label>
 
                     <input type="radio" id="campaign-title-size-md-<?= $i?>" name="content[<?= $i?>][title_size]" value="medium" class="hidden-radio" <?= ($itemTitleSize === 'medium') ? 'checked' : '' ?>>
                     <label for="campaign-title-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título mediano">
-                      <span class="bold500 x12">Mediano</span>
+                      <span class="bold500">Mediano</span>
                     </label>
 
                     <input type="radio" id="campaign-title-size-lg-<?= $i?>" name="content[<?= $i?>][title_size]" value="large" class="hidden-radio" <?= ($itemTitleSize === 'large') ? 'checked' : '' ?>>
                     <label for="campaign-title-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Título grande">
-                      <span class="bold500 x12">Grande</span>
+                      <span class="bold500">Grande</span>
                     </label>
                   </div>
                 </div>
@@ -754,23 +754,23 @@
                 <!-- Selector de Tamaño de la Descripción (Pequeño / Mediano / Grande) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño de la descripción</p>
-                    <span class="x11 text-muted">Escala de la fuente para el texto descriptivo</span>
+                    <p class="bold500 texto">Tamaño de la descripción</p>
+                    <span class="text-muted">Escala de la fuente para el texto descriptivo</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-desc-size-sm-<?= $i?>" name="content[<?= $i?>][desc_size]" value="small" class="hidden-radio" <?= ($itemDescSize === 'small') ? 'checked' : '' ?>>
                     <label for="campaign-desc-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción pequeña">
-                      <span class="bold500 x12">Pequeño</span>
+                      <span class="bold500">Pequeño</span>
                     </label>
 
                     <input type="radio" id="campaign-desc-size-md-<?= $i?>" name="content[<?= $i?>][desc_size]" value="medium" class="hidden-radio" <?= ($itemDescSize === 'medium') ? 'checked' : '' ?>>
                     <label for="campaign-desc-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción mediana">
-                      <span class="bold500 x12">Mediano</span>
+                      <span class="bold500">Mediano</span>
                     </label>
 
                     <input type="radio" id="campaign-desc-size-lg-<?= $i?>" name="content[<?= $i?>][desc_size]" value="large" class="hidden-radio" <?= ($itemDescSize === 'large') ? 'checked' : '' ?>>
                     <label for="campaign-desc-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Descripción grande">
-                      <span class="bold500 x12">Grande</span>
+                      <span class="bold500">Grande</span>
                     </label>
                   </div>
                 </div>
@@ -779,21 +779,21 @@
               <!-- 5. Opciones unificadas de colores de la campaña (Fondo, Opacidad de capa, Título, Descripción, Botón Fondo, Botón Texto) -->
               <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores de la campaña</p>
-                  <span class="x11 text-muted">Personaliza los colores del bloque, textos, capa y botón</span>
+                  <p class="bold500 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores de la campaña</p>
+                  <span class="text-muted">Personaliza los colores del bloque, textos, capa y botón</span>
                 </div>
 
                 <!-- 1. Color de fondo del bloque -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color de fondo del bloque</p>
-                    <span class="x11 text-muted">Afecta al contenedor de la campaña</span>
+                    <p class="bold500 texto">Color de fondo del bloque</p>
+                    <span class="text-muted">Afecta al contenedor de la campaña</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="campaign-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="campaign-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemBgColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -801,8 +801,8 @@
                 <!-- 2. Opacidad de la capa (dentro de la card de colores, visible solo en modo Fondo) -->
                 <div id="campaign-opacity-option-<?= $i?>" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($itemImgPosition === 'background') ? '' : 'hidden' ?>" style="<?= ($itemImgPosition === 'background') ? 'display: flex;' : 'display: none !important;' ?>">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Opacidad de la capa</p>
-                    <span class="x11 text-muted">Ajusta la intensidad del color sobre la imagen</span>
+                    <p class="bold500 texto">Opacidad de la capa</p>
+                    <span class="text-muted">Ajusta la intensidad del color sobre la imagen</span>
                   </div>
                   <div class="flex-row center-end gap10 w-sml-100">
                     <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" style="--range-progress: <?= $itemBgOpacity ?>%;">
@@ -812,14 +812,14 @@
                 <!-- 3. Color del título -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color del título</p>
-                    <span class="x11 text-muted">Afecta al encabezado principal</span>
+                    <p class="bold500 texto">Color del título</p>
+                    <span class="text-muted">Afecta al encabezado principal</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="campaign-title-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="campaign-title-color-<?= $i?>" name="content[<?= $i?>][title_color]" value="<?= e($itemTitleColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemTitleColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemTitleColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -827,14 +827,14 @@
                 <!-- 4. Color de la descripción -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color de la descripción</p>
-                    <span class="x11 text-muted">Afecta al texto explicativo</span>
+                    <p class="bold500 texto">Color de la descripción</p>
+                    <span class="text-muted">Afecta al texto explicativo</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="campaign-desc-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="campaign-desc-color-<?= $i?>" name="content[<?= $i?>][desc_color]" value="<?= e($itemDescColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemDescColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemDescColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -842,14 +842,14 @@
                 <!-- 5. Color de fondo del botón -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color de fondo del botón</p>
-                    <span class="x11 text-muted">Fondo del botón de suscripción</span>
+                    <p class="bold500 texto">Color de fondo del botón</p>
+                    <span class="text-muted">Fondo del botón de suscripción</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="campaign-btn-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="campaign-btn-bg-color-<?= $i?>" name="content[<?= $i?>][btn_bg_color]" value="<?= e($itemBtnBgColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemBtnBgColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemBtnBgColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -857,14 +857,14 @@
                 <!-- 6. Color del texto del botón -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color del texto del botón</p>
-                    <span class="x11 text-muted">Texto del botón de suscripción</span>
+                    <p class="bold500 texto">Color del texto del botón</p>
+                    <span class="text-muted">Texto del botón de suscripción</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="campaign-btn-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="campaign-btn-text-color-<?= $i?>" name="content[<?= $i?>][btn_text_color]" value="<?= e($itemBtnTextColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemBtnTextColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemBtnTextColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -873,13 +873,13 @@
               <!-- Datos de la suscripción -->
               <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Datos de la suscripción</p>
-                  <span class="x11 text-muted">Configura los campos a solicitar a tus suscriptores</span>
+                  <p class="bold500 texto">Datos de la suscripción</p>
+                  <span class="text-muted">Configura los campos a solicitar a tus suscriptores</span>
                 </div>
 
                 <!-- Correo electrónico (siempre obligatorio) -->
                 <div class="flex-column gap5 w100">
-                  <span class="x12 bold500 texto flex-row center-start gap5"><?= svg("email", "x14") ?> Correo electrónico (Obligatorio)</span>
+                  <span class="bold500 texto flex-row center-start gap5"><?= svg("email", "x14") ?> Correo electrónico (Obligatorio)</span>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                     <?= uiInput('textInput', [
                       'triggerText' => 'texto',
@@ -903,8 +903,8 @@
                 <div class="flex-column gap8 w100 p10 br10 back-card-graphic shadow-card-graphic">
                   <div class="flex-row center-between w100">
                     <div class="flex-column">
-                      <p class="x13 bold500 texto flex-row center-start gap5"><?= svg("user", "x14") ?> Solicitar nombre</p>
-                      <span class="x11 text-muted">Muestra el campo de nombre en el formulario</span>
+                      <p class="bold500 texto flex-row center-start gap5"><?= svg("user", "x14") ?> Solicitar nombre</p>
+                      <span class="text-muted">Muestra el campo de nombre en el formulario</span>
                     </div>
                     <input type="checkbox" id="ask-name-switch-<?= $i?>" name="content[<?= $i?>][ask_name]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-name-field-<?= $i?>" active="<?= $askName ? '1' : '2' ?>" <?= $askName ? 'checked' : '' ?>>
                   </div>
@@ -932,8 +932,8 @@
                 <div class="flex-column gap8 w100 p10 br10 back-card-graphic shadow-card-graphic">
                   <div class="flex-row center-between w100">
                     <div class="flex-column">
-                      <p class="x13 bold500 texto flex-row center-start gap5"><?= svg("whatsapp", "x14") ?> Solicitar número de WhatsApp</p>
-                      <span class="x11 text-muted">Muestra el campo de WhatsApp en el formulario</span>
+                      <p class="bold500 texto flex-row center-start gap5"><?= svg("whatsapp", "x14") ?> Solicitar número de WhatsApp</p>
+                      <span class="text-muted">Muestra el campo de WhatsApp en el formulario</span>
                     </div>
                     <input type="checkbox" id="ask-whatsapp-switch-<?= $i?>" name="content[<?= $i?>][ask_whatsapp]" value="true" data-option="true,false" class="checkbox-switch campaign-toggle-field-switch" data-target="campaign-whatsapp-field-<?= $i?>" active="<?= $askWhatsapp ? '1' : '2' ?>" <?= $askWhatsapp ? 'checked' : '' ?>>
                   </div>
@@ -962,17 +962,17 @@
               <!-- Contador opcional -->
               <div class="flex-row center-between w100 p10 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column">
-                  <p class="x13 bold500 texto">Contador regresivo</p>
-                  <span class="x11 text-muted">Muestra una cuenta regresiva para el lanzamiento o cierre</span>
+                  <p class="bold500 texto">Contador regresivo</p>
+                  <span class="text-muted">Muestra una cuenta regresiva para el lanzamiento o cierre</span>
                 </div>
                 <input type="checkbox" id="countdown-switch-<?= $i?>" name="content[<?= $i?>][has_countdown]" value="true" data-option="true,false" class="checkbox-switch campaign-countdown-switch" data-target="campaign-countdown-date-<?= $i?>" active="<?= $hasCountdown ? '1' : '2' ?>" <?= $hasCountdown ? 'checked' : '' ?>>
               </div>
 
               <div id="campaign-countdown-date-<?= $i?>" class="flex-column gap12 w100 p10 br10 back-card-graphic shadow-card-graphic <?= $hasCountdown ? '' : 'hidden' ?>" style="<?= $hasCountdown ? 'display: flex;' : 'display: none !important;' ?>">
                 <div class="flex-row center-between w100">
-                  <p class="x12 bold500 texto">Fecha y hora límite del contador</p>
+                  <p class="bold500 texto">Fecha y hora límite del contador</p>
                   <?php if ($isCountdownExpired) : ?>
-                    <span class="x11 bold500 back-danger textc p2 px6 br10" title="El tiempo límite ha expirado. El bloque se encuentra oculto públicamente.">Tiempo límite alcanzado (Oculto)</span>
+                    <span class="bold500 back-danger textc p2 px6 br10" title="El tiempo límite ha expirado. El bloque se encuentra oculto públicamente.">Tiempo límite alcanzado (Oculto)</span>
                   <?php endif; ?>
                 </div>
                 <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
@@ -982,23 +982,23 @@
                 <!-- Selector de Tamaño del Texto del Contador (Pequeño / Mediano / Grande) -->
                 <div class="flex-column gap8 w100 mt5">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño del texto del contador</p>
-                    <span class="x11 text-muted">Escala de los números y etiquetas de la cuenta regresiva</span>
+                    <p class="bold500 texto">Tamaño del texto del contador</p>
+                    <span class="text-muted">Escala de los números y etiquetas de la cuenta regresiva</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-countdown-text-size-sm-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="small" class="hidden-radio" <?= ($itemCountdownTextSize === 'small') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-text-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto pequeño">
-                      <span class="bold500 x12">Pequeño</span>
+                      <span class="bold500">Pequeño</span>
                     </label>
 
                     <input type="radio" id="campaign-countdown-text-size-md-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="medium" class="hidden-radio" <?= ($itemCountdownTextSize === 'medium') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-text-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto mediano">
-                      <span class="bold500 x12">Mediano</span>
+                      <span class="bold500">Mediano</span>
                     </label>
 
                     <input type="radio" id="campaign-countdown-text-size-lg-<?= $i?>" name="content[<?= $i?>][countdown_text_size]" value="large" class="hidden-radio" <?= ($itemCountdownTextSize === 'large') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-text-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Texto grande">
-                      <span class="bold500 x12">Grande</span>
+                      <span class="bold500">Grande</span>
                     </label>
                   </div>
                 </div>
@@ -1006,23 +1006,23 @@
                 <!-- Selector de Tamaño del Widget del Contador (Pequeño / Mediano / Grande) -->
                 <div class="flex-column gap8 w100 mt5">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño del widget del contador</p>
-                    <span class="x11 text-muted">Espaciado y dimensiones del bloque de la cuenta regresiva</span>
+                    <p class="bold500 texto">Tamaño del widget del contador</p>
+                    <span class="text-muted">Espaciado y dimensiones del bloque de la cuenta regresiva</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="campaign-countdown-widget-size-sm-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="small" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'small') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-widget-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget pequeño">
-                      <span class="bold500 x12">Pequeño</span>
+                      <span class="bold500">Pequeño</span>
                     </label>
 
                     <input type="radio" id="campaign-countdown-widget-size-md-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="medium" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'medium') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-widget-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget mediano">
-                      <span class="bold500 x12">Mediano</span>
+                      <span class="bold500">Mediano</span>
                     </label>
 
                     <input type="radio" id="campaign-countdown-widget-size-lg-<?= $i?>" name="content[<?= $i?>][countdown_widget_size]" value="large" class="hidden-radio" <?= ($itemCountdownWidgetSize === 'large') ? 'checked' : '' ?>>
                     <label for="campaign-countdown-widget-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Widget grande">
-                      <span class="bold500 x12">Grande</span>
+                      <span class="bold500">Grande</span>
                     </label>
                   </div>
                 </div>
@@ -1030,21 +1030,21 @@
                 <!-- Colores del contador -->
                 <div class="flex-column gap8 w100 mt5">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Colores del contador</p>
-                    <span class="x11 text-muted">Personaliza el fondo y el texto de la cuenta regresiva</span>
+                    <p class="bold500 texto">Colores del contador</p>
+                    <span class="text-muted">Personaliza el fondo y el texto de la cuenta regresiva</span>
                   </div>
 
                   <!-- Color de fondo del contador -->
                   <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                     <div class="flex-column">
-                      <p class="x13 bold500 texto">Color de fondo del contador</p>
-                      <span class="x11 text-muted">Fondo del widget de cuenta regresiva</span>
+                      <p class="bold500 texto">Color de fondo del contador</p>
+                      <span class="text-muted">Fondo del widget de cuenta regresiva</span>
                     </div>
                     <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                       <label data-trigger-color="campaign-countdown-bg-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                         <input type="color" id="campaign-countdown-bg-color-<?= $i?>" name="content[<?= $i?>][countdown_bg_color]" value="<?= e($itemCountdownBgColor) ?>" class="color-picker box-color-picker"
                           style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                        <p class="x14 bold500 texto"><?= e($itemCountdownBgColor) ?></p>
+                        <p class="bold500 texto"><?= e($itemCountdownBgColor) ?></p>
                       </label>
                     </div>
                   </div>
@@ -1052,14 +1052,14 @@
                   <!-- Color de texto del contador -->
                   <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                     <div class="flex-column">
-                      <p class="x13 bold500 texto">Color de texto del contador</p>
-                      <span class="x11 text-muted">Texto y números de la cuenta regresiva</span>
+                      <p class="bold500 texto">Color de texto del contador</p>
+                      <span class="text-muted">Texto y números de la cuenta regresiva</span>
                     </div>
                     <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                       <label data-trigger-color="campaign-countdown-text-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                         <input type="color" id="campaign-countdown-text-color-<?= $i?>" name="content[<?= $i?>][countdown_text_color]" value="<?= e($itemCountdownTextColor) ?>" class="color-picker box-color-picker"
                           style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                        <p class="x14 bold500 texto"><?= e($itemCountdownTextColor) ?></p>
+                        <p class="bold500 texto"><?= e($itemCountdownTextColor) ?></p>
                       </label>
                     </div>
                   </div>
@@ -1085,26 +1085,26 @@
               <!-- Selector de tamaño del Banner (3 tamaños: 720x1024, 720x720, 1024x720) -->
               <div class="flex-column gap8 w100">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Tamaño del banner</p>
-                  <span class="x11 text-muted">Selecciona la proporción de la imagen antes de subirla</span>
+                  <p class="bold500 texto">Tamaño del banner</p>
+                  <span class="text-muted">Selecciona la proporción de la imagen antes de subirla</span>
                 </div>
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="banner-size-vert-<?= $i?>" name="content[<?= $i?>][size]" value="720x1024" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '720x1024') ? 'checked' : '' ?>>
                   <label for="banner-size-vert-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Vertical (720px x 1024px)">
-                    <?= svg("film", "x16") ?>
-                    <span class="bold500 x13">720 x 1024</span>
+                    <?= svg("vertical-rectangle", "x16") ?>
+                    <span class="bold500">720 x 1024</span>
                   </label>
 
                   <input type="radio" id="banner-size-sq-<?= $i?>" name="content[<?= $i?>][size]" value="720x720" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '720x720') ? 'checked' : '' ?>>
                   <label for="banner-size-sq-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Cuadrado (720px x 720px)">
-                    <?= svg("grid", "x16") ?>
-                    <span class="bold500 x13">720 x 720</span>
+                    <?= svg("square-full", "x16") ?>
+                    <span class="bold500">720 x 720</span>
                   </label>
 
                   <input type="radio" id="banner-size-horiz-<?= $i?>" name="content[<?= $i?>][size]" value="1024x720" class="hidden-radio banner-size-radio" data-index="<?= $i ?>" <?= ($itemSize === '1024x720') ? 'checked' : '' ?>>
                   <label for="banner-size-horiz-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Horizontal (1024px x 720px)">
-                    <?= svg("bars", "x16") ?>
-                    <span class="bold500 x13">1024 x 720</span>
+                    <?= svg("horizontal-rectangle", "x16") ?>
+                    <span class="bold500">1024 x 720</span>
                   </label>
                 </div>
               </div>
@@ -1112,8 +1112,8 @@
               <!-- Imagen del banner -->
               <div class="flex-column gap8 w100">
                 <div class="flex-row center-between w100">
-                  <p class="x13 bold600 texto">Imagen del banner</p>
-                  <span id="banner-size-hint-<?= $i ?>" class="x11 text-muted banner-size-hint flex-row center-start gap4 <?= $hasSize ? 'hidden' : '' ?>">
+                  <p class="bold500 texto">Imagen del banner</p>
+                  <span id="banner-size-hint-<?= $i ?>" class="text-muted banner-size-hint flex-row center-start gap4 <?= $hasSize ? 'hidden' : '' ?>">
                     <?= svg("info", "x13") ?> Elige primero un tamaño para habilitar el recorte y subida
                   </span>
                 </div>
@@ -1168,21 +1168,21 @@
               <!-- Opciones de color del Banner (Fondo y Opacidad de capa) -->
               <div class="flex-column gap12 w100 p12 br10 back-card-graphic shadow-card-graphic">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores del banner</p>
-                  <span class="x11 text-muted">Personaliza el color de fondo y la opacidad de la capa sobre la imagen</span>
+                  <p class="bold500 texto flex-row center-start gap6"><?= svg("palette", "x16") ?> Colores del banner</p>
+                  <span class="text-muted">Personaliza el color de fondo y la opacidad de la capa sobre la imagen</span>
                 </div>
 
                 <!-- 1. Color de fondo del bloque -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Color de fondo del bloque</p>
-                    <span class="x11 text-muted">Afecta al contenedor del banner</span>
+                    <p class="bold500 texto">Color de fondo del bloque</p>
+                    <span class="text-muted">Afecta al contenedor del banner</span>
                   </div>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
                     <label data-trigger-color="banner-color-<?= $i?>" class="flex-row center-start p8 gap10 pointer">
                       <input type="color" id="banner-color-<?= $i?>" name="content[<?= $i?>][bg_color]" value="<?= e($itemBgColor) ?>" class="color-picker box-color-picker"
                         style-color="wpx35 hpx35 br50" style-box="br15 p10 w-auto shadow-1 back-color-picker">
-                      <p class="x14 bold500 texto"><?= e($itemBgColor) ?></p>
+                      <p class="bold500 texto"><?= e($itemBgColor) ?></p>
                     </label>
                   </div>
                 </div>
@@ -1190,8 +1190,8 @@
                 <!-- 2. Opacidad de la imagen -->
                 <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
                   <div class="flex-column">
-                    <p class="x13 bold500 texto">Opacidad de la imagen</p>
-                    <span class="x11 text-muted">Ajusta la transparencia de la imagen sobre el color de fondo</span>
+                    <p class="bold500 texto">Opacidad de la imagen</p>
+                    <span class="text-muted">Ajusta la transparencia de la imagen sobre el color de fondo</span>
                   </div>
                   <div class="flex-row center-end gap10 w-sml-100">
                     <input type="range" name="content[<?= $i?>][bg_opacity]" min="0" max="100" step="1" value="<?= $itemBgOpacity ?>" class="pointer custom-range-slider campaign-opacity-slider" style="--range-progress: <?= $itemBgOpacity ?>%;">
@@ -1201,7 +1201,7 @@
 
               <!-- Entrada de enlace -->
               <div class="flex-column gap5 w100">
-                <p class="x13 bold600 texto">Enlace del banner</p>
+                <p class="bold500 texto">Enlace del banner</p>
                 <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                   <?= uiInput('textInput', [
                     'triggerText' => 'texto',
@@ -1226,7 +1226,7 @@
               <div class="flex-column gap15 w100">
                 <!-- Campo de texto del título -->
                 <div class="flex-column gap5 w100">
-                  <p class="x12 bold500 texto">Texto del título</p>
+                  <p class="bold500 texto">Texto del título</p>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                     <?= uiInput('textLimiter', [
                       'triggerText' => 'texto',
@@ -1250,23 +1250,23 @@
                 <!-- Selector de Tamaño del Título (Pequeño 18px, Mediano 20px, Grande 24px) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño del título</p>
-                    <span class="x11 text-muted">Pequeño (18px), Mediano (20px) o Grande (24px)</span>
+                    <p class="bold500 texto">Tamaño del título</p>
+                    <span class="text-muted">Pequeño (18px), Mediano (20px) o Grande (24px)</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="title-size-sm-<?= $i?>" name="content[<?= $i?>][title_size]" value="small" class="hidden-radio" <?= ($itemTitleSize === 'small') ? 'checked' : '' ?>>
                     <label for="title-size-sm-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Pequeño (18px)">
-                      <span class="bold500 x12">Pequeño (18px)</span>
+                      <span class="bold500">Pequeño (18px)</span>
                     </label>
 
                     <input type="radio" id="title-size-md-<?= $i?>" name="content[<?= $i?>][title_size]" value="medium" class="hidden-radio" <?= ($itemTitleSize === 'medium') ? 'checked' : '' ?>>
                     <label for="title-size-md-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Mediano (20px)">
-                      <span class="bold500 x12">Mediano (20px)</span>
+                      <span class="bold500">Mediano (20px)</span>
                     </label>
 
                     <input type="radio" id="title-size-lg-<?= $i?>" name="content[<?= $i?>][title_size]" value="large" class="hidden-radio" <?= ($itemTitleSize === 'large') ? 'checked' : '' ?>>
                     <label for="title-size-lg-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grande (24px)">
-                      <span class="bold500 x12">Grande (24px)</span>
+                      <span class="bold500">Grande (24px)</span>
                     </label>
                   </div>
                 </div>
@@ -1274,28 +1274,28 @@
                 <!-- Selector de Grosor / Bold (500 por defecto, 600, 700, 900) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Grosor de la fuente (Bold)</p>
-                    <span class="x11 text-muted">Por defecto font weight 500</span>
+                    <p class="bold500 texto">Grosor de la fuente (Bold)</p>
+                    <span class="text-muted">Por defecto font weight 500</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="title-weight-500-<?= $i?>" name="content[<?= $i?>][title_weight]" value="500" class="hidden-radio" <?= ($itemTitleWeight === '500') ? 'checked' : '' ?>>
                     <label for="title-weight-500-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 500">
-                      <span class="bold500 x12">500</span>
+                      <span class="bold500">500</span>
                     </label>
 
                     <input type="radio" id="title-weight-600-<?= $i?>" name="content[<?= $i?>][title_weight]" value="600" class="hidden-radio" <?= ($itemTitleWeight === '600') ? 'checked' : '' ?>>
                     <label for="title-weight-600-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 600">
-                      <span class="bold600 x12">600</span>
+                      <span class="bold600">600</span>
                     </label>
 
                     <input type="radio" id="title-weight-700-<?= $i?>" name="content[<?= $i?>][title_weight]" value="700" class="hidden-radio" <?= ($itemTitleWeight === '700') ? 'checked' : '' ?>>
                     <label for="title-weight-700-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 700">
-                      <span class="bold700 x12">700</span>
+                      <span class="bold700">700</span>
                     </label>
 
                     <input type="radio" id="title-weight-900-<?= $i?>" name="content[<?= $i?>][title_weight]" value="900" class="hidden-radio" <?= ($itemTitleWeight === '900') ? 'checked' : '' ?>>
                     <label for="title-weight-900-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grosor 900">
-                      <span class="bold900 x12">900</span>
+                      <span class="bold900">900</span>
                     </label>
                   </div>
                 </div>
@@ -1306,7 +1306,7 @@
               <div class="flex-column gap15 w100">
                 <!-- Textarea para el texto -->
                 <div class="flex-column gap5 w100">
-                  <p class="x12 bold500 texto">Contenido del texto</p>
+                  <p class="bold500 texto">Contenido del texto</p>
                   <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                     <?= uiInput('textLimiter', [
                       'triggerText' => 'texto',
@@ -1330,18 +1330,18 @@
                 <!-- Selector de Grosor / Bold (400 por defecto, 500) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Grosor de la fuente (Font weight)</p>
-                    <span class="x11 text-muted">Normal (400 por defecto) o Medio (500)</span>
+                    <p class="bold500 texto">Grosor de la fuente (Font weight)</p>
+                    <span class="text-muted">Normal (400 por defecto) o Medio (500)</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="text-weight-400-<?= $i?>" name="content[<?= $i?>][text_weight]" value="400" class="hidden-radio" <?= ($itemTextWeight === '400') ? 'checked' : '' ?>>
                     <label for="text-weight-400-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Normal (400)">
-                      <span class="bold400 x12">Normal (400)</span>
+                      <span class="bold400">Normal (400)</span>
                     </label>
 
                     <input type="radio" id="text-weight-500-<?= $i?>" name="content[<?= $i?>][text_weight]" value="500" class="hidden-radio" <?= ($itemTextWeight === '500') ? 'checked' : '' ?>>
                     <label for="text-weight-500-<?= $i?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Medio (500)">
-                      <span class="bold500 x12">Medio (500)</span>
+                      <span class="bold500">Medio (500)</span>
                     </label>
                   </div>
                 </div>
@@ -1349,26 +1349,26 @@
                 <!-- Selector de Posición / Alineación del Texto (Izquierda, Centro, Derecha) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Posición del texto</p>
-                    <span class="x11 text-muted">Alineación del texto (Izquierda, Centro o Derecha)</span>
+                    <p class="bold500 texto">Posición del texto</p>
+                    <span class="text-muted">Alineación del texto (Izquierda, Centro o Derecha)</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="text-align-left-<?= $i?>" name="content[<?= $i?>][text_align]" value="left" class="hidden-radio" <?= ($itemTextAlignVal === 'left') ? 'checked' : '' ?>>
                     <label for="text-align-left-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la izquierda">
                       <?= svg("arrow-l-l", "x14") ?>
-                      <span class="bold500 x13">Izquierda</span>
+                      <span class="bold500">Izquierda</span>
                     </label>
 
                     <input type="radio" id="text-align-center-<?= $i?>" name="content[<?= $i?>][text_align]" value="center" class="hidden-radio" <?= ($itemTextAlignVal === 'center') ? 'checked' : '' ?>>
                     <label for="text-align-center-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear al centro">
                       <?= svg("bars", "x14") ?>
-                      <span class="bold500 x13">Centro</span>
+                      <span class="bold500">Centro</span>
                     </label>
 
                     <input type="radio" id="text-align-right-<?= $i?>" name="content[<?= $i?>][text_align]" value="right" class="hidden-radio" <?= ($itemTextAlignVal === 'right') ? 'checked' : '' ?>>
                     <label for="text-align-right-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Alinear a la derecha">
                       <?= svg("arrow-r-l", "x14") ?>
-                      <span class="bold500 x13">Derecha</span>
+                      <span class="bold500">Derecha</span>
                     </label>
                   </div>
                 </div>
@@ -1380,8 +1380,8 @@
                 <!-- Cuadrícula de Figuras (con ban.svg como primer icono para solo espacio) -->
                 <div class="flex-column gap8 w100">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Figura del separador</p>
-                    <span class="x11 text-muted">Selecciona una figura para la línea o el primer ícono para un espacio en blanco</span>
+                    <p class="bold500 texto">Figura del separador</p>
+                    <span class="text-muted">Selecciona una figura para la línea o el primer ícono para un espacio en blanco</span>
                   </div>
                   <div class="separator-icons-grid w100" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px; box-sizing: border-box;">
                     <!-- Primer ícono: ban (solo espacio) -->
@@ -1404,23 +1404,23 @@
                 <!-- Opciones de Espacio (Altura del espacio en px, visible cuando se elige ban / solo espacio) -->
                 <div class="separator-space-options flex-column gap8 w100 <?= $itemIsSpace ? '' : 'hidden' ?>" style="display: <?= $itemIsSpace ? 'flex' : 'none' ?>;">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Tamaño del espacio</p>
-                    <span class="x11 text-muted">Altura del espacio vertical entre bloques</span>
+                    <p class="bold500 texto">Tamaño del espacio</p>
+                    <span class="text-muted">Altura del espacio vertical entre bloques</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="space-size-20-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="20" class="hidden-radio" <?= ($itemSpaceSize === '20') ? 'checked' : '' ?>>
                     <label for="space-size-20-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Pequeño (20px)">
-                      <span class="bold500 x12">Pequeño (20px)</span>
+                      <span class="bold500">Pequeño (20px)</span>
                     </label>
 
                     <input type="radio" id="space-size-40-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="40" class="hidden-radio" <?= ($itemSpaceSize === '40') ? 'checked' : '' ?>>
                     <label for="space-size-40-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Medio (40px)">
-                      <span class="bold500 x12">Medio (40px)</span>
+                      <span class="bold500">Medio (40px)</span>
                     </label>
 
                     <input type="radio" id="space-size-60-<?= $i ?>" name="content[<?= $i ?>][space_size]" value="60" class="hidden-radio" <?= ($itemSpaceSize === '60') ? 'checked' : '' ?>>
                     <label for="space-size-60-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Grande (60px)">
-                      <span class="bold500 x12">Grande (60px)</span>
+                      <span class="bold500">Grande (60px)</span>
                     </label>
                   </div>
                 </div>
@@ -1428,23 +1428,23 @@
                 <!-- Opciones de Tamaño del Separador de Figuras (Grande Completo, Mediano 60%, Pequeño 1 figura) -->
                 <div class="separator-size-options flex-column gap8 w100 <?= !$itemIsSpace ? '' : 'hidden' ?>" style="display: <?= !$itemIsSpace ? 'flex' : 'none' ?>;">
                   <div class="flex-column gap2">
-                    <p class="x13 bold500 texto">Ancho del separador</p>
-                    <span class="x11 text-muted">Elige el ancho o cantidad de figuras del separador</span>
+                    <p class="bold500 texto">Ancho del separador</p>
+                    <span class="text-muted">Elige el ancho o cantidad de figuras del separador</span>
                   </div>
                   <div class="flex-row center-between gap10 w100">
                     <input type="radio" id="sep-size-large-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="large" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'large') ? 'checked' : '' ?>>
                     <label for="sep-size-large-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Abarca el ancho completo">
-                      <span class="bold500 x12">Grande (Completo)</span>
+                      <span class="bold500">Grande (Completo)</span>
                     </label>
 
                     <input type="radio" id="sep-size-medium-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="medium" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'medium') ? 'checked' : '' ?>>
                     <label for="sep-size-medium-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Abarca un 60% del ancho">
-                      <span class="bold500 x12">Mediano (60%)</span>
+                      <span class="bold500">Mediano (60%)</span>
                     </label>
 
                     <input type="radio" id="sep-size-small-<?= $i ?>" name="content[<?= $i ?>][separator_size]" value="small" class="hidden-radio separator-size-radio" <?= ($itemSepSize === 'small') ? 'checked' : '' ?>>
                     <label for="sep-size-small-<?= $i ?>" class="flex-1 flex-row center-center gap6 w100 p8 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Solo una figura en el medio">
-                      <span class="bold500 x12">Pequeño (1 figura)</span>
+                      <span class="bold500">Pequeño (1 figura)</span>
                     </label>
                   </div>
                 </div>
@@ -1469,20 +1469,20 @@
               <!-- Selector de modo (Enlace vs Reproductor) -->
               <div class="flex-column gap8 w100">
                 <div class="flex-column gap2">
-                  <p class="x13 bold600 texto">Modo de visualización</p>
-                  <span class="x11 text-muted">Elige cómo se presentará el video en el perfil</span>
+                  <p class="bold500 texto">Modo de visualización</p>
+                  <span class="text-muted">Elige cómo se presentará el video en el perfil</span>
                 </div>
                 <div class="flex-row center-between gap10 w100">
                   <input type="radio" id="video-mode-link-<?= $i?>" name="content[<?= $i?>][video_mode]" value="link" class="hidden-radio video-mode-radio" <?= ($videoMode === 'link') ? 'checked' : '' ?>>
                   <label for="video-mode-link-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Modo enlace: banner con carátula y descripción">
                     <?= svg("link", "x16") ?>
-                    <span class="bold500 x13">Enlace</span>
+                    <span class="bold500">Enlace</span>
                   </label>
 
                   <input type="radio" id="video-mode-player-<?= $i?>" name="content[<?= $i?>][video_mode]" value="player" class="hidden-radio video-mode-radio" <?= ($videoMode === 'player') ? 'checked' : '' ?>>
                   <label for="video-mode-player-<?= $i?>" class="flex-1 flex-row center-center gap8 w100 p10 br10 back-card-graphic shadow-card-graphic hover-scale-soft pointer texto" title="Modo reproductor: reproduce directamente en el perfil">
                     <?= svg("film", "x16") ?>
-                    <span class="bold500 x13">Reproductor</span>
+                    <span class="bold500">Reproductor</span>
                   </label>
                 </div>
               </div>
@@ -1694,8 +1694,8 @@
                 <!-- Switch de Rebaja -->
                 <div class="flex-row center-between w100 p10 br10 back-card-graphic shadow-card-graphic">
                   <div class="flex-column">
-                    <p class="x14 bold500 texto">Rebaja</p>
-                    <span class="x12 text-muted">Aplica un precio rebajado o porcentaje</span>
+                    <p class="bold500 texto">Rebaja</p>
+                    <span class="text-muted">Aplica un precio rebajado o porcentaje</span>
                   </div>
                   <input type="checkbox" id="offer-switch-<?= $i?>" name="content[<?= $i?>][offer]" value="true" data-option="true,false" class="checkbox-switch product-offer-switch" active="<?= $itemOffer ? '1' : '2' ?>" <?= $itemOffer ? 'checked' : '' ?>>
                 </div>
@@ -1703,7 +1703,7 @@
                 <!-- Campos de Oferta / Descuento (Valor rebajado o Porcentaje) -->
                 <div class="product-discount-wrapper flex-row center-between gap10 w100 flex-column-sml <?= $itemOffer ? '' : 'hidden' ?>" style="display: <?= $itemOffer ? 'flex' : 'none !important' ?>;">
                   <div class="flex-column gap5 w50 w-sml-100">
-                    <p class="x12 bold500 texto">Precio rebajado</p>
+                    <p class="bold500 texto">Precio rebajado</p>
                     <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                       <?= uiInput('textInput', [
                         'triggerText' => 'texto',
@@ -1726,7 +1726,7 @@
                     </div>
                   </div>
                   <div class="flex-column gap5 w50 w-sml-100">
-                    <p class="x12 bold500 texto">% Descuento</p>
+                    <p class="bold500 texto">% Descuento</p>
                     <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p10 w100">
                       <?= uiInput('textInput', [
                         'triggerText' => 'texto',
