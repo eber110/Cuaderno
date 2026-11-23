@@ -6,6 +6,7 @@
   $styleBack  = $card["backCard"]["style_back"] ?? $card["backCard"][1] ?? 'solid';
   $backPerfil = $card["backCard"]["back_perfil"] ?? $card["backCard"][0] ?? '#272727';
   $shadowVal   = $card["shadow"] ?? 'shadow-0';
+  $isClay      = (($card["style"] ?? 'buttonRegular') === 'buttonClay');
 ?>
 <form class="auto-submit w100" action="<?= $uri["formDesign"]?>" method="post">
   <?= class_exists('\Base\Module\SecurityModule') ? \Base\Module\SecurityModule::csrfField() : '' ?>
@@ -81,7 +82,7 @@
     </div>
 
     <!-- Estilo de color de la sombra shadow-3 -->
-    <div id="color-shadow3-color-row" class="flex-row center-between <?= ($shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= ($shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
+    <div id="color-shadow3-color-row" class="flex-row center-between <?= (!$isClay && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$isClay && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">

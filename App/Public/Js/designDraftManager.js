@@ -1415,9 +1415,44 @@ export function designDraftManager() {
     if (target.name === "shadow") {
       const shadow3Row = document.getElementById("shadow3-color-row");
       const colorShadow3Row = document.getElementById("color-shadow3-color-row");
-      const isShadow3 = target.value === "shadow-3";
+      const activeStyle = document.querySelector('input[name="style"]:checked')?.value || getDraftState()?.style || "buttonRegular";
+      const isClay = activeStyle === "buttonClay";
+      const isShadow3 = !isClay && target.value === "shadow-3";
       setElementVisibility(shadow3Row, isShadow3);
       setElementVisibility(colorShadow3Row, isShadow3);
+    }
+
+    // 2b. Estilo de botones (Solido vs Clay)
+    if (target.name === "style") {
+      const isClay = target.value === "buttonClay";
+      const borderSquareOpt = document.getElementById("border-square-option");
+      const buttonShadowRow = document.getElementById("button-shadow-row");
+      const buttonFontRow = document.getElementById("button-font-row");
+      const panelFontButtonWrap = document.getElementById("panel-font-button-wrapper");
+      const shadow3Row = document.getElementById("shadow3-color-row");
+      const colorShadow3Row = document.getElementById("color-shadow3-color-row");
+
+      setElementVisibility(borderSquareOpt, !isClay, "block");
+      setElementVisibility(buttonShadowRow, !isClay, "flex");
+      setElementVisibility(buttonFontRow, !isClay, "flex");
+      setElementVisibility(panelFontButtonWrap, !isClay, "flex");
+
+      const checkedShadow = document.querySelector('input[name="shadow"]:checked')?.value || getDraftState()?.shadow || "shadow-1";
+      const showShadow3 = !isClay && checkedShadow === "shadow-3";
+      setElementVisibility(shadow3Row, showShadow3);
+      setElementVisibility(colorShadow3Row, showShadow3);
+
+      if (isClay) {
+        const squareRadio = document.getElementById("square");
+        const round1Radio = document.getElementById("round1");
+        if (squareRadio && squareRadio.checked && round1Radio) {
+          squareRadio.checked = false;
+          round1Radio.checked = true;
+          setDraftField("borders", round1Radio.value);
+        }
+      }
+
+      syncGlobalFontDropdown();
     }
 
     // 3. Separación superior en voidHero
@@ -1845,13 +1880,13 @@ export function designDraftManager() {
       const isHoverActive = (fields.hover === "true" || fields.hover === true || fields.hover === 1 || fields.hover === "1");
       if (isHoverActive) {
         cssRules.push(`
-          .user-profile-preview .theme-button:hover {
+          .user-profile-preview:not(.btn-style-clay) .theme-button:hover {
             background-color: oklch(from ${buttonBack} calc(l * 0.92) c h) !important;
           }
         `);
       } else {
         cssRules.push(`
-          .user-profile-preview .theme-button:hover {
+          .user-profile-preview:not(.btn-style-clay) .theme-button:hover {
             background-color: ${buttonBack} !important;
           }
         `);
@@ -1874,6 +1909,7 @@ export function designDraftManager() {
       font_title: fields.font_title,
       font_text: fields.font_text,
       font_button: fields.font_button,
+      style: fields.style || document.querySelector('input[name="style"]:checked')?.value || "buttonRegular",
       colorShadow3: colorShadow3,
       void_space: fields.void_space !== undefined ? fields.void_space : fields["voidHero[space]"],
       header: fields.header,
@@ -1899,10 +1935,15 @@ export function designDraftManager() {
 
       const clampedBorder = (btnBorder === "br50") ? "br20" : btnBorder;
       const clampedImgBorder = (imgBorder === "br50") ? "br12" : imgBorder;
+      const clayPreviewBorder = (btnBorder === "br0") ? "br10" : btnBorder;
 
       document.querySelectorAll(".button-fill-style").forEach((el) => {
         validBorders.forEach((b) => el.classList.remove(b));
         el.classList.add(btnBorder);
+      });
+      document.querySelectorAll(".button-clay-style").forEach((el) => {
+        validBorders.forEach((b) => el.classList.remove(b));
+        el.classList.add(clayPreviewBorder);
       });
 
       previews.forEach((p) => {
@@ -2143,7 +2184,10 @@ export function designDraftManager() {
     const titleVal = String(draftState.font_title || document.querySelector('input[name="font_title"]')?.value || "");
     const textVal = String(draftState.font_text || document.querySelector('input[name="font_text"]')?.value || "");
     const buttonVal = String(draftState.font_button || document.querySelector('input[name="font_button"]')?.value || "");
-    const isUnified = Boolean(titleVal && titleVal === textVal && textVal === buttonVal);
+    const activeStyle = String(draftState.style || document.querySelector('input[name="style"]:checked')?.value || "buttonRegular");
+    const isUnified = activeStyle === "buttonClay"
+      ? Boolean(titleVal && titleVal === textVal)
+      : Boolean(titleVal && titleVal === textVal && textVal === buttonVal);
 
     document.querySelectorAll('.font-global-dropdown, [data-font-global="true"]').forEach((dd) => {
       const hiddenInput = dd.querySelector('input[type="hidden"]');

@@ -4,11 +4,13 @@
    * @var mixed $uri
    */
   $buttonStyle = $card["style"] ?? 'buttonRegular';
+  $isClay      = ($buttonStyle === 'buttonClay');
   $borders     = is_array($card["borders"] ?? null) 
     ? $card["borders"] 
     : (is_string($card["borders"] ?? null) ? (str_contains($card["borders"], ",") ? explode(",", $card["borders"]) : [$card["borders"], $card["borders"]]) : ["br0", "br0"]);
-  $borderVal   = $borders[0] ?? 'br0';
-  $shadowVal   = $card["shadow"] ?? 'shadow-0';
+  $borderVal          = $borders[0] ?? 'br0';
+  $effectiveBorderVal = ($isClay && $borderVal === 'br0') ? 'br10' : $borderVal;
+  $shadowVal          = $card["shadow"] ?? 'shadow-0';
   $availableFonts     = \App\Models\DesignModels::getAvailableFonts();
   $selectedButtonFont = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
   $fontSearchable     = count($availableFonts) > 6 ? "true" : "false";
@@ -22,7 +24,7 @@
     <div class="flex-column top-start gap10 w100">
       <p class="texto">Estilo de botones</p>
 
-      <div class="flex-row center-end gap10 w100">
+      <div class="flex-row center-end flex-wrap gap10 w100">
         <input type="radio" id="button-regular" name="style" class="hidden-radio" value="buttonRegular" <?php if ($buttonStyle == "buttonRegular" || $buttonStyle == "Regular") echo "checked";?>>
         <label for="button-regular">
           <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
@@ -30,6 +32,16 @@
               <div class="<?= $borderVal?> button-fill-style"></div>
             </div>
             <p class="x16 texto">Solido</p>
+          </div>
+        </label>
+
+        <input type="radio" id="button-clay" name="style" class="hidden-radio" value="buttonClay" <?php if ($isClay) echo "checked";?>>
+        <label for="button-clay">
+          <div class="back-card-graphic shadow-card-graphic hover-scale-soft p5 br20 flex-column center-center gap5 pointer">
+            <div class="button-style-background button-clay-preview-bg flex-row center-center">
+              <div class="<?= ($effectiveBorderVal === 'br0') ? 'br10' : $effectiveBorderVal ?> button-clay-style"></div>
+            </div>
+            <p class="x16 texto">Clay</p>
           </div>
         </label>
       </div>
@@ -41,8 +53,8 @@
 
       <div class="flex-row center-end gap20">
       
-        <div class="">
-          <input type="radio" id="square" name="borders" value="br0,br0" class="hidden-radio" <?php if ($borderVal == "br0") echo "checked";?>>
+        <div id="border-square-option" class="<?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'block' ?>;">
+          <input type="radio" id="square" name="borders" value="br0,br0" class="hidden-radio" <?php if ($effectiveBorderVal == "br0") echo "checked";?>>
           <label for="square" class="flex-row center-start p10 gap10 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
             <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V4H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -51,7 +63,7 @@
         </div>
   
         <div class="">
-          <input type="radio" id="round1" name="borders" value="br10,br5" class="hidden-radio" <?php if ($borderVal == "br10" || $borderVal == "br5") echo "checked";?>>
+          <input type="radio" id="round1" name="borders" value="br10,br5" class="hidden-radio" <?php if ($effectiveBorderVal == "br10" || $effectiveBorderVal == "br5") echo "checked";?>>
           <label for="round1" class="flex-row center-start p10 gap10 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
             <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V8C4 5.79086 5.79086 4 8 4H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -60,7 +72,7 @@
         </div>
   
         <div class="">
-          <input type="radio" id="round2" name="borders" value="br20,br12" class="hidden-radio" <?php if ($borderVal == "br20") echo "checked";?>>
+          <input type="radio" id="round2" name="borders" value="br20,br12" class="hidden-radio" <?php if ($effectiveBorderVal == "br20") echo "checked";?>>
           <label for="round2" class="flex-row center-start p10 gap10 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
             <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V12C4 7.58172 7.58172 4 12 4H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -69,7 +81,7 @@
         </div>
   
         <div class="">
-          <input type="radio" id="round3" name="borders" value="br50,br50" class="hidden-radio" <?php if ($borderVal == "br50") echo "checked";?>>
+          <input type="radio" id="round3" name="borders" value="br50,br50" class="hidden-radio" <?php if ($effectiveBorderVal == "br50") echo "checked";?>>
           <label for="round3" class="flex-row center-start p10 gap10 pointer back-card-graphic shadow-card-graphic hover-scale-soft br15">
             <p class="x16 bold500 texto wpx25 hpx25 flex-row center-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V12C4 7.58172 7.58172 4 12 4H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -82,7 +94,7 @@
     </div>
 
     <!-- Estilos de sombreado de los botones -->
-    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+    <div id="button-shadow-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'flex' ?>;">
       <p class="texto">Estilo de sombra</p>
 
       <div class="flex-row center-end gap20">
@@ -154,7 +166,7 @@
     </div>
 
     <!-- Estilo de color de la sombra shadow-3 -->
-    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= ($shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= ($shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
+    <div id="shadow3-color-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= (!$isClay && $shadowVal === 'shadow-3') ? '' : 'hidden' ?>" style="display: <?= (!$isClay && $shadowVal === 'shadow-3') ? 'flex' : 'none !important' ?>;">
       <p class="texto">Color de sombra</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft wpx140 br15">
@@ -167,7 +179,7 @@
     </div>
 
     <!-- Fuente de botones y contenidos -->
-    <div class="flex-row center-between flex-column-sml top-start-sml gap10 w100">
+    <div id="button-font-row" class="flex-row center-between flex-column-sml top-start-sml gap10 w100 <?= $isClay ? 'hidden' : '' ?>" style="display: <?= $isClay ? 'none !important' : 'flex' ?>;">
       <p class="texto">Fuente de botones</p>
 
       <div class="back-card-graphic shadow-card-graphic hover-scale-soft br15 p5 w60 w-sml-100">

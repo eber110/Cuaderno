@@ -604,6 +604,37 @@ export function LivePreviewManager() {
       previewEl.style.setProperty("--preview-font-button", fontsMap[fields.font_button].cssFamily);
       previewEl.style.setProperty("--preview-font-button-weight", String(fontsMap[fields.font_button].weight));
     }
+    if (fields.style) {
+      const BUTTON_STYLE_CLASSES = {
+        buttonClay: "btn-style-clay"
+      };
+      const normalizedStyle = fields.style === "Regular" ? "buttonRegular" : String(fields.style);
+      const cardEls = previewEl.querySelectorAll ? Array.from(previewEl.querySelectorAll(".back-card")) : [];
+
+      Object.entries(BUTTON_STYLE_CLASSES).forEach(([styleKey, className]) => {
+        const isActive = normalizedStyle === styleKey;
+        if (previewEl.classList && previewEl.classList.toggle) {
+          previewEl.classList.toggle(className, isActive);
+        }
+        cardEls.forEach((cardEl) => {
+          cardEl.classList.toggle(className, isActive);
+        });
+      });
+
+      // Limpiar posibles estilos inline residuales para que la nueva variante CSS aplique sin bloqueos
+      if (previewEl.querySelectorAll) {
+        previewEl.querySelectorAll(".theme-button").forEach((btnEl) => {
+          btnEl.style.removeProperty("background-color");
+        });
+        previewEl.querySelectorAll(".shadow-3").forEach((shadowEl) => {
+          shadowEl.style.removeProperty("box-shadow");
+          shadowEl.style.removeProperty("border-color");
+        });
+        previewEl.querySelectorAll(".shadow-3 img").forEach((imgEl) => {
+          imgEl.style.removeProperty("border-color");
+        });
+      }
+    }
 
     const rawVoidSpace = fields.void_space !== undefined
       ? fields.void_space

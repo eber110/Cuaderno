@@ -271,6 +271,67 @@
     font-weight: <?= (int)$fontButton["weight"] ?>;
   }
 
+  /* Estilo Claymorphism 3D suave (buttonClay) */
+  .back-card.btn-style-clay .theme-button,
+  .back-card.btn-style-clay .campaign-button {
+    --clay-bg: <?= $back ?>;
+    background: linear-gradient(
+      180deg,
+      oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.92) h) 0%,
+      var(--clay-bg) 52%,
+      oklch(from var(--clay-bg) calc(l - 0.04) calc(c * 1.05) h) 100%
+    );
+    border: 1px solid oklch(from var(--clay-bg) calc(l + 0.10) calc(c * 0.60) h / 0.45);
+    box-sizing: border-box;
+    box-shadow:
+      0 10px 22px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.34),
+      0 4px 10px -2px rgba(0, 0, 0, 0.14),
+      inset 0 4px 7px oklch(from var(--clay-bg) calc(l + 0.18) calc(c * 0.50) h / 0.72),
+      inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+  }
+
+  .back-card.btn-style-clay .theme-button.br0,
+  .back-card.btn-style-clay .campaign-button.br0 {
+    border-radius: 10px;
+  }
+
+  .back-card.btn-style-clay .theme-button.shadow-3 img {
+    border: none;
+  }
+
+  .back-card.btn-style-clay .theme-button,
+  .back-card.btn-style-clay .theme-button a,
+  .back-card.btn-style-clay .theme-button p,
+  .back-card.btn-style-clay .theme-button span,
+  .back-card.btn-style-clay .campaign-button {
+    font-family: 'GoogleSansFlex_120pt', sans-serif;
+    font-weight: 500;
+  }
+
+  <?php if ($hover) : ?>
+  .back-card.btn-style-clay .theme-button:hover,
+  .back-card.btn-style-clay .campaign-button:hover {
+    background: linear-gradient(
+      180deg,
+      oklch(from var(--clay-bg) calc(l + 0.07) calc(c * 0.90) h) 0%,
+      oklch(from var(--clay-bg) calc(l + 0.02) c h) 52%,
+      oklch(from var(--clay-bg) calc(l - 0.03) calc(c * 1.04) h) 100%
+    );
+    transform: translateY(-2px) scale(1.01);
+    box-shadow:
+      0 14px 26px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.42),
+      0 6px 12px -2px rgba(0, 0, 0, 0.16),
+      inset 0 5px 8px oklch(from var(--clay-bg) calc(l + 0.20) calc(c * 0.50) h / 0.78),
+      inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
+  }
+
+  .back-card.btn-style-clay .theme-button:active,
+  .back-card.btn-style-clay .campaign-button:active {
+    transform: translateY(1px) scale(0.99);
+  }
+  <?php endif; ?>
+
   .back-card p[data-profile-bind="desc"] {
     font-family: <?= $fontText["cssFamily"] ?>;
     font-weight: <?= (int)$fontText["weight"] ?>;

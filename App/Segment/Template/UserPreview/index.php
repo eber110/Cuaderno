@@ -15,8 +15,9 @@
   $previewFontTitle    = \App\Models\DesignModels::resolveFont((string)($card["font_title"] ?? ""));
   $previewFontText     = \App\Models\DesignModels::resolveFont((string)($card["font_text"] ?? ""));
   $previewFontButton   = \App\Models\DesignModels::resolveFont((string)($card["font_button"] ?? ""));
+  $previewIsClay       = (($card["style"] ?? "buttonRegular") === "buttonClay");
 ?>
-<div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?>"
+<div class="wpx460 w-sml-100 h-dvh pt40 pb40 p-sml-0 flex-column center-center user-profile-preview <?= $previewHover ? 'has-btn-hover' : '' ?> <?= $previewIsClay ? 'btn-style-clay' : '' ?>"
      style="--preview-btn-back: <?= $previewBtnBack ?>; --preview-btn-color: <?= $previewBtnColor ?>; --preview-txt-color: <?= $previewTxtColor ?>; --preview-title-color: <?= $previewTtlColor ?>; --preview-shadow-color: <?= $previewShadow3Color ?>; --preview-void-space: <?= $voidSpace ?>%; --preview-font-title: <?= e($previewFontTitle['cssFamily']) ?>; --preview-font-title-weight: <?= (int)$previewFontTitle['weight'] ?>; --preview-font-text: <?= e($previewFontText['cssFamily']) ?>; --preview-font-text-weight: <?= (int)$previewFontText['weight'] ?>; --preview-font-button: <?= e($previewFontButton['cssFamily']) ?>; --preview-font-button-weight: <?= (int)$previewFontButton['weight'] ?>;">
   <?php _part("User.style.css", ["card" => $card]); ?>
   <style>
@@ -83,8 +84,61 @@
       font-family: var(--preview-font-title);
       font-weight: var(--preview-font-title-weight);
     }
+    /* Estilo Claymorphism 3D en vista previa */
+    .user-profile-preview .back-card.btn-style-clay .theme-button,
+    .user-profile-preview .back-card.btn-style-clay .campaign-button {
+      --clay-bg: var(--preview-btn-back);
+      background: linear-gradient(
+        180deg,
+        oklch(from var(--clay-bg) calc(l + 0.05) calc(c * 0.92) h) 0%,
+        var(--clay-bg) 52%,
+        oklch(from var(--clay-bg) calc(l - 0.04) calc(c * 1.05) h) 100%
+      );
+      border: 1px solid oklch(from var(--clay-bg) calc(l + 0.10) calc(c * 0.60) h / 0.45);
+      box-sizing: border-box;
+      box-shadow:
+        0 10px 22px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.34),
+        0 4px 10px -2px rgba(0, 0, 0, 0.14),
+        inset 0 4px 7px oklch(from var(--clay-bg) calc(l + 0.18) calc(c * 0.50) h / 0.72),
+        inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+    }
+    .user-profile-preview .back-card.btn-style-clay .theme-button.br0,
+    .user-profile-preview .back-card.btn-style-clay .campaign-button.br0 {
+      border-radius: 10px;
+    }
+    .user-profile-preview .back-card.btn-style-clay .theme-button.shadow-3 img {
+      border: none;
+    }
+    .user-profile-preview .back-card.btn-style-clay .theme-button,
+    .user-profile-preview .back-card.btn-style-clay .theme-button a,
+    .user-profile-preview .back-card.btn-style-clay .theme-button p,
+    .user-profile-preview .back-card.btn-style-clay .theme-button span,
+    .user-profile-preview .back-card.btn-style-clay .campaign-button {
+      font-family: 'GoogleSansFlex_120pt', sans-serif;
+      font-weight: 500;
+    }
+    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .theme-button:hover,
+    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .campaign-button:hover {
+      background: linear-gradient(
+        180deg,
+        oklch(from var(--clay-bg) calc(l + 0.07) calc(c * 0.90) h) 0%,
+        oklch(from var(--clay-bg) calc(l + 0.02) c h) 52%,
+        oklch(from var(--clay-bg) calc(l - 0.03) calc(c * 1.04) h) 100%
+      );
+      transform: translateY(-2px) scale(1.01);
+      box-shadow:
+        0 14px 26px -6px oklch(from var(--clay-bg) calc(l * 0.35) calc(c * 0.55) h / 0.42),
+        0 6px 12px -2px rgba(0, 0, 0, 0.16),
+        inset 0 5px 8px oklch(from var(--clay-bg) calc(l + 0.20) calc(c * 0.50) h / 0.78),
+        inset 0 -6px 10px oklch(from var(--clay-bg) calc(l * 0.62) calc(c * 1.05) h / 0.45);
+    }
+    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .theme-button:active,
+    .user-profile-preview.has-btn-hover .back-card.btn-style-clay .campaign-button:active {
+      transform: translateY(1px) scale(0.99);
+    }
   </style>
-  <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative">
+  <div class="flex-column between-center back-card shadow-card-preview color-text-card preview-profile p0 br30 br-sml-0 w100 overflow-hidden position-relative <?= $previewIsClay ? 'btn-style-clay' : '' ?>">
     <?php if (\App\Models\DesignModels::isVideoEnabled()) : ?>
       <video class="back-video-bg" preload="metadata" autoplay loop muted playsinline disablePictureInPicture tabindex="-1" style="<?= ($styleBack === 'video' && !empty($backVideo)) ? '' : 'display: none;' ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">
         <source src="<?= eUrl($backVideo) ?>" type="video/mp4" onerror="var v = this.parentElement; if(v){ v.style.display='none'; if(v.nextElementSibling) v.nextElementSibling.style.display='none'; }">
@@ -171,6 +225,12 @@
               if (draft.font_button && fontsMap[draft.font_button]) {
                 preview.style.setProperty('--preview-font-button', fontsMap[draft.font_button].cssFamily);
                 preview.style.setProperty('--preview-font-button-weight', String(fontsMap[draft.font_button].weight));
+              }
+              if (draft.style) {
+                var isClay = draft.style === 'buttonClay';
+                preview.classList.toggle('btn-style-clay', isClay);
+                var bc = preview.querySelector('.back-card');
+                if (bc) bc.classList.toggle('btn-style-clay', isClay);
               }
             });
           } catch (e) {}

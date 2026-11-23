@@ -38,6 +38,12 @@
   <FilesMatch "\.(css|js|webp|jpg|jpeg|png|gif|svg|avif|ico|woff2|woff|ttf|eot)$">
     Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
+
+  # js.min.js es importado por loader.js sin parámetro ?v=; forzar revalidación condicional (ETag / Last-Modified)
+  <Files "js.min.js">
+    Header unset Expires
+    Header set Cache-Control "public, no-cache, must-revalidate"
+  </Files>
 </IfModule>
 
 Options -Indexes -MultiViews

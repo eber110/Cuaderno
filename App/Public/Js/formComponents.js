@@ -549,23 +549,23 @@ export function formComponents() {
           el.style.setProperty('color', hex, 'important');
         });
       } else if (name === 'back') {
+        preview.style.setProperty('--preview-btn-back', hex);
         preview.querySelectorAll('.theme-button').forEach(el => {
-          el.style.setProperty('background-color', hex, 'important');
+          el.style.removeProperty('background-color');
         });
       } else if (name === 'color') {
-        preview.querySelectorAll('.theme-button').forEach(el => {
-          el.style.setProperty('color', hex, 'important');
-        });
-        preview.querySelectorAll('.theme-button *, .theme-icon').forEach(el => {
-          el.style.setProperty('color', hex, 'important');
+        preview.style.setProperty('--preview-btn-color', hex);
+        preview.querySelectorAll('.theme-button, .theme-button *, .theme-icon').forEach(el => {
+          el.style.removeProperty('color');
         });
       } else if (name === 'colorShadow3') {
+        preview.style.setProperty('--preview-shadow-color', hex);
         preview.querySelectorAll('.shadow-3').forEach(el => {
-          el.style.setProperty('border-color', hex, 'important');
-          el.style.setProperty('box-shadow', `3px 5px 0px ${hex}`, 'important');
+          el.style.removeProperty('border-color');
+          el.style.removeProperty('box-shadow');
         });
         preview.querySelectorAll('.shadow-3 img').forEach(el => {
-          el.style.setProperty('border-color', hex, 'important');
+          el.style.removeProperty('border-color');
         });
       } else if (name.startsWith('content[')) {
         const itemBlock = inputElement?.closest('.sortable-item');
