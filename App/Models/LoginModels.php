@@ -146,4 +146,217 @@ class LoginModels extends BuilderSqlite{
     $this->clearRateLimit('register:submit', $ip);
   }
 
+  /**
+   * Obtiene los datos de un usuario por correo electrónico normalizado.
+   *
+   * @param string $email Correo electrónico del usuario.
+   * @return array|false Registro del usuario o false si no existe.
+   */
+  public function findUserByEmail(string $email): array|false {
+    $this->rateLimitMaxAttempts = null;
+    $clean = mb_strtolower(trim($email), "UTF-8");
+    $rows  = $this->where("email", $clean)->get_one();
+    return !empty($rows[0]) ? $rows[0] : false;
+  }
+
+  /**
+   * Obtiene los datos de un usuario por nombre de usuario normalizado.
+   *
+   * @param string $username Nombre de usuario.
+   * @return array|false Registro del usuario o false si no existe.
+   */
+  public function findUserByUsername(string $username): array|false {
+    $this->rateLimitMaxAttempts = null;
+    $clean = mb_strtolower(trim($username), "UTF-8");
+    $rows  = $this->where("username", $clean)->get_one();
+    return !empty($rows[0]) ? $rows[0] : false;
+  }
+
+  /**
+   * Guarda el hash del token de verificación de correo y su fecha de expiración.
+   *
+   * @param int|string $userId ID numérico del usuario.
+   * @param string $tokenHash Hash SHA-256 del token.
+   * @param string $expiresAt Fecha de expiración en formato Y-m-d H:i:s.
+   * @return void
+   */
+  public function saveEmailVerificationToken(int|string $userId, string $tokenHash, string $expiresAt): void {
+    $this->rateLimitMaxAttempts = null;
+    $this->update("user_id", $userId, [
+      "email_verification_token"            => $tokenHash,
+      "email_verification_token_expires_at" => $expiresAt,
+      "updated_at_user"                     => date("Y-m-d H:i:s")
+    ]);
+  }
+
+  /**
+   * Busca un usuario por el hash SHA-256 de su token de verificación de correo.
+   *
+   * @param string $tokenHash Hash SHA-256 del token.
+   * @return array|false Registro del usuario o false si no existe.
+   */
+  public function findByVerificationTokenHash(string $tokenHash): array|false {
+    $this->rateLimitMaxAttempts = null;
+    $rows = $this->where("email_verification_token", $tokenHash)->get_one();
+    return !empty($rows[0]) ? $rows[0] : false;
+  }
+
+  /**
+   * Activa la cuenta del usuario y elimina el token de verificación (uso único).
+   *
+   * @param int|string $userId ID numérico del usuario.
+   * @return void
+   */
+  public function activateVerifiedUser(int|string $userId): void {
+    $this->rateLimitMaxAttempts = null;
+    $this->update("user_id", $userId, [
+      "user_status"                         => "active",
+      "email_verification_token"            => null,
+      "email_verification_token_expires_at" => null,
+      "updated_at_user"                     => date("Y-m-d H:i:s")
+    ]);
+  }
+
+  /**
+   * Verifica el límite de tasa para reenvío de verificación (cooldown 60s y máximo 3 por hora).
+   *
+   * @param string $email Correo electrónico normalizado.
+   * @return true|int True si está permitido, o segundos restantes de bloqueo.
+   */
+  public function checkResendVerificationRate(string $email): true|int {
+    $emailHash   = hash("sha256", mb_strtolower(trim($email), "UTF-8"));
+    $cooldownKey = "verify:cooldown:" . $emailHash;
+    $hourlyKey   = "verify:resend:" . $emailHash;
+
+    $this->rate(1, 60);
+    $cooldownStatus = $this->checkRateLimit($cooldownKey);
+    if ($cooldownStatus !== true) {
+      $this->reset();
+      $this->rateLimitMaxAttempts = null;
+      return (int)$cooldownStatus;
+    }
+
+    $this->rate(3, 3600);
+    $hourlyStatus = $this->checkRateLimit($hourlyKey);
+    if ($hourlyStatus !== true) {
+      $this->reset();
+      $this->rateLimitMaxAttempts = null;
+      return (int)$hourlyStatus;
+    }
+
+    $this->rate(1, 60);
+    $this->incrementRateLimit($cooldownKey);
+    $this->rate(3, 3600);
+    $this->incrementRateLimit($hourlyKey);
+    $this->rateLimitMaxAttempts = null;
+
+    return true;
+  }
+
+  /**
+   * Verifica el límite de tasa para solicitudes de recuperación de contraseña (IP + email).
+   *
+   * @param string $email Correo electrónico normalizado.
+   * @return true|int True si está permitido, o segundos restantes de bloqueo.
+   */
+  public function checkPasswordResetRequestRate(string $email): true|int {
+    $emailHash = hash("sha256", mb_strtolower(trim($email), "UTF-8"));
+    $ipKey     = "reset:request_ip";
+    $emailKey  = "reset:request_email:" . $emailHash;
+
+    $this->rate(5, 900);
+    $ipStatus = $this->checkRateLimit($ipKey);
+    if ($ipStatus !== true) {
+      $this->reset();
+      $this->rateLimitMaxAttempts = null;
+      return (int)$ipStatus;
+    }
+
+    $this->rate(3, 900);
+    $emailStatus = $this->checkRateLimit($emailKey);
+    if ($emailStatus !== true) {
+      $this->reset();
+      $this->rateLimitMaxAttempts = null;
+      return (int)$emailStatus;
+    }
+
+    $this->rate(5, 900);
+    $this->incrementRateLimit($ipKey);
+    $this->rate(3, 900);
+    $this->incrementRateLimit($emailKey);
+    $this->rateLimitMaxAttempts = null;
+
+    return true;
+  }
+
+  /**
+   * Guarda el hash del token de recuperación de contraseña y su expiración.
+   *
+   * @param int|string $userId ID numérico del usuario.
+   * @param string $tokenHash Hash SHA-256 del token.
+   * @param string $expiresAt Fecha de expiración en formato Y-m-d H:i:s.
+   * @return void
+   */
+  public function savePasswordResetToken(int|string $userId, string $tokenHash, string $expiresAt): void {
+    $this->rateLimitMaxAttempts = null;
+    $this->update("user_id", $userId, [
+      "password_reset_token"            => $tokenHash,
+      "password_reset_token_expires_at" => $expiresAt,
+      "updated_at_user"                 => date("Y-m-d H:i:s")
+    ]);
+  }
+
+  /**
+   * Busca un usuario por el hash SHA-256 de su token de recuperación de contraseña.
+   *
+   * @param string $tokenHash Hash SHA-256 del token.
+   * @return array|false Registro del usuario o false si no existe.
+   */
+  public function findByPasswordResetTokenHash(string $tokenHash): array|false {
+    $this->rateLimitMaxAttempts = null;
+    $rows = $this->where("password_reset_token", $tokenHash)->get_one();
+    return !empty($rows[0]) ? $rows[0] : false;
+  }
+
+  /**
+   * Actualiza la contraseña del usuario, invalida el token de recuperación y limpia bloqueos de login.
+   *
+   * @param int|string $userId ID numérico del usuario.
+   * @param string $passwordHash Nuevo hash de contraseña.
+   * @param string|null $username Nombre de usuario para limpiar su rate limit de login.
+   * @param string|null $email Correo electrónico para limpiar su rate limit de login.
+   * @return void
+   */
+  public function updatePasswordAndClearResetToken(
+    int|string $userId,
+    string $passwordHash,
+    ?string $username = null,
+    ?string $email = null
+  ): void {
+    $this->rateLimitMaxAttempts = null;
+    $this->update("user_id", $userId, [
+      "password_hash"                   => $passwordHash,
+      "password_reset_token"            => null,
+      "password_reset_token_expires_at" => null,
+      "updated_at_user"                 => date("Y-m-d H:i:s")
+    ]);
+
+    if (!empty($username)) {
+      $this->clearRateLimit("login:" . mb_strtolower(trim($username), "UTF-8"));
+    }
+    if (!empty($email)) {
+      $this->clearRateLimit("login:" . mb_strtolower(trim($email), "UTF-8"));
+    }
+  }
+
+  /**
+   * Elimina cuentas pendientes de verificación que superaron las horas permitidas.
+   *
+   * @param int $hoursOld Antigüedad mínima en horas para depurar.
+   * @return int Cantidad de cuentas eliminadas.
+   */
+  public function purgeExpiredPendingUsers(int $hoursOld = 24): int {
+    return \App\DatabaseComponent\DatabaseMaintenance::purgeExpiredPendingUsers(null, $hoursOld);
+  }
+
 }

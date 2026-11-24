@@ -6,6 +6,7 @@
   <!-- Campo de usuario para accesibilidad y gestores de contraseñas (flujo multi-paso) -->
   <input type="text" name="username" id="hidden-username" autocomplete="off" style="display: none;" tabindex="-1" aria-hidden="true">
   <input type="email" name="email" id="hidden-email" autocomplete="off" style="display: none;" tabindex="-1" aria-hidden="true">
+  <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;">
 
   <div class="flex-column gap10">
     

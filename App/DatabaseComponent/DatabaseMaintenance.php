@@ -688,6 +688,35 @@ class DatabaseMaintenance
   }
 
   /**
+   * Elimina cuentas pendientes de verificación que superaron el límite de horas sin confirmarse,
+   * liberando nombres de usuario y correos ocupados por bots o registros abandonados.
+   *
+   * @param PDO|null $pdo Instancia PDO.
+   * @param int $hoursOld Antigüedad mínima en horas (por defecto 24).
+   * @return int Cantidad de cuentas eliminadas.
+   */
+  public static function purgeExpiredPendingUsers(?PDO $pdo = null, int $hoursOld = 24): int
+  {
+    try {
+      $db = self::getPdo($pdo);
+      $safeHours = max(1, $hoursOld);
+      $cutoff = date('Y-m-d H:i:s', time() - ($safeHours * 3600));
+
+      $stmt = $db->prepare("
+        DELETE FROM users
+        WHERE user_status = 'pending'
+          AND registration_date IS NOT NULL
+          AND registration_date < :cutoff
+      ");
+      $stmt->execute([':cutoff' => $cutoff]);
+      return $stmt->rowCount();
+    } catch (Exception $e) {
+      error_log('[DatabaseMaintenance] Error al purgar cuentas pendientes: ' . $e->getMessage());
+      return 0;
+    }
+  }
+
+  /**
    * Ejecuta el ciclo integral de mantenimiento: migración de esquemas, sincronización de index_user,
    * consolidación de cachés, depuración de registros huérfanos y compactación.
    *
@@ -705,6 +734,9 @@ class DatabaseMaintenance
 
     // Paso 2: Sincronizar index_user en registros legítimos existentes
     $report['sync'] = self::syncIndexUsers($db);
+
+    // Paso 2.5: Depurar cuentas pendientes expiradas (+24h sin verificar email)
+    $report['purged_pending_users'] = self::purgeExpiredPendingUsers($db, 24);
 
     // Paso 3: Auditar huérfanos antes de limpiar
     $report['audit_before'] = self::auditOrphans($db);

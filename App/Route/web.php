@@ -109,6 +109,15 @@ Route::middleware([AuthMiddleware::class])->group(function(){
   Route::post("/registrar/check-username", [LoginControllers::class, "checkUsername"]);
   Route::post("/registrar/check-email", [LoginControllers::class, "checkEmail"]);
 
+  // Verificación de correo electrónico (1 clic) y recuperación de contraseña
+  Route::get("/verificar-pendiente", [LoginControllers::class, "verifyPending"]);
+  Route::post("/verificar-reenviar", [LoginControllers::class, "resendVerification"]);
+  Route::get("/verificar-cuenta", [LoginControllers::class, "verifyEmail"]);
+  Route::get("/recuperar", [LoginControllers::class, "forgotPassword"]);
+  Route::post("/recuperar", [LoginControllers::class, "sendPasswordReset"]);
+  Route::get("/restablecer", [LoginControllers::class, "resetPasswordForm"]);
+  Route::post("/restablecer", [LoginControllers::class, "processResetPassword"]);
+
 });
 
 //LoginController: métodos de registro y validación de ingreso de usuarios

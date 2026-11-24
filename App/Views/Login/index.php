@@ -12,6 +12,10 @@
         <p class="x18">¿No tienes una cuenta?</p>
         <a href="/registrar" class="color8-hover x18 bold500">Crea una aquí.</a>
       </div>
+
+      <div class="flex-row center-center gap10">
+        <a href="/recuperar" class="color8-hover x18 bold500">¿Olvidaste tu contraseña?</a>
+      </div>
     </div>
   </div>
 

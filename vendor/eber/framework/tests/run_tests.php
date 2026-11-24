@@ -2354,6 +2354,233 @@ $runner->runTest('DeployPackage — Confirmación obligatoria de deploy', functi
   $rmDeployTmp($tmpDeployDir);
 });
 
+// =========================================================================
+// SUITE: DeployPackage — Sincronización de jsConfig.json y compiled.config.php en deploy
+// =========================================================================
+$runner->runTest('DeployPackage — Sincronización de jsConfig.json y compiled.config.php en deploy', function () use ($runner) {
+  if (!class_exists('DeployPackage', false)) {
+    require_once ROOT_PATH . '/Base/ScriptComposer/DeployPackage.php';
+  }
+
+  $rmRec = static function (string $d) use (&$rmRec): void {
+    if (!is_dir($d)) return;
+    foreach (scandir($d) ?: [] as $i) {
+      if ($i === '.' || $i === '..') continue;
+      $p = $d . '/' . $i;
+      is_dir($p) ? $rmRec($p) : @unlink($p);
+    }
+    @rmdir($d);
+  };
+
+  $rootLit = var_export(ROOT_PATH, true);
+
+  // 1. Modo clásico (sin compiled.config.php)
+  $tmpClassic = sys_get_temp_dir() . '/frame_deploy_classic_' . uniqid();
+  @mkdir($tmpClassic . '/App/Config', 0755, true);
+  @mkdir($tmpClassic . '/App/Safety', 0755, true);
+  @mkdir($tmpClassic . '/App/Public/Min/Js', 0755, true);
+  @mkdir($tmpClassic . '/Bootstrap', 0755, true);
+  @mkdir($tmpClassic . '/Base/Studio', 0755, true);
+  @file_put_contents($tmpClassic . '/index.php', "<?php\n");
+  @file_put_contents($tmpClassic . '/.htaccess', "RewriteEngine On\n");
+  @file_put_contents($tmpClassic . '/providers.json', "[]\n");
+  @file_put_contents($tmpClassic . '/.env', "APP_ENV=production\n");
+  @file_put_contents($tmpClassic . '/App/Safety/vault.key.php', "<?php return ['key' => '00'];\n");
+  @file_put_contents($tmpClassic . '/Base/Studio/StudioKernel.php', "<?php\n");
+  @file_put_contents($tmpClassic . '/App/Public/Min/Js/js.min.js', "/* min */");
+  @file_put_contents($tmpClassic . '/App/Config/loadLibraryJsConfiguration.php', "<?php\nreturn ['Gsap'];\n");
+  $classicJsCfg = [
+    'priority' => ['aaSvgStore.js', 'querie.js'],
+    'exclude' => [],
+    'functions' => [
+      'defer' => ['modal' => [], 'accordion' => []],
+      'async' => new \stdClass(),
+    ],
+  ];
+  @file_put_contents($tmpClassic . '/jsConfig.json', json_encode($classicJsCfg, JSON_PRETTY_PRINT));
+
+  $deployerClassic = new \DeployPackage($tmpClassic);
+  $includeCompiledClassic = $deployerClassic->syncCompiledJsForDeploy(false);
+  $runner->assert($includeCompiledClassic === false, "Modo clásico sin compiled.config.php debe retornar false en syncCompiledJsForDeploy");
+  $runner->assert(!is_file($tmpClassic . '/App/Config/compiled.config.php'), "Modo clásico no debe crear compiled.config.php");
+
+  $classicZipPath = $tmpClassic . '/classic_update.zip';
+  $deployerClassic->createUpdateZip($classicZipPath, false, false, false, $includeCompiledClassic);
+  $zipC = new \ZipArchive();
+  $runner->assert($zipC->open($classicZipPath) === true, "Debe abrirse ZIP de actualización clásico");
+  $runner->assert($zipC->locateName('jsConfig.json') !== false, "Modo clásico debe incluir jsConfig.json en el ZIP");
+  $runner->assert($zipC->locateName('App/Config/loadLibraryJsConfiguration.php') !== false, "Modo clásico debe incluir loadLibraryJsConfiguration.php");
+  $runner->assert($zipC->locateName('.env') === false, "Modo clásico no debe incluir .env");
+  $runner->assert($zipC->locateName('App/Safety/vault.key.php') === false, "Modo clásico no debe incluir App/Safety/vault.key.php");
+  $runner->assert($zipC->locateName('Base/Studio/StudioKernel.php') === false, "Modo clásico no debe incluir Base/Studio/");
+  $zipC->close();
+  $rmRec($tmpClassic);
+
+  // 2. Modo Vault (con compiled.config.php + secrets.vault.php + vault.key.php)
+  $tmpVault = sys_get_temp_dir() . '/frame_deploy_vault_' . uniqid();
+  @mkdir($tmpVault . '/App/Config', 0755, true);
+  @mkdir($tmpVault . '/App/Safety', 0755, true);
+  @mkdir($tmpVault . '/App/Public/Min/Js', 0755, true);
+  @mkdir($tmpVault . '/Bootstrap', 0755, true);
+  @file_put_contents($tmpVault . '/index.php', "<?php\n");
+  @file_put_contents($tmpVault . '/.htaccess', "RewriteEngine On\n");
+  @file_put_contents($tmpVault . '/providers.json', "[]\n");
+  @file_put_contents($tmpVault . '/App/Public/Min/Js/js.min.js', "/* min */");
+  @file_put_contents($tmpVault . '/App/Config/loadLibraryJsConfiguration.php', "<?php\nreturn ['Gsap'];\n");
+  @file_put_contents($tmpVault . '/jsConfig.json', json_encode([
+    'priority' => ['aaSvgStore.js', 'querie.js'],
+    'exclude' => [],
+    'functions' => [
+      'defer' => ['modal' => []],
+      'async' => new \stdClass(),
+    ],
+  ], JSON_PRETTY_PRINT));
+
+  \Base\Studio\Services\EnvConfigService::saveProfile('production', [
+    'APP_NAME' => 'Vault Deploy Site',
+    'FORCE_DOMAIN' => 'vault-deploy.example',
+    'DB_HOST' => '127.0.0.1',
+    'DB_DATABASE' => 'vault_db',
+    'DB_USERNAME' => 'vault_user',
+    'DB_PASSWORD' => 'SecretoVault99!',
+    'DEPLOY_ENABLED' => true,
+  ], $tmpVault);
+
+  $compileRes = \Base\Studio\Services\ConfigCompilerService::compile($tmpVault);
+  $runner->assert(!empty($compileRes['success']), "Compilación inicial de Vault debe completarse con éxito");
+
+  $vaultPath = $tmpVault . '/App/Config/secrets.vault.php';
+  $keyPath = $tmpVault . '/App/Safety/vault.key.php';
+  $vaultHashBefore = md5_file($vaultPath);
+  $keyHashBefore = md5_file($keyPath);
+
+  // Activar nuevo componente (toastTrigger), desactivar modal y cambiar librerías
+  @file_put_contents($tmpVault . '/jsConfig.json', json_encode([
+    'priority' => ['aaSvgStore.js', 'querie.js'],
+    'exclude' => [],
+    'functions' => [
+      'defer' => ['toastTrigger' => ['bottom-right']],
+      'async' => ['tooltip' => []],
+    ],
+  ], JSON_PRETTY_PRINT));
+  @file_put_contents($tmpVault . '/App/Config/loadLibraryJsConfiguration.php', "<?php\nreturn ['Charts'];\n");
+
+  $deployerVault = new \DeployPackage($tmpVault);
+  $includeCompiledVault = $deployerVault->syncCompiledJsForDeploy(false);
+  $runner->assert($includeCompiledVault === true, "syncCompiledJsForDeploy debe retornar true cuando existe compiled.config.php");
+
+  // Reintento cuando ya coincide también debe retornar true
+  $retryFlag = $deployerVault->syncCompiledJsForDeploy(false);
+  $runner->assert($retryFlag === true, "syncCompiledJsForDeploy en reintento sin cambios adicionales debe seguir retornando true");
+
+  $runner->assert(md5_file($vaultPath) === $vaultHashBefore, "secrets.vault.php no debe modificarse durante syncCompiledJsForDeploy");
+  $runner->assert(md5_file($keyPath) === $keyHashBefore, "vault.key.php no debe modificarse durante syncCompiledJsForDeploy");
+
+  $vaultZipPath = $tmpVault . '/vault_update.zip';
+  $deployerVault->createUpdateZip($vaultZipPath, false, false, false, $includeCompiledVault);
+  $zipV = new \ZipArchive();
+  $runner->assert($zipV->open($vaultZipPath) === true, "Debe abrirse ZIP de actualización Vault");
+  $runner->assert($zipV->locateName('App/Config/compiled.config.php') !== false, "Modo Vault debe incluir App/Config/compiled.config.php al actualizar JS");
+  $runner->assert($zipV->locateName('jsConfig.json') !== false, "Modo Vault debe incluir jsConfig.json actualizado en el ZIP");
+  $runner->assert($zipV->locateName('App/Config/secrets.vault.php') === false, "Modo Vault sin --config no debe incluir secrets.vault.php");
+  $runner->assert($zipV->locateName('App/Safety/vault.key.php') === false, "Modo Vault sin --rotate-key no debe incluir vault.key.php");
+
+  $compiledFromZip = $zipV->getFromName('App/Config/compiled.config.php');
+  $zipV->close();
+  $runner->assert(is_string($compiledFromZip) && $compiledFromZip !== '', "compiled.config.php extraído del ZIP no debe estar vacío");
+  $tmpCheckPhp = $tmpVault . '/check_compiled.php';
+  @file_put_contents($tmpCheckPhp, $compiledFromZip);
+  if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', ROOT_PATH);
+  }
+  $parsedCompiled = require $tmpCheckPhp;
+  $runner->assert(
+    isset($parsedCompiled['jsConfig']['functions']['defer']['toastTrigger'])
+      && !isset($parsedCompiled['jsConfig']['functions']['defer']['modal'])
+      && isset($parsedCompiled['jsConfig']['functions']['async']['tooltip']),
+    "compiled.config.php en ZIP debe reflejar los módulos JS activados/desactivados"
+  );
+  $runner->assert(
+    ($parsedCompiled['libraries'] ?? []) === ['Charts'],
+    "compiled.config.php en ZIP debe reflejar las librerías actualizadas"
+  );
+  $runner->assert(
+    ($parsedCompiled['env']['APP_NAME'] ?? '') === 'Vault Deploy Site'
+      && ($parsedCompiled['env']['FORCE_DOMAIN'] ?? '') === 'vault-deploy.example',
+    "compiled.config.php debe preservar intactos env y constants al sincronizar JS"
+  );
+
+  // 3. Runtime LoadViewStyle en modo Vault
+  $compiledFile = $tmpVault . '/App/Config/compiled.config.php';
+  $diskJsFile = $tmpVault . '/jsConfig.json';
+
+  // 3a. jsConfig.json más reciente en disco que compiled.config.php
+  @file_put_contents($diskJsFile, json_encode([
+    'priority' => ['aaSvgStore.js', 'querie.js'],
+    'exclude' => [],
+    'functions' => [
+      'defer' => ['accordion' => ['single']],
+      'async' => new \stdClass(),
+    ],
+  ], JSON_PRETTY_PRINT));
+  $nowTs = time();
+  @touch($compiledFile, $nowTs - 10);
+  @touch($diskJsFile, $nowTs);
+
+  $tmpLit = var_export($tmpVault, true);
+  $runtimeScriptA = <<<PHP
+<?php
+\$_SERVER['HTTP_HOST'] = 'vault-deploy.example';
+\$_SERVER['HTTPS'] = 'on';
+require_once {$rootLit} . '/vendor/autoload.php';
+\\Base\\Module\\Security\\ConfigVault::boot({$tmpLit});
+require_once {$rootLit} . '/config.php';
+\$lvs = new \\Core\\ConfigLoader\\LoadViewStyle();
+ob_start();
+\$lvs->inlineJsConfig('jsConfig.json');
+echo ob_get_clean();
+PHP;
+  $runtimeFileA = $tmpVault . '/test_runtime_disk_newer.php';
+  @file_put_contents($runtimeFileA, $runtimeScriptA);
+  $outA = (string)shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($runtimeFileA));
+  $runner->assert(
+    str_contains($outA, '"accordion"') && !str_contains($outA, 'SecretoVault99!'),
+    "LoadViewStyle::inlineJsConfig debe priorizar jsConfig.json en disco cuando es más reciente que compiled.config.php sin filtrar secretos"
+  );
+
+  // 3b. Sin jsConfig.json en disco -> usa el compiled.config.php del Vault
+  @unlink($diskJsFile);
+  $outB = (string)shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($runtimeFileA));
+  $runner->assert(
+    str_contains($outB, '"toastTrigger"') && !str_contains($outB, 'SecretoVault99!'),
+    "LoadViewStyle::inlineJsConfig debe usar ConfigVault cuando no existe jsConfig.json en disco"
+  );
+
+  // 4. Plantilla deploy.php debe incluir opcache_invalidate y permitir jsConfig.json y compiled.config.php
+  $tpl = \DeployPackage::getDeployReceiverTemplate('abcdef0123456789abcdef0123456789');
+  $runner->assert(
+    str_contains($tpl, 'opcache_invalidate'),
+    "deploy.php debe invalidar OPcache de archivos PHP extraídos"
+  );
+  $runner->assert(
+    preg_match('/if\s*\(\s*preg_match\(\s*\'([^\']+)\'/', $tpl, $regexMatch) === 1,
+    "deploy.php debe contener la regex de archivos protegidos"
+  );
+  if (!empty($regexMatch[1])) {
+    $blockPattern = $regexMatch[1];
+    $runner->assert(preg_match($blockPattern, 'jsConfig.json') === 0, "deploy.php NO debe bloquear jsConfig.json");
+    $runner->assert(preg_match($blockPattern, 'App/Config/compiled.config.php') === 0, "deploy.php NO debe bloquear App/Config/compiled.config.php");
+    $runner->assert(preg_match($blockPattern, '.env') === 1, "deploy.php debe seguir bloqueando .env");
+    $runner->assert(preg_match($blockPattern, 'App/Safety/vault.key.php') === 1, "deploy.php debe seguir bloqueando App/Safety/");
+    $runner->assert(preg_match($blockPattern, 'Database/app.sqlite') === 1, "deploy.php debe seguir bloqueando Database/");
+    $runner->assert(preg_match($blockPattern, 'Uploads/foto.jpg') === 1, "deploy.php debe seguir bloqueando Uploads/");
+    $runner->assert(preg_match($blockPattern, 'Base/Studio/StudioKernel.php') === 1, "deploy.php debe seguir bloqueando Base/Studio/");
+    $runner->assert(preg_match($blockPattern, 'deploy.php') === 1, "deploy.php debe seguir bloqueando deploy.php");
+  }
+
+  $rmRec($tmpVault);
+});
+
 // Limpiar /App y carpetas de proyecto en el repositorio del framework
 $deleteDir = function (string $dirPath) use (&$deleteDir): void {
   if (!is_dir($dirPath)) return;
