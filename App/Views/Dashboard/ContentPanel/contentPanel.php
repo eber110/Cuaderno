@@ -89,7 +89,7 @@
 
   <!-- Submenú de Estadísticas 1: General -->
   <div id="stats-general-remote" class="remote-content flex-row top-center hidden" data-loaded="<?= !empty($stats) ? 'true' : 'false'; ?>">
-    <div class="wpx890 w-mid-100 w-sml-100" id="stats-general-remote-wrapper">
+    <div class="wpx630 w-mid-100 w-sml-100" id="stats-general-remote-wrapper">
       <?php if (!empty($stats)): ?>
         <?php
           _part("Dashboard.StatisticsPanel.statisticsPanel", [
@@ -112,7 +112,7 @@
 
   <!-- Submenú de Estadísticas 2: Enlaces -->
   <div id="stats-links-remote" class="remote-content flex-row top-center hidden" data-loaded="<?= !empty($stats) ? 'true' : 'false'; ?>">
-    <div class="wpx890 w-mid-100 w-sml-100" id="stats-links-remote-wrapper">
+    <div class="wpx630 w-mid-100 w-sml-100" id="stats-links-remote-wrapper">
       <?php if (!empty($stats)): ?>
         <?php
           _part("Dashboard.StatisticsPanel.statisticsLink", [
