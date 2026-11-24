@@ -481,7 +481,7 @@ class LoginControllers extends Control {
       } else {
         return ResponseModule::redirect("/registrar", "Hubo un error al registrar al usuario. Inténtelo más tarde.", 2);
       }
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
       error_log("Error en registro de usuario: " . $e->getMessage());
       return ResponseModule::redirect("/registrar", "Ocurrió un error inesperado al procesar el registro. Por favor, inténtelo de nuevo más tarde.", 2);
     }

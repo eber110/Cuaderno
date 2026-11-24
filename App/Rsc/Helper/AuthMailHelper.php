@@ -99,13 +99,7 @@ HTML;
       . "{$verifyUrl}\n\n"
       . "Si no solicitaste esta cuenta, ignora este mensaje.";
 
-    $mailer = new MailServiceModule(null, $siteName);
-    $sent   = $mailer->sendEmail($toEmail, $subject, $body, true, [], [], [], $altBody);
-
-    return [
-      "success" => $sent,
-      "error"   => $sent ? "" : $mailer->getLastError()
-    ];
+    return self::dispatch($toEmail, $subject, $body, $altBody, $siteName);
   }
 
   /**
@@ -180,12 +174,78 @@ HTML;
       . "{$resetUrl}\n\n"
       . "Si no solicitaste este cambio, ignora este correo.";
 
-    $mailer = new MailServiceModule(null, $siteName);
-    $sent   = $mailer->sendEmail($toEmail, $subject, $body, true, [], [], [], $altBody);
+    return self::dispatch($toEmail, $subject, $body, $altBody, $siteName);
+  }
 
-    return [
-      "success" => $sent,
-      "error"   => $sent ? "" : $mailer->getLastError()
-    ];
+  /**
+   * Despacha el correo mediante MailServiceModule capturando cualquier excepción y registrando diagnóstico seguro.
+   *
+   * @param string $toEmail Correo destinatario.
+   * @param string $subject Asunto del mensaje.
+   * @param string $body Cuerpo HTML.
+   * @param string $altBody Cuerpo de texto plano alternativo.
+   * @param string $siteName Nombre visible del remitente.
+   * @return array{success: bool, error: string} Resultado del envío.
+   */
+  private static function dispatch(
+    string $toEmail,
+    string $subject,
+    string $body,
+    string $altBody,
+    string $siteName
+  ): array {
+    try {
+      $mailer = new MailServiceModule(null, $siteName);
+      $sent   = $mailer->sendEmail($toEmail, $subject, $body, true, [], [], [], $altBody);
+
+      if ($sent) {
+        return ["success" => true, "error" => ""];
+      }
+
+      $err = method_exists($mailer, "getLastError")
+        ? $mailer->getLastError()
+        : "Error SMTP al enviar correo (MailServiceModule sin getLastError).";
+
+      self::logMailFailure("smtp_send_failed", $err);
+      return ["success" => false, "error" => $err];
+    } catch (\Throwable $e) {
+      $err = $e->getMessage();
+      self::logMailFailure("exception", $err);
+      return ["success" => false, "error" => $err];
+    }
+  }
+
+  /**
+   * Registra de forma segura un fallo de envío SMTP en error_log y Logs/mail_errors.log sin exponer secretos.
+   *
+   * @param string $type Tipo de error (smtp_send_failed|exception).
+   * @param string $message Mensaje de error devuelto por el transporte.
+   * @return void
+   */
+  private static function logMailFailure(string $type, string $message): void
+  {
+    $hostRaw = $_ENV["SMTP_HOST"] ?? $_SERVER["SMTP_HOST"] ?? getenv("SMTP_HOST");
+    $portRaw = $_ENV["SMTP_PORT"] ?? $_SERVER["SMTP_PORT"] ?? getenv("SMTP_PORT");
+    $host    = (is_string($hostRaw) && trim($hostRaw) !== "") ? trim($hostRaw) : "(vacío)";
+    $port    = (is_string($portRaw) && trim($portRaw) !== "") ? trim($portRaw) : "(vacío)";
+    $line    = sprintf(
+      "[%s] [%s] host=%s port=%s msg=%s",
+      date("Y-m-d H:i:s"),
+      $type,
+      $host,
+      $port,
+      str_replace(["\r", "\n"], " ", $message)
+    );
+
+    error_log("[AuthMailHelper] " . $line);
+
+    $rootPath = defined("ROOT_PATH") ? rtrim((string)ROOT_PATH, "/\\") : dirname(__DIR__, 3);
+    $logsDir  = $rootPath . "/Logs";
+    if (!is_dir($logsDir)) {
+      @mkdir($logsDir, 0775, true);
+    }
+    if (is_dir($logsDir)) {
+      @file_put_contents($logsDir . "/mail_errors.log", $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
   }
 }
