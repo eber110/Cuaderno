@@ -110,7 +110,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .back10 { background-color: var(--back-color10) !important; }
 .back10-hover { background-color: var(--back-color10) !important; transition: var(--transition, all 0.15s ease-in-out) !important; }
 .back10-hover:hover, .back10-hover:focus { background-color: var(--back-color10-hover) !important; }
-.back11 { background-color: var(--back-color11) !important; }
 .back11-overlay-30 { position: relative; z-index: 1; }
 .back11-overlay-30::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--back-color11) !important; opacity: 0.3; z-index: -1; pointer-events: none; }
 .back12 { background-color: var(--back-color12) !important; }
@@ -320,7 +319,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .hpx65 { height: 65px; }
 .hpx70 { height: 70px; }
 .hpx80 { height: 80px; }
-.hpx800 { height: 800px; }
 .m-1 { margin: 1px; }
 .m0 { margin: 0px; }
 .m20 { margin: 20px; }
@@ -361,7 +359,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .p7 { padding: 7px !important; }
 .p8 { padding: 8px !important; }
 .pb0 { padding-bottom: 0px !important; }
-.pb1 { padding-bottom: 1px !important; }
 .pb10 { padding-bottom: 10px !important; }
 .pb100 { padding-bottom: 100px !important; }
 .pb150 { padding-bottom: 150px !important; }
@@ -434,7 +431,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 .wpx35 { width: 35px; }
 .wpx36 { width: 36px; }
 .wpx40 { width: 40px; }
-.wpx400 { width: 400px; }
 .wpx420 { width: 420px; }
 .wpx45 { width: 45px; }
 .wpx460 { width: 460px; }
@@ -873,17 +869,11 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 @media screen and (max-width: 576px) {
   .h-dvh-sml { height: 100dvh; }
 }
-@media screen and (min-width: 577px) and (max-width: 992px) {
-  .hpx-mid-800 { height: 800px; }
-}
 @media screen and (max-width: 576px) {
   .hpx-sml-35 { height: 35px; }
 }
 @media screen and (max-width: 576px) {
   .hpx-sml-40 { height: 40px; }
-}
-@media screen and (max-width: 576px) {
-  .hpx-sml-420 { height: 420px; }
 }
 @media screen and (min-width: 577px) and (max-width: 992px) {
   .hpxmin-mid-1000 { min-height: 1000px; }
@@ -1052,9 +1042,6 @@ html:not(.gsap-loaded) .hover-tilt:hover { transform: rotateZ(var(--hover-rotate
 }
 @media screen and (max-width: 576px) {
   .w-sml-95 { width: 95%; }
-}
-@media screen and (min-width: 577px) and (max-width: 992px) {
-  .wpx-mid-300 { width: 300px; }
 }
 @media screen and (max-width: 576px) {
   .wpx-sml-160 { width: 160px; }

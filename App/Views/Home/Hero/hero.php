@@ -1,5 +1,6 @@
-<div class="container-xl observer h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
+<div class="container-xl observer flex-column center-center h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
   <div class="container flex-column container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 gap20">
+    
     <div class="w100 |w-mid-50 p25 p-mid-15 p-sml-0 flex-column center-start wrap">
       <div class="flex-column gap5">
         <p class="oswald bold600 x28 textc slide-in-bottom ob-0 dl-100 animate-slow">BIO LINK ULTRALIGERO</p>
@@ -18,16 +19,40 @@
     </div>
   
     <div class="w100 |w-mid-50 flex-column center-center |m-mid-15">
-      <div class="br30 p15 p-sml-10 back11 wpx400 wpx-mid-300 w-sml-80 |hpx800 |hpx-mid-800 |hpx-sml-420 slide-in-right ob-0 dl-300 animate-slow image-gallery gallery-slide gallery-slide-continuous z-index-20 shadow" data-autoplay="3000">
-        <div class="color5 text-c pb10"><?= svg("circle-solid")?></div>
-        <div class="gallery-main pb1 br30">
-          <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero.webp"?>" alt="" class="gallery-item active |animate-img-hero1 |absolute |hover-lift-ns">
-          <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero2.webp"?>" alt="" class="gallery-item |animate-img-hero2 |absolute |hover-lift-ns">
-          <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero3.webp"?>" alt="" class="gallery-item |animate-img-hero3 |absolute |hover-lift-ns">
-          <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero4.webp"?>" alt="" class="gallery-item |animate-img-hero4 |absolute |hover-lift-ns">
+      <div class="hero-phone-stage slide-in-right ob-0 dl-300 animate-slow">
+        <div class="hero-phone-device">
+          <!-- Botones físicos laterales estilo teléfono de fondo-description -->
+          <span class="hero-phone-btn hero-phone-btn-mute" aria-hidden="true"></span>
+          <span class="hero-phone-btn hero-phone-btn-vol-up" aria-hidden="true"></span>
+          <span class="hero-phone-btn hero-phone-btn-vol-down" aria-hidden="true"></span>
+          <span class="hero-phone-btn hero-phone-btn-power" aria-hidden="true"></span>
+
+          <!-- Chasis 3D escultórico -->
+          <div class="hero-phone-frame">
+            <div class="hero-phone-top" aria-hidden="true">
+              <span class="hero-phone-speaker"></span>
+              <span class="hero-phone-camera"></span>
+            </div>
+
+            <div class="hero-phone-screen">
+              <div class="image-gallery gallery-slide gallery-slide-continuous hero-phone-gallery" data-autoplay="5000">
+                <div class="gallery-main">
+                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero.webp"?>" alt="Vista previa de perfil Clikhub 1" class="gallery-item active">
+                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero2.webp"?>" alt="Vista previa de perfil Clikhub 2" class="gallery-item">
+                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero3.webp"?>" alt="Vista previa de perfil Clikhub 3" class="gallery-item">
+                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero4.webp"?>" alt="Vista previa de perfil Clikhub 4" class="gallery-item">
+                </div>
+              </div>
+              <div class="hero-phone-glare" aria-hidden="true"></div>
+            </div>
+
+            <div class="hero-phone-bottom" aria-hidden="true">
+              <span class="hero-phone-homebar"></span>
+            </div>
+          </div>
         </div>
-        <div class="flex-row center-center pt10"><span class="back5 p10 pl30 pr30 br50"></span></div>
       </div>
     </div>
+
   </div>
 </div>
