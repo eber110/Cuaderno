@@ -23,6 +23,119 @@ use Base\Module\ValidatorModule;
 class LoginControllers extends Control {
 
   /**
+   * Nombres de usuario reservados por el sistema para evitar colisiones con rutas públicas.
+   */
+  private const RESERVED_USERNAMES = [
+    "panel",
+    "ingresar",
+    "registrar",
+    "recuperar",
+    "restablecer",
+    "verificar",
+    "verificar-cuenta",
+    "salir",
+    "planes",
+    "suscripcion",
+    "lemon-squeezy",
+    "proxy",
+    "op",
+    "admin",
+    "administrador",
+    "root",
+    "api",
+    "auth",
+    "login",
+    "register",
+    "logout",
+    "soporte",
+    "support",
+    "ayuda",
+    "help",
+    "clikhub",
+    "clickhub",
+    "cuaderno",
+    "terminos",
+    "privacidad",
+    "robots.txt",
+    "sitemap.xml",
+    "llms.txt",
+    "app",
+    "uploads",
+    "cache",
+    "logs",
+    "database",
+    "vendor",
+    "public",
+    "assets",
+    "static",
+    "config",
+    "settings",
+    "dashboard"
+  ];
+
+  /**
+   * Valida formato, longitud, caracteres permitidos y slugs reservados del nombre de usuario.
+   *
+   * @param string $username Nombre de usuario ingresado.
+   * @return array{0: bool, 1: string} [true, usuario limpio] o [false, mensaje de error].
+   */
+  private function validateUsername(string $username): array {
+    $clean = mb_strtolower(trim($username), "UTF-8");
+
+    if ($clean === "") {
+      return [false, "El nombre de usuario es obligatorio."];
+    }
+
+    if (strlen($clean) < 4) {
+      return [false, "El nombre de usuario debe tener al menos 4 caracteres."];
+    }
+
+    if (strlen($clean) > 30) {
+      return [false, "El nombre de usuario no puede superar los 30 caracteres."];
+    }
+
+    if (preg_match("/\s/", $clean)) {
+      return [false, "El nombre de usuario no debe contener espacios."];
+    }
+
+    if (!preg_match("/^[a-z0-9._-]+$/", $clean)) {
+      return [false, "El nombre de usuario solo puede contener letras minúsculas, números, puntos, guiones y guiones bajos."];
+    }
+
+    if (str_starts_with($clean, ".") || str_ends_with($clean, ".") || str_contains($clean, "..")) {
+      return [false, "El nombre de usuario no puede comenzar ni terminar con punto ni contener puntos consecutivos."];
+    }
+
+    if (in_array($clean, self::RESERVED_USERNAMES, true)) {
+      return [false, "Ese nombre de usuario está reservado por el sistema. Elige otro."];
+    }
+
+    return [true, $clean];
+  }
+
+  /**
+   * Formatea un tiempo de espera en segundos a texto legible sin etiquetas HTML.
+   *
+   * @param int $seconds Segundos restantes de bloqueo.
+   * @return string Texto formateado.
+   */
+  private function formatCountdown(int $seconds): string {
+    $timeAgo = DateTimeModule::countdown(max(0, $seconds));
+    $min = (int)($timeAgo["min"] ?? 0);
+    $sec = (int)($timeAgo["sec"] ?? 0);
+
+    if ($min > 0 && $sec > 0) {
+      return "{$min} minutos y {$sec} segundos";
+    }
+
+    if ($min > 0) {
+      return "{$min} minutos";
+    }
+
+    return "{$sec} segundos";
+  }
+
+  /**
    * Muestra la vista principal del formulario de inicio de sesión.
    *
    * @return mixed Renderizado de la vista Login.index.
@@ -38,46 +151,61 @@ class LoginControllers extends Control {
    * @return mixed Redirección al panel del usuario o mensaje de error.
    */
   public function processLogin(array|string $requestData) {
-    if (is_array($requestData)) {
-      foreach ($requestData as $value) {
-        if (!$value) {
-          return ResponseModule::redirect("/ingresar", "Debes rellenar todos los datos", 2);
-        }
-      }
+    if (!is_array($requestData)) {
+      return ResponseModule::redirect("/ingresar", "Solicitud inválida.", 2);
     }
 
-    $username = mb_strtolower($requestData["username"] ?? "", "UTF-8");
-    $pass     = $requestData["pass"] ?? "";
+    $identifier = trim((string)($requestData["username"] ?? ""));
+    $pass       = (string)($requestData["pass"] ?? "");
+
+    if ($identifier === "" || $pass === "") {
+      return ResponseModule::redirect("/ingresar", "Debes rellenar todos los datos", 2);
+    }
+
+    if (strlen($pass) > 128) {
+      return ResponseModule::redirect("/ingresar", "El usuario o la contraseña ingresada no es válida.", 2);
+    }
+
+    $identifierClean = mb_strtolower($identifier, "UTF-8");
 
     $userExists = new LoginModels();
-    $userTrue   = $userExists->loginApp($username, $pass);
+    $userTrue   = $userExists->loginApp($identifierClean, $pass);
 
     // Límite de intentos de login
     if (!$userTrue[0] && ($userTrue[1] ?? "") === "rate_limited") {
-      $timeAgo    = DateTimeModule::countdown($userTrue[2] ?? 0);
-      $timeAgoSec = ($timeAgo["sec"] != 0) ? "{$timeAgo['sec']} segundos" : "";
-      $timeAgoMin = ($timeAgo["min"] != 0) ? "{$timeAgo['min']} minutos con " : "";
-      $timeMsg    = "inténtalo nuevamente en {$timeAgoMin}{$timeAgoSec}";
-      return ResponseModule::redirect("/ingresar", "Has sobrepasado los intentos para ingresar a tu cuenta<br>{$timeMsg}");
+      $timeMsg = $this->formatCountdown((int)($userTrue[2] ?? 0));
+      return ResponseModule::redirect("/ingresar", "Has sobrepasado los intentos para ingresar a tu cuenta. Inténtalo nuevamente en {$timeMsg}.", 2);
     }
 
     if (!$userTrue[0]) {
       return ResponseModule::redirect("/ingresar", "El usuario o la contraseña ingresada no es válida.", 2);
     }
 
-    if (Session::session_active()) {
-      $userId    = Session::session_data("user_id");
-      $userClean = Session::session_data("username");
-      $sub       = LemonSqueezyModels::getSubscriptionByUser($userId);
-      if (!empty($sub)) {
-        LemonSqueezyModels::updateUserPremiumCache($userClean, $sub);
-      } else {
-        LemonSqueezyModels::updateUserPremiumCache($userClean, ["status" => "inactive"]);
-      }
+    if (!Session::session_active()) {
+      return ResponseModule::redirect("/ingresar", "No se pudo iniciar la sesión. Inténtalo nuevamente.", 2);
     }
 
+    $userStatus = (string)(Session::session_data("user_status") ?? "active");
+    if ($userStatus !== "" && $userStatus !== "active") {
+      Session::session_end_all();
+      return ResponseModule::redirect("/ingresar", "Tu cuenta no está activa. Verifica tu correo electrónico o contacta soporte.", 2);
+    }
 
-    return ResponseModule::redirect("/panel/" . $username);
+    $userClean = trim((string)Session::session_data("username"));
+    if ($userClean === "") {
+      Session::session_end_all();
+      return ResponseModule::redirect("/ingresar", "No se pudo validar tu perfil de usuario. Inténtalo nuevamente.", 2);
+    }
+
+    $userId = Session::session_data("user_id");
+    $sub    = LemonSqueezyModels::getSubscriptionByUser($userId);
+    if (!empty($sub)) {
+      LemonSqueezyModels::updateUserPremiumCache($userClean, $sub);
+    } else {
+      LemonSqueezyModels::updateUserPremiumCache($userClean, ["status" => "inactive"]);
+    }
+
+    return ResponseModule::redirect("/panel/" . rawurlencode($userClean));
   }
 
   /**
@@ -96,22 +224,16 @@ class LoginControllers extends Control {
    * @return mixed Respuesta en formato JSON.
    */
   public function checkUsername(array|string $requestData) {
-    $username = $requestData["username"] ?? "";
-
-    if ($username === "") {
-      return $this->json(["status" => "error", "message" => "El nombre de usuario es obligatorio."], 400);
+    if (!is_array($requestData)) {
+      return $this->json(["status" => "error", "message" => "Solicitud inválida."], 400);
     }
 
-    $userNameVal = ValidatorModule::camp($username, [
-      "min_length" => [4, "El nombre de usuario debe tener al menos 4 letras"],
-      "space"      => [false, "El nombre de usuario no debe contener espacios"]
-    ]);
-
+    $userNameVal = $this->validateUsername((string)($requestData["username"] ?? ""));
     if (!$userNameVal[0]) {
       return $this->json(["status" => "error", "message" => $userNameVal[1]], 400);
     }
 
-    $usernameClean = mb_strtolower($username, "UTF-8");
+    $usernameClean = $userNameVal[1];
     $model = new LoginModels();
 
     $exists = $model->checkUserExists($usernameClean);
@@ -139,14 +261,19 @@ class LoginControllers extends Control {
    * @return mixed Respuesta en formato JSON.
    */
   public function checkEmail(array|string $requestData) {
-    $email = $requestData["email"] ?? "";
+    if (!is_array($requestData)) {
+      return $this->json(["status" => "error", "message" => "Solicitud inválida."], 400);
+    }
+
+    $email = mb_strtolower(trim((string)($requestData["email"] ?? "")), "UTF-8");
 
     if ($email === "") {
       return $this->json(["status" => "error", "message" => "El correo electrónico es obligatorio."], 400);
     }
 
     $emailVal = ValidatorModule::camp($email, [
-      "email" => [true, "El formato de correo electrónico no es válido"]
+      "max_length" => [255, "El correo electrónico es demasiado largo"],
+      "email"      => [true, "El formato de correo electrónico no es válido"]
     ]);
 
     if (!$emailVal[0]) {
@@ -179,12 +306,16 @@ class LoginControllers extends Control {
    * @return mixed Redirección al login con mensaje o vista de error.
    */
   public function processRegister(array|string $requestData) {
-    $username = $requestData["username"] ?? "";
-    $email    = $requestData["email"] ?? "";
-    $pass     = $requestData["pass"] ?? "";
-    $repass   = $requestData["repass"] ?? "";
+    if (!is_array($requestData)) {
+      return ResponseModule::redirect("/registrar", "Solicitud inválida.", 2);
+    }
 
-    if ($username === "" || $email === "" || $pass === "" || $repass === "") {
+    $username = (string)($requestData["username"] ?? "");
+    $email    = (string)($requestData["email"] ?? "");
+    $pass     = (string)($requestData["pass"] ?? "");
+    $repass   = (string)($requestData["repass"] ?? "");
+
+    if (trim($username) === "" || trim($email) === "" || $pass === "" || $repass === "") {
       return ResponseModule::redirect("/registrar", "Debes rellenar todos los datos", 2);
     }
 
@@ -193,25 +324,22 @@ class LoginControllers extends Control {
     // Verificación de límite de tasa para el registro
     $rateCheck = $model->checkSubmitRegisterRate(10, 300);
     if ($rateCheck !== true) {
-      $timeAgo    = DateTimeModule::countdown($rateCheck);
-      $timeAgoSec = ($timeAgo["sec"] != 0) ? "{$timeAgo['sec']} segundos" : "";
-      $timeAgoMin = ($timeAgo["min"] != 0) ? "{$timeAgo['min']} minutos con " : "";
-      $timeMsg    = "inténtalo nuevamente en {$timeAgoMin}{$timeAgoSec}";
-      return ResponseModule::redirect("/registrar", "Has sobrepasado los intentos para registrarte<br>{$timeMsg}", 2);
+      $timeMsg = $this->formatCountdown((int)$rateCheck);
+      return ResponseModule::redirect("/registrar", "Has sobrepasado los intentos para registrarte. Inténtalo nuevamente en {$timeMsg}.", 2);
     }
 
     // Validación de usuario
-    $userNameVal = ValidatorModule::camp($username, [
-      "min_length" => [4, "El nombre de usuario debe tener al menos 4 letras"],
-      "space"      => [false, "El nombre de usuario no debe contener espacios"]
-    ]);
+    $userNameVal = $this->validateUsername($username);
     if (!$userNameVal[0]) {
       return ResponseModule::redirect("/registrar", $userNameVal[1], 2);
     }
+    $usernameClean = $userNameVal[1];
 
     // Validación de email
-    $emailVal = ValidatorModule::camp($email, [
-      "email" => [true, "El formato de correo electrónico no es válido"]
+    $emailClean = mb_strtolower(trim($email), "UTF-8");
+    $emailVal = ValidatorModule::camp($emailClean, [
+      "max_length" => [255, "El correo electrónico es demasiado largo"],
+      "email"      => [true, "El formato de correo electrónico no es válido"]
     ]);
     if (!$emailVal[0]) {
       return ResponseModule::redirect("/registrar", $emailVal[1], 2);
@@ -220,6 +348,7 @@ class LoginControllers extends Control {
     // Validación de contraseña
     $passVal = ValidatorModule::camp($pass, [
       "min_length"  => [8, "La contraseña debe tener al menos 8 caracteres"],
+      "max_length"  => [128, "La contraseña no puede superar los 128 caracteres"],
       "min_capital" => [1, "La contraseña debe tener al menos 1 mayúscula"],
       "min_number"  => [1, "La contraseña debe tener al menos 1 número"]
     ]);
@@ -231,17 +360,12 @@ class LoginControllers extends Control {
       return ResponseModule::redirect("/registrar", "Las contraseñas no coinciden", 2);
     }
 
-    $usernameClean = mb_strtolower($username, "UTF-8");
-    $emailClean    = mb_strtolower($email, "UTF-8");
-    
-    // Verificación de duplicados en la base de datos
-    $userExists = $model->where("username", $usernameClean)->get_one();
-    if ($userExists) {
+    // Verificación de duplicados en la base de datos vía modelo
+    if ($model->existsByUsername($usernameClean)) {
       return ResponseModule::redirect("/registrar", "El nombre de usuario ya está en uso", 2);
     }
 
-    $emailExists = $model->where("email", $emailClean)->get_one();
-    if ($emailExists) {
+    if ($model->existsByEmail($emailClean)) {
       return ResponseModule::redirect("/registrar", "El correo electrónico ya está registrado", 2);
     }
 

@@ -27,26 +27,131 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnBackToUsername = document.getElementById("btn-back-to-username");
   const btnBackToEmail = document.getElementById("btn-back-to-email");
 
-  let countdownInterval = null;
+  let usernameCountdownInterval = null;
+  let emailCountdownInterval = null;
+  let isSubmittingFinal = false;
 
-  // Helper para mostrar errores
+  const RESERVED_USERNAMES = new Set([
+    "panel",
+    "ingresar",
+    "registrar",
+    "recuperar",
+    "restablecer",
+    "verificar",
+    "verificar-cuenta",
+    "salir",
+    "planes",
+    "suscripcion",
+    "lemon-squeezy",
+    "proxy",
+    "op",
+    "admin",
+    "administrador",
+    "root",
+    "api",
+    "auth",
+    "login",
+    "register",
+    "logout",
+    "soporte",
+    "support",
+    "ayuda",
+    "help",
+    "clikhub",
+    "clickhub",
+    "cuaderno",
+    "terminos",
+    "privacidad",
+    "robots.txt",
+    "sitemap.xml",
+    "llms.txt",
+    "app",
+    "uploads",
+    "cache",
+    "logs",
+    "database",
+    "vendor",
+    "public",
+    "assets",
+    "static",
+    "config",
+    "settings",
+    "dashboard"
+  ]);
+
+  // Helper para mostrar errores de forma segura (anti-DOM XSS)
   function showError(element, message) {
-    element.innerHTML = message;
+    if (!element) return;
+    element.textContent = message;
     element.style.display = "block";
   }
 
   // Helper para ocultar errores
   function hideError(element) {
-    element.innerHTML = "";
+    if (!element) return;
+    element.textContent = "";
     element.style.display = "none";
+  }
+
+  // Validación sincronizada del nombre de usuario
+  function validateUsernameClient(rawValue) {
+    const clean = (rawValue || "").trim().toLowerCase();
+
+    if (!clean) {
+      return { valid: false, value: clean, message: "El nombre de usuario es obligatorio." };
+    }
+    if (clean.length < 4) {
+      return { valid: false, value: clean, message: "El nombre de usuario debe tener al menos 4 caracteres." };
+    }
+    if (clean.length > 30) {
+      return { valid: false, value: clean, message: "El nombre de usuario no puede superar los 30 caracteres." };
+    }
+    if (/\s/.test(clean)) {
+      return { valid: false, value: clean, message: "El nombre de usuario no debe contener espacios." };
+    }
+    if (!/^[a-z0-9._-]+$/.test(clean)) {
+      return { valid: false, value: clean, message: "Usa solo letras minúsculas, números, puntos, guiones y guiones bajos." };
+    }
+    if (clean.startsWith(".") || clean.endsWith(".") || clean.includes("..")) {
+      return { valid: false, value: clean, message: "No puede comenzar ni terminar con punto ni tener puntos consecutivos." };
+    }
+    if (RESERVED_USERNAMES.has(clean)) {
+      return { valid: false, value: clean, message: "Ese nombre de usuario está reservado por el sistema. Elige otro." };
+    }
+
+    return { valid: true, value: clean, message: "" };
+  }
+
+  // Helper para obtener el token CSRF con fallback al input oculto
+  function getCsrfToken() {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta && csrfMeta.getAttribute("content")) {
+      return csrfMeta.getAttribute("content");
+    }
+    const csrfInput = document.querySelector('input[name="_token"]');
+    return csrfInput ? csrfInput.value : "";
+  }
+
+  // Helper para parsear JSON de forma segura evitando SyntaxError en respuestas HTML
+  async function parseJsonSafe(response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return null;
+    }
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   }
 
   // Helper para peticiones POST AJAX
   async function apiPost(url, data) {
-    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    const csrfToken = getCsrfToken();
     const headers = {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "X-Requested-With": "XMLHttpRequest"
     };
     if (csrfToken) {
       headers["X-CSRF-TOKEN"] = csrfToken;
@@ -54,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const response = await fetch(url, {
       method: "POST",
       headers: headers,
+      credentials: "same-origin",
       body: JSON.stringify(data)
     });
     return response;
@@ -251,55 +357,87 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Limpiar valores confirmados si el usuario retrocede y edita un paso previo
+  if (inputUsername) {
+    inputUsername.addEventListener("input", () => {
+      if (hiddenUsername) hiddenUsername.value = "";
+      hideError(errorUsername);
+    });
+  }
+
+  if (inputEmail) {
+    inputEmail.addEventListener("input", () => {
+      if (hiddenEmail) hiddenEmail.value = "";
+      hideError(errorEmail);
+    });
+  }
+
   // --- PASO 1: USERNAME ---
   if (formUsername) {
     formUsername.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideError(errorUsername);
 
-      const username = inputUsername.value.trim();
-
-      // Validaciones del cliente
-      if (username.length < 4) {
-        showError(errorUsername, "El nombre de usuario debe tener al menos 4 letras.");
+      const validation = validateUsernameClient(inputUsername ? inputUsername.value : "");
+      if (!validation.valid) {
+        showError(errorUsername, validation.message);
         return;
       }
 
-      if (/\s/.test(username)) {
-        showError(errorUsername, "El nombre de usuario no debe contener espacios.");
-        return;
-      }
-
+      const username = validation.value;
       const submitBtn = formUsername.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Verificando...";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Verificando...";
+      }
 
       try {
         const response = await apiPost("/registrar/check-username", { username });
-        const result = await response.json();
+        const result = await parseJsonSafe(response);
 
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Continuar";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Continuar";
+        }
+
+        if (response.status === 403) {
+          showError(
+            errorUsername,
+            (result && result.message) || "Tu sesión de seguridad expiró. Recarga la página e inténtalo nuevamente."
+          );
+          return;
+        }
 
         if (response.status === 429) {
-          // Límite de tasa (Rate limit)
-          const seconds = result.seconds || 300;
-          submitBtn.disabled = true;
-          
+          const seconds = (result && result.seconds) || 300;
+          if (submitBtn) submitBtn.disabled = true;
+
           let remaining = seconds;
-          showError(errorUsername, `Has sobrepasado los intentos para verificar el usuario.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`);
-          
-          if (countdownInterval) clearInterval(countdownInterval);
-          countdownInterval = setInterval(() => {
+          showError(
+            errorUsername,
+            `Has sobrepasado los intentos para verificar el usuario. Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`
+          );
+
+          if (usernameCountdownInterval) clearInterval(usernameCountdownInterval);
+          usernameCountdownInterval = setInterval(() => {
             remaining--;
             if (remaining <= 0) {
-              clearInterval(countdownInterval);
-              submitBtn.disabled = false;
+              clearInterval(usernameCountdownInterval);
+              usernameCountdownInterval = null;
+              if (submitBtn) submitBtn.disabled = false;
               hideError(errorUsername);
             } else {
-              errorUsername.innerHTML = `Has sobrepasado los intentos para verificar el usuario.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`;
+              showError(
+                errorUsername,
+                `Has sobrepasado los intentos para verificar el usuario. Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`
+              );
             }
           }, 1000);
+          return;
+        }
+
+        if (!result) {
+          showError(errorUsername, "No se pudo procesar la respuesta del servidor. Recarga la página e inténtalo nuevamente.");
           return;
         }
 
@@ -314,15 +452,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (result.status === "available") {
-          // Guardar valor validado en el formulario final
-          hiddenUsername.value = username;
+          if (usernameCountdownInterval) {
+            clearInterval(usernameCountdownInterval);
+            usernameCountdownInterval = null;
+          }
+          // Guardar valor validado y normalizado en el formulario final
+          if (hiddenUsername) hiddenUsername.value = username;
           // Avanzar al paso del correo
           showStep(stepEmailContainer);
         }
 
       } catch (err) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Continuar";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Continuar";
+        }
         showError(errorUsername, "No se pudo conectar con el servidor. Inténtalo más tarde.");
         console.error(err);
       }
@@ -335,7 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       hideError(errorEmail);
 
-      const email = inputEmail.value.trim();
+      const email = (inputEmail ? inputEmail.value : "").trim().toLowerCase();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       // Validaciones del cliente
@@ -344,36 +488,64 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      if (email.length > 255) {
+        showError(errorEmail, "El correo electrónico es demasiado largo.");
+        return;
+      }
+
       const submitBtn = formEmail.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Verificando...";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Verificando...";
+      }
 
       try {
         const response = await apiPost("/registrar/check-email", { email });
-        const result = await response.json();
+        const result = await parseJsonSafe(response);
 
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Continuar";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Continuar";
+        }
+
+        if (response.status === 403) {
+          showError(
+            errorEmail,
+            (result && result.message) || "Tu sesión de seguridad expiró. Recarga la página e inténtalo nuevamente."
+          );
+          return;
+        }
 
         if (response.status === 429) {
-          // Límite de tasa (Rate limit)
-          const seconds = result.seconds || 300;
-          submitBtn.disabled = true;
-          
+          const seconds = (result && result.seconds) || 300;
+          if (submitBtn) submitBtn.disabled = true;
+
           let remaining = seconds;
-          showError(errorEmail, `Has sobrepasado los intentos para verificar el correo.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`);
-          
-          if (countdownInterval) clearInterval(countdownInterval);
-          countdownInterval = setInterval(() => {
+          showError(
+            errorEmail,
+            `Has sobrepasado los intentos para verificar el correo. Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`
+          );
+
+          if (emailCountdownInterval) clearInterval(emailCountdownInterval);
+          emailCountdownInterval = setInterval(() => {
             remaining--;
             if (remaining <= 0) {
-              clearInterval(countdownInterval);
-              submitBtn.disabled = false;
+              clearInterval(emailCountdownInterval);
+              emailCountdownInterval = null;
+              if (submitBtn) submitBtn.disabled = false;
               hideError(errorEmail);
             } else {
-              errorEmail.innerHTML = `Has sobrepasado los intentos para verificar el correo.<br>Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`;
+              showError(
+                errorEmail,
+                `Has sobrepasado los intentos para verificar el correo. Inténtalo nuevamente en ${formatRemainingTime(remaining)}.`
+              );
             }
           }, 1000);
+          return;
+        }
+
+        if (!result) {
+          showError(errorEmail, "No se pudo procesar la respuesta del servidor. Recarga la página e inténtalo nuevamente.");
           return;
         }
 
@@ -388,15 +560,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (result.status === "available") {
-          // Guardar valor en formulario final
-          hiddenEmail.value = email;
+          if (emailCountdownInterval) {
+            clearInterval(emailCountdownInterval);
+            emailCountdownInterval = null;
+          }
+          // Guardar valor normalizado en formulario final
+          if (hiddenEmail) hiddenEmail.value = email;
           // Avanzar al paso de contraseña
           showStep(stepPasswordContainer);
         }
 
       } catch (err) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Continuar";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Continuar";
+        }
         showError(errorEmail, "No se pudo conectar con el servidor. Inténtalo más tarde.");
         console.error(err);
       }
@@ -406,15 +584,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- PASO 3: PASSWORD (SUBMIT FINAL) ---
   if (formPassword) {
     formPassword.addEventListener("submit", (e) => {
+      if (isSubmittingFinal) {
+        e.preventDefault();
+        return;
+      }
+
       hideError(errorPassword);
 
-      const pass = inputPassword.value;
-      const repass = inputRepassword.value;
+      const pass = inputPassword ? inputPassword.value : "";
+      const repass = inputRepassword ? inputRepassword.value : "";
 
       // Validaciones cliente
       if (pass.length < 8) {
         e.preventDefault();
         showError(errorPassword, "La contraseña debe tener al menos 8 caracteres.");
+        return;
+      }
+
+      if (pass.length > 128) {
+        e.preventDefault();
+        showError(errorPassword, "La contraseña no puede superar los 128 caracteres.");
         return;
       }
 
@@ -437,10 +626,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Asegurar que los datos ocultos sigan cargados
-      if (!hiddenUsername.value || !hiddenEmail.value) {
+      if (!hiddenUsername || !hiddenUsername.value || !hiddenEmail || !hiddenEmail.value) {
         e.preventDefault();
         showError(errorPassword, "Faltan datos de los pasos anteriores. Por favor, reinicia el registro.");
         return;
+      }
+
+      isSubmittingFinal = true;
+      const submitBtn = formPassword.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
       }
 
       // Se deja que el envío del formulario ocurra de forma nativa a /registrar

@@ -752,5 +752,41 @@
         "uri": "/panel/eber/guardar?compact=1",
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
         "context": []
+    },
+    {
+        "timestamp": "2026-11-24 16:35:42",
+        "reason": "Fallo de verificación CSRF en POST /_frame/studio/config-save",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/studio/config-save",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-24 16:35:43",
+        "reason": "Fallo de verificación CSRF en POST /_frame/studio/config-compile",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/studio/config-compile",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-24 16:35:46",
+        "reason": "Fallo de verificación CSRF en POST /_frame/studio/config-compile",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/studio/config-compile",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+        "context": []
+    },
+    {
+        "timestamp": "2026-11-24 16:35:47",
+        "reason": "Fallo de verificación CSRF en POST /_frame/studio/config-test-db",
+        "ip": "::1",
+        "method": "POST",
+        "uri": "/_frame/studio/config-test-db",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+        "context": []
     }
 ]
