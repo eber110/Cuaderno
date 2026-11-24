@@ -1,7 +1,8 @@
 <?php
-  
+
 namespace App\Controllers;
 
+use App\Models\HomeModels;
 use Base\Control\Control;
 use Base\Module\SeoModule;
 use Base\Module\Session;
@@ -31,8 +32,9 @@ class HomeControllers extends Control
     ]);
 
     $data = [
-      "connect"  => Session::session_active(),
-      "username" => Session::session_data("username")
+      "connect"    => Session::session_active(),
+      "username"   => Session::session_data("username"),
+      "heroSlides" => HomeModels::getHeroPhoneSlides()
     ];
 
     return $this->view("Home.index", $data);

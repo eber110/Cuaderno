@@ -1,6 +1,8 @@
-<div class="container-xl observer flex-column center-center h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
+<?php
+  $slides = (isset($heroSlides) && is_array($heroSlides)) ? $heroSlides : [];
+?>
+<div class="container-xl observer h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
   <div class="container flex-column container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 gap20">
-    
     <div class="w100 |w-mid-50 p25 p-mid-15 p-sml-0 flex-column center-start wrap">
       <div class="flex-column gap5">
         <p class="oswald bold600 x28 textc slide-in-bottom ob-0 dl-100 animate-slow">BIO LINK ULTRALIGERO</p>
@@ -35,12 +37,13 @@
             </div>
 
             <div class="hero-phone-screen">
-              <div class="image-gallery gallery-slide gallery-slide-continuous hero-phone-gallery" data-autoplay="5000">
-                <div class="gallery-main">
-                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero.webp"?>" alt="Vista previa de perfil Clikhub 1" class="gallery-item active">
-                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero2.webp"?>" alt="Vista previa de perfil Clikhub 2" class="gallery-item">
-                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero3.webp"?>" alt="Vista previa de perfil Clikhub 3" class="gallery-item">
-                  <img src="<?= DIR_UPLOAD_MEDIA_STATIC."PhoneHero/hero4.webp"?>" alt="Vista previa de perfil Clikhub 4" class="gallery-item">
+              <div class="hero-phone-slider" data-autoplay="3000" aria-label="Galería de vistas previas de Clikhub">
+                <div class="hero-phone-track">
+                  <?php foreach ($slides as $idx => $slide): ?>
+                    <div class="hero-phone-slide<?= $idx === 0 ? " is-active" : "" ?>">
+                      <img src="<?= eUrl((string)($slide["src"] ?? "")) ?>" alt="<?= e((string)($slide["alt"] ?? "Vista previa de Clikhub")) ?>" class="hero-phone-slide-img" draggable="false">
+                    </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
               <div class="hero-phone-glare" aria-hidden="true"></div>
@@ -53,6 +56,5 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>

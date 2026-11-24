@@ -2,7 +2,7 @@
 
   <?php
     _component("Menu.menuHome");
-    _part("Home.hero");
+    _part("Home.hero", ["heroSlides" => $heroSlides ?? []]);
     _part("Home.description");
     _part("Home.product");
     _part("Home.features");
