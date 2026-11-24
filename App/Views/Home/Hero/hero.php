@@ -1,7 +1,7 @@
 <?php
   $slides = (isset($heroSlides) && is_array($heroSlides)) ? $heroSlides : [];
 ?>
-<div class="container-xl observer h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
+<div class="container-xl observer flex-column center-center h-dvh-desk hpxmin-mid-1000 pt190 pb100 pb-mid-100 pt-sml-140 pb-sml-50 back-[/App/Public/Img/fondo-hero.webp] back-cover back-center back8-overlay-20">
   <div class="container flex-column container-xl-mid container-sml flex-row center-center flex-column-sml center-center-sml gap-sml-30 gap20">
     <div class="w100 |w-mid-50 p25 p-mid-15 p-sml-0 flex-column center-start wrap">
       <div class="flex-column gap5">
