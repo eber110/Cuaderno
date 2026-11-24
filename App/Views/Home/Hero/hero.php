@@ -18,15 +18,15 @@
     </div>
   
     <div class="w100 |w-mid-50 flex-column center-center |m-mid-15">
-      <div class="br30 p15 p-sml-10 back5 wpx400 wpx-mid-300 w-sml-80 |hpx800 |hpx-mid-800 |hpx-sml-420 slide-in-right ob-0 dl-300 animate-slow image-gallery gallery-slide gallery-slide-continuous z-index-20 shadow" data-autoplay="3000">
-        <div class="color4 text-c pb10"><?= svg("circle-solid")?></div>
+      <div class="br30 p15 p-sml-10 back11 wpx400 wpx-mid-300 w-sml-80 |hpx800 |hpx-mid-800 |hpx-sml-420 slide-in-right ob-0 dl-300 animate-slow image-gallery gallery-slide gallery-slide-continuous z-index-20 shadow" data-autoplay="3000">
+        <div class="color5 text-c pb10"><?= svg("circle-solid")?></div>
         <div class="gallery-main pb1 br30">
           <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero.webp"?>" alt="" class="gallery-item active |animate-img-hero1 |absolute |hover-lift-ns">
           <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero2.webp"?>" alt="" class="gallery-item |animate-img-hero2 |absolute |hover-lift-ns">
           <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero3.webp"?>" alt="" class="gallery-item |animate-img-hero3 |absolute |hover-lift-ns">
           <img src="<?= DIR_UPLOAD_MEDIA_STATIC."hero4.webp"?>" alt="" class="gallery-item |animate-img-hero4 |absolute |hover-lift-ns">
         </div>
-        <div class="flex-row center-center pt10"><span class="back4 p10 pl30 pr30 br50"></span></div>
+        <div class="flex-row center-center pt10"><span class="back5 p10 pl30 pr30 br50"></span></div>
       </div>
     </div>
   </div>

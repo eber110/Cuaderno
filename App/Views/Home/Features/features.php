@@ -20,7 +20,7 @@
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 m0 limel">Enlaces y Redes Sociales</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Conecta WhatsApp, Instagram, TikTok, YouTube, Spotify y más de 30 plataformas con detección automática de íconos.
           </p>
         </div>
@@ -33,7 +33,7 @@
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 m0 limel">Venta de Productos</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Exhibe productos individuales o colecciones enteras con precios, descuentos, rebajas y modo carrusel o cuadrícula.
           </p>
         </div>
@@ -46,20 +46,20 @@
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 texto m0 limel">Campañas con Temporizador</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Genera registros y capturas con cuenta regresiva en vivo para promociones, eventos especiales o preventas.
           </p>
         </div>
       </div>
 
       <!-- Card 4: Estilo Visual Sin Límites -->
-      <div class="p25 p-mid-20 p-sml-20 br20 back16-hover shadow-card-graphic hover-scale-soft texto flex-column gap15 slide-in-bottom ob-20 dl-400 animate-slow">
-        <div class="wpx50 hpx50 br15 back14 flex-row center-center shadow">
-          <?= svg("palette", "x24 textc") ?>
+      <div class="p25 p-mid-20 p-sml-20 br20 back16-hover shadow-card-graphic hover-scale-soft textc flex-column gap15 slide-in-bottom ob-20 dl-400 animate-slow">
+        <div class="wpx50 hpx50 br15 back13 flex-row center-center shadow">
+          <?= svg("palette", "x24 textw") ?>
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 m0 limel">Personalización Completa</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Fondos degradados, sólidos, en video o imagen, esquinas redondeadas, sombras y paletas de color con preview en tiempo real.
           </p>
         </div>
@@ -72,7 +72,7 @@
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 texto m0 limel">Separadores Artísticos</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Dale ritmo visual a tu contenido combinando espacios limpios con patrones de figuras vectoriales SVG.
           </p>
         </div>
@@ -85,7 +85,7 @@
         </div>
         <div class="flex-column gap5">
           <h3 class="bold700 x24 m0 limel">Carga Ultrarrápida</h3>
-          <p class="x22 text-muted line-h12 m0">
+          <p class="x22 line-h12 m0">
             Construido en Vanilla JS y PHP 8 puro, sin frameworks lentos. Tu página vuela incluso en conexiones móviles lentas.
           </p>
         </div>
