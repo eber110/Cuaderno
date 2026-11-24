@@ -25,38 +25,38 @@
 ?>
 
 <?php if (!empty($rrss)): ?>
-  <div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
-    <div class="flex-row center-between wrap gap10 w100">
-      <div class="flex-row top-start gap10">
-        <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-          <?= svg("share-node", "x20"); ?>
+  <div class="back-card-graphic shadow-card-graphic stats-card flex-column gap18 w100">
+    <div class="flex-row center-between wrap gap12 w100">
+      <div class="flex-row top-start gap12">
+        <span class="stats-icon-box">
+          <?= svg("share-node", "x18"); ?>
         </span>
-        <div class="flex-column gap2">
-          <p class="m0 bold600 texto">Interacción en Redes Sociales (Iconos)</p>
+        <div class="ui-field-header">
+          <p class="m0 bold500 texto">Interacción en Redes Sociales (Iconos)</p>
           <p class="m0 color-secondary">Clics registrados en los accesos rápidos a redes sociales de tu cabecera.</p>
         </div>
       </div>
 
       <?php if (!$isPremium && $canViewSubs): ?>
         <span class="premium-lock-badge">
-          <?= svg("lock", "x10"); ?> Premium
+          <?= svg("lock", "x12"); ?> Premium
         </span>
       <?php endif; ?>
     </div>
 
     <?php if ($isPremium): ?>
-      <div class="flex-row wrap gap12 w100 pt5">
+      <div class="flex-row wrap gap12 w100">
         <?php foreach ($rrss as $r): 
           $rName = !empty($r['name']) ? $r['name'] : ucfirst($r['network'] ?? 'Red social');
           $rKey  = !empty($r['key']) ? $r['key'] : ($r['icon'] ?? ($r['network'] ?? 'share-node'));
         ?>
-          <div class="flex-row center-between gap15 p15 br12 back-card-graphic shadow-card-graphic flex-1 hover-scale-soft" style="min-width: 220px;">
-            <div class="flex-row center-start gap10">
-              <span class="flex-row center-center x22 color-secondary flex-shrink-0"><?= svg($rKey, 'x22'); ?></span>
-              <strong class="texto bold600 line-h12"><?= e($rName); ?></strong>
+          <div class="stats-subcard flex-row center-between gap15 flex-1" style="min-width: 220px;">
+            <div class="flex-row center-start gap12">
+              <span class="stats-icon-box"><?= svg($rKey, 'x18'); ?></span>
+              <strong class="texto bold500"><?= e($rName); ?></strong>
             </div>
-            <div class="flex-column center-center text-center gap2 flex-shrink-0">
-              <span class="x24 x-sml-20 bold700 texto line-h1"><?= e((string)($r['month_clicks'] ?? 0)); ?></span>
+            <div class="flex-column center-end text-right gap2 flex-shrink-0">
+              <span class="x24 x-sml-20 bold500 texto stats-kpi-value"><?= e((string)($r['month_clicks'] ?? 0)); ?></span>
               <span class="color-secondary line-h12">clics mes</span>
             </div>
           </div>
@@ -64,28 +64,28 @@
       </div>
     <?php else: ?>
       <div class="premium-blur-container w100">
-        <div class="premium-blur-content flex-row wrap gap12 w100 pt5">
-          <div class="flex-row center-between gap15 p15 br12 back-card-graphic shadow-card-graphic flex-1" style="min-width: 220px;">
-            <strong class="texto bold600 line-h12">Instagram</strong>
-            <div class="flex-column center-center text-center gap2">
-              <span class="x24 x-sml-20 bold700 texto line-h1">35</span>
+        <div class="premium-blur-content flex-row wrap gap12 w100">
+          <div class="stats-subcard flex-row center-between gap15 flex-1" style="min-width: 220px;">
+            <strong class="texto bold500">Instagram</strong>
+            <div class="flex-column center-end text-right gap2">
+              <span class="x24 x-sml-20 bold500 texto stats-kpi-value">35</span>
               <span class="color-secondary line-h12">clics mes</span>
             </div>
           </div>
-          <div class="flex-row center-between gap15 p15 br12 back-card-graphic shadow-card-graphic flex-1" style="min-width: 220px;">
-            <strong class="texto bold600 line-h12">TikTok</strong>
-            <div class="flex-column center-center text-center gap2">
-              <span class="x24 x-sml-20 bold700 texto line-h1">28</span>
+          <div class="stats-subcard flex-row center-between gap15 flex-1" style="min-width: 220px;">
+            <strong class="texto bold500">TikTok</strong>
+            <div class="flex-column center-end text-right gap2">
+              <span class="x24 x-sml-20 bold500 texto stats-kpi-value">28</span>
               <span class="color-secondary line-h12">clics mes</span>
             </div>
           </div>
         </div>
         <div class="premium-lock-overlay">
-          <span class="color-warning x24 mb5"><?= svg("lock", "x24"); ?></span>
-          <p class="m0 bold700 texto mb4">Métricas de Redes Sociales</p>
+          <span class="stats-icon-box mb10"><?= svg("lock", "x20"); ?></span>
+          <p class="m0 bold500 texto mb6">Métricas de Redes Sociales</p>
           <p class="m0 color-secondary mb12">Descubre cuáles de tus perfiles sociales reciben más interés.</p>
           <a href="/planes" class="btn-premium-unlock">
-            <?= svg("lock", "x12"); ?> Desbloquear con Premium
+            <?= svg("lock", "x14"); ?> Desbloquear con Premium
           </a>
         </div>
       </div>

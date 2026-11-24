@@ -32,30 +32,30 @@
   GraphicsModule::configStyle([
     "colorLabel"    => "texto",
     "axisLabel"     => "texto",
-    "axisLabelSize" => "16",
-    "barWidth"      => "20",
+    "axisLabelSize" => "18",
+    "barWidth"      => "16",
     "color"         => "color1",
     "transition"    => 500,
     "tooltip"       => true
   ]);
 ?>
 
-<div class="flex-column gap25 w100 texto">
+<div class="stats-panel flex-column gap20 w100 texto">
 
   <!-- ========================================================
        Cabecera de Estadísticas Generales
        ======================================================== -->
   <div class="flex-row center-between wrap gap15 w100">
-    <div class="flex-column gap5">
-      <h2 class="m0 x24 bold700 texto flex-row center-start gap10">
-        <span class="color-secondary"><?= svg("chart", "x24"); ?></span>
-        Estadísticas Generales
-      </h2>
-      <?php if ($canViewDevGraphics): ?>
-        <p class="m0 color-secondary">Métricas de rendimiento de tu perfil, visitantes recientes, geolocalización y mejores horarios de publicación.</p>
-      <?php else: ?>
-        <p class="m0 color-secondary">Métricas de rendimiento y visitas de tu perfil.</p>
-      <?php endif; ?>
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box"><?= svg("chart", "x20"); ?></span>
+      <div class="ui-field-header">
+        <h2 class="m0 x22 bold500 texto">Estadísticas Generales</h2>
+        <?php if ($canViewDevGraphics): ?>
+          <p class="m0 color-secondary">Métricas de rendimiento de tu perfil, visitantes recientes, geolocalización y mejores horarios de publicación.</p>
+        <?php else: ?>
+          <p class="m0 color-secondary">Métricas de rendimiento y visitas de tu perfil.</p>
+        <?php endif; ?>
+      </div>
     </div>
 
     <?php if ($canViewSubs): ?>

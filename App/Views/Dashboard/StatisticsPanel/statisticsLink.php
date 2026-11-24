@@ -33,30 +33,30 @@
   GraphicsModule::configStyle([
     "colorLabel"    => "texto",
     "axisLabel"     => "texto",
-    "axisLabelSize" => "16",
-    "barWidth"      => "20",
+    "axisLabelSize" => "18",
+    "barWidth"      => "16",
     "color"         => "color1",
     "transition"    => 500,
     "tooltip"       => true
   ]);
 ?>
 
-<div class="flex-column gap25 w100 texto">
+<div class="stats-panel flex-column gap20 w100 texto">
 
   <!-- ========================================================
        Cabecera de Estadísticas por Enlace
        ======================================================== -->
   <div class="flex-row center-between wrap gap15 w100">
-    <div class="flex-column gap5">
-      <h2 class="m0 x24 bold700 texto flex-row center-start gap10">
-        <span class="color-secondary"><?= svg("link", "x24"); ?></span>
-        Estadísticas por Enlace
-      </h2>
-      <?php if ($canViewDevGraphics): ?>
-        <p class="m0 color-secondary">Rendimiento individual de cada botón, tasa de conversión (CTR), Enlace Estrella y análisis por dispositivos.</p>
-      <?php else: ?>
-        <p class="m0 color-secondary">Métricas de conversión (CTR) y rendimiento general de tus enlaces.</p>
-      <?php endif; ?>
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box"><?= svg("link", "x20"); ?></span>
+      <div class="ui-field-header">
+        <h2 class="m0 x22 bold500 texto">Estadísticas por Enlace</h2>
+        <?php if ($canViewDevGraphics): ?>
+          <p class="m0 color-secondary">Rendimiento individual de cada botón, tasa de conversión (CTR), Enlace Estrella y análisis por dispositivos.</p>
+        <?php else: ?>
+          <p class="m0 color-secondary">Métricas de conversión (CTR) y rendimiento general de tus enlaces.</p>
+        <?php endif; ?>
+      </div>
     </div>
 
     <?php if ($canViewSubs): ?>

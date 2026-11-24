@@ -52,15 +52,21 @@
   <div id="hide-profile-remote" class="remote-content flex-row top-center hidden">
     <div class="wpx630 w-mid-100 w-sml-100">
       <?php $isProfileHidden = !empty($card["hide"]) && ($card["hide"] === true || $card["hide"] === 'true' || $card["hide"] === 1 || $card["hide"] === '1'); ?>
-      <div class="mb20 p20 br15 back-card-graphic shadow-card-graphic">
-        <p class="texto">Tu perfil está <span class="bold500" id="profile-visibility-status-text"><?= $isProfileHidden ? "oculto" : "visible";?></span> para todo público.</p>
-      </div>
-      <div class="back-card-graphic panel-toggle-card flex-row center-between w100">
+      <div class="p25 p-sml-15 br18 back-card-graphic shadow-card-graphic flex-column gap18 w100">
         <div class="ui-field-header">
-          <p class="bold500 texto">Ocultar perfil</p>
-          <span class="text-muted">Pausa temporalmente el acceso público a tu perfil</span>
+          <p class="bold500 texto ui-section-title"><?= svg("eye") ?> Visibilidad del perfil</p>
+          <span class="text-muted">Controla cuándo tu página pública está disponible para tus visitantes</span>
         </div>
-        <?php _form("Panel.hideProfile", ["card" => $card, "uri" => $uri]);?>
+        <div class="panel-subcard flex-row center-start gap10 w100">
+          <p class="m0 texto">Tu perfil está <span class="bold500" id="profile-visibility-status-text"><?= $isProfileHidden ? "oculto" : "visible";?></span> para todo público.</p>
+        </div>
+        <div class="back-card-graphic panel-toggle-card flex-row center-between gap15 w100">
+          <div class="ui-field-header">
+            <p class="bold500 texto">Ocultar perfil</p>
+            <span class="text-muted">Pausa temporalmente el acceso público a tu perfil</span>
+          </div>
+          <?php _form("Panel.hideProfile", ["card" => $card, "uri" => $uri]);?>
+        </div>
       </div>
     </div>
   </div>
@@ -96,8 +102,9 @@
           ]);
         ?>
       <?php else: ?>
-        <div id="stats-general-loading-placeholder" class="flex-column center p40 gap15 text-center">
-          <div class="bold600 texto-sml color-secundary">Cargando estadísticas generales...</div>
+        <div id="stats-general-loading-placeholder" class="back-card-graphic shadow-card-graphic stats-card flex-row center-center p40 gap12 text-center w100">
+          <span class="save-btn-spinner save-btn-spinner-dark"></span>
+          <span class="bold500 text-muted">Cargando estadísticas generales...</span>
         </div>
       <?php endif; ?>
     </div>
@@ -118,8 +125,9 @@
           ]);
         ?>
       <?php else: ?>
-        <div id="stats-links-loading-placeholder" class="flex-column center p40 gap15 text-center">
-          <div class="bold600 texto-sml color-secundary">Cargando estadísticas de enlaces...</div>
+        <div id="stats-links-loading-placeholder" class="back-card-graphic shadow-card-graphic stats-card flex-row center-center p40 gap12 text-center w100">
+          <span class="save-btn-spinner save-btn-spinner-dark"></span>
+          <span class="bold500 text-muted">Cargando estadísticas de enlaces...</span>
         </div>
       <?php endif; ?>
     </div>

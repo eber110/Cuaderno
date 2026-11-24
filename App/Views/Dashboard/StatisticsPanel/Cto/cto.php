@@ -56,36 +56,36 @@
   // ];
 ?>
 
-<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap20 w100">
+<div class="back-card-graphic shadow-card-graphic stats-card flex-column gap20 w100">
 
   <!-- Encabezado de la tarjeta -->
-  <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row top-start gap10">
-      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-        <?= svg("chart-column-solid", "x20"); ?>
+  <div class="flex-row center-between wrap gap12 w100">
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box">
+        <?= svg("chart-column-solid", "x18"); ?>
       </span>
-      <div class="flex-column gap2">
-        <p class="m0 bold600 texto">Métricas de CTO y Rendimiento de Enlaces</p>
+      <div class="ui-field-header">
+        <p class="m0 bold500 texto">Métricas de CTO y Rendimiento de Enlaces</p>
         <p class="m0 color-secondary">Promedio entre enlaces activos, visitas y tasa de clics por usuario.</p>
       </div>
     </div>
 
     <?php if (!empty($monthLabel)): ?>
-      <span class="back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10">
+      <span class="stats-pill-badge">
         <?= e($monthLabel); ?>
       </span>
     <?php endif; ?>
   </div>
 
-  <!-- Fila de 3 tarjetas de métricas -->
-  <div class="flex-row wrap gap15 w100">
+  <!-- Fila de tarjetas de métricas -->
+  <div class="flex-column gap15 w100">
 
     <!-- 1. Tasa de CTO del Mes con Gráfico Arc Meter -->
-    <div class="flex-column gap12 back-card-graphic shadow-card-graphic |hover-scale-soft p20 br15 w100">
+    <div class="stats-subcard flex-column gap14 w100">
       <div class="flex-row center-between">
         <div class="flex-row center-start gap8">
-          <span class="flex-row center-center color-success x20 flex-shrink-0"><?= svg("chart", "x20 color-success"); ?></span>
-          <span class="color-secondary bold600">CTO del Mes (Clics / Visitas)</span>
+          <span class="flex-row center-center texto x18 flex-shrink-0"><?= svg("chart", "x18"); ?></span>
+          <span class="texto bold500">CTO del Mes (Clics / Visitas)</span>
         </div>
       </div>
 
@@ -93,11 +93,12 @@
         <!-- Columna con el Gráfico vectorial Arc Meter -->
         <div class="w50 w-mid-70 w-sml-100">
           <?php _chart('arcMeter', [
+            'color' => 'color1',
             'colorLabel' => 'texto',
-            'axisLabel' => 'color2',
-            'axisLabelSize' => 18,
+            'axisLabel' => 'texto',
+            'axisLabelSize' => 17,
             'transition' => 500,
-            'barWidth' => 22,
+            'barWidth' => 20,
             'width' => 100,
             'label' => 'Tasa de conversión',
             'value' => min(100.0, max(0.0, (float)$monthlyCtoRate)),
@@ -107,50 +108,42 @@
 
         <!-- Columna de métricas numéricas -->
         <div class="flex-column gap8 flex-1 w50 w-mid-100 w-sml-100">
-          <!-- <div class="flex-row center-start gap10 my5">
-            <span class="x42 bold700 texto leading-none"><?= e((string)$monthlyCtoRate); ?>%</span>
-          </div> -->
           <p class="m0 texto">
-            Promedio: <strong class="texto bold600"><?= e((string)$monthlyClicksPerVisit); ?></strong> clics por visita en el mes actual.
+            Promedio: <strong class="texto bold500"><?= e((string)$monthlyClicksPerVisit); ?></strong> clics por visita en el mes actual.
           </p>
-          <div class="texto">
-            <strong class="texto bold600"><?= e((string)$monthlyClicks); ?></strong> clics registrados de un total de <strong class="texto bold600"><?= e((string)$monthlyViews); ?></strong> visitas este mes.
+          <div class="color-secondary">
+            <strong class="texto bold500"><?= e((string)$monthlyClicks); ?></strong> clics registrados de un total de <strong class="texto bold500"><?= e((string)$monthlyViews); ?></strong> visitas este mes.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. Relación Enlaces y Visitas -->
+    <!-- 2. Relación Enlaces y Visitas / 3. Total de Clics Acumulados -->
     <div class="flex-row-desk flex-column-mid flex-column-sml center-center gap15 w100">
-      <div class="flex-column gap8 back-card-graphic shadow-card-graphic p15 br10 w100">
-        <div class="">
-          <span class="color-secondary bold500">Promedio Enlaces / Visitas</span>
-        </div>
+      <div class="stats-subcard flex-column gap8 w100">
+        <span class="texto bold500">Promedio Enlaces / Visitas</span>
         <div class="flex-row center-start gap10 my5">
-          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$totalLinks); ?></span>
-          <span class="color-secondary bold500">enlaces activos</span>
+          <span class="x36 x-sml-28 bold500 texto stats-kpi-value"><?= e((string)$totalLinks); ?></span>
+          <span class="color-secondary">enlaces activos</span>
         </div>
         <p class="m0 color-secondary">
-          Promedio: <strong class="texto bold600"><?= e((string)$linksPerVisit); ?></strong> enlaces por cada visita recibida.
+          Promedio: <strong class="texto bold500"><?= e((string)$linksPerVisit); ?></strong> enlaces por cada visita recibida.
         </p>
-        <div class="color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
+        <div class="color-secondary pt8 stats-divider">
           <?= e((string)$contentLinks); ?> enlaces de contenido + <?= e((string)$rrssLinks); ?> redes sociales
         </div>
       </div>
   
-      <!-- 3. Total de Clics Acumulados -->
-      <div class="flex-column gap8 back-card-graphic shadow-card-graphic p15 br10 w100">
-        <div class="">
-          <span class="color-secondary bold500">Clics Acumulados Históricos</span>
-        </div>
+      <div class="stats-subcard flex-column gap8 w100">
+        <span class="texto bold500">Clics Acumulados Históricos</span>
         <div class="flex-row center-start gap10 my5">
-          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$allTimeClicks); ?></span>
-          <span class="color-secondary bold500">clics totales</span>
+          <span class="x36 x-sml-28 bold500 texto stats-kpi-value"><?= e((string)$allTimeClicks); ?></span>
+          <span class="color-secondary">clics totales</span>
         </div>
         <p class="m0 color-secondary">
-          CTO histórico global: <strong class="texto bold600"><?= e((string)$allTimeCtoRate); ?>%</strong> en <?= e((string)$allTimeViews); ?> visitas.
+          CTO histórico global: <strong class="texto bold500"><?= e((string)$allTimeCtoRate); ?>%</strong> en <?= e((string)$allTimeViews); ?> visitas.
         </p>
-        <div class="color-inactive pt5" style="border-top: 1px solid rgba(128,128,128,0.12);">
+        <div class="color-secondary pt8 stats-divider">
           Historial integral del perfil del creador
         </div>
       </div>
@@ -159,94 +152,95 @@
   </div>
 
   <!-- Sección: Índice de distribución Enlaces vs Redes Sociales -->
-  <div class="flex-column gap15 back-card-graphic shadow-card-graphic |hover-scale-soft p15 br10 w100">
+  <div class="stats-subcard flex-column gap16 w100">
     
     <div class="flex-column gap12 w100">
-      <div class="flex-column gap3">
+      <div class="ui-field-header">
         <p class="m0 bold500 texto">Índice de Clics: Enlaces vs Redes Sociales</p>
         <p class="m0 color-secondary">
           Distribución de las interacciones hacia enlaces de contenido versus perfiles de redes sociales.
           <?php if (!$hasCurrentClicks && ($allTimeClicks > 0)): ?>
-            <span class="color-inactive">(Mostrando histórico acumulado por falta de clics en el mes actual)</span>
+            <span>(Mostrando histórico acumulado por falta de clics en el mes actual)</span>
           <?php endif; ?>
         </p>
       </div>
 
       <div class="flex-row center-between wrap gap10 w100">
-        <span class="flex-row center-start gap5">
-          <span class="back-success br50" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
-          <p class="color-secondary">Enlaces: <strong><?= e((string)$barPctEnlaces); ?>%</strong></p>
+        <span class="flex-row center-start gap8">
+          <span class="stats-dot-primary"></span>
+          <span class="color-secondary">Enlaces: <strong class="texto bold500"><?= e((string)$barPctEnlaces); ?>%</strong></span>
         </span>
-        <span class="flex-row center-start gap5">
-          <span class="back8 br50" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%;"></span>
-          <p class="color-secondary">RRSS: <strong><?= e((string)$barPctRrss); ?>%</strong></p>
+        <span class="flex-row center-start gap8">
+          <span class="stats-dot-secondary"></span>
+          <span class="color-secondary">RRSS: <strong class="texto bold500"><?= e((string)$barPctRrss); ?>%</strong></span>
         </span>
       </div>
     </div>
 
-    <!-- Barra de proporción visual bicolor -->
-    <div class="w100 hpx12 br10 flex-row overflow-hidden" style="background: rgba(128,128,128,0.15);">
-      <div class="back-success" style="width: <?= e((string)$barPctEnlaces); ?>%; height: 100%; transition: width 0.3s;" title="Enlaces: <?= e((string)$barPctEnlaces); ?>%"></div>
-      <div class="back8" style="width: <?= e((string)$barPctRrss); ?>%; height: 100%; transition: width 0.3s;" title="RRSS: <?= e((string)$barPctRrss); ?>%"></div>
+    <!-- Barra de proporción visual coherente con back1/color1 -->
+    <div class="stats-dual-bar">
+      <div class="stats-bar-primary" style="width: <?= min(100, max(0, (float)$barPctEnlaces)); ?>%;" title="Enlaces: <?= e((string)$barPctEnlaces); ?>%"></div>
+      <div class="stats-bar-secondary" style="width: <?= min(100, max(0, (float)$barPctRrss)); ?>%;" title="RRSS: <?= e((string)$barPctRrss); ?>%"></div>
     </div>
 
     <!-- Desglose en 2 columnas -->
-    <div class="flex-row-desk flex-column-mid flex-column-sml gap15 w100 pt10">
+    <div class="flex-row-desk flex-column-mid flex-column-sml gap15 w100 pt4">
 
       <!-- Columna 1: Enlaces de Contenido -->
-      <div class="p15 br12 flex-column gap10 flex-1 min-w220" style="background: rgba(0, 185, 0, 0.05); border: 1px solid rgba(0, 185, 0, 0.15);">
-        <div class="flex-row center-between">
-          <span class="flex-row center-start gap8 color-success bold500">
+      <div class="stats-inner-card flex-column gap10 flex-1 min-w220">
+        <div class="flex-row center-between gap8">
+          <span class="flex-row center-start gap8 bold500 texto">
+            <span class="stats-dot-primary"></span>
             Enlaces de Contenido
           </span>
-          <span class="badge p3 pl8 pr8 br8 bold500 back-success textw">
+          <span class="stats-pill-badge-solid">
             <?= e((string)$barPctEnlaces); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
-          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$monthlyEnlaces); ?></span>
+          <span class="x36 x-sml-28 bold500 texto stats-kpi-value"><?= e((string)$monthlyEnlaces); ?></span>
           <span class="color-secondary">clics este mes</span>
         </div>
 
         <div class="color-secondary">
-          Histórico acumulado: <strong class="texto bold600"><?= e((string)$allTimeEnlaces); ?></strong> clics (<?= e((string)$pctEnlacesAllTime); ?>% del total general).
+          Histórico acumulado: <strong class="texto bold500"><?= e((string)$allTimeEnlaces); ?></strong> clics (<?= e((string)$pctEnlacesAllTime); ?>% del total general).
         </div>
       </div>
 
       <!-- Columna 2: Redes Sociales -->
-      <div class="p15 br12 flex-column gap10 flex-1 min-w220" style="background: rgba(0, 60, 255, 0.05); border: 1px solid rgba(0, 60, 255, 0.15);">
-        <div class="flex-row center-between">
+      <div class="stats-inner-card flex-column gap10 flex-1 min-w220">
+        <div class="flex-row center-between gap8">
           <span class="flex-row center-start gap8 bold500 texto">
+            <span class="stats-dot-secondary"></span>
             Redes Sociales (RRSS)
           </span>
-          <span class="badge p3 pl8 pr8 br8 bold500 textc back8">
+          <span class="stats-pill-badge">
             <?= e((string)$barPctRrss); ?>%
           </span>
         </div>
 
         <div class="flex-row center-start gap10 my2">
-          <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$monthlyRrss); ?></span>
+          <span class="x36 x-sml-28 bold500 texto stats-kpi-value"><?= e((string)$monthlyRrss); ?></span>
           <span class="color-secondary">clics este mes</span>
         </div>
 
         <div class="color-secondary">
-          Histórico acumulado: <strong class="texto bold600"><?= e((string)$allTimeRrss); ?></strong> clics (<?= e((string)$pctRrssAllTime); ?>% del total general).
+          Histórico acumulado: <strong class="texto bold500"><?= e((string)$allTimeRrss); ?></strong> clics (<?= e((string)$pctRrssAllTime); ?>% del total general).
         </div>
       </div>
 
     </div>
 
     <!-- Conclusión inteligente del canal de mayor interés -->
-    <div class="p10 pl15 pr15 br10 flex-row top-start gap20" style="background: rgba(128,128,128,0.06);">
-      <!-- <span class="color-primary"><?= svg("globe"); ?></span> -->
+    <div class="pt12 stats-divider w100">
       <p class="m0 color-secondary">
         <?php if ($predominantChannel === "rrss" || $predominantChannel === "rrss_history"): ?>
-          Tus visitantes muestran mayor preferencia por conectar con tus <strong class="texto bold600">Redes Sociales</strong> (<?= e((string)$barPctRrss); ?>% de las interacciones).
+          Tus visitantes muestran mayor preferencia por conectar con tus <strong class="texto bold500">Redes Sociales</strong> (<?= e((string)$barPctRrss); ?>% de las interacciones).
         <?php elseif ($predominantChannel === "enlaces" || $predominantChannel === "enlaces_history"): ?>
-          Tus visitantes interactúan con mayor frecuencia en tus <strong class="texto bold600">Enlaces de Contenido y Productos</strong> (<?= e((string)$barPctEnlaces); ?>% de las interacciones).
+          Tus visitantes interactúan con mayor frecuencia en tus <strong class="texto bold500">Enlaces de Contenido y Productos</strong> (<?= e((string)$barPctEnlaces); ?>% de las interacciones).
         <?php else: ?>
-          La interacción de tus visitantes está <strong class="texto bold600">equilibrada</strong> entre tus Enlaces de Contenido y tus Redes Sociales.
+          La interacción de tus visitantes está <strong class="texto bold500">equilibrada</strong> entre tus Enlaces de Contenido y tus Redes Sociales.
         <?php endif; ?>
       </p>
     </div>

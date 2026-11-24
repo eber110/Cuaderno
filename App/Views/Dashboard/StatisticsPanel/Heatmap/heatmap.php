@@ -75,21 +75,21 @@
   }
 ?>
 
-<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
-  <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row top-start gap10">
-      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-        <?= svg("calendar", "x20"); ?>
+<div class="back-card-graphic shadow-card-graphic stats-card flex-column gap18 w100">
+  <div class="flex-row center-between wrap gap12 w100">
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box">
+        <?= svg("calendar", "x18"); ?>
       </span>
-      <div class="flex-column gap2">
-        <p class="m0 bold600 texto">Actividad Semanal (Heatmap)</p>
+      <div class="ui-field-header">
+        <p class="m0 bold500 texto">Actividad Semanal (Heatmap)</p>
         <p class="m0 color-secondary">Distribución de audiencia por días y franjas horarias para optimizar tus lanzamientos.</p>
       </div>
     </div>
 
     <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
-        <?= svg("lock", "x10"); ?> Premium
+        <?= svg("lock", "x12"); ?> Premium
       </span>
     <?php endif; ?>
   </div>
@@ -97,59 +97,57 @@
   <?php if ($isPremium): ?>
     <!-- Vista Desbloqueada (Premium): Recomendación + Matriz 5x7 -->
     <?php if (!empty($recommendation)): ?>
-      <div class="p15 br15 back-card-graphic shadow-card-graphic flex-row top-start gap12">
-        <span class="flex-row center-center color-warning x24 hpx27 flex-shrink-0"><?= svg("lightbulb", "x24"); ?></span>
-        <div class="flex-column gap2">
-          <span class="bold700 texto">Recomendación inteligente</span>
-          <p class="m0 color-secondary line-h14"><?= e($recommendation); ?></p>
+      <div class="stats-subcard flex-row top-start gap12 w100">
+        <span class="stats-icon-box"><?= svg("lightbulb", "x18"); ?></span>
+        <div class="ui-field-header">
+          <span class="bold500 texto">Recomendación inteligente</span>
+          <p class="m0 color-secondary"><?= e($recommendation); ?></p>
         </div>
       </div>
     <?php endif; ?>
 
-    <div class="w100 flex-column center pt10">
-      <div class="w100 flex-column gap5">
-        <div class="flex-row center-end gap10 pr15">
-          <!-- <span>Días: <strong>Lun — Dom</strong></span>
-          <span>•</span>
-          <span>Horas: <strong>00:00 — 24:00</strong></span> -->
-        </div>
-
-        <div class="w100 flex-row center-center">
-          <?= GraphicsModule::matrixHeatmap([
-            'rows'      => array_column($timeSlots, 'label'),
-            'cols'      => array_values($daysCols),
-            'matrix'    => $matrixHeatmapData,
-            'axisLabelSize' => 14,
-            'color'     => 'color1',
-            'showAxisX' => true
-          ]); ?>
-        </div>
+    <div class="stats-chart-box flex-row center-center w100">
+      <div class="w100 wpx-max-520 flex-row center-center">
+        <?= GraphicsModule::matrixHeatmap([
+          'rows'          => array_column($timeSlots, 'label'),
+          'cols'          => array_values($daysCols),
+          'matrix'        => $matrixHeatmapData,
+          'cellSize'      => 28,
+          'cellGap'       => 7,
+          'axisLabelSize' => 11,
+          'color'         => 'color1',
+          'showAxisX'     => true
+        ]); ?>
       </div>
     </div>
 
   <?php else: ?>
     <!-- Vista Bloqueada (Free Teaser) con GraphicsModule -->
     <div class="premium-blur-container w100">
-      <div class="premium-blur-content flex-column gap10 w100 pt5">
-        <div class="p12 br12 back-card-graphic shadow-card-graphic">
-          <p class="m0">Recomendación: Tu mayor pico de audiencia ocurre los Miércoles en la tarde.</p>
+      <div class="premium-blur-content flex-column gap12 w100">
+        <div class="stats-subcard">
+          <p class="m0 color-secondary">Recomendación: Tu mayor pico de audiencia ocurre los Miércoles en la tarde.</p>
         </div>
-        <div class="w100">
-          <?= GraphicsModule::matrixHeatmap([
-            'rows'  => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
-            'cols'  => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            'axisLabelSize' => 14,
-            'color' => 'color1'
-          ]); ?>
+        <div class="stats-chart-box w100 flex-row center-center">
+          <div class="w100 wpx-max-520">
+            <?= GraphicsModule::matrixHeatmap([
+              'rows'          => ['00-06h', '06-12h', '12-15h', '15-19h', '19-24h'],
+              'cols'          => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+              'cellSize'      => 28,
+              'cellGap'       => 7,
+              'axisLabelSize' => 11,
+              'color'         => 'color1'
+            ]); ?>
+          </div>
         </div>
       </div>
 
       <div class="premium-lock-overlay">
-        <span class="color-warning x28 mb6"><?= svg("lock", "x28"); ?></span>
-        <h4 class="m0 x18 bold700 texto mb4">Encuentra tu Mejor Horario para Publicar</h4>
+        <span class="stats-icon-box mb10"><?= svg("lock", "x20"); ?></span>
+        <h4 class="m0 bold500 texto mb6">Encuentra tu Mejor Horario para Publicar</h4>
         <p class="m0 color-secondary wpx-max-450 mb15">El Heatmap semanal te revela con exactitud los días y franjas horarias con mayor afluencia de tus seguidores.</p>
         <a href="/planes" class="btn-premium-unlock">
-          <?= svg("lock", "x12"); ?>
+          <?= svg("lock", "x14"); ?>
           Desbloquear Heatmap Semanal
         </a>
       </div>

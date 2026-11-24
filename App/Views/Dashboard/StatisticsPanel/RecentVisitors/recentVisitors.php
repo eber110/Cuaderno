@@ -20,24 +20,24 @@
   $visitorCount = count($visitors);
 ?>
 
-<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
-  <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row top-start gap10">
-      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-        <?= svg("user", "x20"); ?>
+<div class="back-card-graphic shadow-card-graphic stats-card flex-column gap18 w100">
+  <div class="flex-row center-between wrap gap12 w100">
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box">
+        <?= svg("user", "x18"); ?>
       </span>
-      <div class="flex-column gap2">
-        <p class="m0 bold600 texto">¿Quién te visitó recientemente?</p>
+      <div class="ui-field-header">
+        <p class="m0 bold500 texto">¿Quién te visitó recientemente?</p>
         <p class="m0 color-secondary">Usuarios registrados de la comunidad que han navegado por tu perfil.</p>
       </div>
     </div>
 
     <?php if ($canViewSubs && !$isPremium): ?>
       <span class="premium-lock-badge">
-        <?= svg("lock", "x10"); ?> Premium
+        <?= svg("lock", "x12"); ?> Premium
       </span>
     <?php else: ?>
-      <span class="back-card-graphic shadow-card-graphic p5 pl10 pr10 br10 bold500 color-secondary">
+      <span class="stats-pill-badge">
         <?= e((string)$visitorCount); ?> <?= $visitorCount === 1 ? 'visitante' : 'visitantes'; ?>
       </span>
     <?php endif; ?>
@@ -46,25 +46,25 @@
   <?php if ($isPremium): ?>
     <!-- Vista Desbloqueada (Premium) -->
     <?php if (!empty($visitors)): ?>
-      <div class="flex-column gap10 w100 pt10">
+      <div class="flex-column gap10 w100">
         <?php foreach ($visitors as $v): ?>
-          <div class="flex-row center-between wrap gap10 p10 pl15 pr15 br12 back-card-graphic shadow-card-graphic hover-scale-soft">
+          <div class="stats-subcard flex-row center-between wrap gap12">
             <div class="flex-row center-start gap12">
               <img src="<?= eUrl($v['avatar']); ?>" alt="<?= e($v['display_name']); ?>" class="br50 object-cover hpx40 wpx40" width="40" height="40" loading="lazy">
-              <div class="flex-column gap2">
-                <a href="<?= eUrl($v['profile_url']); ?>" target="_blank" rel="noopener noreferrer" class="bold600 texto hover-underline line-h12">
+              <div class="ui-field-header">
+                <a href="<?= eUrl($v['profile_url']); ?>" target="_blank" rel="noopener noreferrer" class="bold500 texto hover-underline">
                   <?= e($v['display_name']); ?>
                 </a>
                 <span class="color-secondary">@<?= e($v['username']); ?></span>
               </div>
             </div>
 
-            <div class="flex-row center-end gap15">
-              <span class="color-secondary flex-row center-start gap4">
+            <div class="flex-row center-end gap12">
+              <span class="color-secondary flex-row center-start gap6">
                 <span class="flex-row center-center x16 flex-shrink-0"><?= svg("clock", "x16"); ?></span>
                 <?= e($v['time_ago']); ?>
               </span>
-              <span class="back-card-graphic shadow-card-graphic p4 pl8 pr8 br10 bold600 color-secondary">
+              <span class="stats-pill-badge">
                 <?= e((string)$v['visit_count']); ?> <?= $v['visit_count'] === 1 ? 'visita' : 'visitas'; ?>
               </span>
             </div>
@@ -72,9 +72,9 @@
         <?php endforeach; ?>
       </div>
     <?php else: ?>
-      <div class="flex-column center p30 gap10 text-center">
-        <span class="color-secondary x30"><?= svg("user", "x30"); ?></span>
-        <p class="m0 bold600 texto">Aún no hay visitas de usuarios registrados</p>
+      <div class="stats-subcard flex-column center p30 gap10 text-center">
+        <span class="stats-icon-box"><?= svg("user", "x20"); ?></span>
+        <p class="m0 bold500 texto">Aún no hay visitas de usuarios registrados</p>
         <p class="m0 color-secondary wpx-max-450">Cuando otros creadores y seguidores con cuenta visiten tu enlace, aparecerán registrados en este feed cronológico.</p>
       </div>
     <?php endif; ?>
@@ -82,32 +82,32 @@
   <?php else: ?>
     <!-- Vista Bloqueada (Free Teaser) -->
     <div class="premium-blur-container w100">
-      <div class="premium-blur-content flex-column gap10 w100 pt5">
-        <div class="flex-row center-between p10 pl15 pr15 br12 back-card-graphic shadow-card-graphic">
+      <div class="premium-blur-content flex-column gap10 w100">
+        <div class="stats-subcard flex-row center-between">
           <div class="flex-row center-start gap12">
-            <div class="br50 back-card-graphic" style="width:40px; height:40px;"></div>
-            <div class="flex-column gap4">
-              <span class="bold600 texto">Usuario de la comunidad</span>
+            <div class="br50 stats-inner-card" style="width:40px; height:40px; padding:0 !important;"></div>
+            <div class="ui-field-header">
+              <span class="bold500 texto">Usuario de la comunidad</span>
               <span class="color-secondary">@usuario_creador</span>
             </div>
           </div>
           <span class="color-secondary">Hace 2 horas</span>
         </div>
-        <div class="flex-row center-between p10 pl15 pr15 br12 back-card-graphic shadow-card-graphic">
+        <div class="stats-subcard flex-row center-between">
           <div class="flex-row center-start gap12">
-            <div class="br50 back-card-graphic" style="width:40px; height:40px;"></div>
-            <div class="flex-column gap4">
-              <span class="bold600 texto">Seguidor destacado</span>
+            <div class="br50 stats-inner-card" style="width:40px; height:40px; padding:0 !important;"></div>
+            <div class="ui-field-header">
+              <span class="bold500 texto">Seguidor destacado</span>
               <span class="color-secondary">@seguidor_web</span>
             </div>
           </div>
           <span class="color-secondary">Ayer</span>
         </div>
-        <div class="flex-row center-between p10 pl15 pr15 br12 back-card-graphic shadow-card-graphic">
+        <div class="stats-subcard flex-row center-between">
           <div class="flex-row center-start gap12">
-            <div class="br50 back-card-graphic" style="width:40px; height:40px;"></div>
-            <div class="flex-column gap4">
-              <span class="bold600 texto">Visitante recurrente</span>
+            <div class="br50 stats-inner-card" style="width:40px; height:40px; padding:0 !important;"></div>
+            <div class="ui-field-header">
+              <span class="bold500 texto">Visitante recurrente</span>
               <span class="color-secondary">@creador_pro</span>
             </div>
           </div>
@@ -116,18 +116,18 @@
       </div>
 
       <div class="premium-lock-overlay">
-        <span class="color-warning x32 mb8"><?= svg("lock", "x32"); ?></span>
-        <h4 class="m0 x18 bold700 texto mb5">Descubre quién visita tu perfil</h4>
+        <span class="stats-icon-box mb10"><?= svg("lock", "x20"); ?></span>
+        <h4 class="m0 bold500 texto mb6">Descubre quién visita tu perfil</h4>
         <p class="m0 color-secondary wpx-max-450 mb15">
           <?php if ($visitorCount > 0): ?>
-            Tienes <strong class="texto bold600"><?= e((string)$visitorCount); ?></strong> <?= $visitorCount === 1 ? 'usuario registrado que visitó' : 'usuarios registrados que visitaron'; ?> tu perfil.
+            Tienes <strong class="texto bold500"><?= e((string)$visitorCount); ?></strong> <?= $visitorCount === 1 ? 'usuario registrado que visitó' : 'usuarios registrados que visitaron'; ?> tu perfil.
           <?php else: ?>
             Conoce en tiempo real la identidad de los creadores y usuarios que revisan tus enlaces.
           <?php endif; ?>
           Desbloquea el feed completo con el Plan Premium.
         </p>
         <a href="/planes" class="btn-premium-unlock">
-          <?= svg("lock", "x13"); ?>
+          <?= svg("lock", "x14"); ?>
           Desbloquear con Premium
         </a>
       </div>

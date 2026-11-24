@@ -23,80 +23,84 @@
   $hasSpline     = !empty($spline["values"]) && count($spline["values"]) > 0;
 ?>
 
-<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
+<div class="back-card-graphic shadow-card-graphic stats-card flex-column gap18 w100">
   
   <!-- Encabezado de la tarjeta -->
-  <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row center-start gap10">
-      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-        <?= svg("chart", "x20"); ?>
+  <div class="flex-row center-between wrap gap12 w100">
+    <div class="flex-row center-start gap12">
+      <span class="stats-icon-box">
+        <?= svg("chart", "x18"); ?>
       </span>
-      <p class="m0 bold600 texto">Visitas del mes actual</p>
+      <div class="ui-field-header">
+        <p class="m0 bold500 texto">Visitas del mes actual</p>
+        <p class="m0 color-secondary">Comparativa frente a tu promedio mensual</p>
+      </div>
     </div>
 
     <?php if (!empty($monthLabel)): ?>
-      <span class="back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10">
+      <span class="stats-pill-badge">
         <?= e($monthLabel); ?>
       </span>
     <?php endif; ?>
   </div>
 
   <!-- Valor principal con indicador de flecha condicional -->
-  <div class="flex-row center-start gap12 my5">
-    <span class="x36 x-sml-28 bold700 texto line-h1"><?= e((string)$currentTotal); ?></span>
-    
-    <?php if (!empty($arrow)): ?>
-      <span class="flex-row center-center <?= e($arrowClass); ?> x28" title="<?= e($statusText); ?>" aria-label="<?= e($statusText); ?>">
-        <?= svg($arrow, $arrowClass); ?>
-      </span>
-    <?php endif; ?>
-  </div>
+  <div class="stats-subcard flex-column gap10 w100">
+    <div class="flex-row center-start gap12 wrap">
+      <span class="x36 x-sml-28 bold500 texto stats-kpi-value"><?= e((string)$currentTotal); ?></span>
+      <span class="color-secondary">visitas registradas</span>
 
-  <!-- Evaluación comparativa con el promedio histórico de meses anteriores -->
-  <div class="flex-column gap5 w100">
-    <?php if ($hasHistory): ?>
-      <p class="m0 color-secondary">
-        Promedio de meses anteriores: <strong class="texto bold600"><?= e((string)$previousAvg); ?></strong> visitas por mes.
-      </p>
-
-      <?php if ($trend === "up"): ?>
-        <div class="flex-row center-start gap5 color-success bold600">
-          <?= svg("arrow-up", "color-success"); ?>
-          <span>Subió un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
-        </div>
-      <?php elseif ($trend === "down"): ?>
-        <div class="flex-row center-start gap5 color-danger bold600">
-          <?= svg("arrow-down", "color-danger"); ?>
-          <span>Bajó un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
-        </div>
-      <?php else: ?>
-        <div class="flex-row center-start gap5 color-secondary bold500">
-          <span>Se mantuvo igual al promedio de meses anteriores</span>
-        </div>
+      <?php if (!empty($arrow)): ?>
+        <span class="flex-row center-center <?= e($arrowClass); ?> x24" title="<?= e($statusText); ?>" aria-label="<?= e($statusText); ?>">
+          <?= svg($arrow, $arrowClass); ?>
+        </span>
       <?php endif; ?>
-    <?php else: ?>
-      <p class="m0 color-secondary">
-        Este es tu primer mes con registro de visitas. Con el paso de los meses se calculará el promedio para mostrar la tendencia.
-      </p>
-    <?php endif; ?>
+    </div>
+
+    <!-- Evaluación comparativa con el promedio histórico de meses anteriores -->
+    <div class="flex-column gap6 w100 stats-divider pt10">
+      <?php if ($hasHistory): ?>
+        <p class="m0 color-secondary">
+          Promedio de meses anteriores: <strong class="texto bold500"><?= e((string)$previousAvg); ?></strong> visitas por mes.
+        </p>
+
+        <?php if ($trend === "up"): ?>
+          <div class="flex-row center-start gap6 color-success bold500">
+            <?= svg("arrow-up", "color-success x16"); ?>
+            <span>Subió un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
+          </div>
+        <?php elseif ($trend === "down"): ?>
+          <div class="flex-row center-start gap6 color-danger bold500">
+            <?= svg("arrow-down", "color-danger x16"); ?>
+            <span>Bajó un <?= e((string)$pctChange); ?>% respecto al promedio anterior</span>
+          </div>
+        <?php else: ?>
+          <div class="flex-row center-start gap6 color-secondary">
+            <span>Se mantuvo igual al promedio de meses anteriores</span>
+          </div>
+        <?php endif; ?>
+      <?php else: ?>
+        <p class="m0 color-secondary">
+          Este es tu primer mes con registro de visitas. Con el paso de los meses se calculará el promedio para mostrar la tendencia.
+        </p>
+      <?php endif; ?>
+    </div>
   </div>
 
   <!-- Gráfico evolutivo Hybrid Spline de visitas mensuales -->
   <?php if ($hasSpline): ?>
-    <div class="pt15 flex-column gap12 w100" style="border-top: 1px solid rgba(128,128,128,0.15);">
-      <div class="flex-row center-between wrap gap10 w100">
-        <div class="flex-column gap2">
-          <span class="bold600 color-secondary">
-            Evolución de visitas mensuales (<?= e((string)count($spline["values"])); ?> meses)
-          </span>
-          <span class="color-secondary">
-            Historial de meses evaluados frente al mes en curso
-          </span>
-        </div>
+    <div class="pt18 flex-column gap14 w100 stats-divider">
+      <div class="ui-field-header">
+        <span class="bold500 texto">
+          Evolución de visitas mensuales (<?= e((string)count($spline["values"])); ?> meses)
+        </span>
+        <span class="color-secondary">
+          Historial de meses evaluados frente al mes en curso
+        </span>
       </div>
 
       <!-- Renderizado SVG del gráfico vectorial Hybrid Spline -->
-      <div class="flex-row center-center br15 w100">
+      <div class="stats-chart-box flex-row center-center w100">
         <div class="w100 wpx-max-650 overflow-hidden">
         <?= GraphicsModule::hybridSpline([
             "values"        => $spline["values"],
@@ -105,6 +109,8 @@
             "displayValues" => $spline["displayValues"] ?? [],
             "unit"          => $spline["unit"] ?? "Visitas",
             "autoScale"     => $spline["autoScale"] ?? true,
+            "axisLabelSize" => 10,
+            "barWidth"      => 14,
             "color"         => $spline["color"] ?? "color1",
             "transition"    => $spline["transition"] ?? 450,
             "tooltip"       => true
@@ -114,15 +120,17 @@
       </div>
 
       <!-- Desglose numérico accesible de los meses anteriores evaluados -->
-      <p class="bold500">Registro de meses anteriores</p>
       <?php if (!empty($previousList)): ?>
-        <div class="flex-row wrap gap10 pt10">
-          <?php foreach ($previousList as $prev): ?>
-            <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl10 pr10 br10">
-              <span class="color-secondary"><?= e((string)($prev["mes"] ?? "")); ?></span>
-              <strong class="texto bold500"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
-            </div>
-          <?php endforeach; ?>
+        <div class="flex-column gap10 pt6">
+          <p class="m0 bold500 texto">Registro de meses anteriores</p>
+          <div class="flex-row wrap gap10">
+            <?php foreach ($previousList as $prev): ?>
+              <div class="stats-chip hover-scale-soft">
+                <span class="color-secondary"><?= e((string)($prev["mes"] ?? "")); ?></span>
+                <strong class="texto bold500"><?= e((string)($prev["total"] ?? 0)); ?> visitas</strong>
+              </div>
+            <?php endforeach; ?>
+          </div>
         </div>
       <?php endif; ?>
     </div>

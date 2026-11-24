@@ -43,21 +43,21 @@
   }
 ?>
 
-<div class="p25 p-sml-15 br20 back-card-graphic shadow-card-graphic flex-column gap15 w100">
-  <div class="flex-row center-between wrap gap10 w100">
-    <div class="flex-row top-start gap10">
-      <span class="flex-row center-center color-secondary x20 hpx27 flex-shrink-0">
-        <?= svg("globe", "x20"); ?>
+<div class="back-card-graphic shadow-card-graphic stats-card flex-column gap18 w100">
+  <div class="flex-row center-between wrap gap12 w100">
+    <div class="flex-row top-start gap12">
+      <span class="stats-icon-box">
+        <?= svg("globe", "x18"); ?>
       </span>
-      <div class="flex-column gap2">
-        <p class="m0 bold600 texto">Geolocalización de Audiencia</p>
+      <div class="ui-field-header">
+        <p class="m0 bold500 texto">Geolocalización de Audiencia</p>
         <p class="m0 color-secondary">Distribución geográfica de las visitas a tu perfil analizadas por MaxMind GeoIP.</p>
       </div>
     </div>
 
     <?php if (!$isPremium && $canViewSubs): ?>
       <span class="premium-lock-badge">
-        <?= svg("lock", "x10"); ?> Premium
+        <?= svg("lock", "x12"); ?> Premium
       </span>
     <?php endif; ?>
   </div>
@@ -65,24 +65,28 @@
   <?php if ($isPremium): ?>
     <!-- Vista Desbloqueada (Premium): Países con GraphicsModule::horizontalBars -->
     <?php if (!empty($countryBars)): ?>
-      <div class="flex-column center-center gap10 w100">
-        <div class="w100 wpx-max-650">
-          <?= GraphicsModule::horizontalBars([
-            'bars'        => $countryBars,
-            'width'       => 650,
-            'color'       => 'color1',
-            'valueSuffix' => '%',
-            'showAxisY'   => true,
-            'showAxisX'   => true
-          ]); ?>
+      <div class="flex-column gap18 w100">
+        <div class="stats-chart-box w100">
+          <div class="w100 wpx-max-650 mx-auto">
+            <?= GraphicsModule::horizontalBars([
+              'bars'          => $countryBars,
+              'width'         => 650,
+              'barHeight'     => 16,
+              'axisLabelSize' => 18,
+              'color'         => 'color1',
+              'valueSuffix'   => '%',
+              'showAxisY'     => true,
+              'showAxisX'     => true
+            ]); ?>
+          </div>
         </div>
 
         <?php if (!empty($cities)): ?>
-          <div class="pt15 mt10 flex-column gap12 w100" style="border-top: 1px solid rgba(128,128,128,0.15);">
-            <p class="m0 bold600 color-secondary">Principales Ciudades detectadas</p>
+          <div class="pt16 flex-column gap12 w100 stats-divider">
+            <p class="m0 bold500 texto">Principales ciudades detectadas</p>
             <div class="flex-row wrap gap10">
               <?php foreach ($cities as $ct): ?>
-                <div class="flex-row center-between gap10 back-card-graphic shadow-card-graphic hover-scale-soft p5 pl12 pr12 br10">
+                <div class="stats-chip hover-scale-soft">
                   <span class="flex-row center-start gap6">
                     <span><?= $countryFlagEmoji($ct['country_code']); ?></span>
                     <strong class="texto bold500"><?= e($ct['city_name']); ?></strong>
@@ -95,9 +99,9 @@
         <?php endif; ?>
       </div>
     <?php else: ?>
-      <div class="flex-column center p30 gap10 text-center">
-        <span class="color-secondary x30"><?= svg("globe", "x30"); ?></span>
-        <p class="m0 bold600 texto">Sin registros de ubicación aún</p>
+      <div class="stats-subcard flex-column center p30 gap10 text-center">
+        <span class="stats-icon-box"><?= svg("globe", "x20"); ?></span>
+        <p class="m0 bold500 texto">Sin registros de ubicación aún</p>
         <p class="m0 color-secondary">A medida que recibas visitas públicas se procesarán automáticamente sus países y ciudades.</p>
       </div>
     <?php endif; ?>
@@ -105,19 +109,19 @@
   <?php else: ?>
     <!-- Vista Free: País #1 Desbloqueado + Resto Bloqueado -->
     <?php if (!empty($countries)): ?>
-      <div class="flex-column gap10 w100 pt5">
-        <div class="p15 br15 back-card-graphic shadow-card-graphic flex-column gap10">
-          <div class="flex-row center-between wrap gap8">
-            <div class="flex-row center-start gap8">
+      <div class="flex-column gap10 w100">
+        <div class="stats-subcard flex-column gap12">
+          <div class="flex-row center-between wrap gap10">
+            <div class="flex-row center-start gap10">
               <span class="x22 line-h1"><?= $countryFlagEmoji($countries[0]['country_code']); ?></span>
-              <div>
-                <strong class="texto bold600"><?= e($countries[0]['country_name']); ?></strong>
-                <span class="color-success bold600 ml5">Tu país principal #1</span>
+              <div class="ui-field-header">
+                <strong class="texto bold500"><?= e($countries[0]['country_name']); ?></strong>
+                <span class="color-success bold500">Tu país principal #1</span>
               </div>
             </div>
             <div class="flex-row center-end gap10">
-              <span class="bold600 texto"><?= e((string)$countries[0]['count']); ?> visitas</span>
-              <span class="color-secondary bold500"><?= e((string)$countries[0]['percentage']); ?>%</span>
+              <span class="bold500 texto"><?= e((string)$countries[0]['count']); ?> visitas</span>
+              <span class="stats-pill-badge"><?= e((string)$countries[0]['percentage']); ?>%</span>
             </div>
           </div>
           <div class="w100 wpx-max-600">
@@ -129,17 +133,19 @@
                   'display' => $countries[0]['count'] . ' visitas (' . $countries[0]['percentage'] . '%)'
                 ]
               ],
-              'color'       => 'color1',
-              'valueSuffix' => '%',
-              'maxVal'      => 100
+              'barHeight'     => 16,
+              'axisLabelSize' => 18,
+              'color'         => 'color1',
+              'valueSuffix'   => '%',
+              'maxVal'        => 100
             ]); ?>
           </div>
         </div>
       </div>
     <?php endif; ?>
 
-    <div class="premium-blur-container w100 mt10">
-      <div class="premium-blur-content flex-column gap12 w100 pt5">
+    <div class="premium-blur-container w100">
+      <div class="premium-blur-content stats-chart-box flex-column gap12 w100">
         <div class="w100 wpx-max-650 mx-auto">
           <?= GraphicsModule::horizontalBars([
             'bars' => [
@@ -149,19 +155,21 @@
               ['label' => 'Colombia', 'value' => 12.0, 'display' => '12%'],
               ['label' => 'Chile', 'value' => 10.0, 'display' => '10%'],
             ],
-            'width'       => 650,
-            'color'       => 'color1',
-            'valueSuffix' => '%'
+            'width'         => 650,
+            'barHeight'     => 16,
+            'axisLabelSize' => 18,
+            'color'         => 'color1',
+            'valueSuffix'   => '%'
           ]); ?>
         </div>
       </div>
 
       <div class="premium-lock-overlay">
-        <span class="color-warning x28 mb6"><?= svg("lock", "x28"); ?></span>
-        <h4 class="m0 x18 bold700 texto mb4">Ranking Completo de Países y Ciudades</h4>
+        <span class="stats-icon-box mb10"><?= svg("lock", "x20"); ?></span>
+        <h4 class="m0 bold500 texto mb6">Ranking Completo de Países y Ciudades</h4>
         <p class="m0 color-secondary wpx-max-450 mb15">Desbloquea el mapa analítico detallado con todas las naciones y ciudades de donde provienen tus visitantes.</p>
         <a href="/planes" class="btn-premium-unlock">
-          <?= svg("lock", "x12"); ?>
+          <?= svg("lock", "x14"); ?>
           Desbloquear con Premium
         </a>
       </div>

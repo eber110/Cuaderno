@@ -35,7 +35,7 @@
 
       <!-- Enlace Ver perfil (smartphone) -->
       <div class="no-desk no-tablet">
-        <a href="/<?= e($username) ?>" class="back-card-graphic shadow-card-graphic hover-scale-soft p5 pl12 pr12 br50 texto pointer flex-row center-center gap5 nowrap flex-shrink-0"><?= svg("arrow-l-l") ?> <span>Ver perfil</span></a>
+        <a href="/<?= e($username) ?>" class="back-card-graphic shadow-card-graphic hover-scale-soft p8 pl14 pr14 br12 texto bold500 pointer flex-row center-center gap8 nowrap flex-shrink-0"><?= svg("arrow-l-l") ?> <span>Ver perfil</span></a>
       </div>
     </div>
 

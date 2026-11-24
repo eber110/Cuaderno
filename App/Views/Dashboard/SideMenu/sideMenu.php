@@ -72,12 +72,15 @@
 
     <div class="hidden">
       <div class="w100 flex-column center-center h-dvh">
-        <div class="flex-column gap20 wpx520 w-sml-100 back-card-graphic p20 br15">
-          <p class="bold500 texto">¿Desea cerrar sesión?</p>
+        <div class="flex-column gap20 wpx420 w-sml-100 back-card-graphic shadow-card-graphic p25 br18">
+          <div class="ui-field-header">
+            <p class="bold500 texto">¿Desea cerrar sesión?</p>
+            <span class="text-muted">Se cerrará tu sesión actual en este dispositivo.</span>
+          </div>
 
-          <div class="flex-row center-between gap10">
-            <a href="/salir" class="btn-card-graphic shadow-card-graphic hover-scale-soft text-c texto w100 bold500">Salir</a>
-            <p class="btn-card-graphic-red shadow-card-graphic hover-scale-soft text-c textc w100 pointer bold500 modal-close-button">Cancelar</p>
+          <div class="flex-row center-between gap12">
+            <a href="/salir" class="btn-card-graphic text-c texto w100 bold500">Salir</a>
+            <p class="btn-card-graphic-red text-c textw w100 pointer bold500 modal-close-button">Cancelar</p>
           </div>
         </div>
       </div>

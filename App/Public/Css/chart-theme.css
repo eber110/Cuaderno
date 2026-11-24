@@ -7,19 +7,19 @@
 
 :root {
   /* Color de barras principales */
-  --chart-bar-primary: #dc2626;
+  --chart-bar-primary: var(--back-color, #0B101E);
 
   /* Color de línea / tendencia / métrica destacada */
-  --chart-line-primary: #2563eb;
+  --chart-line-primary: var(--back-color, #0B101E);
 
   /* Color para segunda barra o serie secundaria */
-  --chart-bar-secondary: #059669;
+  --chart-bar-secondary: #64748b;
 
   /* Color de puntos y marcadores interactivos */
-  --chart-point-color: #2563eb;
+  --chart-point-color: var(--back-color, #0B101E);
 
   /* Color de las líneas de cuadrícula (grid) */
-  --chart-grid-border: #e2e8f0;
+  --chart-grid-border: rgba(15, 23, 42, 0.08);
 
   /* Color del texto y etiquetas en ejes */
   --chart-axis-text: #64748b;
@@ -30,11 +30,11 @@
 
 /* Configuración automática para Modo Oscuro */
 [data-theme="dark"] {
-  --chart-bar-primary: #ef4444;
-  --chart-line-primary: #3b82f6;
-  --chart-bar-secondary: #10b981;
-  --chart-point-color: #3b82f6;
-  --chart-grid-border: #334155;
+  --chart-bar-primary: #e2e8f0;
+  --chart-line-primary: #e2e8f0;
+  --chart-bar-secondary: #64748b;
+  --chart-point-color: #e2e8f0;
+  --chart-grid-border: rgba(255, 255, 255, 0.09);
   --chart-axis-text: #94a3b8;
   --chart-tooltip-theme: dark;
 }
