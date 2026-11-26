@@ -19,20 +19,8 @@ use Base\Module\MinifyModule;
 use Base\Module\JitCssModule;
 use Base\Module\ThemeModule;
 
-$composerJsonPath = ROOT_PATH . '/composer.json';
-$isFrameworkRepo = false;
-if (file_exists($composerJsonPath)) {
-    $composerData = json_decode((string)file_get_contents($composerJsonPath), true);
-    if (($composerData['name'] ?? '') === 'eber/framework') {
-        $isFrameworkRepo = true;
-    }
-}
-
-if ($isFrameworkRepo && !is_dir(ROOT_PATH . '/App')) {
-    echo "ℹ️  Repositorio del framework ('eber/framework') detectado sin carpeta /App.\n";
-    echo "   'frame min' compila los assets de proyectos derivados con estructura /App.\n";
-    exit(0);
-}
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame min'", ROOT_PATH);
 
 $cssPaths = [];
 

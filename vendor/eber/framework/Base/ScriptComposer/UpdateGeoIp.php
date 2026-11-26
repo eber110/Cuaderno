@@ -27,6 +27,11 @@ class UpdateGeoIp
 
         // Obtener la raíz del proyecto actual
         $baseDir = getcwd();
+
+        require_once __DIR__ . '/FrameworkGuard.php';
+        FrameworkGuard::abortIfFrameworkRepo("'frame geoip:update'", $baseDir);
+        require_once __DIR__ . '/FrameworkGuard.php';
+        \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame geoip:update'", $baseDir);
         if (file_exists($baseDir . '/.env')) {
             $dotenv = Dotenv::createImmutable($baseDir);
             $dotenv->load();

@@ -170,3 +170,491 @@
   font-family: 'Anton' !important;
   font-weight: 400 !important;
 }
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: AgravePro (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'AgravePro';
+  src: url('/App/Rsc/Fonts/agravepro/AgravePro-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.agravePro {
+  font-family: 'AgravePro' !important;
+}
+
+.agravePro400 {
+  font-family: 'AgravePro' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Barriecito (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Barriecito';
+  src: url('/App/Rsc/Fonts/barriecito/Barriecito-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.barriecito {
+  font-family: 'Barriecito' !important;
+}
+
+.barriecito400 {
+  font-family: 'Barriecito' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: BebasNeue (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'BebasNeue';
+  src: url('/App/Rsc/Fonts/bebasneue/BebasNeue-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.bebasNeue {
+  font-family: 'BebasNeue' !important;
+}
+
+.bebasNeue400 {
+  font-family: 'BebasNeue' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: BitcountSingle (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'BitcountSingle';
+  src: url('/App/Rsc/Fonts/bitcountsingle/BitcountSingle-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.bitcountSingle {
+  font-family: 'BitcountSingle' !important;
+}
+
+.bitcountSingle400 {
+  font-family: 'BitcountSingle' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Chewy (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Chewy';
+  src: url('/App/Rsc/Fonts/chewy/Chewy-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.chewy {
+  font-family: 'Chewy' !important;
+}
+
+.chewy400 {
+  font-family: 'Chewy' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Cinzel (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/App/Rsc/Fonts/cinzel/Cinzel-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.cinzel {
+  font-family: 'Cinzel' !important;
+}
+
+.cinzel400 {
+  font-family: 'Cinzel' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: DancingScript (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'DancingScript';
+  src: url('/App/Rsc/Fonts/dancingscript/DancingScript-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.dancingScript {
+  font-family: 'DancingScript' !important;
+}
+
+.dancingScript400 {
+  font-family: 'DancingScript' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: DMSerifDisplay (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'DMSerifDisplay';
+  src: url('/App/Rsc/Fonts/dmserifdisplay/DMSerifDisplay-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.dMSerifDisplay {
+  font-family: 'DMSerifDisplay' !important;
+}
+
+.dMSerifDisplay400 {
+  font-family: 'DMSerifDisplay' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Fascinate (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Fascinate';
+  src: url('/App/Rsc/Fonts/fascinate/Fascinate-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.fascinate {
+  font-family: 'Fascinate' !important;
+}
+
+.fascinate400 {
+  font-family: 'Fascinate' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: FontdinerSwanky (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'FontdinerSwanky';
+  src: url('/App/Rsc/Fonts/fontdinerswanky/FontdinerSwanky-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.fontdinerSwanky {
+  font-family: 'FontdinerSwanky' !important;
+}
+
+.fontdinerSwanky400 {
+  font-family: 'FontdinerSwanky' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: GravitasOne (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'GravitasOne';
+  src: url('/App/Rsc/Fonts/gravitasone/GravitasOne-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.gravitasOne {
+  font-family: 'GravitasOne' !important;
+}
+
+.gravitasOne400 {
+  font-family: 'GravitasOne' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE VARIABLE: Kablammo (Pesos: 100 - 900)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Kablammo';
+  src: url('/App/Rsc/Fonts/kablammo/Kablammo-Regular-VariableFont_MORF.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.kablammo {
+  font-family: 'Kablammo' !important;
+}
+
+.kablammo100 { font-family: 'Kablammo' !important; font-weight: 100 !important; }
+.kablammo200 { font-family: 'Kablammo' !important; font-weight: 200 !important; }
+.kablammo300 { font-family: 'Kablammo' !important; font-weight: 300 !important; }
+.kablammo400 { font-family: 'Kablammo' !important; font-weight: 400 !important; }
+.kablammo500 { font-family: 'Kablammo' !important; font-weight: 500 !important; }
+.kablammo600 { font-family: 'Kablammo' !important; font-weight: 600 !important; }
+.kablammo700 { font-family: 'Kablammo' !important; font-weight: 700 !important; }
+.kablammo800 { font-family: 'Kablammo' !important; font-weight: 800 !important; }
+.kablammo900 { font-family: 'Kablammo' !important; font-weight: 900 !important; }
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: LilitaOne (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'LilitaOne';
+  src: url('/App/Rsc/Fonts/lilitaone/LilitaOne-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.lilitaOne {
+  font-family: 'LilitaOne' !important;
+}
+
+.lilitaOne400 {
+  font-family: 'LilitaOne' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Lobster (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Lobster';
+  src: url('/App/Rsc/Fonts/lobster/Lobster-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.lobster {
+  font-family: 'Lobster' !important;
+}
+
+.lobster400 {
+  font-family: 'Lobster' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Monoton (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Monoton';
+  src: url('/App/Rsc/Fonts/monoton/Monoton-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.monoton {
+  font-family: 'Monoton' !important;
+}
+
+.monoton400 {
+  font-family: 'Monoton' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: MysteryQuest (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'MysteryQuest';
+  src: url('/App/Rsc/Fonts/mysteryquest/MysteryQuest-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.mysteryQuest {
+  font-family: 'MysteryQuest' !important;
+}
+
+.mysteryQuest400 {
+  font-family: 'MysteryQuest' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: PlayfairDisplay (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'PlayfairDisplay';
+  src: url('/App/Rsc/Fonts/playfairdisplay/PlayfairDisplay-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.playfairDisplay {
+  font-family: 'PlayfairDisplay' !important;
+}
+
+.playfairDisplay400 {
+  font-family: 'PlayfairDisplay' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: PlaywriteFRTrad (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'PlaywriteFRTrad';
+  src: url('/App/Rsc/Fonts/playwritefrtrad/PlaywriteFRTrad-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.playwriteFRTrad {
+  font-family: 'PlaywriteFRTrad' !important;
+}
+
+.playwriteFRTrad400 {
+  font-family: 'PlaywriteFRTrad' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: RobotoMono (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'RobotoMono';
+  src: url('/App/Rsc/Fonts/robotomono/RobotoMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.robotoMono {
+  font-family: 'RobotoMono' !important;
+}
+
+.robotoMono400 {
+  font-family: 'RobotoMono' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Sancreek (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Sancreek';
+  src: url('/App/Rsc/Fonts/sancreek/Sancreek-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.sancreek {
+  font-family: 'Sancreek' !important;
+}
+
+.sancreek400 {
+  font-family: 'Sancreek' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: ScienceGothic_ExtraExpanded (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'ScienceGothic_ExtraExpanded';
+  src: url('/App/Rsc/Fonts/sciencegothic_extraexpanded/ScienceGothic_ExtraExpanded-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.scienceGothicExtraExpanded {
+  font-family: 'ScienceGothic_ExtraExpanded' !important;
+}
+
+.scienceGothicExtraExpanded400 {
+  font-family: 'ScienceGothic_ExtraExpanded' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: Smokum (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Smokum';
+  src: url('/App/Rsc/Fonts/smokum/Smokum-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.smokum {
+  font-family: 'Smokum' !important;
+}
+
+.smokum400 {
+  font-family: 'Smokum' !important;
+  font-weight: 400 !important;
+}
+
+/* ==========================================================================
+   🔤 FUENTE ESTÁTICA: ZillaSlab (Peso: 400)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'ZillaSlab';
+  src: url('/App/Rsc/Fonts/zillaslab/ZillaSlab-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.zillaSlab {
+  font-family: 'ZillaSlab' !important;
+}
+
+.zillaSlab400 {
+  font-family: 'ZillaSlab' !important;
+  font-weight: 400 !important;
+}

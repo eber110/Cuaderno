@@ -25,6 +25,12 @@ if (!defined('ROOT_PATH')) {
   define('ROOT_PATH', $cwd);
 }
 
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame config:build'", $cwd);
+
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame config:build'", $cwd);
+
 $rotateKey = in_array('--rotate-key', $_SERVER['argv'] ?? [], true);
 
 echo "\n======================================================\n";

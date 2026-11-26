@@ -105,6 +105,9 @@ class DeployPackage
 
   public function run(array $args): void
   {
+    require_once __DIR__ . '/FrameworkGuard.php';
+    \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame package/deploy'", $this->basePath);
+
     $action = strtolower($args[1] ?? 'package');
 
     if ($action === 'deploy') {

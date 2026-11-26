@@ -24,6 +24,12 @@ if (!defined("ROOT_PATH")) {
   define("ROOT_PATH", str_replace("\\", "/", getcwd()));
 }
 
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame theme:build'", ROOT_PATH);
+
+require_once __DIR__ . "/FrameworkGuard.php";
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame theme:build'", ROOT_PATH);
+
 use Base\Module\ThemeModule;
 
 $args = array_slice($_SERVER["argv"] ?? [], 1);

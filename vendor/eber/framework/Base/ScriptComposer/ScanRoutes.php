@@ -18,15 +18,8 @@ if (!defined('ROOT_PATH')) {
 }
 
 // En el repositorio del framework no existe ni se genera /App
-$composerJsonPath = $basePath . '/composer.json';
-if (file_exists($composerJsonPath)) {
-  $composerData = json_decode((string)file_get_contents($composerJsonPath), true);
-  if (($composerData['name'] ?? '') === 'eber/framework') {
-    echo "ℹ️  Repositorio del framework ('eber/framework') detectado.\n";
-    echo "   No se escanean rutas de /App en el repositorio del framework (solo en proyectos derivados).\n";
-    exit(0);
-  }
-}
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame routes:scan'", $basePath);
 
 use Core\ConfigLoader\RouteLoader;
 use Base\Module\Security\RouteScanner;

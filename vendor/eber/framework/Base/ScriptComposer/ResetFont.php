@@ -12,6 +12,12 @@ if (php_sapi_name() !== 'cli') {
 // Ruta base del proyecto donde se ejecuta el comando
 $basePath = getcwd();
 
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:reset'", $basePath);
+
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:reset'", $basePath);
+
 // Obtener el recurso de entrada correcto para CLI interactivo
 $stdin = STDIN;
 if (getenv('APP_TEST_ENV') !== '1') {

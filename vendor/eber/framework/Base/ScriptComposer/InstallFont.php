@@ -12,6 +12,12 @@ if (php_sapi_name() !== 'cli') {
 // Intentar cargar la ruta base del proyecto
 $basePath = getcwd();
 
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:install'", $basePath);
+
+require_once __DIR__ . '/FrameworkGuard.php';
+\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:install'", $basePath);
+
 // Obtener el recurso de entrada correcto (evadiendo redirecciones en composer run-script)
 $stdin = STDIN;
 if (getenv('APP_TEST_ENV') !== '1') {
@@ -36,7 +42,8 @@ echo "==================================================\n\n";
 
 // 1. Solicitar ruta del archivo de fuente
 echo "1. Introduce la ruta absoluta o relativa de la fuente (.woff2, .woff, .ttf, .otf):\n> ";
-$sourcePath = trim(fgets($stdin));
+// Limpiar espacios y comillas simples o dobles envolventes (ej. al copiar la ruta desde el explorador)
+$sourcePath = trim((string) fgets($stdin), " \t\n\r\0\x0B\"'");
 
 if (!file_exists($sourcePath)) {
     die("❌ Error: El archivo especificado no existe en la ruta: '{$sourcePath}'\n");
@@ -216,9 +223,11 @@ if ($returnCode === 0) {
 } else {
     // Si no tiene composer global o falla, intentar ejecutar la ruta directa
     echo "⚠️  Intento con composer falló. Ejecutando MinJsCss.php de forma directa...\n";
-    $directCommand = "php Base/ScriptComposer/MinJsCss.php";
+    $directCommand = "php " . escapeshellarg(__DIR__ . '/MinJsCss.php');
     if (file_exists("vendor/eber/framework/Base/ScriptComposer/MinJsCss.php")) {
         $directCommand = "php vendor/eber/framework/Base/ScriptComposer/MinJsCss.php";
+    } elseif (file_exists("Base/ScriptComposer/MinJsCss.php")) {
+        $directCommand = "php Base/ScriptComposer/MinJsCss.php";
     }
     exec($directCommand, $outputDirect, $returnCodeDirect);
     if ($returnCodeDirect === 0) {

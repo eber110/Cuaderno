@@ -41,6 +41,11 @@ class RotateKeys
     $rotateMaster = in_array('--master-key', $args, true);
     $force        = in_array('--force', $args, true) || in_array('-y', $args, true);
 
+    if ($rotateMaster) {
+      require_once __DIR__ . '/FrameworkGuard.php';
+      \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame key:rotate --master-key'", $this->basePath);
+    }
+
     // Si no se pasaron flags específicos, rotar SEED y DEPLOY_TOKEN
     if (!$rotateSeed && !$rotateToken && !$rotateMaster) {
       $rotateSeed  = true;
