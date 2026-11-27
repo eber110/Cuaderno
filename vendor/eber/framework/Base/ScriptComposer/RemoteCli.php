@@ -22,9 +22,9 @@ class RemoteCli
   public const CONFIRMATION_ANSWERS = ['yes', 'y', 'Yes', 'YES'];
 
   /**
-   * Tamaño de fragmento para subida GeoIP (~4 MB).
+   * Tamaño de fragmento para subida GeoIP (~1.5 MB para compatibilidad con límites cPanel/WAF).
    */
-  public const GEOIP_CHUNK_BYTES = 4194304;
+  public const GEOIP_CHUNK_BYTES = 1572864;
 
   private string $basePath;
   private string $projectName;
@@ -547,7 +547,7 @@ class RemoteCli
           echo "❌ Error leyendo fragmento #{$idx}.\n\n";
           exit(1);
         }
-        $partTmp = $tmpWork . "/part_{$idx}.bin";
+        $partTmp = $tmpWork . "/geoip_chunk_{$idx}.gz";
         file_put_contents($partTmp, $data);
         $chunkSha = (string)hash_file('sha256', $partTmp);
 
@@ -1095,7 +1095,7 @@ class RemoteCli
       'chunk_index'  => (string)$chunkIndex,
       'chunk_total'  => (string)$chunkTotal,
       'chunk_sha256' => $chunkSha,
-      'chunk'        => new \CURLFile($partFile, 'application/octet-stream', basename($partFile)),
+      'chunk'        => new \CURLFile($partFile, 'application/gzip', basename($partFile)),
     ];
 
     $ch = curl_init();
