@@ -65,7 +65,7 @@
             </figure>
 
             <div class="flex-column gap4 w100 flex-1">
-              <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+              <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p profile-line-clamp profile-clamp-2">
                 <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
               </p>
 
@@ -146,7 +146,7 @@
               </figure>
 
               <div class="flex-column gap4 w100 flex-1">
-                <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+                <p data-sub-bind="title" data-sub-bind-keep-svg="true" class="bold500 w100 capitalize-p profile-line-clamp profile-clamp-2">
                   <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
                 </p>
 
@@ -228,7 +228,7 @@
               </figure>
 
               <div class="flex-column gap4 w100 flex-1">
-                <p class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+                <p class="bold500 w100 capitalize-p profile-line-clamp profile-clamp-2">
                   <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
                 </p>
 
@@ -319,7 +319,7 @@
                 </figure>
 
                 <div class="flex-column gap4 w100 flex-1">
-                  <p class="bold500 w100 capitalize-p cut-phrase" cant-col="2">
+                  <p class="bold500 w100 capitalize-p profile-line-clamp profile-clamp-2">
                     <?= svg("basket-shopping", "x20") ?> <?= e($pTitle) ?>
                   </p>
 

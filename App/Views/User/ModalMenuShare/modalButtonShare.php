@@ -65,7 +65,7 @@
     <?php if (!empty($displayDesc)) : ?>
       <p class="bold500 text-c x20 x-sml-20 textw"><?= e($displayDesc) ?></p>
     <?php endif; ?>
-    <p class="x16 text-c cut-phrase textw w100" cant-col="1"><?= e(urldecode($data["url"] ?? '')) ?></p>
+    <p class="x16 text-c profile-line-clamp profile-clamp-1 textw w100"><?= e(urldecode($data["url"] ?? '')) ?></p>
   </a>
 
   <?php if (!empty($data["share"]) && is_array($data["share"])) : ?>

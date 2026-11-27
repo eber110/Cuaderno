@@ -98,6 +98,26 @@ class UserControllers extends Control {
         \Base\Module\ViewOptimizerModule::preload($data["card"]["avatarSrc"], "image", ["fetchpriority" => "high"]);
       }
 
+      // Precarga de fuentes tipográficas activas del perfil para evitar FOUT
+      foreach (DesignModels::getProfileFontPreloadUrls($data["card"]) as $fontUrl) {
+        \Base\Module\ViewOptimizerModule::preload(
+          DOMAIN . ltrim($fontUrl, "/"),
+          "font",
+          ["type" => "font/woff2", "crossorigin" => "anonymous"]
+        );
+      }
+
+      // Precarga de la imagen de fondo cuando el estilo es imagen
+      if (($data["card"]["backCard"]["style_back"] ?? "solid") === "image"
+          && !empty($data["card"]["backCard"]["backImageSrc"])
+          && !str_contains((string)$data["card"]["backCard"]["backImageSrc"], "no-image.webp")) {
+        \Base\Module\ViewOptimizerModule::preload(
+          $data["card"]["backCard"]["backImageSrc"],
+          "image",
+          ["fetchpriority" => "high"]
+        );
+      }
+
       return $this->view("User.index", $data);
 
     } catch (\Throwable $e) {

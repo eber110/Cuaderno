@@ -426,7 +426,32 @@ class DeployPackage
 
     $zipKb = round(filesize($tempZip) / 1024, 2);
     echo "\n📦 Paquete ligero generado: {$zipKb} KB ({$fileCount} archivos).\n";
-    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/, .env, Base/Studio/, Docs/ y librerías inactivas excluidos.\n";
+    echo "🛡️  PROTECCIÓN ACTIVA: Database/, Uploads/, *.mmdb (GeoIP), .env, Base/Studio/, Docs/ y librerías inactivas excluidos.\n";
+
+    // Pre-validación local contra el límite anti-ZipBomb de deploy.php (32 MB por archivo individual)
+    $oversizedEntries = [];
+    $inspectZip = new ZipArchive();
+    if ($inspectZip->open($tempZip) === true) {
+      $maxSingle = 32 * 1024 * 1024;
+      for ($i = 0; $i < $inspectZip->numFiles; $i++) {
+        $st = $inspectZip->statIndex($i);
+        $entrySize = (int)($st['size'] ?? 0);
+        if ($entrySize > $maxSingle) {
+          $oversizedEntries[] = ($st['name'] ?? '?') . ' (' . round($entrySize / (1024 * 1024), 2) . ' MB)';
+        }
+      }
+      $inspectZip->close();
+    }
+    if (!empty($oversizedEntries)) {
+      @unlink($tempZip);
+      echo "\n❌ Despliegue abortado antes de transferir: los siguientes archivos exceden el límite de 32 MB por archivo:\n";
+      foreach ($oversizedEntries as $ov) {
+        echo "   • {$ov}\n";
+      }
+      echo "\n💡 Sugerencia: excluye archivos pesados o sincroniza GeoIP con 'frame remote:geoip'.\n\n";
+      exit(1);
+    }
+
     echo "\n⏳ Transfiriendo y actualizando servidor...\n";
 
     // 5. Enviar vía cURL por HTTP POST
@@ -527,6 +552,8 @@ class DeployPackage
     }
 
     $excludes = $this->getProductionExcludePaths($includeConfig, $rotateKey, $includeCompiledConfig);
+    $excludes[] = 'App/DatabaseComponent/GeoLite2-City';
+    $excludeExtensions = ['mmdb', 'sqlite', 'sqlite3', 'sqlite-wal', 'sqlite-shm'];
 
     $fileCount = 0;
     foreach ($updateItems as $item) {
@@ -535,7 +562,7 @@ class DeployPackage
       }
       $fullPath = $this->basePath . '/' . $item;
       if (is_dir($fullPath)) {
-        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes);
+        $fileCount += $this->addDirectoryToZip($zip, $fullPath, $item, $excludes, self::PRODUCTION_INCLUDE_OVERRIDES, $excludeExtensions);
       } elseif (is_file($fullPath)) {
         $zip->addFile($fullPath, $item);
         $fileCount++;
@@ -865,7 +892,8 @@ class DeployPackage
     string $dir,
     string $zipDir,
     array $excludePaths = [],
-    array $includeOverrides = self::PRODUCTION_INCLUDE_OVERRIDES
+    array $includeOverrides = self::PRODUCTION_INCLUDE_OVERRIDES,
+    array $excludeExtensions = []
   ): int {
     $count = 0;
     $iterator = new RecursiveIteratorIterator(
@@ -879,6 +907,17 @@ class DeployPackage
 
       if (self::isExcludedStudioPath($relativePath)) {
         continue;
+      }
+
+      if (str_contains($relativePath, '/.git/') || str_starts_with($relativePath, '.git/') || str_ends_with($relativePath, '/.git')) {
+        continue;
+      }
+
+      if (!empty($excludeExtensions) && $file->isFile()) {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        if ($ext !== '' && in_array($ext, $excludeExtensions, true)) {
+          continue;
+        }
       }
 
       // Comprobar si coincide con exclusiones
@@ -1205,22 +1244,41 @@ if ($remoteAction !== '') {
 
   $payload = [];
   if ($remoteAction === 'geoip_chunk') {
-    if (empty($_FILES['chunk']['tmp_name']) || !is_uploaded_file($_FILES['chunk']['tmp_name'])) {
-      http_response_code(400);
-      echo json_encode(['error' => 'No se recibió fragmento GeoIP válido.']);
-      exit;
+    if (!empty($_FILES['package']['tmp_name']) && is_uploaded_file($_FILES['package']['tmp_name'])) {
+      $actualPayloadSha = (string)@hash_file('sha256', (string)$_FILES['package']['tmp_name']);
+      if ($actualPayloadSha === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'No se pudo calcular el hash del paquete GeoIP recibido.']);
+        exit;
+      }
+    } elseif (!empty($_FILES['chunk']['tmp_name']) && is_uploaded_file($_FILES['chunk']['tmp_name'])) {
+      $chunkTmp = (string)$_FILES['chunk']['tmp_name'];
+      $uploadIdRaw = (string)($_POST['upload_id'] ?? '');
+      $chunkIndexRaw = (string)($_POST['chunk_index'] ?? '');
+      $chunkTotalRaw = (string)($_POST['chunk_total'] ?? '');
+      $actualChunkSha = (string)@hash_file('sha256', $chunkTmp);
+      if ($actualChunkSha === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'No se pudo calcular el hash del fragmento recibido.']);
+        exit;
+      }
+      $actualPayloadSha = hash('sha256', $uploadIdRaw . '|' . $chunkIndexRaw . '|' . $chunkTotalRaw . '|' . $actualChunkSha);
+    } else {
+      $rawBody = (string)file_get_contents('php://input');
+      if ($rawBody === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'No se recibió fragmento GeoIP válido.']);
+        exit;
+      }
+      $actualPayloadSha = hash('sha256', $rawBody);
+      $decodedPayload = json_decode($rawBody, true);
+      if (!is_array($decodedPayload)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Payload JSON de fragmento GeoIP inválido.']);
+        exit;
+      }
+      $payload = $decodedPayload;
     }
-    $chunkTmp = (string)$_FILES['chunk']['tmp_name'];
-    $uploadIdRaw = (string)($_POST['upload_id'] ?? '');
-    $chunkIndexRaw = (string)($_POST['chunk_index'] ?? '');
-    $chunkTotalRaw = (string)($_POST['chunk_total'] ?? '');
-    $actualChunkSha = (string)@hash_file('sha256', $chunkTmp);
-    if ($actualChunkSha === '') {
-      http_response_code(400);
-      echo json_encode(['error' => 'No se pudo calcular el hash del fragmento recibido.']);
-      exit;
-    }
-    $actualPayloadSha = hash('sha256', $uploadIdRaw . '|' . $chunkIndexRaw . '|' . $chunkTotalRaw . '|' . $actualChunkSha);
   } else {
     $rawBody = (string)file_get_contents('php://input');
     $actualPayloadSha = hash('sha256', $rawBody);
@@ -1417,10 +1475,63 @@ if ($remoteAction !== '') {
         return;
 
       case 'geoip_chunk':
-        $uploadId = (string)($_POST['upload_id'] ?? '');
-        $chunkIdxRaw = (string)($_POST['chunk_index'] ?? '');
-        $chunkTotalRaw = (string)($_POST['chunk_total'] ?? '');
-        $clientChunkSha = strtolower(trim((string)($_POST['chunk_sha256'] ?? '')));
+        $uploadId = '';
+        $chunkIdxRaw = '';
+        $chunkTotalRaw = '';
+        $clientChunkSha = '';
+        $chunkBytes = null;
+        $chunkTmpFile = null;
+
+        if (!empty($_FILES['package']['tmp_name']) && is_uploaded_file($_FILES['package']['tmp_name'])) {
+          $pkgTmp = (string)$_FILES['package']['tmp_name'];
+          if (!class_exists('ZipArchive')) {
+            @unlink($pkgTmp);
+            http_response_code(500);
+            echo json_encode(['error' => 'ZipArchive no está disponible en el servidor.']);
+            return;
+          }
+          $z = new ZipArchive();
+          if ($z->open($pkgTmp) !== true) {
+            @unlink($pkgTmp);
+            http_response_code(422);
+            echo json_encode(['error' => 'Paquete ZIP de fragmento GeoIP inválido o dañado.']);
+            return;
+          }
+          $metaRaw = $z->getFromName('meta.json');
+          $dataRaw = $z->getFromName('chunk.dat');
+          $z->close();
+          @unlink($pkgTmp);
+
+          $meta = is_string($metaRaw) ? json_decode($metaRaw, true) : null;
+          if (!is_array($meta) || !is_string($dataRaw)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Estructura interna del ZIP de fragmento GeoIP inválida.']);
+            return;
+          }
+          $uploadId = (string)($meta['upload_id'] ?? '');
+          $chunkIdxRaw = (string)($meta['chunk_index'] ?? '');
+          $chunkTotalRaw = (string)($meta['chunk_total'] ?? '');
+          $clientChunkSha = strtolower(trim((string)($meta['chunk_sha256'] ?? '')));
+          $chunkBytes = $dataRaw;
+        } elseif (isset($payload['chunk_b64'])) {
+          $uploadId = (string)($payload['upload_id'] ?? '');
+          $chunkIdxRaw = (string)($payload['chunk_index'] ?? '');
+          $chunkTotalRaw = (string)($payload['chunk_total'] ?? '');
+          $clientChunkSha = strtolower(trim((string)($payload['chunk_sha256'] ?? '')));
+          $decoded = base64_decode((string)$payload['chunk_b64'], true);
+          if ($decoded === false) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Contenido Base64 de fragmento GeoIP inválido.']);
+            return;
+          }
+          $chunkBytes = $decoded;
+        } else {
+          $uploadId = (string)($_POST['upload_id'] ?? '');
+          $chunkIdxRaw = (string)($_POST['chunk_index'] ?? '');
+          $chunkTotalRaw = (string)($_POST['chunk_total'] ?? '');
+          $clientChunkSha = strtolower(trim((string)($_POST['chunk_sha256'] ?? '')));
+          $chunkTmpFile = (string)($_FILES['chunk']['tmp_name'] ?? '');
+        }
 
         $validUploadId = preg_match("/^[a-f0-9]{16,64}$/", $uploadId) === 1;
         if (!$validUploadId || !ctype_digit($chunkIdxRaw) || !ctype_digit($chunkTotalRaw)) {
@@ -1431,21 +1542,30 @@ if ($remoteAction !== '') {
 
         $chunkIndex = (int)$chunkIdxRaw;
         $chunkTotal = (int)$chunkTotalRaw;
-        if ($chunkTotal < 1 || $chunkTotal > 256 || $chunkIndex < 0 || $chunkIndex >= $chunkTotal) {
+        if ($chunkTotal < 1 || $chunkTotal > 1024 || $chunkIndex < 0 || $chunkIndex >= $chunkTotal) {
           http_response_code(400);
           echo json_encode(['error' => 'Índices de fragmento GeoIP fuera de rango.']);
           return;
         }
 
-        $chunkTmp = (string)$_FILES['chunk']['tmp_name'];
-        $chunkSize = (int)@filesize($chunkTmp);
-        if ($chunkSize <= 0 || $chunkSize > 16 * 1024 * 1024) {
-          http_response_code(413);
-          echo json_encode(['error' => 'Tamaño de fragmento GeoIP inválido o excede 16 MB.']);
-          return;
+        if ($chunkBytes !== null) {
+          $chunkSize = strlen($chunkBytes);
+          if ($chunkSize <= 0 || $chunkSize > 16 * 1024 * 1024) {
+            http_response_code(413);
+            echo json_encode(['error' => 'Tamaño de fragmento GeoIP inválido o excede 16 MB.']);
+            return;
+          }
+          $actualChunkSha = strtolower(hash('sha256', $chunkBytes));
+        } else {
+          $chunkSize = (int)@filesize((string)$chunkTmpFile);
+          if ($chunkSize <= 0 || $chunkSize > 16 * 1024 * 1024) {
+            http_response_code(413);
+            echo json_encode(['error' => 'Tamaño de fragmento GeoIP inválido o excede 16 MB.']);
+            return;
+          }
+          $actualChunkSha = strtolower((string)@hash_file('sha256', (string)$chunkTmpFile));
         }
 
-        $actualChunkSha = strtolower((string)@hash_file('sha256', $chunkTmp));
         if ($clientChunkSha !== '' && !hash_equals($clientChunkSha, $actualChunkSha)) {
           http_response_code(422);
           echo json_encode(['error' => 'El SHA-256 del fragmento GeoIP no coincide.']);
@@ -1468,7 +1588,13 @@ if ($remoteAction !== '') {
         }
 
         $partFile = $chunkDir . '/chunk_' . $chunkIndex . '.part';
-        if (!@move_uploaded_file($chunkTmp, $partFile)) {
+        if ($chunkBytes !== null) {
+          if (@file_put_contents($partFile, $chunkBytes, LOCK_EX) === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'No se pudo almacenar el fragmento GeoIP en el servidor.']);
+            return;
+          }
+        } elseif (!@move_uploaded_file((string)$chunkTmpFile, $partFile)) {
           http_response_code(500);
           echo json_encode(['error' => 'No se pudo almacenar el fragmento GeoIP en el servidor.']);
           return;
@@ -1492,7 +1618,7 @@ if ($remoteAction !== '') {
 
         $validUploadId = preg_match("/^[a-f0-9]{16,64}$/", $uploadId) === 1;
         $validGzSha = preg_match("/^[a-f0-9]{64}$/", $expectedGzSha) === 1;
-        if (!$validUploadId || $chunkTotal < 1 || $chunkTotal > 256 || !$validGzSha) {
+        if (!$validUploadId || $chunkTotal < 1 || $chunkTotal > 1024 || !$validGzSha) {
           http_response_code(400);
           echo json_encode(['error' => 'Parámetros de confirmación GeoIP inválidos.']);
           return;
@@ -2135,10 +2261,11 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
   }
 
   if ($size < 0 || $size > $maxSingleFileBytes) {
+    $sizeMb = round($size / (1024 * 1024), 2);
     $zip->close();
     @unlink($zipPath);
     http_response_code(413);
-    echo json_encode(['error' => 'Paquete ZIP rechazado: archivo individual excede tamaño máximo permitido.']);
+    echo json_encode(['error' => "Paquete ZIP rechazado: archivo individual excede tamaño máximo permitido (32 MB): {$name} ({$sizeMb} MB)."]);
     exit;
   }
 
@@ -2157,7 +2284,7 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
     $allowedFiles[] = $name;
     continue;
   }
-  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/Safety/|App/Config/\.studio\..*\.local\.json$|Logs/|Cache/|Docs/|tests/|Base/Studio/|Base/ScriptComposer/|vendor/eber/framework/(Docs|tests|Base/Studio|Base/ScriptComposer)/|\.git/|\.env(\.|$)|deploy\.php$|Base/Views/themeStudio\.php$|Base/Control/ThemeStudioControl\.php$|vendor/eber/framework/Base/Views/themeStudio\.php$|vendor/eber/framework/Base/Control/ThemeStudioControl\.php$)#i', $name)) {
+  if (preg_match('#^(Database/|Uploads/|App/Public/Uploads/|App/DatabaseComponent/.*\.mmdb$|App/Safety/|App/Config/\.studio\..*\.local\.json$|Logs/|Cache/|Docs/|tests/|Base/Studio/|Base/ScriptComposer/|vendor/eber/framework/(Docs|tests|Base/Studio|Base/ScriptComposer)/|\.git/|\.env(\.|$)|deploy\.php$|Base/Views/themeStudio\.php$|Base/Control/ThemeStudioControl\.php$|vendor/eber/framework/Base/Views/themeStudio\.php$|vendor/eber/framework/Base/Control/ThemeStudioControl\.php$)#i', $name)) {
     continue;
   }
 

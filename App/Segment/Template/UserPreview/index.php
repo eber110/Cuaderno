@@ -40,7 +40,8 @@
     .user-profile-preview .theme-button a,
     .user-profile-preview .theme-button p:not(.text-success),
     .user-profile-preview .theme-button span:not(.theme-icon),
-    .user-profile-preview .theme-button .cut-phrase {
+    .user-profile-preview .theme-button .cut-phrase,
+    .user-profile-preview .theme-button .profile-line-clamp {
       color: var(--preview-btn-color);
     }
     .user-profile-preview .theme-icon,

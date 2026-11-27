@@ -26,7 +26,7 @@
       </figure>
     </div>
 
-    <p data-bind="title" class="flex-column center-center wrap bold500 w90 text-c cut-phrase" cant-col="2" style="flex-grow: 1; width: calc(134px - 100%);"><?= e($content);?></p>
+    <p data-bind="title" class="bold500 w90 text-c profile-line-clamp profile-clamp-2" style="flex-grow: 1; width: calc(134px - 100%);"><?= e($content);?></p>
   </a>
 
   <div class="flex-column center-end pr15 wrap">

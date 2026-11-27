@@ -108,7 +108,7 @@
 
       <!-- Espacio para la descripción en la franja inferior del banner -->
       <div data-bind-show="hasTitle" class="video-desc-wrap p12 pl15 pr15 w100 flex-row center-start" style="box-sizing: border-box;<?= !empty($title) ? '' : ' display: none;' ?>">
-        <p data-bind="title" class="bold500 cut-phrase w100 text-l" cant-col="2" style="margin: 0; color: inherit;"><?= e($title) ?></p>
+        <p data-bind="title" class="bold500 profile-line-clamp profile-clamp-2 w100 text-l" style="margin: 0; color: inherit;"><?= e($title) ?></p>
       </div>
 
     </a>
@@ -182,7 +182,7 @@
         </div>
         <?php if (!empty($title)) : ?>
           <div class="video-desc-wrap p12 pl15 pr15 w100 flex-row center-start" style="box-sizing: border-box;">
-            <p class="bold500 cut-phrase w100 text-l" cant-col="2" style="margin: 0; color: inherit;"><?= e($title) ?></p>
+            <p class="bold500 profile-line-clamp profile-clamp-2 w100 text-l" style="margin: 0; color: inherit;"><?= e($title) ?></p>
           </div>
         <?php endif; ?>
       </a>

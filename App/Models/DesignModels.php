@@ -21,6 +21,7 @@ class DesignModels extends Builder {
   public static ?string $videoUploadError = null;
   public static ?string $videoUploadSuccess = null;
   private static ?array $availableFontsCache = null;
+  private static ?array $fontFileUrlsCache = null;
   private static bool $fontColumnsVerified = false;
 
   /**
@@ -62,6 +63,7 @@ class DesignModels extends Builder {
     }
 
     $variantsByFamily = [];
+    self::$fontFileUrlsCache = [];
     foreach ($blocks[1] as $block) {
       if (!preg_match('/font-family\s*:\s*[\'"]?([^\'";\r\n]+)[\'"]?\s*;/i', $block, $mFam)) {
         continue;
@@ -90,6 +92,9 @@ class DesignModels extends Builder {
       $isRegularSrc = false;
       if (preg_match('/src\s*:\s*([^;\r\n]+)\s*;/i', $block, $mSrc)) {
         $isRegularSrc = stripos($mSrc[1], "regular") !== false;
+        if (preg_match('/url\(\s*[\'"]?([^\'")\s]+)[\'"]?\s*\)/i', $mSrc[1], $mUrl)) {
+          self::$fontFileUrlsCache[$family][$weight] = $mUrl[1];
+        }
       }
 
       $variantsByFamily[$family][] = [
@@ -189,6 +194,81 @@ class DesignModels extends Builder {
     }
     $defaultKey = self::getDefaultFontKey();
     return $fonts[$defaultKey];
+  }
+
+  /**
+   * Retorna las URLs de archivos tipográficos activos del perfil para precarga en <head>,
+   * excluyendo las que ya precarga preloadFonts.json para evitar duplicados.
+   *
+   * @param array $card Estructura de la tarjeta del perfil.
+   * @return array Lista de rutas relativas únicas existentes en disco.
+   */
+  public static function getProfileFontPreloadUrls(array $card): array {
+    self::getAvailableFonts();
+    if (empty(self::$fontFileUrlsCache)) {
+      return [];
+    }
+
+    $rootPath = defined("ROOT_PATH") ? ROOT_PATH : dirname(__DIR__, 2);
+    $alreadyPreloaded = [];
+    $preloadJsonPath = $rootPath . "/App/Config/preloadFonts.json";
+    if (is_file($preloadJsonPath)) {
+      $decoded = json_decode((string)@file_get_contents($preloadJsonPath), true);
+      if (is_array($decoded)) {
+        foreach ($decoded as $existingUrl) {
+          if (is_string($existingUrl) && $existingUrl !== "") {
+            $cleanExisting = "/" . ltrim((string)parse_url($existingUrl, PHP_URL_PATH), "/");
+            $alreadyPreloaded[$cleanExisting] = true;
+          }
+        }
+      }
+    }
+
+    $resolvedFonts = [
+      self::resolveFont((string)($card["font_title"] ?? "")),
+      self::resolveFont((string)($card["font_text"] ?? "")),
+      self::resolveFont((string)($card["font_button"] ?? "")),
+    ];
+
+    $candidates = [];
+    $usesGoogleSans = false;
+    foreach ($resolvedFonts as $font) {
+      $family = $font["family"] ?? "";
+      $weight = (int)($font["weight"] ?? 400);
+      if ($family === "" || empty(self::$fontFileUrlsCache[$family])) {
+        continue;
+      }
+      if ($family === "GoogleSansFlex_120pt") {
+        $usesGoogleSans = true;
+      }
+      if (isset(self::$fontFileUrlsCache[$family][$weight])) {
+        $candidates[] = self::$fontFileUrlsCache[$family][$weight];
+      } else {
+        $firstVariant = reset(self::$fontFileUrlsCache[$family]);
+        if (is_string($firstVariant) && $firstVariant !== "") {
+          $candidates[] = $firstVariant;
+        }
+      }
+    }
+
+    $cardStyle = $card["style"] ?? "buttonRegular";
+    if (($usesGoogleSans || in_array($cardStyle, ["buttonClay", "buttonGlass"], true))
+        && isset(self::$fontFileUrlsCache["GoogleSansFlex_120pt"][500])) {
+      $candidates[] = self::$fontFileUrlsCache["GoogleSansFlex_120pt"][500];
+    }
+
+    $urls = [];
+    foreach ($candidates as $rawUrl) {
+      $cleanPath = "/" . ltrim((string)parse_url((string)$rawUrl, PHP_URL_PATH), "/");
+      if ($cleanPath === "/" || isset($alreadyPreloaded[$cleanPath])) {
+        continue;
+      }
+      if (is_file($rootPath . $cleanPath)) {
+        $urls[] = $cleanPath;
+      }
+    }
+
+    return array_values(array_unique($urls));
   }
 
   /**

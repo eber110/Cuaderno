@@ -22,9 +22,9 @@ class RemoteCli
   public const CONFIRMATION_ANSWERS = ['yes', 'y', 'Yes', 'YES'];
 
   /**
-   * Tamaño de fragmento para subida GeoIP (~1.5 MB para compatibilidad con límites cPanel/WAF).
+   * Tamaño de fragmento por defecto para subida GeoIP ZIP-empaquetada (2 MB).
    */
-  public const GEOIP_CHUNK_BYTES = 1572864;
+  public const GEOIP_CHUNK_BYTES = 2097152;
 
   private string $basePath;
   private string $projectName;
@@ -171,7 +171,8 @@ class RemoteCli
         break;
       case 'geoip':
         $fileOpt = isset($opts['file']) && is_string($opts['file']) ? self::sanitizeInputPath($opts['file']) : null;
-        $this->handleGeoip($config, $fileOpt, $allowInsecureSsl);
+        $transportOpt = isset($opts['transport']) && is_string($opts['transport']) ? strtolower(trim($opts['transport'])) : null;
+        $this->handleGeoip($config, $fileOpt, $allowInsecureSsl, $transportOpt);
         break;
       case 'db-info':
         $this->handleDbInfo($config, $allowInsecureSsl);
@@ -227,7 +228,7 @@ class RemoteCli
           $options[$key] = $val;
         } else {
           $key = substr($arg, 2);
-          if (in_array($key, ['file', 'out', 'tables', 'lines'], true) && isset($args[$i + 1]) && !str_starts_with((string)$args[$i + 1], '--')) {
+          if (in_array($key, ['file', 'out', 'tables', 'lines', 'transport'], true) && isset($args[$i + 1]) && !str_starts_with((string)$args[$i + 1], '--')) {
             $options[$key] = (string)$args[++$i];
           } else {
             $options[$key] = true;
@@ -419,10 +420,15 @@ class RemoteCli
   }
 
   /**
-   * Ejecuta frame remote:geoip [--file=ruta].
+   * Ejecuta frame remote:geoip [--file=ruta] [--transport=zip|json].
    */
-  private function handleGeoip(array $config, ?string $localFile, bool $allowInsecureSsl): void
+  private function handleGeoip(array $config, ?string $localFile, bool $allowInsecureSsl, ?string $transportOpt = null): void
   {
+    if ($transportOpt !== null && !in_array($transportOpt, ['zip', 'json'], true)) {
+      echo "\n❌ Error: Transporte inválido '{$transportOpt}'. Usa --transport=zip o --transport=json.\n\n";
+      exit(1);
+    }
+
     $modeLabel = $localFile !== null
       ? "Subir archivo local '{$localFile}' a App/DatabaseComponent/GeoLite2-City.mmdb"
       : 'Descargar GeoLite2-City.mmdb en local (MaxMind) y subirlo por fragmentos al servidor';
@@ -527,42 +533,60 @@ class RemoteCli
       fclose($inFp);
       gzclose($gzFp);
 
-      $gzSize = (int)filesize($gzPath);
       $gzSha = (string)hash_file('sha256', $gzPath);
-      $chunkTotal = max(1, (int)ceil($gzSize / self::GEOIP_CHUNK_BYTES));
-      $uploadId = bin2hex(random_bytes(16));
+      $profiles = $transportOpt === 'json'
+        ? [
+            ['mode' => 'json', 'bytes' => 524288, 'label' => 'JSON Base64 (512 KB)'],
+            ['mode' => 'json', 'bytes' => 65536, 'label' => 'JSON Base64 (64 KB)'],
+          ]
+        : ($transportOpt === 'zip'
+          ? [
+              ['mode' => 'zip', 'bytes' => self::GEOIP_CHUNK_BYTES, 'label' => 'ZIP (2 MB)'],
+            ]
+          : [
+              ['mode' => 'zip', 'bytes' => self::GEOIP_CHUNK_BYTES, 'label' => 'ZIP (2 MB)'],
+              ['mode' => 'json', 'bytes' => 524288, 'label' => 'JSON Base64 (512 KB)'],
+              ['mode' => 'json', 'bytes' => 65536, 'label' => 'JSON Base64 (64 KB)'],
+            ]);
 
-      echo "🚀 Subiendo " . $this->formatBytes($gzSize) . " en {$chunkTotal} fragmento(s)...\n";
+      $uploadResult = null;
+      $profileCount = count($profiles);
+      foreach ($profiles as $pIdx => $profile) {
+        $attempt = $this->uploadGeoipWithProfile(
+          $config,
+          $gzPath,
+          $tmpWork,
+          $profile['mode'],
+          $profile['bytes'],
+          $profile['label'],
+          $allowInsecureSsl
+        );
 
-      $readFp = @fopen($gzPath, 'rb');
-      if (!$readFp) {
-        echo "❌ Error leyendo archivo comprimido temporal.\n\n";
+        if (!empty($attempt['ok'])) {
+          $uploadResult = $attempt;
+          break;
+        }
+
+        $httpCode = (int)($attempt['http_code'] ?? 0);
+        $hasFallback = ($pIdx + 1) < $profileCount;
+        if ($hasFallback && in_array($httpCode, [406, 413], true)) {
+          $nextLabel = $profiles[$pIdx + 1]['label'];
+          echo "⚠️  Servidor bloqueó/limitó fragmento inicial en {$profile['label']} (HTTP {$httpCode}). Reintentando automáticamente con {$nextLabel}...\n";
+          continue;
+        }
+
+        $this->assertSuccessResponse($attempt);
+      }
+
+      if ($uploadResult === null) {
+        echo "\n❌ Error en operación remota:\n   No se pudo completar la transferencia de fragmentos GeoIP.\n\n";
         exit(1);
       }
 
-      for ($idx = 0; $idx < $chunkTotal; $idx++) {
-        $data = fread($readFp, self::GEOIP_CHUNK_BYTES);
-        if ($data === false || $data === '') {
-          fclose($readFp);
-          echo "❌ Error leyendo fragmento #{$idx}.\n\n";
-          exit(1);
-        }
-        $partTmp = $tmpWork . "/geoip_chunk_{$idx}.gz";
-        file_put_contents($partTmp, $data);
-        $chunkSha = (string)hash_file('sha256', $partTmp);
-
-        $chunkRes = $this->sendGeoipChunk($config, $uploadId, $idx, $chunkTotal, $partTmp, $chunkSha, $allowInsecureSsl);
-        @unlink($partTmp);
-        $this->assertSuccessResponse($chunkRes);
-        $pct = round((($idx + 1) / $chunkTotal) * 100);
-        echo "   ✓ Fragmento " . ($idx + 1) . "/{$chunkTotal} ({$pct}%)\n";
-      }
-      fclose($readFp);
-
       echo "🔐 Verificando SHA-256 y aplicando reemplazo atómico en el servidor...\n";
       $commitRes = $this->sendJsonAction($config, 'geoip_commit', [
-        'upload_id'   => $uploadId,
-        'chunk_total' => $chunkTotal,
+        'upload_id'   => $uploadResult['upload_id'],
+        'chunk_total' => $uploadResult['chunk_total'],
         'gz_sha256'   => $gzSha,
         'mmdb_sha256' => $mmdbSha,
       ], $allowInsecureSsl);
@@ -574,6 +598,76 @@ class RemoteCli
     } finally {
       $this->removeDirectory($tmpWork);
     }
+  }
+
+  /**
+   * Transfiere un archivo .gz comprimido fragmentado usando el transporte indicado ('zip' o 'json').
+   *
+   * @return array<string, mixed>
+   */
+  private function uploadGeoipWithProfile(
+    array $config,
+    string $gzPath,
+    string $tmpWork,
+    string $mode,
+    int $chunkBytes,
+    string $label,
+    bool $allowInsecureSsl
+  ): array {
+    $gzSize = (int)filesize($gzPath);
+    $chunkTotal = max(1, (int)ceil($gzSize / $chunkBytes));
+    $uploadId = bin2hex(random_bytes(16));
+
+    echo "🚀 Subiendo " . $this->formatBytes($gzSize) . " en {$chunkTotal} fragmento(s) [{$label}]...\n";
+
+    $readFp = @fopen($gzPath, 'rb');
+    if (!$readFp) {
+      return ['success' => false, 'ok' => false, 'http_code' => 0, 'error' => 'Error leyendo archivo comprimido temporal.'];
+    }
+
+    for ($idx = 0; $idx < $chunkTotal; $idx++) {
+      $data = fread($readFp, $chunkBytes);
+      if ($data === false || $data === '') {
+        fclose($readFp);
+        return ['success' => false, 'ok' => false, 'http_code' => 0, 'error' => "Error leyendo fragmento #{$idx}."];
+      }
+      $chunkSha = hash('sha256', $data);
+
+      if ($mode === 'zip') {
+        $chunkRes = $this->sendGeoipChunkZip($config, $uploadId, $idx, $chunkTotal, $data, $chunkSha, $tmpWork, $allowInsecureSsl);
+      } else {
+        $chunkRes = $this->sendJsonAction($config, 'geoip_chunk', [
+          'upload_id'    => $uploadId,
+          'chunk_index'  => $idx,
+          'chunk_total'  => $chunkTotal,
+          'chunk_sha256' => $chunkSha,
+          'chunk_b64'    => base64_encode($data),
+        ], $allowInsecureSsl);
+      }
+
+      if (empty($chunkRes['success'])) {
+        fclose($readFp);
+        if ($idx === 0 && in_array((int)($chunkRes['http_code'] ?? 0), [406, 413], true)) {
+          return [
+            'ok'        => false,
+            'success'   => false,
+            'http_code' => (int)$chunkRes['http_code'],
+            'error'     => $chunkRes['error'] ?? 'Error subiendo fragmento #0',
+          ];
+        }
+        $this->assertSuccessResponse($chunkRes);
+      }
+
+      $pct = round((($idx + 1) / $chunkTotal) * 100);
+      echo "   ✓ Fragmento " . ($idx + 1) . "/{$chunkTotal} ({$pct}%)\n";
+    }
+    fclose($readFp);
+
+    return [
+      'ok'          => true,
+      'upload_id'   => $uploadId,
+      'chunk_total' => $chunkTotal,
+    ];
   }
 
   /**
@@ -1070,7 +1164,71 @@ class RemoteCli
   }
 
   /**
-   * Envía un fragmento binario GeoIP con firma HMAC-SHA256.
+   * Envía un fragmento binario GeoIP empaquetado en ZIP (idéntico en formato a frame deploy)
+   * para evitar bloqueos WAF/ModSecurity contra archivos binarios en cPanel.
+   *
+   * @return array<string, mixed>
+   */
+  private function sendGeoipChunkZip(
+    array $config,
+    string $uploadId,
+    int $chunkIndex,
+    int $chunkTotal,
+    string $chunkData,
+    string $chunkSha,
+    string $tmpWork,
+    bool $allowInsecureSsl
+  ): array {
+    $zipTmp = $tmpWork . "/geoip_chunk_{$chunkIndex}.zip";
+    $zip = new \ZipArchive();
+    if ($zip->open($zipTmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+      return ['success' => false, 'http_code' => 0, 'error' => "No se pudo crear ZIP temporal para fragmento #{$chunkIndex}."];
+    }
+
+    $metaJson = (string)json_encode([
+      'upload_id'    => $uploadId,
+      'chunk_index'  => $chunkIndex,
+      'chunk_total'  => $chunkTotal,
+      'chunk_sha256' => $chunkSha,
+    ], JSON_UNESCAPED_SLASHES);
+
+    $zip->addFromString('meta.json', $metaJson);
+    $zip->addFromString('chunk.dat', $chunkData);
+    if (method_exists($zip, 'setCompressionName')) {
+      @$zip->setCompressionName('chunk.dat', \ZipArchive::CM_STORE);
+    }
+    $zip->close();
+
+    $zipSha = (string)@hash_file('sha256', $zipTmp);
+    $headersAssoc = self::buildSignatureHeaders('geoip_chunk', $zipSha, $config['token'], $config['seed']);
+    $headers = ['Accept: application/json'];
+    foreach ($headersAssoc as $k => $v) {
+      $headers[] = $k . ': ' . $v;
+    }
+
+    $postData = [
+      'token'   => $config['token'],
+      'package' => new \CURLFile($zipTmp, 'application/zip', basename($zipTmp)),
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $config['url']);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'EberFrame-Deploy/1.0');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    $this->applyTlsOptions($ch, !$allowInsecureSsl);
+
+    $result = $this->executeAndDecodeCurl($ch);
+    @unlink($zipTmp);
+    return $result;
+  }
+
+  /**
+   * Envía un fragmento binario GeoIP vía multipart legacy con firma HMAC-SHA256.
    *
    * @return array<string, mixed>
    */
@@ -1156,17 +1314,19 @@ class RemoteCli
     curl_close($ch);
 
     if ($raw === false) {
-      return ['success' => false, 'error' => "Error de conexión cURL: {$curlError}"];
+      return ['success' => false, 'http_code' => $httpCode, 'error' => "Error de conexión cURL: {$curlError}"];
     }
 
     $json = json_decode((string)$raw, true);
     if ($httpCode === 200 && is_array($json) && !empty($json['success'])) {
+      $json['http_code'] = $httpCode;
       return $json;
     }
 
     return [
-      'success' => false,
-      'error'   => "Servidor respondió HTTP {$httpCode}: " . ($json['error'] ?? substr((string)$raw, 0, 300)),
+      'success'   => false,
+      'http_code' => $httpCode,
+      'error'     => "Servidor respondió HTTP {$httpCode}: " . ($json['error'] ?? substr((string)$raw, 0, 300)),
     ];
   }
 

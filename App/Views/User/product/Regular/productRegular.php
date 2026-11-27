@@ -31,7 +31,7 @@
     </div>
 
     <div class="flex-column gap5 w50 p15">
-      <p data-bind="title" data-bind-keep-svg="true" class="bold500 w100 text-l capitalize-p cut-phrase" cant-col="3"><?= svg("basket-shopping", "x20") ?> <?= e($content);?></p>
+      <p data-bind="title" data-bind-keep-svg="true" class="bold500 w100 text-l capitalize-p profile-line-clamp profile-clamp-3"><?= svg("basket-shopping", "x20") ?> <?= e($content);?></p>
       <p data-bind="price" data-bind-prefix="$" data-bind-show="isRegularPrice" class="bold500" style="<?= (!$isOffer && $price !== '') ? '' : 'display: none;' ?>">$<?= e($price)?></p>
       <div data-bind-show="isOffer" class="flex-column center-start gap0" style="<?= ($isOffer) ? '' : 'display: none;' ?>">
         <p data-bind="price" data-bind-prefix="$" class="bold500" style="text-decoration:line-through;color: oklch(from <?= safeCssColor($card["color"] ?? "#000000", "#000000") ?> calc(l * 1) c h /30%);">$<?= e($price)?></p>

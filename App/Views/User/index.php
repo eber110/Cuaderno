@@ -1,6 +1,8 @@
 <?php
   /** @var mixed $card */
   _part("User.style.css", ["card" => $card]);
+  $backPerfilRaw    = safeCssColor($card["backCard"]["back_perfil"] ?? "#a0a0a0", "#a0a0a0");
+  $profileBgColor   = safeCssColor(\App\Models\DesignModels::getContainerSolidColor($backPerfilRaw), "#a0a0a0");
   $styleBack        = $card["backCard"]["style_back"] ?? "solid";
   $backVideo        = $card["backCard"]["back_video"] ?? "";
   $buttonStyle      = $card["style"] ?? "buttonRegular";
@@ -10,6 +12,20 @@
     default       => ""
   };
 ?>
+<style>
+  html, body {
+    background-color: <?= $profileBgColor ?> !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    scrollbar-gutter: auto !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+</style>
 <div data-profile-user="<?= e($card["profile"] ?? "") ?>" class="container-xl container-xl-sml flex-column center-center text-protected back-card-container overflow-hidden position-relative">
   <div class="wpx580 w-sml-100 h-dvh pt40 p-sml-0 z-index-1">
     <div class="flex-column between-center back-card color-text-card shadow-card dvh-cuaderno h100 p0 brtl-desk-30 brtr-desk-30 brtl-mid-30 brtr-mid-30 brtl-sml-0 brtr-sml-0 overflow-hidden position-relative <?= $buttonStyleClass ?>">

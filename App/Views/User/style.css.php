@@ -477,7 +477,8 @@
   .video-block-wrapper,
   .header-variant-wrapper,
   .cut-phrase,
-  .cut-phrase-wrapper {
+  .cut-phrase-wrapper,
+  .profile-line-clamp {
     word-break: normal !important;
     overflow-wrap: break-word !important;
     hyphens: none !important;

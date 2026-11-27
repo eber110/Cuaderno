@@ -28,10 +28,54 @@ body,
   scroll-behavior: auto !important;
 }
 
+/* Anti-FOUC para floatingScroll.js: ocultar scrollbar nativo y gutter estable desde el primer paint */
+html.js-loading,
+html.js-loading body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-gutter: auto !important;
+}
+
+html.js-loading::-webkit-scrollbar,
+html.js-loading body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Bloqueo de viewport y scrollbar nativo en la página pública del perfil */
+html:has(.back-card-container),
+body:has(.back-card-container) {
+  overflow: hidden !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-gutter: auto !important;
+}
+
+html:has(.back-card-container)::-webkit-scrollbar,
+body:has(.back-card-container)::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 .overflow-y-scroll{
   overflow-y: scroll;
   scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-gutter: auto;
   scroll-behavior: auto !important;
+}
+
+.overflow-y-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 .back-card-container {
@@ -1230,6 +1274,7 @@ label:focus-within > .input-note.animated,
 /* Evitar que las palabras se partan a la mitad en truncamiento dinámico y bloques de usuario */
 .cut-phrase,
 .cut-phrase-wrapper,
+.profile-line-clamp,
 .product-item-wrapper,
 .product-grid-card,
 .product-slide-card,
@@ -1243,6 +1288,33 @@ label:focus-within > .input-note.animated,
   word-break: normal !important;
   overflow-wrap: break-word !important;
   hyphens: none !important;
+}
+
+/* Truncamiento multilínea en CSS puro sin FOUC ni espera de JS */
+.profile-line-clamp {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  max-height: 100%;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+}
+
+.profile-clamp-1 {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.profile-clamp-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.profile-clamp-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 /* ==========================================================================
