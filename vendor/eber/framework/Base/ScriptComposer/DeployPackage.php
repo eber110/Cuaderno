@@ -42,6 +42,16 @@ class DeployPackage
    */
   public const DEPLOY_CONFIRMATION_ANSWERS = ['yes', 'y', 'Yes', 'YES'];
 
+  /**
+   * Archivos específicos dentro de directorios excluidos que deben conservarse en producción
+   * (ej. font-project.css como catálogo de fuentes instaladas para selectores runtime).
+   *
+   * @var array<int, string>
+   */
+  public const PRODUCTION_INCLUDE_OVERRIDES = [
+    'App/Public/Css/font-project.css',
+  ];
+
   private string $basePath;
   private string $projectName;
   private string $frameworkPath;
@@ -847,10 +857,16 @@ class DeployPackage
   }
 
   /**
-   * Agrega un directorio recursivamente al ZIP excluyendo patrones especificados.
+   * Agrega un directorio recursivamente al ZIP excluyendo patrones especificados
+   * y respetando excepciones puntuales de archivos requeridos en producción.
    */
-  private function addDirectoryToZip(ZipArchive $zip, string $dir, string $zipDir, array $excludePaths = []): int
-  {
+  private function addDirectoryToZip(
+    ZipArchive $zip,
+    string $dir,
+    string $zipDir,
+    array $excludePaths = [],
+    array $includeOverrides = self::PRODUCTION_INCLUDE_OVERRIDES
+  ): int {
     $count = 0;
     $iterator = new RecursiveIteratorIterator(
       new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
@@ -875,7 +891,20 @@ class DeployPackage
       }
 
       if ($isExcluded) {
-        continue;
+        $isOverrideIncluded = false;
+        foreach ($includeOverrides as $inc) {
+          if ($relativePath === $inc) {
+            $isOverrideIncluded = true;
+            break;
+          }
+          if ($file->isDir() && str_starts_with($inc, $relativePath . '/') && is_file($this->basePath . '/' . $inc)) {
+            $isOverrideIncluded = true;
+            break;
+          }
+        }
+        if (!$isOverrideIncluded) {
+          continue;
+        }
       }
 
       if ($file->isDir()) {

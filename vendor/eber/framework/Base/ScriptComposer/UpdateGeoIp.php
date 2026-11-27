@@ -30,8 +30,6 @@ class UpdateGeoIp
 
         require_once __DIR__ . '/FrameworkGuard.php';
         FrameworkGuard::abortIfFrameworkRepo("'frame geoip:update'", $baseDir);
-        require_once __DIR__ . '/FrameworkGuard.php';
-        \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame geoip:update'", $baseDir);
         if (file_exists($baseDir . '/.env')) {
             $dotenv = Dotenv::createImmutable($baseDir);
             $dotenv->load();

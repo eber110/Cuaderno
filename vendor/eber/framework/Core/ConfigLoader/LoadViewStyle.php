@@ -47,6 +47,19 @@ class LoadViewStyle
   }
 
   /**
+   * Determina si ROOT_PATH corresponde al repositorio del framework ('eber/framework').
+   */
+  private function isFrameworkRepo(): bool
+  {
+    $root = defined('ROOT_PATH') ? rtrim(str_replace('\\', '/', (string)ROOT_PATH), '/') : '';
+    if ($root === '' || !is_file($root . '/composer.json')) {
+      return false;
+    }
+    $data = json_decode((string)@file_get_contents($root . '/composer.json'), true);
+    return is_array($data) && (($data['name'] ?? '') === 'eber/framework');
+  }
+
+  /**
    * Convierte una ruta de filesystem a una URL relativa.
    */
   private function fsPathToUrl(string $fsPath): string
@@ -312,6 +325,12 @@ class LoadViewStyle
     } elseif (is_dir($legacyPublicDir)) {
       $libDir = $legacyPublicDir;
       $urlBase = DOMAIN . ltrim($this->fsPathToUrl($legacyPublicDir), '/') . '/';
+    } elseif ($this->isFrameworkRepo()) {
+      $frameworkDir = ROOT_PATH . '/Resources/Library/' . $ruteClean;
+      if (is_dir($frameworkDir)) {
+        $libDir = $frameworkDir;
+        $urlBase = DOMAIN . ltrim($this->fsPathToUrl($frameworkDir), '/') . '/';
+      }
     } else {
       $vendorCandidates = [
         ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $ruteClean,
@@ -428,6 +447,11 @@ class LoadViewStyle
       $filePath = $publicFile;
     } elseif (is_file($legacyFile)) {
       $filePath = $legacyFile;
+    } elseif ($this->isFrameworkRepo()) {
+      $frameworkFile = ROOT_PATH . '/Resources/Library/' . $fileName;
+      if (is_file($frameworkFile)) {
+        $filePath = $frameworkFile;
+      }
     } else {
       $vendorFileCandidates = [
         ROOT_PATH . '/vendor/eber/framework/Resources/Library/' . $fileName,
@@ -463,7 +487,10 @@ class LoadViewStyle
     }
 
     $v = ($filePath !== null && file_exists($filePath)) ? '?v=' . filemtime($filePath) : '';
-    $js = '<script src="' . DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $fileName . $v . '" ' . $jsParam . '></script>';
+    $publicUrl = $this->isFrameworkRepo()
+      ? DOMAIN . ltrim($this->fsPathToUrl($filePath), '/')
+      : DOMAIN . ltrim(URL_RESOURCE, '/') . 'Library/' . $fileName;
+    $js = '<script src="' . $publicUrl . $v . '" ' . $jsParam . '></script>';
     print $js;
   }
 

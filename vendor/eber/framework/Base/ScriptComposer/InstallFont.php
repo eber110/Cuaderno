@@ -15,9 +15,6 @@ $basePath = getcwd();
 require_once __DIR__ . '/FrameworkGuard.php';
 \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:install'", $basePath);
 
-require_once __DIR__ . '/FrameworkGuard.php';
-\Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame font:install'", $basePath);
-
 // Obtener el recurso de entrada correcto (evadiendo redirecciones en composer run-script)
 $stdin = STDIN;
 if (getenv('APP_TEST_ENV') !== '1') {

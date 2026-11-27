@@ -17,12 +17,12 @@ if (!defined('ROOT_PATH')) {
   define('ROOT_PATH', $basePath);
 }
 
+use Core\ConfigLoader\RouteLoader;
+use Base\Module\Security\RouteScanner;
+
 // En el repositorio del framework no existe ni se genera /App
 require_once __DIR__ . '/FrameworkGuard.php';
 \Base\ScriptComposer\FrameworkGuard::abortIfFrameworkRepo("'frame routes:scan'", $basePath);
-
-use Core\ConfigLoader\RouteLoader;
-use Base\Module\Security\RouteScanner;
 
 echo "🔍 Escaneando rutas de la aplicación en /App/Route...\n";
 

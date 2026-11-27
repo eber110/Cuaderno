@@ -104,6 +104,7 @@ frame/                         # Repositorio del framework (también es un proye
 10. **No comitear** en el repositorio del framework: `/App/`, `.env`, `Logs/`, `Cache/`, `Uploads/`, `Database/*.sqlite`, `*.mmdb`, `dist/`.
 11. **Internacionalización (i18n):** Todo texto visible en vistas debe pasar por `__('grupo.clave')` (o `t()` / `__n()`) para permitir soporte multiidioma (`APP_MULTILANG` en `.env`) sin reescribir plantillas.
 12. **Entorno *fail-closed*:** `APP_ENV` vacío o desconocido opera como `'production'`; configurar `FORCE_DOMAIN` / `ALLOWED_HOSTS` y `TRUSTED_PROXIES` en producción (y reglas Nginx si aplica: `Docs/DEPLOY_NGINX.md`).
+13. **Cero `/App` en el repositorio del framework:** `/App` solo existe en proyectos derivados. Todos los scripts CLI que operan sobre `/App` usan `Base\ScriptComposer\FrameworkGuard` para abortar en `eber/framework`, y toda prueba de scripts CLI, vistas o subidas debe ejecutarse en un directorio temporal aislado (`sys_get_temp_dir()`).
 
 ---
 
