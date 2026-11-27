@@ -939,6 +939,15 @@ ENV;
       'scan-routes'        => '@php vendor/eber/framework/Base/ScriptComposer/ScanRoutes.php',
       'convert-image'      => '@php vendor/eber/framework/Base/ScriptComposer/ConvertImage.php',
       'key:rotate'         => '@php vendor/eber/framework/Base/ScriptComposer/RotateKeys.php',
+      'remote:health'      => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php health',
+      'remote:geoip'       => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php geoip',
+      'remote:db-info'     => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-info',
+      'remote:db-pull'     => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-pull',
+      'remote:db-truncate' => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-truncate',
+      'remote:cache-clear' => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php cache-clear',
+      'remote:logs'        => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php logs',
+      'remote:logs-clear'  => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php logs-clear',
+      'remote:sync-receiver' => '@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php sync-receiver',
       'make:controller'    => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php controller',
       'make:model'         => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php model',
       'make:component'     => '@php vendor/eber/framework/Base/ScriptComposer/MakeCli.php component',
@@ -1275,6 +1284,7 @@ PHP;
       'deploy.php',
       'deploy.json',
       '/dist/',
+      '/backups/',
       '*.zip',
       '/App/Public/Min/',
       '/Cache/*',
@@ -1310,6 +1320,9 @@ PHP;
           if (($pattern === '/Database/' || $pattern === '/Database/*') && (str_contains($content, '/Database/*') || str_contains($content, '/Database/'))) {
             continue;
           }
+          if ($pattern === '/backups/' && (str_contains($content, '/backups/') || str_contains($content, 'backups/'))) {
+            continue;
+          }
           $missing[] = $pattern;
         }
       }
@@ -1339,6 +1352,7 @@ App/Safety/vault.key.php
 deploy.php
 deploy.json
 /dist/
+/backups/
 /App/Public/Min/
 /Cache/*
 !/Cache/.gitkeep
@@ -1422,6 +1436,9 @@ GITIGNORE;
       if (!str_contains($deployContent, 'DEPLOY_ENABLED') || !str_contains($deployContent, 'OPSYS_UNIX')) {
         echo "⚠️  Aviso de seguridad: Tu 'deploy.php' existente proviene de una versión anterior sin bloqueo GET 404, rate-limiting ni validación anti-symlinks/ZipBomb.\n";
         echo "   Recomendado: elimínalo y ejecuta 'frame init' para regenerarlo, o agrega DEPLOY_ENABLED=\"false\" en tu .env de producción.\n";
+      } elseif (!str_contains($deployContent, 'X_DEPLOY_ACTION')) {
+        echo "ℹ️  Aviso: Tu 'deploy.php' aún no soporta operaciones remotas ('frame remote:*').\n";
+        echo "   Ejecuta 'frame remote:sync-receiver' para regenerarlo conservando tu token y súbelo una única vez a producción.\n";
       } else {
         echo "⏭️  Saltado: deploy.php (ya existe)\n";
       }

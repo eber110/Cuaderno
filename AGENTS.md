@@ -55,6 +55,7 @@ tu-proyecto/
 │
 ├── Bootstrap/App.php          # Ciclo de vida de providers (no tocar)
 ├── Database/                  # Bases de datos locales (analytics.sqlite, GeoLite2-City.mmdb, gitignored)
+├── backups/                   # Respaldos remotos descargados con frame remote:db-pull (gitignored)
 ├── Cache/                     # Caché (gitignored)
 ├── Logs/                      # Logs de ejecución (gitignored)
 ├── Uploads/                   # Subidas (gitignored)
@@ -368,6 +369,17 @@ frame image:convert                  # Conversor de imágenes (composer convert-
 frame package                                     # Genera ZIP ligero inicial con Vault AEAD (composer package)
 frame deploy [--all] [--config] [--rotate-key]    # Despliega cambios (y opcionalmente Vault) vía HTTP (composer deploy)
 frame config:build [--rotate-key]                 # Compila configuración de producción y Vault AEAD (composer config:build)
+
+# Operaciones Remotas (Producción)
+frame remote:health                               # Diagnóstico remoto (PHP, extensiones, disco, SQLite y GeoIP)
+frame remote:geoip [--file=ruta]                  # Descarga/sube GeoLite2-City.mmdb por fragmentos con SHA-256
+frame remote:db-info                              # Lista tablas, filas y modo journal de SQLite en producción
+frame remote:db-pull [--out=ruta]                 # Descarga snapshot consistente (VACUUM INTO) a backups/
+frame remote:db-truncate [--tables=t1,t2]         # Respalda y trunca tablas SQLite reiniciando AUTOINCREMENT a 1
+frame remote:cache-clear                          # Limpia Cache/Views/* e invalida OPcache en producción
+frame remote:logs [archivo] [lineas]              # Lista logs o muestra últimas N líneas dentro de Logs/
+frame remote:logs-clear [archivo]                 # Vacía archivos en Logs/ conservando subcarpetas
+frame remote:sync-receiver                        # Regenera deploy.php local conservando DEPLOY_TOKEN
 
 # Fuentes Tipográficas
 frame font:install                   # Instalar fuentes woff2/ttf/otf (composer install-font)

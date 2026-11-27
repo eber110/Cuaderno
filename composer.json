@@ -46,6 +46,15 @@
         "lang:check": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php check",
         "lang:scan": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php scan",
         "lang:export": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php export",
-        "lang:import": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php import"
+        "lang:import": "@php vendor/eber/framework/Base/ScriptComposer/LangCli.php import",
+        "remote:health": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php health",
+        "remote:geoip": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php geoip",
+        "remote:db-info": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-info",
+        "remote:db-pull": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-pull",
+        "remote:db-truncate": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php db-truncate",
+        "remote:cache-clear": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php cache-clear",
+        "remote:logs": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php logs",
+        "remote:logs-clear": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php logs-clear",
+        "remote:sync-receiver": "@php vendor/eber/framework/Base/ScriptComposer/RemoteCli.php sync-receiver"
     }
 }

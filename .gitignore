@@ -94,3 +94,6 @@ App/Config/*.local.json
 App/Safety/vault.key.php
 deploy.php
 deploy.json
+
+# Reglas esenciales del framework (sincronizadas por InitAppStructure)
+/backups/

@@ -149,6 +149,17 @@ frame package                                     # Genera ZIP inicial ligero co
 frame deploy [--all] [--config] [--rotate-key]    # Despliega código (y opcionalmente Vault) vía HTTP (composer deploy)
 frame config:build [--rotate-key]                 # Compila configuración de producción y Vault AEAD (composer config:build)
 
+# Operaciones Remotas (Producción)
+frame remote:health                               # Diagnóstico remoto (PHP, extensiones, disco, SQLite y GeoIP)
+frame remote:geoip [--file=ruta]                  # Descarga/sube GeoLite2-City.mmdb por fragmentos con SHA-256
+frame remote:db-info                              # Lista tablas, filas y modo journal de SQLite en producción
+frame remote:db-pull [--out=ruta]                 # Descarga snapshot consistente (VACUUM INTO) a backups/
+frame remote:db-truncate [--tables=t1,t2]         # Respalda y trunca tablas SQLite reiniciando AUTOINCREMENT a 1
+frame remote:cache-clear                          # Limpia Cache/Views/* e invalida OPcache en producción
+frame remote:logs [archivo] [lineas]              # Lista logs o muestra últimas N líneas dentro de Logs/
+frame remote:logs-clear [archivo]                 # Vacía archivos en Logs/ conservando subcarpetas
+frame remote:sync-receiver                        # Regenera deploy.php local conservando DEPLOY_TOKEN
+
 # Optimización y Assets
 frame theme:build [--force]          # Compila theme.json a _configTheme.css (composer theme:build)
 frame theme:studio [--port=8000]     # Muestra URL de acceso a Theme Studio (composer theme:studio)
